@@ -6,6 +6,7 @@
 
 #include "TileType.hpp"
 #include "TextureManager.hpp"
+#include "Camera.hpp"
 
 class Chunk
 {
@@ -15,7 +16,10 @@ public:
 
     void generateChunk(const FastNoiseLite& noise);
 
-    void drawChunk(sf::RenderWindow& window, sf::Vector2f cameraPos);
+    void drawChunkTerrain(sf::RenderWindow& window);
+    void drawChunkObjects(sf::RenderWindow& window, sf::Vector2f* playerPos = nullptr);
+
+    bool isPointInChunk(sf::Vector2f position);
 
 private:
     std::array<std::array<TileType, 8>, 8> groundTileGrid;

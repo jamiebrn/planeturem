@@ -8,29 +8,9 @@
 
 #include "TextureManager.hpp"
 #include "Chunk.hpp"
-
-float lerp(float start, float dest, float weight)
-{
-    return start + weight * (dest - start);
-}
-
-struct ChunkPosition
-{
-    int x, y;
-    ChunkPosition(int _x, int _y) : x(_x), y(_y) {}
-    bool operator==(const ChunkPosition& other) const
-    {
-        return (x == other.x && y == other.y);
-    }
-    bool operator<(const ChunkPosition& other) const
-    {
-        if (y != other.y)
-        {
-            return y < other.y;
-        }
-        return x < other.x;
-    }
-};
+#include "ChunkPosition.hpp"
+#include "Camera.hpp"
+#include "Helper.hpp"
 
 int main()
 {
@@ -42,7 +22,6 @@ int main()
     TextureManager::loadTextures(window);
 
     sf::Vector2f playerPos(500, 200);
-    sf::Vector2f cameraPos(0, 0);
     sf::Vector2f selectPos(0, 0);
 
     // sf::Shader shader;
@@ -79,16 +58,15 @@ int main()
 
         playerPos += direction * 300.0f * dt;
 
-        sf::Vector2f mouseWorldPos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)) + cameraPos;
-        selectPos.x = lerp(selectPos.x, std::floor(mouseWorldPos.x / 48) * 48, 25 * dt);
-        selectPos.y = lerp(selectPos.y, std::floor(mouseWorldPos.y / 48) * 48, 25 * dt);
+        sf::Vector2f mouseWorldPos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)) - Camera::getDrawOffset();
+        selectPos.x = Helper::lerp(selectPos.x, std::floor(mouseWorldPos.x / 48) * 48, 25 * dt);
+        selectPos.y = Helper::lerp(selectPos.y, std::floor(mouseWorldPos.y / 48) * 48, 25 * dt);
 
-        cameraPos.x = lerp(cameraPos.x, playerPos.x - window.getSize().x / 2.0f, 6 * dt);
-        cameraPos.y = lerp(cameraPos.y, playerPos.y - window.getSize().y / 2.0f, 6 * dt);
+        Camera::update(playerPos, dt);
 
         // Chunk load/unload
-        sf::Vector2f screenTopLeft = cameraPos;
-        sf::Vector2f screenBottomRight = cameraPos + sf::Vector2f(1280, 720);
+        sf::Vector2f screenTopLeft = -Camera::getDrawOffset();
+        sf::Vector2f screenBottomRight = -Camera::getDrawOffset() + sf::Vector2f(1280, 720);
         sf::Vector2i screenTopLeftGrid(std::floor(screenTopLeft.x / (48 * 8)), std::floor(screenTopLeft.y / (48 * 8)));
         sf::Vector2i screenBottomRightGrid = screenTopLeftGrid + sf::Vector2i(std::ceil(1280.0f / (48 * 8)), std::ceil(720.0f / (48 * 8)));
 
@@ -126,13 +104,27 @@ int main()
         {
             ChunkPosition chunkPos = chunkPair.first;
             std::unique_ptr<Chunk>& chunk = chunkPair.second;
-
-            chunk->drawChunk(window, cameraPos);
+            
+            chunk->drawChunkTerrain(window);
         }
 
-        TextureManager::drawTexture(window, {TextureType::SelectTile, selectPos - cameraPos, 0, 3});
+        ChunkPosition playerChunkPos(std::floor(playerPos.x / (48 * 8)), std::floor(playerPos.y / (48 * 8)));
 
-        TextureManager::drawTexture(window, {TextureType::Player, playerPos - cameraPos, 0, 3, {0.5, 0.5}});
+        for (auto& chunkPair : chunks)
+        {
+            ChunkPosition chunkPos = chunkPair.first;
+            std::unique_ptr<Chunk>& chunk = chunkPair.second;
+
+            if (chunkPos == playerChunkPos)
+            {
+                chunk->drawChunkObjects(window, &playerPos);
+                continue;
+            }
+            
+            chunk->drawChunkObjects(window);
+        }
+
+        TextureManager::drawTexture(window, {TextureType::SelectTile, selectPos + Camera::getDrawOffset(), 0, 3});
 
         window.display();
 
