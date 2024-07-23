@@ -13,6 +13,8 @@
 #include "Helper.hpp"
 #include "Object/Player.hpp"
 
+#include "GUI/InventoryGUI.hpp"
+
 int main()
 {
     srand(time(NULL));
@@ -22,10 +24,13 @@ int main()
 
     TextureManager::loadTextures(window);
     Shaders::loadShaders();
+    TextDraw::loadFont("Oswald-Regular.ttf");
 
     sf::Vector2f selectPos(0, 0);
 
     Player player({500, 200});
+
+    bool inventoryOpen = false;
 
     // sf::Shader shader;
     // shader.loadFromFile("shader.frag", sf::Shader::Fragment);
@@ -52,13 +57,26 @@ int main()
                 window.close();
             }
 
+            if (event.type == sf::Event::KeyPressed)
+            {
+                if (event.key.code == sf::Keyboard::E)
+                    inventoryOpen = !inventoryOpen;
+            }
+
             if (event.type == sf::Event::MouseButtonPressed)
             {
                 if (event.mouseButton.button == sf::Mouse::Left)
                 {
-                    WorldObject* selectedObject = ChunkManager::getSelectedObject(selectPosTile);
-                    if (selectedObject)
-                        selectedObject->interact();
+                    if (!inventoryOpen)
+                    {
+                        WorldObject* selectedObject = ChunkManager::getSelectedObject(selectPosTile);
+                        if (selectedObject)
+                            selectedObject->interact();
+                    }
+                    else
+                    {
+
+                    }
                 }
             }
         }
@@ -91,7 +109,15 @@ int main()
             object->draw(window);
         }
 
-        TextureManager::drawTexture(window, {TextureType::SelectTile, selectPos + Camera::getIntegerDrawOffset(), 0, 3});
+        if (!inventoryOpen)
+        {
+            TextureManager::drawTexture(window, {TextureType::SelectTile, selectPos + Camera::getIntegerDrawOffset(), 0, 3});
+        }
+
+        if (inventoryOpen)
+        {
+            InventoryGUI::draw(window);
+        }
 
         window.display();
 

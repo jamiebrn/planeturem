@@ -15,7 +15,8 @@ const std::unordered_map<TextureType, std::string> TextureManager::texturePaths 
     {TextureType::Tree, "tree.png"},
     {TextureType::Bush, "bush.png"},
     {TextureType::SelectTile, "select_tile.png"},
-    {TextureType::GroundTiles, "old_tiles.png"}
+    {TextureType::GroundTiles, "old_tiles.png"},
+    {TextureType::Items, "item_sheet.png"}
 };
 
 // Loads all textures from paths specified into texture map

@@ -6,5 +6,6 @@ enum class TextureType
     Tree,
     Bush,
     SelectTile,
-    GroundTiles
+    GroundTiles,
+    Items
 };

@@ -14,7 +14,6 @@ void Tree::draw(sf::RenderWindow& window)
 
 void Tree::interact()
 {
-    std::cout << "interact with tree" << std::endl;
     flash_amount = 1.0f;
     health -= 1;
 

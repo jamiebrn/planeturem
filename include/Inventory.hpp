@@ -3,10 +3,7 @@
 #include <vector>
 #include <iostream>
 
-enum ItemType
-{
-    Wood
-};
+#include "ItemType.hpp"
 
 class Inventory
 {
@@ -14,6 +11,8 @@ class Inventory
 
 public:
     static void addItem(ItemType item, int amount);
+
+    inline static const std::vector<std::pair<ItemType, int>>& getData() {return inventoryData;}
 
 private:
     static std::vector<std::pair<ItemType, int>> inventoryData;
