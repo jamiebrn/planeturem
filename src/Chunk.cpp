@@ -96,6 +96,22 @@ void Chunk::drawChunkObjects(sf::RenderWindow& window)
     }
 }
 
+void Chunk::updateChunkObjects(float dt)
+{
+    for (auto& object_row : objectGrid)
+    {
+        for (auto& object : object_row)
+        {
+            if (object)
+            {
+                object->update(dt);
+                if (!object->isAlive())
+                    object = nullptr;
+            }
+        }
+    }
+}
+
 std::vector<WorldObject*> Chunk::getObjects()
 {
     std::vector<WorldObject*> objects;

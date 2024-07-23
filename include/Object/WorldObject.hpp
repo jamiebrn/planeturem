@@ -3,6 +3,7 @@
 #include <SFML/Graphics.hpp>
 #include "TextureManager.hpp"
 #include "Shaders.hpp"
+#include "Inventory.hpp"
 #include "TextureType.hpp"
 #include "Camera.hpp"
 
@@ -14,6 +15,8 @@ public:
     virtual void draw(sf::RenderWindow& window) = 0;
 
     virtual void interact() = 0;
+
+    virtual bool isAlive() = 0;
 
     inline sf::Vector2f getPosition() {return position;}
 

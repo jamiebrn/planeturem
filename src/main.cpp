@@ -72,6 +72,7 @@ int main()
         player.update(dt);
 
         ChunkManager::updateChunks(noise);
+        ChunkManager::updateChunksObjects(dt);
 
         window.clear({80, 80, 80});
 

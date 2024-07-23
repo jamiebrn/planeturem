@@ -18,6 +18,7 @@ public:
     static void updateChunks(const FastNoiseLite& noise);
     static void drawChunkTerrain(sf::RenderWindow& window);
 
+    static void updateChunksObjects(float dt);
     static WorldObject* getSelectedObject(sf::Vector2i selected_tile);
 
     static std::vector<WorldObject*> getChunkObjects();

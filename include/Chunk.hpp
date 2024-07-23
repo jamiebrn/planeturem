@@ -25,6 +25,7 @@ public:
     void drawChunkTerrain(sf::RenderWindow& window);
     void drawChunkObjects(sf::RenderWindow& window);
 
+    void updateChunkObjects(float dt);
     std::vector<WorldObject*> getObjects();
 
     bool isPointInChunk(sf::Vector2f position);

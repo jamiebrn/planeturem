@@ -65,6 +65,14 @@ void ChunkManager::drawChunkTerrain(sf::RenderWindow& window)
     }
 }
 
+void ChunkManager::updateChunksObjects(float dt)
+{
+    for (auto& chunkPair : loadedChunks)
+    {
+        chunkPair.second->updateChunkObjects(dt);
+    }
+}
+
 WorldObject* ChunkManager::getSelectedObject(sf::Vector2i selected_tile)
 {
     ChunkPosition chunkPos(std::floor(selected_tile.x / 8.0f), std::floor(selected_tile.y / 8.0f));
@@ -72,6 +80,7 @@ WorldObject* ChunkManager::getSelectedObject(sf::Vector2i selected_tile)
     // Chunk does not exist
     if (loadedChunks.count(chunkPos) <= 0)
         return nullptr;
+    
     // Get objects in chunk
     auto& chunkObjects = loadedChunks[chunkPos]->getObjectGrid();
     
