@@ -5,11 +5,8 @@
 class Tree : public WorldObject
 {
 public:
-    Tree(sf::Vector2f position) : position(position) {}
+    Tree(sf::Vector2f position) : WorldObject(position) {}
     void update(float dt) {};
     void draw(sf::RenderWindow& window);
-
-private:
-    sf::Vector2f position;
 
 };

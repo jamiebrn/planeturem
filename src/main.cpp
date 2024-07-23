@@ -10,6 +10,7 @@
 #include "ChunkManager.hpp"
 #include "Camera.hpp"
 #include "Helper.hpp"
+#include "Object/Player.hpp"
 
 int main()
 {
@@ -20,8 +21,9 @@ int main()
 
     TextureManager::loadTextures(window);
 
-    sf::Vector2f playerPos(500, 200);
     sf::Vector2f selectPos(0, 0);
+
+    Player player({500, 200});
 
     // sf::Shader shader;
     // shader.loadFromFile("shader.frag", sf::Shader::Fragment);
@@ -46,20 +48,13 @@ int main()
             }
         }
 
-        sf::Vector2f direction;
-        direction.x = sf::Keyboard::isKeyPressed(sf::Keyboard::D) - sf::Keyboard::isKeyPressed(sf::Keyboard::A);
-        direction.y = sf::Keyboard::isKeyPressed(sf::Keyboard::S) - sf::Keyboard::isKeyPressed(sf::Keyboard::W);
-        float length = std::sqrt(direction.x * direction.x + direction.y * direction.y);
-        if (length > 0)
-            direction /= length;
-
-        playerPos += direction * 300.0f * dt;
-
         sf::Vector2f mouseWorldPos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)) - Camera::getDrawOffset();
         selectPos.x = Helper::lerp(selectPos.x, std::floor(mouseWorldPos.x / 48) * 48, 25 * dt);
         selectPos.y = Helper::lerp(selectPos.y, std::floor(mouseWorldPos.y / 48) * 48, 25 * dt);
 
-        Camera::update(playerPos, dt);
+        Camera::update(player.getPosition(), dt);
+
+        player.update(dt);
 
         ChunkManager::updateChunks(noise);
 
@@ -67,17 +62,20 @@ int main()
 
         ChunkManager::drawChunkTerrain(window);
 
-        for (auto& chunkPair : ChunkManager::getChunks())
+        std::vector<WorldObject*> objects = ChunkManager::getChunkObjects();
+        objects.push_back(&player);
+
+        std::sort(objects.begin(), objects.end(), [](WorldObject* a, WorldObject* b)
         {
-            ChunkPosition chunkPos = chunkPair.first;
-            std::unique_ptr<Chunk>& chunk = chunkPair.second;
-            
-            chunk->drawChunkObjects(window);
+            return a->getPosition().y < b->getPosition().y;
+        });
+
+        for (WorldObject* object : objects)
+        {
+            object->draw(window);
         }
 
         TextureManager::drawTexture(window, {TextureType::SelectTile, selectPos + Camera::getIntegerDrawOffset(), 0, 3});
-
-        TextureManager::drawTexture(window, {TextureType::Player, playerPos + Camera::getIntegerDrawOffset(), 0, 3});
 
         window.display();
 

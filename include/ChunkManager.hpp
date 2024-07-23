@@ -2,6 +2,7 @@
 
 #include <map>
 #include <memory>
+#include <vector>
 
 #include <FastNoiseLite.h>
 
@@ -16,6 +17,8 @@ class ChunkManager
 public:
     static void updateChunks(const FastNoiseLite& noise);
     static void drawChunkTerrain(sf::RenderWindow& window);
+
+    static std::vector<WorldObject*> getChunkObjects();
 
     inline static std::map<ChunkPosition, std::unique_ptr<Chunk>>& getChunks() {return chunks;}
 

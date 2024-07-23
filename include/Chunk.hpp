@@ -3,6 +3,7 @@
 #include <SFML/Graphics.hpp>
 #include <FastNoiseLite.h>
 #include <array>
+#include <vector>
 #include <memory>
 
 #include "TileType.hpp"
@@ -23,6 +24,8 @@ public:
 
     void drawChunkTerrain(sf::RenderWindow& window);
     void drawChunkObjects(sf::RenderWindow& window);
+
+    std::vector<WorldObject*> getObjects();
 
     bool isPointInChunk(sf::Vector2f position);
 

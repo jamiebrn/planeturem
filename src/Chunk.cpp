@@ -96,6 +96,20 @@ void Chunk::drawChunkObjects(sf::RenderWindow& window)
     }
 }
 
+std::vector<WorldObject*> Chunk::getObjects()
+{
+    std::vector<WorldObject*> objects;
+    for (int y = 0; y < 8; y++)
+    {
+        for (int x = 0; x < 8; x++)
+        {
+            if (objectGrid[y][x])
+                objects.push_back(objectGrid[y][x].get());
+        }
+    }
+    return objects;
+}
+
 bool Chunk::isPointInChunk(sf::Vector2f position)
 {
     sf::Vector2f worldPosition = static_cast<sf::Vector2f>(worldGridPosition) * 8.0f * 48.0f;

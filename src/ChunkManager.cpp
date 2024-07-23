@@ -49,3 +49,14 @@ void ChunkManager::drawChunkTerrain(sf::RenderWindow& window)
         chunk->drawChunkTerrain(window);
     }
 }
+
+std::vector<WorldObject*> ChunkManager::getChunkObjects()
+{
+    std::vector<WorldObject*> objects;
+    for (auto& chunkPair : chunks)
+    {
+        std::vector<WorldObject*> chunkObjects = chunkPair.second->getObjects();
+        objects.insert(objects.end(), chunkObjects.begin(), chunkObjects.end());
+    }
+    return objects;
+}
