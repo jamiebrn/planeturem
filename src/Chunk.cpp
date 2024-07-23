@@ -8,6 +8,7 @@ Chunk::Chunk(sf::Vector2i worldGridPosition)
 
 void Chunk::generateChunk(const FastNoiseLite& noise)
 {
+    sf::Vector2f worldPosition = static_cast<sf::Vector2f>(worldGridPosition) * 8.0f * 48.0f;
     sf::Vector2f worldNoisePosition = static_cast<sf::Vector2f>(worldGridPosition) * 8.0f;
 
     for (int y = 0; y < 8; y++)
@@ -51,9 +52,19 @@ void Chunk::generateChunk(const FastNoiseLite& noise)
                 groundVertexArray[vertexArrayIndex + 2].texCoords = {0 * 16 + 16, 16};
             }
 
-            objectGrid[y][x] = 0;
-            if (rand() % 10 == 0 && height >= 0.2)
-                objectGrid[y][x] = 1;
+            sf::Vector2f objectPos = worldPosition + sf::Vector2f(x * 48.0f + 24.0f, y * 48.0f + 24.0f);
+            objectGrid[y][x] = NULL;
+
+            int spawn_chance = rand() % 40;
+
+            if (spawn_chance < 4 && height >= 0.2)
+            {
+                objectGrid[y][x] = std::move(std::make_unique<Tree>(objectPos));
+            }
+            else if (spawn_chance == 4 && height >= 0.2)
+            {
+                objectGrid[y][x] = std::move(std::make_unique<Bush>(objectPos));
+            }
         }
     }
 }
@@ -63,7 +74,7 @@ void Chunk::drawChunkTerrain(sf::RenderWindow& window)
     sf::Vector2f worldPosition = static_cast<sf::Vector2f>(worldGridPosition) * 8.0f * 48.0f;
 
     sf::Transform transform;
-    transform.translate(Camera::getDrawOffset() + worldPosition);
+    transform.translate(Camera::getIntegerDrawOffset() + worldPosition);
 
     sf::RenderStates state;
     state.texture = TextureManager::getTexture(TextureType::GroundTiles);
@@ -71,38 +82,18 @@ void Chunk::drawChunkTerrain(sf::RenderWindow& window)
     window.draw(groundVertexArray, state);
 }
 
-void Chunk::drawChunkObjects(sf::RenderWindow& window, sf::Vector2f* playerPos)
+void Chunk::drawChunkObjects(sf::RenderWindow& window)
 {
     sf::Vector2f worldPosition = static_cast<sf::Vector2f>(worldGridPosition) * 8.0f * 48.0f;
 
-    bool drawn_player = false;
-
     for (int y = 0; y < 8; y++)
     {
-        if (playerPos && !drawn_player)
-        {
-            float worldPositionY = worldPosition.y + y * 48.0f;
-            if (playerPos->y < worldPositionY)
-            {
-                TextureManager::drawTexture(window, {TextureType::Player, *playerPos + Camera::getDrawOffset(), 0, 3, {0.5, 0.5}});
-                drawn_player = true;
-            }
-        }
-
         for (int x = 0; x < 8; x++)
         {
-            if (objectGrid[y][x] == 1)
-            {
-                TextureManager::drawTexture(window, {TextureType::Tree, 
-                    sf::Vector2f(x * 48.0f + 24.0f + worldPosition.x, y * 48.0f + 24.0f + worldPosition.y) + Camera::getDrawOffset()
-                    , 0, 3, {0.5, 0.9}
-                });
-            }
+            if (objectGrid[y][x])
+                objectGrid[y][x]->draw(window);
         }
     }
-
-    if (!drawn_player && playerPos)
-        TextureManager::drawTexture(window, {TextureType::Player, *playerPos + Camera::getDrawOffset(), 0, 3, {0.5, 0.5}});
 }
 
 bool Chunk::isPointInChunk(sf::Vector2f position)

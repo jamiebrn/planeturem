@@ -25,6 +25,15 @@ sf::Vector2f Camera::getDrawOffset()
     return drawOffset;
 }
 
+sf::Vector2f Camera::getIntegerDrawOffset()
+{
+    sf::Vector2f drawOffset;
+    drawOffset.x = static_cast<int>(-offset.x);
+    drawOffset.y = static_cast<int>(-offset.y);
+    
+    return drawOffset;
+}
+
 // Set offset of camera
 void Camera::setOffset(sf::Vector2f newOffset)
 {

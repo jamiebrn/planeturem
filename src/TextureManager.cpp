@@ -13,6 +13,7 @@ std::unordered_map<TextureType, sf::Sprite> TextureManager::spriteMap;
 const std::unordered_map<TextureType, std::string> TextureManager::texturePaths = {
     {TextureType::Player, "player.png"},
     {TextureType::Tree, "tree.png"},
+    {TextureType::Bush, "bush.png"},
     {TextureType::SelectTile, "select_tile.png"},
     {TextureType::GroundTiles, "old_tiles.png"}
 };

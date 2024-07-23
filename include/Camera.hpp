@@ -22,6 +22,8 @@ public:
     // Get draw offset of camera
     static sf::Vector2f getDrawOffset();
 
+    static sf::Vector2f getIntegerDrawOffset();
+
     // Set offset of camera
     static void setOffset(sf::Vector2f newOffset);
 
