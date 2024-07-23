@@ -76,7 +76,7 @@ WorldObject* ChunkManager::getSelectedObject(sf::Vector2i selected_tile)
     auto& chunkObjects = loadedChunks[chunkPos]->getObjectGrid();
     
     // Get object at position and return
-    return chunkObjects[selected_tile.y % 8][selected_tile.x % 8].get();
+    return chunkObjects[((selected_tile.y % 8) + 8) % 8][((selected_tile.x % 8) + 8) % 8].get();
 }
 
 std::vector<WorldObject*> ChunkManager::getChunkObjects()
