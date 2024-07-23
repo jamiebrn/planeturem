@@ -7,6 +7,7 @@
 #include <memory>
 
 #include "TextureManager.hpp"
+#include "Shaders.hpp"
 #include "ChunkManager.hpp"
 #include "Camera.hpp"
 #include "Helper.hpp"
@@ -20,6 +21,7 @@ int main()
     window.setFramerateLimit(165);
 
     TextureManager::loadTextures(window);
+    Shaders::loadShaders();
 
     sf::Vector2f selectPos(0, 0);
 
@@ -36,6 +38,9 @@ int main()
 
     while (window.isOpen())
     {
+        sf::Vector2f mousePos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
+
+        sf::Vector2i selectPosTile(std::floor((mousePos.x - Camera::getDrawOffset().x) / 48.0f), std::floor((mousePos.y - Camera::getDrawOffset().y) / 48.0f));
 
         float dt = clock.restart().asSeconds();
         time += dt;
@@ -46,9 +51,19 @@ int main()
             {
                 window.close();
             }
+
+            if (event.type == sf::Event::MouseButtonPressed)
+            {
+                if (event.mouseButton.button == sf::Mouse::Left)
+                {
+                    WorldObject* selectedObject = ChunkManager::getSelectedObject(selectPosTile);
+                    if (selectedObject)
+                        selectedObject->interact();
+                }
+            }
         }
 
-        sf::Vector2f mouseWorldPos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)) - Camera::getDrawOffset();
+        sf::Vector2f mouseWorldPos = mousePos - Camera::getDrawOffset();
         selectPos.x = Helper::lerp(selectPos.x, std::floor(mouseWorldPos.x / 48) * 48, 25 * dt);
         selectPos.y = Helper::lerp(selectPos.y, std::floor(mouseWorldPos.y / 48) * 48, 25 * dt);
 

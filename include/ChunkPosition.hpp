@@ -17,3 +17,12 @@ struct ChunkPosition
         return x < other.x;
     }
 };
+
+template<>
+struct std::hash<ChunkPosition>
+{
+    std::size_t operator()(const ChunkPosition& chunk) const
+    {
+        return std::hash<int>()(chunk.x) ^ std::hash<int>()(chunk.y);
+    }
+};

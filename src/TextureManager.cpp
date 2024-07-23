@@ -79,7 +79,7 @@ bool TextureManager::loadTextures(sf::RenderWindow& window)
 }
 
 // Draw texture with specified data
-void TextureManager::drawTexture(sf::RenderWindow& window, TextureDrawData drawData)
+void TextureManager::drawTexture(sf::RenderWindow& window, TextureDrawData drawData, sf::Shader* shader)
 {
     // If not loaded textures, return by default
     if (!loadedTextures)
@@ -90,6 +90,13 @@ void TextureManager::drawTexture(sf::RenderWindow& window, TextureDrawData drawD
 
     // Apply draw data to texture
     applyTextureData(drawData);
+
+    // Draw with shader if required
+    if (shader)
+    {
+        window.draw(sprite, shader);
+        return;
+    }
 
     // Draw sprite
     window.draw(sprite);

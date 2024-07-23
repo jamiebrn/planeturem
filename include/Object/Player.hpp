@@ -7,7 +7,8 @@ class Player : public WorldObject
 {
 public:
     Player(sf::Vector2f position) : WorldObject(position) {}
-    void update(float dt);
-    void draw(sf::RenderWindow& window);
+    void update(float dt) override;
+    void draw(sf::RenderWindow& window) override;
+    inline void interact() override {};
     
 };

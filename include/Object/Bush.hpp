@@ -1,12 +1,14 @@
 #pragma once
 
+#include <iostream>
 #include "WorldObject.hpp"
 
 class Bush : public WorldObject
 {
 public:
     Bush(sf::Vector2f position) : WorldObject(position) {}
-    void update(float dt) {};
-    void draw(sf::RenderWindow& window);
+    inline void update(float dt) override {};
+    void draw(sf::RenderWindow& window) override;
+    inline void interact() override {std::cout << "interact with bush" << std::endl;}
 
 };

@@ -18,11 +18,14 @@ public:
     static void updateChunks(const FastNoiseLite& noise);
     static void drawChunkTerrain(sf::RenderWindow& window);
 
+    static WorldObject* getSelectedObject(sf::Vector2i selected_tile);
+
     static std::vector<WorldObject*> getChunkObjects();
 
-    inline static std::map<ChunkPosition, std::unique_ptr<Chunk>>& getChunks() {return chunks;}
+    // inline static std::map<ChunkPosition, std::unique_ptr<Chunk>>& getChunks() {return chunks;}
 
 private:
-    static std::map<ChunkPosition, std::unique_ptr<Chunk>> chunks;
+    static std::unordered_map<ChunkPosition, std::unique_ptr<Chunk>> storedChunks;
+    static std::unordered_map<ChunkPosition, std::unique_ptr<Chunk>> loadedChunks;
 
 };
