@@ -5,7 +5,7 @@ void Tree::update(float dt)
     flash_amount = std::max(flash_amount - dt * 3, 0.0f);
 }
 
-void Tree::draw(sf::RenderWindow& window)
+void Tree::draw(sf::RenderWindow& window, float dt, float alpha)
 {
     sf::Shader* shader = Shaders::getShader(ShaderType::Flash);
     shader->setUniform("flash_amount", flash_amount);

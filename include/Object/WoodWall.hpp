@@ -1,18 +1,18 @@
 #pragma once
 
-#include "WorldObject.hpp"
-#include "math.h"
+#include <SFML/Graphics.hpp>
 
-class Player : public WorldObject
+#include "WorldObject.hpp"
+
+class WoodWall : public WorldObject
 {
 public:
-    Player(sf::Vector2f position) : WorldObject(position) {}
-
+    WoodWall(sf::Vector2f position) : WorldObject(position) {}
     void update(float dt) override;
     void draw(sf::RenderWindow& window, float dt, float alpha) override;
 
-    inline void interact() override {};
-    
+    void interact() override;
+
     inline bool isAlive() override {return true;}
-    
+
 };

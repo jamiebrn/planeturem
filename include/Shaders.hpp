@@ -5,9 +5,10 @@
 #include <string>
 #include <memory>
 
-enum ShaderType
+enum class ShaderType
 {
-    Flash
+    Flash,
+    Tree
 };
 
 struct ShaderFilePath

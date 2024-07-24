@@ -1,7 +1,8 @@
 #include "Shaders.hpp"
 
 const std::unordered_map<ShaderType, ShaderFilePath> Shaders::shaderFilePaths = {
-    {ShaderType::Flash, {"", "flash.frag"}}
+    {ShaderType::Flash, {"", "flash.frag"}},
+    {ShaderType::Tree, {"", "tree.frag"}}
 };
 std::unordered_map<ShaderType, std::unique_ptr<sf::Shader>> Shaders::loadedShaders;
 

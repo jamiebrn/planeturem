@@ -14,6 +14,7 @@
 #include "Object/Player.hpp"
 
 #include "GUI/InventoryGUI.hpp"
+#include "GUI/BuildGUI.hpp"
 
 int main()
 {
@@ -31,9 +32,7 @@ int main()
     Player player({500, 200});
 
     bool inventoryOpen = false;
-
-    // sf::Shader shader;
-    // shader.loadFromFile("shader.frag", sf::Shader::Fragment);
+    bool buildMenuOpen = false;
 
     FastNoiseLite noise(rand());
     noise.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
@@ -59,15 +58,18 @@ int main()
 
             if (event.type == sf::Event::KeyPressed)
             {
-                if (event.key.code == sf::Keyboard::E)
+                if (event.key.code == sf::Keyboard::E && !buildMenuOpen)
                     inventoryOpen = !inventoryOpen;
+                
+                if (event.key.code == sf::Keyboard::B && !inventoryOpen)
+                    buildMenuOpen = !buildMenuOpen;
             }
 
             if (event.type == sf::Event::MouseButtonPressed)
             {
                 if (event.mouseButton.button == sf::Mouse::Left)
                 {
-                    if (!inventoryOpen)
+                    if (!inventoryOpen && !buildMenuOpen)
                     {
                         WorldObject* selectedObject = ChunkManager::getSelectedObject(selectPosTile);
                         if (selectedObject)
@@ -75,7 +77,7 @@ int main()
                     }
                     else
                     {
-
+                        
                     }
                 }
             }
@@ -106,7 +108,7 @@ int main()
 
         for (WorldObject* object : objects)
         {
-            object->draw(window);
+            object->draw(window, dt, 255);
         }
 
         if (!inventoryOpen)
@@ -117,6 +119,11 @@ int main()
         if (inventoryOpen)
         {
             InventoryGUI::draw(window);
+        }
+
+        if (buildMenuOpen)
+        {
+            BuildGUI::draw(window);
         }
 
         window.display();

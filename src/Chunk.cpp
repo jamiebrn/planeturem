@@ -84,16 +84,16 @@ void Chunk::drawChunkTerrain(sf::RenderWindow& window)
 
 void Chunk::drawChunkObjects(sf::RenderWindow& window)
 {
-    sf::Vector2f worldPosition = static_cast<sf::Vector2f>(worldGridPosition) * 8.0f * 48.0f;
+    // sf::Vector2f worldPosition = static_cast<sf::Vector2f>(worldGridPosition) * 8.0f * 48.0f;
 
-    for (int y = 0; y < 8; y++)
-    {
-        for (int x = 0; x < 8; x++)
-        {
-            if (objectGrid[y][x])
-                objectGrid[y][x]->draw(window);
-        }
-    }
+    // for (int y = 0; y < 8; y++)
+    // {
+    //     for (int x = 0; x < 8; x++)
+    //     {
+    //         if (objectGrid[y][x])
+    //             objectGrid[y][x]->draw(window, dt);
+    //     }
+    // }
 }
 
 void Chunk::updateChunkObjects(float dt)

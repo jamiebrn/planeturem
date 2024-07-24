@@ -12,7 +12,7 @@ void Player::update(float dt)
     position += direction * 300.0f * dt;
 }
 
-void Player::draw(sf::RenderWindow& window)
+void Player::draw(sf::RenderWindow& window, float dt, float alpha)
 {
     TextureManager::drawTexture(window, {TextureType::Player, position + Camera::getIntegerDrawOffset(), 0, 3, {0.5, 0.7}});
 }
