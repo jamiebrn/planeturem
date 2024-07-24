@@ -15,6 +15,8 @@ class Inventory
 public:
     static void addItem(ItemType item, int amount);
 
+    static void takeItem(ItemType item, int amount);
+
     static bool canBuildObject(ObjectType object);
 
     static std::unordered_map<ItemType, int> getTotalItemCount();

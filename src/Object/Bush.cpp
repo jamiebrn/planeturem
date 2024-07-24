@@ -5,7 +5,7 @@ void Bush::update(float dt)
     flash_amount = std::max(flash_amount - dt * 3, 0.0f);
 }
 
-void Bush::draw(sf::RenderWindow& window, float dt, float alpha)
+void Bush::draw(sf::RenderWindow& window, float dt, int alpha)
 {
     sf::Shader* shader = Shaders::getShader(ShaderType::Flash);
     shader->setUniform("flash_amount", flash_amount);

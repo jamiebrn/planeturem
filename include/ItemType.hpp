@@ -8,7 +8,8 @@
 
 enum ItemType
 {
-    Wood
+    Wood,
+    Coal
 };
 
 struct ItemTypeData
@@ -18,5 +19,6 @@ struct ItemTypeData
 };
 
 inline const std::unordered_map<ItemType, ItemTypeData> ItemDataMap = {
-    {ItemType::Wood, {"Wood", sf::IntRect(0, 0, 16, 16)}}
+    {ItemType::Wood, {"Wood", sf::IntRect(0, 0, 16, 16)}},
+    {ItemType::Coal, {"Coal", sf::IntRect(16, 0, 16, 16)}}
 };

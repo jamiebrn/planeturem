@@ -4,8 +4,6 @@ std::vector<std::pair<ItemType, int>> Inventory::inventoryData;
 
 void Inventory::addItem(ItemType item, int amount)
 {
-    std::cout << "added " << amount << " items to inventory" << std::endl;
-
     // Check if item already exists
     for (auto& itemPair : inventoryData)
     {
@@ -24,6 +22,41 @@ void Inventory::addItem(ItemType item, int amount)
 
     // Doesn't exist so add as new item
     inventoryData.push_back({item, amount});
+}
+
+void Inventory::takeItem(ItemType item, int amount)
+{
+    int amount_left = amount;
+
+    // Go backwards over inventory and subtract from item stacks
+    for (int i = inventoryData.size() - 1; i >= 0; i--)
+    {
+        auto& itemPair = inventoryData[i];
+
+        if (itemPair.first == item)
+        {
+            int amount_taken = std::min(itemPair.second, amount_left);
+
+            // Must be taken from multiple stacks
+            if (amount_taken < amount_left)
+            {
+                inventoryData.erase(inventoryData.begin() + i);
+                amount_left -= amount_taken;
+                continue;
+            }
+
+            // Stack has enough to take from
+            itemPair.second -= amount_left;
+
+            // Delete stack if now empty
+            if (itemPair.second <= 0)
+            {
+                inventoryData.erase(inventoryData.begin() + i);
+                amount_left -= amount_taken;
+                continue;
+            }
+        }
+    }
 }
 
 bool Inventory::canBuildObject(ObjectType object)

@@ -126,6 +126,16 @@ std::vector<WorldObject*> Chunk::getObjects()
     return objects;
 }
 
+void Chunk::setObject(sf::Vector2i position, ObjectType objectType)
+{
+    sf::Vector2f worldPosition = static_cast<sf::Vector2f>(worldGridPosition) * 8.0f * 48.0f;
+    sf::Vector2f objectPos = worldPosition + sf::Vector2f(position.x * 48.0f + 24.0f, position.y * 48.0f + 24.0f);
+
+    std::unique_ptr<WorldObject> object = createObjectFromType(objectType, objectPos);
+
+    objectGrid[position.y][position.x] = std::move(object);
+}
+
 bool Chunk::isPointInChunk(sf::Vector2f position)
 {
     sf::Vector2f worldPosition = static_cast<sf::Vector2f>(worldGridPosition) * 8.0f * 48.0f;

@@ -14,6 +14,8 @@
 #include "Object/Tree.hpp"
 #include "Object/Bush.hpp"
 
+#include "Object/ObjectBuilder.hpp"
+
 class Chunk
 {
 
@@ -27,6 +29,7 @@ public:
 
     void updateChunkObjects(float dt);
     std::vector<WorldObject*> getObjects();
+    void setObject(sf::Vector2i position, ObjectType objectType);
 
     bool isPointInChunk(sf::Vector2f position);
 

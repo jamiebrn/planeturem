@@ -19,7 +19,9 @@ public:
     static void drawChunkTerrain(sf::RenderWindow& window);
 
     static void updateChunksObjects(float dt);
+
     static WorldObject* getSelectedObject(sf::Vector2i selected_tile);
+    static void setObject(sf::Vector2i selected_tile, ObjectType objectType);
 
     static std::vector<WorldObject*> getChunkObjects();
 

@@ -25,7 +25,7 @@ int main()
 
     TextureManager::loadTextures(window);
     Shaders::loadShaders();
-    TextDraw::loadFont("Oswald-Regular.ttf");
+    TextDraw::loadFont("upheavtt.ttf");
 
     sf::Vector2f selectPos(0, 0);
 
@@ -61,7 +61,7 @@ int main()
                 if (event.key.code == sf::Keyboard::E && !buildMenuOpen)
                     inventoryOpen = !inventoryOpen;
                 
-                if (event.key.code == sf::Keyboard::B && !inventoryOpen)
+                if (event.key.code == sf::Keyboard::Tab && !inventoryOpen)
                     buildMenuOpen = !buildMenuOpen;
             }
 
@@ -75,9 +75,20 @@ int main()
                         if (selectedObject)
                             selectedObject->interact();
                     }
-                    else
+                    else if (buildMenuOpen)
                     {
-                        
+                        ObjectType objectType = BuildGUI::getSelectedObject();
+                        if (Inventory::canBuildObject(objectType) && ChunkManager::getSelectedObject(selectPosTile) == nullptr)
+                        {
+                            // Take resources
+                            for (auto& itemPair : BuildRecipes.at(objectType))
+                            {
+                                Inventory::takeItem(itemPair.first, itemPair.second);
+                            }
+
+                            // Build object
+                            ChunkManager::setObject(selectPosTile, objectType);
+                        }
                     }
                 }
             }

@@ -9,7 +9,7 @@ public:
     Player(sf::Vector2f position) : WorldObject(position) {}
 
     void update(float dt) override;
-    void draw(sf::RenderWindow& window, float dt, float alpha) override;
+    void draw(sf::RenderWindow& window, float dt, int alpha) override;
 
     inline void interact() override {};
     
