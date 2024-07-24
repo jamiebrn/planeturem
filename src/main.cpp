@@ -1,17 +1,17 @@
 #include <SFML/Graphics.hpp>
-#include <FastNoiseLite.h>
+#include <World/FastNoiseLite.h>
 #include <math.h>
 #include <array>
 #include <map>
 #include <iostream>
 #include <memory>
 
-#include "TextureManager.hpp"
-#include "Shaders.hpp"
-#include "ChunkManager.hpp"
-#include "Camera.hpp"
-#include "Helper.hpp"
-#include "Object/Player.hpp"
+#include "Core/TextureManager.hpp"
+#include "Core/Shaders.hpp"
+#include "World/ChunkManager.hpp"
+#include "Core/Camera.hpp"
+#include "Core/Helper.hpp"
+#include "Player/Player.hpp"
 
 #include "GUI/InventoryGUI.hpp"
 #include "GUI/BuildGUI.hpp"
@@ -25,7 +25,7 @@ int main()
 
     TextureManager::loadTextures(window);
     Shaders::loadShaders();
-    TextDraw::loadFont("upheavtt.ttf");
+    TextDraw::loadFont("Data/upheavtt.ttf");
 
     sf::Vector2f selectPos(0, 0);
 

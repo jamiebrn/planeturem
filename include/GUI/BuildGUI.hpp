@@ -3,9 +3,9 @@
 #include <SFML/Graphics.hpp>
 #include <memory>
 
-#include "TextDraw.hpp"
+#include "Core/TextDraw.hpp"
 #include "Object/ObjectBuilder.hpp"
-#include "BuildRecipes.hpp"
+#include "Data/BuildRecipes.hpp"
 
 class BuildGUI
 {

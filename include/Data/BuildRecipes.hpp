@@ -2,9 +2,9 @@
 
 #include <map>
 
-#include "ObjectType.hpp"
+#include "Types/ObjectType.hpp"
 
-#include "ItemType.hpp"
+#include "Types/ItemType.hpp"
 
 inline const std::map<ObjectType, std::map<ItemType, int>> BuildRecipes = {
     {ObjectType::WoodWall, {{ItemType::Wood, 4}}}

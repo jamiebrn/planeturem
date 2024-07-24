@@ -4,7 +4,7 @@
 #include <algorithm>
 
 // Include headers
-#include "Helper.hpp"
+#include "Core/Helper.hpp"
 
 // Declare camera class
 class Camera

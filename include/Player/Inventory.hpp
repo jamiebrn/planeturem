@@ -4,9 +4,9 @@
 #include <unordered_map>
 #include <iostream>
 
-#include "ItemType.hpp"
-#include "ObjectType.hpp"
-#include "BuildRecipes.hpp"
+#include "Types/ItemType.hpp"
+#include "Types/ObjectType.hpp"
+#include "Data/BuildRecipes.hpp"
 
 class Inventory
 {

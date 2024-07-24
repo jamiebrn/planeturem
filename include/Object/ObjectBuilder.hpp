@@ -1,8 +1,8 @@
 #pragma once
 
 #include <memory>
-#include "WorldObject.hpp"
-#include "ObjectType.hpp"
+#include "Object/WorldObject.hpp"
+#include "Types/ObjectType.hpp"
 
 #include "Object/WoodWall.hpp"
 

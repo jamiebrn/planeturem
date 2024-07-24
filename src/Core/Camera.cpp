@@ -1,4 +1,4 @@
-#include "Camera.hpp"
+#include "Core/Camera.hpp"
 
 // Initialise member variables, as is static class
 sf::Vector2f Camera::offset = sf::Vector2f(0, 0);

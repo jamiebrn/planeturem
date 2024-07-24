@@ -1,6 +1,6 @@
 #pragma once
 
-#include "WorldObject.hpp"
+#include "Object/WorldObject.hpp"
 #include "math.h"
 
 class Player : public WorldObject

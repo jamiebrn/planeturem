@@ -18,6 +18,11 @@ add_executable(spacebuild ${SRC_FILES})
 target_link_libraries(spacebuild PRIVATE sfml-graphics)
 target_compile_features(spacebuild PRIVATE cxx_std_17)
 
+add_custom_target(copy_assets
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_LIST_DIR}/assets ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Data
+)
+add_dependencies(spacebuild copy_assets)
+
 if(WIN32)
     add_custom_command(
         TARGET spacebuild

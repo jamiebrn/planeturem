@@ -1,4 +1,4 @@
-#include "ChunkManager.hpp"
+#include "World/ChunkManager.hpp"
 
 std::unordered_map<ChunkPosition, std::unique_ptr<Chunk>> ChunkManager::storedChunks;
 std::unordered_map<ChunkPosition, std::unique_ptr<Chunk>> ChunkManager::loadedChunks;

@@ -1,11 +1,11 @@
 #pragma once
 
 #include <SFML/Graphics.hpp>
-#include "TextureManager.hpp"
-#include "Shaders.hpp"
-#include "Inventory.hpp"
-#include "TextureType.hpp"
-#include "Camera.hpp"
+#include "Core/TextureManager.hpp"
+#include "Core/Shaders.hpp"
+#include "Player/Inventory.hpp"
+#include "Types/TextureType.hpp"
+#include "Core/Camera.hpp"
 
 class WorldObject
 {

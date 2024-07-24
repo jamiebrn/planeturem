@@ -1,4 +1,4 @@
-#include "Inventory.hpp"
+#include "Player/Inventory.hpp"
 
 std::vector<std::pair<ItemType, int>> Inventory::inventoryData;
 

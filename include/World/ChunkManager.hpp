@@ -4,11 +4,11 @@
 #include <memory>
 #include <vector>
 
-#include <FastNoiseLite.h>
+#include <World/FastNoiseLite.h>
 
-#include "Chunk.hpp"
-#include "ChunkPosition.hpp"
-#include "Camera.hpp"
+#include "World/Chunk.hpp"
+#include "World/ChunkPosition.hpp"
+#include "Core/Camera.hpp"
 
 class ChunkManager
 {

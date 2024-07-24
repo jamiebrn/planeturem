@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include <string>
 
-#include "TextureType.hpp"
+#include "Types/TextureType.hpp"
 
 enum ItemType
 {

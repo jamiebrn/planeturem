@@ -2,9 +2,9 @@
 
 #include <SFML/Graphics.hpp>
 
-#include "Inventory.hpp"
-#include "TextureManager.hpp"
-#include "TextDraw.hpp"
+#include "Player/Inventory.hpp"
+#include "Core/TextureManager.hpp"
+#include "Core/TextDraw.hpp"
 
 class InventoryGUI
 {
