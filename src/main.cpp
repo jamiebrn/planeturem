@@ -119,7 +119,7 @@ int main()
 
         for (WorldObject* object : objects)
         {
-            object->draw(window, dt, 255);
+            object->draw(window, dt, {255, 255, 255, 255});
         }
 
         if (!inventoryOpen)
@@ -135,6 +135,17 @@ int main()
         if (buildMenuOpen)
         {
             BuildGUI::draw(window);
+
+            ObjectType selectedObjectType = BuildGUI::getSelectedObject();
+
+            std::unique_ptr<BuildableObject> recipeObject(
+                static_cast<BuildableObject*>(createObjectFromType(selectedObjectType, selectPos + sf::Vector2f(24, 24)).release())
+                );
+
+            if (Inventory::canBuildObject(selectedObjectType) && ChunkManager::getSelectedObject(selectPosTile) == nullptr)
+                recipeObject->draw(window, dt, {0, 255, 0, 180});
+            else
+                recipeObject->draw(window, dt, {255, 0, 0, 180});
         }
 
         window.display();

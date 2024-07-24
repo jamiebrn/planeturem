@@ -9,7 +9,7 @@ public:
     Tree(sf::Vector2f position) : WorldObject(position) {}
 
     inline void update(float dt) override;
-    void draw(sf::RenderWindow& window, float dt, int alpha) override;
+    void draw(sf::RenderWindow& window, float dt, const sf::Color& color) override;
 
     void interact() override;
     

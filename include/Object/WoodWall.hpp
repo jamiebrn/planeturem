@@ -10,8 +10,8 @@ class WoodWall : public BuildableObject
 public:
     WoodWall(sf::Vector2f position) : BuildableObject(position) {}
     void update(float dt) override;
-    void draw(sf::RenderWindow& window, float dt, int alpha) override;
-    void drawGUI(sf::RenderWindow& window, float dt, int alpha) override;
+    void draw(sf::RenderWindow& window, float dt, const sf::Color& color) override;
+    void drawGUI(sf::RenderWindow& window, float dt, const sf::Color& color) override;
 
     void interact() override;
 

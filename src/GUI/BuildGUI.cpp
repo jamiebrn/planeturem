@@ -54,7 +54,7 @@ void BuildGUI::draw(sf::RenderWindow& window)
 
         std::unique_ptr<BuildableObject> recipeObject(static_cast<BuildableObject*>(createObjectFromType(type, recipeBoxPosition + sf::Vector2f(40, 40)).release()));
 
-        recipeObject->drawGUI(window, 0, 255);
+        recipeObject->drawGUI(window, 0, {255, 255, 255, 255});
 
         // Draw recipe data if object selected to build
         if (selectedItem == recipeIndex)

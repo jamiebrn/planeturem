@@ -33,29 +33,31 @@ void Inventory::takeItem(ItemType item, int amount)
     {
         auto& itemPair = inventoryData[i];
 
-        if (itemPair.first == item)
+        if (itemPair.first != item)
+            continue;
+
+        int amount_taken = std::min(itemPair.second, amount_left);
+
+        // Must be taken from multiple stacks
+        if (amount_taken < amount_left)
         {
-            int amount_taken = std::min(itemPair.second, amount_left);
-
-            // Must be taken from multiple stacks
-            if (amount_taken < amount_left)
-            {
-                inventoryData.erase(inventoryData.begin() + i);
-                amount_left -= amount_taken;
-                continue;
-            }
-
-            // Stack has enough to take from
-            itemPair.second -= amount_left;
-
-            // Delete stack if now empty
-            if (itemPair.second <= 0)
-            {
-                inventoryData.erase(inventoryData.begin() + i);
-                amount_left -= amount_taken;
-                continue;
-            }
+            inventoryData.erase(inventoryData.begin() + i);
+            amount_left -= amount_taken;
+            continue;
         }
+
+        // Stack has enough to take from
+        itemPair.second -= amount_left;
+
+        // Delete stack if now empty
+        if (itemPair.second <= 0)
+        {
+            inventoryData.erase(inventoryData.begin() + i);
+            amount_left -= amount_taken;
+        }
+
+        // Removing items completed
+        return;
     }
 }
 
