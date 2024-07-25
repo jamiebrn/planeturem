@@ -157,6 +157,18 @@ std::vector<std::unique_ptr<CollisionRect>> Chunk::getCollisionRects()
 {
     sf::Vector2f worldPosition = static_cast<sf::Vector2f>(worldGridPosition) * 8.0f * 48.0f;
 
+    auto createCollisionRect = [worldPosition](std::vector<std::unique_ptr<CollisionRect>>& rects, int x, int y) -> void
+    {
+        std::unique_ptr<CollisionRect> collisionRect = std::make_unique<CollisionRect>();
+
+        collisionRect->x = worldPosition.x + x * 48.0f;
+        collisionRect->y = worldPosition.y + y * 48.0f;
+        collisionRect->width = 48.0f;
+        collisionRect->height = 48.0f;
+
+        rects.push_back(std::move(collisionRect));
+    };
+
     std::vector<std::unique_ptr<CollisionRect>> collisionRects;
 
     // Get collisions for tiles
@@ -165,16 +177,20 @@ std::vector<std::unique_ptr<CollisionRect>> Chunk::getCollisionRects()
         for (int x = 0; x < 8; x++)
         {
             if (groundTileGrid[y][x] == TileType::Water)
-            {
-                std::unique_ptr<CollisionRect> collisionRect = std::make_unique<CollisionRect>();
+                createCollisionRect(collisionRects, x, y);
+        }
+    }
 
-                collisionRect->x = worldPosition.x + x * 48.0f;
-                collisionRect->y = worldPosition.y + y * 48.0f;
-                collisionRect->width = 48.0f;
-                collisionRect->height = 48.0f;
-
-                collisionRects.push_back(std::move(collisionRect));
-            }
+    // Get collisions for objects
+    for (int y = 0; y < 8; y++)
+    {
+        for (int x = 0; x < 8; x++)
+        {
+            if (objectGrid[y][x] == nullptr)
+                continue;
+            
+            if (objectGrid[y][x]->getObjectType() == ObjectType::WoodWall)
+                createCollisionRect(collisionRects, x, y);
         }
     }
 

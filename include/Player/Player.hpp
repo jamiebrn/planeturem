@@ -1,12 +1,13 @@
 #pragma once
 
 #include <vector>
+#include <math.h>
+#include <algorithm>
 
 #include "Object/WorldObject.hpp"
 #include "Types/ObjectType.hpp"
 #include "World/ChunkManager.hpp"
 #include "Core/CollisionRect.hpp"
-#include "math.h"
 
 class Player : public WorldObject
 {

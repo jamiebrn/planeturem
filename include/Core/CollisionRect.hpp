@@ -1,5 +1,8 @@
 #pragma once
 
+#include <math.h>
+#include <algorithm>
+
 struct CollisionRect
 {
     float x, y;
