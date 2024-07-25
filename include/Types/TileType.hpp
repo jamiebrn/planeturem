@@ -3,5 +3,7 @@
 enum TileType
 {
     Grass,
+    DarkGrass,
+    Sand,
     Water
 };

@@ -4,5 +4,7 @@ enum class ObjectType
 {
     Tree,
     Bush,
-    WoodWall
+    WoodWall,
+
+    NONE
 };

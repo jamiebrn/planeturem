@@ -9,6 +9,7 @@
 #include "Types/TileType.hpp"
 #include "Core/TextureManager.hpp"
 #include "Core/Camera.hpp"
+#include "Core/CollisionRect.hpp"
 
 #include "Object/WorldObject.hpp"
 #include "Object/Tree.hpp"
@@ -30,6 +31,10 @@ public:
     void updateChunkObjects(float dt);
     std::vector<WorldObject*> getObjects();
     void setObject(sf::Vector2i position, ObjectType objectType);
+
+    bool canPlaceObject(sf::Vector2i selected_tile);
+
+    std::vector<std::unique_ptr<CollisionRect>> getCollisionRects();
 
     bool isPointInChunk(sf::Vector2f position);
 

@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include "WorldObject.hpp"
+#include "Types/ObjectType.hpp"
 
 class Tree : public WorldObject
 {
@@ -14,6 +15,8 @@ public:
     void interact() override;
     
     inline bool isAlive() override {return health > 0;}
+
+    inline ObjectType getObjectType() override {return ObjectType::Tree;}
 
 private:
     float flash_amount = 0.0f;

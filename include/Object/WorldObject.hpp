@@ -3,9 +3,10 @@
 #include <SFML/Graphics.hpp>
 #include "Core/TextureManager.hpp"
 #include "Core/Shaders.hpp"
+#include "Core/Camera.hpp"
 #include "Player/Inventory.hpp"
 #include "Types/TextureType.hpp"
-#include "Core/Camera.hpp"
+#include "Types/ObjectType.hpp"
 
 class WorldObject
 {
@@ -17,6 +18,8 @@ public:
     virtual void interact() = 0;
 
     virtual bool isAlive() = 0;
+
+    virtual ObjectType getObjectType() = 0;
 
     inline sf::Vector2f getPosition() {return position;}
     inline void setPosition(sf::Vector2f pos) {position = pos;}

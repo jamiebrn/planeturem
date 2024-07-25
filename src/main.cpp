@@ -78,7 +78,7 @@ int main()
                     else if (buildMenuOpen)
                     {
                         ObjectType objectType = BuildGUI::getSelectedObject();
-                        if (Inventory::canBuildObject(objectType) && ChunkManager::getSelectedObject(selectPosTile) == nullptr)
+                        if (Inventory::canBuildObject(objectType) && ChunkManager::canPlaceObject(selectPosTile))
                         {
                             // Take resources
                             for (auto& itemPair : BuildRecipes.at(objectType))
@@ -142,7 +142,7 @@ int main()
                 static_cast<BuildableObject*>(createObjectFromType(selectedObjectType, selectPos + sf::Vector2f(24, 24)).release())
                 );
 
-            if (Inventory::canBuildObject(selectedObjectType) && ChunkManager::getSelectedObject(selectPosTile) == nullptr)
+            if (Inventory::canBuildObject(selectedObjectType) && ChunkManager::canPlaceObject(selectPosTile))
                 recipeObject->draw(window, dt, {0, 255, 0, 180});
             else
                 recipeObject->draw(window, dt, {255, 0, 0, 180});

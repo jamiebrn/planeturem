@@ -1,18 +1,28 @@
 #pragma once
 
+#include <vector>
+
 #include "Object/WorldObject.hpp"
+#include "Types/ObjectType.hpp"
+#include "World/ChunkManager.hpp"
+#include "Core/CollisionRect.hpp"
 #include "math.h"
 
 class Player : public WorldObject
 {
 public:
-    Player(sf::Vector2f position) : WorldObject(position) {}
+    Player(sf::Vector2f position);
 
     void update(float dt) override;
     void draw(sf::RenderWindow& window, float dt, const sf::Color& color) override;
 
     inline void interact() override {};
+
+    inline ObjectType getObjectType() override {return ObjectType::NONE;}
     
     inline bool isAlive() override {return true;}
+
+private:
+    CollisionRect collisionRect;
     
 };

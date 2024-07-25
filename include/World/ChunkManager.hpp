@@ -9,6 +9,7 @@
 #include "World/Chunk.hpp"
 #include "World/ChunkPosition.hpp"
 #include "Core/Camera.hpp"
+#include "Core/CollisionRect.hpp"
 
 class ChunkManager
 {
@@ -23,7 +24,10 @@ public:
     static WorldObject* getSelectedObject(sf::Vector2i selected_tile);
     static void setObject(sf::Vector2i selected_tile, ObjectType objectType);
 
+    static bool canPlaceObject(sf::Vector2i selected_tile);
+
     static std::vector<WorldObject*> getChunkObjects();
+    static std::vector<std::unique_ptr<CollisionRect>> getChunkCollisionRects();
 
     // inline static std::map<ChunkPosition, std::unique_ptr<Chunk>>& getChunks() {return chunks;}
 

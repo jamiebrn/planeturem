@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include "WorldObject.hpp"
+#include "Types/ObjectType.hpp"
 
 class Bush : public WorldObject
 {
@@ -14,6 +15,8 @@ public:
     inline void interact() override;
     
     inline bool isAlive() override {return health > 0;}
+
+    inline ObjectType getObjectType() override {return ObjectType::Bush;}
 
 private:
     int health = 2;

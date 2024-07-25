@@ -100,6 +100,17 @@ void ChunkManager::setObject(sf::Vector2i selected_tile, ObjectType objectType)
     loadedChunks[chunkPos]->setObject({((selected_tile.x % 8) + 8) % 8, ((selected_tile.y % 8) + 8) % 8}, objectType);
 }
 
+bool ChunkManager::canPlaceObject(sf::Vector2i selected_tile)
+{
+    ChunkPosition chunkPos(std::floor(selected_tile.x / 8.0f), std::floor(selected_tile.y / 8.0f));
+
+    // Chunk does not exist
+    if (loadedChunks.count(chunkPos) <= 0)
+        return false;
+
+    return loadedChunks[chunkPos]->canPlaceObject({((selected_tile.x % 8) + 8) % 8, ((selected_tile.y % 8) + 8) % 8});
+}
+
 std::vector<WorldObject*> ChunkManager::getChunkObjects()
 {
     std::vector<WorldObject*> objects;
@@ -109,4 +120,15 @@ std::vector<WorldObject*> ChunkManager::getChunkObjects()
         objects.insert(objects.end(), chunkObjects.begin(), chunkObjects.end());
     }
     return objects;
+}
+
+std::vector<std::unique_ptr<CollisionRect>> ChunkManager::getChunkCollisionRects()
+{
+    std::vector<std::unique_ptr<CollisionRect>> collisionRects;
+    for (auto& chunkPair : loadedChunks)
+    {
+        std::vector<std::unique_ptr<CollisionRect>> chunkCollisionRects = chunkPair.second->getCollisionRects();
+        collisionRects.insert(collisionRects.end(), std::make_move_iterator(chunkCollisionRects.begin()), std::make_move_iterator(chunkCollisionRects.end()));
+    }
+    return collisionRects;
 }

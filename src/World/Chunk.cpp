@@ -29,6 +29,7 @@ void Chunk::generateChunk(const FastNoiseLite& noise)
                 groundVertexArray[vertexArrayIndex + 1].texCoords = {2 * 16 + 16, 0};
                 groundVertexArray[vertexArrayIndex + 3].texCoords = {2 * 16, 16};
                 groundVertexArray[vertexArrayIndex + 2].texCoords = {2 * 16 + 16, 16};
+                groundTileGrid[y][x] = TileType::Water;
             }
             else if (height > 0.7)
             {
@@ -36,6 +37,7 @@ void Chunk::generateChunk(const FastNoiseLite& noise)
                 groundVertexArray[vertexArrayIndex + 1].texCoords = {1 * 16 + 16, 0};
                 groundVertexArray[vertexArrayIndex + 3].texCoords = {1 * 16, 16};
                 groundVertexArray[vertexArrayIndex + 2].texCoords = {1 * 16 + 16, 16};
+                groundTileGrid[y][x] = TileType::DarkGrass;
             }
             else if (height >=0 && height < 0.2)
             {
@@ -43,6 +45,7 @@ void Chunk::generateChunk(const FastNoiseLite& noise)
                 groundVertexArray[vertexArrayIndex + 1].texCoords = {3 * 16 + 16, 0};
                 groundVertexArray[vertexArrayIndex + 3].texCoords = {3 * 16, 16};
                 groundVertexArray[vertexArrayIndex + 2].texCoords = {3 * 16 + 16, 16};
+                groundTileGrid[y][x] = TileType::Sand;
             }
             else
             {
@@ -50,6 +53,7 @@ void Chunk::generateChunk(const FastNoiseLite& noise)
                 groundVertexArray[vertexArrayIndex + 1].texCoords = {0 * 16 + 16, 0};
                 groundVertexArray[vertexArrayIndex + 3].texCoords = {0 * 16, 16};
                 groundVertexArray[vertexArrayIndex + 2].texCoords = {0 * 16 + 16, 16};
+                groundTileGrid[y][x] = TileType::Grass;
             }
 
             sf::Vector2f objectPos = worldPosition + sf::Vector2f(x * 48.0f + 24.0f, y * 48.0f + 24.0f);
@@ -134,6 +138,47 @@ void Chunk::setObject(sf::Vector2i position, ObjectType objectType)
     std::unique_ptr<WorldObject> object = createObjectFromType(objectType, objectPos);
 
     objectGrid[position.y][position.x] = std::move(object);
+}
+
+bool Chunk::canPlaceObject(sf::Vector2i selected_tile)
+{
+    // Test terrain
+    if (groundTileGrid[selected_tile.y][selected_tile.x] == TileType::Water)
+        return false;
+    
+    // Test objects
+    if (objectGrid[selected_tile.y][selected_tile.x] != nullptr)
+        return false;
+    
+    return true;
+}
+
+std::vector<std::unique_ptr<CollisionRect>> Chunk::getCollisionRects()
+{
+    sf::Vector2f worldPosition = static_cast<sf::Vector2f>(worldGridPosition) * 8.0f * 48.0f;
+
+    std::vector<std::unique_ptr<CollisionRect>> collisionRects;
+
+    // Get collisions for tiles
+    for (int y = 0; y < 8; y++)
+    {
+        for (int x = 0; x < 8; x++)
+        {
+            if (groundTileGrid[y][x] == TileType::Water)
+            {
+                std::unique_ptr<CollisionRect> collisionRect = std::make_unique<CollisionRect>();
+
+                collisionRect->x = worldPosition.x + x * 48.0f;
+                collisionRect->y = worldPosition.y + y * 48.0f;
+                collisionRect->width = 48.0f;
+                collisionRect->height = 48.0f;
+
+                collisionRects.push_back(std::move(collisionRect));
+            }
+        }
+    }
+
+    return collisionRects;
 }
 
 bool Chunk::isPointInChunk(sf::Vector2f position)
