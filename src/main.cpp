@@ -92,6 +92,11 @@ int main()
                     }
                 }
             }
+
+            if (event.type == sf::Event::MouseWheelScrolled)
+            {
+                BuildGUI::changeSelectedObject(-event.mouseWheelScroll.delta);
+            }
         }
 
         sf::Vector2f mouseWorldPos = mousePos - Camera::getDrawOffset();
@@ -114,6 +119,7 @@ int main()
 
         std::sort(objects.begin(), objects.end(), [](WorldObject* a, WorldObject* b)
         {
+            if (a->drawLayer != b->drawLayer) return a->drawLayer > b->drawLayer;
             return a->getPosition().y < b->getPosition().y;
         });
 

@@ -25,7 +25,7 @@ bool CollisionRect::handleCollision(const CollisionRect& otherRect)
     if (y > otherRect.y) y_intersect = otherRect.y + otherRect.height - y;
 
     // Apply push to handle collision
-    if (fabs(x_intersect) < fabs(y_intersect))
+    if (fabs(x_intersect) <= fabs(y_intersect))
     {
         if (x < otherRect.x) x -= x_intersect;
         else x += x_intersect;

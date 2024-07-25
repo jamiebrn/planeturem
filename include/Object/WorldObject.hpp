@@ -11,6 +11,9 @@
 class WorldObject
 {
 public:
+    int drawLayer = 0;
+
+public:
     WorldObject(sf::Vector2f position) : position(position) {}
     virtual void update(float dt) = 0;
     virtual void draw(sf::RenderWindow& window, float dt, const sf::Color& color) = 0;
