@@ -117,20 +117,22 @@ void Chunk::drawChunkObjects(sf::RenderWindow& window)
 
 void Chunk::updateChunkObjects(float dt)
 {
-    for (auto& object_row : objectGrid)
+    for (int y = 0; y < objectGrid.size(); y++)
     {
-        for (auto& object : object_row)
+        auto& object_row = objectGrid[y];
+        for (int x = 0; x < object_row.size(); x++)
         {
+            auto& object = object_row[x];
             if (object)
             {
-                OccupiedTileObject* occupiedTile = dynamic_cast<OccupiedTileObject*>(object.get());
+                // OccupiedTileObject* occupiedTile = dynamic_cast<OccupiedTileObject*>(object.get());
                 // If object is occupied tile, do not update
-                if (occupiedTile != nullptr)
+                if (object->isObjectReference())
                     continue;
                 
                 object->update(dt);
                 if (!object->isAlive())
-                    object = nullptr;
+                    deleteObject(sf::Vector2i(x, y));
             }
         }
     }
@@ -143,9 +145,12 @@ std::vector<WorldObject*> Chunk::getObjects()
     {
         for (int x = 0; x < 8; x++)
         {
-            OccupiedTileObject* occupiedTile = dynamic_cast<OccupiedTileObject*>(objectGrid[y][x].get());
+            // OccupiedTileObject* occupiedTile = dynamic_cast<OccupiedTileObject*>(objectGrid[y][x].get());
+            if (objectGrid[y][x] == nullptr)
+                continue;
+
             // If object is occupied tile, do not draw
-            if (occupiedTile != nullptr)
+            if (objectGrid[y][x]->isObjectReference())
                 continue;
 
             if (objectGrid[y][x])
@@ -172,26 +177,122 @@ void Chunk::setObject(sf::Vector2i position, unsigned int objectType)
         objectReference.tile = position;
 
         // Iterate over all tiles which object occupies and add occupied tile
-        for (int y = position.y; y < position.y + objectSize.y; y++)
+        for (int y = position.y; y < std::min(position.y + objectSize.y, (int)objectGrid.size()); y++)
         {
-            for (int x = position.x; x < position.x + objectSize.x; x++)
+            for (int x = position.x; x < std::min(position.x + objectSize.x, (int)objectGrid[0].size()); x++)
             {
                 // If tile is actual object tile, don't place occupied tile
                 if (x == position.x && y == position.y)
                     continue;
                 
-                sf::Vector2f occupiedTilePos = objectPos + sf::Vector2f(position.x, position.y) * 48.0f;
+                // sf::Vector2f occupiedTilePos = objectPos + sf::Vector2f(position.x, position.y) * 48.0f;
 
-                std::unique_ptr<OccupiedTileObject> occupiedTile = std::make_unique<OccupiedTileObject>(occupiedTilePos, objectType, objectReference);
+                // std::unique_ptr<OccupiedTileObject> occupiedTile = std::make_unique<OccupiedTileObject>(occupiedTilePos, objectType, objectReference);
 
-                std::unique_ptr<BuildableObject> occupiedTileBuildable(static_cast<BuildableObject*>(occupiedTile.release()));
+                std::unique_ptr<BuildableObject> occupiedTile = std::make_unique<BuildableObject>(objectReference);
 
-                objectGrid[y][x] = std::move(occupiedTileBuildable);
+                objectGrid[y][x] = std::move(occupiedTile);
+            }
+        }
+
+        // Calculate remaining tiles to place, if placed across multiple chunks
+        int x_remaining = objectSize.x - ((int)objectGrid[0].size() - 1 - position.x) - 1;
+        int y_remaining = objectSize.y - ((int)objectGrid.size() - 1 - position.y) - 1;
+
+        // Add tiles to right (direction) chunk if required
+        for (int y = position.y; y < std::min(position.y + objectSize.y, (int)objectGrid.size()); y++)
+        {
+            for (int x = 0; x < x_remaining; x++)
+            {
+                ChunkManager::setObjectReference(ChunkPosition(worldGridPosition.x + 1, worldGridPosition.y), objectReference, sf::Vector2i(x, y));
+            }
+        }
+
+        // Add tiles to down (direction) chunk if required
+        for (int y = 0; y < y_remaining; y++)
+        {
+            for (int x = position.x; x < std::min(position.x + objectSize.x, (int)objectGrid[0].size()); x++)
+            {
+                ChunkManager::setObjectReference(ChunkPosition(worldGridPosition.x, worldGridPosition.y + 1), objectReference, sf::Vector2i(x, y));
+            }
+        }
+
+        // Add tiles to down-right (direction) chunk if required
+        for (int y = 0; y < y_remaining; y++)
+        {
+            for (int x = 0; x < x_remaining; x++)
+            {
+                ChunkManager::setObjectReference(ChunkPosition(worldGridPosition.x + 1, worldGridPosition.y + 1), objectReference, sf::Vector2i(x, y));
             }
         }
     }
 
     objectGrid[position.y][position.x] = std::move(object);
+}
+
+void Chunk::deleteObject(sf::Vector2i position)
+{
+    // Get size of object to handle different deletion cases
+    unsigned int objectType = objectGrid[position.y][position.x]->getObjectType();
+    const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
+
+    sf::Vector2i objectSize = objectData.size;
+
+    // Object is single tile
+    if (objectSize == sf::Vector2i(1, 1))
+    {
+        objectGrid[position.y][position.x] = nullptr;
+        return;
+    }
+
+    // Object is multiple tiles in size
+
+    // Delete reference tiles in current chunk
+    for (int y = position.y; y < std::min(position.y + objectSize.y, (int)objectGrid.size()); y++)
+    {
+        for (int x = position.x; x < std::min(position.x + objectSize.x, (int)objectGrid[0].size()); x++)
+        {
+            objectGrid[y][x] = nullptr;
+        }
+    }
+
+    // Calculate remaining tiles to delete, if placed across multiple chunks
+    int x_remaining = objectSize.x - ((int)objectGrid[0].size() - 1 - position.x) - 1;
+    int y_remaining = objectSize.y - ((int)objectGrid.size() - 1 - position.y) - 1;
+
+    // Delete tiles to right (direction) chunk if required
+    for (int y = position.y; y < std::min(position.y + objectSize.y, (int)objectGrid.size()); y++)
+    {
+        for (int x = 0; x < x_remaining; x++)
+        {
+            ChunkManager::deleteObject(ChunkPosition(worldGridPosition.x + 1, worldGridPosition.y), sf::Vector2i(x, y));
+        }
+    }
+
+    // Delete tiles to down (direction) chunk if required
+    for (int y = 0; y < y_remaining; y++)
+    {
+        for (int x = position.x; x < std::min(position.x + objectSize.x, (int)objectGrid[0].size()); x++)
+        {
+            ChunkManager::deleteObject(ChunkPosition(worldGridPosition.x, worldGridPosition.y + 1), sf::Vector2i(x, y));
+        }
+    }
+
+    // Delete tiles to down-right (direction) chunk if required
+    for (int y = 0; y < y_remaining; y++)
+    {
+        for (int x = 0; x < x_remaining; x++)
+        {
+            ChunkManager::deleteObject(ChunkPosition(worldGridPosition.x + 1, worldGridPosition.y + 1), sf::Vector2i(x, y));
+        }
+    }
+}
+
+void Chunk::setObjectReference(const ObjectReference& objectReference, sf::Vector2i tile)
+{
+    std::unique_ptr<BuildableObject> occupiedTile = std::make_unique<BuildableObject>(objectReference);
+
+    objectGrid[tile.y][tile.x] = std::move(occupiedTile);
 }
 
 bool Chunk::canPlaceObject(sf::Vector2i selected_tile)
@@ -243,6 +344,18 @@ std::vector<std::unique_ptr<CollisionRect>> Chunk::getCollisionRects()
             if (objectGrid[y][x] == nullptr)
                 continue;
             
+            // Get object data for reference
+            if (objectGrid[y][x]->isObjectReference())
+            {
+                const ObjectReference& objectReference = objectGrid[y][x]->getObjectReference().value();
+                // Get referenced object data
+                unsigned int objectType = ChunkManager::getObjectTypeFromObjectReference(objectReference);
+                const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
+
+                if (objectData.hasCollision)
+                    createCollisionRect(collisionRects, x, y);
+            }
+
             const ObjectData& objectData = ObjectDataLoader::getObjectData(objectGrid[y][x]->getObjectType());
             
             if (objectData.hasCollision)

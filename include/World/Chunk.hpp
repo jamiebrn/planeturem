@@ -14,6 +14,7 @@
 #include "Object/BuildableObject.hpp"
 #include "Object/OccupiedTileObject.hpp"
 #include "Object/ObjectReference.hpp"
+#include "World/ChunkManager.hpp"
 #include "Data/ObjectDataLoader.hpp"
 #include "Types/TileType.hpp"
 
@@ -30,7 +31,11 @@ public:
 
     void updateChunkObjects(float dt);
     std::vector<WorldObject*> getObjects();
+
     void setObject(sf::Vector2i position, unsigned int objectType);
+    void deleteObject(sf::Vector2i position);
+
+    void setObjectReference(const ObjectReference& objectReference, sf::Vector2i tile);
 
     bool canPlaceObject(sf::Vector2i selected_tile);
 

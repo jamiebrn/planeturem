@@ -1,6 +1,7 @@
 #pragma once
 
 #include <SFML/Graphics.hpp>
+#include <optional>
 
 #include "Core/TextureManager.hpp"
 #include "Core/Shaders.hpp"
@@ -27,9 +28,19 @@ public:
 
     inline bool isAlive() override {return health > 0;}
 
+    // When used as a reference to another object
+    BuildableObject(ObjectReference _objectReference);
+
+    inline bool isObjectReference() {return objectReference.has_value();}
+
+    inline const std::optional<ObjectReference>& getObjectReference() {return objectReference;}
+
 private:
-    unsigned int objectType;
-    int health;
+    unsigned int objectType = 0;
+    int health = 0;
     float flash_amount;
+
+    // If reference to a buildable object
+    std::optional<ObjectReference> objectReference = std::nullopt;
 
 };

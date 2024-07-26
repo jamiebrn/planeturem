@@ -39,18 +39,21 @@ void ChunkManager::updateChunks(const FastNoiseLite& noise)
     }
 
     // Check any loaded chunks need unloading
-    for (auto& chunkPair : loadedChunks)
+    for (auto iter = loadedChunks.begin(); iter != loadedChunks.end();)
     {
-        ChunkPosition chunkPos = chunkPair.first;
+        ChunkPosition chunkPos = iter->first;
 
         if (chunkPos.x < screenTopLeftGrid.x || chunkPos.x > screenBottomRightGrid.x
             || chunkPos.y < screenTopLeftGrid.y || chunkPos.y > screenBottomRightGrid.y)
         {
             // Store chunk in chunk memory
-            storedChunks[chunkPos] = std::move(chunkPair.second);
+            storedChunks[chunkPos] = std::move(iter->second);
             // Unload chunk
-            loadedChunks.erase(chunkPos);
+            iter = loadedChunks.erase(iter);
+
+            continue;
         }
+        iter++;
     }
 }
 
@@ -73,28 +76,36 @@ void ChunkManager::updateChunksObjects(float dt)
     }
 }
 
-BuildableObject* ChunkManager::getSelectedObject(sf::Vector2i selected_tile)
+BuildableObject* ChunkManager::getSelectedObject(ChunkPosition chunk, sf::Vector2i tile)
 {
-    ChunkPosition chunkPos(std::floor(selected_tile.x / 8.0f), std::floor(selected_tile.y / 8.0f));
+    // ChunkPosition chunkPos(std::floor(selected_tile.x / 8.0f), std::floor(selected_tile.y / 8.0f));
 
     // Chunk does not exist
-    if (loadedChunks.count(chunkPos) <= 0)
+    if (loadedChunks.count(chunk) <= 0)
         return nullptr;
     
     // Get objects in chunk
-    auto& chunkObjects = loadedChunks[chunkPos]->getObjectGrid();
+    auto& chunkObjects = loadedChunks[chunk]->getObjectGrid();
 
-    BuildableObject* selectedObject = chunkObjects[((selected_tile.y % 8) + 8) % 8][((selected_tile.x % 8) + 8) % 8].get();
+    BuildableObject* selectedObject = chunkObjects[tile.y][tile.x].get();
+
+    if (selectedObject == nullptr)
+        return nullptr;
 
     // Test if object is occupied tile object, to then get the actual object
-    OccupiedTileObject* selectedOccupiedTileObject = dynamic_cast<OccupiedTileObject*>(selectedObject);
-    if (selectedOccupiedTileObject != nullptr)
+    if (selectedObject->isObjectReference())
     {
-        
+        const ObjectReference& objectReference = selectedObject->getObjectReference().value();
+        selectedObject = getSelectedObject(objectReference.chunk, objectReference.tile);
     }
 
     // Get object at position and return
-    return chunkObjects[((selected_tile.y % 8) + 8) % 8][((selected_tile.x % 8) + 8) % 8].get();
+    return selectedObject;
+}
+
+bool ChunkManager::interactWithObject(sf::Vector2i selected_tile)
+{
+
 }
 
 void ChunkManager::setObject(sf::Vector2i selected_tile, unsigned int objectType)
@@ -107,6 +118,33 @@ void ChunkManager::setObject(sf::Vector2i selected_tile, unsigned int objectType
     
     // Set chunk object at position
     loadedChunks[chunkPos]->setObject({((selected_tile.x % 8) + 8) % 8, ((selected_tile.y % 8) + 8) % 8}, objectType);
+}
+
+void ChunkManager::deleteObject(ChunkPosition chunk, sf::Vector2i tile)
+{
+    // Chunk does not exist
+    if (loadedChunks.count(chunk) <= 0)
+        return;
+    
+    loadedChunks[chunk]->deleteObject(tile);
+}
+
+unsigned int ChunkManager::getObjectTypeFromObjectReference(const ObjectReference& objectReference)
+{
+    // Chunk does not exist
+    if (loadedChunks.count(objectReference.chunk) <= 0)
+        return 0;
+    
+    return loadedChunks[objectReference.chunk]->getObjectGrid()[objectReference.tile.y][objectReference.tile.x]->getObjectType();
+}
+
+void ChunkManager::setObjectReference(const ChunkPosition& chunk, const ObjectReference& objectReference, sf::Vector2i tile)
+{
+    // Chunk does not exist
+    if (loadedChunks.count(chunk) <= 0)
+        return;
+    
+    loadedChunks[chunk]->setObjectReference(objectReference, tile);
 }
 
 bool ChunkManager::canPlaceObject(sf::Vector2i selected_tile)

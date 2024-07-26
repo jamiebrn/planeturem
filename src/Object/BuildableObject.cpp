@@ -13,6 +13,12 @@ BuildableObject::BuildableObject(sf::Vector2f position, unsigned int objectType)
     drawLayer = objectData.drawLayer;
 }
 
+BuildableObject::BuildableObject(ObjectReference _objectReference)
+    : WorldObject({0, 0})
+{
+    objectReference = _objectReference;
+}
+
 void BuildableObject::update(float dt)
 {
     flash_amount = std::max(flash_amount - dt * 3, 0.0f);

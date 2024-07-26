@@ -79,7 +79,10 @@ int main()
                 {
                     if (!inventoryOpen && !buildMenuOpen)
                     {
-                        BuildableObject* selectedObject = ChunkManager::getSelectedObject(selectPosTile);
+                        ChunkPosition chunk(std::floor(selectPosTile.x / 8.0f), std::floor(selectPosTile.y / 8.0f));
+                        sf::Vector2i selected_tile(((selectPosTile.x % 8) + 8) % 8, ((selectPosTile.y % 8) + 8) % 8);
+
+                        BuildableObject* selectedObject = ChunkManager::getSelectedObject(chunk, selected_tile);
                         if (selectedObject)
                             selectedObject->interact();
                     }
