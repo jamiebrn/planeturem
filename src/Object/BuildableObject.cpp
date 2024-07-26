@@ -43,8 +43,13 @@ void BuildableObject::interact()
     flash_amount = 1.0f;
     health -= 1;
 
-    // if (!isAlive())
-    // {
-    //     Inventory::addItem(ItemType::Wood, (rand() % 3) + 1);
-    // }
+    if (!isAlive())
+    {
+        // Give item drops
+        const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
+        for (auto& itemDropPair : objectData.itemDrops)
+        {
+            Inventory::addItem(itemDropPair.first, itemDropPair.second);
+        }
+    }
 }

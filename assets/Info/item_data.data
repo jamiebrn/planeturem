@@ -12,5 +12,12 @@
         "texture-y": 0,
         "texture-width": 16,
         "texture-height": 16
+    },
+    "2": {
+        "name": "Stone",
+        "texture-x": 32,
+        "texture-y": 0,
+        "texture-width": 16,
+        "texture-height": 16
     }
 }

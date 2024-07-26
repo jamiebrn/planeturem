@@ -6,18 +6,13 @@
 #include <vector>
 #include <memory>
 
-#include "Types/TileType.hpp"
 #include "Core/TextureManager.hpp"
 #include "Core/Camera.hpp"
 #include "Core/CollisionRect.hpp"
-
 #include "Object/WorldObject.hpp"
 #include "Object/BuildableObject.hpp"
 #include "Data/ObjectDataLoader.hpp"
-#include "Object/Tree.hpp"
-#include "Object/Bush.hpp"
-
-#include "Object/ObjectBuilder.hpp"
+#include "Types/TileType.hpp"
 
 class Chunk
 {

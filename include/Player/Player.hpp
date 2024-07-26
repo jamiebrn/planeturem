@@ -4,10 +4,9 @@
 #include <math.h>
 #include <algorithm>
 
-#include "Object/WorldObject.hpp"
-#include "Types/ObjectType.hpp"
-#include "World/ChunkManager.hpp"
 #include "Core/CollisionRect.hpp"
+#include "Object/WorldObject.hpp"
+#include "World/ChunkManager.hpp"
 
 class Player : public WorldObject
 {
@@ -18,8 +17,6 @@ public:
     void draw(sf::RenderWindow& window, float dt, const sf::Color& color) override;
 
     inline void interact() override {};
-
-    // inline ObjectType getObjectType() override {return ObjectType::NONE;}
     
     inline bool isAlive() override {return true;}
 

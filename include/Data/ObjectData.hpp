@@ -2,6 +2,7 @@
 
 #include <SFML/Graphics.hpp>
 #include <string>
+#include <unordered_map>
 
 struct ObjectData
 {
@@ -13,4 +14,6 @@ struct ObjectData
 
     bool hasCollision = false;
     int drawLayer = 0;
+
+    std::unordered_map<unsigned int, int> itemDrops;
 };

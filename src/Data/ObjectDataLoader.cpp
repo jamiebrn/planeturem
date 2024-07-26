@@ -25,6 +25,15 @@ bool ObjectDataLoader::loadData(std::string objectDataPath)
         if (jsonObjectData.contains("has-collision")) objectData.hasCollision = jsonObjectData.at("has-collision");
         if (jsonObjectData.contains("draw-layer")) objectData.drawLayer = jsonObjectData.at("draw-layer");
 
+        if (jsonObjectData.contains("item-drops"))
+        {
+            auto itemDrops = jsonObjectData.at("item-drops");
+            for (nlohmann::json::iterator itemDropsIter = itemDrops.begin(); itemDropsIter != itemDrops.end(); ++itemDropsIter)
+            {
+                objectData.itemDrops[std::stoi(itemDropsIter.key())] = itemDropsIter.value();
+            }
+        }
+
         loaded_objectData.push_back(objectData);
     }
 

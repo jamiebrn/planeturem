@@ -1,12 +1,6 @@
 #pragma once
 
 #include <SFML/Graphics.hpp>
-#include "Core/TextureManager.hpp"
-#include "Core/Shaders.hpp"
-#include "Core/Camera.hpp"
-#include "Player/Inventory.hpp"
-#include "Types/TextureType.hpp"
-#include "Types/ObjectType.hpp"
 
 class WorldObject
 {

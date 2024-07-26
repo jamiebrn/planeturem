@@ -7,7 +7,10 @@
         "texture-width": 16,
         "texture-height": 32,
         "texture-x-origin": 0.5,
-        "texture-y-origin": 0.85
+        "texture-y-origin": 0.85,
+        "item-drops": {
+            "0": 2
+        }
     },
     "1": {
         "name": "Bush",
@@ -17,8 +20,10 @@
         "texture-width": 16,
         "texture-height": 16,
         "texture-x-origin": 0.5,
-        "texture-y-origin": 0.5,
-        "has-collision": true
+        "texture-y-origin": 0.7,
+        "item-drops": {
+            "0": 1
+        }
     },
     "2": {
         "name": "Wood Wall",
@@ -41,5 +46,18 @@
         "texture-x-origin": 0.5,
         "texture-y-origin": 0.5,
         "draw-layer": 1
+    },
+    "4": {
+        "name": "Rock",
+        "health": 6,
+        "texture-x": 16,
+        "texture-y": 0,
+        "texture-width": 16,
+        "texture-height": 16,
+        "texture-x-origin": 0.5,
+        "texture-y-origin": 0.7,
+        "item-drops": {
+            "2": 2
+        }
     }
 }

@@ -71,6 +71,11 @@ void Chunk::generateChunk(const FastNoiseLite& noise)
                 // Make bush
                 objectGrid[y][x] = std::move(std::make_unique<BuildableObject>(objectPos, 1));
             }
+            else if (spawn_chance == 5 && height >= 0.2)
+            {
+                // Make bush
+                objectGrid[y][x] = std::move(std::make_unique<BuildableObject>(objectPos, 4));
+            }
         }
     }
 }
