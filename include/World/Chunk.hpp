@@ -12,6 +12,8 @@
 #include "Core/CollisionRect.hpp"
 
 #include "Object/WorldObject.hpp"
+#include "Object/BuildableObject.hpp"
+#include "Data/ObjectDataLoader.hpp"
 #include "Object/Tree.hpp"
 #include "Object/Bush.hpp"
 
@@ -30,7 +32,7 @@ public:
 
     void updateChunkObjects(float dt);
     std::vector<WorldObject*> getObjects();
-    void setObject(sf::Vector2i position, ObjectType objectType);
+    void setObject(sf::Vector2i position, unsigned int objectType);
 
     bool canPlaceObject(sf::Vector2i selected_tile);
 
@@ -38,13 +40,13 @@ public:
 
     bool isPointInChunk(sf::Vector2f position);
 
-    inline const std::array<std::array<std::unique_ptr<WorldObject>, 8>, 8>& getObjectGrid() {return objectGrid;}
+    inline const std::array<std::array<std::unique_ptr<BuildableObject>, 8>, 8>& getObjectGrid() {return objectGrid;}
 
 private:
     std::array<std::array<TileType, 8>, 8> groundTileGrid;
     sf::VertexArray groundVertexArray;
 
-    std::array<std::array<std::unique_ptr<WorldObject>, 8>, 8> objectGrid;
+    std::array<std::array<std::unique_ptr<BuildableObject>, 8>, 8> objectGrid;
 
     sf::Vector2i worldGridPosition;
 

@@ -88,7 +88,7 @@ WorldObject* ChunkManager::getSelectedObject(sf::Vector2i selected_tile)
     return chunkObjects[((selected_tile.y % 8) + 8) % 8][((selected_tile.x % 8) + 8) % 8].get();
 }
 
-void ChunkManager::setObject(sf::Vector2i selected_tile, ObjectType objectType)
+void ChunkManager::setObject(sf::Vector2i selected_tile, unsigned int objectType)
 {
     ChunkPosition chunkPos(std::floor(selected_tile.x / 8.0f), std::floor(selected_tile.y / 8.0f));
 

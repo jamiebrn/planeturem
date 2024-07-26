@@ -5,6 +5,7 @@
 #include "Player/Inventory.hpp"
 #include "Core/TextureManager.hpp"
 #include "Core/TextDraw.hpp"
+#include "Data/ItemDataLoader.hpp"
 
 class InventoryGUI
 {

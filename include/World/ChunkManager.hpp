@@ -22,7 +22,7 @@ public:
     static void updateChunksObjects(float dt);
 
     static WorldObject* getSelectedObject(sf::Vector2i selected_tile);
-    static void setObject(sf::Vector2i selected_tile, ObjectType objectType);
+    static void setObject(sf::Vector2i selected_tile, unsigned int objectType);
 
     static bool canPlaceObject(sf::Vector2i selected_tile);
 

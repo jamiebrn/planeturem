@@ -1,0 +1,16 @@
+{
+    "0": {
+        "name": "Wood",
+        "texture-x": 0,
+        "texture-y": 0,
+        "texture-width": 16,
+        "texture-height": 16
+    },
+    "1": {
+        "name": "Coal",
+        "texture-x": 16,
+        "texture-y": 0,
+        "texture-width": 16,
+        "texture-height": 16
+    }
+}

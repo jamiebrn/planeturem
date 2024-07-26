@@ -1,5 +1,6 @@
 #include <SFML/Graphics.hpp>
 #include <World/FastNoiseLite.h>
+#include <Core/json.hpp>
 #include <math.h>
 #include <array>
 #include <map>
@@ -8,10 +9,13 @@
 
 #include "Core/TextureManager.hpp"
 #include "Core/Shaders.hpp"
-#include "World/ChunkManager.hpp"
 #include "Core/Camera.hpp"
 #include "Core/Helper.hpp"
+#include "World/ChunkManager.hpp"
 #include "Player/Player.hpp"
+#include "Data/ItemDataLoader.hpp"
+#include "Data/ObjectDataLoader.hpp"
+#include "Data/BuildRecipeLoader.hpp"
 
 #include "GUI/InventoryGUI.hpp"
 #include "GUI/BuildGUI.hpp"
@@ -26,6 +30,10 @@ int main()
     TextureManager::loadTextures(window);
     Shaders::loadShaders();
     TextDraw::loadFont("Data/upheavtt.ttf");
+
+    ItemDataLoader::loadData("Data/Info/item_data.data");
+    ObjectDataLoader::loadData("Data/Info/object_data.data");
+    BuildRecipeLoader::loadData("Data/Info/build_recipes.data");
 
     sf::Vector2f selectPos(0, 0);
 
@@ -77,11 +85,11 @@ int main()
                     }
                     else if (buildMenuOpen)
                     {
-                        ObjectType objectType = BuildGUI::getSelectedObject();
+                        unsigned int objectType = BuildGUI::getSelectedObject();
                         if (Inventory::canBuildObject(objectType) && ChunkManager::canPlaceObject(selectPosTile))
                         {
                             // Take resources
-                            for (auto& itemPair : BuildRecipes.at(objectType))
+                            for (auto& itemPair : BuildRecipeLoader::getBuildRecipe(objectType).itemRequirements)
                             {
                                 Inventory::takeItem(itemPair.first, itemPair.second);
                             }
@@ -119,7 +127,7 @@ int main()
 
         std::sort(objects.begin(), objects.end(), [](WorldObject* a, WorldObject* b)
         {
-            if (a->drawLayer != b->drawLayer) return a->drawLayer > b->drawLayer;
+            if (a->getDrawLayer() != b->getDrawLayer()) return a->getDrawLayer() > b->getDrawLayer();
             return a->getPosition().y < b->getPosition().y;
         });
 
@@ -142,16 +150,14 @@ int main()
         {
             BuildGUI::draw(window);
 
-            ObjectType selectedObjectType = BuildGUI::getSelectedObject();
+            unsigned int selectedObjectType = BuildGUI::getSelectedObject();
 
-            std::unique_ptr<BuildableObject> recipeObject(
-                static_cast<BuildableObject*>(createObjectFromType(selectedObjectType, selectPos + sf::Vector2f(24, 24)).release())
-                );
+            BuildableObject recipeObject(selectPos + sf::Vector2f(24, 24), selectedObjectType);
 
             if (Inventory::canBuildObject(selectedObjectType) && ChunkManager::canPlaceObject(selectPosTile))
-                recipeObject->draw(window, dt, {0, 255, 0, 180});
+                recipeObject.draw(window, dt, {0, 255, 0, 180});
             else
-                recipeObject->draw(window, dt, {255, 0, 0, 180});
+                recipeObject.draw(window, dt, {255, 0, 0, 180});
         }
 
         window.display();

@@ -105,7 +105,7 @@ void TextureManager::drawTexture(sf::RenderWindow& window, TextureDrawData drawD
 }
 
 // Draw texture using a subrectangle, useful for spritesheets and tiling textures (subrectangle bigger than texture, texture repeats)
-void TextureManager::drawSubTexture(sf::RenderWindow& window, TextureDrawData drawData, sf::IntRect boundRect)
+void TextureManager::drawSubTexture(sf::RenderWindow& window, TextureDrawData drawData, sf::IntRect boundRect, sf::Shader* shader)
 {
     // If not loaded textures, return by default
     if (!loadedTextures)
@@ -119,6 +119,13 @@ void TextureManager::drawSubTexture(sf::RenderWindow& window, TextureDrawData dr
 
     // Apply draw data to texture
     applyTextureData(drawData);
+    
+    // Draw with shader if required
+    if (shader)
+    {
+        window.draw(sprite, shader);
+        return;
+    }
 
     // Draw sprite
     window.draw(sprite);

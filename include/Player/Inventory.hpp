@@ -4,26 +4,24 @@
 #include <unordered_map>
 #include <iostream>
 
-#include "Types/ItemType.hpp"
-#include "Types/ObjectType.hpp"
-#include "Data/BuildRecipes.hpp"
+#include "Data/BuildRecipeLoader.hpp"
 
 class Inventory
 {
     Inventory() = delete;
 
 public:
-    static void addItem(ItemType item, int amount);
+    static void addItem(unsigned int item, int amount);
 
-    static void takeItem(ItemType item, int amount);
+    static void takeItem(unsigned int item, int amount);
 
-    static bool canBuildObject(ObjectType object);
+    static bool canBuildObject(unsigned int object);
 
-    static std::unordered_map<ItemType, int> getTotalItemCount();
+    static std::unordered_map<unsigned int, int> getTotalItemCount();
 
-    inline static const std::vector<std::pair<ItemType, int>>& getData() {return inventoryData;}
+    inline static const std::vector<std::pair<unsigned int, int>>& getData() {return inventoryData;}
 
 private:
-    static std::vector<std::pair<ItemType, int>> inventoryData;
+    static std::vector<std::pair<unsigned int, int>> inventoryData;
 
 };

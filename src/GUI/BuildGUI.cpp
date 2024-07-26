@@ -7,9 +7,9 @@ void BuildGUI::changeSelectedObject(int change)
     selectedItem = std::max(selectedItem + change, 0);
 }
 
-ObjectType BuildGUI::getSelectedObject()
+unsigned int BuildGUI::getSelectedObject()
 {
-    std::map<ObjectType, std::map<ItemType, int>>::const_iterator iter = BuildRecipes.begin();
+    std::map<unsigned int, BuildRecipe>::const_iterator iter = BuildRecipeLoader::getBuildRecipeData().begin();
     std::advance(iter, selectedItem);
     return iter->first;
 }
@@ -29,7 +29,7 @@ void BuildGUI::draw(sf::RenderWindow& window)
     int recipeIndex = 0;
     sf::Vector2f recipeBoxPosition(1280 / 2 - 390, 650 - 40);
 
-    for (auto& recipePair : BuildRecipes)
+    for (auto& recipePair : BuildRecipeLoader::getBuildRecipeData())
     {
         // If selected, draw white box to show selected
         if (selectedItem == recipeIndex)
@@ -50,11 +50,12 @@ void BuildGUI::draw(sf::RenderWindow& window)
         window.draw(recipeBox);
 
         // Draw recipe object
-        ObjectType type = recipePair.first;
+        // ObjectType type = recipePair.first;
 
-        std::unique_ptr<BuildableObject> recipeObject(static_cast<BuildableObject*>(createObjectFromType(type, recipeBoxPosition + sf::Vector2f(40, 40)).release()));
+        // BuildableObject recipeObject(static_cast<BuildableObject*>(createObjectFromType(type, recipeBoxPosition + sf::Vector2f(40, 40)).release()));
+        BuildableObject recipeObject(recipeBoxPosition + sf::Vector2f(40, 40), recipePair.first);
 
-        recipeObject->drawGUI(window, 0, {255, 255, 255, 255});
+        recipeObject.drawGUI(window, 0, {255, 255, 255, 255});
 
         // Draw recipe data if object selected to build
         if (selectedItem == recipeIndex)
@@ -70,11 +71,13 @@ void BuildGUI::draw(sf::RenderWindow& window)
             // Draw recipe data
             sf::Vector2f recipeItemPos({1280 / 2 - 190, 556 - 24});
 
-            for (auto& recipeItemPair : recipePair.second)
+            for (auto& recipeItemPair : recipePair.second.itemRequirements)
             {
                 // Draw item
-                ItemType type = recipeItemPair.first;
-                TextureManager::drawSubTexture(window, {TextureType::Items, recipeItemPos + sf::Vector2f(24, 24), 0, 3, {0.5, 0.5}}, ItemDataMap.at(type).textureRect);
+                unsigned int type = recipeItemPair.first;
+                TextureManager::drawSubTexture(window, {
+                    TextureType::Items, recipeItemPos + sf::Vector2f(24, 24), 0, 3, {0.5, 0.5}
+                    }, ItemDataLoader::getItemData(type).textureRect);
 
                 // Draw amount
                 TextDraw::drawText(window, {

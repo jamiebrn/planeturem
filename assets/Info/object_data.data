@@ -1,0 +1,45 @@
+{
+    "0": {
+        "name": "Tree",
+        "health": 4,
+        "texture-x": 0,
+        "texture-y": 0,
+        "texture-width": 16,
+        "texture-height": 32,
+        "texture-x-origin": 0.5,
+        "texture-y-origin": 0.85
+    },
+    "1": {
+        "name": "Bush",
+        "health": 2,
+        "texture-x": 16,
+        "texture-y": 16,
+        "texture-width": 16,
+        "texture-height": 16,
+        "texture-x-origin": 0.5,
+        "texture-y-origin": 0.5,
+        "has-collision": true
+    },
+    "2": {
+        "name": "Wood Wall",
+        "health": 4,
+        "texture-x": 32,
+        "texture-y": 0,
+        "texture-width": 16,
+        "texture-height": 32,
+        "texture-x-origin": 0.5,
+        "texture-y-origin": 0.75,
+        "has-collision": true
+    },
+    "3": {
+        "name": "Wood Floor",
+        "health": 2,
+        "texture-x": 48,
+        "texture-y": 16,
+        "texture-width": 16,
+        "texture-height": 16,
+        "texture-x-origin": 0.5,
+        "texture-y-origin": 0.5,
+        "draw-layer": 1
+    }
+}

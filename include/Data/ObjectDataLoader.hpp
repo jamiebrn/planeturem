@@ -1,0 +1,22 @@
+#pragma once
+
+#include <SFML/Graphics.hpp>
+#include <fstream>
+#include <vector>
+
+#include "Core/json.hpp"
+#include "Data/ObjectData.hpp"
+
+class ObjectDataLoader
+{
+    ObjectDataLoader() = delete;
+
+public:
+    static bool loadData(std::string objectDataPath);
+
+    static const ObjectData& getObjectData(int index);
+
+private:
+    static std::vector<ObjectData> loaded_objectData;
+
+};

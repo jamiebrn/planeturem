@@ -6,19 +6,19 @@
 
 #include "Types/TextureType.hpp"
 
-enum ItemType
-{
-    Wood,
-    Coal
-};
+// enum ItemType
+// {
+//     Wood,
+//     Coal
+// };
 
-struct ItemTypeData
-{
-    std::string name;
-    sf::IntRect textureRect;
-};
+// struct ItemTypeData
+// {
+//     std::string name;
+//     sf::IntRect textureRect;
+// };
 
-inline const std::unordered_map<ItemType, ItemTypeData> ItemDataMap = {
-    {ItemType::Wood, {"Wood", sf::IntRect(0, 0, 16, 16)}},
-    {ItemType::Coal, {"Coal", sf::IntRect(16, 0, 16, 16)}}
-};
+// inline const std::unordered_map<ItemType, ItemTypeData> ItemDataMap = {
+//     {ItemType::Wood, {"Wood", sf::IntRect(0, 0, 16, 16)}},
+//     {ItemType::Coal, {"Coal", sf::IntRect(16, 0, 16, 16)}}
+// };

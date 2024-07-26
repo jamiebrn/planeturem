@@ -19,7 +19,7 @@ public:
 
     inline void interact() override {};
 
-    inline ObjectType getObjectType() override {return ObjectType::NONE;}
+    // inline ObjectType getObjectType() override {return ObjectType::NONE;}
     
     inline bool isAlive() override {return true;}
 

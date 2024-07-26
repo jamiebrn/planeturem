@@ -9,5 +9,5 @@ void main()
     color.g = color.g * (1 - flash_amount) + flash_amount;
     color.b = color.b * (1 - flash_amount) + flash_amount;
 
-    gl_FragColor = color;
+    gl_FragColor = color * gl_Color;
 }

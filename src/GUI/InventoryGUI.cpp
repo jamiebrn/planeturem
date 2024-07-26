@@ -31,7 +31,7 @@ void InventoryGUI::draw(sf::RenderWindow& window)
             0,
             3,
             {0.5, 0.5}
-        }, ItemDataMap.at(itemPair.first).textureRect);
+        }, ItemDataLoader::getItemData(itemPair.first).textureRect);
 
         TextDraw::drawText(window, {std::to_string(itemPair.second), itemBoxPosition + sf::Vector2f(70, 70), {255, 255, 255}, 24, {0, 0, 0}, 0, true, true});
 

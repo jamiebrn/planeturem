@@ -63,11 +63,13 @@ void Chunk::generateChunk(const FastNoiseLite& noise)
 
             if (spawn_chance < 4 && height >= 0.2)
             {
-                objectGrid[y][x] = std::move(std::make_unique<Tree>(objectPos));
+                // Make tree
+                objectGrid[y][x] = std::move(std::make_unique<BuildableObject>(objectPos, 0));
             }
             else if (spawn_chance == 4 && height >= 0.2)
             {
-                objectGrid[y][x] = std::move(std::make_unique<Bush>(objectPos));
+                // Make bush
+                objectGrid[y][x] = std::move(std::make_unique<BuildableObject>(objectPos, 1));
             }
         }
     }
@@ -130,12 +132,12 @@ std::vector<WorldObject*> Chunk::getObjects()
     return objects;
 }
 
-void Chunk::setObject(sf::Vector2i position, ObjectType objectType)
+void Chunk::setObject(sf::Vector2i position, unsigned int objectType)
 {
     sf::Vector2f worldPosition = static_cast<sf::Vector2f>(worldGridPosition) * 8.0f * 48.0f;
     sf::Vector2f objectPos = worldPosition + sf::Vector2f(position.x * 48.0f + 24.0f, position.y * 48.0f + 24.0f);
 
-    std::unique_ptr<WorldObject> object = createObjectFromType(objectType, objectPos);
+    std::unique_ptr<BuildableObject> object = std::make_unique<BuildableObject>(objectPos, objectType);
 
     objectGrid[position.y][position.x] = std::move(object);
 }
@@ -189,7 +191,9 @@ std::vector<std::unique_ptr<CollisionRect>> Chunk::getCollisionRects()
             if (objectGrid[y][x] == nullptr)
                 continue;
             
-            if (objectGrid[y][x]->getObjectType() == ObjectType::WoodWall)
+            const ObjectData& objectData = ObjectDataLoader::getObjectData(objectGrid[y][x]->getObjectType());
+            
+            if (objectData.hasCollision)
                 createCollisionRect(collisionRects, x, y);
         }
     }

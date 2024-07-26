@@ -1,8 +1,8 @@
 #include "Player/Inventory.hpp"
 
-std::vector<std::pair<ItemType, int>> Inventory::inventoryData;
+std::vector<std::pair<unsigned int, int>> Inventory::inventoryData;
 
-void Inventory::addItem(ItemType item, int amount)
+void Inventory::addItem(unsigned int item, int amount)
 {
     // Check if item already exists
     for (auto& itemPair : inventoryData)
@@ -24,7 +24,7 @@ void Inventory::addItem(ItemType item, int amount)
     inventoryData.push_back({item, amount});
 }
 
-void Inventory::takeItem(ItemType item, int amount)
+void Inventory::takeItem(unsigned int item, int amount)
 {
     int amount_left = amount;
 
@@ -61,13 +61,13 @@ void Inventory::takeItem(ItemType item, int amount)
     }
 }
 
-bool Inventory::canBuildObject(ObjectType object)
+bool Inventory::canBuildObject(unsigned int object)
 {
-    auto& recipeItemsRequired = BuildRecipes.at(object);
+    const BuildRecipe& buildRecipe = BuildRecipeLoader::getBuildRecipeData().at(object);
 
-    std::unordered_map<ItemType, int> inventoryItemCount = getTotalItemCount();
+    std::unordered_map<unsigned int, int> inventoryItemCount = getTotalItemCount();
 
-    for (auto& recipeItemPair : recipeItemsRequired)
+    for (auto& recipeItemPair : buildRecipe.itemRequirements)
     {
         // If item not in inventory, return false (cannot build object)
         if (inventoryItemCount.count(recipeItemPair.first) <= 0)
@@ -82,9 +82,9 @@ bool Inventory::canBuildObject(ObjectType object)
     return true;
 }
 
-std::unordered_map<ItemType, int> Inventory::getTotalItemCount()
+std::unordered_map<unsigned int, int> Inventory::getTotalItemCount()
 {
-    std::unordered_map<ItemType, int> itemCount;
+    std::unordered_map<unsigned int, int> itemCount;
 
     for (auto& itemPair : inventoryData)
     {
