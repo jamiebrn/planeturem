@@ -59,5 +59,18 @@
         "item-drops": {
             "2": 2
         }
+    },
+    "5": {
+        "name": "Smelter",
+        "health": 6,
+        "texture-x": 64,
+        "texture-y": 0,
+        "texture-width": 32,
+        "texture-height": 32,
+        "texture-x-origin": 0.25,
+        "texture-y-origin": 0.25,
+        "size-x": 2,
+        "size-y": 2,
+        "has-collision": true
     }
 }

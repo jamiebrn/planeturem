@@ -73,7 +73,7 @@ void Chunk::generateChunk(const FastNoiseLite& noise)
             }
             else if (spawn_chance == 5 && height >= 0.2)
             {
-                // Make bush
+                // Make rock
                 objectGrid[y][x] = std::move(std::make_unique<BuildableObject>(objectPos, 4));
             }
         }
@@ -91,6 +91,14 @@ void Chunk::drawChunkTerrain(sf::RenderWindow& window)
     state.texture = TextureManager::getTexture(TextureType::GroundTiles);
     state.transform = transform;
     window.draw(groundVertexArray, state);
+
+    sf::VertexArray lines(sf::Lines, 8);
+    lines[0].position = Camera::getIntegerDrawOffset() + worldPosition; lines[1].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(48.0f * 8, 0);
+    lines[2].position = Camera::getIntegerDrawOffset() + worldPosition; lines[3].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(0, 48.0f * 8);
+    lines[4].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(48.0f * 8, 0); lines[5].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(48.0f * 8, 48.0f * 8);
+    lines[6].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(0, 48.0f * 8); lines[7].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(48.0f * 8, 48.0f * 8);
+
+    window.draw(lines);
 }
 
 void Chunk::drawChunkObjects(sf::RenderWindow& window)
@@ -115,6 +123,11 @@ void Chunk::updateChunkObjects(float dt)
         {
             if (object)
             {
+                OccupiedTileObject* occupiedTile = dynamic_cast<OccupiedTileObject*>(object.get());
+                // If object is occupied tile, do not update
+                if (occupiedTile != nullptr)
+                    continue;
+                
                 object->update(dt);
                 if (!object->isAlive())
                     object = nullptr;
@@ -130,6 +143,11 @@ std::vector<WorldObject*> Chunk::getObjects()
     {
         for (int x = 0; x < 8; x++)
         {
+            OccupiedTileObject* occupiedTile = dynamic_cast<OccupiedTileObject*>(objectGrid[y][x].get());
+            // If object is occupied tile, do not draw
+            if (occupiedTile != nullptr)
+                continue;
+
             if (objectGrid[y][x])
                 objects.push_back(objectGrid[y][x].get());
         }
@@ -143,6 +161,35 @@ void Chunk::setObject(sf::Vector2i position, unsigned int objectType)
     sf::Vector2f objectPos = worldPosition + sf::Vector2f(position.x * 48.0f + 24.0f, position.y * 48.0f + 24.0f);
 
     std::unique_ptr<BuildableObject> object = std::make_unique<BuildableObject>(objectPos, objectType);
+
+    sf::Vector2i objectSize = ObjectDataLoader::getObjectData(objectType).size;
+
+    // Create occupied tile objects if object is larger than one tile
+    if (objectSize != sf::Vector2i(1, 1))
+    {
+        ObjectReference objectReference;
+        objectReference.chunk = ChunkPosition(worldGridPosition.x, worldGridPosition.y);
+        objectReference.tile = position;
+
+        // Iterate over all tiles which object occupies and add occupied tile
+        for (int y = position.y; y < position.y + objectSize.y; y++)
+        {
+            for (int x = position.x; x < position.x + objectSize.x; x++)
+            {
+                // If tile is actual object tile, don't place occupied tile
+                if (x == position.x && y == position.y)
+                    continue;
+                
+                sf::Vector2f occupiedTilePos = objectPos + sf::Vector2f(position.x, position.y) * 48.0f;
+
+                std::unique_ptr<OccupiedTileObject> occupiedTile = std::make_unique<OccupiedTileObject>(occupiedTilePos, objectType, objectReference);
+
+                std::unique_ptr<BuildableObject> occupiedTileBuildable(static_cast<BuildableObject*>(occupiedTile.release()));
+
+                objectGrid[y][x] = std::move(occupiedTileBuildable);
+            }
+        }
+    }
 
     objectGrid[position.y][position.x] = std::move(object);
 }

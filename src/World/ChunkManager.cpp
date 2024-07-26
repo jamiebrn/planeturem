@@ -73,7 +73,7 @@ void ChunkManager::updateChunksObjects(float dt)
     }
 }
 
-WorldObject* ChunkManager::getSelectedObject(sf::Vector2i selected_tile)
+BuildableObject* ChunkManager::getSelectedObject(sf::Vector2i selected_tile)
 {
     ChunkPosition chunkPos(std::floor(selected_tile.x / 8.0f), std::floor(selected_tile.y / 8.0f));
 
@@ -83,7 +83,16 @@ WorldObject* ChunkManager::getSelectedObject(sf::Vector2i selected_tile)
     
     // Get objects in chunk
     auto& chunkObjects = loadedChunks[chunkPos]->getObjectGrid();
-    
+
+    BuildableObject* selectedObject = chunkObjects[((selected_tile.y % 8) + 8) % 8][((selected_tile.x % 8) + 8) % 8].get();
+
+    // Test if object is occupied tile object, to then get the actual object
+    OccupiedTileObject* selectedOccupiedTileObject = dynamic_cast<OccupiedTileObject*>(selectedObject);
+    if (selectedOccupiedTileObject != nullptr)
+    {
+        
+    }
+
     // Get object at position and return
     return chunkObjects[((selected_tile.y % 8) + 8) % 8][((selected_tile.x % 8) + 8) % 8].get();
 }

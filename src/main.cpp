@@ -79,7 +79,7 @@ int main()
                 {
                     if (!inventoryOpen && !buildMenuOpen)
                     {
-                        WorldObject* selectedObject = ChunkManager::getSelectedObject(selectPosTile);
+                        BuildableObject* selectedObject = ChunkManager::getSelectedObject(selectPosTile);
                         if (selectedObject)
                             selectedObject->interact();
                     }

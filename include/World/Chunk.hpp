@@ -5,12 +5,15 @@
 #include <array>
 #include <vector>
 #include <memory>
+#include <iostream>
 
 #include "Core/TextureManager.hpp"
 #include "Core/Camera.hpp"
 #include "Core/CollisionRect.hpp"
 #include "Object/WorldObject.hpp"
 #include "Object/BuildableObject.hpp"
+#include "Object/OccupiedTileObject.hpp"
+#include "Object/ObjectReference.hpp"
 #include "Data/ObjectDataLoader.hpp"
 #include "Types/TileType.hpp"
 

@@ -12,6 +12,8 @@ struct ObjectData
     sf::IntRect textureRect;
     sf::Vector2f textureOrigin;
 
+    sf::Vector2i size = {1, 1};
+
     bool hasCollision = false;
     int drawLayer = 0;
 

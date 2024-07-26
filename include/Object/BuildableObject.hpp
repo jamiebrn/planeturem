@@ -6,6 +6,7 @@
 #include "Core/Shaders.hpp"
 #include "Core/Camera.hpp"
 #include "Object/WorldObject.hpp"
+#include "Object/ObjectReference.hpp"
 #include "Player/Inventory.hpp"
 #include "Data/ObjectData.hpp"
 #include "Data/ObjectDataLoader.hpp"
