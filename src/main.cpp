@@ -6,6 +6,7 @@
 #include <map>
 #include <iostream>
 #include <memory>
+#include <optional>
 
 #include "Core/TextureManager.hpp"
 #include "Core/Shaders.hpp"
@@ -141,6 +142,7 @@ int main()
 
         if (!inventoryOpen)
         {
+            // Draw select tile
             TextureManager::drawTexture(window, {TextureType::SelectTile, selectPos + Camera::getIntegerDrawOffset(), 0, 3});
         }
 

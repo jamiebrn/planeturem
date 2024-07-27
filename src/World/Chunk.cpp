@@ -57,24 +57,27 @@ void Chunk::generateChunk(const FastNoiseLite& noise)
             }
 
             sf::Vector2f objectPos = worldPosition + sf::Vector2f(x * 48.0f + 24.0f, y * 48.0f + 24.0f);
-            objectGrid[y][x] = NULL;
+            objectGrid[y][x] = std::nullopt;
 
             int spawn_chance = rand() % 40;
 
             if (spawn_chance < 4 && height >= 0.2)
             {
                 // Make tree
-                objectGrid[y][x] = std::move(std::make_unique<BuildableObject>(objectPos, 0));
+                // objectGrid[y][x] = std::move(std::make_unique<BuildableObject>(objectPos, 0));
+                objectGrid[y][x] = BuildableObject(objectPos, 0);
             }
             else if (spawn_chance == 4 && height >= 0.2)
             {
                 // Make bush
-                objectGrid[y][x] = std::move(std::make_unique<BuildableObject>(objectPos, 1));
+                // objectGrid[y][x] = std::move(std::make_unique<BuildableObject>(objectPos, 1));
+                objectGrid[y][x] = BuildableObject(objectPos, 1);
             }
             else if (spawn_chance == 5 && height >= 0.2)
             {
                 // Make rock
-                objectGrid[y][x] = std::move(std::make_unique<BuildableObject>(objectPos, 4));
+                // objectGrid[y][x] = std::move(std::make_unique<BuildableObject>(objectPos, 4));
+                objectGrid[y][x] = BuildableObject(objectPos, 4);
             }
         }
     }
@@ -146,7 +149,7 @@ std::vector<WorldObject*> Chunk::getObjects()
         for (int x = 0; x < 8; x++)
         {
             // OccupiedTileObject* occupiedTile = dynamic_cast<OccupiedTileObject*>(objectGrid[y][x].get());
-            if (objectGrid[y][x] == nullptr)
+            if (!objectGrid[y][x].has_value())
                 continue;
 
             // If object is occupied tile, do not draw
@@ -154,7 +157,7 @@ std::vector<WorldObject*> Chunk::getObjects()
                 continue;
 
             if (objectGrid[y][x])
-                objects.push_back(objectGrid[y][x].get());
+                objects.push_back(&objectGrid[y][x].value());
         }
     }
     return objects;
@@ -165,7 +168,8 @@ void Chunk::setObject(sf::Vector2i position, unsigned int objectType)
     sf::Vector2f worldPosition = static_cast<sf::Vector2f>(worldGridPosition) * 8.0f * 48.0f;
     sf::Vector2f objectPos = worldPosition + sf::Vector2f(position.x * 48.0f + 24.0f, position.y * 48.0f + 24.0f);
 
-    std::unique_ptr<BuildableObject> object = std::make_unique<BuildableObject>(objectPos, objectType);
+    // std::unique_ptr<BuildableObject> object = std::make_unique<BuildableObject>(objectPos, objectType);
+    BuildableObject object(objectPos, objectType);
 
     sf::Vector2i objectSize = ObjectDataLoader::getObjectData(objectType).size;
 
@@ -189,9 +193,10 @@ void Chunk::setObject(sf::Vector2i position, unsigned int objectType)
 
                 // std::unique_ptr<OccupiedTileObject> occupiedTile = std::make_unique<OccupiedTileObject>(occupiedTilePos, objectType, objectReference);
 
-                std::unique_ptr<BuildableObject> occupiedTile = std::make_unique<BuildableObject>(objectReference);
+                // std::unique_ptr<BuildableObject> occupiedTile = std::make_unique<BuildableObject>(objectReference);
 
-                objectGrid[y][x] = std::move(occupiedTile);
+                // objectGrid[y][x] = std::move(occupiedTile);
+                objectGrid[y][x] = BuildableObject(objectReference);
             }
         }
 
@@ -227,7 +232,7 @@ void Chunk::setObject(sf::Vector2i position, unsigned int objectType)
         }
     }
 
-    objectGrid[position.y][position.x] = std::move(object);
+    objectGrid[position.y][position.x] = object;
 }
 
 void Chunk::deleteObject(sf::Vector2i position)
@@ -241,7 +246,7 @@ void Chunk::deleteObject(sf::Vector2i position)
     // Object is single tile
     if (objectSize == sf::Vector2i(1, 1))
     {
-        objectGrid[position.y][position.x] = nullptr;
+        objectGrid[position.y][position.x].reset();
         return;
     }
 
@@ -252,7 +257,7 @@ void Chunk::deleteObject(sf::Vector2i position)
     {
         for (int x = position.x; x < std::min(position.x + objectSize.x, (int)objectGrid[0].size()); x++)
         {
-            objectGrid[y][x] = nullptr;
+            objectGrid[y][x].reset();
         }
     }
 
@@ -290,9 +295,7 @@ void Chunk::deleteObject(sf::Vector2i position)
 
 void Chunk::setObjectReference(const ObjectReference& objectReference, sf::Vector2i tile)
 {
-    std::unique_ptr<BuildableObject> occupiedTile = std::make_unique<BuildableObject>(objectReference);
-
-    objectGrid[tile.y][tile.x] = std::move(occupiedTile);
+    objectGrid[tile.y][tile.x] = BuildableObject(objectReference);
 }
 
 bool Chunk::canPlaceObject(sf::Vector2i selected_tile)
@@ -302,7 +305,7 @@ bool Chunk::canPlaceObject(sf::Vector2i selected_tile)
         return false;
     
     // Test objects
-    if (objectGrid[selected_tile.y][selected_tile.x] != nullptr)
+    if (objectGrid[selected_tile.y][selected_tile.x].has_value())
         return false;
     
     return true;
@@ -341,7 +344,7 @@ std::vector<std::unique_ptr<CollisionRect>> Chunk::getCollisionRects()
     {
         for (int x = 0; x < 8; x++)
         {
-            if (objectGrid[y][x] == nullptr)
+            if (!objectGrid[y][x].has_value())
                 continue;
             
             // Get object data for reference

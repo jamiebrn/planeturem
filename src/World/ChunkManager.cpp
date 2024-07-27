@@ -87,20 +87,20 @@ BuildableObject* ChunkManager::getSelectedObject(ChunkPosition chunk, sf::Vector
     // Get objects in chunk
     auto& chunkObjects = loadedChunks[chunk]->getObjectGrid();
 
-    BuildableObject* selectedObject = chunkObjects[tile.y][tile.x].get();
+    std::optional<BuildableObject>& selectedObject = chunkObjects[tile.y][tile.x];
 
-    if (selectedObject == nullptr)
+    if (!selectedObject.has_value())
         return nullptr;
 
     // Test if object is occupied tile object, to then get the actual object
     if (selectedObject->isObjectReference())
     {
         const ObjectReference& objectReference = selectedObject->getObjectReference().value();
-        selectedObject = getSelectedObject(objectReference.chunk, objectReference.tile);
+        return getSelectedObject(objectReference.chunk, objectReference.tile);
     }
 
     // Get object at position and return
-    return selectedObject;
+    return &(selectedObject.value());
 }
 
 bool ChunkManager::interactWithObject(sf::Vector2i selected_tile)
@@ -135,7 +135,7 @@ unsigned int ChunkManager::getObjectTypeFromObjectReference(const ObjectReferenc
     if (loadedChunks.count(objectReference.chunk) <= 0)
         return 0;
     
-    return loadedChunks[objectReference.chunk]->getObjectGrid()[objectReference.tile.y][objectReference.tile.x]->getObjectType();
+    return loadedChunks[objectReference.chunk]->getObjectGrid()[objectReference.tile.y][objectReference.tile.x].value().getObjectType();
 }
 
 void ChunkManager::setObjectReference(const ChunkPosition& chunk, const ObjectReference& objectReference, sf::Vector2i tile)

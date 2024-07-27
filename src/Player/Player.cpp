@@ -8,6 +8,8 @@ Player::Player(sf::Vector2f position)
 
     collisionRect.x = position.x - collisionRect.width / 2.0f;
     collisionRect.y = position.y - collisionRect.height / 2.0f;
+
+    drawLayer = 0;
 }
 
 void Player::update(float dt)

@@ -5,6 +5,7 @@
 #include <array>
 #include <vector>
 #include <memory>
+#include <optional>
 #include <iostream>
 
 #include "Core/TextureManager.hpp"
@@ -43,13 +44,13 @@ public:
 
     bool isPointInChunk(sf::Vector2f position);
 
-    inline const std::array<std::array<std::unique_ptr<BuildableObject>, 8>, 8>& getObjectGrid() {return objectGrid;}
+    inline std::array<std::array<std::optional<BuildableObject>, 8>, 8>& getObjectGrid() {return objectGrid;}
 
 private:
     std::array<std::array<TileType, 8>, 8> groundTileGrid;
     sf::VertexArray groundVertexArray;
 
-    std::array<std::array<std::unique_ptr<BuildableObject>, 8>, 8> objectGrid;
+    std::array<std::array<std::optional<BuildableObject>, 8>, 8> objectGrid;
 
     sf::Vector2i worldGridPosition;
 
