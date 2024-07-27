@@ -54,6 +54,12 @@ int main()
         sf::Vector2f mousePos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
 
         sf::Vector2i selectPosTile(std::floor((mousePos.x - Camera::getDrawOffset().x) / 48.0f), std::floor((mousePos.y - Camera::getDrawOffset().y) / 48.0f));
+        sf::Vector2f selectSize(1, 1);
+
+        ChunkPosition selected_chunk(std::floor(selectPosTile.x / 8.0f), std::floor(selectPosTile.y / 8.0f));
+        sf::Vector2i selected_tile(((selectPosTile.x % 8) + 8) % 8, ((selectPosTile.y % 8) + 8) % 8);
+
+        BuildableObject* selectedObject = ChunkManager::getSelectedObject(selected_chunk, selected_tile);
 
         float dt = clock.restart().asSeconds();
         time += dt;
@@ -80,10 +86,10 @@ int main()
                 {
                     if (!inventoryOpen && !buildMenuOpen)
                     {
-                        ChunkPosition chunk(std::floor(selectPosTile.x / 8.0f), std::floor(selectPosTile.y / 8.0f));
-                        sf::Vector2i selected_tile(((selectPosTile.x % 8) + 8) % 8, ((selectPosTile.y % 8) + 8) % 8);
+                        // ChunkPosition chunk(std::floor(selectPosTile.x / 8.0f), std::floor(selectPosTile.y / 8.0f));
+                        // sf::Vector2i selected_tile(((selectPosTile.x % 8) + 8) % 8, ((selectPosTile.y % 8) + 8) % 8);
 
-                        BuildableObject* selectedObject = ChunkManager::getSelectedObject(chunk, selected_tile);
+                        // BuildableObject* selectedObject = ChunkManager::getSelectedObject(chunk, selected_tile);
                         if (selectedObject)
                             selectedObject->interact();
                     }
@@ -112,8 +118,23 @@ int main()
         }
 
         sf::Vector2f mouseWorldPos = mousePos - Camera::getDrawOffset();
-        selectPos.x = Helper::lerp(selectPos.x, std::floor(mouseWorldPos.x / 48) * 48, 25 * dt);
-        selectPos.y = Helper::lerp(selectPos.y, std::floor(mouseWorldPos.y / 48) * 48, 25 * dt);
+
+        if (selectedObject && !buildMenuOpen)
+        {
+            selectSize = static_cast<sf::Vector2f>(ObjectDataLoader::getObjectData(selectedObject->getObjectType()).size);
+            selectPos.x = Helper::lerp(selectPos.x, selectedObject->getPosition().x - 24.0f, 25 * dt);
+            selectPos.y = Helper::lerp(selectPos.y, selectedObject->getPosition().y - 24.0f, 25 * dt);
+        }
+        else
+        {
+            selectPos.x = Helper::lerp(selectPos.x, std::floor(mouseWorldPos.x / 48) * 48, 25 * dt);
+            selectPos.y = Helper::lerp(selectPos.y, std::floor(mouseWorldPos.y / 48) * 48, 25 * dt);
+        }
+
+        if (buildMenuOpen)
+        {
+            selectSize = static_cast<sf::Vector2f>(ObjectDataLoader::getObjectData(BuildGUI::getSelectedObject()).size);
+        }
 
         Camera::update(player.getPosition(), dt);
 
@@ -142,8 +163,21 @@ int main()
 
         if (!inventoryOpen)
         {
+            // WHEN IMPLEMENTED IN SEPARATE CLASS
+            // LERP EACH CORNER INDIVIDUALLY (looks bad at the moment)
+            
             // Draw select tile
-            TextureManager::drawTexture(window, {TextureType::SelectTile, selectPos + Camera::getIntegerDrawOffset(), 0, 3});
+            TextureManager::drawSubTexture(window, {
+                TextureType::SelectTile, selectPos + Camera::getIntegerDrawOffset(), 0, 3}, sf::IntRect(0, 0, 16, 16)); // top left
+            TextureManager::drawSubTexture(window, {
+                TextureType::SelectTile, selectPos + sf::Vector2f(selectSize.x - 1, 0) * 48.0f + Camera::getIntegerDrawOffset(), 0, 3},
+                sf::IntRect(16, 0, 16, 16)); // top right
+            TextureManager::drawSubTexture(window, {
+                TextureType::SelectTile, selectPos + sf::Vector2f(0, selectSize.y - 1) * 48.0f + Camera::getIntegerDrawOffset(), 0, 3},
+                sf::IntRect(32, 0, 16, 16)); // bottom left
+            TextureManager::drawSubTexture(window, {
+                TextureType::SelectTile, selectPos + sf::Vector2f(selectSize.x - 1, selectSize.y - 1) * 48.0f + Camera::getIntegerDrawOffset(), 0, 3},
+                sf::IntRect(48, 0, 16, 16)); // bottom right
         }
 
         if (inventoryOpen)
