@@ -6,10 +6,11 @@
 
 #include <World/FastNoiseLite.h>
 
-#include "World/Chunk.hpp"
-#include "World/ChunkPosition.hpp"
+#include "Core/ResolutionHandler.hpp"
 #include "Core/Camera.hpp"
 #include "Core/CollisionRect.hpp"
+#include "World/Chunk.hpp"
+#include "World/ChunkPosition.hpp"
 
 // Forward declaration of chunk
 class Chunk;

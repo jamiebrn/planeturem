@@ -7,9 +7,10 @@ void ChunkManager::updateChunks(const FastNoiseLite& noise)
 {
     // Chunk load/unload
     sf::Vector2f screenTopLeft = -Camera::getDrawOffset();
-    sf::Vector2f screenBottomRight = -Camera::getDrawOffset() + sf::Vector2f(1280, 720);
+    sf::Vector2f screenBottomRight = -Camera::getDrawOffset() + static_cast<sf::Vector2f>(ResolutionHandler::getResolution());
     sf::Vector2i screenTopLeftGrid(std::floor(screenTopLeft.x / (48 * 8)), std::floor(screenTopLeft.y / (48 * 8)));
-    sf::Vector2i screenBottomRightGrid = screenTopLeftGrid + sf::Vector2i(std::ceil(1280.0f / (48 * 8)), std::ceil(720.0f / (48 * 8)) + 1);
+    sf::Vector2i screenBottomRightGrid = screenTopLeftGrid + sf::Vector2i(
+        std::ceil(ResolutionHandler::getResolution().x / (48 * 8)), std::ceil(ResolutionHandler::getResolution().y / (48 * 8)) + 1);
 
     // Check any chunks needed to load
     for (int y = screenTopLeftGrid.y; y <= screenBottomRightGrid.y; y++)

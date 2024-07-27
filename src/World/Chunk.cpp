@@ -95,13 +95,14 @@ void Chunk::drawChunkTerrain(sf::RenderWindow& window)
     state.transform = transform;
     window.draw(groundVertexArray, state);
 
-    sf::VertexArray lines(sf::Lines, 8);
-    lines[0].position = Camera::getIntegerDrawOffset() + worldPosition; lines[1].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(48.0f * 8, 0);
-    lines[2].position = Camera::getIntegerDrawOffset() + worldPosition; lines[3].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(0, 48.0f * 8);
-    lines[4].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(48.0f * 8, 0); lines[5].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(48.0f * 8, 48.0f * 8);
-    lines[6].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(0, 48.0f * 8); lines[7].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(48.0f * 8, 48.0f * 8);
+    // DEBUG CHUNK OUTLINE DRAW
+    // sf::VertexArray lines(sf::Lines, 8);
+    // lines[0].position = Camera::getIntegerDrawOffset() + worldPosition; lines[1].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(48.0f * 8, 0);
+    // lines[2].position = Camera::getIntegerDrawOffset() + worldPosition; lines[3].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(0, 48.0f * 8);
+    // lines[4].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(48.0f * 8, 0); lines[5].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(48.0f * 8, 48.0f * 8);
+    // lines[6].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(0, 48.0f * 8); lines[7].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(48.0f * 8, 48.0f * 8);
 
-    window.draw(lines);
+    // window.draw(lines);
 }
 
 void Chunk::drawChunkObjects(sf::RenderWindow& window)

@@ -4,6 +4,7 @@
 #include <algorithm>
 
 // Include headers
+#include "Core/ResolutionHandler.hpp"
 #include "Core/Helper.hpp"
 
 // Declare camera class

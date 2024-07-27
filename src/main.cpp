@@ -10,6 +10,7 @@
 #include "Core/TextureManager.hpp"
 #include "Core/Shaders.hpp"
 #include "Core/Camera.hpp"
+#include "Core/ResolutionHandler.hpp"
 #include "Core/Helper.hpp"
 #include "World/ChunkManager.hpp"
 #include "Player/Player.hpp"
@@ -25,8 +26,11 @@ int main()
 {
     srand(time(NULL));
 
-    auto window = sf::RenderWindow{ { 1280, 720 }, "spacebuild" };
+    sf::VideoMode videoMode = sf::VideoMode::getDesktopMode();
+    auto window = sf::RenderWindow{{videoMode.width, videoMode.height}, "spacebuild"};
     window.setFramerateLimit(165);
+    window.setVerticalSyncEnabled(true);
+    // window.setMouseCursorVisible(false);
 
     TextureManager::loadTextures(window);
     Shaders::loadShaders();
@@ -36,7 +40,11 @@ int main()
     ObjectDataLoader::loadData("Data/Info/object_data.data");
     BuildRecipeLoader::loadData("Data/Info/build_recipes.data");
 
+    ResolutionHandler::setResolution({videoMode.width, videoMode.height});
+
     // sf::Vector2f selectPos(0, 0);
+
+    sf::View view({videoMode.width / 2.0f, videoMode.height / 2.0f}, {(float)videoMode.width, (float)videoMode.height});
 
     Player player({500, 200});
 
@@ -71,8 +79,25 @@ int main()
                 window.close();
             }
 
+            if (event.type == sf::Event::Resized)
+            {
+                // std::cout << "s" << std::endl;
+                view.setSize(event.size.width, event.size.height);
+                view.setCenter({event.size.width / 2.0f, event.size.height / 2.0f});
+                ResolutionHandler::setResolution({event.size.width, event.size.height});
+            }
+
             if (event.type == sf::Event::KeyPressed)
             {
+                if (event.key.code == sf::Keyboard::F11)
+                {
+                    sf::VideoMode videoMode = sf::VideoMode::getDesktopMode();
+                    window.create(videoMode, "spacebuild", sf::Style::Default);
+                    view.setSize({(float)videoMode.width, (float)videoMode.height});
+                    view.setCenter({videoMode.width / 2.0f, videoMode.height / 2.0f});
+                    ResolutionHandler::setResolution({videoMode.width, videoMode.height});
+                }
+
                 if (event.key.code == sf::Keyboard::E && !buildMenuOpen)
                     inventoryOpen = !inventoryOpen;
                 
@@ -145,6 +170,8 @@ int main()
         ChunkManager::updateChunksObjects(dt);
 
         window.clear({80, 80, 80});
+
+        window.setView(view);
 
         ChunkManager::drawChunkTerrain(window);
 

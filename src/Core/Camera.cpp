@@ -8,8 +8,8 @@ void Camera::update(sf::Vector2f playerPosition, float deltaTime)
 {
     // Calculate position/offset camera should be in
     sf::Vector2f destinationOffset;
-    destinationOffset.x = playerPosition.x - 1280 / 2;
-    destinationOffset.y = playerPosition.y - 720 / 2;
+    destinationOffset.x = playerPosition.x - ResolutionHandler::getResolution().x / 2.0f;
+    destinationOffset.y = playerPosition.y - ResolutionHandler::getResolution().y / 2.0f;
 
     // Interpolate towards desired position
     offset.x = Helper::lerp(offset.x, destinationOffset.x, MOVE_LERP_WEIGHT * deltaTime);
