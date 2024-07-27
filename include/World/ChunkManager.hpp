@@ -25,15 +25,15 @@ public:
     static void updateChunksObjects(float dt);
 
     static BuildableObject* getSelectedObject(ChunkPosition chunk, sf::Vector2i tile);
-    static bool interactWithObject(sf::Vector2i selected_tile);
+    // static bool interactWithObject(sf::Vector2i selected_tile);
 
-    static void setObject(sf::Vector2i selected_tile, unsigned int objectType);
+    static void setObject(ChunkPosition chunk, sf::Vector2i tile, unsigned int objectType);
     static void deleteObject(ChunkPosition chunk, sf::Vector2i tile);
 
     static unsigned int getObjectTypeFromObjectReference(const ObjectReference& objectReference);
     static void setObjectReference(const ChunkPosition& chunk, const ObjectReference& objectReference, sf::Vector2i tile);
 
-    static bool canPlaceObject(sf::Vector2i selected_tile);
+    static bool canPlaceObject(ChunkPosition chunk, sf::Vector2i tile, unsigned int objectType);
 
     static std::vector<WorldObject*> getChunkObjects();
     static std::vector<std::unique_ptr<CollisionRect>> getChunkCollisionRects();

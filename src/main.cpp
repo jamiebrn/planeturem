@@ -6,7 +6,6 @@
 #include <map>
 #include <iostream>
 #include <memory>
-#include <optional>
 
 #include "Core/TextureManager.hpp"
 #include "Core/Shaders.hpp"
@@ -14,6 +13,7 @@
 #include "Core/Helper.hpp"
 #include "World/ChunkManager.hpp"
 #include "Player/Player.hpp"
+#include "Player/Cursor.hpp"
 #include "Data/ItemDataLoader.hpp"
 #include "Data/ObjectDataLoader.hpp"
 #include "Data/BuildRecipeLoader.hpp"
@@ -36,7 +36,7 @@ int main()
     ObjectDataLoader::loadData("Data/Info/object_data.data");
     BuildRecipeLoader::loadData("Data/Info/build_recipes.data");
 
-    sf::Vector2f selectPos(0, 0);
+    // sf::Vector2f selectPos(0, 0);
 
     Player player({500, 200});
 
@@ -51,18 +51,18 @@ int main()
 
     while (window.isOpen())
     {
-        sf::Vector2f mousePos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
+        // sf::Vector2f mousePos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
 
-        sf::Vector2i selectPosTile(std::floor((mousePos.x - Camera::getDrawOffset().x) / 48.0f), std::floor((mousePos.y - Camera::getDrawOffset().y) / 48.0f));
-        sf::Vector2f selectSize(1, 1);
+        // sf::Vector2i selectPosTile(std::floor((mousePos.x - Camera::getDrawOffset().x) / 48.0f), std::floor((mousePos.y - Camera::getDrawOffset().y) / 48.0f));
+        // sf::Vector2f selectSize(1, 1);
 
-        ChunkPosition selected_chunk(std::floor(selectPosTile.x / 8.0f), std::floor(selectPosTile.y / 8.0f));
-        sf::Vector2i selected_tile(((selectPosTile.x % 8) + 8) % 8, ((selectPosTile.y % 8) + 8) % 8);
-
-        BuildableObject* selectedObject = ChunkManager::getSelectedObject(selected_chunk, selected_tile);
+        // ChunkPosition selected_chunk(std::floor(selectPosTile.x / 8.0f), std::floor(selectPosTile.y / 8.0f));
+        // sf::Vector2i selected_tile(((selectPosTile.x % 8) + 8) % 8, ((selectPosTile.y % 8) + 8) % 8);
 
         float dt = clock.restart().asSeconds();
         time += dt;
+
+        BuildableObject* selectedObject = ChunkManager::getSelectedObject(Cursor::getSelectedChunk(), Cursor::getSelectedChunkTile());
 
         for (auto event = sf::Event{}; window.pollEvent(event);)
         {
@@ -96,7 +96,7 @@ int main()
                     else if (buildMenuOpen)
                     {
                         unsigned int objectType = BuildGUI::getSelectedObject();
-                        if (Inventory::canBuildObject(objectType) && ChunkManager::canPlaceObject(selectPosTile))
+                        if (Inventory::canBuildObject(objectType) && ChunkManager::canPlaceObject(Cursor::getSelectedChunk(), Cursor::getSelectedChunkTile(), objectType))
                         {
                             // Take resources
                             for (auto& itemPair : BuildRecipeLoader::getBuildRecipe(objectType).itemRequirements)
@@ -105,7 +105,7 @@ int main()
                             }
 
                             // Build object
-                            ChunkManager::setObject(selectPosTile, objectType);
+                            ChunkManager::setObject(Cursor::getSelectedChunk(), Cursor::getSelectedChunkTile(), objectType);
                         }
                     }
                 }
@@ -117,26 +117,27 @@ int main()
             }
         }
 
-        sf::Vector2f mouseWorldPos = mousePos - Camera::getDrawOffset();
+        // sf::Vector2f mouseWorldPos = mousePos - Camera::getDrawOffset();
 
-        if (selectedObject && !buildMenuOpen)
-        {
-            selectSize = static_cast<sf::Vector2f>(ObjectDataLoader::getObjectData(selectedObject->getObjectType()).size);
-            selectPos.x = Helper::lerp(selectPos.x, selectedObject->getPosition().x - 24.0f, 25 * dt);
-            selectPos.y = Helper::lerp(selectPos.y, selectedObject->getPosition().y - 24.0f, 25 * dt);
-        }
-        else
-        {
-            selectPos.x = Helper::lerp(selectPos.x, std::floor(mouseWorldPos.x / 48) * 48, 25 * dt);
-            selectPos.y = Helper::lerp(selectPos.y, std::floor(mouseWorldPos.y / 48) * 48, 25 * dt);
-        }
+        // if (selectedObject && !buildMenuOpen)
+        // {
+        //     selectSize = static_cast<sf::Vector2f>(ObjectDataLoader::getObjectData(selectedObject->getObjectType()).size);
+        //     selectPos.x = Helper::lerp(selectPos.x, selectedObject->getPosition().x - 24.0f, 25 * dt);
+        //     selectPos.y = Helper::lerp(selectPos.y, selectedObject->getPosition().y - 24.0f, 25 * dt);
+        // }
+        // else
+        // {
+        //     selectPos.x = Helper::lerp(selectPos.x, std::floor(mouseWorldPos.x / 48) * 48, 25 * dt);
+        //     selectPos.y = Helper::lerp(selectPos.y, std::floor(mouseWorldPos.y / 48) * 48, 25 * dt);
+        // }
 
-        if (buildMenuOpen)
-        {
-            selectSize = static_cast<sf::Vector2f>(ObjectDataLoader::getObjectData(BuildGUI::getSelectedObject()).size);
-        }
+        // if (buildMenuOpen)
+        // {
+        //     selectSize = static_cast<sf::Vector2f>(ObjectDataLoader::getObjectData(BuildGUI::getSelectedObject()).size);
+        // }
 
         Camera::update(player.getPosition(), dt);
+        Cursor::updateTileCursor(window, dt, buildMenuOpen);
 
         player.update(dt);
 
@@ -167,17 +168,18 @@ int main()
             // LERP EACH CORNER INDIVIDUALLY (looks bad at the moment)
             
             // Draw select tile
-            TextureManager::drawSubTexture(window, {
-                TextureType::SelectTile, selectPos + Camera::getIntegerDrawOffset(), 0, 3}, sf::IntRect(0, 0, 16, 16)); // top left
-            TextureManager::drawSubTexture(window, {
-                TextureType::SelectTile, selectPos + sf::Vector2f(selectSize.x - 1, 0) * 48.0f + Camera::getIntegerDrawOffset(), 0, 3},
-                sf::IntRect(16, 0, 16, 16)); // top right
-            TextureManager::drawSubTexture(window, {
-                TextureType::SelectTile, selectPos + sf::Vector2f(0, selectSize.y - 1) * 48.0f + Camera::getIntegerDrawOffset(), 0, 3},
-                sf::IntRect(32, 0, 16, 16)); // bottom left
-            TextureManager::drawSubTexture(window, {
-                TextureType::SelectTile, selectPos + sf::Vector2f(selectSize.x - 1, selectSize.y - 1) * 48.0f + Camera::getIntegerDrawOffset(), 0, 3},
-                sf::IntRect(48, 0, 16, 16)); // bottom right
+            // TextureManager::drawSubTexture(window, {
+            //     TextureType::SelectTile, selectPos + Camera::getIntegerDrawOffset(), 0, 3}, sf::IntRect(0, 0, 16, 16)); // top left
+            // TextureManager::drawSubTexture(window, {
+            //     TextureType::SelectTile, selectPos + sf::Vector2f(selectSize.x - 1, 0) * 48.0f + Camera::getIntegerDrawOffset(), 0, 3},
+            //     sf::IntRect(16, 0, 16, 16)); // top right
+            // TextureManager::drawSubTexture(window, {
+            //     TextureType::SelectTile, selectPos + sf::Vector2f(0, selectSize.y - 1) * 48.0f + Camera::getIntegerDrawOffset(), 0, 3},
+            //     sf::IntRect(32, 0, 16, 16)); // bottom left
+            // TextureManager::drawSubTexture(window, {
+            //     TextureType::SelectTile, selectPos + sf::Vector2f(selectSize.x - 1, selectSize.y - 1) * 48.0f + Camera::getIntegerDrawOffset(), 0, 3},
+            //     sf::IntRect(48, 0, 16, 16)); // bottom right
+            Cursor::drawTileCursor(window);
         }
 
         if (inventoryOpen)
@@ -191,9 +193,9 @@ int main()
 
             unsigned int selectedObjectType = BuildGUI::getSelectedObject();
 
-            BuildableObject recipeObject(selectPos + sf::Vector2f(24, 24), selectedObjectType);
+            BuildableObject recipeObject(Cursor::getLerpedSelectPos() + sf::Vector2f(24, 24), selectedObjectType);
 
-            if (Inventory::canBuildObject(selectedObjectType) && ChunkManager::canPlaceObject(selectPosTile))
+            if (Inventory::canBuildObject(selectedObjectType) && ChunkManager::canPlaceObject(Cursor::getSelectedChunk(), Cursor::getSelectedChunkTile(), selectedObjectType))
                 recipeObject.draw(window, dt, {0, 255, 0, 180});
             else
                 recipeObject.draw(window, dt, {255, 0, 0, 180});

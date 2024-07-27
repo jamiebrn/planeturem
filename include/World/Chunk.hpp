@@ -38,7 +38,7 @@ public:
 
     void setObjectReference(const ObjectReference& objectReference, sf::Vector2i tile);
 
-    bool canPlaceObject(sf::Vector2i selected_tile);
+    bool canPlaceObject(sf::Vector2i selected_tile, unsigned int objectType);
 
     std::vector<std::unique_ptr<CollisionRect>> getCollisionRects();
 

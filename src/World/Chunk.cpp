@@ -298,7 +298,7 @@ void Chunk::setObjectReference(const ObjectReference& objectReference, sf::Vecto
     objectGrid[tile.y][tile.x] = BuildableObject(objectReference);
 }
 
-bool Chunk::canPlaceObject(sf::Vector2i selected_tile)
+bool Chunk::canPlaceObject(sf::Vector2i selected_tile, unsigned int objectType)
 {
     // Test terrain
     if (groundTileGrid[selected_tile.y][selected_tile.x] == TileType::Water)

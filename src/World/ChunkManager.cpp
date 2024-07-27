@@ -103,21 +103,19 @@ BuildableObject* ChunkManager::getSelectedObject(ChunkPosition chunk, sf::Vector
     return &(selectedObject.value());
 }
 
-bool ChunkManager::interactWithObject(sf::Vector2i selected_tile)
+// bool ChunkManager::interactWithObject(sf::Vector2i selected_tile)
+// {
+
+// }
+
+void ChunkManager::setObject(ChunkPosition chunk, sf::Vector2i tile, unsigned int objectType)
 {
-
-}
-
-void ChunkManager::setObject(sf::Vector2i selected_tile, unsigned int objectType)
-{
-    ChunkPosition chunkPos(std::floor(selected_tile.x / 8.0f), std::floor(selected_tile.y / 8.0f));
-
     // Chunk does not exist
-    if (loadedChunks.count(chunkPos) <= 0)
+    if (loadedChunks.count(chunk) <= 0)
         return;
     
     // Set chunk object at position
-    loadedChunks[chunkPos]->setObject({((selected_tile.x % 8) + 8) % 8, ((selected_tile.y % 8) + 8) % 8}, objectType);
+    loadedChunks[chunk]->setObject(tile, objectType);
 }
 
 void ChunkManager::deleteObject(ChunkPosition chunk, sf::Vector2i tile)
@@ -147,15 +145,13 @@ void ChunkManager::setObjectReference(const ChunkPosition& chunk, const ObjectRe
     loadedChunks[chunk]->setObjectReference(objectReference, tile);
 }
 
-bool ChunkManager::canPlaceObject(sf::Vector2i selected_tile)
+bool ChunkManager::canPlaceObject(ChunkPosition chunk, sf::Vector2i tile, unsigned int objectType)
 {
-    ChunkPosition chunkPos(std::floor(selected_tile.x / 8.0f), std::floor(selected_tile.y / 8.0f));
-
     // Chunk does not exist
-    if (loadedChunks.count(chunkPos) <= 0)
+    if (loadedChunks.count(chunk) <= 0)
         return false;
 
-    return loadedChunks[chunkPos]->canPlaceObject({((selected_tile.x % 8) + 8) % 8, ((selected_tile.y % 8) + 8) % 8});
+    return loadedChunks[chunk]->canPlaceObject(tile, objectType);
 }
 
 std::vector<WorldObject*> ChunkManager::getChunkObjects()
