@@ -130,7 +130,7 @@ void Chunk::updateChunkObjects(float dt, ChunkManager& chunkManager)
             if (object)
             {
                 // OccupiedTileObject* occupiedTile = dynamic_cast<OccupiedTileObject*>(object.get());
-                // If object is occupied tile, do not update
+                // If object is object reference, do not update
                 if (object->isObjectReference())
                     continue;
                 
@@ -153,7 +153,7 @@ std::vector<WorldObject*> Chunk::getObjects()
             if (!objectGrid[y][x].has_value())
                 continue;
 
-            // If object is occupied tile, do not draw
+            // If object is object reference, do not draw
             if (objectGrid[y][x]->isObjectReference())
                 continue;
 
@@ -184,19 +184,19 @@ void Chunk::setObject(sf::Vector2i position, unsigned int objectType, ChunkManag
 
     sf::Vector2i objectSize = ObjectDataLoader::getObjectData(objectType).size;
 
-    // Create occupied tile objects if object is larger than one tile
+    // Create object reference objects if object is larger than one tile
     if (objectSize != sf::Vector2i(1, 1))
     {
         ObjectReference objectReference;
         objectReference.chunk = ChunkPosition(worldGridPosition.x, worldGridPosition.y);
         objectReference.tile = position;
 
-        // Iterate over all tiles which object occupies and add occupied tile
+        // Iterate over all tiles which object occupies and add object reference
         for (int y = position.y; y < std::min(position.y + objectSize.y, (int)objectGrid.size()); y++)
         {
             for (int x = position.x; x < std::min(position.x + objectSize.x, (int)objectGrid[0].size()); x++)
             {
-                // If tile is actual object tile, don't place occupied tile
+                // If tile is actual object tile, don't place object reference
                 if (x == position.x && y == position.y)
                     continue;
                 
@@ -345,8 +345,8 @@ bool Chunk::canPlaceObject(sf::Vector2i position, unsigned int objectType, Chunk
                 return false;
             
             // Test object
-            BuildableObject* testObject = chunkManager.getChunkObject(ChunkPosition(worldGridPosition.x + 1, worldGridPosition.y), sf::Vector2i(x, y));
-            if (testObject != nullptr)
+            bool objectExists = chunkManager.doesChunkObjectExist(ChunkPosition(worldGridPosition.x + 1, worldGridPosition.y), sf::Vector2i(x, y));
+            if (objectExists)
                 return false;
         }
     }
@@ -361,8 +361,8 @@ bool Chunk::canPlaceObject(sf::Vector2i position, unsigned int objectType, Chunk
                 return false;
             
             // Test object
-            BuildableObject* testObject = chunkManager.getChunkObject(ChunkPosition(worldGridPosition.x, worldGridPosition.y + 1), sf::Vector2i(x, y));
-            if (testObject != nullptr)
+            bool objectExists = chunkManager.doesChunkObjectExist(ChunkPosition(worldGridPosition.x, worldGridPosition.y + 1), sf::Vector2i(x, y));
+            if (objectExists)
                 return false;
         }
     }
@@ -377,8 +377,8 @@ bool Chunk::canPlaceObject(sf::Vector2i position, unsigned int objectType, Chunk
                 return false;
             
             // Test object
-            BuildableObject* testObject = chunkManager.getChunkObject(ChunkPosition(worldGridPosition.x + 1, worldGridPosition.y + 1), sf::Vector2i(x, y));
-            if (testObject != nullptr)
+            bool objectExists = chunkManager.doesChunkObjectExist(ChunkPosition(worldGridPosition.x + 1, worldGridPosition.y + 1), sf::Vector2i(x, y));
+            if (objectExists)
                 return false;
         }
     }
@@ -428,12 +428,14 @@ std::vector<std::unique_ptr<CollisionRect>> Chunk::getCollisionRects(ChunkManage
             {
                 // Get referenced object
                 const ObjectReference& objectReference = objectGrid[y][x]->getObjectReference().value();
-                BuildableObject* object = chunkManager.getChunkObject(objectReference.chunk, objectReference.tile);
+                bool objectExists = chunkManager.doesChunkObjectExist(objectReference.chunk, objectReference.tile);
 
-                // If pointing to valid object, add collision from object if required
-                if (object != nullptr)
+                // If valid object, add collision from object if required
+                if (objectExists)
                 {
-                    unsigned int objectType = object->getObjectType();
+                    BuildableObject& object = chunkManager.getChunkObject(objectReference.chunk, objectReference.tile);
+
+                    unsigned int objectType = object.getObjectType();
                     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
 
                     if (objectData.hasCollision)

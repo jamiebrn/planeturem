@@ -77,13 +77,26 @@ void ChunkManager::updateChunksObjects(float dt)
     }
 }
 
-BuildableObject* ChunkManager::getChunkObject(ChunkPosition chunk, sf::Vector2i tile)
+bool ChunkManager::doesChunkObjectExist(ChunkPosition chunk, sf::Vector2i tile)
+{
+    // Chunk does not exist
+    if (loadedChunks.count(chunk) <= 0)
+        return false;
+    
+    std::optional<BuildableObject>& selectedObject = loadedChunks[chunk]->getObject(sf::Vector2i(tile.x, tile.y));
+    
+    // Return whether object exists at specified position
+    return selectedObject.has_value();
+}
+
+// Call doesChunkObjectExist before using
+BuildableObject& ChunkManager::getChunkObject(ChunkPosition chunk, sf::Vector2i tile)
 {
     // ChunkPosition chunkPos(std::floor(selected_tile.x / 8.0f), std::floor(selected_tile.y / 8.0f));
 
     // Chunk does not exist
-    if (loadedChunks.count(chunk) <= 0)
-        return nullptr;
+    // if (loadedChunks.count(chunk) <= 0)
+    //     return nullptr;
     
     // Get objects in chunk
     // auto& chunkObjects = loadedChunks[chunk]->getObjectGrid();
@@ -91,10 +104,10 @@ BuildableObject* ChunkManager::getChunkObject(ChunkPosition chunk, sf::Vector2i 
     // std::optional<BuildableObject>& selectedObject = chunkObjects[tile.y][tile.x];
     std::optional<BuildableObject>& selectedObject = loadedChunks[chunk]->getObject(sf::Vector2i(tile.x, tile.y));
 
-    if (!selectedObject.has_value())
-        return nullptr;
+    // if (!selectedObject.has_value())
+    //     return nullptr;
 
-    // Test if object is occupied tile object, to then get the actual object
+    // Test if object is object reference object, to then get the actual object
     if (selectedObject->isObjectReference())
     {
         const ObjectReference& objectReference = selectedObject->getObjectReference().value();
@@ -102,7 +115,7 @@ BuildableObject* ChunkManager::getChunkObject(ChunkPosition chunk, sf::Vector2i 
     }
 
     // Get object at position and return
-    return &(selectedObject.value());
+    return selectedObject.value();
 }
 
 // bool ChunkManager::interactWithObject(sf::Vector2i selected_tile)

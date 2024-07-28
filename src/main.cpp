@@ -64,8 +64,6 @@ int main()
         float dt = clock.restart().asSeconds();
         time += dt;
 
-        BuildableObject* selectedObject = chunkManager.getChunkObject(Cursor::getSelectedChunk(), Cursor::getSelectedChunkTile());
-
         for (auto event = sf::Event{}; window.pollEvent(event);)
         {
             if (event.type == sf::Event::Closed)
@@ -86,6 +84,8 @@ int main()
                 {
                     sf::VideoMode videoMode = sf::VideoMode::getDesktopMode();
                     window.create(videoMode, "spacebuild", sf::Style::Default);
+                    window.setFramerateLimit(165);
+                    window.setVerticalSyncEnabled(true);
                     view.setSize({(float)videoMode.width, (float)videoMode.height});
                     view.setCenter({videoMode.width / 2.0f, videoMode.height / 2.0f});
                     ResolutionHandler::setResolution({videoMode.width, videoMode.height});
@@ -104,8 +104,12 @@ int main()
                 {
                     if (!inventoryOpen && !buildMenuOpen)
                     {
-                        if (selectedObject)
-                            selectedObject->interact();
+                        bool objectSelected = chunkManager.doesChunkObjectExist(Cursor::getSelectedChunk(), Cursor::getSelectedChunkTile());
+                        if (objectSelected)
+                        {
+                            BuildableObject& selectedObject = chunkManager.getChunkObject(Cursor::getSelectedChunk(), Cursor::getSelectedChunkTile());
+                            selectedObject.interact();
+                        }
                     }
                     else if (buildMenuOpen)
                     {

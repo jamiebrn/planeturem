@@ -20,17 +20,20 @@ void Cursor::updateTileCursor(sf::RenderWindow& window, float dt, bool buildMenu
     // Default tile cursor size is 1, 1
     selectSize = sf::Vector2i(1, 1);
 
-    // Get selected object (if any)
-    BuildableObject* selectedObject = chunkManager.getChunkObject(Cursor::getSelectedChunk(), Cursor::getSelectedChunkTile());
+    // Get whether an object is selected at cursor position
+    bool objectSelected = chunkManager.doesChunkObjectExist(Cursor::getSelectedChunk(), Cursor::getSelectedChunkTile());
 
     // If an object in world is selected, override tile cursor size and position
-    if (selectedObject != nullptr && !buildMenuOpen)
+    if (objectSelected && !buildMenuOpen)
     {
+        // Get object selected
+        BuildableObject& selectedObject = chunkManager.getChunkObject(Cursor::getSelectedChunk(), Cursor::getSelectedChunkTile());
+
         // Get size of selected object and set size of tile cursor
-        selectSize = ObjectDataLoader::getObjectData(selectedObject->getObjectType()).size;
+        selectSize = ObjectDataLoader::getObjectData(selectedObject.getObjectType()).size;
 
         // Set position of tile cursor to object's position
-        selectPos = selectedObject->getPosition() - sf::Vector2f(24.0f, 24.0f);
+        selectPos = selectedObject.getPosition() - sf::Vector2f(24.0f, 24.0f);
 
         // Set selected tile to new overriden tile cursor position
         selectPosTile.x = std::floor(selectPos.x / 48.0f);
