@@ -19,15 +19,17 @@ void BuildGUI::draw(sf::RenderWindow& window)
     // Draw background
     sf::RectangleShape background({800, 100});
 
+    const sf::Vector2u& resolution = ResolutionHandler::getResolution();
+
     background.setOrigin({400, 50});
-    background.setPosition({1280 / 2, 650});
+    background.setPosition({resolution.x / 2.0f, resolution.y - 70.0f});
     background.setFillColor({40, 40, 40, 130});
 
     window.draw(background);
 
     // Draw recipes
     int recipeIndex = 0;
-    sf::Vector2f recipeBoxPosition(1280 / 2 - 390, 650 - 40);
+    sf::Vector2f recipeBoxPosition(resolution.x / 2 - 390, resolution.y - 110.0f);
 
     for (auto& recipePair : BuildRecipeLoader::getBuildRecipeData())
     {
@@ -63,13 +65,13 @@ void BuildGUI::draw(sf::RenderWindow& window)
             sf::RectangleShape recipeItemsBox({400, 68});
 
             recipeItemsBox.setOrigin({200, 34});
-            recipeItemsBox.setPosition({1280 / 2, 556});
+            recipeItemsBox.setPosition({resolution.x / 2.0f, resolution.y - 164.0f});
             recipeItemsBox.setFillColor({40, 40, 40, 130});
 
             window.draw(recipeItemsBox);
 
             // Draw recipe data
-            sf::Vector2f recipeItemPos({1280 / 2 - 190, 556 - 24});
+            sf::Vector2f recipeItemPos({resolution.x / 2 - 190.0f, resolution.y - 188.0f});
 
             for (auto& recipeItemPair : recipePair.second.itemRequirements)
             {

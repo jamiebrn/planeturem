@@ -12,7 +12,7 @@ Player::Player(sf::Vector2f position)
     drawLayer = 0;
 }
 
-void Player::update(float dt)
+void Player::update(float dt, ChunkManager& chunkManager)
 {
     // Handle movement input
     sf::Vector2f direction;
@@ -27,7 +27,7 @@ void Player::update(float dt)
     collisionRect.y += direction.y * 300.0f * dt;
 
     // Handle collision with world (tiles, object)
-    std::vector<std::unique_ptr<CollisionRect>> worldCollisionRects = ChunkManager::getChunkCollisionRects();
+    std::vector<std::unique_ptr<CollisionRect>> worldCollisionRects = chunkManager.getChunkCollisionRects();
     for (const std::unique_ptr<CollisionRect>& worldCollisionRect : worldCollisionRects)
     {
         collisionRect.handleCollision(*worldCollisionRect);

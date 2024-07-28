@@ -4,6 +4,7 @@
 #include <memory>
 
 #include "Core/TextDraw.hpp"
+#include "Core/ResolutionHandler.hpp"
 #include "Object/BuildableObject.hpp"
 #include "Data/ObjectDataLoader.hpp"
 #include "Data/ItemDataLoader.hpp"

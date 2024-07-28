@@ -17,23 +17,23 @@ class BuildableObject : public WorldObject
 public:
     BuildableObject(sf::Vector2f position, unsigned int objectType);
 
-    void update(float dt) override;
+    void update(float dt);
 
     void draw(sf::RenderWindow& window, float dt, const sf::Color& color) override;
     void drawGUI(sf::RenderWindow& window, float dt, const sf::Color& color);
 
     void interact() override;
 
-    inline unsigned int getObjectType() {return objectType;}
+    inline unsigned int getObjectType() const {return objectType;}
 
     inline bool isAlive() override {return health > 0;}
 
     // When used as a reference to another object
     BuildableObject(ObjectReference _objectReference);
 
-    inline bool isObjectReference() {return objectReference.has_value();}
+    inline bool isObjectReference() const {return objectReference.has_value();}
 
-    inline const std::optional<ObjectReference>& getObjectReference() {return objectReference;}
+    inline const std::optional<ObjectReference>& getObjectReference() const {return objectReference;}
 
 private:
     unsigned int objectType = 0;

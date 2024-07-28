@@ -1,7 +1,7 @@
 #include "World/ChunkManager.hpp"
 
-std::unordered_map<ChunkPosition, std::unique_ptr<Chunk>> ChunkManager::storedChunks;
-std::unordered_map<ChunkPosition, std::unique_ptr<Chunk>> ChunkManager::loadedChunks;
+// std::unordered_map<ChunkPosition, std::unique_ptr<Chunk>> ChunkManager::storedChunks;
+// std::unordered_map<ChunkPosition, std::unique_ptr<Chunk>> ChunkManager::loadedChunks;
 
 void ChunkManager::updateChunks(const FastNoiseLite& noise)
 {
@@ -73,11 +73,11 @@ void ChunkManager::updateChunksObjects(float dt)
 {
     for (auto& chunkPair : loadedChunks)
     {
-        chunkPair.second->updateChunkObjects(dt);
+        chunkPair.second->updateChunkObjects(dt, *this);
     }
 }
 
-BuildableObject* ChunkManager::getSelectedObject(ChunkPosition chunk, sf::Vector2i tile)
+BuildableObject* ChunkManager::getChunkObject(ChunkPosition chunk, sf::Vector2i tile)
 {
     // ChunkPosition chunkPos(std::floor(selected_tile.x / 8.0f), std::floor(selected_tile.y / 8.0f));
 
@@ -86,9 +86,10 @@ BuildableObject* ChunkManager::getSelectedObject(ChunkPosition chunk, sf::Vector
         return nullptr;
     
     // Get objects in chunk
-    auto& chunkObjects = loadedChunks[chunk]->getObjectGrid();
+    // auto& chunkObjects = loadedChunks[chunk]->getObjectGrid();
 
-    std::optional<BuildableObject>& selectedObject = chunkObjects[tile.y][tile.x];
+    // std::optional<BuildableObject>& selectedObject = chunkObjects[tile.y][tile.x];
+    std::optional<BuildableObject>& selectedObject = loadedChunks[chunk]->getObject(sf::Vector2i(tile.x, tile.y));
 
     if (!selectedObject.has_value())
         return nullptr;
@@ -97,7 +98,7 @@ BuildableObject* ChunkManager::getSelectedObject(ChunkPosition chunk, sf::Vector
     if (selectedObject->isObjectReference())
     {
         const ObjectReference& objectReference = selectedObject->getObjectReference().value();
-        return getSelectedObject(objectReference.chunk, objectReference.tile);
+        return getChunkObject(objectReference.chunk, objectReference.tile);
     }
 
     // Get object at position and return
@@ -109,6 +110,15 @@ BuildableObject* ChunkManager::getSelectedObject(ChunkPosition chunk, sf::Vector
 
 // }
 
+TileType ChunkManager::getChunkTileType(ChunkPosition chunk, sf::Vector2i tile) const
+{
+    // Chunk does not exist
+    if (loadedChunks.count(chunk) <= 0)
+        return TileType::Water;
+    
+    return loadedChunks.at(chunk)->getTileType(tile);
+}
+
 void ChunkManager::setObject(ChunkPosition chunk, sf::Vector2i tile, unsigned int objectType)
 {
     // Chunk does not exist
@@ -116,7 +126,7 @@ void ChunkManager::setObject(ChunkPosition chunk, sf::Vector2i tile, unsigned in
         return;
     
     // Set chunk object at position
-    loadedChunks[chunk]->setObject(tile, objectType);
+    loadedChunks[chunk]->setObject(tile, objectType, *this);
 }
 
 void ChunkManager::deleteObject(ChunkPosition chunk, sf::Vector2i tile)
@@ -125,17 +135,17 @@ void ChunkManager::deleteObject(ChunkPosition chunk, sf::Vector2i tile)
     if (loadedChunks.count(chunk) <= 0)
         return;
     
-    loadedChunks[chunk]->deleteObject(tile);
+    loadedChunks[chunk]->deleteObject(tile, *this);
 }
 
-unsigned int ChunkManager::getObjectTypeFromObjectReference(const ObjectReference& objectReference)
-{
-    // Chunk does not exist
-    if (loadedChunks.count(objectReference.chunk) <= 0)
-        return 0;
+// unsigned int ChunkManager::getObjectTypeFromObjectReference(const ObjectReference& objectReference) const
+// {
+//     // Chunk does not exist
+//     if (loadedChunks.count(objectReference.chunk) <= 0)
+//         return 0;
     
-    return loadedChunks[objectReference.chunk]->getObjectGrid()[objectReference.tile.y][objectReference.tile.x].value().getObjectType();
-}
+//     return loadedChunks.at(objectReference.chunk)->getObjectGrid()[objectReference.tile.y][objectReference.tile.x].value().getObjectType();
+// }
 
 void ChunkManager::setObjectReference(const ChunkPosition& chunk, const ObjectReference& objectReference, sf::Vector2i tile)
 {
@@ -152,7 +162,7 @@ bool ChunkManager::canPlaceObject(ChunkPosition chunk, sf::Vector2i tile, unsign
     if (loadedChunks.count(chunk) <= 0)
         return false;
 
-    return loadedChunks[chunk]->canPlaceObject(tile, objectType);
+    return loadedChunks[chunk]->canPlaceObject(tile, objectType, *this);
 }
 
 std::vector<WorldObject*> ChunkManager::getChunkObjects()
@@ -171,7 +181,7 @@ std::vector<std::unique_ptr<CollisionRect>> ChunkManager::getChunkCollisionRects
     std::vector<std::unique_ptr<CollisionRect>> collisionRects;
     for (auto& chunkPair : loadedChunks)
     {
-        std::vector<std::unique_ptr<CollisionRect>> chunkCollisionRects = chunkPair.second->getCollisionRects();
+        std::vector<std::unique_ptr<CollisionRect>> chunkCollisionRects = chunkPair.second->getCollisionRects(*this);
         collisionRects.insert(collisionRects.end(), std::make_move_iterator(chunkCollisionRects.begin()), std::make_move_iterator(chunkCollisionRects.end()));
     }
     return collisionRects;

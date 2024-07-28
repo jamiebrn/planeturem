@@ -21,7 +21,7 @@ class Cursor
     Cursor() = delete;
 
 public:
-    static void updateTileCursor(sf::RenderWindow& window, float dt, bool buildMenuOpen);
+    static void updateTileCursor(sf::RenderWindow& window, float dt, bool buildMenuOpen, ChunkManager& chunkManager);
 
     static void drawTileCursor(sf::RenderWindow& window);
 

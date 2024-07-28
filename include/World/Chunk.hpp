@@ -19,6 +19,9 @@
 #include "Data/ObjectDataLoader.hpp"
 #include "Types/TileType.hpp"
 
+// Forward declaration
+class ChunkManager;
+
 class Chunk
 {
 
@@ -30,21 +33,24 @@ public:
     void drawChunkTerrain(sf::RenderWindow& window);
     void drawChunkObjects(sf::RenderWindow& window);
 
-    void updateChunkObjects(float dt);
+    void updateChunkObjects(float dt, ChunkManager& chunkManager);
     std::vector<WorldObject*> getObjects();
 
-    void setObject(sf::Vector2i position, unsigned int objectType);
-    void deleteObject(sf::Vector2i position);
+    std::optional<BuildableObject>& getObject(sf::Vector2i position);
+    TileType getTileType(sf::Vector2i position) const;
+
+    void setObject(sf::Vector2i position, unsigned int objectType, ChunkManager& chunkManager);
+    void deleteObject(sf::Vector2i position, ChunkManager& chunkManager);
 
     void setObjectReference(const ObjectReference& objectReference, sf::Vector2i tile);
 
-    bool canPlaceObject(sf::Vector2i selected_tile, unsigned int objectType);
+    bool canPlaceObject(sf::Vector2i position, unsigned int objectType, ChunkManager& chunkManager);
 
-    std::vector<std::unique_ptr<CollisionRect>> getCollisionRects();
+    std::vector<std::unique_ptr<CollisionRect>> getCollisionRects(ChunkManager& chunkManager);
 
     bool isPointInChunk(sf::Vector2f position);
 
-    inline std::array<std::array<std::optional<BuildableObject>, 8>, 8>& getObjectGrid() {return objectGrid;}
+    // inline std::array<std::array<std::optional<BuildableObject>, 8>, 8>& getObjectGrid() {return objectGrid;}
 
 private:
     std::array<std::array<TileType, 8>, 8> groundTileGrid;
