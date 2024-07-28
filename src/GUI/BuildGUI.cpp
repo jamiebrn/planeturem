@@ -16,10 +16,11 @@ unsigned int BuildGUI::getSelectedObject()
 
 void BuildGUI::draw(sf::RenderWindow& window)
 {
+    // Get resolution  
+    const sf::Vector2u& resolution = ResolutionHandler::getResolution();
+
     // Draw background
     sf::RectangleShape background({800, 100});
-
-    const sf::Vector2u& resolution = ResolutionHandler::getResolution();
 
     background.setOrigin({400, 50});
     background.setPosition({resolution.x / 2.0f, resolution.y - 70.0f});

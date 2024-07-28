@@ -4,6 +4,7 @@
 
 #include "Core/TextureManager.hpp"
 #include "Core/TextDraw.hpp"
+#include "Core/ResolutionHandler.hpp"
 #include "Player/Inventory.hpp"
 #include "Data/ItemDataLoader.hpp"
 
