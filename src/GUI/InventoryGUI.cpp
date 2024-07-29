@@ -32,7 +32,7 @@ void InventoryGUI::draw(sf::RenderWindow& window)
             TextureType::Items,
             itemBoxPosition + sf::Vector2f(40, 40),
             0,
-            3,
+            {3, 3},
             {0.5, 0.5}
         }, ItemDataLoader::getItemData(itemPair.first).textureRect);
 

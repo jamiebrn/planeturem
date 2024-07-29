@@ -8,7 +8,10 @@ Chunk::Chunk(sf::Vector2i worldGridPosition)
 
 void Chunk::generateChunk(const FastNoiseLite& noise)
 {
-    sf::Vector2f worldPosition = static_cast<sf::Vector2f>(worldGridPosition) * 8.0f * 48.0f;
+    // Get tile size
+    float tileSize = ResolutionHandler::getTileSize();
+
+    sf::Vector2f worldPosition = static_cast<sf::Vector2f>(worldGridPosition) * 8.0f * tileSize;
     sf::Vector2f worldNoisePosition = static_cast<sf::Vector2f>(worldGridPosition) * 8.0f;
 
     for (int y = 0; y < 8; y++)
@@ -18,10 +21,10 @@ void Chunk::generateChunk(const FastNoiseLite& noise)
             float height = noise.GetNoise(worldNoisePosition.x + (float)x, worldNoisePosition.y + (float)y);
 
             int vertexArrayIndex = (x + y * 8) * 4;
-            groundVertexArray[vertexArrayIndex].position = sf::Vector2f(x * 48, y * 48);
-            groundVertexArray[vertexArrayIndex + 1].position = sf::Vector2f(x * 48 + 48, y * 48);
-            groundVertexArray[vertexArrayIndex + 3].position = sf::Vector2f(x * 48, y * 48 + 48);
-            groundVertexArray[vertexArrayIndex + 2].position = sf::Vector2f(x * 48 + 48, y * 48 + 48);
+            groundVertexArray[vertexArrayIndex].position = sf::Vector2f(x * 16, y * 16);
+            groundVertexArray[vertexArrayIndex + 1].position = sf::Vector2f(x * 16 + 16, y * 16);
+            groundVertexArray[vertexArrayIndex + 3].position = sf::Vector2f(x * 16, y * 16 + 16);
+            groundVertexArray[vertexArrayIndex + 2].position = sf::Vector2f(x * 16 + 16, y * 16 + 16);
 
             if (height < 0)
             {
@@ -56,7 +59,7 @@ void Chunk::generateChunk(const FastNoiseLite& noise)
                 groundTileGrid[y][x] = TileType::Grass;
             }
 
-            sf::Vector2f objectPos = worldPosition + sf::Vector2f(x * 48.0f + 24.0f, y * 48.0f + 24.0f);
+            sf::Vector2f objectPos = worldPosition + sf::Vector2f(x * tileSize + tileSize / 2.0f, y * tileSize + tileSize / 2.0f);
             objectGrid[y][x] = std::nullopt;
 
             int spawn_chance = rand() % 40;
@@ -85,10 +88,15 @@ void Chunk::generateChunk(const FastNoiseLite& noise)
 
 void Chunk::drawChunkTerrain(sf::RenderWindow& window)
 {
-    sf::Vector2f worldPosition = static_cast<sf::Vector2f>(worldGridPosition) * 8.0f * 48.0f;
+    // Get tile size and scale
+    float scale = ResolutionHandler::getScale();
+    float tileSize = ResolutionHandler::getTileSize();
+
+    sf::Vector2f worldPosition = static_cast<sf::Vector2f>(worldGridPosition) * 8.0f * tileSize;
 
     sf::Transform transform;
     transform.translate(Camera::getIntegerDrawOffset() + worldPosition);
+    transform.scale(scale, scale);
 
     sf::RenderStates state;
     state.texture = TextureManager::getTexture(TextureType::GroundTiles);
@@ -97,10 +105,10 @@ void Chunk::drawChunkTerrain(sf::RenderWindow& window)
 
     // DEBUG CHUNK OUTLINE DRAW
     // sf::VertexArray lines(sf::Lines, 8);
-    // lines[0].position = Camera::getIntegerDrawOffset() + worldPosition; lines[1].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(48.0f * 8, 0);
-    // lines[2].position = Camera::getIntegerDrawOffset() + worldPosition; lines[3].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(0, 48.0f * 8);
-    // lines[4].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(48.0f * 8, 0); lines[5].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(48.0f * 8, 48.0f * 8);
-    // lines[6].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(0, 48.0f * 8); lines[7].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(48.0f * 8, 48.0f * 8);
+    // lines[0].position = Camera::getIntegerDrawOffset() + worldPosition; lines[1].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(tileSize * 8, 0);
+    // lines[2].position = Camera::getIntegerDrawOffset() + worldPosition; lines[3].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(0, tileSize * 8);
+    // lines[4].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(tileSize * 8, 0); lines[5].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(tileSize * 8, tileSize * 8);
+    // lines[6].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(0, tileSize * 8); lines[7].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(tileSize * 8, tileSize * 8);
 
     // window.draw(lines);
 }
@@ -176,8 +184,11 @@ TileType Chunk::getTileType(sf::Vector2i position) const
 
 void Chunk::setObject(sf::Vector2i position, unsigned int objectType, ChunkManager& chunkManager)
 {
-    sf::Vector2f worldPosition = static_cast<sf::Vector2f>(worldGridPosition) * 8.0f * 48.0f;
-    sf::Vector2f objectPos = worldPosition + sf::Vector2f(position.x * 48.0f + 24.0f, position.y * 48.0f + 24.0f);
+    // Get tile size
+    float tileSize = ResolutionHandler::getTileSize();
+
+    sf::Vector2f worldPosition = static_cast<sf::Vector2f>(worldGridPosition) * 8.0f * tileSize;
+    sf::Vector2f objectPos = worldPosition + sf::Vector2f(position.x * tileSize + tileSize / 2.0f, position.y * tileSize + tileSize / 2.0f);
 
     // std::unique_ptr<BuildableObject> object = std::make_unique<BuildableObject>(objectPos, objectType);
     BuildableObject object(objectPos, objectType);
@@ -200,13 +211,6 @@ void Chunk::setObject(sf::Vector2i position, unsigned int objectType, ChunkManag
                 if (x == position.x && y == position.y)
                     continue;
                 
-                // sf::Vector2f occupiedTilePos = objectPos + sf::Vector2f(position.x, position.y) * 48.0f;
-
-                // std::unique_ptr<OccupiedTileObject> occupiedTile = std::make_unique<OccupiedTileObject>(occupiedTilePos, objectType, objectReference);
-
-                // std::unique_ptr<BuildableObject> occupiedTile = std::make_unique<BuildableObject>(objectReference);
-
-                // objectGrid[y][x] = std::move(occupiedTile);
                 objectGrid[y][x] = BuildableObject(objectReference);
             }
         }
@@ -345,8 +349,8 @@ bool Chunk::canPlaceObject(sf::Vector2i position, unsigned int objectType, Chunk
                 return false;
             
             // Test object
-            bool objectExists = chunkManager.doesChunkObjectExist(ChunkPosition(worldGridPosition.x + 1, worldGridPosition.y), sf::Vector2i(x, y));
-            if (objectExists)
+            std::optional<BuildableObject>& objectOptional = chunkManager.getChunkObject(ChunkPosition(worldGridPosition.x + 1, worldGridPosition.y), sf::Vector2i(x, y));
+            if (objectOptional.has_value())
                 return false;
         }
     }
@@ -361,8 +365,8 @@ bool Chunk::canPlaceObject(sf::Vector2i position, unsigned int objectType, Chunk
                 return false;
             
             // Test object
-            bool objectExists = chunkManager.doesChunkObjectExist(ChunkPosition(worldGridPosition.x, worldGridPosition.y + 1), sf::Vector2i(x, y));
-            if (objectExists)
+            std::optional<BuildableObject>& objectOptional = chunkManager.getChunkObject(ChunkPosition(worldGridPosition.x, worldGridPosition.y + 1), sf::Vector2i(x, y));
+            if (objectOptional.has_value())
                 return false;
         }
     }
@@ -377,8 +381,8 @@ bool Chunk::canPlaceObject(sf::Vector2i position, unsigned int objectType, Chunk
                 return false;
             
             // Test object
-            bool objectExists = chunkManager.doesChunkObjectExist(ChunkPosition(worldGridPosition.x + 1, worldGridPosition.y + 1), sf::Vector2i(x, y));
-            if (objectExists)
+            std::optional<BuildableObject>& objectOptional = chunkManager.getChunkObject(ChunkPosition(worldGridPosition.x + 1, worldGridPosition.y + 1), sf::Vector2i(x, y));
+            if (objectOptional.has_value())
                 return false;
         }
     }
@@ -389,16 +393,19 @@ bool Chunk::canPlaceObject(sf::Vector2i position, unsigned int objectType, Chunk
 
 std::vector<std::unique_ptr<CollisionRect>> Chunk::getCollisionRects(ChunkManager& chunkManager)
 {
-    sf::Vector2f worldPosition = static_cast<sf::Vector2f>(worldGridPosition) * 8.0f * 48.0f;
+    // Get tile size
+    float tileSize = ResolutionHandler::getTileSize();
 
-    auto createCollisionRect = [worldPosition](std::vector<std::unique_ptr<CollisionRect>>& rects, int x, int y) -> void
+    sf::Vector2f worldPosition = static_cast<sf::Vector2f>(worldGridPosition) * 8.0f * tileSize;
+
+    auto createCollisionRect = [worldPosition, tileSize](std::vector<std::unique_ptr<CollisionRect>>& rects, int x, int y) -> void
     {
         std::unique_ptr<CollisionRect> collisionRect = std::make_unique<CollisionRect>();
 
-        collisionRect->x = worldPosition.x + x * 48.0f;
-        collisionRect->y = worldPosition.y + y * 48.0f;
-        collisionRect->width = 48.0f;
-        collisionRect->height = 48.0f;
+        collisionRect->x = worldPosition.x + x * tileSize;
+        collisionRect->y = worldPosition.y + y * tileSize;
+        collisionRect->width = tileSize;
+        collisionRect->height = tileSize;
 
         rects.push_back(std::move(collisionRect));
     };
@@ -428,12 +435,12 @@ std::vector<std::unique_ptr<CollisionRect>> Chunk::getCollisionRects(ChunkManage
             {
                 // Get referenced object
                 const ObjectReference& objectReference = objectGrid[y][x]->getObjectReference().value();
-                bool objectExists = chunkManager.doesChunkObjectExist(objectReference.chunk, objectReference.tile);
+                std::optional<BuildableObject>& objectOptional = chunkManager.getChunkObject(objectReference.chunk, objectReference.tile);
 
                 // If valid object, add collision from object if required
-                if (objectExists)
+                if (objectOptional.has_value())
                 {
-                    BuildableObject& object = chunkManager.getChunkObject(objectReference.chunk, objectReference.tile);
+                    BuildableObject& object = objectOptional.value();
 
                     unsigned int objectType = object.getObjectType();
                     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);

@@ -11,13 +11,13 @@ std::unordered_map<TextureType, sf::Sprite> TextureManager::spriteMap;
 
 // All file paths for textures are listed here
 const std::unordered_map<TextureType, std::string> TextureManager::texturePaths = {
-    {TextureType::Player, "Data/player.png"},
+    {TextureType::Player, "Data/monkeyplayer.png"},
     {TextureType::Tree, "Data/tree.png"},
     {TextureType::Bush, "Data/bush.png"},
     {TextureType::SelectTile, "Data/select_tile.png"},
     {TextureType::GroundTiles, "Data/old_tiles.png"},
     {TextureType::Items, "Data/item_sheet.png"},
-    {TextureType::BuildItems, "Data/build_tiles.png"}
+    {TextureType::BuildItems, "Data/objects.png"}
 };
 
 // Loads all textures from paths specified into texture map
@@ -139,7 +139,7 @@ void TextureManager::applyTextureData(TextureDrawData drawData)
     sf::Sprite& sprite = spriteMap.at(drawData.type);
 
     // Set scale of sprite from draw data
-    sprite.setScale(sf::Vector2f(drawData.scale, drawData.scale));
+    sprite.setScale(drawData.scale);
 
     // Get size of sprite
     sf::FloatRect sizeRect = sprite.getLocalBounds();

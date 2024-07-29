@@ -96,10 +96,10 @@ void Game::run()
                 {
                     if (!inventoryOpen && !buildMenuOpen)
                     {
-                        bool objectSelected = chunkManager.doesChunkObjectExist(Cursor::getSelectedChunk(), Cursor::getSelectedChunkTile());
-                        if (objectSelected)
+                        std::optional<BuildableObject>& selectedObjectOptional = chunkManager.getChunkObject(Cursor::getSelectedChunk(), Cursor::getSelectedChunkTile());
+                        if (selectedObjectOptional.has_value())
                         {
-                            BuildableObject& selectedObject = chunkManager.getChunkObject(Cursor::getSelectedChunk(), Cursor::getSelectedChunkTile());
+                            BuildableObject& selectedObject = selectedObjectOptional.value();
                             selectedObject.interact();
                         }
                     }
@@ -123,7 +123,8 @@ void Game::run()
 
             if (event.type == sf::Event::MouseWheelScrolled)
             {
-                BuildGUI::changeSelectedObject(-event.mouseWheelScroll.delta);
+                if (buildMenuOpen)
+                    BuildGUI::changeSelectedObject(-event.mouseWheelScroll.delta);
             }
         }
 
@@ -147,6 +148,7 @@ void Game::run()
         std::sort(objects.begin(), objects.end(), [](WorldObject* a, WorldObject* b)
         {
             if (a->getDrawLayer() != b->getDrawLayer()) return a->getDrawLayer() > b->getDrawLayer();
+            if (a->getPosition().y == b->getPosition().y) return a->getPosition().x < b->getPosition().x;
             return a->getPosition().y < b->getPosition().y;
         });
 
@@ -171,7 +173,9 @@ void Game::run()
 
             unsigned int selectedObjectType = BuildGUI::getSelectedObject();
 
-            BuildableObject recipeObject(Cursor::getLerpedSelectPos() + sf::Vector2f(24, 24), selectedObjectType);
+            float tileSize = ResolutionHandler::getTileSize();
+
+            BuildableObject recipeObject(Cursor::getLerpedSelectPos() + sf::Vector2f(tileSize / 2.0f, tileSize / 2.0f), selectedObjectType);
 
             if (Inventory::canBuildObject(selectedObjectType) && chunkManager.canPlaceObject(Cursor::getSelectedChunk(), Cursor::getSelectedChunkTile(), selectedObjectType))
                 recipeObject.draw(window, dt, {0, 255, 0, 180});

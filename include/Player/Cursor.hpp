@@ -4,6 +4,7 @@
 #include <array>
 
 #include "Core/TextureManager.hpp"
+#include "Core/ResolutionHandler.hpp"
 #include "Core/Camera.hpp"
 #include "Object/BuildableObject.hpp"
 #include "World/ChunkPosition.hpp"

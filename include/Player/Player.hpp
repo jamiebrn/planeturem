@@ -4,6 +4,7 @@
 #include <math.h>
 #include <algorithm>
 
+#include "Core/ResolutionHandler.hpp"
 #include "Core/CollisionRect.hpp"
 #include "Object/WorldObject.hpp"
 #include "World/ChunkManager.hpp"

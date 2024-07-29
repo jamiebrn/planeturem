@@ -22,9 +22,11 @@ void Player::update(float dt, ChunkManager& chunkManager)
     float length = std::sqrt(direction.x * direction.x + direction.y * direction.y);
     if (length > 0)
         direction /= length;
-    
-    collisionRect.x += direction.x * 300.0f * dt;
-    collisionRect.y += direction.y * 300.0f * dt;
+
+    float speed = 100.0f * ResolutionHandler::getScale();
+
+    collisionRect.x += direction.x * speed * dt;
+    collisionRect.y += direction.y * speed * dt;
 
     // Handle collision with world (tiles, object)
     std::vector<std::unique_ptr<CollisionRect>> worldCollisionRects = chunkManager.getChunkCollisionRects();
@@ -40,5 +42,6 @@ void Player::update(float dt, ChunkManager& chunkManager)
 
 void Player::draw(sf::RenderWindow& window, float dt, const sf::Color& color)
 {
-    TextureManager::drawTexture(window, {TextureType::Player, position + Camera::getIntegerDrawOffset(), 0, 3, {0.5, 0.7}});
+    sf::Vector2f scale((float)ResolutionHandler::getScale(), (float)ResolutionHandler::getScale());
+    TextureManager::drawTexture(window, {TextureType::Player, position + Camera::getIntegerDrawOffset(), 0, scale, {0.5, 1}});
 }

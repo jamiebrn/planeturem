@@ -17,7 +17,7 @@ struct TextureDrawData
     // Rotation
     float rotation;
     // Scale
-    float scale;
+    sf::Vector2f scale;
     // Whether texture should be drawn centred about its position
     sf::Vector2f centerRatio = sf::Vector2f(0, 0);
     // The base colour the texture should be drawn in (white in most cases)

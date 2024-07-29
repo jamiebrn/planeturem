@@ -6,16 +6,20 @@
 void ChunkManager::updateChunks(const FastNoiseLite& noise)
 {
     // Chunk load/unload
+
+    // Get tile size
+    float tileSize = ResolutionHandler::getTileSize();
+
     sf::Vector2f screenTopLeft = -Camera::getDrawOffset();
     sf::Vector2f screenBottomRight = -Camera::getDrawOffset() + static_cast<sf::Vector2f>(ResolutionHandler::getResolution());
-    sf::Vector2i screenTopLeftGrid(std::floor(screenTopLeft.x / (48 * 8)), std::floor(screenTopLeft.y / (48 * 8)));
+    sf::Vector2i screenTopLeftGrid(std::floor(screenTopLeft.x / (tileSize * 8)), std::floor(screenTopLeft.y / (tileSize * 8)));
     sf::Vector2i screenBottomRightGrid = screenTopLeftGrid + sf::Vector2i(
-        std::ceil(ResolutionHandler::getResolution().x / (48 * 8)), std::ceil(ResolutionHandler::getResolution().y / (48 * 8)) + 1);
+        std::ceil(ResolutionHandler::getResolution().x / (tileSize * 8)), std::ceil(ResolutionHandler::getResolution().y / (tileSize * 8)) + 1);
 
     // Check any chunks needed to load
-    for (int y = screenTopLeftGrid.y; y <= screenBottomRightGrid.y; y++)
+    for (int y = screenTopLeftGrid.y - 1; y <= screenBottomRightGrid.y + 1; y++)
     {
-        for (int x = screenTopLeftGrid.x; x <= screenBottomRightGrid.x; x++)
+        for (int x = screenTopLeftGrid.x - 1; x <= screenBottomRightGrid.x + 1; x++)
         {
             // Chunk already loaded
             if (loadedChunks.count(ChunkPosition(x, y)))
@@ -44,8 +48,8 @@ void ChunkManager::updateChunks(const FastNoiseLite& noise)
     {
         ChunkPosition chunkPos = iter->first;
 
-        if (chunkPos.x < screenTopLeftGrid.x || chunkPos.x > screenBottomRightGrid.x
-            || chunkPos.y < screenTopLeftGrid.y || chunkPos.y > screenBottomRightGrid.y)
+        if (chunkPos.x < screenTopLeftGrid.x - 1 || chunkPos.x > screenBottomRightGrid.x + 1
+            || chunkPos.y < screenTopLeftGrid.y - 1 || chunkPos.y > screenBottomRightGrid.y + 1)
         {
             // Store chunk in chunk memory
             storedChunks[chunkPos] = std::move(iter->second);
@@ -77,35 +81,17 @@ void ChunkManager::updateChunksObjects(float dt)
     }
 }
 
-bool ChunkManager::doesChunkObjectExist(ChunkPosition chunk, sf::Vector2i tile)
+std::optional<BuildableObject>& ChunkManager::getChunkObject(ChunkPosition chunk, sf::Vector2i tile)
 {
+    // Empty object to return if chunk does not exist
+    static std::optional<BuildableObject> null = std::nullopt;
+
     // Chunk does not exist
     if (loadedChunks.count(chunk) <= 0)
-        return false;
+        return null;
     
+    // Get object from chunk
     std::optional<BuildableObject>& selectedObject = loadedChunks[chunk]->getObject(sf::Vector2i(tile.x, tile.y));
-    
-    // Return whether object exists at specified position
-    return selectedObject.has_value();
-}
-
-// Call doesChunkObjectExist before using
-BuildableObject& ChunkManager::getChunkObject(ChunkPosition chunk, sf::Vector2i tile)
-{
-    // ChunkPosition chunkPos(std::floor(selected_tile.x / 8.0f), std::floor(selected_tile.y / 8.0f));
-
-    // Chunk does not exist
-    // if (loadedChunks.count(chunk) <= 0)
-    //     return nullptr;
-    
-    // Get objects in chunk
-    // auto& chunkObjects = loadedChunks[chunk]->getObjectGrid();
-
-    // std::optional<BuildableObject>& selectedObject = chunkObjects[tile.y][tile.x];
-    std::optional<BuildableObject>& selectedObject = loadedChunks[chunk]->getObject(sf::Vector2i(tile.x, tile.y));
-
-    // if (!selectedObject.has_value())
-    //     return nullptr;
 
     // Test if object is object reference object, to then get the actual object
     if (selectedObject->isObjectReference())
@@ -114,8 +100,8 @@ BuildableObject& ChunkManager::getChunkObject(ChunkPosition chunk, sf::Vector2i 
         return getChunkObject(objectReference.chunk, objectReference.tile);
     }
 
-    // Get object at position and return
-    return selectedObject.value();
+    // Return retrieved object
+    return selectedObject;
 }
 
 // bool ChunkManager::interactWithObject(sf::Vector2i selected_tile)

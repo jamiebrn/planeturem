@@ -3,11 +3,11 @@
         "name": "Tree",
         "health": 4,
         "texture-x": 0,
-        "texture-y": 0,
-        "texture-width": 16,
-        "texture-height": 32,
+        "texture-y": 48,
+        "texture-width": 32,
+        "texture-height": 48,
         "texture-x-origin": 0.5,
-        "texture-y-origin": 0.85,
+        "texture-y-origin": 0.94,
         "item-drops": {
             "0": 2
         }
@@ -15,12 +15,12 @@
     "1": {
         "name": "Bush",
         "health": 2,
-        "texture-x": 16,
-        "texture-y": 16,
+        "texture-x": 48,
+        "texture-y": 48,
         "texture-width": 16,
         "texture-height": 16,
         "texture-x-origin": 0.5,
-        "texture-y-origin": 0.7,
+        "texture-y-origin": 0.9,
         "item-drops": {
             "0": 1
         }
@@ -50,12 +50,12 @@
     "4": {
         "name": "Rock",
         "health": 6,
-        "texture-x": 16,
-        "texture-y": 0,
+        "texture-x": 32,
+        "texture-y": 48,
         "texture-width": 16,
         "texture-height": 16,
         "texture-x-origin": 0.5,
-        "texture-y-origin": 0.7,
+        "texture-y-origin": 0.81,
         "item-drops": {
             "2": 2
         }

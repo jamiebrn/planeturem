@@ -79,7 +79,7 @@ void BuildGUI::draw(sf::RenderWindow& window)
                 // Draw item
                 unsigned int type = recipeItemPair.first;
                 TextureManager::drawSubTexture(window, {
-                    TextureType::Items, recipeItemPos + sf::Vector2f(24, 24), 0, 3, {0.5, 0.5}
+                    TextureType::Items, recipeItemPos + sf::Vector2f(24, 24), 0, {3, 3}, {0.5, 0.5}
                     }, ItemDataLoader::getItemData(type).textureRect);
 
                 // Draw amount

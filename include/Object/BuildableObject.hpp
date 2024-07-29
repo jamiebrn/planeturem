@@ -5,6 +5,7 @@
 
 #include "Core/TextureManager.hpp"
 #include "Core/Shaders.hpp"
+#include "Core/ResolutionHandler.hpp"
 #include "Core/Camera.hpp"
 #include "Object/WorldObject.hpp"
 #include "Object/ObjectReference.hpp"

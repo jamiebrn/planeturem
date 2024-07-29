@@ -11,33 +11,36 @@ void Cursor::updateTileCursor(sf::RenderWindow& window, float dt, bool buildMenu
     sf::Vector2f mousePos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
     sf::Vector2f mouseWorldPos = mousePos - Camera::getDrawOffset();
 
-    // Get selected tile position from mouse position
-    selectPosTile.x = std::floor(mouseWorldPos.x / 48.0f);
-    selectPosTile.y = std::floor(mouseWorldPos.y / 48.0f);
+    // Get tile size
+    float tileSize = ResolutionHandler::getTileSize();
 
-    selectPos = static_cast<sf::Vector2f>(selectPosTile) * 48.0f;
+    // Get selected tile position from mouse position
+    selectPosTile.x = std::floor(mouseWorldPos.x / tileSize);
+    selectPosTile.y = std::floor(mouseWorldPos.y / tileSize);
+
+    selectPos = static_cast<sf::Vector2f>(selectPosTile) * tileSize;
 
     // Default tile cursor size is 1, 1
     selectSize = sf::Vector2i(1, 1);
 
     // Get whether an object is selected at cursor position
-    bool objectSelected = chunkManager.doesChunkObjectExist(Cursor::getSelectedChunk(), Cursor::getSelectedChunkTile());
+    std::optional<BuildableObject>& selectedObjectOptional = chunkManager.getChunkObject(Cursor::getSelectedChunk(), Cursor::getSelectedChunkTile());
 
     // If an object in world is selected, override tile cursor size and position
-    if (objectSelected && !buildMenuOpen)
+    if (selectedObjectOptional.has_value() && !buildMenuOpen)
     {
         // Get object selected
-        BuildableObject& selectedObject = chunkManager.getChunkObject(Cursor::getSelectedChunk(), Cursor::getSelectedChunkTile());
+        BuildableObject& selectedObject = selectedObjectOptional.value();
 
         // Get size of selected object and set size of tile cursor
         selectSize = ObjectDataLoader::getObjectData(selectedObject.getObjectType()).size;
 
         // Set position of tile cursor to object's position
-        selectPos = selectedObject.getPosition() - sf::Vector2f(24.0f, 24.0f);
+        selectPos = selectedObject.getPosition() - sf::Vector2f(tileSize / 2.0f, tileSize / 2.0f);
 
         // Set selected tile to new overriden tile cursor position
-        selectPosTile.x = std::floor(selectPos.x / 48.0f);
-        selectPosTile.y = std::floor(selectPos.y / 48.0f);
+        selectPosTile.x = std::floor(selectPos.x / tileSize);
+        selectPosTile.y = std::floor(selectPos.y / tileSize);
     }
     else if (buildMenuOpen)
     {
@@ -54,26 +57,28 @@ void Cursor::updateTileCursor(sf::RenderWindow& window, float dt, bool buildMenu
     // Lerp tile cursor corners to desination positions
     for (CursorCornerPosition& cursorCorner : tileCursorPositions)
     {
-        cursorCorner.worldPosition.x = Helper::lerp(cursorCorner.worldPosition.x, cursorCorner.tileDestination.x * 48.0f, 25 * dt);
-        cursorCorner.worldPosition.y = Helper::lerp(cursorCorner.worldPosition.y, cursorCorner.tileDestination.y * 48.0f, 25 * dt);
+        cursorCorner.worldPosition.x = Helper::lerp(cursorCorner.worldPosition.x, cursorCorner.tileDestination.x * tileSize, 25 * dt);
+        cursorCorner.worldPosition.y = Helper::lerp(cursorCorner.worldPosition.y, cursorCorner.tileDestination.y * tileSize, 25 * dt);
     }
 }
 
 void Cursor::drawTileCursor(sf::RenderWindow& window)
 {
-    TextureManager::drawSubTexture(window, {
-        TextureType::SelectTile, tileCursorPositions[0].worldPosition + Camera::getIntegerDrawOffset(), 0, 3}, sf::IntRect(0, 0, 16, 16)); // top left
+    float scale = ResolutionHandler::getScale();
 
     TextureManager::drawSubTexture(window, {
-        TextureType::SelectTile, tileCursorPositions[1].worldPosition + Camera::getIntegerDrawOffset(), 0, 3},
+        TextureType::SelectTile, tileCursorPositions[0].worldPosition + Camera::getIntegerDrawOffset(), 0, {scale, scale}}, sf::IntRect(0, 0, 16, 16)); // top left
+
+    TextureManager::drawSubTexture(window, {
+        TextureType::SelectTile, tileCursorPositions[1].worldPosition + Camera::getIntegerDrawOffset(), 0, {scale, scale}},
         sf::IntRect(16, 0, 16, 16)); // top right
 
     TextureManager::drawSubTexture(window, {
-        TextureType::SelectTile, tileCursorPositions[2].worldPosition + Camera::getIntegerDrawOffset(), 0, 3},
+        TextureType::SelectTile, tileCursorPositions[2].worldPosition + Camera::getIntegerDrawOffset(), 0, {scale, scale}},
         sf::IntRect(32, 0, 16, 16)); // bottom left
 
     TextureManager::drawSubTexture(window, {
-        TextureType::SelectTile, tileCursorPositions[3].worldPosition + Camera::getIntegerDrawOffset(), 0, 3},
+        TextureType::SelectTile, tileCursorPositions[3].worldPosition + Camera::getIntegerDrawOffset(), 0, {scale, scale}},
         sf::IntRect(48, 0, 16, 16)); // bottom right
 
 }

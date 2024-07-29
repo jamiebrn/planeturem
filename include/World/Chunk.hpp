@@ -10,6 +10,7 @@
 
 #include "Core/TextureManager.hpp"
 #include "Core/Camera.hpp"
+#include "Core/ResolutionHandler.hpp"
 #include "Core/CollisionRect.hpp"
 #include "Object/WorldObject.hpp"
 #include "Object/BuildableObject.hpp"

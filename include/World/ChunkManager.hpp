@@ -28,10 +28,7 @@ public:
 
     void updateChunksObjects(float dt);
 
-    bool doesChunkObjectExist(ChunkPosition chunk, sf::Vector2i tile);
-
-    // Call doesChunkObjectExist before using
-    BuildableObject& getChunkObject(ChunkPosition chunk, sf::Vector2i tile);
+    std::optional<BuildableObject>& getChunkObject(ChunkPosition chunk, sf::Vector2i tile);
     // bool interactWithObject(sf::Vector2i selected_tile);
     TileType getChunkTileType(ChunkPosition chunk, sf::Vector2i tile) const;
 
