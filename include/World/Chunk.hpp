@@ -49,6 +49,8 @@ public:
 
     std::vector<std::unique_ptr<CollisionRect>> getCollisionRects(ChunkManager& chunkManager);
 
+    void setWorldPosition(sf::Vector2f position);
+
     bool isPointInChunk(sf::Vector2f position);
 
     // inline std::array<std::array<std::optional<BuildableObject>, 8>, 8>& getObjectGrid() {return objectGrid;}
@@ -59,6 +61,10 @@ private:
 
     std::array<std::array<std::optional<BuildableObject>, 8>, 8> objectGrid;
 
+    // Stores chunk position in chunkmanager hashmap (NOT actual world position)
     sf::Vector2i worldGridPosition;
+    
+    // Stores ACTUAL position in world, which may differ from grid position if repeating chunks
+    sf::Vector2f worldPosition;
 
 };

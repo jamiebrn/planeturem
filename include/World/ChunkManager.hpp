@@ -23,7 +23,8 @@ class ChunkManager
 
 public:
     ChunkManager() = default;
-    void updateChunks(const FastNoiseLite& noise);
+
+    void updateChunks(const FastNoiseLite& noise, int worldSize);
     void drawChunkTerrain(sf::RenderWindow& window);
 
     void updateChunksObjects(float dt);

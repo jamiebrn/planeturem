@@ -22,11 +22,11 @@ class Cursor
     Cursor() = delete;
 
 public:
-    static void updateTileCursor(sf::RenderWindow& window, float dt, bool buildMenuOpen, ChunkManager& chunkManager);
+    static void updateTileCursor(sf::RenderWindow& window, float dt, bool buildMenuOpen, int worldSize, ChunkManager& chunkManager);
 
     static void drawTileCursor(sf::RenderWindow& window);
 
-    static ChunkPosition getSelectedChunk();
+    static ChunkPosition getSelectedChunk(int worldSize);
     static sf::Vector2i getSelectedChunkTile();
 
     static inline const sf::Vector2f& getSelectPos() {return selectPos;}

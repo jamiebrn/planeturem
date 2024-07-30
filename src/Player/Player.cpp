@@ -32,7 +32,7 @@ void Player::update(float dt, ChunkManager& chunkManager)
     std::vector<std::unique_ptr<CollisionRect>> worldCollisionRects = chunkManager.getChunkCollisionRects();
     for (const std::unique_ptr<CollisionRect>& worldCollisionRect : worldCollisionRects)
     {
-        collisionRect.handleCollision(*worldCollisionRect);
+        // collisionRect.handleCollision(*worldCollisionRect);
     }
 
     // Update position using collision rect after collision has been handled

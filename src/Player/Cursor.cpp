@@ -5,7 +5,7 @@ sf::Vector2f Cursor::selectPos = {0, 0};
 sf::Vector2i Cursor::selectPosTile = {0, 0};
 sf::Vector2i Cursor::selectSize = {1, 1};
 
-void Cursor::updateTileCursor(sf::RenderWindow& window, float dt, bool buildMenuOpen, ChunkManager& chunkManager)
+void Cursor::updateTileCursor(sf::RenderWindow& window, float dt, bool buildMenuOpen, int worldSize, ChunkManager& chunkManager)
 {
     // Get mouse position in screen space and world space
     sf::Vector2f mousePos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
@@ -24,7 +24,7 @@ void Cursor::updateTileCursor(sf::RenderWindow& window, float dt, bool buildMenu
     selectSize = sf::Vector2i(1, 1);
 
     // Get whether an object is selected at cursor position
-    std::optional<BuildableObject>& selectedObjectOptional = chunkManager.getChunkObject(Cursor::getSelectedChunk(), Cursor::getSelectedChunkTile());
+    std::optional<BuildableObject>& selectedObjectOptional = chunkManager.getChunkObject(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile());
 
     // If an object in world is selected, override tile cursor size and position
     if (selectedObjectOptional.has_value() && !buildMenuOpen)
@@ -83,11 +83,11 @@ void Cursor::drawTileCursor(sf::RenderWindow& window)
 
 }
 
-ChunkPosition Cursor::getSelectedChunk()
+ChunkPosition Cursor::getSelectedChunk(int worldSize)
 {
     ChunkPosition selectedChunk;
-    selectedChunk.x = std::floor(selectPosTile.x / 8.0f);
-    selectedChunk.y = std::floor(selectPosTile.y / 8.0f);
+    selectedChunk.x = ((static_cast<int>(std::floor(selectPosTile.x / 8.0f)) % worldSize) + worldSize) % worldSize;
+    selectedChunk.y = ((static_cast<int>(std::floor(selectPosTile.y / 8.0f)) % worldSize) + worldSize) % worldSize;
     return selectedChunk;
 }
 

@@ -11,7 +11,7 @@ void Chunk::generateChunk(const FastNoiseLite& noise)
     // Get tile size
     float tileSize = ResolutionHandler::getTileSize();
 
-    sf::Vector2f worldPosition = static_cast<sf::Vector2f>(worldGridPosition) * 8.0f * tileSize;
+    // worldPosition = static_cast<sf::Vector2f>(worldGridPosition) * 8.0f * tileSize;
     sf::Vector2f worldNoisePosition = static_cast<sf::Vector2f>(worldGridPosition) * 8.0f;
 
     for (int y = 0; y < 8; y++)
@@ -92,7 +92,7 @@ void Chunk::drawChunkTerrain(sf::RenderWindow& window)
     float scale = ResolutionHandler::getScale();
     float tileSize = ResolutionHandler::getTileSize();
 
-    sf::Vector2f worldPosition = static_cast<sf::Vector2f>(worldGridPosition) * 8.0f * tileSize;
+    // sf::Vector2f worldPosition = static_cast<sf::Vector2f>(worldGridPosition) * 8.0f * tileSize;
 
     sf::Transform transform;
     transform.translate(Camera::getIntegerDrawOffset() + worldPosition);
@@ -164,9 +164,11 @@ std::vector<WorldObject*> Chunk::getObjects()
             // If object is object reference, do not draw
             if (objectGrid[y][x]->isObjectReference())
                 continue;
+            
+            // Is valid object
 
-            if (objectGrid[y][x])
-                objects.push_back(&objectGrid[y][x].value());
+            // Add object to vector
+            objects.push_back(&objectGrid[y][x].value());
         }
     }
     return objects;
@@ -187,7 +189,7 @@ void Chunk::setObject(sf::Vector2i position, unsigned int objectType, ChunkManag
     // Get tile size
     float tileSize = ResolutionHandler::getTileSize();
 
-    sf::Vector2f worldPosition = static_cast<sf::Vector2f>(worldGridPosition) * 8.0f * tileSize;
+    // sf::Vector2f worldPosition = static_cast<sf::Vector2f>(worldGridPosition) * 8.0f * tileSize;
     sf::Vector2f objectPos = worldPosition + sf::Vector2f(position.x * tileSize + tileSize / 2.0f, position.y * tileSize + tileSize / 2.0f);
 
     // std::unique_ptr<BuildableObject> object = std::make_unique<BuildableObject>(objectPos, objectType);
@@ -396,14 +398,14 @@ std::vector<std::unique_ptr<CollisionRect>> Chunk::getCollisionRects(ChunkManage
     // Get tile size
     float tileSize = ResolutionHandler::getTileSize();
 
-    sf::Vector2f worldPosition = static_cast<sf::Vector2f>(worldGridPosition) * 8.0f * tileSize;
+    // sf::Vector2f worldPosition = static_cast<sf::Vector2f>(worldGridPosition) * 8.0f * tileSize;
 
-    auto createCollisionRect = [worldPosition, tileSize](std::vector<std::unique_ptr<CollisionRect>>& rects, int x, int y) -> void
+    auto createCollisionRect = [this, tileSize](std::vector<std::unique_ptr<CollisionRect>>& rects, int x, int y) -> void
     {
         std::unique_ptr<CollisionRect> collisionRect = std::make_unique<CollisionRect>();
 
-        collisionRect->x = worldPosition.x + x * tileSize;
-        collisionRect->y = worldPosition.y + y * tileSize;
+        collisionRect->x = this->worldPosition.x + x * tileSize;
+        collisionRect->y = this->worldPosition.y + y * tileSize;
         collisionRect->width = tileSize;
         collisionRect->height = tileSize;
 
@@ -460,9 +462,32 @@ std::vector<std::unique_ptr<CollisionRect>> Chunk::getCollisionRects(ChunkManage
     return collisionRects;
 }
 
+void Chunk::setWorldPosition(sf::Vector2f position)
+{
+    worldPosition = position;
+
+    float tileSize = ResolutionHandler::getTileSize();
+
+    // Update all object positions
+    for (int y = 0; y < objectGrid.size(); y++)
+    {
+        for (int x = 0; x < objectGrid[0].size(); x++)
+        {
+            // If no object at position, don't update position
+            if (!objectGrid[y][x].has_value())
+                continue;
+            
+            // Calculate updated object position
+            sf::Vector2f objectPos = worldPosition + sf::Vector2f(x * tileSize + tileSize / 2.0f, y * tileSize + tileSize / 2.0f);
+
+            objectGrid[y][x]->setWorldPosition(objectPos);
+        }
+    }
+}
+
 bool Chunk::isPointInChunk(sf::Vector2f position)
 {
-    sf::Vector2f worldPosition = static_cast<sf::Vector2f>(worldGridPosition) * 8.0f * 48.0f;
+    // sf::Vector2f worldPosition = static_cast<sf::Vector2f>(worldGridPosition) * 8.0f * 48.0f;
     sf::Vector2f chunkExtentPosition = worldPosition + sf::Vector2f(8.0f * 48.0f, 8.0f * 48.0f);
 
     return (position.x >= worldPosition.x && position.x <= chunkExtentPosition.x

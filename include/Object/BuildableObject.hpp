@@ -25,6 +25,8 @@ public:
 
     void interact() override;
 
+    void setWorldPosition(sf::Vector2f position);
+
     inline unsigned int getObjectType() const {return objectType;}
 
     inline bool isAlive() override {return health > 0;}

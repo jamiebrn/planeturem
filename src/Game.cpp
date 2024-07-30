@@ -51,6 +51,8 @@ void Game::run()
     sf::Clock clock;
     float time = 0;
 
+    int worldSize = 10;
+
     while (window.isOpen())
     {
         float dt = clock.restart().asSeconds();
@@ -96,7 +98,7 @@ void Game::run()
                 {
                     if (!inventoryOpen && !buildMenuOpen)
                     {
-                        std::optional<BuildableObject>& selectedObjectOptional = chunkManager.getChunkObject(Cursor::getSelectedChunk(), Cursor::getSelectedChunkTile());
+                        std::optional<BuildableObject>& selectedObjectOptional = chunkManager.getChunkObject(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile());
                         if (selectedObjectOptional.has_value())
                         {
                             BuildableObject& selectedObject = selectedObjectOptional.value();
@@ -106,7 +108,7 @@ void Game::run()
                     else if (buildMenuOpen)
                     {
                         unsigned int objectType = BuildGUI::getSelectedObject();
-                        if (Inventory::canBuildObject(objectType) && chunkManager.canPlaceObject(Cursor::getSelectedChunk(), Cursor::getSelectedChunkTile(), objectType))
+                        if (Inventory::canBuildObject(objectType) && chunkManager.canPlaceObject(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile(), objectType))
                         {
                             // Take resources
                             for (auto& itemPair : BuildRecipeLoader::getBuildRecipe(objectType).itemRequirements)
@@ -115,7 +117,7 @@ void Game::run()
                             }
 
                             // Build object
-                            chunkManager.setObject(Cursor::getSelectedChunk(), Cursor::getSelectedChunkTile(), objectType);
+                            chunkManager.setObject(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile(), objectType);
                         }
                     }
                 }
@@ -129,11 +131,11 @@ void Game::run()
         }
 
         Camera::update(player.getPosition(), dt);
-        Cursor::updateTileCursor(window, dt, buildMenuOpen, chunkManager);
+        Cursor::updateTileCursor(window, dt, buildMenuOpen, worldSize, chunkManager);
 
         player.update(dt, chunkManager);
 
-        chunkManager.updateChunks(noise);
+        chunkManager.updateChunks(noise, worldSize);
         chunkManager.updateChunksObjects(dt);
 
         window.clear({80, 80, 80});
@@ -177,7 +179,7 @@ void Game::run()
 
             BuildableObject recipeObject(Cursor::getLerpedSelectPos() + sf::Vector2f(tileSize / 2.0f, tileSize / 2.0f), selectedObjectType);
 
-            if (Inventory::canBuildObject(selectedObjectType) && chunkManager.canPlaceObject(Cursor::getSelectedChunk(), Cursor::getSelectedChunkTile(), selectedObjectType))
+            if (Inventory::canBuildObject(selectedObjectType) && chunkManager.canPlaceObject(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile(), selectedObjectType))
                 recipeObject.draw(window, dt, {0, 255, 0, 180});
             else
                 recipeObject.draw(window, dt, {255, 0, 0, 180});
