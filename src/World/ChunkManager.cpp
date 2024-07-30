@@ -63,27 +63,19 @@ void ChunkManager::updateChunks(const FastNoiseLite& noise, int worldSize)
         }
     }
 
-    // Function for getting chunk coordinates in correct repeating format
-    auto normalizeChunkCoordinate = [worldSize](int coordinate) -> int
-    {
-        if (coordinate < 0)
-            return (coordinate % worldSize) + worldSize;
-        return coordinate % worldSize;
-    };
-
     // Check any loaded chunks need unloading
     for (auto iter = loadedChunks.begin(); iter != loadedChunks.end();)
     {
         ChunkPosition chunkPos = iter->first;
 
         // Calculate normalized chunk positions
-        int normalizedChunkX = normalizeChunkCoordinate(chunkPos.x);
-        int normalizedChunkY = normalizeChunkCoordinate(chunkPos.y);
+        int normalizedChunkX = ((chunkPos.x % worldSize) + worldSize) % worldSize;
+        int normalizedChunkY = ((chunkPos.y % worldSize) + worldSize) % worldSize;
 
-        int normalizedScreenLeft = normalizeChunkCoordinate(screenTopLeftGrid.x);
-        int normalizedScreenRight = normalizeChunkCoordinate(screenBottomRightGrid.x);
-        int normalizedScreenTop = normalizeChunkCoordinate(screenTopLeftGrid.y);
-        int normalizedScreenBottom = normalizeChunkCoordinate(screenBottomRightGrid.y);
+        int normalizedScreenLeft = (((screenTopLeftGrid.x - 1) % worldSize) + worldSize) % worldSize;
+        int normalizedScreenRight = (((screenBottomRightGrid.x + 1) % worldSize) + worldSize) % worldSize;
+        int normalizedScreenTop = (((screenTopLeftGrid.y - 1) % worldSize) + worldSize) % worldSize;
+        int normalizedScreenBottom = (((screenBottomRightGrid.y + 1) % worldSize) + worldSize) % worldSize;
 
         // Use normalized chunk coordinates to determine whether the chunk is visible
         bool chunkVisibleX = (normalizedChunkX >= normalizedScreenLeft && normalizedChunkX <= normalizedScreenRight) ||
@@ -165,14 +157,14 @@ TileType ChunkManager::getChunkTileType(ChunkPosition chunk, sf::Vector2i tile) 
     return loadedChunks.at(chunk)->getTileType(tile);
 }
 
-void ChunkManager::setObject(ChunkPosition chunk, sf::Vector2i tile, unsigned int objectType)
+void ChunkManager::setObject(ChunkPosition chunk, sf::Vector2i tile, unsigned int objectType, int worldSize)
 {
     // Chunk does not exist
     if (loadedChunks.count(chunk) <= 0)
         return;
     
     // Set chunk object at position
-    loadedChunks[chunk]->setObject(tile, objectType, *this);
+    loadedChunks[chunk]->setObject(tile, objectType, worldSize, *this);
 }
 
 void ChunkManager::deleteObject(ChunkPosition chunk, sf::Vector2i tile)
@@ -202,13 +194,13 @@ void ChunkManager::setObjectReference(const ChunkPosition& chunk, const ObjectRe
     loadedChunks[chunk]->setObjectReference(objectReference, tile);
 }
 
-bool ChunkManager::canPlaceObject(ChunkPosition chunk, sf::Vector2i tile, unsigned int objectType)
+bool ChunkManager::canPlaceObject(ChunkPosition chunk, sf::Vector2i tile, unsigned int objectType, int worldSize)
 {
     // Chunk does not exist
     if (loadedChunks.count(chunk) <= 0)
         return false;
 
-    return loadedChunks[chunk]->canPlaceObject(tile, objectType, *this);
+    return loadedChunks[chunk]->canPlaceObject(tile, objectType, worldSize, *this);
 }
 
 std::vector<WorldObject*> ChunkManager::getChunkObjects()

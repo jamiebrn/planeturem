@@ -33,13 +33,13 @@ public:
     // bool interactWithObject(sf::Vector2i selected_tile);
     TileType getChunkTileType(ChunkPosition chunk, sf::Vector2i tile) const;
 
-    void setObject(ChunkPosition chunk, sf::Vector2i tile, unsigned int objectType);
+    void setObject(ChunkPosition chunk, sf::Vector2i tile, unsigned int objectType, int worldSize);
     void deleteObject(ChunkPosition chunk, sf::Vector2i tile);
 
     // unsigned int getObjectTypeFromObjectReference(const ObjectReference& objectReference) const;
     void setObjectReference(const ChunkPosition& chunk, const ObjectReference& objectReference, sf::Vector2i tile);
 
-    bool canPlaceObject(ChunkPosition chunk, sf::Vector2i tile, unsigned int objectType);
+    bool canPlaceObject(ChunkPosition chunk, sf::Vector2i tile, unsigned int objectType, int worldSize);
 
     std::vector<WorldObject*> getChunkObjects();
     std::vector<std::unique_ptr<CollisionRect>> getChunkCollisionRects();

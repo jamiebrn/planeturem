@@ -40,12 +40,12 @@ public:
     std::optional<BuildableObject>& getObject(sf::Vector2i position);
     TileType getTileType(sf::Vector2i position) const;
 
-    void setObject(sf::Vector2i position, unsigned int objectType, ChunkManager& chunkManager);
+    void setObject(sf::Vector2i position, unsigned int objectType, int worldSize, ChunkManager& chunkManager);
     void deleteObject(sf::Vector2i position, ChunkManager& chunkManager);
 
     void setObjectReference(const ObjectReference& objectReference, sf::Vector2i tile);
 
-    bool canPlaceObject(sf::Vector2i position, unsigned int objectType, ChunkManager& chunkManager);
+    bool canPlaceObject(sf::Vector2i position, unsigned int objectType, int worldSize, ChunkManager& chunkManager);
 
     std::vector<std::unique_ptr<CollisionRect>> getCollisionRects(ChunkManager& chunkManager);
 

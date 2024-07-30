@@ -184,7 +184,7 @@ TileType Chunk::getTileType(sf::Vector2i position) const
     return groundTileGrid[position.y][position.x];
 }
 
-void Chunk::setObject(sf::Vector2i position, unsigned int objectType, ChunkManager& chunkManager)
+void Chunk::setObject(sf::Vector2i position, unsigned int objectType, int worldSize, ChunkManager& chunkManager)
 {
     // Get tile size
     float tileSize = ResolutionHandler::getTileSize();
@@ -221,12 +221,16 @@ void Chunk::setObject(sf::Vector2i position, unsigned int objectType, ChunkManag
         int x_remaining = objectSize.x - ((int)objectGrid[0].size() - 1 - position.x) - 1;
         int y_remaining = objectSize.y - ((int)objectGrid.size() - 1 - position.y) - 1;
 
+        // Calculate next chunk index
+        int chunkNextPosX = (((worldGridPosition.x + 1) % worldSize) + worldSize) % worldSize;
+        int chunkNextPosY = (((worldGridPosition.y + 1) % worldSize) + worldSize) % worldSize;
+
         // Add tiles to right (direction) chunk if required
         for (int y = position.y; y < std::min(position.y + objectSize.y, (int)objectGrid.size()); y++)
         {
             for (int x = 0; x < x_remaining; x++)
             {
-                chunkManager.setObjectReference(ChunkPosition(worldGridPosition.x + 1, worldGridPosition.y), objectReference, sf::Vector2i(x, y));
+                chunkManager.setObjectReference(ChunkPosition(chunkNextPosX, worldGridPosition.y), objectReference, sf::Vector2i(x, y));
             }
         }
 
@@ -235,7 +239,7 @@ void Chunk::setObject(sf::Vector2i position, unsigned int objectType, ChunkManag
         {
             for (int x = position.x; x < std::min(position.x + objectSize.x, (int)objectGrid[0].size()); x++)
             {
-                chunkManager.setObjectReference(ChunkPosition(worldGridPosition.x, worldGridPosition.y + 1), objectReference, sf::Vector2i(x, y));
+                chunkManager.setObjectReference(ChunkPosition(worldGridPosition.x, chunkNextPosY), objectReference, sf::Vector2i(x, y));
             }
         }
 
@@ -244,7 +248,7 @@ void Chunk::setObject(sf::Vector2i position, unsigned int objectType, ChunkManag
         {
             for (int x = 0; x < x_remaining; x++)
             {
-                chunkManager.setObjectReference(ChunkPosition(worldGridPosition.x + 1, worldGridPosition.y + 1), objectReference, sf::Vector2i(x, y));
+                chunkManager.setObjectReference(ChunkPosition(chunkNextPosX, chunkNextPosY), objectReference, sf::Vector2i(x, y));
             }
         }
     }
@@ -315,7 +319,7 @@ void Chunk::setObjectReference(const ObjectReference& objectReference, sf::Vecto
     objectGrid[tile.y][tile.x] = BuildableObject(objectReference);
 }
 
-bool Chunk::canPlaceObject(sf::Vector2i position, unsigned int objectType, ChunkManager& chunkManager)
+bool Chunk::canPlaceObject(sf::Vector2i position, unsigned int objectType, int worldSize, ChunkManager& chunkManager)
 {
     // Get data of object type to test
     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
@@ -341,17 +345,21 @@ bool Chunk::canPlaceObject(sf::Vector2i position, unsigned int objectType, Chunk
     int x_remaining = objectData.size.x - ((int)objectGrid[0].size() - 1 - position.x) - 1;
     int y_remaining = objectData.size.y - ((int)objectGrid.size() - 1 - position.y) - 1;
 
+    // Calculate next chunk index
+    int chunkNextPosX = (((worldGridPosition.x + 1) % worldSize) + worldSize) % worldSize;
+    int chunkNextPosY = (((worldGridPosition.y + 1) % worldSize) + worldSize) % worldSize;
+
     // Test tiles to right (direction) chunk if required
     for (int y = position.y; y < std::min(position.y + objectData.size.y, (int)objectGrid.size()); y++)
     {
         for (int x = 0; x < x_remaining; x++)
         {
             // Test tile
-            if (chunkManager.getChunkTileType(ChunkPosition(worldGridPosition.x + 1, worldGridPosition.y), sf::Vector2i(x, y)) == TileType::Water)
+            if (chunkManager.getChunkTileType(ChunkPosition(chunkNextPosX, worldGridPosition.y), sf::Vector2i(x, y)) == TileType::Water)
                 return false;
             
             // Test object
-            std::optional<BuildableObject>& objectOptional = chunkManager.getChunkObject(ChunkPosition(worldGridPosition.x + 1, worldGridPosition.y), sf::Vector2i(x, y));
+            std::optional<BuildableObject>& objectOptional = chunkManager.getChunkObject(ChunkPosition(chunkNextPosX, worldGridPosition.y), sf::Vector2i(x, y));
             if (objectOptional.has_value())
                 return false;
         }
@@ -363,11 +371,11 @@ bool Chunk::canPlaceObject(sf::Vector2i position, unsigned int objectType, Chunk
         for (int x = position.x; x < std::min(position.x + objectData.size.x, (int)objectGrid[0].size()); x++)
         {
             // Test tile
-            if (chunkManager.getChunkTileType(ChunkPosition(worldGridPosition.x, worldGridPosition.y + 1), sf::Vector2i(x, y)) == TileType::Water)
+            if (chunkManager.getChunkTileType(ChunkPosition(worldGridPosition.x, chunkNextPosY), sf::Vector2i(x, y)) == TileType::Water)
                 return false;
             
             // Test object
-            std::optional<BuildableObject>& objectOptional = chunkManager.getChunkObject(ChunkPosition(worldGridPosition.x, worldGridPosition.y + 1), sf::Vector2i(x, y));
+            std::optional<BuildableObject>& objectOptional = chunkManager.getChunkObject(ChunkPosition(worldGridPosition.x, chunkNextPosY), sf::Vector2i(x, y));
             if (objectOptional.has_value())
                 return false;
         }
@@ -379,11 +387,11 @@ bool Chunk::canPlaceObject(sf::Vector2i position, unsigned int objectType, Chunk
         for (int x = 0; x < x_remaining; x++)
         {
             // Test tile
-            if (chunkManager.getChunkTileType(ChunkPosition(worldGridPosition.x + 1, worldGridPosition.y + 1), sf::Vector2i(x, y)) == TileType::Water)
+            if (chunkManager.getChunkTileType(ChunkPosition(chunkNextPosX, chunkNextPosY), sf::Vector2i(x, y)) == TileType::Water)
                 return false;
             
             // Test object
-            std::optional<BuildableObject>& objectOptional = chunkManager.getChunkObject(ChunkPosition(worldGridPosition.x + 1, worldGridPosition.y + 1), sf::Vector2i(x, y));
+            std::optional<BuildableObject>& objectOptional = chunkManager.getChunkObject(ChunkPosition(chunkNextPosX, chunkNextPosY), sf::Vector2i(x, y));
             if (objectOptional.has_value())
                 return false;
         }
