@@ -6,19 +6,20 @@ Chunk::Chunk(sf::Vector2i worldGridPosition)
     groundVertexArray = sf::VertexArray(sf::Quads, 8 * 8 * 4);
 }
 
-void Chunk::generateChunk(const FastNoiseLite& noise)
+void Chunk::generateChunk(const FastNoise& noise, int worldSize)
 {
     // Get tile size
     float tileSize = ResolutionHandler::getTileSize();
 
-    // worldPosition = static_cast<sf::Vector2f>(worldGridPosition) * 8.0f * tileSize;
     sf::Vector2f worldNoisePosition = static_cast<sf::Vector2f>(worldGridPosition) * 8.0f;
+
+    float noiseSize = 8.0f * worldSize;
 
     for (int y = 0; y < 8; y++)
     {
         for (int x = 0; x < 8; x++)
         {
-            float height = noise.GetNoise(worldNoisePosition.x + (float)x, worldNoisePosition.y + (float)y);
+            float height = noise.GetNoiseSeamless2D(worldNoisePosition.x + (float)x, worldNoisePosition.y + (float)y, noiseSize, noiseSize);
 
             int vertexArrayIndex = (x + y * 8) * 4;
             groundVertexArray[vertexArrayIndex].position = sf::Vector2f(x * 16, y * 16);
@@ -34,7 +35,7 @@ void Chunk::generateChunk(const FastNoiseLite& noise)
                 groundVertexArray[vertexArrayIndex + 2].texCoords = {2 * 16 + 16, 16};
                 groundTileGrid[y][x] = TileType::Water;
             }
-            else if (height > 0.7)
+            else if (height > 0.2)
             {
                 groundVertexArray[vertexArrayIndex].texCoords = {1 * 16, 0};
                 groundVertexArray[vertexArrayIndex + 1].texCoords = {1 * 16 + 16, 0};
@@ -42,7 +43,7 @@ void Chunk::generateChunk(const FastNoiseLite& noise)
                 groundVertexArray[vertexArrayIndex + 2].texCoords = {1 * 16 + 16, 16};
                 groundTileGrid[y][x] = TileType::DarkGrass;
             }
-            else if (height >=0 && height < 0.2)
+            else if (height >=0 && height < 0.05)
             {
                 groundVertexArray[vertexArrayIndex].texCoords = {3 * 16, 0};
                 groundVertexArray[vertexArrayIndex + 1].texCoords = {3 * 16 + 16, 0};
@@ -64,19 +65,19 @@ void Chunk::generateChunk(const FastNoiseLite& noise)
 
             int spawn_chance = rand() % 40;
 
-            if (spawn_chance < 4 && height >= 0.2)
+            if (spawn_chance < 4 && height >= 0.05)
             {
                 // Make tree
                 // objectGrid[y][x] = std::move(std::make_unique<BuildableObject>(objectPos, 0));
                 objectGrid[y][x] = BuildableObject(objectPos, 0);
             }
-            else if (spawn_chance == 4 && height >= 0.2)
+            else if (spawn_chance == 4 && height >= 0.05)
             {
                 // Make bush
                 // objectGrid[y][x] = std::move(std::make_unique<BuildableObject>(objectPos, 1));
                 objectGrid[y][x] = BuildableObject(objectPos, 1);
             }
-            else if (spawn_chance == 5 && height >= 0.2)
+            else if (spawn_chance == 5 && height >= 0.05)
             {
                 // Make rock
                 // objectGrid[y][x] = std::move(std::make_unique<BuildableObject>(objectPos, 4));

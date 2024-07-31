@@ -1,7 +1,8 @@
 #pragma once
 
 #include <SFML/Graphics.hpp>
-#include <World/FastNoiseLite.h>
+// #include <World/FastNoiseLite.h>
+#include <World/FastNoise.h>
 #include <array>
 #include <vector>
 #include <memory>
@@ -29,7 +30,7 @@ class Chunk
 public:
     Chunk(sf::Vector2i worldPosition);
 
-    void generateChunk(const FastNoiseLite& noise);
+    void generateChunk(const FastNoise& noise, int worldSize);
 
     void drawChunkTerrain(sf::RenderWindow& window);
     void drawChunkObjects(sf::RenderWindow& window);

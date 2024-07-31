@@ -1,7 +1,7 @@
 #include "Core/ResolutionHandler.hpp"
 
 sf::Vector2u ResolutionHandler::currentResolution = {0, 0};
-int ResolutionHandler::scale = 4;
+int ResolutionHandler::scale = 3;
 
 void ResolutionHandler::setResolution(sf::Vector2u resolution)
 {

@@ -5,7 +5,8 @@
 #include <vector>
 #include <optional>
 
-#include <World/FastNoiseLite.h>
+// #include <World/FastNoiseLite.h>
+#include <World/FastNoise.h>
 
 #include "Core/ResolutionHandler.hpp"
 #include "Core/Camera.hpp"
@@ -24,7 +25,7 @@ class ChunkManager
 public:
     ChunkManager() = default;
 
-    void updateChunks(const FastNoiseLite& noise, int worldSize);
+    void updateChunks(const FastNoise& noise, int worldSize);
     void drawChunkTerrain(sf::RenderWindow& window);
 
     void updateChunksObjects(float dt);

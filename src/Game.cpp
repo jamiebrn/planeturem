@@ -35,8 +35,9 @@ bool Game::initialise()
     srand(time(NULL));
 
     // Create noise
-    noise = FastNoiseLite(rand());
-    noise.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
+    noise.SetNoiseType(FastNoise::NoiseType::SimplexFractal);
+    noise.SetSeed(rand());
+    noise.SetFrequency(0.1);
 
     // Initialise state values
     inventoryOpen = false;
@@ -51,7 +52,33 @@ void Game::run()
     sf::Clock clock;
     float time = 0;
 
-    int worldSize = 10;
+    int worldSize = 40;
+
+    // // Create noise texture for debugging
+    // sf::VertexArray noiseVertexArray(sf::Quads, 8 * 8 * worldSize * worldSize * 4);
+    // for (int y = 0; y < 8 * worldSize; y++)
+    // {
+    //     for (int x = 0; x < 8 * worldSize; x++)
+    //     {
+    //         // Sample noise
+    //         float height = noise.GetNoiseSeamless2D(x, y, worldSize * 8, worldSize * 8);
+    //         // float height = noise.GetNoise(x, y);
+    //         // std::cout << height<< std::endl;
+
+    //         int vertexArrayIndex = (x + y * 8 * worldSize) * 4;
+    //         noiseVertexArray[vertexArrayIndex].position = sf::Vector2f(x * 2, y * 2);
+    //         noiseVertexArray[vertexArrayIndex + 1].position = sf::Vector2f(x * 2 + 2, y * 2);
+    //         noiseVertexArray[vertexArrayIndex + 3].position = sf::Vector2f(x * 2, y * 2 + 2);
+    //         noiseVertexArray[vertexArrayIndex + 2].position = sf::Vector2f(x * 2 + 2, y * 2 + 2);
+
+    //         float color = 255 / 2.0f + height * 255 / 2.0f;
+
+    //         noiseVertexArray[vertexArrayIndex].color = {color, color, color};
+    //         noiseVertexArray[vertexArrayIndex + 1].color = {color, color, color};
+    //         noiseVertexArray[vertexArrayIndex + 3].color = {color, color, color};
+    //         noiseVertexArray[vertexArrayIndex + 2].color = {color, color, color};
+    //     }
+    // }
 
     while (window.isOpen())
     {

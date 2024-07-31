@@ -1,7 +1,8 @@
 #pragma once
 
 #include <SFML/Graphics.hpp>
-#include <World/FastNoiseLite.h>
+// #include <World/FastNoiseLite.h>
+#include <World/FastNoise.h>
 #include <Core/json.hpp>
 #include <math.h>
 #include <array>
@@ -38,7 +39,7 @@ private:
     sf::RenderWindow window;
     sf::View view;
 
-    FastNoiseLite noise;
+    FastNoise noise;
 
     Player player;
     ChunkManager chunkManager;

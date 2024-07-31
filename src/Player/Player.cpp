@@ -23,7 +23,7 @@ void Player::update(float dt, ChunkManager& chunkManager)
     if (length > 0)
         direction /= length;
 
-    float speed = 100.0f * ResolutionHandler::getScale();
+    float speed = 150.0f * ResolutionHandler::getScale();
 
     collisionRect.x += direction.x * speed * dt;
     collisionRect.y += direction.y * speed * dt;
@@ -32,12 +32,14 @@ void Player::update(float dt, ChunkManager& chunkManager)
     std::vector<std::unique_ptr<CollisionRect>> worldCollisionRects = chunkManager.getChunkCollisionRects();
     for (const std::unique_ptr<CollisionRect>& worldCollisionRect : worldCollisionRects)
     {
-        // collisionRect.handleCollision(*worldCollisionRect);
+        collisionRect.handleCollision(*worldCollisionRect);
     }
 
     // Update position using collision rect after collision has been handled
     position.x = collisionRect.x + collisionRect.width / 2.0f;
     position.y = collisionRect.y + collisionRect.height / 2.0f;
+
+    // std::cout << position.x << ", " << position.y << std::endl;
 }
 
 void Player::draw(sf::RenderWindow& window, float dt, const sf::Color& color)

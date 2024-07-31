@@ -3,7 +3,7 @@
 // std::unordered_map<ChunkPosition, std::unique_ptr<Chunk>> ChunkManager::storedChunks;
 // std::unordered_map<ChunkPosition, std::unique_ptr<Chunk>> ChunkManager::loadedChunks;
 
-void ChunkManager::updateChunks(const FastNoiseLite& noise, int worldSize)
+void ChunkManager::updateChunks(const FastNoise& noise, int worldSize)
 {
     // Chunk load/unload
 
@@ -54,7 +54,7 @@ void ChunkManager::updateChunks(const FastNoiseLite& noise, int worldSize)
 
             // Generate new chunk if does not exist
             std::unique_ptr<Chunk> chunk = std::make_unique<Chunk>(sf::Vector2i(wrappedX, wrappedY));
-            chunk->generateChunk(noise);
+            chunk->generateChunk(noise, worldSize);
 
             // Set chunk position
             chunk->setWorldPosition(chunkWorldPos);
