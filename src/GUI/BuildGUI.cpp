@@ -4,7 +4,7 @@ int BuildGUI::selectedItem = 0;
 
 void BuildGUI::changeSelectedObject(int change)
 {
-    selectedItem = std::max(selectedItem + change, 0);
+    selectedItem = std::min(std::max(selectedItem + change, 0), (int)BuildRecipeLoader::getBuildRecipeData().size() - 1);
 }
 
 unsigned int BuildGUI::getSelectedObject()

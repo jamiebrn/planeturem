@@ -26,7 +26,7 @@ public:
     ChunkManager() = default;
 
     void updateChunks(const FastNoise& noise, int worldSize);
-    void drawChunkTerrain(sf::RenderWindow& window);
+    void drawChunkTerrain(sf::RenderWindow& window, float time, const sf::Texture& waterNoiseTexture);
 
     void updateChunksObjects(float dt);
 

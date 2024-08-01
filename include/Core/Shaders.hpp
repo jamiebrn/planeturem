@@ -8,7 +8,7 @@
 enum class ShaderType
 {
     Flash,
-    Tree
+    Water
 };
 
 struct ShaderFilePath

@@ -101,14 +101,14 @@ void ChunkManager::updateChunks(const FastNoise& noise, int worldSize)
     }
 }
 
-void ChunkManager::drawChunkTerrain(sf::RenderWindow& window)
+void ChunkManager::drawChunkTerrain(sf::RenderWindow& window, float time, const sf::Texture& waterNoiseTexture)
 {
     for (auto& chunkPair : loadedChunks)
     {
         ChunkPosition chunkPos = chunkPair.first;
         std::unique_ptr<Chunk>& chunk = chunkPair.second;
         
-        chunk->drawChunkTerrain(window);
+        chunk->drawChunkTerrain(window, time, waterNoiseTexture);
     }
 }
 

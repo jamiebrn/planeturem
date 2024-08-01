@@ -23,7 +23,7 @@ void Player::update(float dt, ChunkManager& chunkManager)
     if (length > 0)
         direction /= length;
 
-    float speed = 150.0f * ResolutionHandler::getScale();
+    float speed = 120.0f * ResolutionHandler::getScale();
 
     collisionRect.x += direction.x * speed * dt;
     collisionRect.y += direction.y * speed * dt;

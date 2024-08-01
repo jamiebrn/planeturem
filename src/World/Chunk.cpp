@@ -21,21 +21,27 @@ void Chunk::generateChunk(const FastNoise& noise, int worldSize)
         {
             float height = noise.GetNoiseSeamless2D(worldNoisePosition.x + (float)x, worldNoisePosition.y + (float)y, noiseSize, noiseSize);
 
+            if (height < 0)
+            {
+                groundTileGrid[y][x] = TileType::Water;
+                
+                continue;
+            }
+
             int vertexArrayIndex = (x + y * 8) * 4;
             groundVertexArray[vertexArrayIndex].position = sf::Vector2f(x * 16, y * 16);
             groundVertexArray[vertexArrayIndex + 1].position = sf::Vector2f(x * 16 + 16, y * 16);
             groundVertexArray[vertexArrayIndex + 3].position = sf::Vector2f(x * 16, y * 16 + 16);
             groundVertexArray[vertexArrayIndex + 2].position = sf::Vector2f(x * 16 + 16, y * 16 + 16);
 
-            if (height < 0)
-            {
-                groundVertexArray[vertexArrayIndex].texCoords = {2 * 16, 0};
-                groundVertexArray[vertexArrayIndex + 1].texCoords = {2 * 16 + 16, 0};
-                groundVertexArray[vertexArrayIndex + 3].texCoords = {2 * 16, 16};
-                groundVertexArray[vertexArrayIndex + 2].texCoords = {2 * 16 + 16, 16};
-                groundTileGrid[y][x] = TileType::Water;
-            }
-            else if (height > 0.2)
+            // if (height < 0)
+            // {
+            //     groundVertexArray[vertexArrayIndex].texCoords = {2 * 16, 0};
+            //     groundVertexArray[vertexArrayIndex + 1].texCoords = {2 * 16 + 16, 0};
+            //     groundVertexArray[vertexArrayIndex + 3].texCoords = {2 * 16, 16};
+            //     groundVertexArray[vertexArrayIndex + 2].texCoords = {2 * 16 + 16, 16};
+            // }
+            if (height > 0.2)
             {
                 groundVertexArray[vertexArrayIndex].texCoords = {1 * 16, 0};
                 groundVertexArray[vertexArrayIndex + 1].texCoords = {1 * 16 + 16, 0};
@@ -87,7 +93,7 @@ void Chunk::generateChunk(const FastNoise& noise, int worldSize)
     }
 }
 
-void Chunk::drawChunkTerrain(sf::RenderWindow& window)
+void Chunk::drawChunkTerrain(sf::RenderWindow& window, float time, const sf::Texture& waterNoiseTexture)
 {
     // Get tile size and scale
     float scale = ResolutionHandler::getScale();
@@ -95,6 +101,20 @@ void Chunk::drawChunkTerrain(sf::RenderWindow& window)
 
     // sf::Vector2f worldPosition = static_cast<sf::Vector2f>(worldGridPosition) * 8.0f * tileSize;
 
+    // Draw water
+    sf::Vector2f waterPos = Camera::getIntegerDrawOffset() + worldPosition;
+    sf::IntRect waterRect(0, 0, tileSize / scale * 8, tileSize / scale * 8);
+
+    sf::Shader* waterShader = Shaders::getShader(ShaderType::Water);
+    waterShader->setUniform("textureStart", sf::Vector2f(0.5, 0));
+    waterShader->setUniform("textureEnd", sf::Vector2f(0.75, 1));
+    waterShader->setUniform("time", time);
+    waterShader->setUniform("worldOffset", sf::Vector2f{(float)worldGridPosition.x, (float)worldGridPosition.y});
+    waterShader->setUniform("noise", waterNoiseTexture);
+
+    TextureManager::drawSubTexture(window, {TextureType::GroundTiles, waterPos, 0, {scale, scale}}, waterRect, waterShader);
+    
+    // Draw terrain
     sf::Transform transform;
     transform.translate(Camera::getIntegerDrawOffset() + worldPosition);
     transform.scale(scale, scale);

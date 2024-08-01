@@ -54,31 +54,27 @@ void Game::run()
 
     int worldSize = 40;
 
-    // // Create noise texture for debugging
-    // sf::VertexArray noiseVertexArray(sf::Quads, 8 * 8 * worldSize * worldSize * 4);
-    // for (int y = 0; y < 8 * worldSize; y++)
-    // {
-    //     for (int x = 0; x < 8 * worldSize; x++)
-    //     {
-    //         // Sample noise
-    //         float height = noise.GetNoiseSeamless2D(x, y, worldSize * 8, worldSize * 8);
-    //         // float height = noise.GetNoise(x, y);
-    //         // std::cout << height<< std::endl;
-
-    //         int vertexArrayIndex = (x + y * 8 * worldSize) * 4;
-    //         noiseVertexArray[vertexArrayIndex].position = sf::Vector2f(x * 2, y * 2);
-    //         noiseVertexArray[vertexArrayIndex + 1].position = sf::Vector2f(x * 2 + 2, y * 2);
-    //         noiseVertexArray[vertexArrayIndex + 3].position = sf::Vector2f(x * 2, y * 2 + 2);
-    //         noiseVertexArray[vertexArrayIndex + 2].position = sf::Vector2f(x * 2 + 2, y * 2 + 2);
-
-    //         float color = 255 / 2.0f + height * 255 / 2.0f;
-
-    //         noiseVertexArray[vertexArrayIndex].color = {color, color, color};
-    //         noiseVertexArray[vertexArrayIndex + 1].color = {color, color, color};
-    //         noiseVertexArray[vertexArrayIndex + 3].color = {color, color, color};
-    //         noiseVertexArray[vertexArrayIndex + 2].color = {color, color, color};
-    //     }
-    // }
+    FastNoise waterNoise(rand());
+    waterNoise.SetNoiseType(FastNoise::NoiseType::SimplexFractal);
+    waterNoise.SetFrequency(0.1);
+    std::array<std::array<sf::Uint8, 16 * 8 * 4>, 16 * 8> noiseData;
+    for (int y = 0; y < noiseData.size(); y++)
+    {
+        for (int x = 0; x < noiseData[0].size() / 4; x++)
+        {
+            float noiseValue = (waterNoise.GetNoiseSeamless2D(x, y, 16 * 8, 16 * 8) + 1) / 2 * 255.0f;
+            noiseData[y][x * 4] = noiseValue;
+            noiseData[y][x * 4 + 1] = noiseValue;
+            noiseData[y][x * 4 + 2] = noiseValue;
+            noiseData[y][x * 4 + 3] = 255;
+        }
+    }
+    sf::Image waterNoiseImage;
+    waterNoiseImage.create(16 * 8, 16 * 8, noiseData.data()->data());
+    sf::Texture waterNoiseTexture;
+    if (!waterNoiseTexture.loadFromImage(waterNoiseImage)) std::cout << "fail" << std::endl;
+    sf::Sprite waterNoiseSprite;
+    waterNoiseSprite.setTexture(waterNoiseTexture);
 
     while (window.isOpen())
     {
@@ -169,7 +165,17 @@ void Game::run()
 
         window.setView(view);
 
-        chunkManager.drawChunkTerrain(window);
+        // sf::IntRect waterRect(0, 0, window.getSize().x + ResolutionHandler::getTileSize() * 2, window.getSize().y + ResolutionHandler::getTileSize() * 2);
+        // sf::Shader* waterShader = Shaders::getShader(ShaderType::Water);
+        // waterShader->setUniform("textureStart", sf::Vector2f(0.5, 0));
+        // waterShader->setUniform("textureEnd", sf::Vector2f(0.75, 1));
+        // waterShader->setUniform("time", time);
+        // sf::Vector2f waterPos;
+        // waterPos.x = fmod(Camera::getIntegerDrawOffset().x - ResolutionHandler::getTileSize(), ResolutionHandler::getTileSize());
+        // waterPos.y = fmod(Camera::getIntegerDrawOffset().y - ResolutionHandler::getTileSize(), ResolutionHandler::getTileSize());
+        // TextureManager::drawSubTexture(window, {TextureType::GroundTiles, waterPos, 0, {ResolutionHandler::getScale(), ResolutionHandler::getScale()}}, waterRect, waterShader);
+
+        chunkManager.drawChunkTerrain(window, time, waterNoiseTexture);
 
         std::vector<WorldObject*> objects = chunkManager.getChunkObjects();
         objects.push_back(&player);
@@ -211,6 +217,8 @@ void Game::run()
             else
                 recipeObject.draw(window, dt, {255, 0, 0, 180});
         }
+
+        window.draw(waterNoiseSprite);
 
         window.display();
 

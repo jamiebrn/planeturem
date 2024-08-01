@@ -2,7 +2,7 @@
 
 const std::unordered_map<ShaderType, ShaderFilePath> Shaders::shaderFilePaths = {
     {ShaderType::Flash, {"", "Data/flash.frag"}},
-    {ShaderType::Tree, {"", "Data/tree.frag"}}
+    {ShaderType::Water, {"", "Data/water.frag"}}
 };
 std::unordered_map<ShaderType, std::unique_ptr<sf::Shader>> Shaders::loadedShaders;
 

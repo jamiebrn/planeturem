@@ -39,10 +39,10 @@ public:
     static bool loadTextures(sf::RenderWindow& window);
 
     // Draw texture using draw data
-    static void drawTexture(sf::RenderWindow& window, TextureDrawData drawData, sf::Shader* shader = nullptr);
+    static void drawTexture(sf::RenderTarget& window, TextureDrawData drawData, sf::Shader* shader = nullptr);
 
     // Draw a section of a texture using draw data
-    static void drawSubTexture(sf::RenderWindow& window, TextureDrawData drawData, sf::IntRect boundRect, sf::Shader* shader = nullptr);
+    static void drawSubTexture(sf::RenderTarget& window, TextureDrawData drawData, sf::IntRect boundRect, sf::Shader* shader = nullptr);
 
     // Get the size of a specific texture (width x height)
     inline static sf::Vector2u getTextureSize(TextureType type) {return textureMap[type].getSize();}
