@@ -57,25 +57,45 @@ void Game::run()
     FastNoise waterNoise(rand());
     waterNoise.SetNoiseType(FastNoise::NoiseType::SimplexFractal);
     waterNoise.SetFrequency(0.1);
-    std::array<std::array<sf::Uint8, 16 * 8 * 4>, 16 * 8> noiseData;
+    FastNoise waterNoiseTwo(rand());
+    waterNoiseTwo.SetNoiseType(FastNoise::NoiseType::SimplexFractal);
+    waterNoiseTwo.SetFrequency(0.1);
+    constexpr int waterNoiseSize = 16 * 8;
+    std::array<std::array<sf::Uint8, waterNoiseSize * 4>, waterNoiseSize> noiseData;
+    std::array<std::array<sf::Uint8, waterNoiseSize * 4>, waterNoiseSize> noiseTwoData;
     for (int y = 0; y < noiseData.size(); y++)
     {
         for (int x = 0; x < noiseData[0].size() / 4; x++)
         {
-            float noiseValue = (waterNoise.GetNoiseSeamless2D(x, y, 16 * 8, 16 * 8) + 1) / 2 * 255.0f;
-            noiseData[y][x * 4] = noiseValue;
-            noiseData[y][x * 4 + 1] = noiseValue;
-            noiseData[y][x * 4 + 2] = noiseValue;
+            float noiseValue = waterNoise.GetNoiseSeamless2D(x, y, waterNoiseSize, waterNoiseSize);
+            static constexpr float sqrt2Div2 = 0.70710678119f;
+            float noiseValueNormalised = (noiseValue - sqrt2Div2) / (sqrt2Div2 * 2);
+            noiseData[y][x * 4] = noiseValueNormalised * 255;
+            noiseData[y][x * 4 + 1] = noiseValueNormalised * 255;
+            noiseData[y][x * 4 + 2] = noiseValueNormalised * 255;
             noiseData[y][x * 4 + 3] = 255;
+
+            noiseValue = waterNoiseTwo.GetNoiseSeamless2D(x, y, waterNoiseSize, waterNoiseSize);
+            noiseValueNormalised = (noiseValue - sqrt2Div2) / (sqrt2Div2 * 2);
+            noiseTwoData[y][x * 4] = noiseValueNormalised * 255;
+            noiseTwoData[y][x * 4 + 1] = noiseValueNormalised * 255;
+            noiseTwoData[y][x * 4 + 2] = noiseValueNormalised * 255;
+            noiseTwoData[y][x * 4 + 3] = 255;
         }
     }
     sf::Image waterNoiseImage;
-    waterNoiseImage.create(16 * 8, 16 * 8, noiseData.data()->data());
+    waterNoiseImage.create(waterNoiseSize, waterNoiseSize, noiseData.data()->data());
     sf::Texture waterNoiseTexture;
     waterNoiseTexture.loadFromImage(waterNoiseImage);
 
+    sf::Image waterNoiseTwoImage;
+    waterNoiseTwoImage.create(waterNoiseSize, waterNoiseSize, noiseTwoData.data()->data());
+    sf::Texture waterNoiseTwoTexture;
+    waterNoiseTwoTexture.loadFromImage(waterNoiseTwoImage);
+
     sf::Shader* waterShader = Shaders::getShader(ShaderType::Water);
     waterShader->setUniform("noise", waterNoiseTexture);
+    waterShader->setUniform("noiseTwo", waterNoiseTwoTexture);
     waterShader->setUniform("waterColor", sf::Glsl::Vec4(77 / 255.0f, 155 / 255.0f, 230 / 255.0f, 1.0f));
 
     while (window.isOpen())
