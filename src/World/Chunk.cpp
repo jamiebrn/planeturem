@@ -15,11 +15,16 @@ void Chunk::generateChunk(const FastNoise& noise, int worldSize)
 
     float noiseSize = 8.0f * worldSize;
 
+    std::array<std::array<sf::Uint8, 8 * 4>, 8> heightMapData;
+
     for (int y = 0; y < 8; y++)
     {
         for (int x = 0; x < 8; x++)
         {
             float height = noise.GetNoiseSeamless2D(worldNoisePosition.x + (float)x, worldNoisePosition.y + (float)y, noiseSize, noiseSize);
+
+            static const float sqrt2Div2 = 0.70710678119f;
+            float heightNormalised = (height - sqrt2Div2) / (sqrt2Div2 * 2);
 
             if (height < 0)
             {
@@ -49,7 +54,7 @@ void Chunk::generateChunk(const FastNoise& noise, int worldSize)
                 groundVertexArray[vertexArrayIndex + 2].texCoords = {1 * 16 + 16, 16};
                 groundTileGrid[y][x] = TileType::DarkGrass;
             }
-            else if (height >=0 && height < 0.05)
+            else if (height >= 0 && height < 0.05)
             {
                 groundVertexArray[vertexArrayIndex].texCoords = {3 * 16, 0};
                 groundVertexArray[vertexArrayIndex + 1].texCoords = {3 * 16 + 16, 0};
@@ -93,26 +98,13 @@ void Chunk::generateChunk(const FastNoise& noise, int worldSize)
     }
 }
 
-void Chunk::drawChunkTerrain(sf::RenderWindow& window, float time, const sf::Texture& waterNoiseTexture)
+void Chunk::drawChunkTerrain(sf::RenderWindow& window, float time)
 {
     // Get tile size and scale
     float scale = ResolutionHandler::getScale();
     float tileSize = ResolutionHandler::getTileSize();
 
     // sf::Vector2f worldPosition = static_cast<sf::Vector2f>(worldGridPosition) * 8.0f * tileSize;
-
-    // Draw water
-    sf::Vector2f waterPos = Camera::getIntegerDrawOffset() + worldPosition;
-    sf::IntRect waterRect(0, 0, tileSize / scale * 8, tileSize / scale * 8);
-
-    sf::Shader* waterShader = Shaders::getShader(ShaderType::Water);
-    waterShader->setUniform("textureStart", sf::Vector2f(0.5, 0));
-    waterShader->setUniform("textureEnd", sf::Vector2f(0.75, 1));
-    waterShader->setUniform("time", time);
-    waterShader->setUniform("worldOffset", sf::Vector2f{(float)worldGridPosition.x, (float)worldGridPosition.y});
-    waterShader->setUniform("noise", waterNoiseTexture);
-
-    TextureManager::drawSubTexture(window, {TextureType::GroundTiles, waterPos, 0, {scale, scale}}, waterRect, waterShader);
     
     // Draw terrain
     sf::Transform transform;
@@ -134,8 +126,25 @@ void Chunk::drawChunkTerrain(sf::RenderWindow& window, float time, const sf::Tex
     // window.draw(lines);
 }
 
-void Chunk::drawChunkObjects(sf::RenderWindow& window)
+void Chunk::drawChunkWater(sf::RenderWindow& window, float time)
 {
+    // Get tile size and scale
+    float scale = ResolutionHandler::getScale();
+    float tileSize = ResolutionHandler::getTileSize();
+
+    // Draw water
+    sf::Vector2f waterPos = Camera::getIntegerDrawOffset() + worldPosition;
+    sf::IntRect waterRect(0, 0, tileSize / scale * 8, tileSize / scale * 8);
+
+    sf::Shader* waterShader = Shaders::getShader(ShaderType::Water);
+    waterShader->setUniform("time", time);
+    waterShader->setUniform("worldOffset", sf::Vector2f{(float)worldGridPosition.x, (float)worldGridPosition.y});
+
+    TextureManager::drawSubTexture(window, {TextureType::Water, waterPos, 0, {scale, scale}}, waterRect, waterShader);
+}
+
+// void Chunk::drawChunkObjects(sf::RenderWindow& window)
+// {
     // sf::Vector2f worldPosition = static_cast<sf::Vector2f>(worldGridPosition) * 8.0f * 48.0f;
 
     // for (int y = 0; y < 8; y++)
@@ -146,7 +155,7 @@ void Chunk::drawChunkObjects(sf::RenderWindow& window)
     //             objectGrid[y][x]->draw(window, dt);
     //     }
     // }
-}
+// }
 
 void Chunk::updateChunkObjects(float dt, ChunkManager& chunkManager)
 {

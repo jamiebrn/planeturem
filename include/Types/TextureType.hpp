@@ -7,6 +7,7 @@ enum class TextureType
     Bush,
     SelectTile,
     GroundTiles,
+    Water,
     Items,
     BuildItems
 };

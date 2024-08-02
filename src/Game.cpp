@@ -72,9 +72,11 @@ void Game::run()
     sf::Image waterNoiseImage;
     waterNoiseImage.create(16 * 8, 16 * 8, noiseData.data()->data());
     sf::Texture waterNoiseTexture;
-    if (!waterNoiseTexture.loadFromImage(waterNoiseImage)) std::cout << "fail" << std::endl;
-    sf::Sprite waterNoiseSprite;
-    waterNoiseSprite.setTexture(waterNoiseTexture);
+    waterNoiseTexture.loadFromImage(waterNoiseImage);
+
+    sf::Shader* waterShader = Shaders::getShader(ShaderType::Water);
+    waterShader->setUniform("noise", waterNoiseTexture);
+    waterShader->setUniform("waterColor", sf::Glsl::Vec4(77 / 255.0f, 155 / 255.0f, 230 / 255.0f, 1.0f));
 
     while (window.isOpen())
     {
@@ -165,18 +167,10 @@ void Game::run()
 
         window.setView(view);
 
-        // sf::IntRect waterRect(0, 0, window.getSize().x + ResolutionHandler::getTileSize() * 2, window.getSize().y + ResolutionHandler::getTileSize() * 2);
-        // sf::Shader* waterShader = Shaders::getShader(ShaderType::Water);
-        // waterShader->setUniform("textureStart", sf::Vector2f(0.5, 0));
-        // waterShader->setUniform("textureEnd", sf::Vector2f(0.75, 1));
-        // waterShader->setUniform("time", time);
-        // sf::Vector2f waterPos;
-        // waterPos.x = fmod(Camera::getIntegerDrawOffset().x - ResolutionHandler::getTileSize(), ResolutionHandler::getTileSize());
-        // waterPos.y = fmod(Camera::getIntegerDrawOffset().y - ResolutionHandler::getTileSize(), ResolutionHandler::getTileSize());
-        // TextureManager::drawSubTexture(window, {TextureType::GroundTiles, waterPos, 0, {ResolutionHandler::getScale(), ResolutionHandler::getScale()}}, waterRect, waterShader);
+        // Draw water
+        chunkManager.drawChunkWater(window, time);
 
-        chunkManager.drawChunkTerrain(window, time, waterNoiseTexture);
-
+        // Draw objects for reflection FUTURE
         std::vector<WorldObject*> objects = chunkManager.getChunkObjects();
         objects.push_back(&player);
 
@@ -187,6 +181,10 @@ void Game::run()
             return a->getPosition().y < b->getPosition().y;
         });
 
+        // Draw terrain
+        chunkManager.drawChunkTerrain(window, time);
+
+        // Draw objects
         for (WorldObject* object : objects)
         {
             object->draw(window, dt, {255, 255, 255, 255});
@@ -217,8 +215,6 @@ void Game::run()
             else
                 recipeObject.draw(window, dt, {255, 0, 0, 180});
         }
-
-        window.draw(waterNoiseSprite);
 
         window.display();
 

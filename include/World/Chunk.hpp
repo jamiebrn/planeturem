@@ -32,8 +32,9 @@ public:
 
     void generateChunk(const FastNoise& noise, int worldSize);
 
-    void drawChunkTerrain(sf::RenderWindow& window, float time, const sf::Texture& waterNoiseTexture);
-    void drawChunkObjects(sf::RenderWindow& window);
+    void drawChunkTerrain(sf::RenderWindow& window, float time);
+    void drawChunkWater(sf::RenderWindow& window, float time);
+    // void drawChunkObjects(sf::RenderWindow& window);
 
     void updateChunkObjects(float dt, ChunkManager& chunkManager);
     std::vector<WorldObject*> getObjects();
