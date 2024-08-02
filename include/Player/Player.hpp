@@ -6,6 +6,7 @@
 
 #include "Core/ResolutionHandler.hpp"
 #include "Core/CollisionRect.hpp"
+#include "Core/AnimatedTexture.hpp"
 #include "Object/WorldObject.hpp"
 #include "World/ChunkManager.hpp"
 
@@ -23,5 +24,10 @@ public:
 
 private:
     CollisionRect collisionRect;
+    sf::Vector2f direction;
+    bool flippedTexture;
+
+    AnimatedTexture idleAnimation;
+    AnimatedTexture runAnimation;
     
 };

@@ -23,8 +23,8 @@ void Chunk::generateChunk(const FastNoise& noise, int worldSize)
         {
             float height = noise.GetNoiseSeamless2D(worldNoisePosition.x + (float)x, worldNoisePosition.y + (float)y, noiseSize, noiseSize);
 
-            static const float sqrt2Div2 = 0.70710678119f;
-            float heightNormalised = (height - sqrt2Div2) / (sqrt2Div2 * 2);
+            // static const float sqrt2Div2 = 0.70710678119f;
+            // float heightNormalised = (height - sqrt2Div2) / (sqrt2Div2 * 2);
 
             if (height < 0)
             {
