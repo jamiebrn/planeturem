@@ -15,6 +15,7 @@ struct ObjectData
     sf::Vector2i size = {1, 1};
 
     bool hasCollision = false;
+    bool waterPlaceable = false;
     int drawLayer = 0;
 
     std::unordered_map<unsigned int, int> itemDrops;

@@ -45,7 +45,8 @@
         "texture-height": 16,
         "texture-x-origin": 0.5,
         "texture-y-origin": 0.5,
-        "draw-layer": 1
+        "draw-layer": 1,
+        "water-placeable": true
     },
     "4": {
         "name": "Rock",

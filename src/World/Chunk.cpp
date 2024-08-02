@@ -362,8 +362,11 @@ bool Chunk::canPlaceObject(sf::Vector2i position, unsigned int objectType, int w
         for (int x = position.x; x < std::min(position.x + objectData.size.x, (int)objectGrid[0].size()); x++)
         {
             // Test tile
-            if (getTileType(sf::Vector2i(x, y)) == TileType::Water)
-                return false;
+            if (!objectData.waterPlaceable)
+            {
+                if (getTileType(sf::Vector2i(x, y)) == TileType::Water)
+                    return false;
+            }
             
             // Test object
             if (objectGrid[y][x].has_value())
@@ -385,8 +388,11 @@ bool Chunk::canPlaceObject(sf::Vector2i position, unsigned int objectType, int w
         for (int x = 0; x < x_remaining; x++)
         {
             // Test tile
-            if (chunkManager.getChunkTileType(ChunkPosition(chunkNextPosX, worldGridPosition.y), sf::Vector2i(x, y)) == TileType::Water)
-                return false;
+            if (!objectData.waterPlaceable)
+            {
+                if (chunkManager.getChunkTileType(ChunkPosition(chunkNextPosX, worldGridPosition.y), sf::Vector2i(x, y)) == TileType::Water)
+                    return false;
+            }
             
             // Test object
             std::optional<BuildableObject>& objectOptional = chunkManager.getChunkObject(ChunkPosition(chunkNextPosX, worldGridPosition.y), sf::Vector2i(x, y));
@@ -401,9 +407,12 @@ bool Chunk::canPlaceObject(sf::Vector2i position, unsigned int objectType, int w
         for (int x = position.x; x < std::min(position.x + objectData.size.x, (int)objectGrid[0].size()); x++)
         {
             // Test tile
-            if (chunkManager.getChunkTileType(ChunkPosition(worldGridPosition.x, chunkNextPosY), sf::Vector2i(x, y)) == TileType::Water)
-                return false;
-            
+            if (!objectData.waterPlaceable)
+            {
+                if (chunkManager.getChunkTileType(ChunkPosition(worldGridPosition.x, chunkNextPosY), sf::Vector2i(x, y)) == TileType::Water)
+                    return false;
+            }
+
             // Test object
             std::optional<BuildableObject>& objectOptional = chunkManager.getChunkObject(ChunkPosition(worldGridPosition.x, chunkNextPosY), sf::Vector2i(x, y));
             if (objectOptional.has_value())
@@ -417,9 +426,12 @@ bool Chunk::canPlaceObject(sf::Vector2i position, unsigned int objectType, int w
         for (int x = 0; x < x_remaining; x++)
         {
             // Test tile
-            if (chunkManager.getChunkTileType(ChunkPosition(chunkNextPosX, chunkNextPosY), sf::Vector2i(x, y)) == TileType::Water)
-                return false;
-            
+            if (!objectData.waterPlaceable)
+            {
+                if (chunkManager.getChunkTileType(ChunkPosition(chunkNextPosX, chunkNextPosY), sf::Vector2i(x, y)) == TileType::Water)
+                    return false;
+            }
+
             // Test object
             std::optional<BuildableObject>& objectOptional = chunkManager.getChunkObject(ChunkPosition(chunkNextPosX, chunkNextPosY), sf::Vector2i(x, y));
             if (objectOptional.has_value())
@@ -457,6 +469,19 @@ std::vector<std::unique_ptr<CollisionRect>> Chunk::getCollisionRects(ChunkManage
     {
         for (int x = 0; x < 8; x++)
         {
+            bool bridgeObjectOnWater = false;
+
+            std::optional<BuildableObject>& objectOptional = objectGrid[y][x];
+            if (objectOptional.has_value())
+            {
+                int objectType = objectOptional.value().getObjectType();
+                const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
+                bridgeObjectOnWater = !objectData.hasCollision;
+            }
+
+            if (bridgeObjectOnWater)
+                continue;
+
             if (groundTileGrid[y][x] == TileType::Water)
                 createCollisionRect(collisionRects, x, y);
         }
