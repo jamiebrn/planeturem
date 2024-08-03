@@ -34,7 +34,7 @@ void main()
 
     vec2 texCoord;
     texCoord.x = mod(gl_TexCoord[0].x + noiseCoordOffset, 1.0);
-    texCoord.y = mod(gl_TexCoord[0].y + sin(time + (gl_TexCoord[0].x + worldOffset.x) * waveFrequency) * waveHeight + noiseCoordOffset, 1.0);
+    texCoord.y = mod(gl_TexCoord[0].y + sin(time + (gl_TexCoord[0].x + worldOffset.x * noiseSampleDivide) * waveFrequency) * waveHeight + noiseCoordOffset, 1.0);
     // texCoord.y = gl_TexCoord[0].y + noiseCoordOffset;
 
     vec4 texColor = texture2D(texture, texCoord);
