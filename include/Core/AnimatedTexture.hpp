@@ -14,6 +14,9 @@ public:
 
     sf::IntRect getTextureRect();
 
+    inline void setFrame(int frame) {this->frame = frame;}
+    inline int getFrame() {return frame;}
+
 private:
     int xStart;
     int y;

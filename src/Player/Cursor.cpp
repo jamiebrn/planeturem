@@ -1,6 +1,12 @@
 #include "Player/Cursor.hpp"
 
 std::array<CursorCornerPosition, 4> Cursor::cursorCornerPositions;
+std::array<AnimatedTexture, 4> Cursor::cursorAnimatedTextures = {
+    AnimatedTexture(6, 22, 22, 0, 0, 0.08),      // top left
+    AnimatedTexture(6, 22, 22, 0, 22, 0.08),     // top right
+    AnimatedTexture(6, 22, 22, 0, 44, 0.08),     // bottom left
+    AnimatedTexture(6, 22, 22, 0, 66, 0.08)      // bottom right
+};
 sf::Vector2f Cursor::selectPos = {0, 0};
 sf::Vector2i Cursor::selectPosTile = {0, 0};
 sf::Vector2i Cursor::selectSize = {1, 1};
@@ -62,12 +68,29 @@ void Cursor::updateTileCursor(sf::RenderWindow& window, float dt, bool buildMenu
             cursorCorner.worldPosition.x = Helper::lerp(cursorCorner.worldPosition.x, cursorCorner.tileDestination.x * tileSize, 25 * dt);
             cursorCorner.worldPosition.y = Helper::lerp(cursorCorner.worldPosition.y, cursorCorner.tileDestination.y * tileSize, 25 * dt);
         }
+
+        // Set cursor animation to freeze at index 0
+        for (int cursorCornerIdx = 0; cursorCornerIdx < cursorAnimatedTextures.size(); cursorCornerIdx++)
+        {
+            cursorAnimatedTextures[cursorCornerIdx].setFrame(0);
+        }
     }
     else
     {
         // Immediately set cursor position to destination position (no lerp)
         setCursorCornersToDestination();
+
+        // Update animations
+        // Update top left then set all others to same frame
+        cursorAnimatedTextures[0].update(dt);
+        int cursorTopLeftAnimationFrame = cursorAnimatedTextures[0].getFrame();
+
+        for (int cursorCornerIdx = 1; cursorCornerIdx < cursorAnimatedTextures.size(); cursorCornerIdx++)
+        {
+            cursorAnimatedTextures[cursorCornerIdx].setFrame(cursorTopLeftAnimationFrame);
+        }
     }
+
 }
 
 void Cursor::setCursorCornersToDestination()
@@ -86,21 +109,14 @@ void Cursor::drawTileCursor(sf::RenderWindow& window)
 {
     float scale = ResolutionHandler::getScale();
 
-    TextureManager::drawSubTexture(window, {
-        TextureType::SelectTile, cursorCornerPositions[0].worldPosition + Camera::getIntegerDrawOffset(), 0, {scale, scale}}, sf::IntRect(0, 0, 16, 16)); // top left
+    static constexpr float cursorTextureOrigin = 3.0f / 22.0f;
 
-    TextureManager::drawSubTexture(window, {
-        TextureType::SelectTile, cursorCornerPositions[1].worldPosition + Camera::getIntegerDrawOffset(), 0, {scale, scale}},
-        sf::IntRect(16, 0, 16, 16)); // top right
-
-    TextureManager::drawSubTexture(window, {
-        TextureType::SelectTile, cursorCornerPositions[2].worldPosition + Camera::getIntegerDrawOffset(), 0, {scale, scale}},
-        sf::IntRect(32, 0, 16, 16)); // bottom left
-
-    TextureManager::drawSubTexture(window, {
-        TextureType::SelectTile, cursorCornerPositions[3].worldPosition + Camera::getIntegerDrawOffset(), 0, {scale, scale}},
-        sf::IntRect(48, 0, 16, 16)); // bottom right
-
+    for (int cursorCornerIdx = 0; cursorCornerIdx < cursorCornerPositions.size(); cursorCornerIdx++)
+    {
+        TextureManager::drawSubTexture(window, {
+            TextureType::SelectTile, cursorCornerPositions[cursorCornerIdx].worldPosition + Camera::getIntegerDrawOffset(), 0, {scale, scale},
+            {cursorTextureOrigin, cursorTextureOrigin}}, cursorAnimatedTextures[cursorCornerIdx].getTextureRect());
+    }
 }
 
 ChunkPosition Cursor::getSelectedChunk(int worldSize)

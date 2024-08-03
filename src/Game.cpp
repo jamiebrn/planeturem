@@ -220,16 +220,17 @@ void Game::run()
         // Draw terrain
         chunkManager.drawChunkTerrain(window, gameTime);
 
-        // Draw objects
-        for (WorldObject* object : objects)
-        {
-            object->draw(window, dt, {255, 255, 255, 255});
-        }
-
+        // Draw cursor
         std::optional<BuildableObject>& selectedObjectOptional = chunkManager.getChunkObject(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile());
         if (!inventoryOpen && selectedObjectOptional.has_value() || buildMenuOpen)
         {
             Cursor::drawTileCursor(window);
+        }
+
+        // Draw objects
+        for (WorldObject* object : objects)
+        {
+            object->draw(window, dt, {255, 255, 255, 255});
         }
 
         if (inventoryOpen)

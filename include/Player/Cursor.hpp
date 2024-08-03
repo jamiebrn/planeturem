@@ -5,6 +5,7 @@
 
 #include "Core/TextureManager.hpp"
 #include "Core/ResolutionHandler.hpp"
+#include "Core/AnimatedTexture.hpp"
 #include "Core/Camera.hpp"
 #include "Object/BuildableObject.hpp"
 #include "World/ChunkPosition.hpp"
@@ -37,6 +38,7 @@ public:
 private:
     // Position of each corner in tile cursor
     static std::array<CursorCornerPosition, 4> cursorCornerPositions;
+    static std::array<AnimatedTexture, 4> cursorAnimatedTextures;
 
     // Position of tile cursor
     static sf::Vector2f selectPos;

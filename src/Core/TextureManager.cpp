@@ -14,7 +14,7 @@ const std::unordered_map<TextureType, std::string> TextureManager::texturePaths 
     {TextureType::Player, "Data/monkeyplayer.png"},
     {TextureType::Tree, "Data/tree.png"},
     {TextureType::Bush, "Data/bush.png"},
-    {TextureType::SelectTile, "Data/select_tile.png"},
+    {TextureType::SelectTile, "Data/select_tile_animated.png"},
     {TextureType::GroundTiles, "Data/tiles.png"},
     {TextureType::Water, "Data/water.png"},
     {TextureType::Items, "Data/item_sheet.png"},
