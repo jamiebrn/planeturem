@@ -1,7 +1,6 @@
 #pragma once
 
 #include <SFML/Graphics.hpp>
-// #include <World/FastNoiseLite.h>
 #include <World/FastNoise.h>
 #include <Core/json.hpp>
 #include <math.h>
@@ -36,13 +35,23 @@ public:
     void run();
 
 private:
+    void generateWaterNoiseTexture();
+
+private:
     sf::RenderWindow window;
     sf::View view;
+
+    sf::Clock clock;
+    float gameTime;
+
+    int worldSize;
 
     FastNoise noise;
 
     Player player;
     ChunkManager chunkManager;
+
+    std::array<sf::Texture, 2> waterNoiseTextures;
 
     bool inventoryOpen;
     bool buildMenuOpen;

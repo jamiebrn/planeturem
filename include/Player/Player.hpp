@@ -18,10 +18,6 @@ public:
     void update(float dt, ChunkManager& chunkManager);
     void draw(sf::RenderWindow& window, float dt, const sf::Color& color) override;
 
-    inline void interact() override {};
-    
-    inline bool isAlive() override {return true;}
-
 private:
     CollisionRect collisionRect;
     sf::Vector2f direction;

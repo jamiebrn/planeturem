@@ -1,6 +1,6 @@
 #include "Player/Cursor.hpp"
 
-std::array<CursorCornerPosition, 4> Cursor::tileCursorPositions;
+std::array<CursorCornerPosition, 4> Cursor::cursorCornerPositions;
 sf::Vector2f Cursor::selectPos = {0, 0};
 sf::Vector2i Cursor::selectPosTile = {0, 0};
 sf::Vector2i Cursor::selectSize = {1, 1};
@@ -49,16 +49,36 @@ void Cursor::updateTileCursor(sf::RenderWindow& window, float dt, bool buildMenu
     }
 
     // Set tile cursor corner tile positions
-    tileCursorPositions[0].tileDestination = selectPosTile;
-    tileCursorPositions[1].tileDestination = selectPosTile + sf::Vector2i(selectSize.x - 1, 0);
-    tileCursorPositions[2].tileDestination = selectPosTile + sf::Vector2i(0, selectSize.y - 1);
-    tileCursorPositions[3].tileDestination = selectPosTile + sf::Vector2i(selectSize.x - 1, selectSize.y - 1);
+    cursorCornerPositions[0].tileDestination = selectPosTile;
+    cursorCornerPositions[1].tileDestination = selectPosTile + sf::Vector2i(selectSize.x - 1, 0);
+    cursorCornerPositions[2].tileDestination = selectPosTile + sf::Vector2i(0, selectSize.y - 1);
+    cursorCornerPositions[3].tileDestination = selectPosTile + sf::Vector2i(selectSize.x - 1, selectSize.y - 1);
 
-    // Lerp tile cursor corners to desination positions
-    for (CursorCornerPosition& cursorCorner : tileCursorPositions)
+    // Lerp tile cursor corners to desination positions if build menu open
+    if (buildMenuOpen)
     {
-        cursorCorner.worldPosition.x = Helper::lerp(cursorCorner.worldPosition.x, cursorCorner.tileDestination.x * tileSize, 25 * dt);
-        cursorCorner.worldPosition.y = Helper::lerp(cursorCorner.worldPosition.y, cursorCorner.tileDestination.y * tileSize, 25 * dt);
+        for (CursorCornerPosition& cursorCorner : cursorCornerPositions)
+        {
+            cursorCorner.worldPosition.x = Helper::lerp(cursorCorner.worldPosition.x, cursorCorner.tileDestination.x * tileSize, 25 * dt);
+            cursorCorner.worldPosition.y = Helper::lerp(cursorCorner.worldPosition.y, cursorCorner.tileDestination.y * tileSize, 25 * dt);
+        }
+    }
+    else
+    {
+        // Immediately set cursor position to destination position (no lerp)
+        setCursorCornersToDestination();
+    }
+}
+
+void Cursor::setCursorCornersToDestination()
+{
+    // Get tile size
+    float tileSize = ResolutionHandler::getTileSize();
+
+    for (CursorCornerPosition& cursorCorner : cursorCornerPositions)
+    {
+        cursorCorner.worldPosition.x = cursorCorner.tileDestination.x * tileSize;
+        cursorCorner.worldPosition.y = cursorCorner.tileDestination.y * tileSize;
     }
 }
 
@@ -67,18 +87,18 @@ void Cursor::drawTileCursor(sf::RenderWindow& window)
     float scale = ResolutionHandler::getScale();
 
     TextureManager::drawSubTexture(window, {
-        TextureType::SelectTile, tileCursorPositions[0].worldPosition + Camera::getIntegerDrawOffset(), 0, {scale, scale}}, sf::IntRect(0, 0, 16, 16)); // top left
+        TextureType::SelectTile, cursorCornerPositions[0].worldPosition + Camera::getIntegerDrawOffset(), 0, {scale, scale}}, sf::IntRect(0, 0, 16, 16)); // top left
 
     TextureManager::drawSubTexture(window, {
-        TextureType::SelectTile, tileCursorPositions[1].worldPosition + Camera::getIntegerDrawOffset(), 0, {scale, scale}},
+        TextureType::SelectTile, cursorCornerPositions[1].worldPosition + Camera::getIntegerDrawOffset(), 0, {scale, scale}},
         sf::IntRect(16, 0, 16, 16)); // top right
 
     TextureManager::drawSubTexture(window, {
-        TextureType::SelectTile, tileCursorPositions[2].worldPosition + Camera::getIntegerDrawOffset(), 0, {scale, scale}},
+        TextureType::SelectTile, cursorCornerPositions[2].worldPosition + Camera::getIntegerDrawOffset(), 0, {scale, scale}},
         sf::IntRect(32, 0, 16, 16)); // bottom left
 
     TextureManager::drawSubTexture(window, {
-        TextureType::SelectTile, tileCursorPositions[3].worldPosition + Camera::getIntegerDrawOffset(), 0, {scale, scale}},
+        TextureType::SelectTile, cursorCornerPositions[3].worldPosition + Camera::getIntegerDrawOffset(), 0, {scale, scale}},
         sf::IntRect(48, 0, 16, 16)); // bottom right
 
 }

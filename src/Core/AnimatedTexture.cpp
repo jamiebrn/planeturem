@@ -17,7 +17,7 @@ void AnimatedTexture::create(int frameCount, int frameWidth, int frameHeight, in
     frame = 0;
     frameTick = 0;
 }
-    
+
 void AnimatedTexture::update(float dt)
 {
     frameTick += dt;

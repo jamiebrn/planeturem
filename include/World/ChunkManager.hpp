@@ -5,7 +5,6 @@
 #include <vector>
 #include <optional>
 
-// #include <World/FastNoiseLite.h>
 #include <World/FastNoise.h>
 
 #include "Core/ResolutionHandler.hpp"

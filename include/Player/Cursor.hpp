@@ -30,11 +30,13 @@ public:
     static sf::Vector2i getSelectedChunkTile();
 
     static inline const sf::Vector2f& getSelectPos() {return selectPos;}
-    static inline const sf::Vector2f& getLerpedSelectPos() {return tileCursorPositions[0].worldPosition;}
+    static inline const sf::Vector2f& getLerpedSelectPos() {return cursorCornerPositions[0].worldPosition;}
+
+    static void setCursorCornersToDestination();
 
 private:
     // Position of each corner in tile cursor
-    static std::array<CursorCornerPosition, 4> tileCursorPositions;
+    static std::array<CursorCornerPosition, 4> cursorCornerPositions;
 
     // Position of tile cursor
     static sf::Vector2f selectPos;

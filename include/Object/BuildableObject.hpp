@@ -23,13 +23,13 @@ public:
     void draw(sf::RenderWindow& window, float dt, const sf::Color& color) override;
     void drawGUI(sf::RenderWindow& window, float dt, const sf::Color& color);
 
-    void interact() override;
+    void interact();
 
     void setWorldPosition(sf::Vector2f position);
 
     inline unsigned int getObjectType() const {return objectType;}
 
-    inline bool isAlive() override {return health > 0;}
+    inline bool isAlive() {return health > 0;}
 
     // When used as a reference to another object
     BuildableObject(ObjectReference _objectReference);

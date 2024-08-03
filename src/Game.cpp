@@ -39,30 +39,40 @@ bool Game::initialise()
     noise.SetSeed(rand());
     noise.SetFrequency(0.1);
 
-    // Initialise state values
+    // Initialise values
     inventoryOpen = false;
     buildMenuOpen = false;
+    gameTime = 0;
+
+    // Set world size
+    worldSize = 40;
+
+    generateWaterNoiseTexture();
 
     // Return true by default
     return true;
 }
 
-void Game::run()
+void Game::generateWaterNoiseTexture()
 {
-    sf::Clock clock;
-    float time = 0;
-
-    int worldSize = 40;
-
+    // Create noise generators for water texture
     FastNoise waterNoise(rand());
+    FastNoise waterNoiseTwo(rand());
+
+    // Initialise noise values
     waterNoise.SetNoiseType(FastNoise::NoiseType::SimplexFractal);
     waterNoise.SetFrequency(0.1);
-    FastNoise waterNoiseTwo(rand());
     waterNoiseTwo.SetNoiseType(FastNoise::NoiseType::SimplexFractal);
     waterNoiseTwo.SetFrequency(0.1);
-    constexpr int waterNoiseSize = 16 * 8;
+
+    // Constant storing size of water texture
+    static constexpr int waterNoiseSize = 16 * 8;
+
+    // Create arrays to store sampled noise data
     std::array<std::array<sf::Uint8, waterNoiseSize * 4>, waterNoiseSize> noiseData;
     std::array<std::array<sf::Uint8, waterNoiseSize * 4>, waterNoiseSize> noiseTwoData;
+
+    // Sample noise data
     for (int y = 0; y < noiseData.size(); y++)
     {
         for (int x = 0; x < noiseData[0].size() / 4; x++)
@@ -83,25 +93,31 @@ void Game::run()
             noiseTwoData[y][x * 4 + 3] = 255;
         }
     }
-    sf::Image waterNoiseImage;
-    waterNoiseImage.create(waterNoiseSize, waterNoiseSize, noiseData.data()->data());
-    sf::Texture waterNoiseTexture;
-    waterNoiseTexture.loadFromImage(waterNoiseImage);
 
-    sf::Image waterNoiseTwoImage;
-    waterNoiseTwoImage.create(waterNoiseSize, waterNoiseSize, noiseTwoData.data()->data());
-    sf::Texture waterNoiseTwoTexture;
-    waterNoiseTwoTexture.loadFromImage(waterNoiseTwoImage);
+    // Load sampled data into images, then load into textures to pass into shader
+    std::array<sf::Image, 2> waterNoiseImages;
 
+    waterNoiseImages[0].create(waterNoiseSize, waterNoiseSize, noiseData.data()->data());
+    waterNoiseImages[1].create(waterNoiseSize, waterNoiseSize, noiseTwoData.data()->data());
+    
+    waterNoiseTextures[0].loadFromImage(waterNoiseImages[0]);
+    waterNoiseTextures[1].loadFromImage(waterNoiseImages[1]);
+
+    // Pass noise textures into water shader
     sf::Shader* waterShader = Shaders::getShader(ShaderType::Water);
-    waterShader->setUniform("noise", waterNoiseTexture);
-    waterShader->setUniform("noiseTwo", waterNoiseTwoTexture);
-    waterShader->setUniform("waterColor", sf::Glsl::Vec4(77 / 255.0f, 155 / 255.0f, 230 / 255.0f, 1.0f));
+    waterShader->setUniform("noise", waterNoiseTextures[0]);
+    waterShader->setUniform("noiseTwo", waterNoiseTextures[1]);
 
+    // Set water color (blue)
+    waterShader->setUniform("waterColor", sf::Glsl::Vec4(77 / 255.0f, 155 / 255.0f, 230 / 255.0f, 1.0f));
+}
+
+void Game::run()
+{
     while (window.isOpen())
     {
         float dt = clock.restart().asSeconds();
-        time += dt;
+        gameTime += dt;
 
         for (auto event = sf::Event{}; window.pollEvent(event);)
         {
@@ -188,7 +204,7 @@ void Game::run()
         window.setView(view);
 
         // Draw water
-        chunkManager.drawChunkWater(window, time);
+        chunkManager.drawChunkWater(window, gameTime);
 
         // Draw objects for reflection FUTURE
         std::vector<WorldObject*> objects = chunkManager.getChunkObjects();
@@ -202,7 +218,7 @@ void Game::run()
         });
 
         // Draw terrain
-        chunkManager.drawChunkTerrain(window, time);
+        chunkManager.drawChunkTerrain(window, gameTime);
 
         // Draw objects
         for (WorldObject* object : objects)
@@ -210,7 +226,8 @@ void Game::run()
             object->draw(window, dt, {255, 255, 255, 255});
         }
 
-        if (!inventoryOpen)
+        std::optional<BuildableObject>& selectedObjectOptional = chunkManager.getChunkObject(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile());
+        if (!inventoryOpen && selectedObjectOptional.has_value() || buildMenuOpen)
         {
             Cursor::drawTileCursor(window);
         }

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <SFML/Graphics.hpp>
-// #include <World/FastNoiseLite.h>
 #include <World/FastNoise.h>
 #include <array>
 #include <vector>
@@ -15,7 +14,6 @@
 #include "Core/CollisionRect.hpp"
 #include "Object/WorldObject.hpp"
 #include "Object/BuildableObject.hpp"
-#include "Object/OccupiedTileObject.hpp"
 #include "Object/ObjectReference.hpp"
 #include "World/ChunkManager.hpp"
 #include "Data/ObjectDataLoader.hpp"
