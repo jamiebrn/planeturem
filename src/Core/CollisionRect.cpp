@@ -11,10 +11,7 @@ CollisionRect::CollisionRect(float x, float y, float width, float height)
 bool CollisionRect::handleCollision(const CollisionRect& otherRect)
 {
     // If not colliding with other rectangle, return false
-    if (!(x < otherRect.x + otherRect.width &&
-    x + width > otherRect.x &&
-    y < otherRect.y + otherRect.height &&
-    y + height > otherRect.y))
+    if (!isColliding(otherRect))
         return false;
     
     // Calculate rect intersection
@@ -38,4 +35,38 @@ bool CollisionRect::handleCollision(const CollisionRect& otherRect)
     
     // Return true as collision has occured
     return true;
+}
+
+bool CollisionRect::handleStaticCollisionX(const CollisionRect& staticRect, float dx)
+{
+    if (!isColliding(staticRect))
+        return false;
+    
+    // Test both x directions
+    if (dx >= 0) x = staticRect.x - width;
+    else if (dx < 0) x = staticRect.x + staticRect.width;
+    
+    // Collision has occured
+    return true;
+}
+
+bool CollisionRect::handleStaticCollisionY(const CollisionRect& staticRect, float dy)
+{
+    if (!isColliding(staticRect))
+        return false;
+    
+    // Test both y directions
+    if (dy >= 0) y = staticRect.y - height;
+    else if (dy < 0) y = staticRect.y + staticRect.height;
+
+    // Collision has occured
+    return true;
+}
+
+bool CollisionRect::isColliding(const CollisionRect& otherRect)
+{
+    return (x < otherRect.x + otherRect.width &&
+    x + width > otherRect.x &&
+    y < otherRect.y + otherRect.height &&
+    y + height > otherRect.y);
 }

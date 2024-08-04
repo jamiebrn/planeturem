@@ -42,14 +42,14 @@ void Player::update(float dt, ChunkManager& chunkManager)
     collisionRect.x += direction.x * speed * dt;
     for (const std::unique_ptr<CollisionRect>& worldCollisionRect : worldCollisionRects)
     {
-        collisionRect.handleCollision(*worldCollisionRect);
+        collisionRect.handleStaticCollisionX(*worldCollisionRect, direction.x);
     }
 
     // Test collision after y movement
     collisionRect.y += direction.y * speed * dt;
     for (const std::unique_ptr<CollisionRect>& worldCollisionRect : worldCollisionRects)
     {
-        collisionRect.handleCollision(*worldCollisionRect);
+        collisionRect.handleStaticCollisionY(*worldCollisionRect, direction.y);
     }
 
     // Update position using collision rect after collision has been handled
