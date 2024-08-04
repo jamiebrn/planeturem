@@ -46,6 +46,8 @@ public:
     std::vector<WorldObject*> getChunkObjects();
     std::vector<std::unique_ptr<CollisionRect>> getChunkCollisionRects();
 
+    std::vector<WorldObject*> getChunkEntities();
+
     // inline std::map<ChunkPosition, std::unique_ptr<Chunk>>& getChunks() {return chunks;}
 
 private:

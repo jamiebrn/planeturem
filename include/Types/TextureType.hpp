@@ -9,5 +9,6 @@ enum class TextureType
     GroundTiles,
     Water,
     Items,
-    BuildItems
+    BuildItems,
+    Entities
 };

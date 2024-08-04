@@ -15,6 +15,7 @@
 #include "Object/WorldObject.hpp"
 #include "Object/BuildableObject.hpp"
 #include "Object/ObjectReference.hpp"
+#include "Entity/Entity.hpp"
 #include "World/ChunkManager.hpp"
 #include "Data/ObjectDataLoader.hpp"
 #include "Types/TileType.hpp"
@@ -51,7 +52,9 @@ public:
 
     void setWorldPosition(sf::Vector2f position);
 
-    bool isPointInChunk(sf::Vector2f position);
+    std::vector<WorldObject*> getEntities();
+
+    // bool isPointInChunk(sf::Vector2f position);
 
     // inline std::array<std::array<std::optional<BuildableObject>, 8>, 8>& getObjectGrid() {return objectGrid;}
 
@@ -60,6 +63,7 @@ private:
     sf::VertexArray groundVertexArray;
 
     std::array<std::array<std::optional<BuildableObject>, 8>, 8> objectGrid;
+    std::vector<std::unique_ptr<Entity>> entities;
 
     // Stores chunk position in chunkmanager hashmap (NOT actual world position)
     sf::Vector2i worldGridPosition;

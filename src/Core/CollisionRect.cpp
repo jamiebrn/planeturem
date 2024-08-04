@@ -70,3 +70,8 @@ bool CollisionRect::isColliding(const CollisionRect& otherRect)
     y < otherRect.y + otherRect.height &&
     y + height > otherRect.y);
 }
+
+bool CollisionRect::isPointInRect(float x, float y)
+{
+    return (this->x <= x && this->x + width >= x && this->y <= y && this->y + height >= y);
+}

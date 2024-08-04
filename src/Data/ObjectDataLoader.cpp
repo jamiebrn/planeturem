@@ -43,7 +43,7 @@ bool ObjectDataLoader::loadData(std::string objectDataPath)
     return true;
 }
 
-const ObjectData& ObjectDataLoader::getObjectData(int index)
+const ObjectData& ObjectDataLoader::getObjectData(unsigned int type_index)
 {    
-    return loaded_objectData[index];
+    return loaded_objectData[type_index];
 }

@@ -10,7 +10,7 @@ void Chunk::generateChunk(const FastNoise& noise, int worldSize)
 {
     // Get tile size
     float tileSize = ResolutionHandler::getTileSize();
-
+    
     sf::Vector2f worldNoisePosition = static_cast<sf::Vector2f>(worldGridPosition) * 8.0f;
 
     float noiseSize = 8.0f * worldSize;
@@ -95,6 +95,18 @@ void Chunk::generateChunk(const FastNoise& noise, int worldSize)
                 objectGrid[y][x] = BuildableObject(objectPos, 4);
             }
         }
+    }
+
+    // Spawn entities
+    int entityCount = rand() % 3;
+    for (int i = 0; i < entityCount; i++)
+    {
+        sf::Vector2f spawnPos;
+        spawnPos.x = worldPosition.x + rand() % (static_cast<int>(tileSize) * 8);
+        spawnPos.y = worldPosition.y + rand() % (static_cast<int>(tileSize) * 8);
+        unsigned int entityType = rand() % 2;
+        std::unique_ptr<Entity> entity = std::make_unique<Entity>(spawnPos, entityType);
+        entities.push_back(std::move(entity));
     }
 }
 
@@ -527,6 +539,15 @@ std::vector<std::unique_ptr<CollisionRect>> Chunk::getCollisionRects(ChunkManage
 
 void Chunk::setWorldPosition(sf::Vector2f position)
 {
+    // Update all entity positions
+    for (auto& entity : entities)
+    {
+        // Get position relative to chunk before updating chunk position
+        sf::Vector2f relativePosition = worldPosition - entity->getPosition();
+        // Set entity position to new chunk position + relative
+        entity->setPosition(position + relativePosition);
+    }
+
     worldPosition = position;
 
     float tileSize = ResolutionHandler::getTileSize();
@@ -548,11 +569,21 @@ void Chunk::setWorldPosition(sf::Vector2f position)
     }
 }
 
-bool Chunk::isPointInChunk(sf::Vector2f position)
+std::vector<WorldObject*> Chunk::getEntities()
 {
-    // sf::Vector2f worldPosition = static_cast<sf::Vector2f>(worldGridPosition) * 8.0f * 48.0f;
-    sf::Vector2f chunkExtentPosition = worldPosition + sf::Vector2f(8.0f * 48.0f, 8.0f * 48.0f);
-
-    return (position.x >= worldPosition.x && position.x <= chunkExtentPosition.x
-        && position.y >= worldPosition.y && position.y <= chunkExtentPosition.y);
+    std::vector<WorldObject*> entities_worldObject;
+    for (auto& entity : entities)
+    {
+        entities_worldObject.push_back(entity.get());
+    }
+    return entities_worldObject;
 }
+
+// bool Chunk::isPointInChunk(sf::Vector2f position)
+// {
+//     // sf::Vector2f worldPosition = static_cast<sf::Vector2f>(worldGridPosition) * 8.0f * 48.0f;
+//     sf::Vector2f chunkExtentPosition = worldPosition + sf::Vector2f(8.0f * 48.0f, 8.0f * 48.0f);
+
+//     return (position.x >= worldPosition.x && position.x <= chunkExtentPosition.x
+//         && position.y >= worldPosition.y && position.y <= chunkExtentPosition.y);
+// }

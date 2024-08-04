@@ -1,0 +1,26 @@
+{
+    "0": {
+        "name": "Pig",
+        "texture-x": 0,
+        "texture-y": 16,
+        "texture-width": 16,
+        "texture-height": 16,
+        "texture-x-origin": 0.5,
+        "texture-y-origin": 1,
+        "health": 5,
+        "size-x": 1,
+        "size-y": 1
+    },
+    "1": {
+        "name": "Horse",
+        "texture-x": 0,
+        "texture-y": 0,
+        "texture-width": 16,
+        "texture-height": 16,
+        "texture-x-origin": 0.5,
+        "texture-y-origin": 1,
+        "health": 5,
+        "size-x": 1,
+        "size-y": 1
+    }
+}

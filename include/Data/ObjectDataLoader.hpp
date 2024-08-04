@@ -14,7 +14,7 @@ class ObjectDataLoader
 public:
     static bool loadData(std::string objectDataPath);
 
-    static const ObjectData& getObjectData(int index);
+    static const ObjectData& getObjectData(unsigned int type_index);
 
 private:
     static std::vector<ObjectData> loaded_objectData;

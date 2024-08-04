@@ -30,6 +30,7 @@ bool Game::initialise()
     if(!ItemDataLoader::loadData("Data/Info/item_data.data")) return false;
     if(!ObjectDataLoader::loadData("Data/Info/object_data.data")) return false;
     if(!BuildRecipeLoader::loadData("Data/Info/build_recipes.data")) return false;
+    if(!EntityDataLoader::loadData("Data/Info/entity_data.data")) return false;
 
     // Randomise
     srand(time(NULL));
@@ -207,10 +208,12 @@ void Game::run()
         chunkManager.drawChunkWater(window, gameTime);
 
         // Draw objects for reflection FUTURE
-        std::vector<WorldObject*> objects = chunkManager.getChunkObjects();
-        objects.push_back(&player);
+        std::vector<WorldObject*> worldObjects = chunkManager.getChunkObjects();
+        std::vector<WorldObject*> entities = chunkManager.getChunkEntities();
+        worldObjects.insert(worldObjects.end(), entities.begin(), entities.end());
+        worldObjects.push_back(&player);
 
-        std::sort(objects.begin(), objects.end(), [](WorldObject* a, WorldObject* b)
+        std::sort(worldObjects.begin(), worldObjects.end(), [](WorldObject* a, WorldObject* b)
         {
             if (a->getDrawLayer() != b->getDrawLayer()) return a->getDrawLayer() > b->getDrawLayer();
             if (a->getPosition().y == b->getPosition().y) return a->getPosition().x < b->getPosition().x;
@@ -228,9 +231,9 @@ void Game::run()
         }
 
         // Draw objects
-        for (WorldObject* object : objects)
+        for (WorldObject* worldObject : worldObjects)
         {
-            object->draw(window, dt, {255, 255, 255, 255});
+            worldObject->draw(window, dt, {255, 255, 255, 255});
         }
 
         if (inventoryOpen)

@@ -235,3 +235,14 @@ std::vector<std::unique_ptr<CollisionRect>> ChunkManager::getChunkCollisionRects
     }
     return collisionRects;
 }
+
+std::vector<WorldObject*> ChunkManager::getChunkEntities()
+{
+    std::vector<WorldObject*> entities;
+    for (auto& chunkPair : loadedChunks)
+    {
+        std::vector<WorldObject*> chunkEntities = chunkPair.second->getEntities();
+        entities.insert(entities.end(), chunkEntities.begin(), chunkEntities.end());
+    }
+    return entities;
+}

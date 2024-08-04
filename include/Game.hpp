@@ -21,6 +21,7 @@
 #include "Data/ItemDataLoader.hpp"
 #include "Data/ObjectDataLoader.hpp"
 #include "Data/BuildRecipeLoader.hpp"
+#include "Data/EntityDataLoader.hpp"
 
 #include "GUI/InventoryGUI.hpp"
 #include "GUI/BuildGUI.hpp"
