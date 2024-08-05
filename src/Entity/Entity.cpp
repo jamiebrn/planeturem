@@ -28,11 +28,13 @@ void Entity::update(float dt, ChunkManager& chunkManager)
 
     // Test collision after x movement
     collisionRect.x += velocity.x * dt;
-    chunkManager.collisionRectChunkStaticCollisionX(collisionRect, velocity.x);
+    if (chunkManager.collisionRectChunkStaticCollisionX(collisionRect, velocity.x))
+        velocity.x *= -1;
 
     // Test collision after y movement
     collisionRect.y += velocity.y * dt;
-    chunkManager.collisionRectChunkStaticCollisionY(collisionRect, velocity.y);
+    if (chunkManager.collisionRectChunkStaticCollisionY(collisionRect, velocity.y))
+        velocity.y *= -1;
 
     // Update position using collision rect after collision has been handled
     position.x = collisionRect.x + collisionRect.width / 2.0f;
@@ -44,6 +46,9 @@ void Entity::draw(sf::RenderWindow& window, float dt, const sf::Color& color)
     const EntityData& entityData = EntityDataLoader::getEntityData(entityType);
 
     sf::Vector2f scale(ResolutionHandler::getScale(), ResolutionHandler::getScale());
+
+    // Draw shadow
+    TextureManager::drawTexture(window, {TextureType::Shadow, position + Camera::getIntegerDrawOffset(), 0, scale, {0.5, 0.85}});
 
     if (velocity.x < 0)
         scale.x *= -1;

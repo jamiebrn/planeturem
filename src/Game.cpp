@@ -32,6 +32,10 @@ bool Game::initialise()
     if(!BuildRecipeLoader::loadData("Data/Info/build_recipes.data")) return false;
     if(!EntityDataLoader::loadData("Data/Info/entity_data.data")) return false;
 
+    // Load icon
+    if(!icon.loadFromFile("Data/icon.png")) return false;
+    window.setIcon(256, 256, icon.getPixelsPtr());
+
     // Randomise
     srand(time(NULL));
 
@@ -140,6 +144,7 @@ void Game::run()
                 {
                     sf::VideoMode videoMode = sf::VideoMode::getDesktopMode();
                     window.create(videoMode, "spacebuild", sf::Style::Default);
+                    window.setIcon(256, 256, icon.getPixelsPtr());
                     window.setFramerateLimit(165);
                     window.setVerticalSyncEnabled(true);
                     view.setSize({(float)videoMode.width, (float)videoMode.height});

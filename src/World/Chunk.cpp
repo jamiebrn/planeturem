@@ -139,22 +139,22 @@ void Chunk::drawChunkTerrain(sf::RenderWindow& window, float time)
     window.draw(groundVertexArray, state);
 
     // DEBUG DRAW LINE TO ENTITIES
-    for (auto& entity : entities)
-    {
-        sf::VertexArray lines(sf::Lines, 2);
-        lines[0].position = worldPosition + Camera::getIntegerDrawOffset();
-        lines[1].position = entity->getPosition() + Camera::getIntegerDrawOffset();
-        window.draw(lines);
-    }
+    // for (auto& entity : entities)
+    // {
+    //     sf::VertexArray lines(sf::Lines, 2);
+    //     lines[0].position = worldPosition + Camera::getIntegerDrawOffset();
+    //     lines[1].position = entity->getPosition() + Camera::getIntegerDrawOffset();
+    //     window.draw(lines);
+    // }
 
-    // DEBUG CHUNK OUTLINE DRAW
-    sf::VertexArray lines(sf::Lines, 8);
-    lines[0].position = Camera::getIntegerDrawOffset() + worldPosition; lines[1].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(tileSize * 8, 0);
-    lines[2].position = Camera::getIntegerDrawOffset() + worldPosition; lines[3].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(0, tileSize * 8);
-    lines[4].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(tileSize * 8, 0); lines[5].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(tileSize * 8, tileSize * 8);
-    lines[6].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(0, tileSize * 8); lines[7].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(tileSize * 8, tileSize * 8);
+    // // DEBUG CHUNK OUTLINE DRAW
+    // sf::VertexArray lines(sf::Lines, 8);
+    // lines[0].position = Camera::getIntegerDrawOffset() + worldPosition; lines[1].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(tileSize * 8, 0);
+    // lines[2].position = Camera::getIntegerDrawOffset() + worldPosition; lines[3].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(0, tileSize * 8);
+    // lines[4].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(tileSize * 8, 0); lines[5].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(tileSize * 8, tileSize * 8);
+    // lines[6].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(0, tileSize * 8); lines[7].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(tileSize * 8, tileSize * 8);
 
-    window.draw(lines);
+    // window.draw(lines);
 }
 
 void Chunk::drawChunkWater(sf::RenderWindow& window, float time)

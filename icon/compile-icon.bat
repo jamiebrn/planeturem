@@ -1,0 +1,1 @@
+windres icon-data.rc -O coff -o icon-data.res

@@ -10,5 +10,6 @@ enum class TextureType
     Water,
     Items,
     BuildItems,
-    Entities
+    Entities,
+    Shadow
 };

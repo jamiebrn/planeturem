@@ -41,6 +41,7 @@ private:
 private:
     sf::RenderWindow window;
     sf::View view;
+    sf::Image icon;
 
     sf::Clock clock;
     float gameTime;

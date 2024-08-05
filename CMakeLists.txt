@@ -18,7 +18,10 @@ file(GLOB_RECURSE SRC_FILES src/*.cpp)
 
 add_executable(spacebuild ${SRC_FILES})
 target_link_libraries(spacebuild PRIVATE sfml-graphics)
+target_link_libraries(spacebuild PRIVATE sfml-audio)
+target_link_options(spacebuild PRIVATE -static)
 target_compile_features(spacebuild PRIVATE cxx_std_17)
+target_sources(spacebuild PRIVATE "icon/icon-data.rc")
 
 add_custom_target(copy_assets
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_LIST_DIR}/assets ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Data
