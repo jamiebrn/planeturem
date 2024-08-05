@@ -57,7 +57,7 @@ void Entity::draw(sf::RenderWindow& window, float dt, const sf::Color& color)
         scale, entityData.textureOrigin, color}, entityData.textureRect);
 
     // DEBUG
-    collisionRect.debugDraw(window);
+    // collisionRect.debugDraw(window);
 }
 
 bool Entity::isSelectedWithCursor(sf::Vector2f cursorWorldPos)

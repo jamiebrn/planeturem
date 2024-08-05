@@ -7,6 +7,7 @@ std::array<AnimatedTexture, 4> Cursor::cursorAnimatedTextures = {
     AnimatedTexture(6, 22, 22, 0, 44, 0.08),     // bottom left
     AnimatedTexture(6, 22, 22, 0, 66, 0.08)      // bottom right
 };
+CursorDrawState Cursor::drawState = CursorDrawState::Hidden;
 sf::Vector2f Cursor::selectPos = {0, 0};
 sf::Vector2i Cursor::selectPosTile = {0, 0};
 sf::Vector2i Cursor::selectSize = {1, 1};
@@ -28,6 +29,9 @@ void Cursor::updateTileCursor(sf::RenderWindow& window, float dt, bool buildMenu
 
     // Default tile cursor size is 1, 1
     selectSize = sf::Vector2i(1, 1);
+
+    // Set drawing to hidden by default
+    drawState = CursorDrawState::Hidden;
 
     // Get entity selected at cursor position (if any)
     Entity* selectedEntity = chunkManager.getSelectedEntity(Cursor::getSelectedChunk(worldSize), mouseWorldPos);
@@ -54,6 +58,9 @@ void Cursor::updateTileCursor(sf::RenderWindow& window, float dt, bool buildMenu
             cursorAnimatedTextures[cursorCornerIdx].setFrame(0);
         }
 
+        // Set dynamic draw to true as is not a tile-based selection
+        drawState = CursorDrawState::Dynamic;
+
         // Entity is selected, so should not attempt to find objects/tile
         return;
     }
@@ -76,12 +83,22 @@ void Cursor::updateTileCursor(sf::RenderWindow& window, float dt, bool buildMenu
         // Set selected tile to new overriden tile cursor position
         selectPosTile.x = std::floor(selectPos.x / tileSize);
         selectPosTile.y = std::floor(selectPos.y / tileSize);
+
+        // Set draw state to tile
+        drawState = CursorDrawState::Tile;
     }
     else if (buildMenuOpen)
     {
         // Override cursor size to size of currently selected object, if in build menu
         selectSize = (ObjectDataLoader::getObjectData(BuildGUI::getSelectedObject()).size);
+
+        // Set draw state to tile
+        drawState = CursorDrawState::Tile;
     }
+
+    // If no object is selected, and not in build menu (and no entity selected), set draw state to hidden
+    if (!selectedObjectOptional.has_value() && !buildMenuOpen)
+        drawState = CursorDrawState::Hidden;
 
     // Set tile cursor corner tile positions
     cursorCornerPositions[0].worldPositionDestination = static_cast<sf::Vector2f>(selectPosTile) * tileSize;
@@ -119,7 +136,6 @@ void Cursor::updateTileCursor(sf::RenderWindow& window, float dt, bool buildMenu
             cursorAnimatedTextures[cursorCornerIdx].setFrame(cursorTopLeftAnimationFrame);
         }
     }
-
 }
 
 void Cursor::setCursorCornersToDestination()
@@ -131,6 +147,21 @@ void Cursor::setCursorCornersToDestination()
     {
         cursorCorner.worldPosition.x = cursorCorner.worldPositionDestination.x;
         cursorCorner.worldPosition.y = cursorCorner.worldPositionDestination.y;
+    }
+}
+
+void Cursor::drawCursor(sf::RenderWindow& window)
+{
+    switch(drawState)
+    {
+        case CursorDrawState::Hidden:
+            break;
+        case CursorDrawState::Tile:
+            drawTileCursor(window);
+            break;
+        case CursorDrawState::Dynamic:
+            drawDynamicCursor(window);
+            break;
     }
 }
 

@@ -13,6 +13,13 @@
 #include "World/ChunkManager.hpp"
 #include "GUI/BuildGUI.hpp"
 
+enum CursorDrawState
+{
+    Hidden,
+    Tile,
+    Dynamic
+};
+
 struct CursorCornerPosition
 {
     sf::Vector2f worldPositionDestination = {0, 0};
@@ -26,9 +33,6 @@ class Cursor
 public:
     static void updateTileCursor(sf::RenderWindow& window, float dt, bool buildMenuOpen, int worldSize, ChunkManager& chunkManager);
 
-    static void drawTileCursor(sf::RenderWindow& window);
-    static void drawDynamicCursor(sf::RenderWindow& window);
-
     static ChunkPosition getSelectedChunk(int worldSize);
     static sf::Vector2i getSelectedChunkTile();
 
@@ -37,10 +41,20 @@ public:
 
     static void setCursorCornersToDestination();
 
+    static void drawCursor(sf::RenderWindow& window);
+
+private:
+    static void drawTileCursor(sf::RenderWindow& window);
+
+    // Used for drawing cursor when not full tile size, e.g. when selected entity
+    static void drawDynamicCursor(sf::RenderWindow& window);
+
 private:
     // Position of each corner in tile cursor
     static std::array<CursorCornerPosition, 4> cursorCornerPositions;
     static std::array<AnimatedTexture, 4> cursorAnimatedTextures;
+
+    static CursorDrawState drawState;
 
     // Position of tile cursor
     static sf::Vector2f selectPos;
