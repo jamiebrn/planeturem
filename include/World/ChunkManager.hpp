@@ -17,6 +17,7 @@
 
 // Forward declaration of chunk
 class Chunk;
+class Entity;
 
 class ChunkManager
 {
@@ -48,9 +49,16 @@ public:
     void moveEntityToChunkFromChunk(std::unique_ptr<Entity> entity, ChunkPosition newChunk);
 
     std::vector<WorldObject*> getChunkObjects();
+
+    // DONT USE FOR GENERAL COLLISION CHECKING - use collisionRectChunkStaticCollision functions
+    // to avoid copying pointers redundantly
     std::vector<CollisionRect*> getChunkCollisionRects();
 
+    bool collisionRectChunkStaticCollisionX(CollisionRect& collisionRect, float dx);
+    bool collisionRectChunkStaticCollisionY(CollisionRect& collisionRect, float dy);
+
     std::vector<WorldObject*> getChunkEntities();
+
 
     // inline std::map<ChunkPosition, std::unique_ptr<Chunk>>& getChunks() {return chunks;}
 

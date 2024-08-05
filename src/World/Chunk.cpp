@@ -181,8 +181,8 @@ void Chunk::updateChunkObjects(float dt, ChunkManager& chunkManager)
         auto& object_row = objectGrid[y];
         for (int x = 0; x < object_row.size(); x++)
         {
-            auto& object = object_row[x];
-            if (object)
+            std::optional<BuildableObject>& object = object_row[x];
+            if (object.has_value())
             {
                 // OccupiedTileObject* occupiedTile = dynamic_cast<OccupiedTileObject*>(object.get());
                 // If object is object reference, do not update
@@ -473,13 +473,13 @@ void Chunk::updateChunkEntities(float dt, int worldSize, ChunkManager& chunkMana
     float tileSize = ResolutionHandler::getTileSize();
 
     // Get world collision rects
-    std::vector<CollisionRect*> worldCollisionRects = chunkManager.getChunkCollisionRects();
+    // std::vector<CollisionRect*> worldCollisionRects = chunkManager.getChunkCollisionRects();
 
     for (std::vector<std::unique_ptr<Entity>>::iterator entityIter = entities.begin(); entityIter != entities.end();)
     {
         std::unique_ptr<Entity>& entity = *entityIter;
 
-        entity->update(dt, worldCollisionRects);
+        entity->update(dt, chunkManager);
 
         // Check if requires moving to different chunk
         sf::Vector2f relativePosition = entity->getPosition() - worldPosition;
@@ -613,6 +613,28 @@ std::vector<CollisionRect*> Chunk::getCollisionRects()
         collisionRectPtrs.push_back(collisionRect.get());
     }
     return collisionRectPtrs;
+}
+
+bool Chunk::collisionRectStaticCollisionX(CollisionRect& collisionRect, float dx)
+{
+    bool collision = false;
+    for (auto& rect : collisionRects)
+    {
+        if (collisionRect.handleStaticCollisionX(*rect, dx))
+            collision = true;
+    }
+    return collision;
+}
+
+bool Chunk::collisionRectStaticCollisionY(CollisionRect& collisionRect, float dy)
+{
+    bool collision = false;
+    for (auto& rect : collisionRects)
+    {
+        if (collisionRect.handleStaticCollisionY(*rect, dy))
+            collision = true;
+    }
+    return collision;
 }
 
 void Chunk::setWorldPosition(sf::Vector2f position)

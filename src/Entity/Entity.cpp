@@ -22,23 +22,17 @@ Entity::Entity(sf::Vector2f position, unsigned int entityType)
     drawLayer = 0;
 }
 
-void Entity::update(float dt, std::vector<CollisionRect*>& worldCollisionRects)
+void Entity::update(float dt, ChunkManager& chunkManager)
 {
     // Handle collision with world (tiles, object)
 
     // Test collision after x movement
     collisionRect.x += velocity.x * dt;
-    for (CollisionRect* worldCollisionRect : worldCollisionRects)
-    {
-        collisionRect.handleStaticCollisionX(*worldCollisionRect, velocity.x);
-    }
+    chunkManager.collisionRectChunkStaticCollisionX(collisionRect, velocity.x);
 
     // Test collision after y movement
     collisionRect.y += velocity.y * dt;
-    for (CollisionRect* worldCollisionRect : worldCollisionRects)
-    {
-        collisionRect.handleStaticCollisionY(*worldCollisionRect, velocity.y);
-    }
+    chunkManager.collisionRectChunkStaticCollisionY(collisionRect, velocity.y);
 
     // Update position using collision rect after collision has been handled
     position.x = collisionRect.x + collisionRect.width / 2.0f;

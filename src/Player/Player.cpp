@@ -36,21 +36,14 @@ void Player::update(float dt, ChunkManager& chunkManager)
 
 
     // Handle collision with world (tiles, object)
-    std::vector<CollisionRect*> worldCollisionRects = chunkManager.getChunkCollisionRects();
 
     // Test collision after x movement
     collisionRect.x += direction.x * speed * dt;
-    for (CollisionRect* worldCollisionRect : worldCollisionRects)
-    {
-        collisionRect.handleStaticCollisionX(*worldCollisionRect, direction.x);
-    }
+    chunkManager.collisionRectChunkStaticCollisionX(collisionRect, direction.x);
 
     // Test collision after y movement
     collisionRect.y += direction.y * speed * dt;
-    for (CollisionRect* worldCollisionRect : worldCollisionRects)
-    {
-        collisionRect.handleStaticCollisionY(*worldCollisionRect, direction.y);
-    }
+    chunkManager.collisionRectChunkStaticCollisionY(collisionRect, direction.y);
 
     // Update position using collision rect after collision has been handled
     position.x = collisionRect.x + collisionRect.width / 2.0f;

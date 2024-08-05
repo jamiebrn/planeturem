@@ -145,6 +145,9 @@ std::optional<BuildableObject>& ChunkManager::getChunkObject(ChunkPosition chunk
     // Get object from chunk
     std::optional<BuildableObject>& selectedObject = loadedChunks[chunk]->getObject(sf::Vector2i(tile.x, tile.y));
 
+    if (!selectedObject.has_value())
+        return null;
+
     // Test if object is object reference object, to then get the actual object
     if (selectedObject->isObjectReference())
     {
@@ -253,6 +256,28 @@ std::vector<CollisionRect*> ChunkManager::getChunkCollisionRects()
         collisionRects.insert(collisionRects.end(), chunkCollisionRects.begin(), chunkCollisionRects.end());
     }
     return collisionRects;
+}
+
+bool ChunkManager::collisionRectChunkStaticCollisionX(CollisionRect& collisionRect, float dx)
+{
+    bool collision = false;
+    for (auto& chunkPair : loadedChunks)
+    {
+        if (chunkPair.second->collisionRectStaticCollisionX(collisionRect, dx))
+            collision = true;
+    }
+    return collision;
+}
+
+bool ChunkManager::collisionRectChunkStaticCollisionY(CollisionRect& collisionRect, float dy)
+{
+    bool collision = false;
+    for (auto& chunkPair : loadedChunks)
+    {
+        if (chunkPair.second->collisionRectStaticCollisionY(collisionRect, dy))
+            collision = true;
+    }
+    return collision;
 }
 
 std::vector<WorldObject*> ChunkManager::getChunkEntities()

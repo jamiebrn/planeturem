@@ -77,6 +77,10 @@ public:
     // Get collision rects (previously calculated)
     std::vector<CollisionRect*> getCollisionRects();
 
+    // Used for collision with world
+    bool collisionRectStaticCollisionX(CollisionRect& collisionRect, float dx);
+    bool collisionRectStaticCollisionY(CollisionRect& collisionRect, float dy);
+
 
     void setWorldPosition(sf::Vector2f position);
 
