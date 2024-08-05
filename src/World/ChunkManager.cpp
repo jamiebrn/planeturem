@@ -54,10 +54,12 @@ void ChunkManager::updateChunks(const FastNoise& noise, int worldSize)
 
             // Generate new chunk if does not exist
             std::unique_ptr<Chunk> chunk = std::make_unique<Chunk>(sf::Vector2i(wrappedX, wrappedY));
-            chunk->generateChunk(noise, worldSize, *this);
-
+            
             // Set chunk position
             chunk->setWorldPosition(chunkWorldPos);
+
+            chunk->generateChunk(noise, worldSize, *this);
+
 
             loadedChunks.emplace(ChunkPosition(wrappedX, wrappedY), std::move(chunk));
         }
@@ -223,6 +225,22 @@ std::vector<WorldObject*> ChunkManager::getChunkObjects()
         objects.insert(objects.end(), chunkObjects.begin(), chunkObjects.end());
     }
     return objects;
+}
+
+void ChunkManager::updateChunksEntities(float dt, int worldSize)
+{
+    for (auto& chunkPair : loadedChunks)
+    {
+        chunkPair.second->updateChunkEntities(dt, worldSize, *this);
+    }
+}
+
+void ChunkManager::moveEntityToChunkFromChunk(std::unique_ptr<Entity> entity, ChunkPosition newChunk)
+{
+    if (loadedChunks.count(newChunk) <= 0)
+        return;
+    
+    loadedChunks[newChunk]->moveEntityToChunk(std::move(entity));
 }
 
 std::vector<CollisionRect*> ChunkManager::getChunkCollisionRects()

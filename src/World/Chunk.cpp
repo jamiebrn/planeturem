@@ -17,6 +17,8 @@ void Chunk::generateChunk(const FastNoise& noise, int worldSize, ChunkManager& c
 
     std::array<std::array<sf::Uint8, 8 * 4>, 8> heightMapData;
 
+    bool chunkHasWater = false;
+
     for (int y = 0; y < 8; y++)
     {
         for (int x = 0; x < 8; x++)
@@ -29,6 +31,7 @@ void Chunk::generateChunk(const FastNoise& noise, int worldSize, ChunkManager& c
             if (height < 0)
             {
                 groundTileGrid[y][x] = TileType::Water;
+                chunkHasWater = true;
                 
                 continue;
             }
@@ -98,15 +101,20 @@ void Chunk::generateChunk(const FastNoise& noise, int worldSize, ChunkManager& c
     }
 
     // Spawn entities
-    int entityCount = rand() % 3;
-    for (int i = 0; i < entityCount; i++)
+    int spawnEnemyChance = rand() % 10;
+
+    if (spawnEnemyChance < 3 && !chunkHasWater)
     {
-        sf::Vector2f spawnPos;
-        spawnPos.x = worldPosition.x + rand() % (static_cast<int>(tileSize) * 8);
-        spawnPos.y = worldPosition.y + rand() % (static_cast<int>(tileSize) * 8);
-        unsigned int entityType = rand() % 2;
-        std::unique_ptr<Entity> entity = std::make_unique<Entity>(spawnPos, entityType);
-        entities.push_back(std::move(entity));
+        int entityCount = rand() % 3;
+        for (int i = 0; i < entityCount; i++)
+        {
+            sf::Vector2f spawnPos;
+            spawnPos.x = worldPosition.x + rand() % (static_cast<int>(tileSize) * 8);
+            spawnPos.y = worldPosition.y + rand() % (static_cast<int>(tileSize) * 8);
+            unsigned int entityType = rand() % 2;
+            std::unique_ptr<Entity> entity = std::make_unique<Entity>(spawnPos, entityType);
+            entities.push_back(std::move(entity));
+        }
     }
 
     recalculateCollisionRects(chunkManager);
@@ -130,14 +138,23 @@ void Chunk::drawChunkTerrain(sf::RenderWindow& window, float time)
     state.transform = transform;
     window.draw(groundVertexArray, state);
 
-    // DEBUG CHUNK OUTLINE DRAW
-    // sf::VertexArray lines(sf::Lines, 8);
-    // lines[0].position = Camera::getIntegerDrawOffset() + worldPosition; lines[1].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(tileSize * 8, 0);
-    // lines[2].position = Camera::getIntegerDrawOffset() + worldPosition; lines[3].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(0, tileSize * 8);
-    // lines[4].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(tileSize * 8, 0); lines[5].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(tileSize * 8, tileSize * 8);
-    // lines[6].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(0, tileSize * 8); lines[7].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(tileSize * 8, tileSize * 8);
+    // DEBUG DRAW LINE TO ENTITIES
+    for (auto& entity : entities)
+    {
+        sf::VertexArray lines(sf::Lines, 2);
+        lines[0].position = worldPosition + Camera::getIntegerDrawOffset();
+        lines[1].position = entity->getPosition() + Camera::getIntegerDrawOffset();
+        window.draw(lines);
+    }
 
-    // window.draw(lines);
+    // DEBUG CHUNK OUTLINE DRAW
+    sf::VertexArray lines(sf::Lines, 8);
+    lines[0].position = Camera::getIntegerDrawOffset() + worldPosition; lines[1].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(tileSize * 8, 0);
+    lines[2].position = Camera::getIntegerDrawOffset() + worldPosition; lines[3].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(0, tileSize * 8);
+    lines[4].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(tileSize * 8, 0); lines[5].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(tileSize * 8, tileSize * 8);
+    lines[6].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(0, tileSize * 8); lines[7].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(tileSize * 8, tileSize * 8);
+
+    window.draw(lines);
 }
 
 void Chunk::drawChunkWater(sf::RenderWindow& window, float time)
@@ -156,20 +173,6 @@ void Chunk::drawChunkWater(sf::RenderWindow& window, float time)
 
     TextureManager::drawSubTexture(window, {TextureType::Water, waterPos, 0, {scale, scale}}, waterRect, waterShader);
 }
-
-// void Chunk::drawChunkObjects(sf::RenderWindow& window)
-// {
-    // sf::Vector2f worldPosition = static_cast<sf::Vector2f>(worldGridPosition) * 8.0f * 48.0f;
-
-    // for (int y = 0; y < 8; y++)
-    // {
-    //     for (int x = 0; x < 8; x++)
-    //     {
-    //         if (objectGrid[y][x])
-    //             objectGrid[y][x]->draw(window, dt);
-    //     }
-    // }
-// }
 
 void Chunk::updateChunkObjects(float dt, ChunkManager& chunkManager)
 {
@@ -465,6 +468,62 @@ bool Chunk::canPlaceObject(sf::Vector2i position, unsigned int objectType, int w
     return true;
 }
 
+void Chunk::updateChunkEntities(float dt, int worldSize, ChunkManager& chunkManager)
+{
+    float tileSize = ResolutionHandler::getTileSize();
+
+    // Get world collision rects
+    std::vector<CollisionRect*> worldCollisionRects = chunkManager.getChunkCollisionRects();
+
+    for (std::vector<std::unique_ptr<Entity>>::iterator entityIter = entities.begin(); entityIter != entities.end();)
+    {
+        std::unique_ptr<Entity>& entity = *entityIter;
+
+        entity->update(dt, worldCollisionRects);
+
+        // Check if requires moving to different chunk
+        sf::Vector2f relativePosition = entity->getPosition() - worldPosition;
+
+        bool requiresMove = false;
+        ChunkPosition newChunk(worldGridPosition.x, worldGridPosition.y);
+
+        if (relativePosition.x < 0)
+        {
+            newChunk.x = (((worldGridPosition.x - 1) % worldSize) + worldSize) % worldSize;
+            requiresMove = true;
+        }
+        else if (relativePosition.x > tileSize * 8)
+        {
+            newChunk.x = (((worldGridPosition.x + 1) % worldSize) + worldSize) % worldSize;
+            requiresMove = true;
+        }
+        else if (relativePosition.y < 0)
+        {
+            newChunk.y = (((worldGridPosition.y - 1) % worldSize) + worldSize) % worldSize;
+            requiresMove = true;
+        }
+        else if (relativePosition.y > tileSize * 8)
+        {
+            newChunk.y = (((worldGridPosition.y + 1) % worldSize) + worldSize) % worldSize;
+            requiresMove = true;
+        }
+
+        if (requiresMove)
+        {
+            chunkManager.moveEntityToChunkFromChunk(std::move(entity), newChunk);
+            entityIter = entities.erase(entityIter);
+            continue;
+        }
+
+        entityIter++;
+    }
+}
+
+void Chunk::moveEntityToChunk(std::unique_ptr<Entity> entity)
+{
+    entities.push_back(std::move(entity));
+}
+
 void Chunk::recalculateCollisionRects(ChunkManager& chunkManager)
 {
     // Clear previously calculated collision rects
@@ -562,7 +621,7 @@ void Chunk::setWorldPosition(sf::Vector2f position)
     for (auto& entity : entities)
     {
         // Get position relative to chunk before updating chunk position
-        sf::Vector2f relativePosition = worldPosition - entity->getPosition();
+        sf::Vector2f relativePosition = entity->getPosition() - worldPosition;
         // Set entity position to new chunk position + relative
         entity->setPosition(position + relativePosition);
     }
@@ -597,12 +656,3 @@ std::vector<WorldObject*> Chunk::getEntities()
     }
     return entities_worldObject;
 }
-
-// bool Chunk::isPointInChunk(sf::Vector2f position)
-// {
-//     // sf::Vector2f worldPosition = static_cast<sf::Vector2f>(worldGridPosition) * 8.0f * 48.0f;
-//     sf::Vector2f chunkExtentPosition = worldPosition + sf::Vector2f(8.0f * 48.0f, 8.0f * 48.0f);
-
-//     return (position.x >= worldPosition.x && position.x <= chunkExtentPosition.x
-//         && position.y >= worldPosition.y && position.y <= chunkExtentPosition.y);
-// }

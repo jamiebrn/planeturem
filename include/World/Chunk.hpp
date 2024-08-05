@@ -22,6 +22,7 @@
 
 // Forward declaration
 class ChunkManager;
+class Entity;
 
 class Chunk
 {
@@ -63,6 +64,10 @@ public:
     // Tests whether object can be placed, taking into account size and attributes (e.g. water placeable) at position
     bool canPlaceObject(sf::Vector2i position, unsigned int objectType, int worldSize, ChunkManager& chunkManager);
 
+
+    // -- Entity handling -- //
+    void updateChunkEntities(float dt, int worldSize, ChunkManager& chunkManager);
+    void moveEntityToChunk(std::unique_ptr<Entity> entity);
 
     // -- Collision -- //
     // Calculate all collision rects (should be called after modifying terrain/objects etc)

@@ -199,6 +199,7 @@ void Game::run()
 
         chunkManager.updateChunks(noise, worldSize);
         chunkManager.updateChunksObjects(dt);
+        chunkManager.updateChunksEntities(dt, worldSize);
 
         window.clear({80, 80, 80});
 

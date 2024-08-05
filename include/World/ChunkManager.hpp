@@ -12,6 +12,7 @@
 #include "Core/CollisionRect.hpp"
 #include "World/Chunk.hpp"
 #include "World/ChunkPosition.hpp"
+#include "Entity/Entity.hpp"
 #include "Types/TileType.hpp"
 
 // Forward declaration of chunk
@@ -42,6 +43,9 @@ public:
     void setObjectReference(const ChunkPosition& chunk, const ObjectReference& objectReference, sf::Vector2i tile);
 
     bool canPlaceObject(ChunkPosition chunk, sf::Vector2i tile, unsigned int objectType, int worldSize);
+
+    void updateChunksEntities(float dt, int worldSize);
+    void moveEntityToChunkFromChunk(std::unique_ptr<Entity> entity, ChunkPosition newChunk);
 
     std::vector<WorldObject*> getChunkObjects();
     std::vector<CollisionRect*> getChunkCollisionRects();
