@@ -60,6 +60,8 @@ void Player::draw(sf::RenderWindow& window, float dt, const sf::Color& color)
 {
     sf::Vector2f scale((float)ResolutionHandler::getScale(), (float)ResolutionHandler::getScale());
 
+    TextureManager::drawTexture(window, {TextureType::Shadow, position + Camera::getIntegerDrawOffset(), 0, scale, {0.5, 0.85}});
+
     if (flippedTexture)
         scale.x *= -1;
     
