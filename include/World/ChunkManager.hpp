@@ -44,7 +44,7 @@ public:
     bool canPlaceObject(ChunkPosition chunk, sf::Vector2i tile, unsigned int objectType, int worldSize);
 
     std::vector<WorldObject*> getChunkObjects();
-    std::vector<std::unique_ptr<CollisionRect>> getChunkCollisionRects();
+    std::vector<CollisionRect*> getChunkCollisionRects();
 
     std::vector<WorldObject*> getChunkEntities();
 

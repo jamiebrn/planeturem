@@ -6,7 +6,7 @@ Chunk::Chunk(sf::Vector2i worldGridPosition)
     groundVertexArray = sf::VertexArray(sf::Quads, 8 * 8 * 4);
 }
 
-void Chunk::generateChunk(const FastNoise& noise, int worldSize)
+void Chunk::generateChunk(const FastNoise& noise, int worldSize, ChunkManager& chunkManager)
 {
     // Get tile size
     float tileSize = ResolutionHandler::getTileSize();
@@ -108,6 +108,8 @@ void Chunk::generateChunk(const FastNoise& noise, int worldSize)
         std::unique_ptr<Entity> entity = std::make_unique<Entity>(spawnPos, entityType);
         entities.push_back(std::move(entity));
     }
+
+    recalculateCollisionRects(chunkManager);
 }
 
 void Chunk::drawChunkTerrain(sf::RenderWindow& window, float time)
@@ -190,6 +192,8 @@ void Chunk::updateChunkObjects(float dt, ChunkManager& chunkManager)
             }
         }
     }
+
+    recalculateCollisionRects(chunkManager);
 }
 
 std::vector<WorldObject*> Chunk::getObjects()
@@ -296,6 +300,8 @@ void Chunk::setObject(sf::Vector2i position, unsigned int objectType, int worldS
     }
 
     objectGrid[position.y][position.x] = object;
+
+    recalculateCollisionRects(chunkManager);
 }
 
 void Chunk::deleteObject(sf::Vector2i position, ChunkManager& chunkManager)
@@ -354,11 +360,15 @@ void Chunk::deleteObject(sf::Vector2i position, ChunkManager& chunkManager)
             chunkManager.deleteObject(ChunkPosition(worldGridPosition.x + 1, worldGridPosition.y + 1), sf::Vector2i(x, y));
         }
     }
+
+    recalculateCollisionRects(chunkManager);
 }
 
-void Chunk::setObjectReference(const ObjectReference& objectReference, sf::Vector2i tile)
+void Chunk::setObjectReference(const ObjectReference& objectReference, sf::Vector2i tile, ChunkManager& chunkManager)
 {
     objectGrid[tile.y][tile.x] = BuildableObject(objectReference);
+
+    recalculateCollisionRects(chunkManager);
 }
 
 bool Chunk::canPlaceObject(sf::Vector2i position, unsigned int objectType, int worldSize, ChunkManager& chunkManager)
@@ -455,8 +465,11 @@ bool Chunk::canPlaceObject(sf::Vector2i position, unsigned int objectType, int w
     return true;
 }
 
-std::vector<std::unique_ptr<CollisionRect>> Chunk::getCollisionRects(ChunkManager& chunkManager)
+void Chunk::recalculateCollisionRects(ChunkManager& chunkManager)
 {
+    // Clear previously calculated collision rects
+    collisionRects.clear();
+
     // Get tile size
     float tileSize = ResolutionHandler::getTileSize();
 
@@ -473,8 +486,6 @@ std::vector<std::unique_ptr<CollisionRect>> Chunk::getCollisionRects(ChunkManage
 
         rects.push_back(std::move(collisionRect));
     };
-
-    std::vector<std::unique_ptr<CollisionRect>> collisionRects;
 
     // Get collisions for tiles
     for (int y = 0; y < 8; y++)
@@ -533,8 +544,16 @@ std::vector<std::unique_ptr<CollisionRect>> Chunk::getCollisionRects(ChunkManage
                 createCollisionRect(collisionRects, x, y);
         }
     }
+}
 
-    return collisionRects;
+std::vector<CollisionRect*> Chunk::getCollisionRects()
+{
+    std::vector<CollisionRect*> collisionRectPtrs;
+    for (auto& collisionRect : collisionRects)
+    {
+        collisionRectPtrs.push_back(collisionRect.get());
+    }
+    return collisionRectPtrs;
 }
 
 void Chunk::setWorldPosition(sf::Vector2f position)

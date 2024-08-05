@@ -54,7 +54,7 @@ void ChunkManager::updateChunks(const FastNoise& noise, int worldSize)
 
             // Generate new chunk if does not exist
             std::unique_ptr<Chunk> chunk = std::make_unique<Chunk>(sf::Vector2i(wrappedX, wrappedY));
-            chunk->generateChunk(noise, worldSize);
+            chunk->generateChunk(noise, worldSize, *this);
 
             // Set chunk position
             chunk->setWorldPosition(chunkWorldPos);
@@ -202,7 +202,7 @@ void ChunkManager::setObjectReference(const ChunkPosition& chunk, const ObjectRe
     if (loadedChunks.count(chunk) <= 0)
         return;
     
-    loadedChunks[chunk]->setObjectReference(objectReference, tile);
+    loadedChunks[chunk]->setObjectReference(objectReference, tile, *this);
 }
 
 bool ChunkManager::canPlaceObject(ChunkPosition chunk, sf::Vector2i tile, unsigned int objectType, int worldSize)
@@ -225,13 +225,14 @@ std::vector<WorldObject*> ChunkManager::getChunkObjects()
     return objects;
 }
 
-std::vector<std::unique_ptr<CollisionRect>> ChunkManager::getChunkCollisionRects()
+std::vector<CollisionRect*> ChunkManager::getChunkCollisionRects()
 {
-    std::vector<std::unique_ptr<CollisionRect>> collisionRects;
+    std::vector<CollisionRect*> collisionRects;
     for (auto& chunkPair : loadedChunks)
     {
-        std::vector<std::unique_ptr<CollisionRect>> chunkCollisionRects = chunkPair.second->getCollisionRects(*this);
-        collisionRects.insert(collisionRects.end(), std::make_move_iterator(chunkCollisionRects.begin()), std::make_move_iterator(chunkCollisionRects.end()));
+        std::vector<CollisionRect*> chunkCollisionRects = chunkPair.second->getCollisionRects();
+        // collisionRects.insert(collisionRects.end(), std::make_move_iterator(chunkCollisionRects.begin()), std::make_move_iterator(chunkCollisionRects.end()));
+        collisionRects.insert(collisionRects.end(), chunkCollisionRects.begin(), chunkCollisionRects.end());
     }
     return collisionRects;
 }
