@@ -69,6 +69,9 @@ public:
     void updateChunkEntities(float dt, int worldSize, ChunkManager& chunkManager);
     void moveEntityToChunk(std::unique_ptr<Entity> entity);
 
+    // Cursor position IS IN WORLD SPACE
+    Entity* getSelectedEntity(sf::Vector2f cursorPos);
+
     // -- Collision -- //
     // Calculate all collision rects (should be called after modifying terrain/objects etc)
     // DOES NOT INCLUDE ENTITIES

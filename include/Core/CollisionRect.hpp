@@ -1,7 +1,10 @@
 #pragma once
 
+#include <SFML/Graphics.hpp>
 #include <math.h>
 #include <algorithm>
+
+#include "Core/Camera.hpp"
 
 struct CollisionRect
 {
@@ -17,4 +20,6 @@ struct CollisionRect
 
     bool isColliding(const CollisionRect& otherRect);
     bool isPointInRect(float x, float y);
+
+    void debugDraw(sf::RenderWindow& window, sf::Color color = {255, 0, 0, 120});
 };

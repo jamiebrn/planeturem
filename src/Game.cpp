@@ -197,6 +197,12 @@ void Game::run()
             }
         }
 
+        sf::Vector2f mousePos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
+        sf::Vector2f mouseWorldPos = mousePos - Camera::getDrawOffset();
+
+        std::optional<BuildableObject>& selectedObjectOptional = chunkManager.getChunkObject(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile());
+        Entity* selectedEntity = chunkManager.getSelectedEntity(Cursor::getSelectedChunk(worldSize), mouseWorldPos);
+
         Camera::update(player.getPosition(), dt);
         Cursor::updateTileCursor(window, dt, buildMenuOpen, worldSize, chunkManager);
 
@@ -237,10 +243,13 @@ void Game::run()
         }
 
         // Draw cursor
-        std::optional<BuildableObject>& selectedObjectOptional = chunkManager.getChunkObject(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile());
-        if (!inventoryOpen && selectedObjectOptional.has_value() || buildMenuOpen)
+
+        if (!inventoryOpen)
         {
-            Cursor::drawTileCursor(window);
+            if (selectedEntity != nullptr && !buildMenuOpen)
+                Cursor::drawDynamicCursor(window);
+            else if (selectedObjectOptional.has_value() || buildMenuOpen)
+                Cursor::drawTileCursor(window);
         }
 
         if (inventoryOpen)

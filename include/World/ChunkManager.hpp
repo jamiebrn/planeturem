@@ -48,6 +48,8 @@ public:
     void updateChunksEntities(float dt, int worldSize);
     void moveEntityToChunkFromChunk(std::unique_ptr<Entity> entity, ChunkPosition newChunk);
 
+    Entity* getSelectedEntity(ChunkPosition chunk, sf::Vector2f cursorPos);
+
     std::vector<WorldObject*> getChunkObjects();
 
     // DONT USE FOR GENERAL COLLISION CHECKING - use collisionRectChunkStaticCollision functions

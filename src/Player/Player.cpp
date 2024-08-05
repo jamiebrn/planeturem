@@ -72,4 +72,7 @@ void Player::draw(sf::RenderWindow& window, float dt, const sf::Color& color)
         animationRect = runAnimation.getTextureRect();
 
     TextureManager::drawSubTexture(window, {TextureType::Player, position + Camera::getIntegerDrawOffset(), 0, scale, {0.5, 1}}, animationRect);
+
+    // DEBUG
+    collisionRect.debugDraw(window);
 }

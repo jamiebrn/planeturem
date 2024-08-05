@@ -159,11 +159,6 @@ std::optional<BuildableObject>& ChunkManager::getChunkObject(ChunkPosition chunk
     return selectedObject;
 }
 
-// bool ChunkManager::interactWithObject(sf::Vector2i selected_tile)
-// {
-
-// }
-
 TileType ChunkManager::getChunkTileType(ChunkPosition chunk, sf::Vector2i tile) const
 {
     // Chunk does not exist
@@ -191,15 +186,6 @@ void ChunkManager::deleteObject(ChunkPosition chunk, sf::Vector2i tile)
     
     loadedChunks[chunk]->deleteObject(tile, *this);
 }
-
-// unsigned int ChunkManager::getObjectTypeFromObjectReference(const ObjectReference& objectReference) const
-// {
-//     // Chunk does not exist
-//     if (loadedChunks.count(objectReference.chunk) <= 0)
-//         return 0;
-    
-//     return loadedChunks.at(objectReference.chunk)->getObjectGrid()[objectReference.tile.y][objectReference.tile.x].value().getObjectType();
-// }
 
 void ChunkManager::setObjectReference(const ChunkPosition& chunk, const ObjectReference& objectReference, sf::Vector2i tile)
 {
@@ -244,6 +230,34 @@ void ChunkManager::moveEntityToChunkFromChunk(std::unique_ptr<Entity> entity, Ch
         return;
     
     loadedChunks[newChunk]->moveEntityToChunk(std::move(entity));
+}
+
+Entity* ChunkManager::getSelectedEntity(ChunkPosition chunk, sf::Vector2f cursorPos)
+{
+    // Check entities in chunks around cursor in 3x3 area
+    // i.e. chunk.x - 1 to chunk.x + 1 and chunk.y - 1 to chunk.y + 1
+    for (int x = chunk.x - 1; x <= chunk.x + 1; x++)
+    {
+        for (int y = chunk.y - 1; y <= chunk.y + 1; y++)
+        {
+            // Chunk identifier
+            ChunkPosition chunkPos(x, y);
+
+            // If chunk not loaded, do not attempt to check chunk
+            if (loadedChunks.count(chunkPos) <= 0)
+                continue;
+            
+            auto& chunk = loadedChunks[chunkPos];
+            Entity* selectedEntity = chunk->getSelectedEntity(cursorPos);
+
+            // If entity is selected, return it
+            if (selectedEntity != nullptr)
+                return selectedEntity;
+        }
+    }
+    
+    // Default case
+    return nullptr;
 }
 
 std::vector<CollisionRect*> ChunkManager::getChunkCollisionRects()

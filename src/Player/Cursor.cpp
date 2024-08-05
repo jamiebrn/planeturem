@@ -29,7 +29,36 @@ void Cursor::updateTileCursor(sf::RenderWindow& window, float dt, bool buildMenu
     // Default tile cursor size is 1, 1
     selectSize = sf::Vector2i(1, 1);
 
-    // Get whether an object is selected at cursor position
+    // Get entity selected at cursor position (if any)
+    Entity* selectedEntity = chunkManager.getSelectedEntity(Cursor::getSelectedChunk(worldSize), mouseWorldPos);
+    
+    // If entity is selected and not in build menu, set size of cursor to entity size
+    if (selectedEntity != nullptr && !buildMenuOpen)
+    {
+        selectPos = selectedEntity->getPosition();
+
+        sf::Vector2f selectSizeFloat = selectedEntity->getSize();
+
+        // Set tile cursor corner tile positions
+        cursorCornerPositions[0].worldPositionDestination = selectPos - selectSizeFloat / 2.0f;
+        cursorCornerPositions[1].worldPositionDestination = selectPos + sf::Vector2f(selectSizeFloat.x, -selectSizeFloat.y) / 2.0f;
+        cursorCornerPositions[2].worldPositionDestination = selectPos + sf::Vector2f(-selectSizeFloat.x, selectSizeFloat.y) / 2.0f;
+        cursorCornerPositions[3].worldPositionDestination = selectPos + selectSizeFloat / 2.0f;
+
+        // Immediately set cursor position to destination position (no lerp)
+        setCursorCornersToDestination();
+
+        // Set cursor animation to freeze at index 0
+        for (int cursorCornerIdx = 0; cursorCornerIdx < cursorAnimatedTextures.size(); cursorCornerIdx++)
+        {
+            cursorAnimatedTextures[cursorCornerIdx].setFrame(0);
+        }
+
+        // Entity is selected, so should not attempt to find objects/tile
+        return;
+    }
+
+    // Get object selected at cursor position (if any)
     std::optional<BuildableObject>& selectedObjectOptional = chunkManager.getChunkObject(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile());
 
     // If an object in world is selected, override tile cursor size and position
@@ -55,18 +84,18 @@ void Cursor::updateTileCursor(sf::RenderWindow& window, float dt, bool buildMenu
     }
 
     // Set tile cursor corner tile positions
-    cursorCornerPositions[0].tileDestination = selectPosTile;
-    cursorCornerPositions[1].tileDestination = selectPosTile + sf::Vector2i(selectSize.x - 1, 0);
-    cursorCornerPositions[2].tileDestination = selectPosTile + sf::Vector2i(0, selectSize.y - 1);
-    cursorCornerPositions[3].tileDestination = selectPosTile + sf::Vector2i(selectSize.x - 1, selectSize.y - 1);
+    cursorCornerPositions[0].worldPositionDestination = static_cast<sf::Vector2f>(selectPosTile) * tileSize;
+    cursorCornerPositions[1].worldPositionDestination = static_cast<sf::Vector2f>(selectPosTile + sf::Vector2i(selectSize.x - 1, 0)) * tileSize;
+    cursorCornerPositions[2].worldPositionDestination = static_cast<sf::Vector2f>(selectPosTile + sf::Vector2i(0, selectSize.y - 1)) * tileSize;
+    cursorCornerPositions[3].worldPositionDestination = static_cast<sf::Vector2f>(selectPosTile + sf::Vector2i(selectSize.x - 1, selectSize.y - 1)) * tileSize;
 
     // Lerp tile cursor corners to desination positions if build menu open
     if (buildMenuOpen)
     {
         for (CursorCornerPosition& cursorCorner : cursorCornerPositions)
         {
-            cursorCorner.worldPosition.x = Helper::lerp(cursorCorner.worldPosition.x, cursorCorner.tileDestination.x * tileSize, 25 * dt);
-            cursorCorner.worldPosition.y = Helper::lerp(cursorCorner.worldPosition.y, cursorCorner.tileDestination.y * tileSize, 25 * dt);
+            cursorCorner.worldPosition.x = Helper::lerp(cursorCorner.worldPosition.x, cursorCorner.worldPositionDestination.x, 25 * dt);
+            cursorCorner.worldPosition.y = Helper::lerp(cursorCorner.worldPosition.y, cursorCorner.worldPositionDestination.y, 25 * dt);
         }
 
         // Set cursor animation to freeze at index 0
@@ -100,8 +129,8 @@ void Cursor::setCursorCornersToDestination()
 
     for (CursorCornerPosition& cursorCorner : cursorCornerPositions)
     {
-        cursorCorner.worldPosition.x = cursorCorner.tileDestination.x * tileSize;
-        cursorCorner.worldPosition.y = cursorCorner.tileDestination.y * tileSize;
+        cursorCorner.worldPosition.x = cursorCorner.worldPositionDestination.x;
+        cursorCorner.worldPosition.y = cursorCorner.worldPositionDestination.y;
     }
 }
 
@@ -116,6 +145,25 @@ void Cursor::drawTileCursor(sf::RenderWindow& window)
         TextureManager::drawSubTexture(window, {
             TextureType::SelectTile, cursorCornerPositions[cursorCornerIdx].worldPosition + Camera::getIntegerDrawOffset(), 0, {scale, scale},
             {cursorTextureOrigin, cursorTextureOrigin}}, cursorAnimatedTextures[cursorCornerIdx].getTextureRect());
+    }
+}
+
+void Cursor::drawDynamicCursor(sf::RenderWindow& window)
+{
+    float scale = ResolutionHandler::getScale();
+
+    static const std::array<sf::Vector2f, 4> cursorTextureOrigin = {
+        sf::Vector2f(3.0f / 22.0f, 3.0f / 22.0f),
+        sf::Vector2f(18.0f / 22.0f, 3.0f / 22.0f),
+        sf::Vector2f(3.0f / 22.0f, 18.0f / 22.0f),
+        sf::Vector2f(18.0f / 22.0f, 18.0f / 22.0f)
+    };
+
+    for (int cursorCornerIdx = 0; cursorCornerIdx < cursorCornerPositions.size(); cursorCornerIdx++)
+    {
+        TextureManager::drawSubTexture(window, {
+            TextureType::SelectTile, cursorCornerPositions[cursorCornerIdx].worldPosition + Camera::getIntegerDrawOffset(), 0, {scale, scale},
+            cursorTextureOrigin[cursorCornerIdx]}, cursorAnimatedTextures[cursorCornerIdx].getTextureRect());
     }
 }
 

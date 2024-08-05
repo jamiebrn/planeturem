@@ -8,13 +8,14 @@
 #include "Core/AnimatedTexture.hpp"
 #include "Core/Camera.hpp"
 #include "Object/BuildableObject.hpp"
+#include "Entity/Entity.hpp"
 #include "World/ChunkPosition.hpp"
 #include "World/ChunkManager.hpp"
 #include "GUI/BuildGUI.hpp"
 
 struct CursorCornerPosition
 {
-    sf::Vector2i tileDestination = {0, 0};
+    sf::Vector2f worldPositionDestination = {0, 0};
     sf::Vector2f worldPosition = {0, 0};
 };
 
@@ -26,6 +27,7 @@ public:
     static void updateTileCursor(sf::RenderWindow& window, float dt, bool buildMenuOpen, int worldSize, ChunkManager& chunkManager);
 
     static void drawTileCursor(sf::RenderWindow& window);
+    static void drawDynamicCursor(sf::RenderWindow& window);
 
     static ChunkPosition getSelectedChunk(int worldSize);
     static sf::Vector2i getSelectedChunkTile();

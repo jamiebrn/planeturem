@@ -75,3 +75,11 @@ bool CollisionRect::isPointInRect(float x, float y)
 {
     return (this->x <= x && this->x + width >= x && this->y <= y && this->y + height >= y);
 }
+
+void CollisionRect::debugDraw(sf::RenderWindow& window, sf::Color color)
+{
+    sf::RectangleShape rect({width, height});
+    rect.setPosition(sf::Vector2f(x, y) + Camera::getIntegerDrawOffset());
+    rect.setFillColor(color);
+    window.draw(rect);
+}

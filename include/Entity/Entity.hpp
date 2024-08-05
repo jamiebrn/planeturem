@@ -22,6 +22,12 @@ public:
 
     void draw(sf::RenderWindow& window, float dt, const sf::Color& color) override;
 
+    bool isSelectedWithCursor(sf::Vector2f cursorWorldPos);
+
+    unsigned int getEntityType();
+
+    sf::Vector2f getSize();
+
 private:
     unsigned int entityType;
     int health;
