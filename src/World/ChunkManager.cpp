@@ -159,13 +159,31 @@ std::optional<BuildableObject>& ChunkManager::getChunkObject(ChunkPosition chunk
     return selectedObject;
 }
 
-TileType ChunkManager::getChunkTileType(ChunkPosition chunk, sf::Vector2i tile) const
+TileType ChunkManager::getLoadedChunkTileType(ChunkPosition chunk, sf::Vector2i tile) const
 {
     // Chunk does not exist
     if (loadedChunks.count(chunk) <= 0)
         return TileType::Water;
     
     return loadedChunks.at(chunk)->getTileType(tile);
+}
+
+TileType ChunkManager::getChunkTileType(ChunkPosition chunk, sf::Vector2i tile)
+{
+    // Chunk is not generated
+    if (!isChunkGenerated(chunk))
+        return TileType::Water;
+    
+    // Not in loaded chunks, go to stored chunks
+    if (loadedChunks.count(chunk) <= 0)
+        return storedChunks.at(chunk)->getTileType(tile);
+    
+    return loadedChunks.at(chunk)->getTileType(tile);
+}
+
+bool ChunkManager::isChunkGenerated(ChunkPosition chunk)
+{
+    return (loadedChunks.count(chunk) + storedChunks.count(chunk)) > 0;
 }
 
 void ChunkManager::setObject(ChunkPosition chunk, sf::Vector2i tile, unsigned int objectType, int worldSize)

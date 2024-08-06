@@ -33,6 +33,10 @@ public:
     // Initialisation
     void generateChunk(const FastNoise& noise, int worldSize, ChunkManager& chunkManager);
 
+    void generateVisualEffectTiles(const FastNoise& noise, int worldSize, ChunkManager& chunkManager);
+
+    static TileType getTileTypeFromNoiseHeight(float noiseValue);
+
     // Drawing
     void drawChunkTerrain(sf::RenderWindow& window, float time);
     void drawChunkWater(sf::RenderWindow& window, float time);
@@ -95,6 +99,9 @@ public:
 private:
     std::array<std::array<TileType, 8>, 8> groundTileGrid;
     sf::VertexArray groundVertexArray;
+
+    // Stores visual tile types, e.g. cliffs
+    std::array<std::array<TileType, 8>, 8> visualTileGrid;
 
     std::array<std::array<std::optional<BuildableObject>, 8>, 8> objectGrid;
     std::vector<std::unique_ptr<Entity>> entities;

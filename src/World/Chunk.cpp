@@ -24,15 +24,16 @@ void Chunk::generateChunk(const FastNoise& noise, int worldSize, ChunkManager& c
         for (int x = 0; x < 8; x++)
         {
             float height = noise.GetNoiseSeamless2D(worldNoisePosition.x + (float)x, worldNoisePosition.y + (float)y, noiseSize, noiseSize);
-
             // static const float sqrt2Div2 = 0.70710678119f;
             // float heightNormalised = (height - sqrt2Div2) / (sqrt2Div2 * 2);
 
-            if (height < 0)
+            TileType tileType = getTileTypeFromNoiseHeight(height);
+
+            groundTileGrid[y][x] = tileType;
+
+            if (tileType == TileType::Water)
             {
-                groundTileGrid[y][x] = TileType::Water;
                 chunkHasWater = true;
-                
                 continue;
             }
 
@@ -42,59 +43,50 @@ void Chunk::generateChunk(const FastNoise& noise, int worldSize, ChunkManager& c
             groundVertexArray[vertexArrayIndex + 3].position = sf::Vector2f(x * 16, y * 16 + 16);
             groundVertexArray[vertexArrayIndex + 2].position = sf::Vector2f(x * 16 + 16, y * 16 + 16);
 
-            // if (height < 0)
-            // {
-            //     groundVertexArray[vertexArrayIndex].texCoords = {2 * 16, 0};
-            //     groundVertexArray[vertexArrayIndex + 1].texCoords = {2 * 16 + 16, 0};
-            //     groundVertexArray[vertexArrayIndex + 3].texCoords = {2 * 16, 16};
-            //     groundVertexArray[vertexArrayIndex + 2].texCoords = {2 * 16 + 16, 16};
-            // }
-            if (height > 0.2)
+            switch (tileType)
             {
-                groundVertexArray[vertexArrayIndex].texCoords = {1 * 16, 0};
-                groundVertexArray[vertexArrayIndex + 1].texCoords = {1 * 16 + 16, 0};
-                groundVertexArray[vertexArrayIndex + 3].texCoords = {1 * 16, 16};
-                groundVertexArray[vertexArrayIndex + 2].texCoords = {1 * 16 + 16, 16};
-                groundTileGrid[y][x] = TileType::DarkGrass;
-            }
-            else if (height >= 0 && height < 0.05)
-            {
-                groundVertexArray[vertexArrayIndex].texCoords = {3 * 16, 0};
-                groundVertexArray[vertexArrayIndex + 1].texCoords = {3 * 16 + 16, 0};
-                groundVertexArray[vertexArrayIndex + 3].texCoords = {3 * 16, 16};
-                groundVertexArray[vertexArrayIndex + 2].texCoords = {3 * 16 + 16, 16};
-                groundTileGrid[y][x] = TileType::Sand;
-            }
-            else
-            {
-                groundVertexArray[vertexArrayIndex].texCoords = {0 * 16, 0};
-                groundVertexArray[vertexArrayIndex + 1].texCoords = {0 * 16 + 16, 0};
-                groundVertexArray[vertexArrayIndex + 3].texCoords = {0 * 16, 16};
-                groundVertexArray[vertexArrayIndex + 2].texCoords = {0 * 16 + 16, 16};
-                groundTileGrid[y][x] = TileType::Grass;
+                case TileType::DarkGrass:
+                    groundVertexArray[vertexArrayIndex].texCoords = {1 * 16, 0};
+                    groundVertexArray[vertexArrayIndex + 1].texCoords = {1 * 16 + 16, 0};
+                    groundVertexArray[vertexArrayIndex + 3].texCoords = {1 * 16, 16};
+                    groundVertexArray[vertexArrayIndex + 2].texCoords = {1 * 16 + 16, 16};
+                    break;
+                case TileType::Sand:
+                    groundVertexArray[vertexArrayIndex].texCoords = {3 * 16, 0};
+                    groundVertexArray[vertexArrayIndex + 1].texCoords = {3 * 16 + 16, 0};
+                    groundVertexArray[vertexArrayIndex + 3].texCoords = {3 * 16, 16};
+                    groundVertexArray[vertexArrayIndex + 2].texCoords = {3 * 16 + 16, 16};
+                    break;
+                case TileType::Grass:
+                    groundVertexArray[vertexArrayIndex].texCoords = {0 * 16, 0};
+                    groundVertexArray[vertexArrayIndex + 1].texCoords = {0 * 16 + 16, 0};
+                    groundVertexArray[vertexArrayIndex + 3].texCoords = {0 * 16, 16};
+                    groundVertexArray[vertexArrayIndex + 2].texCoords = {0 * 16 + 16, 16};
+                    break;
             }
 
-            sf::Vector2f objectPos = worldPosition + sf::Vector2f(x * tileSize + tileSize / 2.0f, y * tileSize + tileSize / 2.0f);
             objectGrid[y][x] = std::nullopt;
 
-            int spawn_chance = rand() % 40;
+            bool canSpawnObject = tileType == TileType::Grass || tileType == TileType::DarkGrass;
+            if (!canSpawnObject)
+                continue;
 
-            if (spawn_chance < 4 && height >= 0.05)
+            int spawn_chance = rand() % 40;
+            sf::Vector2f objectPos = worldPosition + sf::Vector2f(x * tileSize + tileSize / 2.0f, y * tileSize + tileSize / 2.0f);
+
+            if (spawn_chance < 4)
             {
                 // Make tree
-                // objectGrid[y][x] = std::move(std::make_unique<BuildableObject>(objectPos, 0));
                 objectGrid[y][x] = BuildableObject(objectPos, 0);
             }
-            else if (spawn_chance == 4 && height >= 0.05)
+            else if (spawn_chance == 4)
             {
                 // Make bush
-                // objectGrid[y][x] = std::move(std::make_unique<BuildableObject>(objectPos, 1));
                 objectGrid[y][x] = BuildableObject(objectPos, 1);
             }
-            else if (spawn_chance == 5 && height >= 0.05)
+            else if (spawn_chance == 5)
             {
                 // Make rock
-                // objectGrid[y][x] = std::move(std::make_unique<BuildableObject>(objectPos, 4));
                 objectGrid[y][x] = BuildableObject(objectPos, 4);
             }
         }
@@ -117,7 +109,110 @@ void Chunk::generateChunk(const FastNoise& noise, int worldSize, ChunkManager& c
         }
     }
 
+    generateVisualEffectTiles(noise, worldSize, chunkManager);
+
     recalculateCollisionRects(chunkManager);
+}
+
+TileType Chunk::getTileTypeFromNoiseHeight(float noiseValue)
+{
+    if (noiseValue < 0) return TileType::Water;
+    if (noiseValue > 0.2) return TileType::DarkGrass;
+    if (noiseValue >= 0 && noiseValue < 0.05) return TileType::Sand;
+    return TileType::Grass;
+}
+
+void Chunk::generateVisualEffectTiles(const FastNoise& noise, int worldSize, ChunkManager& chunkManager)
+{
+    // Get visual tile from 3x3 area, where centre is tile testing for
+    // Assumes centre tile is water
+    auto getVisualTileType = [](TileType topLeft,    TileType top,      TileType topRight,
+                                TileType left,                          TileType right,
+                                TileType bottomLeft, TileType bottom,   TileType bottomRight) -> TileType
+    {
+        // Cliffs
+        if (top != TileType::Water)
+        {
+            // Straight cliff
+            if (topLeft != TileType::Water && topRight != TileType::Water)
+                return TileType::Visual_Cliff;
+            
+            // Left cliff
+            if (topLeft == TileType::Water && topRight != TileType::Water)
+                return TileType::Visual_LCliff;
+            
+            // Right cliff
+            if (topLeft != TileType::Water && topRight == TileType::Water)
+                return TileType::Visual_RCliff;
+            
+            // Left-right cliff
+            if (topLeft == TileType::Water && topRight == TileType::Water)
+                return TileType::Visual_LRCliff;
+        }
+
+        // Default case
+        return TileType::Visual_BLANK;
+    };
+
+    auto getTileTypeAt = [this](int x, int y, int offsetX, int offsetY, ChunkManager& chunkManager, const FastNoise& noise, const sf::Vector2i& worldGridPosition, int noiseSize)
+    {
+        int gridX = x + offsetX;
+        int gridY = y + offsetY;
+        
+        if (gridX < 0 || gridX >= 8 || gridY < 0 || gridY >= 8) {
+            ChunkPosition chunkPos(worldGridPosition.x, worldGridPosition.y);
+            sf::Vector2i localPos(gridX, gridY);
+
+            // Adjust for chunk boundaries
+            if (gridX < 0) {
+                chunkPos.x -= 1;
+                localPos.x = 7;
+            } else if (gridX >= 8) {
+                chunkPos.x += 1;
+                localPos.x = 0;
+            }
+
+            if (gridY < 0) {
+                chunkPos.y -= 1;
+                localPos.y = 7;
+            } else if (gridY >= 8) {
+                chunkPos.y += 1;
+                localPos.y = 0;
+            }
+
+            if (chunkManager.isChunkGenerated(chunkPos)) {
+                return chunkManager.getChunkTileType(chunkPos, localPos);
+            } else {
+                float noiseValue = noise.GetNoiseSeamless2D(worldGridPosition.x + offsetX, worldGridPosition.y + offsetY, noiseSize, noiseSize);
+                return getTileTypeFromNoiseHeight(noiseValue);
+            }
+        }
+        else
+        {
+            return this->groundTileGrid[gridY][gridX];
+        }
+    };
+
+    sf::Vector2f worldNoisePosition = static_cast<sf::Vector2f>(worldGridPosition) * 8.0f;
+    float noiseSize = 8.0f * worldSize;
+
+    // Generate visual tiles
+    for (int y = 0; y < 8; y++)
+    {
+        for (int x = 0; x < 8; x++)
+        {
+            visualTileGrid[y][x] = getVisualTileType(
+                getTileTypeAt(x, y, -1, -1, chunkManager, noise, worldGridPosition, noiseSize), // NW
+                getTileTypeAt(x, y, 0, -1, chunkManager, noise, worldGridPosition, noiseSize),  // N
+                getTileTypeAt(x, y, 1, -1, chunkManager, noise, worldGridPosition, noiseSize),  // NE
+                getTileTypeAt(x, y, -1, 0, chunkManager, noise, worldGridPosition, noiseSize),  // W
+                getTileTypeAt(x, y, 1, 0, chunkManager, noise, worldGridPosition, noiseSize),   // E
+                getTileTypeAt(x, y, -1, 1, chunkManager, noise, worldGridPosition, noiseSize),  // SW
+                getTileTypeAt(x, y, 0, 1, chunkManager, noise, worldGridPosition, noiseSize),   // S
+                getTileTypeAt(x, y, 1, 1, chunkManager, noise, worldGridPosition, noiseSize)    // SE
+            );
+        }
+    }
 }
 
 void Chunk::drawChunkTerrain(sf::RenderWindow& window, float time)
@@ -128,7 +223,7 @@ void Chunk::drawChunkTerrain(sf::RenderWindow& window, float time)
 
     // sf::Vector2f worldPosition = static_cast<sf::Vector2f>(worldGridPosition) * 8.0f * tileSize;
     
-    // Draw terrain
+    // Draw terrain tiles
     sf::Transform transform;
     transform.translate(Camera::getIntegerDrawOffset() + worldPosition);
     transform.scale(scale, scale);
@@ -137,6 +232,43 @@ void Chunk::drawChunkTerrain(sf::RenderWindow& window, float time)
     state.texture = TextureManager::getTexture(TextureType::GroundTiles);
     state.transform = transform;
     window.draw(groundVertexArray, state);
+
+    // Draw visual stuff (edge of tiles/cliffs etc)
+    for (int y = 0; y < 8; y++)
+    {
+        for (int x = 0; x < 8; x++)
+        {
+            TileType visualTileType = visualTileGrid[y][x];
+
+            if (visualTileType == TileType::Visual_BLANK)
+                continue;
+
+            sf::Vector2f tileWorldPosition(worldPosition.x + x * tileSize, worldPosition.y + y * tileSize);
+            sf::IntRect textureRect;
+            
+            switch (visualTileType)
+            {
+                case TileType::Visual_Cliff:
+                    textureRect = sf::IntRect(48, 48, 16, 16);
+                    tileWorldPosition.y -= 2 * scale;
+                    break;
+                case TileType::Visual_LCliff:
+                    textureRect = sf::IntRect(48, 64, 16, 16);
+                    tileWorldPosition.y -= 2 * scale;
+                    break;
+                case TileType::Visual_RCliff:
+                    textureRect = sf::IntRect(48, 80, 16, 16);
+                    tileWorldPosition.y -= 2 * scale;
+                    break;
+                case TileType::Visual_LRCliff:
+                    textureRect = sf::IntRect(48, 96, 16, 16);
+                    tileWorldPosition.y -= 2 * scale;
+                    break;
+            }
+
+            TextureManager::drawSubTexture(window, {TextureType::GroundTiles, tileWorldPosition + Camera::getIntegerDrawOffset(), 0, {scale, scale}}, textureRect);
+        }
+    }
 
     // DEBUG DRAW LINE TO ENTITIES
     // for (auto& entity : entities)
@@ -415,7 +547,7 @@ bool Chunk::canPlaceObject(sf::Vector2i position, unsigned int objectType, int w
             // Test tile
             if (!objectData.waterPlaceable)
             {
-                if (chunkManager.getChunkTileType(ChunkPosition(chunkNextPosX, worldGridPosition.y), sf::Vector2i(x, y)) == TileType::Water)
+                if (chunkManager.getLoadedChunkTileType(ChunkPosition(chunkNextPosX, worldGridPosition.y), sf::Vector2i(x, y)) == TileType::Water)
                     return false;
             }
             
@@ -434,7 +566,7 @@ bool Chunk::canPlaceObject(sf::Vector2i position, unsigned int objectType, int w
             // Test tile
             if (!objectData.waterPlaceable)
             {
-                if (chunkManager.getChunkTileType(ChunkPosition(worldGridPosition.x, chunkNextPosY), sf::Vector2i(x, y)) == TileType::Water)
+                if (chunkManager.getLoadedChunkTileType(ChunkPosition(worldGridPosition.x, chunkNextPosY), sf::Vector2i(x, y)) == TileType::Water)
                     return false;
             }
 
@@ -453,7 +585,7 @@ bool Chunk::canPlaceObject(sf::Vector2i position, unsigned int objectType, int w
             // Test tile
             if (!objectData.waterPlaceable)
             {
-                if (chunkManager.getChunkTileType(ChunkPosition(chunkNextPosX, chunkNextPosY), sf::Vector2i(x, y)) == TileType::Water)
+                if (chunkManager.getLoadedChunkTileType(ChunkPosition(chunkNextPosX, chunkNextPosY), sf::Vector2i(x, y)) == TileType::Water)
                     return false;
             }
 
