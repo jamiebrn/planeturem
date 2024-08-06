@@ -15,7 +15,7 @@ void Chunk::generateChunk(const FastNoise& noise, int worldSize, ChunkManager& c
 
     float noiseSize = 8.0f * worldSize;
 
-    std::array<std::array<sf::Uint8, 8 * 4>, 8> heightMapData;
+    // std::array<std::array<sf::Uint8, 8 * 4>, 8> heightMapData;
 
     bool chunkHasWater = false;
 
@@ -164,26 +164,35 @@ void Chunk::generateVisualEffectTiles(const FastNoise& noise, int worldSize, Chu
             sf::Vector2i localPos(gridX, gridY);
 
             // Adjust for chunk boundaries
-            if (gridX < 0) {
+            if (gridX < 0)
+            {
                 chunkPos.x -= 1;
                 localPos.x = 7;
-            } else if (gridX >= 8) {
+            }
+            else if (gridX >= 8)
+            {
                 chunkPos.x += 1;
                 localPos.x = 0;
             }
 
-            if (gridY < 0) {
+            if (gridY < 0)
+            {
                 chunkPos.y -= 1;
                 localPos.y = 7;
-            } else if (gridY >= 8) {
+            }
+            else if (gridY >= 8)
+            {
                 chunkPos.y += 1;
                 localPos.y = 0;
             }
 
-            if (chunkManager.isChunkGenerated(chunkPos)) {
+            if (chunkManager.isChunkGenerated(chunkPos))
+            {
                 return chunkManager.getChunkTileType(chunkPos, localPos);
-            } else {
-                float noiseValue = noise.GetNoiseSeamless2D(worldGridPosition.x + offsetX, worldGridPosition.y + offsetY, noiseSize, noiseSize);
+            }
+            else
+            {
+                float noiseValue = noise.GetNoiseSeamless2D(worldGridPosition.x * 8 + gridX, worldGridPosition.y * 8 + gridY, noiseSize, noiseSize);
                 return getTileTypeFromNoiseHeight(noiseValue);
             }
         }
@@ -193,7 +202,6 @@ void Chunk::generateVisualEffectTiles(const FastNoise& noise, int worldSize, Chu
         }
     };
 
-    sf::Vector2f worldNoisePosition = static_cast<sf::Vector2f>(worldGridPosition) * 8.0f;
     float noiseSize = 8.0f * worldSize;
 
     // Generate visual tiles
@@ -201,6 +209,10 @@ void Chunk::generateVisualEffectTiles(const FastNoise& noise, int worldSize, Chu
     {
         for (int x = 0; x < 8; x++)
         {
+            TileType groundTileType = groundTileGrid[y][x];
+            if (groundTileType != TileType::Water)
+                continue;
+
             visualTileGrid[y][x] = getVisualTileType(
                 getTileTypeAt(x, y, -1, -1, chunkManager, noise, worldGridPosition, noiseSize), // NW
                 getTileTypeAt(x, y, 0, -1, chunkManager, noise, worldGridPosition, noiseSize),  // N
