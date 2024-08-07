@@ -39,6 +39,7 @@ public:
 
     // Drawing
     void drawChunkTerrain(sf::RenderWindow& window, float time);
+    void drawChunkTerrainVisual(sf::RenderWindow& window, float time);
     void drawChunkWater(sf::RenderWindow& window, float time);
 
     // Get vector of chunk object/entities for drawing

@@ -20,6 +20,8 @@ Entity::Entity(sf::Vector2f position, unsigned int entityType)
     collisionRect.y = position.y - collisionRect.height / 2.0f;
 
     drawLayer = 0;
+
+    flash_amount = 0.0f;
 }
 
 void Entity::update(float dt, ChunkManager& chunkManager)
@@ -39,6 +41,9 @@ void Entity::update(float dt, ChunkManager& chunkManager)
     // Update position using collision rect after collision has been handled
     position.x = collisionRect.x + collisionRect.width / 2.0f;
     position.y = collisionRect.y + collisionRect.height / 2.0f;
+
+    // Update animations
+    flash_amount = std::max(flash_amount - dt * 3.0f, 0.0f);
 }
 
 void Entity::draw(sf::RenderWindow& window, float dt, const sf::Color& color)
@@ -52,12 +57,26 @@ void Entity::draw(sf::RenderWindow& window, float dt, const sf::Color& color)
 
     if (velocity.x < 0)
         scale.x *= -1;
+    
+    sf::Shader* shader = Shaders::getShader(ShaderType::Flash);
+    shader->setUniform("flash_amount", flash_amount);
 
     TextureManager::drawSubTexture(window, {TextureType::Entities, position + Camera::getIntegerDrawOffset(), 0, 
-        scale, entityData.textureOrigin, color}, entityData.textureRect);
+        scale, entityData.textureOrigin, color}, entityData.textureRect, shader);
 
     // DEBUG
     // collisionRect.debugDraw(window);
+}
+
+void Entity::damage(int amount)
+{
+    flash_amount = 1.0f;
+    health -= amount;
+}
+
+void Entity::interact()
+{
+
 }
 
 bool Entity::isSelectedWithCursor(sf::Vector2f cursorWorldPos)

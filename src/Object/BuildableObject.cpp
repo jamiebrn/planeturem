@@ -47,10 +47,10 @@ void BuildableObject::drawGUI(sf::RenderWindow& window, float dt, const sf::Colo
         }, objectData.textureRect);
 }
 
-void BuildableObject::interact()
+void BuildableObject::damage(int amount)
 {
     flash_amount = 1.0f;
-    health -= 1;
+    health -= amount;
 
     if (!isAlive())
     {
@@ -61,6 +61,11 @@ void BuildableObject::interact()
             Inventory::addItem(itemDropPair.first, itemDropPair.second);
         }
     }
+}
+
+void BuildableObject::interact()
+{
+    
 }
 
 void BuildableObject::setWorldPosition(sf::Vector2f position)

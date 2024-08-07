@@ -124,6 +124,10 @@ void Game::run()
         float dt = clock.restart().asSeconds();
         gameTime += dt;
 
+        // Get mouse position in screen space and world space
+        sf::Vector2f mousePos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
+        sf::Vector2f mouseWorldPos = mousePos - Camera::getDrawOffset();
+
         for (auto event = sf::Event{}; window.pollEvent(event);)
         {
             if (event.type == sf::Event::Closed)
@@ -165,11 +169,19 @@ void Game::run()
                 {
                     if (!inventoryOpen && !buildMenuOpen)
                     {
-                        std::optional<BuildableObject>& selectedObjectOptional = chunkManager.getChunkObject(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile());
-                        if (selectedObjectOptional.has_value())
+                        Entity* selectedEntity = chunkManager.getSelectedEntity(Cursor::getSelectedChunk(worldSize), mouseWorldPos);
+                        if (selectedEntity != nullptr)
                         {
-                            BuildableObject& selectedObject = selectedObjectOptional.value();
-                            selectedObject.interact();
+                            selectedEntity->damage(1);
+                        }
+                        else
+                        {
+                            std::optional<BuildableObject>& selectedObjectOptional = chunkManager.getChunkObject(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile());
+                            if (selectedObjectOptional.has_value())
+                            {
+                                BuildableObject& selectedObject = selectedObjectOptional.value();
+                                selectedObject.damage(1);
+                            }
                         }
                     }
                     else if (buildMenuOpen)

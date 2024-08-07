@@ -22,15 +22,21 @@ public:
 
     void draw(sf::RenderWindow& window, float dt, const sf::Color& color) override;
 
+    void damage(int amount);
+    void interact();
+
     bool isSelectedWithCursor(sf::Vector2f cursorWorldPos);
 
     unsigned int getEntityType();
 
     sf::Vector2f getSize();
 
+    inline bool isAlive() {return health > 0;}
+
 private:
     unsigned int entityType;
     int health;
+    float flash_amount;
 
     CollisionRect collisionRect;
     sf::Vector2f velocity;

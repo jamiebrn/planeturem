@@ -245,43 +245,6 @@ void Chunk::drawChunkTerrain(sf::RenderWindow& window, float time)
     state.transform = transform;
     window.draw(groundVertexArray, state);
 
-    // Draw visual stuff (edge of tiles/cliffs etc)
-    for (int y = 0; y < 8; y++)
-    {
-        for (int x = 0; x < 8; x++)
-        {
-            TileType visualTileType = visualTileGrid[y][x];
-
-            if (visualTileType == TileType::Visual_BLANK)
-                continue;
-
-            sf::Vector2f tileWorldPosition(worldPosition.x + x * tileSize, worldPosition.y + y * tileSize);
-            sf::IntRect textureRect;
-            
-            switch (visualTileType)
-            {
-                case TileType::Visual_Cliff:
-                    textureRect = sf::IntRect(48, 48, 16, 16);
-                    tileWorldPosition.y -= 2 * scale;
-                    break;
-                case TileType::Visual_LCliff:
-                    textureRect = sf::IntRect(48, 64, 16, 16);
-                    tileWorldPosition.y -= 2 * scale;
-                    break;
-                case TileType::Visual_RCliff:
-                    textureRect = sf::IntRect(48, 80, 16, 16);
-                    tileWorldPosition.y -= 2 * scale;
-                    break;
-                case TileType::Visual_LRCliff:
-                    textureRect = sf::IntRect(48, 96, 16, 16);
-                    tileWorldPosition.y -= 2 * scale;
-                    break;
-            }
-
-            TextureManager::drawSubTexture(window, {TextureType::GroundTiles, tileWorldPosition + Camera::getIntegerDrawOffset(), 0, {scale, scale}}, textureRect);
-        }
-    }
-
     // DEBUG DRAW LINE TO ENTITIES
     // for (auto& entity : entities)
     // {
@@ -299,6 +262,54 @@ void Chunk::drawChunkTerrain(sf::RenderWindow& window, float time)
     // lines[6].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(0, tileSize * 8); lines[7].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(tileSize * 8, tileSize * 8);
 
     // window.draw(lines);
+}
+
+void Chunk::drawChunkTerrainVisual(sf::RenderWindow& window, float time)
+{
+    // Get tile size and scale
+    float scale = ResolutionHandler::getScale();
+    float tileSize = ResolutionHandler::getTileSize();
+
+    // Draw visual stuff (edge of tiles/cliffs etc)
+    for (int y = 0; y < 8; y++)
+    {
+        for (int x = 0; x < 8; x++)
+        {
+            TileType visualTileType = visualTileGrid[y][x];
+
+            if (visualTileType == TileType::Visual_BLANK)
+                continue;
+
+            sf::Vector2f tileWorldPosition(worldPosition.x + x * tileSize, worldPosition.y + y * tileSize);
+            sf::IntRect textureRect;
+
+            int cliffWaterFrame = static_cast<int>(std::min(std::max(std::sin(time / 2.0f + worldGridPosition.x + x) * 3.5f / 2.0f + 3.5f / 2.0f, 0.0f), 3.0f));
+            
+            switch (visualTileType)
+            {
+                case TileType::Visual_Cliff:
+                    textureRect = sf::IntRect(48 + cliffWaterFrame * 16, 48, 16, 16);
+                    tileWorldPosition.y -= 2 * scale;
+                    break;
+                case TileType::Visual_LCliff:
+                    textureRect = sf::IntRect(48 + cliffWaterFrame * 16, 64, 16, 16);
+                    tileWorldPosition.y -= 2 * scale;
+                    break;
+                case TileType::Visual_RCliff:
+                    textureRect = sf::IntRect(48 + cliffWaterFrame * 16, 80, 16, 16);
+                    tileWorldPosition.y -= 2 * scale;
+                    break;
+                case TileType::Visual_LRCliff:
+                    textureRect = sf::IntRect(48 + cliffWaterFrame * 16, 96, 16, 16);
+                    tileWorldPosition.y -= 2 * scale;
+                    break;
+            }
+
+            // sf::Shader* cliffShader = Shaders::getShader(ShaderType::Cliff);
+
+            TextureManager::drawSubTexture(window, {TextureType::GroundTiles, tileWorldPosition + Camera::getIntegerDrawOffset(), 0, {scale, scale}}, textureRect);
+        }
+    }
 }
 
 void Chunk::drawChunkWater(sf::RenderWindow& window, float time)
@@ -624,6 +635,13 @@ void Chunk::updateChunkEntities(float dt, int worldSize, ChunkManager& chunkMana
         std::unique_ptr<Entity>& entity = *entityIter;
 
         entity->update(dt, chunkManager);
+
+        // Check if requires deleting (not alive)
+        if (!entity->isAlive())
+        {
+            entityIter = entities.erase(entityIter);
+            continue;
+        }
 
         // Check if requires moving to different chunk
         sf::Vector2f relativePosition = entity->getPosition() - worldPosition;
