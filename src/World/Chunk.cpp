@@ -43,25 +43,30 @@ void Chunk::generateChunk(const FastNoise& noise, int worldSize, ChunkManager& c
             groundVertexArray[vertexArrayIndex + 3].position = sf::Vector2f(x * 16, y * 16 + 16);
             groundVertexArray[vertexArrayIndex + 2].position = sf::Vector2f(x * 16 + 16, y * 16 + 16);
 
+            int textureVariation;
+
             switch (tileType)
             {
                 case TileType::DarkGrass:
-                    groundVertexArray[vertexArrayIndex].texCoords = {1 * 16, 0};
-                    groundVertexArray[vertexArrayIndex + 1].texCoords = {1 * 16 + 16, 0};
-                    groundVertexArray[vertexArrayIndex + 3].texCoords = {1 * 16, 16};
-                    groundVertexArray[vertexArrayIndex + 2].texCoords = {1 * 16 + 16, 16};
+                    textureVariation = rand() % 3;
+                    groundVertexArray[vertexArrayIndex].texCoords = {1 * 16, 0 + textureVariation * 16.0f};
+                    groundVertexArray[vertexArrayIndex + 1].texCoords = {1 * 16 + 16, 0 + textureVariation * 16.0f};
+                    groundVertexArray[vertexArrayIndex + 3].texCoords = {1 * 16, 16 + textureVariation * 16.0f};
+                    groundVertexArray[vertexArrayIndex + 2].texCoords = {1 * 16 + 16, 16 + textureVariation * 16.0f};
                     break;
                 case TileType::Sand:
-                    groundVertexArray[vertexArrayIndex].texCoords = {3 * 16, 0};
-                    groundVertexArray[vertexArrayIndex + 1].texCoords = {3 * 16 + 16, 0};
-                    groundVertexArray[vertexArrayIndex + 3].texCoords = {3 * 16, 16};
-                    groundVertexArray[vertexArrayIndex + 2].texCoords = {3 * 16 + 16, 16};
+                    textureVariation = rand() % 3;
+                    groundVertexArray[vertexArrayIndex].texCoords = {2 * 16, 0 + textureVariation * 16.0f};
+                    groundVertexArray[vertexArrayIndex + 1].texCoords = {2 * 16 + 16, 0 + textureVariation * 16.0f};
+                    groundVertexArray[vertexArrayIndex + 3].texCoords = {2 * 16, 16 + textureVariation * 16.0f};
+                    groundVertexArray[vertexArrayIndex + 2].texCoords = {2 * 16 + 16, 16 + textureVariation * 16.0f};
                     break;
                 case TileType::Grass:
-                    groundVertexArray[vertexArrayIndex].texCoords = {0 * 16, 0};
-                    groundVertexArray[vertexArrayIndex + 1].texCoords = {0 * 16 + 16, 0};
-                    groundVertexArray[vertexArrayIndex + 3].texCoords = {0 * 16, 16};
-                    groundVertexArray[vertexArrayIndex + 2].texCoords = {0 * 16 + 16, 16};
+                    textureVariation = rand() % 4;
+                    groundVertexArray[vertexArrayIndex].texCoords = {0 * 16, 0 + textureVariation * 16.0f};
+                    groundVertexArray[vertexArrayIndex + 1].texCoords = {0 * 16 + 16, 0 + textureVariation * 16.0f};
+                    groundVertexArray[vertexArrayIndex + 3].texCoords = {0 * 16, 16 + textureVariation * 16.0f};
+                    groundVertexArray[vertexArrayIndex + 2].texCoords = {0 * 16 + 16, 16 + textureVariation * 16.0f};
                     break;
             }
 
@@ -288,19 +293,19 @@ void Chunk::drawChunkTerrainVisual(sf::RenderWindow& window, float time)
             switch (visualTileType)
             {
                 case TileType::Visual_Cliff:
-                    textureRect = sf::IntRect(48 + cliffWaterFrame * 16, 48, 16, 16);
+                    textureRect = sf::IntRect(64 + cliffWaterFrame * 16, 0, 16, 16);
                     tileWorldPosition.y -= 2 * scale;
                     break;
                 case TileType::Visual_LCliff:
-                    textureRect = sf::IntRect(48 + cliffWaterFrame * 16, 64, 16, 16);
+                    textureRect = sf::IntRect(64 + cliffWaterFrame * 16, 16, 16, 16);
                     tileWorldPosition.y -= 2 * scale;
                     break;
                 case TileType::Visual_RCliff:
-                    textureRect = sf::IntRect(48 + cliffWaterFrame * 16, 80, 16, 16);
+                    textureRect = sf::IntRect(64 + cliffWaterFrame * 16, 32, 16, 16);
                     tileWorldPosition.y -= 2 * scale;
                     break;
                 case TileType::Visual_LRCliff:
-                    textureRect = sf::IntRect(48 + cliffWaterFrame * 16, 96, 16, 16);
+                    textureRect = sf::IntRect(64 + cliffWaterFrame * 16, 48, 16, 16);
                     tileWorldPosition.y -= 2 * scale;
                     break;
             }
