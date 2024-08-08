@@ -174,7 +174,6 @@ void Game::run()
                         if (selectedEntity != nullptr)
                         {
                             selectedEntity->damage(1);
-                            player.useTool();
                         }
                         else
                         {
@@ -183,9 +182,9 @@ void Game::run()
                             {
                                 BuildableObject& selectedObject = selectedObjectOptional.value();
                                 selectedObject.damage(1);
-                                player.useTool();
                             }
                         }
+                        player.useTool();
                     }
                     else if (buildMenuOpen)
                     {

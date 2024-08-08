@@ -18,7 +18,7 @@ Player::Player(sf::Vector2f position)
     idleAnimation.create(1, 16, 18, 0, 0, 0);
     runAnimation.create(5, 16, 18, 48, 0, 0.1);
 
-    equippedTool = 1;
+    equippedTool = 0;
     toolRotation = 0;
     usingTool = false;
 }
@@ -102,11 +102,13 @@ void Player::draw(sf::RenderWindow& window, float dt, const sf::Color& color)
 
     sf::Vector2f toolPos = position + Camera::getIntegerDrawOffset() + sf::Vector2f(scale.x * toolOffset.x, scale.y * toolOffset.y);
 
+    float pivotYOffset = (toolRotation / 90.0f) * 0.4;
+
     float correctedToolRotation = toolRotation;
     if (flippedTexture)
         correctedToolRotation = -toolRotation;
 
-    TextureManager::drawSubTexture(window, {TextureType::Tools, toolPos, correctedToolRotation, scale, toolData.pivot}, toolData.textureRect);
+    TextureManager::drawSubTexture(window, {TextureType::Tools, toolPos, correctedToolRotation, scale, {toolData.pivot.x, toolData.pivot.y + pivotYOffset}}, toolData.textureRect);
 
     // DEBUG
     // collisionRect.debugDraw(window);
@@ -116,7 +118,7 @@ void Player::useTool()
 {
     usingTool = true;
     swingingTool = true;
-    rotationTweenID = toolTweener.startTween(&toolRotation, toolRotation, 90.0f, 0.15, TweenTransition::Expo, TweenEasing::EaseOut);
+    rotationTweenID = toolTweener.startTween(&toolRotation, toolRotation, 90.0f, 0.1, TweenTransition::Circ, TweenEasing::EaseInOut);
 }
 
 bool Player::isUsingTool()

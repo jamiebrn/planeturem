@@ -35,6 +35,8 @@ private:
     static const sf::Vector2f toolOffset;
 
     unsigned int equippedTool;
+
+    // Tool animation
     float toolRotation;
     Tween<float> toolTweener;
     TweenID rotationTweenID;
