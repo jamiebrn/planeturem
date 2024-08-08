@@ -76,29 +76,37 @@ public:
         return (tweenData.end - tweenData.start) * easingFunction(tweenData.transitionType, tweenData.easingType, progress) + tweenData.start;
     }
 
-    inline bool finishTween(TweenID tween)
+    inline bool isTweenFinished(TweenID tween)
     {
         if (activeTweens.count(tween) <= 0)
             return true;
         
         TweenData<T>& tweenData = activeTweens[tween];
-
-        if (tweenData.progress < tweenData.duration)
-            return false;
         
-        auto iter = activeTweens.find(tween);
-        activeTweens.erase(iter);
-
-        return true;
+        if (tweenData.progress >= tweenData.duration)
+            return true;
+        
+        return false;
     }
 
     inline void update(float dt)
     {
-        for (auto& tween : activeTweens)
+        for (auto tweenIter = activeTweens.begin(); tweenIter != activeTweens.end();)
         {
-            TweenData<T>& tweenData = tween.second;
+            TweenID tweenID = tweenIter->first;
+            TweenData<T>& tweenData = tweenIter->second;
 
             tweenData.progress += dt;
+
+            *tweenData.value = getTweenValue(tweenID);
+
+            if (isTweenFinished(tweenID))
+            {
+                tweenIter = activeTweens.erase(tweenIter);
+                continue;
+            }
+
+            tweenIter++;
         }
     }
 
@@ -151,119 +159,83 @@ private:
                 }
         }
 
-        return 0.0f;
+        return progress;
     }
 
-    inline float easeInSine(float x) {return 1.0f - cos((x * M_PI) / 2.0f);}
-    inline float easeOutSine(float x) {return sin((x * M_PI) / 2.0f);}
-    inline float easeInOutSine(float x) {return -(cos(M_PI * x) - 1.0f) / 2.0f;}
+    static constexpr float PI = 3.14159265f;
+    static constexpr float c1 = 1.70158f;
+    static constexpr float c2 = c1 * 1.525f;
+    static constexpr float c3 = c1 + 1.0f;
+    static constexpr float c4 = (2.0f * PI) / 3.0f;
+    static constexpr float c5 = (2.0f * PI) / 4.5f;
+    static constexpr float n1 = 7.5625f;
+    static constexpr float d1 = 2.75f;
+
+    inline float easeInSine(float x) {return 1.0f - std::cos((x * PI) / 2.0f);}
+    inline float easeOutSine(float x) {return std::sin((x * PI) / 2.0f);}
+    inline float easeInOutSine(float x) {return -(std::cos(PI * x) - 1.0f) / 2.0f;}
     inline float easeInCubic(float x) {return x * x * x;}
-    inline float easeOutCubic(float x) {return 1.0f - pow(1.0f - x, 3.0f);}
-    inline float easeInOutCubic(float x) {return x < 0.5f ? 4.0f * x * x * x : 1.0f - pow(-2.0f * x + 2.0f, 3.0f) / 2.0f;}
+    inline float easeOutCubic(float x) {return 1.0f - std::pow(1.0f - x, 3.0f);}
+    inline float easeInOutCubic(float x) {return x < 0.5f ? 4.0f * x * x * x : 1.0f - std::pow(-2.0f * x + 2.0f, 3.0f) / 2.0f;}
     inline float easeInQuint(float x) {return x * x * x * x * x;}
-    inline float easeOutQuint(float x) {return 1.0f - pow(1.0f - x, 5.0f);}
-    inline float easeInOutQuint(float x) {return x < 0.5f ? 16.0f * x * x * x * x * x : 1.0f - pow(-2.0f * x + 2.0f, 5.0f) / 2.0f;}
-    inline float easeInCirc(float x) {return 1.0f - sqrt(1.0f - pow(x, 2.0f));}
-    inline float easeOutCirc(float x) {return sqrt(1.0f - pow(x - 1.0f, 2.0f));}
+    inline float easeOutQuint(float x) {return 1.0f - std::pow(1.0f - x, 5.0f);}
+    inline float easeInOutQuint(float x) {return x < 0.5f ? 16.0f * x * x * x * x * x : 1.0f - std::pow(-2.0f * x + 2.0f, 5.0f) / 2.0f;}
+    inline float easeInCirc(float x) {return 1.0f - std::sqrt(1.0f - std::pow(x, 2.0f));}
+    inline float easeOutCirc(float x) {return std::sqrt(1.0f - std::pow(x - 1.0f, 2.0f));}
     inline float easeInOutCirc(float x)
     {
-        return (x < 0.5f
-        ? (1.0f - sqrt(1.0f - pow(2.0f * x, 2.0f))) / 2.0f
-        : (sqrt(1.0f - pow(-2.0f * x + 2.0f, 2.0f)) + 1.0f) / 2.0f);
+        return (x < 0.5f ? (1.0f - std::sqrt(1.0f - std::pow(2.0f * x, 2.0f))) / 2.0f : (std::sqrt(1.0f - std::pow(-2.0f * x + 2.0f, 2.0f)) + 1.0f) / 2.0f);
     }
     inline float easeInElastic(float x)
     {
-        static constexpr float c4 = (2.0f * M_PI) / 3.0f;
-
-        return (x == 0.0f
-        ? 0.0f
-        : x == 1.0f
-        ? 1.0f
-        : -pow(2.0f, 10.0f * x - 10.0f) * sin((x * 10.0f - 10.75f) * c4));
+        return (x == 0.0f ? 0.0f : x == 1.0f ? 1.0f : -std::pow(2.0f, 10.0f * x - 10.0f) * std::sin((x * 10.0f - 10.75f) * c4));
     }
     inline float easeOutElastic(float x)
     {
-        static constexpr float c4 = (2.0f * M_PI) / 3.0f;
-
-        return (x == 0.0f
-        ? 0.0f
-        : x == 1.0f
-        ? 1.0f
-        : pow(2.0f, -10.0f * x) * sin((x * 10.0f - 0.75f) * c4) + 1.0f);
+        return (x == 0.0f ? 0.0f : x == 1.0f ? 1.0f : std::pow(2.0f, -10.0f * x) * std::sin((x * 10.0f - 0.75f) * c4) + 1.0f);
     }
     inline float easeInOutElastic(float x)
     {
-        static constexpr float c5 = (2.0f * M_PI) / 4.5f;
-
-        return (x == 0.0f
-        ? 0.0f
-        : x == 1.0f
-        ? 1.0f
-        : x < 0.5f
-        ? -(pow(2.0f, 20.0f * x - 10.0f) * sin((20.0f * x - 11.125f) * c5)) / 2.0f
-        : (pow(2.0f, -20.0f * x + 10.0f) * sin((20.0f * x - 11.125f) * c5)) / 2.0f + 1.0f);
+        return (x == 0.0f ? 0.0f : x == 1.0f ? 1.0f : x < 0.5f ? -(std::pow(2.0f, 20.0f * x - 10.0f) * std::sin((20.0f * x - 11.125f) * c5)) / 2.0f
+        : (std::pow(2.0f, -20.0f * x + 10.0f) * std::sin((20.0f * x - 11.125f) * c5)) / 2.0f + 1.0f);
     }
     inline float easeInQuad(float x) {return x * x;}
     inline float easeOutQuad(float x) {return 1.0f - (1.0f - x) * (1.0f - x);}
-    inline float easeInOutQuad(float x) {return x < 0.5f ? 2.0f * x * x : 1.0f - pow(-2.0f * x + 2.0f, 2.0f) / 2.0f;}
+    inline float easeInOutQuad(float x) {return x < 0.5f ? 2.0f * x * x : 1.0f - std::pow(-2.0f * x + 2.0f, 2.0f) / 2.0f;}
     inline float easeInQuart(float x) {return x * x * x * x;}
-    inline float easeOutQuart(float x) {return 1.0f - pow(1.0f - x, 4.0f);}
-    inline float easeInOutQuart(float x) {return x < 0.5f ? 8.0f * x * x * x * x : 1.0f - pow(-2.0f * x + 2.0f, 4.0f) / 2.0f;}
-    inline float easeInExpo(float x) {return x == 0.0f ? 0.0f : pow(2.0f, 10.0f * x - 10.0f);}
-    inline float easeOutExpo(float x) {return x == 1.0f ? 1.0f : 1.0f - pow(2.0f, -10.0f * x);}
+    inline float easeOutQuart(float x) {return 1.0f - std::pow(1.0f - x, 4.0f);}
+    inline float easeInOutQuart(float x) {return x < 0.5f ? 8.0f * x * x * x * x : 1.0f - std::pow(-2.0f * x + 2.0f, 4.0f) / 2.0f;}
+    inline float easeInExpo(float x) {return x == 0.0f ? 0.0f : std::pow(2.0f, 10.0f * x - 10.0f);}
+    inline float easeOutExpo(float x) {return x == 1.0f ? 1.0f : 1.0f - std::pow(2.0f, -10.0f * x);}
     inline float easeInOutExpo(float x)
     {
-        return (x == 0.0f
-        ? 0.0f
-        : x == 1.0f
-        ? 1.0f
-        : x < 0.5f ? pow(2.0f, 20.0f * x - 10.0f) / 2.0f
-        : (2.0f - pow(2.0f, -20.0f * x + 10.0f)) / 2.0f);
+        return (x == 0.0f ? 0.0f : x == 1.0f ? 1.0f : x < 0.5f ? std::pow(2.0f, 20.0f * x - 10.0f) / 2.0f
+        : (2.0f - std::pow(2.0f, -20.0f * x + 10.0f)) / 2.0f);
     }
     inline float easeInBack(float x)
     {
-        static constexpr float c1 = 1.70158f;
-        static constexpr float c3 = c1 + 1.0f;
-
         return c3 * x * x * x - c1 * x * x;
     }
     inline float easeOutBack(float x)
     {
-        static constexpr float c1 = 1.70158f;
-        static constexpr float c3 = c1 + 1.0f;
-
-        return 1.0f + c3 * pow(x - 1.0f, 3.0f) + c1 * pow(x - 1.0f, 2.0f);
+        return 1.0f + c3 * std::pow(x - 1.0f, 3.0f) + c1 * std::pow(x - 1.0f, 2.0f);
     }
     inline float easeInOutBack(float x)
     {
-        static constexpr float c1 = 1.70158f;
-        static constexpr float c2 = c1 * 1.525f;
-
-        return (x < 0.5f
-        ? (pow(2.0f * x, 2.0f) * ((c2 + 1.0f) * 2.0f * x - c2)) / 2.0f
-        : (pow(2.0f * x - 2.0f, 2.0f) * ((c2 + 1.0f) * (x * 2.0f - 2.0f) + c2) + 2.0f) / 2.0f);
+        return (x < 0.5f ? (std::pow(2.0f * x, 2.0f) * ((c2 + 1.0f) * 2.0f * x - c2)) / 2.0f
+        : (std::pow(2.0f * x - 2.0f, 2.0f) * ((c2 + 1.0f) * (x * 2.0f - 2.0f) + c2) + 2.0f) / 2.0f);
     }
     inline float easeOutBounce(float x)
     {
-        static constexpr float n1 = 7.5625f;
-        static constexpr float d1 = 2.75f;
-
-        if (x < 1.0f / d1) {
-            return n1 * x * x;
-        } else if (x < 2.0f / d1) {
-            return n1 * (x -= 1.5f / d1) * x + 0.75f;
-        } else if (x < 2.5f / d1) {
-            return n1 * (x -= 2.25f / d1) * x + 0.9375f;
-        } else {
-            return n1 * (x -= 2.625f / d1) * x + 0.984375f;
-        }
+        if (x < 1.0f / d1) return n1 * x * x;
+        else if (x < 2.0f / d1) return n1 * (x -= 1.5f / d1) * x + 0.75f;
+        else if (x < 2.5f / d1) return n1 * (x -= 2.25f / d1) * x + 0.9375f;
+        else return n1 * (x -= 2.625f / d1) * x + 0.984375f;
     }
     inline float easeInBounce(float x) {return 1.0f - easeOutBounce(1.0f - x);}
     inline float easeInOutBounce(float x)
     {
-        return (x < 0.5f
-        ? (1.0f - easeOutBounce(1.0f - 2.0f * x)) / 2.0f
-        : (1.0f + easeOutBounce(2.0f * x - 1.0f)) / 2.0f);
+        return (x < 0.5f ? (1.0f - easeOutBounce(1.0f - 2.0f * x)) / 2.0f : (1.0f + easeOutBounce(2.0f * x - 1.0f)) / 2.0f);
     }
 
 private:
