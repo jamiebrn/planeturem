@@ -84,18 +84,17 @@ void Game::generateWaterNoiseTexture()
         for (int x = 0; x < noiseData[0].size() / 4; x++)
         {
             float noiseValue = waterNoise.GetNoiseSeamless2D(x, y, waterNoiseSize, waterNoiseSize);
-            static constexpr float sqrt2Div2 = 0.70710678119f;
-            float noiseValueNormalised = (noiseValue - sqrt2Div2) / (sqrt2Div2 * 2);
-            noiseData[y][x * 4] = noiseValueNormalised * 255;
-            noiseData[y][x * 4 + 1] = noiseValueNormalised * 255;
-            noiseData[y][x * 4 + 2] = noiseValueNormalised * 255;
+            noiseValue = FastNoise::Normalise(noiseValue);
+            noiseData[y][x * 4] = noiseValue * 255;
+            noiseData[y][x * 4 + 1] = noiseValue * 255;
+            noiseData[y][x * 4 + 2] = noiseValue * 255;
             noiseData[y][x * 4 + 3] = 255;
 
             noiseValue = waterNoiseTwo.GetNoiseSeamless2D(x, y, waterNoiseSize, waterNoiseSize);
-            noiseValueNormalised = (noiseValue - sqrt2Div2) / (sqrt2Div2 * 2);
-            noiseTwoData[y][x * 4] = noiseValueNormalised * 255;
-            noiseTwoData[y][x * 4 + 1] = noiseValueNormalised * 255;
-            noiseTwoData[y][x * 4 + 2] = noiseValueNormalised * 255;
+            noiseValue = FastNoise::Normalise(noiseValue);
+            noiseTwoData[y][x * 4] = noiseValue * 255;
+            noiseTwoData[y][x * 4 + 1] = noiseValue * 255;
+            noiseTwoData[y][x * 4 + 2] = noiseValue * 255;
             noiseTwoData[y][x * 4 + 3] = 255;
         }
     }
@@ -224,8 +223,13 @@ void Game::run()
 
         window.setView(view);
 
+        // Draw all world onto texture for lighting
+        sf::RenderTexture worldTexture;
+        worldTexture.create(window.getSize().x, window.getSize().y);
+        worldTexture.clear();
+
         // Draw water
-        chunkManager.drawChunkWater(window, gameTime);
+        chunkManager.drawChunkWater(worldTexture, gameTime);
 
         // Draw objects for reflection FUTURE
         std::vector<WorldObject*> worldObjects = chunkManager.getChunkObjects();
@@ -241,14 +245,38 @@ void Game::run()
         });
 
         // Draw terrain
-        chunkManager.drawChunkTerrain(window, gameTime);
+        chunkManager.drawChunkTerrain(worldTexture, gameTime);
 
 
         // Draw objects
         for (WorldObject* worldObject : worldObjects)
         {
-            worldObject->draw(window, dt, {255, 255, 255, 255});
+            worldObject->draw(worldTexture, dt, {255, 255, 255, 255});
         }
+
+        worldTexture.display();
+
+        // Draw light sources on light texture
+        sf::RenderTexture lightTexture;
+        lightTexture.create(window.getSize().x, window.getSize().y);
+        lightTexture.clear({0, 0, 0, 0});
+
+        player.drawLightMask(lightTexture);
+
+        for (WorldObject* entity : entities)
+        {
+            Entity* entityCasted = static_cast<Entity*>(entity);
+            entityCasted->drawLightMask(lightTexture);
+        }
+
+        lightTexture.display();
+
+        // Finish drawing world - draw world texture
+        sf::Sprite worldTextureSprite(worldTexture.getTexture());
+        sf::Shader* lightingShader = Shaders::getShader(ShaderType::Lighting);
+        lightingShader->setUniform("lightingTexture", lightTexture.getTexture());
+        lightingShader->setUniform("darkness", 0.9f);
+        window.draw(worldTextureSprite, lightingShader);
 
         // Draw cursor
 

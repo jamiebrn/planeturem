@@ -235,7 +235,7 @@ void Chunk::generateVisualEffectTiles(const FastNoise& noise, int worldSize, Chu
     }
 }
 
-void Chunk::drawChunkTerrain(sf::RenderWindow& window, float time)
+void Chunk::drawChunkTerrain(sf::RenderTarget& window, float time)
 {
     // Get tile size and scale
     float scale = ResolutionHandler::getScale();
@@ -272,7 +272,7 @@ void Chunk::drawChunkTerrain(sf::RenderWindow& window, float time)
     // window.draw(lines);
 }
 
-void Chunk::drawChunkTerrainVisual(sf::RenderWindow& window, float time)
+void Chunk::drawChunkTerrainVisual(sf::RenderTarget& window, float time)
 {
     // Get tile size and scale
     float scale = ResolutionHandler::getScale();
@@ -320,7 +320,7 @@ void Chunk::drawChunkTerrainVisual(sf::RenderWindow& window, float time)
     }
 }
 
-void Chunk::drawChunkWater(sf::RenderWindow& window, float time)
+void Chunk::drawChunkWater(sf::RenderTarget& window, float time)
 {
     // Get tile size and scale
     float scale = ResolutionHandler::getScale();

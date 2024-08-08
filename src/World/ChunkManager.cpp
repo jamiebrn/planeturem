@@ -103,7 +103,7 @@ void ChunkManager::updateChunks(const FastNoise& noise, int worldSize)
     }
 }
 
-void ChunkManager::drawChunkTerrain(sf::RenderWindow& window, float time)
+void ChunkManager::drawChunkTerrain(sf::RenderTarget& window, float time)
 {
     // Draw terrain
     for (auto& chunkPair : loadedChunks)
@@ -124,7 +124,7 @@ void ChunkManager::drawChunkTerrain(sf::RenderWindow& window, float time)
     }
 }
 
-void ChunkManager::drawChunkWater(sf::RenderWindow& window, float time)
+void ChunkManager::drawChunkWater(sf::RenderTarget& window, float time)
 {
     for (auto& chunkPair : loadedChunks)
     {

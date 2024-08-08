@@ -20,8 +20,8 @@ public:
 
     void update(float dt);
 
-    void draw(sf::RenderWindow& window, float dt, const sf::Color& color) override;
-    void drawGUI(sf::RenderWindow& window, float dt, const sf::Color& color);
+    void draw(sf::RenderTarget& window, float dt, const sf::Color& color) override;
+    void drawGUI(sf::RenderTarget& window, float dt, const sf::Color& color);
 
     void damage(int amount);
     void interact();

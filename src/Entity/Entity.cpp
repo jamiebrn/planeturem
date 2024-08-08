@@ -46,7 +46,7 @@ void Entity::update(float dt, ChunkManager& chunkManager)
     flash_amount = std::max(flash_amount - dt * 3.0f, 0.0f);
 }
 
-void Entity::draw(sf::RenderWindow& window, float dt, const sf::Color& color)
+void Entity::draw(sf::RenderTarget& window, float dt, const sf::Color& color)
 {
     const EntityData& entityData = EntityDataLoader::getEntityData(entityType);
 
@@ -66,6 +66,15 @@ void Entity::draw(sf::RenderWindow& window, float dt, const sf::Color& color)
 
     // DEBUG
     // collisionRect.debugDraw(window);
+}
+
+void Entity::drawLightMask(sf::RenderTarget& lightTexture)
+{
+    sf::Vector2f scale((float)ResolutionHandler::getScale(), (float)ResolutionHandler::getScale());
+
+    sf::IntRect lightMaskRect(128, 0, 32, 32);
+
+    TextureManager::drawSubTexture(lightTexture, {TextureType::LightMask, position + Camera::getIntegerDrawOffset(), 0, scale, {0.5, 0.5}}, lightMaskRect);
 }
 
 void Entity::damage(int amount)

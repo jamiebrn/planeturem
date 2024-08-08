@@ -19,7 +19,8 @@ public:
     Player(sf::Vector2f position);
 
     void update(float dt, sf::Vector2f mouseWorldPos, ChunkManager& chunkManager);
-    void draw(sf::RenderWindow& window, float dt, const sf::Color& color) override;
+    void draw(sf::RenderTarget& window, float dt, const sf::Color& color) override;
+    void drawLightMask(sf::RenderTarget& lightTexture);
 
     void useTool();
     bool isUsingTool();

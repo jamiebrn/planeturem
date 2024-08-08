@@ -38,9 +38,9 @@ public:
     static TileType getTileTypeFromNoiseHeight(float noiseValue);
 
     // Drawing
-    void drawChunkTerrain(sf::RenderWindow& window, float time);
-    void drawChunkTerrainVisual(sf::RenderWindow& window, float time);
-    void drawChunkWater(sf::RenderWindow& window, float time);
+    void drawChunkTerrain(sf::RenderTarget& window, float time);
+    void drawChunkTerrainVisual(sf::RenderTarget& window, float time);
+    void drawChunkWater(sf::RenderTarget& window, float time);
 
     // Get vector of chunk object/entities for drawing
     std::vector<WorldObject*> getObjects();

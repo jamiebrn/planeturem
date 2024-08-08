@@ -24,7 +24,7 @@ void BuildableObject::update(float dt)
     flash_amount = std::max(flash_amount - dt * 3, 0.0f);
 }
 
-void BuildableObject::draw(sf::RenderWindow& window, float dt, const sf::Color& color)
+void BuildableObject::draw(sf::RenderTarget& window, float dt, const sf::Color& color)
 {
     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
 
@@ -38,7 +38,7 @@ void BuildableObject::draw(sf::RenderWindow& window, float dt, const sf::Color& 
         }, objectData.textureRect, shader);
 }
 
-void BuildableObject::drawGUI(sf::RenderWindow& window, float dt, const sf::Color& color)
+void BuildableObject::drawGUI(sf::RenderTarget& window, float dt, const sf::Color& color)
 {
     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
 

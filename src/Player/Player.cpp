@@ -80,7 +80,7 @@ void Player::update(float dt, sf::Vector2f mouseWorldPos, ChunkManager& chunkMan
     // std::cout << position.x << ", " << position.y << std::endl;
 }
 
-void Player::draw(sf::RenderWindow& window, float dt, const sf::Color& color)
+void Player::draw(sf::RenderTarget& window, float dt, const sf::Color& color)
 {
     sf::Vector2f scale((float)ResolutionHandler::getScale(), (float)ResolutionHandler::getScale());
 
@@ -112,6 +112,15 @@ void Player::draw(sf::RenderWindow& window, float dt, const sf::Color& color)
 
     // DEBUG
     // collisionRect.debugDraw(window);
+}
+
+void Player::drawLightMask(sf::RenderTarget& lightTexture)
+{
+    sf::Vector2f scale((float)ResolutionHandler::getScale(), (float)ResolutionHandler::getScale());
+
+    sf::IntRect lightMaskRect(0, 0, 80, 80);
+
+    TextureManager::drawSubTexture(lightTexture, {TextureType::LightMask, position + Camera::getIntegerDrawOffset(), 0, scale, {0.5, 0.5}}, lightMaskRect);
 }
 
 void Player::useTool()

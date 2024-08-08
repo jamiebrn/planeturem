@@ -28,8 +28,8 @@ public:
 
     void updateChunks(const FastNoise& noise, int worldSize);
 
-    void drawChunkTerrain(sf::RenderWindow& window, float time);
-    void drawChunkWater(sf::RenderWindow& window, float time);
+    void drawChunkTerrain(sf::RenderTarget& window, float time);
+    void drawChunkWater(sf::RenderTarget& window, float time);
 
     void updateChunksObjects(float dt);
 
