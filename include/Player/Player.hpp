@@ -7,6 +7,7 @@
 #include "Core/ResolutionHandler.hpp"
 #include "Core/CollisionRect.hpp"
 #include "Core/AnimatedTexture.hpp"
+#include "Core/Tween.hpp"
 #include "Object/WorldObject.hpp"
 #include "World/ChunkManager.hpp"
 #include "Data/ToolData.hpp"
@@ -17,8 +18,11 @@ class Player : public WorldObject
 public:
     Player(sf::Vector2f position);
 
-    void update(float dt, ChunkManager& chunkManager);
+    void update(float dt, sf::Vector2f mouseWorldPos, ChunkManager& chunkManager);
     void draw(sf::RenderWindow& window, float dt, const sf::Color& color) override;
+
+    void useTool();
+    bool isUsingTool();
 
 private:
     CollisionRect collisionRect;
@@ -28,7 +32,13 @@ private:
     AnimatedTexture idleAnimation;
     AnimatedTexture runAnimation;
 
+    static const sf::Vector2f toolOffset;
+
     unsigned int equippedTool;
-    float t = 0;
+    float toolRotation;
+    Tween<float> toolTweener;
+    TweenID rotationTweenID;
+    bool swingingTool;
+    bool usingTool;
     
 };

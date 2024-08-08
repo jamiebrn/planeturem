@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include <chrono>
 #include <cmath>
+#include <cassert>
 
 enum TweenTransition
 {

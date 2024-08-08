@@ -1,5 +1,7 @@
 #include "Player/Player.hpp"
 
+const sf::Vector2f Player::toolOffset = {-2, -3};
+
 Player::Player(sf::Vector2f position)
     : WorldObject(position)
 {
@@ -16,12 +18,16 @@ Player::Player(sf::Vector2f position)
     idleAnimation.create(1, 16, 18, 0, 0, 0);
     runAnimation.create(5, 16, 18, 48, 0, 0.1);
 
-    equippedTool = 0;
+    equippedTool = 1;
+    toolRotation = 0;
+    usingTool = false;
 }
 
-void Player::update(float dt, ChunkManager& chunkManager)
+void Player::update(float dt, sf::Vector2f mouseWorldPos, ChunkManager& chunkManager)
 {
-    t += dt;
+    // Face towards mouse cursor (overridden if moving)
+    flippedTexture = (position.x - mouseWorldPos.x) > 0;
+
     // Handle movement input
     direction.x = sf::Keyboard::isKeyPressed(sf::Keyboard::D) - sf::Keyboard::isKeyPressed(sf::Keyboard::A);
     direction.y = sf::Keyboard::isKeyPressed(sf::Keyboard::S) - sf::Keyboard::isKeyPressed(sf::Keyboard::W);
@@ -56,6 +62,21 @@ void Player::update(float dt, ChunkManager& chunkManager)
     idleAnimation.update(dt);
     runAnimation.update(dt);
 
+    toolTweener.update(dt);
+
+    if (swingingTool)
+    {
+        if (toolTweener.isTweenFinished(rotationTweenID))
+        {
+            rotationTweenID = toolTweener.startTween(&toolRotation, 90.0f, 0.0f, 0.15, TweenTransition::Expo, TweenEasing::EaseOut);
+            swingingTool = false;
+        }
+    }
+    else if (usingTool)
+    {
+        if (toolTweener.isTweenFinished(rotationTweenID)) usingTool = false;
+    }
+
     // std::cout << position.x << ", " << position.y << std::endl;
 }
 
@@ -76,14 +97,29 @@ void Player::draw(sf::RenderWindow& window, float dt, const sf::Color& color)
 
     TextureManager::drawSubTexture(window, {TextureType::Player, position + Camera::getIntegerDrawOffset(), 0, scale, {0.5, 1}}, animationRect);
 
-    if (flippedTexture)
-        scale.x *= -1;
-
     // Draw equipped tool
     const ToolData& toolData = ToolDataLoader::getToolData(equippedTool);
 
-    TextureManager::drawSubTexture(window, {TextureType::Tools, position + Camera::getIntegerDrawOffset(), 0, scale, toolData.pivot}, toolData.textureRect);
+    sf::Vector2f toolPos = position + Camera::getIntegerDrawOffset() + sf::Vector2f(scale.x * toolOffset.x, scale.y * toolOffset.y);
+
+    float correctedToolRotation = toolRotation;
+    if (flippedTexture)
+        correctedToolRotation = -toolRotation;
+
+    TextureManager::drawSubTexture(window, {TextureType::Tools, toolPos, correctedToolRotation, scale, toolData.pivot}, toolData.textureRect);
 
     // DEBUG
     // collisionRect.debugDraw(window);
+}
+
+void Player::useTool()
+{
+    usingTool = true;
+    swingingTool = true;
+    rotationTweenID = toolTweener.startTween(&toolRotation, toolRotation, 90.0f, 0.15, TweenTransition::Expo, TweenEasing::EaseOut);
+}
+
+bool Player::isUsingTool()
+{
+    return usingTool;
 }

@@ -168,12 +168,13 @@ void Game::run()
             {
                 if (event.mouseButton.button == sf::Mouse::Left)
                 {
-                    if (!inventoryOpen && !buildMenuOpen)
+                    if (!inventoryOpen && !buildMenuOpen && !player.isUsingTool())
                     {
                         Entity* selectedEntity = chunkManager.getSelectedEntity(Cursor::getSelectedChunk(worldSize), mouseWorldPos);
                         if (selectedEntity != nullptr)
                         {
                             selectedEntity->damage(1);
+                            player.useTool();
                         }
                         else
                         {
@@ -182,6 +183,7 @@ void Game::run()
                             {
                                 BuildableObject& selectedObject = selectedObjectOptional.value();
                                 selectedObject.damage(1);
+                                player.useTool();
                             }
                         }
                     }
@@ -213,7 +215,7 @@ void Game::run()
         Camera::update(player.getPosition(), dt);
         Cursor::updateTileCursor(window, dt, buildMenuOpen, worldSize, chunkManager);
 
-        player.update(dt, chunkManager);
+        player.update(dt, mouseWorldPos, chunkManager);
 
         chunkManager.updateChunks(noise, worldSize);
         chunkManager.updateChunksObjects(dt);
