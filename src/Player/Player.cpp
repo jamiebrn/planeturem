@@ -15,10 +15,13 @@ Player::Player(sf::Vector2f position)
 
     idleAnimation.create(1, 16, 18, 0, 0, 0);
     runAnimation.create(5, 16, 18, 48, 0, 0.1);
+
+    equippedTool = 0;
 }
 
 void Player::update(float dt, ChunkManager& chunkManager)
 {
+    t += dt;
     // Handle movement input
     direction.x = sf::Keyboard::isKeyPressed(sf::Keyboard::D) - sf::Keyboard::isKeyPressed(sf::Keyboard::A);
     direction.y = sf::Keyboard::isKeyPressed(sf::Keyboard::S) - sf::Keyboard::isKeyPressed(sf::Keyboard::W);
@@ -72,6 +75,14 @@ void Player::draw(sf::RenderWindow& window, float dt, const sf::Color& color)
         animationRect = runAnimation.getTextureRect();
 
     TextureManager::drawSubTexture(window, {TextureType::Player, position + Camera::getIntegerDrawOffset(), 0, scale, {0.5, 1}}, animationRect);
+
+    if (flippedTexture)
+        scale.x *= -1;
+
+    // Draw equipped tool
+    const ToolData& toolData = ToolDataLoader::getToolData(equippedTool);
+
+    TextureManager::drawSubTexture(window, {TextureType::Tools, position + Camera::getIntegerDrawOffset(), 0, scale, toolData.pivot}, toolData.textureRect);
 
     // DEBUG
     // collisionRect.debugDraw(window);

@@ -221,6 +221,9 @@ public:
 	// ALWAYS uses SimplexFractal noise regardless of selected type
 	FN_DECIMAL GetNoiseSeamless2D(FN_DECIMAL x, FN_DECIMAL y, FN_DECIMAL width, FN_DECIMAL height) const;
 
+	// Normalise noise value between 0 and 1
+	static FN_DECIMAL Normalise(FN_DECIMAL noiseValue);
+
 private:
 	unsigned char m_perm[512];
 	unsigned char m_perm12[512];

@@ -11,5 +11,6 @@ enum class TextureType
     Items,
     BuildItems,
     Entities,
+    Tools,
     Shadow
 };

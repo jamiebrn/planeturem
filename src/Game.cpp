@@ -31,6 +31,7 @@ bool Game::initialise()
     if(!ObjectDataLoader::loadData("Data/Info/object_data.data")) return false;
     if(!BuildRecipeLoader::loadData("Data/Info/build_recipes.data")) return false;
     if(!EntityDataLoader::loadData("Data/Info/entity_data.data")) return false;
+    if(!ToolDataLoader::loadData("Data/Info/tool_data.data")) return false;
 
     // Load icon
     if(!icon.loadFromFile("Data/icon.png")) return false;

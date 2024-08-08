@@ -1,5 +1,7 @@
 #include "GUI/InventoryGUI.hpp"
 
+sf::Vector2f InventoryGUI::screenPos;
+
 void InventoryGUI::draw(sf::RenderWindow& window)
 {
     // Get resolution

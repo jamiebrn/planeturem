@@ -1,7 +1,7 @@
 #pragma once
 
 #include <SFML/Graphics.hpp>
-#include <math.h>
+#include <cmath>
 #include <algorithm>
 
 #include "Core/Camera.hpp"

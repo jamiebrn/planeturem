@@ -20,6 +20,7 @@ const std::unordered_map<TextureType, std::string> TextureManager::texturePaths 
     {TextureType::Items, "Data/item_sheet.png"},
     {TextureType::BuildItems, "Data/objects.png"},
     {TextureType::Entities, "Data/entities.png"},
+    {TextureType::Tools, "Data/tools.png"},
     {TextureType::Shadow, "Data/shadow.png"}
 };
 

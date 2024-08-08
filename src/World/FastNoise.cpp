@@ -351,6 +351,13 @@ FN_DECIMAL FastNoise::GetNoiseSeamless2D(FN_DECIMAL x, FN_DECIMAL y, FN_DECIMAL 
 	return GetSimplexFractal(nx, ny, nz, nw);
 }
 
+FN_DECIMAL FastNoise::Normalise(FN_DECIMAL noiseValue)
+{
+	static const float sqrt2Div2 = 0.70710678119f;
+	float noiseValueNormalised = (noiseValue + sqrt2Div2) / (sqrt2Div2 * 2);
+	return noiseValueNormalised;
+}
+
 FN_DECIMAL FastNoise::GetNoise(FN_DECIMAL x, FN_DECIMAL y, FN_DECIMAL z, FN_DECIMAL w) const
 {
 	x *= m_frequency;

@@ -24,6 +24,8 @@ void Chunk::generateChunk(const FastNoise& noise, int worldSize, ChunkManager& c
         for (int x = 0; x < 8; x++)
         {
             float height = noise.GetNoiseSeamless2D(worldNoisePosition.x + (float)x, worldNoisePosition.y + (float)y, noiseSize, noiseSize);
+            height = FastNoise::Normalise(height);
+            // std::cout << height << std::endl;
             // static const float sqrt2Div2 = 0.70710678119f;
             // float heightNormalised = (height - sqrt2Div2) / (sqrt2Div2 * 2);
 
@@ -121,9 +123,9 @@ void Chunk::generateChunk(const FastNoise& noise, int worldSize, ChunkManager& c
 
 TileType Chunk::getTileTypeFromNoiseHeight(float noiseValue)
 {
-    if (noiseValue < 0) return TileType::Water;
-    if (noiseValue > 0.2) return TileType::DarkGrass;
-    if (noiseValue >= 0 && noiseValue < 0.05) return TileType::Sand;
+    if (noiseValue < 0.5) return TileType::Water;
+    if (noiseValue > 0.7) return TileType::DarkGrass;
+    if (noiseValue < 0.53) return TileType::Sand;
     return TileType::Grass;
 }
 
@@ -198,6 +200,7 @@ void Chunk::generateVisualEffectTiles(const FastNoise& noise, int worldSize, Chu
             else
             {
                 float noiseValue = noise.GetNoiseSeamless2D(worldGridPosition.x * 8 + gridX, worldGridPosition.y * 8 + gridY, noiseSize, noiseSize);
+                noiseValue = FastNoise::Normalise(noiseValue);
                 return getTileTypeFromNoiseHeight(noiseValue);
             }
         }

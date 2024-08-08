@@ -3,7 +3,7 @@
 #include <SFML/Graphics.hpp>
 #include <World/FastNoise.h>
 #include <Core/json.hpp>
-#include <math.h>
+#include <cmath>
 #include <array>
 #include <map>
 #include <iostream>
@@ -15,6 +15,7 @@
 #include "Core/Camera.hpp"
 #include "Core/ResolutionHandler.hpp"
 #include "Core/Helper.hpp"
+#include "Core/Tween.hpp"
 #include "World/ChunkManager.hpp"
 #include "Player/Player.hpp"
 #include "Player/Cursor.hpp"
@@ -22,6 +23,7 @@
 #include "Data/ObjectDataLoader.hpp"
 #include "Data/BuildRecipeLoader.hpp"
 #include "Data/EntityDataLoader.hpp"
+#include "Data/ToolDataLoader.hpp"
 
 #include "GUI/InventoryGUI.hpp"
 #include "GUI/BuildGUI.hpp"

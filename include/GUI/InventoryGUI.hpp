@@ -15,4 +15,7 @@ class InventoryGUI
 public:
     static void draw(sf::RenderWindow& window);
 
+private:
+    static sf::Vector2f screenPos;
+
 };

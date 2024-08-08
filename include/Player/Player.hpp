@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-#include <math.h>
+#include <cmath>
 #include <algorithm>
 
 #include "Core/ResolutionHandler.hpp"
@@ -9,6 +9,8 @@
 #include "Core/AnimatedTexture.hpp"
 #include "Object/WorldObject.hpp"
 #include "World/ChunkManager.hpp"
+#include "Data/ToolData.hpp"
+#include "Data/ToolDataLoader.hpp"
 
 class Player : public WorldObject
 {
@@ -25,5 +27,8 @@ private:
 
     AnimatedTexture idleAnimation;
     AnimatedTexture runAnimation;
+
+    unsigned int equippedTool;
+    float t = 0;
     
 };
