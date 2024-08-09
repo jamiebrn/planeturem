@@ -17,3 +17,10 @@ void ResolutionHandler::changeScale(int amount)
 {
     scale = std::min(std::max(scale + amount, 1), 5);
 }
+
+int ResolutionHandler::getResolutionIntegerScale()
+{
+    float resolutionXScale = currentResolution.x / 1920.0f;
+    float resolutionYScale = currentResolution.y / 1080.0f;
+    return std::max(static_cast<int>(resolutionXScale), static_cast<int>(resolutionYScale));
+}

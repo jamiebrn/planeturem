@@ -36,12 +36,16 @@ public:
     static ChunkPosition getSelectedChunk(int worldSize);
     static sf::Vector2i getSelectedChunkTile();
 
+    static sf::Vector2f getMouseWorldPos(sf::RenderWindow& window);
+
     static inline const sf::Vector2f& getSelectPos() {return selectPos;}
     static inline const sf::Vector2f& getLerpedSelectPos() {return cursorCornerPositions[0].worldPosition;}
 
     static void setCursorCornersToDestination();
 
     static void drawCursor(sf::RenderWindow& window);
+
+    static void setCanReachTile(bool canReach);
 
 private:
     static void drawTileCursor(sf::RenderWindow& window);

@@ -213,3 +213,15 @@ sf::Vector2i Cursor::getSelectedChunkTile()
     selectedTile.y = ((selectPosTile.y % 8) + 8) % 8;
     return selectedTile;
 }
+
+sf::Vector2f Cursor::getMouseWorldPos(sf::RenderWindow& window)
+{
+    sf::Vector2f mousePos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
+    return mousePos - Camera::getDrawOffset();
+}
+
+void Cursor::setCanReachTile(bool canReach)
+{
+    if (!canReach)
+        drawState = CursorDrawState::Hidden;
+}

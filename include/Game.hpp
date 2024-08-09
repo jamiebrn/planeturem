@@ -38,17 +38,29 @@ public:
     void run();
 
 private:
+    void toggleFullScreen();
+    void handleWindowResize(sf::Vector2u newSize);
+
     void generateWaterNoiseTexture();
+
+    void handleEvents();
+    void attemptUseTool();
+    void attemptBuildObject();
 
 private:
     sf::RenderWindow window;
     sf::View view;
     sf::Image icon;
+    bool fullScreen = true;
 
     sf::Clock clock;
     float gameTime;
 
     int worldSize;
+
+    float dayNightToggleTimer;
+    float worldDarkness;
+    bool isDay;
 
     FastNoise noise;
 
@@ -59,4 +71,6 @@ private:
 
     bool inventoryOpen;
     bool buildMenuOpen;
+
+    Tween<float> floatTween;
 };

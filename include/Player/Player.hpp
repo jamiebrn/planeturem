@@ -13,6 +13,8 @@
 #include "Data/ToolData.hpp"
 #include "Data/ToolDataLoader.hpp"
 
+#include "GameConstants.hpp"
+
 class Player : public WorldObject
 {
 public:
@@ -25,6 +27,8 @@ public:
     void useTool();
     bool isUsingTool();
 
+    bool canReachPosition(sf::Vector2f worldPos);
+
 private:
     CollisionRect collisionRect;
     sf::Vector2f direction;
@@ -34,6 +38,8 @@ private:
     AnimatedTexture runAnimation;
 
     static const sf::Vector2f toolOffset;
+
+    int tileReach = 4;
 
     unsigned int equippedTool;
 

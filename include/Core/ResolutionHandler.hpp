@@ -2,6 +2,8 @@
 
 #include <SFML/Graphics.hpp>
 
+#include "GameConstants.hpp"
+
 class ResolutionHandler
 {
     ResolutionHandler() = delete;
@@ -12,13 +14,15 @@ public:
 
     static void changeScale(int amount);
 
-    static inline int getScale() {return scale;}
+    static inline int getScale() {return scale * getResolutionIntegerScale();}
 
-    static inline float getTileSize() {return scale * tileSize;}
+    static inline float getTileSize() {return scale * TILE_SIZE_PIXELS_UNSCALED;}
+
+    // Get scale integer scale based on 1080p (used for UI etc)
+    static int getResolutionIntegerScale();
 
 private:
     static sf::Vector2u currentResolution;
 
     static int scale;
-    static constexpr float tileSize = 16.0f;
 };

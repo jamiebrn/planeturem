@@ -53,10 +53,40 @@ bool Game::initialise()
     // Set world size
     worldSize = 40;
 
+    // Initialise day/night cycle
+    dayNightToggleTimer = 0.0f;
+    worldDarkness = 0.0f;
+    isDay = true;
+
     generateWaterNoiseTexture();
 
     // Return true by default
     return true;
+}
+
+void Game::toggleFullScreen()
+{
+    fullScreen = !fullScreen;
+
+    sf::VideoMode videoMode = sf::VideoMode::getDesktopMode();
+    
+    if (fullScreen) window.create(videoMode, "spacebuild", sf::Style::None);
+    else window.create(videoMode, "spacebuild", sf::Style::Default);
+
+    // Set window stuff
+    window.setIcon(256, 256, icon.getPixelsPtr());
+    window.setFramerateLimit(165);
+    window.setVerticalSyncEnabled(true);
+
+    handleWindowResize(sf::Vector2u(videoMode.width, videoMode.height));
+}
+
+void Game::handleWindowResize(sf::Vector2u newSize)
+{
+    view.setSize(newSize.x, newSize.y);
+    view.setCenter({newSize.x / 2.0f, newSize.y / 2.0f});
+
+    ResolutionHandler::setResolution({newSize.x, newSize.y});
 }
 
 void Game::generateWaterNoiseTexture()
@@ -128,92 +158,25 @@ void Game::run()
         sf::Vector2f mousePos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
         sf::Vector2f mouseWorldPos = mousePos - Camera::getDrawOffset();
 
-        for (auto event = sf::Event{}; window.pollEvent(event);)
+        floatTween.update(dt);
+
+        handleEvents();        
+
+        dayNightToggleTimer += dt;
+        if (dayNightToggleTimer >= 20.0f)
         {
-            if (event.type == sf::Event::Closed)
-            {
-                window.close();
-            }
-
-            if (event.type == sf::Event::Resized)
-            {
-                view.setSize(event.size.width, event.size.height);
-                view.setCenter({event.size.width / 2.0f, event.size.height / 2.0f});
-                ResolutionHandler::setResolution({event.size.width, event.size.height});
-            }
-
-            if (event.type == sf::Event::KeyPressed)
-            {
-                if (event.key.code == sf::Keyboard::F11)
-                {
-                    sf::VideoMode videoMode = sf::VideoMode::getDesktopMode();
-                    window.create(videoMode, "spacebuild", sf::Style::Default);
-                    window.setIcon(256, 256, icon.getPixelsPtr());
-                    window.setFramerateLimit(165);
-                    window.setVerticalSyncEnabled(true);
-                    view.setSize({(float)videoMode.width, (float)videoMode.height});
-                    view.setCenter({videoMode.width / 2.0f, videoMode.height / 2.0f});
-                    ResolutionHandler::setResolution({videoMode.width, videoMode.height});
-                }
-
-                if (event.key.code == sf::Keyboard::E && !buildMenuOpen)
-                    inventoryOpen = !inventoryOpen;
-                
-                if (event.key.code == sf::Keyboard::Tab && !inventoryOpen)
-                    buildMenuOpen = !buildMenuOpen;
-            }
-
-            if (event.type == sf::Event::MouseButtonPressed)
-            {
-                if (event.mouseButton.button == sf::Mouse::Left)
-                {
-                    if (!inventoryOpen && !buildMenuOpen && !player.isUsingTool())
-                    {
-                        Entity* selectedEntity = chunkManager.getSelectedEntity(Cursor::getSelectedChunk(worldSize), mouseWorldPos);
-                        if (selectedEntity != nullptr)
-                        {
-                            selectedEntity->damage(1);
-                        }
-                        else
-                        {
-                            std::optional<BuildableObject>& selectedObjectOptional = chunkManager.getChunkObject(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile());
-                            if (selectedObjectOptional.has_value())
-                            {
-                                BuildableObject& selectedObject = selectedObjectOptional.value();
-                                selectedObject.damage(1);
-                            }
-                        }
-                        player.useTool();
-                    }
-                    else if (buildMenuOpen)
-                    {
-                        unsigned int objectType = BuildGUI::getSelectedObject();
-                        if (Inventory::canBuildObject(objectType) && chunkManager.canPlaceObject(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile(), objectType, worldSize))
-                        {
-                            // Take resources
-                            for (auto& itemPair : BuildRecipeLoader::getBuildRecipe(objectType).itemRequirements)
-                            {
-                                Inventory::takeItem(itemPair.first, itemPair.second);
-                            }
-
-                            // Build object
-                            chunkManager.setObject(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile(), objectType, worldSize);
-                        }
-                    }
-                }
-            }
-
-            if (event.type == sf::Event::MouseWheelScrolled)
-            {
-                if (buildMenuOpen)
-                    BuildGUI::changeSelectedObject(-event.mouseWheelScroll.delta);
-            }
+            dayNightToggleTimer = 0.0f;
+            if (isDay) floatTween.startTween(&worldDarkness, 0.0f, 0.95f, 7, TweenTransition::Sine, TweenEasing::EaseInOut);
+            else floatTween.startTween(&worldDarkness, 0.95f, 0.0f, 7, TweenTransition::Sine, TweenEasing::EaseInOut);
+            isDay = !isDay;
         }
 
         Camera::update(player.getPosition(), dt);
         Cursor::updateTileCursor(window, dt, buildMenuOpen, worldSize, chunkManager);
 
         player.update(dt, mouseWorldPos, chunkManager);
+
+        Cursor::setCanReachTile(player.canReachPosition(Cursor::getMouseWorldPos(window)));
 
         chunkManager.updateChunks(noise, worldSize);
         chunkManager.updateChunksObjects(dt);
@@ -275,7 +238,7 @@ void Game::run()
         sf::Sprite worldTextureSprite(worldTexture.getTexture());
         sf::Shader* lightingShader = Shaders::getShader(ShaderType::Lighting);
         lightingShader->setUniform("lightingTexture", lightTexture.getTexture());
-        lightingShader->setUniform("darkness", 0.9f);
+        lightingShader->setUniform("darkness", worldDarkness);
         window.draw(worldTextureSprite, lightingShader);
 
         // Draw cursor
@@ -310,5 +273,98 @@ void Game::run()
 
         window.setTitle("spacebuild - " + std::to_string((int)(1.0f / dt)) + "FPS");
 
+    }
+}
+
+void Game::handleEvents()
+{
+    for (auto event = sf::Event{}; window.pollEvent(event);)
+    {
+        if (event.type == sf::Event::Closed)
+        {
+            window.close();
+        }
+
+        if (event.type == sf::Event::Resized)
+        {
+            handleWindowResize(sf::Vector2u(event.size.width, event.size.height));
+        }
+
+        if (event.type == sf::Event::KeyPressed)
+        {
+            if (event.key.code == sf::Keyboard::F11)
+            {
+                toggleFullScreen();
+            }
+
+            if (event.key.code == sf::Keyboard::E && !buildMenuOpen)
+                inventoryOpen = !inventoryOpen;
+            
+            if (event.key.code == sf::Keyboard::Tab && !inventoryOpen)
+                buildMenuOpen = !buildMenuOpen;
+        }
+
+        if (event.type == sf::Event::MouseButtonPressed)
+        {
+            if (event.mouseButton.button == sf::Mouse::Left)
+            {
+                attemptUseTool();
+                attemptBuildObject();
+            }
+        }
+
+        if (event.type == sf::Event::MouseWheelScrolled)
+        {
+            if (buildMenuOpen)
+                BuildGUI::changeSelectedObject(-event.mouseWheelScroll.delta);
+        }
+    }
+}
+
+void Game::attemptUseTool()
+{
+    if (inventoryOpen || buildMenuOpen || player.isUsingTool())
+        return;
+
+    // Get mouse position in screen space and world space
+    sf::Vector2f mouseWorldPos = Cursor::getMouseWorldPos(window);
+
+    if (!player.canReachPosition(mouseWorldPos))
+        return;
+
+    Entity* selectedEntity = chunkManager.getSelectedEntity(Cursor::getSelectedChunk(worldSize), mouseWorldPos);
+    if (selectedEntity != nullptr)
+    {
+        selectedEntity->damage(1);
+    }
+    else
+    {
+        std::optional<BuildableObject>& selectedObjectOptional = chunkManager.getChunkObject(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile());
+        if (selectedObjectOptional.has_value())
+        {
+            BuildableObject& selectedObject = selectedObjectOptional.value();
+            selectedObject.damage(1);
+        }
+    }
+
+    player.useTool();
+}
+
+void Game::attemptBuildObject()
+{
+    if (!buildMenuOpen)
+        return;
+    
+    unsigned int objectType = BuildGUI::getSelectedObject();
+    if (Inventory::canBuildObject(objectType) && chunkManager.canPlaceObject(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile(), objectType, worldSize))
+    {
+        // Take resources
+        for (auto& itemPair : BuildRecipeLoader::getBuildRecipe(objectType).itemRequirements)
+        {
+            Inventory::takeItem(itemPair.first, itemPair.second);
+        }
+
+        // Build object
+        chunkManager.setObject(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile(), objectType, worldSize);
     }
 }
