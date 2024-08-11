@@ -28,4 +28,5 @@ private:
     static int scale;
 
     static int currentZoom;
+    static int destinationZoom;
 };

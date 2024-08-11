@@ -200,8 +200,8 @@ void Cursor::drawDynamicCursor(sf::RenderWindow& window)
 ChunkPosition Cursor::getSelectedChunk(int worldSize)
 {
     ChunkPosition selectedChunk;
-    selectedChunk.x = ((static_cast<int>(std::floor(selectPosTile.x / 8.0f)) % worldSize) + worldSize) % worldSize;
-    selectedChunk.y = ((static_cast<int>(std::floor(selectPosTile.y / 8.0f)) % worldSize) + worldSize) % worldSize;
+    selectedChunk.x = ((static_cast<int>(std::floor(selectPosTile.x / CHUNK_TILE_SIZE)) % worldSize) + worldSize) % worldSize;
+    selectedChunk.y = ((static_cast<int>(std::floor(selectPosTile.y / CHUNK_TILE_SIZE)) % worldSize) + worldSize) % worldSize;
     return selectedChunk;
 }
 

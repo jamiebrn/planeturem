@@ -6,7 +6,7 @@ Player::Player(sf::Vector2f position)
     : WorldObject(position)
 {
     collisionRect.width = 16.0f;
-    collisionRect.height = 16.0f;
+    collisionRect.height = 10.0f;
 
     collisionRect.x = position.x - collisionRect.width / 2.0f;
     collisionRect.y = position.y - collisionRect.height / 2.0f;

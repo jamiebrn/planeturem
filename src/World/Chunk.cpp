@@ -403,10 +403,12 @@ TileType Chunk::getTileType(sf::Vector2i position) const
 void Chunk::setObject(sf::Vector2i position, unsigned int objectType, int worldSize, ChunkManager& chunkManager)
 {
     // Get tile size
-    float tileSize = ResolutionHandler::getTileSize();
+    // float tileSize = ResolutionHandler::getTileSize();
 
     // sf::Vector2f worldPosition = static_cast<sf::Vector2f>(worldGridPosition) * 8.0f * tileSize;
-    sf::Vector2f objectPos = worldPosition + sf::Vector2f(position.x * tileSize + tileSize / 2.0f, position.y * tileSize + tileSize / 2.0f);
+    sf::Vector2f objectPos;
+    objectPos.x = worldPosition.x + position.x * TILE_SIZE_PIXELS_UNSCALED + TILE_SIZE_PIXELS_UNSCALED / 2.0f;
+    objectPos.y = worldPosition.y + position.y * TILE_SIZE_PIXELS_UNSCALED + TILE_SIZE_PIXELS_UNSCALED / 2.0f;
 
     // std::unique_ptr<BuildableObject> object = std::make_unique<BuildableObject>(objectPos, objectType);
     BuildableObject object(objectPos, objectType);

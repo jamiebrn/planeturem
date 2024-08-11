@@ -13,8 +13,8 @@ Entity::Entity(sf::Vector2f position, unsigned int entityType)
     velocity.x = std::cos(velocityAngle * 2 * 3.14 / 180) * 23.0f;
     velocity.y = std::sin(velocityAngle * 2 * 3.14 / 180) * 23.0f;
 
-    collisionRect.width = TILE_SIZE_PIXELS_UNSCALED;
-    collisionRect.height = TILE_SIZE_PIXELS_UNSCALED;
+    collisionRect.width = TILE_SIZE_PIXELS_UNSCALED * entityData.size.x;
+    collisionRect.height = TILE_SIZE_PIXELS_UNSCALED * entityData.size.y;
 
     collisionRect.x = position.x - collisionRect.width / 2.0f;
     collisionRect.y = position.y - collisionRect.height / 2.0f;
@@ -102,7 +102,5 @@ unsigned int Entity::getEntityType()
 
 sf::Vector2f Entity::getSize()
 {
-    const EntityData& entityData = EntityDataLoader::getEntityData(entityType);
-
-    return entityData.size * TILE_SIZE_PIXELS_UNSCALED;
+    return sf::Vector2f(collisionRect.width, collisionRect.height);
 }

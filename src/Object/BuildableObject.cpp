@@ -33,6 +33,7 @@ void BuildableObject::draw(sf::RenderTarget& window, float dt, const sf::Color& 
 
     sf::Shader* shader = Shaders::getShader(ShaderType::Flash);
     shader->setUniform("flash_amount", flash_amount);
+    
     TextureManager::drawSubTexture(window, {
         TextureType::BuildItems, Camera::worldToScreenTransform(position), 0, scale, objectData.textureOrigin, color
         }, objectData.textureRect, shader);

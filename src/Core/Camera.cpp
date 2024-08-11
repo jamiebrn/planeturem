@@ -44,8 +44,8 @@ sf::Vector2f Camera::worldToScreenTransform(sf::Vector2f worldPos)
     sf::Vector2f screenCentreWorld = screenCentre / scale;
 
     sf::Vector2f screenPos;
-    screenPos.x = static_cast<int>(std::round((worldPos.x - std::round(offset.x * scale) / scale - screenCentreWorld.x) * scale + screenCentre.x));
-    screenPos.y = static_cast<int>(std::round((worldPos.y - std::round(offset.y * scale) / scale - screenCentreWorld.y) * scale + screenCentre.y));
+    screenPos.x = (worldPos.x - std::round(offset.x * scale) / scale - screenCentreWorld.x) * scale + screenCentre.x;
+    screenPos.y = (worldPos.y - std::round(offset.y * scale) / scale - screenCentreWorld.y) * scale + screenCentre.y;
 
     return screenPos;
 }

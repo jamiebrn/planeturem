@@ -9,7 +9,7 @@
         "texture-y-origin": 1,
         "health": 5,
         "size-x": 1,
-        "size-y": 1
+        "size-y": 0.6
     },
     "1": {
         "name": "Horse",
@@ -21,6 +21,6 @@
         "texture-y-origin": 1,
         "health": 5,
         "size-x": 1,
-        "size-y": 1
+        "size-y": 0.7
     }
 }

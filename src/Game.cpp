@@ -194,7 +194,8 @@ void Game::run()
 
         player.update(dt, Cursor::getMouseWorldPos(window), chunkManager);
 
-        Cursor::setCanReachTile(player.canReachPosition(Cursor::getMouseWorldPos(window)));
+        if (!buildMenuOpen)
+            Cursor::setCanReachTile(player.canReachPosition(Cursor::getMouseWorldPos(window)));
 
         chunkManager.updateChunks(noise, worldSize);
         chunkManager.updateChunksObjects(dt);
@@ -277,9 +278,7 @@ void Game::run()
 
             unsigned int selectedObjectType = BuildGUI::getSelectedObject();
 
-            float tileSize = ResolutionHandler::getTileSize();
-
-            BuildableObject recipeObject(Cursor::getLerpedSelectPos() * static_cast<float>(ResolutionHandler::getScale()) + sf::Vector2f(tileSize / 2.0f, tileSize / 2.0f), selectedObjectType);
+            BuildableObject recipeObject(Cursor::getLerpedSelectPos() + sf::Vector2f(TILE_SIZE_PIXELS_UNSCALED / 2.0f, TILE_SIZE_PIXELS_UNSCALED / 2.0f), selectedObjectType);
 
             if (Inventory::canBuildObject(selectedObjectType) && chunkManager.canPlaceObject(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile(), selectedObjectType, worldSize))
                 recipeObject.draw(window, dt, {0, 255, 0, 180});
