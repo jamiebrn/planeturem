@@ -69,9 +69,11 @@ void Game::toggleFullScreen()
     fullScreen = !fullScreen;
 
     sf::VideoMode videoMode = sf::VideoMode::getDesktopMode();
+
+    unsigned int windowStyle = sf::Style::Default;
+    if (fullScreen) windowStyle = sf::Style::None;
     
-    if (fullScreen) window.create(videoMode, "spacebuild", sf::Style::None);
-    else window.create(videoMode, "spacebuild", sf::Style::Default);
+    window.create(videoMode, "spacebuild", windowStyle);
 
     // Set window stuff
     window.setIcon(256, 256, icon.getPixelsPtr());
@@ -86,7 +88,24 @@ void Game::handleWindowResize(sf::Vector2u newSize)
     view.setSize(newSize.x, newSize.y);
     view.setCenter({newSize.x / 2.0f, newSize.y / 2.0f});
 
+    float beforeScale = ResolutionHandler::getScale();
+
     ResolutionHandler::setResolution({newSize.x, newSize.y});
+
+    float afterScale = ResolutionHandler::getScale();
+
+    if (beforeScale != afterScale)
+        Camera::handleScaleChange(beforeScale, afterScale, player.getPosition());
+}
+
+void Game::handleZoom(int zoomChange)
+{
+    float beforeScale = ResolutionHandler::getScale();
+    ResolutionHandler::changeZoom(zoomChange);
+    
+    float afterScale = ResolutionHandler::getScale();
+
+    Camera::handleScaleChange(beforeScale, afterScale, player.getPosition());
 }
 
 void Game::generateWaterNoiseTexture()
@@ -151,30 +170,29 @@ void Game::run()
 {
     while (window.isOpen())
     {
+        // std::cout << ResolutionHandler::getScale() << std::endl;
+        
         float dt = clock.restart().asSeconds();
         gameTime += dt;
 
-        // Get mouse position in screen space and world space
-        sf::Vector2f mousePos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
-        sf::Vector2f mouseWorldPos = mousePos - Camera::getDrawOffset();
 
         floatTween.update(dt);
 
         handleEvents();        
 
         dayNightToggleTimer += dt;
-        if (dayNightToggleTimer >= 20.0f)
-        {
-            dayNightToggleTimer = 0.0f;
-            if (isDay) floatTween.startTween(&worldDarkness, 0.0f, 0.95f, 7, TweenTransition::Sine, TweenEasing::EaseInOut);
-            else floatTween.startTween(&worldDarkness, 0.95f, 0.0f, 7, TweenTransition::Sine, TweenEasing::EaseInOut);
-            isDay = !isDay;
-        }
+        // if (dayNightToggleTimer >= 20.0f)
+        // {
+        //     dayNightToggleTimer = 0.0f;
+        //     if (isDay) floatTween.startTween(&worldDarkness, 0.0f, 0.95f, 7, TweenTransition::Sine, TweenEasing::EaseInOut);
+        //     else floatTween.startTween(&worldDarkness, 0.95f, 0.0f, 7, TweenTransition::Sine, TweenEasing::EaseInOut);
+        //     isDay = !isDay;
+        // }
 
         Camera::update(player.getPosition(), dt);
         Cursor::updateTileCursor(window, dt, buildMenuOpen, worldSize, chunkManager);
 
-        player.update(dt, mouseWorldPos, chunkManager);
+        player.update(dt, Cursor::getMouseWorldPos(window), chunkManager);
 
         Cursor::setCanReachTile(player.canReachPosition(Cursor::getMouseWorldPos(window)));
 
@@ -261,7 +279,7 @@ void Game::run()
 
             float tileSize = ResolutionHandler::getTileSize();
 
-            BuildableObject recipeObject(Cursor::getLerpedSelectPos() + sf::Vector2f(tileSize / 2.0f, tileSize / 2.0f), selectedObjectType);
+            BuildableObject recipeObject(Cursor::getLerpedSelectPos() * static_cast<float>(ResolutionHandler::getScale()) + sf::Vector2f(tileSize / 2.0f, tileSize / 2.0f), selectedObjectType);
 
             if (Inventory::canBuildObject(selectedObjectType) && chunkManager.canPlaceObject(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile(), selectedObjectType, worldSize))
                 recipeObject.draw(window, dt, {0, 255, 0, 180});
@@ -317,6 +335,8 @@ void Game::handleEvents()
         {
             if (buildMenuOpen)
                 BuildGUI::changeSelectedObject(-event.mouseWheelScroll.delta);
+            else
+                handleZoom(event.mouseWheelScroll.delta);
         }
     }
 }
@@ -328,6 +348,8 @@ void Game::attemptUseTool()
 
     // Get mouse position in screen space and world space
     sf::Vector2f mouseWorldPos = Cursor::getMouseWorldPos(window);
+
+    player.useTool();
 
     if (!player.canReachPosition(mouseWorldPos))
         return;
@@ -346,8 +368,6 @@ void Game::attemptUseTool()
             selectedObject.damage(1);
         }
     }
-
-    player.useTool();
 }
 
 void Game::attemptBuildObject()

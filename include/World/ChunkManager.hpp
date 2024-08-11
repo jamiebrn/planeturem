@@ -26,47 +26,74 @@ class ChunkManager
 public:
     ChunkManager() = default;
 
+    // Load/unload chunks every frame
     void updateChunks(const FastNoise& noise, int worldSize);
 
+    // Drawing functions for chunk terrain
     void drawChunkTerrain(sf::RenderTarget& window, float time);
     void drawChunkWater(sf::RenderTarget& window, float time);
 
+
+    // -- Objects -- //
+    // Update objects in all chunks
     void updateChunksObjects(float dt);
 
+    // Get object at certain world position
+    // Returns actual object if object reference is at position requested
     std::optional<BuildableObject>& getChunkObject(ChunkPosition chunk, sf::Vector2i tile);
-    // bool interactWithObject(sf::Vector2i selected_tile);
+
+    // Get tile type from loaded chunks (used in object placement/collisions)
     TileType getLoadedChunkTileType(ChunkPosition chunk, sf::Vector2i tile) const;
 
+    // Get tile type from all generated chunks (used in chunk visual detail generation)
     TileType getChunkTileType(ChunkPosition chunk, sf::Vector2i tile);
 
+    // Whether chunk has been generated, stored or loaded
     bool isChunkGenerated(ChunkPosition chunk);
 
+    // Sets object in chunk at tile
+    // Places object references if required
     void setObject(ChunkPosition chunk, sf::Vector2i tile, unsigned int objectType, int worldSize);
+
+    // Deletes object in chunk at tile
+    // Deletes object references if required
     void deleteObject(ChunkPosition chunk, sf::Vector2i tile);
 
-    // unsigned int getObjectTypeFromObjectReference(const ObjectReference& objectReference) const;
+    // Creates an object reference object in chunk at tile, with given data
     void setObjectReference(const ChunkPosition& chunk, const ObjectReference& objectReference, sf::Vector2i tile);
 
+    // Tests whether an object can be placed in chunk at tile, taking into account object size etc
     bool canPlaceObject(ChunkPosition chunk, sf::Vector2i tile, unsigned int objectType, int worldSize);
 
-    void updateChunksEntities(float dt, int worldSize);
-    void moveEntityToChunkFromChunk(std::unique_ptr<Entity> entity, ChunkPosition newChunk);
-
-    Entity* getSelectedEntity(ChunkPosition chunk, sf::Vector2f cursorPos);
-
+    // Get all objects in loaded chunks (used for drawing)
     std::vector<WorldObject*> getChunkObjects();
 
+
+    // -- Entities -- //
+    // Update all entities in loaded chunks
+    void updateChunksEntities(float dt, int worldSize);
+
+    // Handle moving of entity from one chunk to another chunk
+    void moveEntityToChunkFromChunk(std::unique_ptr<Entity> entity, ChunkPosition newChunk);
+
+    // Get entity selected at cursor position (IN WORLD SPACE), if any
+    Entity* getSelectedEntity(ChunkPosition chunk, sf::Vector2f cursorPos);
+
+    // Get all entities in loaded chunks (used for drawing)
+    std::vector<WorldObject*> getChunkEntities();
+
+
+    // -- Collision -- //
+    // Collision test functions for player, entity etc
+    // against collision rects in all loaded chunks
+    bool collisionRectChunkStaticCollisionX(CollisionRect& collisionRect, float dx);
+    bool collisionRectChunkStaticCollisionY(CollisionRect& collisionRect, float dy);
+
+    // Gets all collision rects from loaded chunks
     // DONT USE FOR GENERAL COLLISION CHECKING - use collisionRectChunkStaticCollision functions
     // to avoid copying pointers redundantly
     std::vector<CollisionRect*> getChunkCollisionRects();
 
-    bool collisionRectChunkStaticCollisionX(CollisionRect& collisionRect, float dx);
-    bool collisionRectChunkStaticCollisionY(CollisionRect& collisionRect, float dy);
-
-    std::vector<WorldObject*> getChunkEntities();
-
-
-    // inline std::map<ChunkPosition, std::unique_ptr<Chunk>>& getChunks() {return chunks;}
 
 private:
     std::unordered_map<ChunkPosition, std::unique_ptr<Chunk>> storedChunks;

@@ -6,10 +6,12 @@ sf::Vector2f Camera::offset = sf::Vector2f(0, 0);
 // Update camera based on player position (or any position)
 void Camera::update(sf::Vector2f playerPosition, float deltaTime)
 {
+    float scale = ResolutionHandler::getScale();
+
     // Calculate position/offset camera should be in
     sf::Vector2f destinationOffset;
-    destinationOffset.x = playerPosition.x - ResolutionHandler::getResolution().x / 2.0f;
-    destinationOffset.y = playerPosition.y - ResolutionHandler::getResolution().y / 2.0f;
+    destinationOffset.x = playerPosition.x - (ResolutionHandler::getResolution().x / scale) / 2.0f;
+    destinationOffset.y = playerPosition.y - (ResolutionHandler::getResolution().y / scale) / 2.0f;
 
     // Interpolate towards desired position
     offset.x = Helper::lerp(offset.x, destinationOffset.x, MOVE_LERP_WEIGHT * deltaTime);
@@ -32,6 +34,46 @@ sf::Vector2f Camera::getIntegerDrawOffset()
     drawOffset.y = static_cast<int>(-offset.y);
     
     return drawOffset;
+}
+
+sf::Vector2f Camera::worldToScreenTransform(sf::Vector2f worldPos)
+{
+    float scale = ResolutionHandler::getScale();
+
+    sf::Vector2f screenCentre = static_cast<sf::Vector2f>(ResolutionHandler::getResolution()) / 2.0f;
+    sf::Vector2f screenCentreWorld = screenCentre / scale;
+
+    sf::Vector2f camPos = -getIntegerDrawOffset();
+
+    sf::Vector2f screenPos;
+    screenPos.x = static_cast<int>(std::round((worldPos.x - offset.x - screenCentreWorld.x) * scale + screenCentre.x));
+    screenPos.y = static_cast<int>(std::round((worldPos.y - offset.y - screenCentreWorld.y) * scale + screenCentre.y));
+
+    return screenPos;
+}
+
+sf::Vector2f Camera::screenToWorldTransform(sf::Vector2f screenPos)
+{
+    float scale = ResolutionHandler::getScale();
+
+    sf::Vector2f screenCentre = static_cast<sf::Vector2f>(ResolutionHandler::getResolution()) / 2.0f;
+    sf::Vector2f screenCentreWorld = screenCentre / scale;
+
+    sf::Vector2f camPos = -getIntegerDrawOffset();
+
+    sf::Vector2f worldPos;
+    worldPos.x = (screenPos.x - screenCentre.x) / scale + screenCentreWorld.x + offset.x;
+    worldPos.y = (screenPos.y - screenCentre.y) / scale + screenCentreWorld.y + offset.y;
+
+    return worldPos;
+}
+
+void Camera::handleScaleChange(float beforeScale, float afterScale, sf::Vector2f playerPosition)
+{
+    sf::Vector2f adjustedCamPos;
+    adjustedCamPos.x = playerPosition.x - ((playerPosition.x - offset.x) * beforeScale) / afterScale;
+    adjustedCamPos.y = playerPosition.y - ((playerPosition.y - offset.y) * beforeScale) / afterScale;
+    Camera::setOffset(adjustedCamPos);
 }
 
 // Set offset of camera

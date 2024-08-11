@@ -10,11 +10,11 @@ Entity::Entity(sf::Vector2f position, unsigned int entityType)
     health = entityData.health;
 
     float velocityAngle = rand() % 360;
-    velocity.x = std::cos(velocityAngle * 2 * M_PI / 180) * 70.0f;
-    velocity.y = std::sin(velocityAngle * 2 * M_PI / 180) * 70.0f;
+    velocity.x = std::cos(velocityAngle * 2 * 3.14 / 180) * 23.0f;
+    velocity.y = std::sin(velocityAngle * 2 * 3.14 / 180) * 23.0f;
 
-    collisionRect.width = 48.0f;
-    collisionRect.height = 48.0f;
+    collisionRect.width = TILE_SIZE_PIXELS_UNSCALED;
+    collisionRect.height = TILE_SIZE_PIXELS_UNSCALED;
 
     collisionRect.x = position.x - collisionRect.width / 2.0f;
     collisionRect.y = position.y - collisionRect.height / 2.0f;
@@ -53,7 +53,7 @@ void Entity::draw(sf::RenderTarget& window, float dt, const sf::Color& color)
     sf::Vector2f scale(ResolutionHandler::getScale(), ResolutionHandler::getScale());
 
     // Draw shadow
-    TextureManager::drawTexture(window, {TextureType::Shadow, position + Camera::getIntegerDrawOffset(), 0, scale, {0.5, 0.85}});
+    TextureManager::drawTexture(window, {TextureType::Shadow, Camera::worldToScreenTransform(position), 0, scale, {0.5, 0.85}});
 
     if (velocity.x < 0)
         scale.x *= -1;
@@ -61,7 +61,7 @@ void Entity::draw(sf::RenderTarget& window, float dt, const sf::Color& color)
     sf::Shader* shader = Shaders::getShader(ShaderType::Flash);
     shader->setUniform("flash_amount", flash_amount);
 
-    TextureManager::drawSubTexture(window, {TextureType::Entities, position + Camera::getIntegerDrawOffset(), 0, 
+    TextureManager::drawSubTexture(window, {TextureType::Entities, Camera::worldToScreenTransform(position), 0, 
         scale, entityData.textureOrigin, color}, entityData.textureRect, shader);
 
     // DEBUG
@@ -74,7 +74,7 @@ void Entity::drawLightMask(sf::RenderTarget& lightTexture)
 
     sf::IntRect lightMaskRect(128, 0, 32, 32);
 
-    TextureManager::drawSubTexture(lightTexture, {TextureType::LightMask, position + Camera::getIntegerDrawOffset(), 0, scale, {0.5, 0.5}}, lightMaskRect);
+    TextureManager::drawSubTexture(lightTexture, {TextureType::LightMask, Camera::worldToScreenTransform(position), 0, scale, {0.5, 0.5}}, lightMaskRect);
 }
 
 void Entity::damage(int amount)
@@ -102,5 +102,5 @@ sf::Vector2f Entity::getSize()
 {
     const EntityData& entityData = EntityDataLoader::getEntityData(entityType);
 
-    return entityData.size * ResolutionHandler::getTileSize();
+    return entityData.size * TILE_SIZE_PIXELS_UNSCALED;
 }

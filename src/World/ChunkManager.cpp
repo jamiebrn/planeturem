@@ -11,13 +11,19 @@ void ChunkManager::updateChunks(const FastNoise& noise, int worldSize)
     float tileSize = ResolutionHandler::getTileSize();
 
     // Get screen bounds
-    sf::Vector2f screenTopLeft = -Camera::getDrawOffset();
-    sf::Vector2f screenBottomRight = -Camera::getDrawOffset() + static_cast<sf::Vector2f>(ResolutionHandler::getResolution());
+    // sf::Vector2f screenTopLeft = -Camera::getDrawOffset();
+    // sf::Vector2f screenBottomRight = -Camera::getDrawOffset() + static_cast<sf::Vector2f>(ResolutionHandler::getResolution());
+    sf::Vector2f screenTopLeft = Camera::screenToWorldTransform({0, 0});
+    sf::Vector2f screenBottomRight = Camera::screenToWorldTransform(static_cast<sf::Vector2f>(ResolutionHandler::getResolution()));
 
     // Convert screen bounds to chunk units
-    sf::Vector2i screenTopLeftGrid(std::floor(screenTopLeft.x / (tileSize * 8)), std::floor(screenTopLeft.y / (tileSize * 8)));
-    sf::Vector2i screenBottomRightGrid = screenTopLeftGrid + sf::Vector2i(
-        std::ceil(ResolutionHandler::getResolution().x / (tileSize * 8)), std::ceil(ResolutionHandler::getResolution().y / (tileSize * 8)) + 1);
+    sf::Vector2i screenTopLeftGrid;
+    sf::Vector2i screenBottomRightGrid;
+
+    screenTopLeftGrid.y = std::floor(screenTopLeft.y / (TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE));
+    screenTopLeftGrid.x = std::floor(screenTopLeft.x / (TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE));
+    screenBottomRightGrid.x = std::ceil(screenBottomRight.x / (TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE));
+    screenBottomRightGrid.y = std::ceil(screenBottomRight.y / (TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE));
 
     // Check any chunks needed to load
     for (int y = screenTopLeftGrid.y - 1; y <= screenBottomRightGrid.y + 1; y++)
@@ -36,8 +42,8 @@ void ChunkManager::updateChunks(const FastNoise& noise, int worldSize)
 
             // Calculate chunk world pos
             sf::Vector2f chunkWorldPos;
-            chunkWorldPos.x = x * 8.0f * tileSize;
-            chunkWorldPos.y = y * 8.0f * tileSize;
+            chunkWorldPos.x = x * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
+            chunkWorldPos.y = y * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
 
             // Check if chunk is in memory, and load if so
             if (storedChunks.count(ChunkPosition(wrappedX, wrappedY)))

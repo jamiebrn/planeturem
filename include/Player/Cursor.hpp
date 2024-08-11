@@ -13,6 +13,8 @@
 #include "World/ChunkManager.hpp"
 #include "GUI/BuildGUI.hpp"
 
+#include "GameConstants.hpp"
+
 enum CursorDrawState
 {
     Hidden,

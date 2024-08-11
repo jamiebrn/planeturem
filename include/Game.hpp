@@ -43,6 +43,8 @@ private:
 
     void generateWaterNoiseTexture();
 
+    void handleZoom(int zoomChange);
+
     void handleEvents();
     void attemptUseTool();
     void attemptBuildObject();

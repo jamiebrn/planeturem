@@ -9,19 +9,19 @@ Chunk::Chunk(sf::Vector2i worldGridPosition)
 void Chunk::generateChunk(const FastNoise& noise, int worldSize, ChunkManager& chunkManager)
 {
     // Get tile size
-    float tileSize = ResolutionHandler::getTileSize();
+    // float tileSize = ResolutionHandler::getTileSize();
     
-    sf::Vector2f worldNoisePosition = static_cast<sf::Vector2f>(worldGridPosition) * 8.0f;
+    sf::Vector2f worldNoisePosition = static_cast<sf::Vector2f>(worldGridPosition) * CHUNK_TILE_SIZE;
 
-    float noiseSize = 8.0f * worldSize;
+    float noiseSize = CHUNK_TILE_SIZE * worldSize;
 
     // std::array<std::array<sf::Uint8, 8 * 4>, 8> heightMapData;
 
     bool chunkHasWater = false;
 
-    for (int y = 0; y < 8; y++)
+    for (int y = 0; y < CHUNK_TILE_SIZE; y++)
     {
-        for (int x = 0; x < 8; x++)
+        for (int x = 0; x < CHUNK_TILE_SIZE; x++)
         {
             float height = noise.GetNoiseSeamless2D(worldNoisePosition.x + (float)x, worldNoisePosition.y + (float)y, noiseSize, noiseSize);
             height = FastNoise::Normalise(height);
@@ -39,11 +39,11 @@ void Chunk::generateChunk(const FastNoise& noise, int worldSize, ChunkManager& c
                 continue;
             }
 
-            int vertexArrayIndex = (x + y * 8) * 4;
-            groundVertexArray[vertexArrayIndex].position = sf::Vector2f(x * 16, y * 16);
-            groundVertexArray[vertexArrayIndex + 1].position = sf::Vector2f(x * 16 + 16, y * 16);
-            groundVertexArray[vertexArrayIndex + 3].position = sf::Vector2f(x * 16, y * 16 + 16);
-            groundVertexArray[vertexArrayIndex + 2].position = sf::Vector2f(x * 16 + 16, y * 16 + 16);
+            int vertexArrayIndex = (x + y * CHUNK_TILE_SIZE) * 4;
+            groundVertexArray[vertexArrayIndex].position = sf::Vector2f(x * TILE_SIZE_PIXELS_UNSCALED, y * TILE_SIZE_PIXELS_UNSCALED);
+            groundVertexArray[vertexArrayIndex + 1].position = sf::Vector2f(x * TILE_SIZE_PIXELS_UNSCALED + TILE_SIZE_PIXELS_UNSCALED, y * TILE_SIZE_PIXELS_UNSCALED);
+            groundVertexArray[vertexArrayIndex + 3].position = sf::Vector2f(x * TILE_SIZE_PIXELS_UNSCALED, y * TILE_SIZE_PIXELS_UNSCALED + TILE_SIZE_PIXELS_UNSCALED);
+            groundVertexArray[vertexArrayIndex + 2].position = sf::Vector2f(x * TILE_SIZE_PIXELS_UNSCALED + TILE_SIZE_PIXELS_UNSCALED, y * TILE_SIZE_PIXELS_UNSCALED + TILE_SIZE_PIXELS_UNSCALED);
 
             int textureVariation;
 
@@ -79,7 +79,7 @@ void Chunk::generateChunk(const FastNoise& noise, int worldSize, ChunkManager& c
                 continue;
 
             int spawn_chance = rand() % 40;
-            sf::Vector2f objectPos = worldPosition + sf::Vector2f(x * tileSize + tileSize / 2.0f, y * tileSize + tileSize / 2.0f);
+            sf::Vector2f objectPos = worldPosition + sf::Vector2f(x * TILE_SIZE_PIXELS_UNSCALED + TILE_SIZE_PIXELS_UNSCALED / 2.0f, y * TILE_SIZE_PIXELS_UNSCALED + TILE_SIZE_PIXELS_UNSCALED / 2.0f);
 
             if (spawn_chance < 4)
             {
@@ -108,8 +108,8 @@ void Chunk::generateChunk(const FastNoise& noise, int worldSize, ChunkManager& c
         for (int i = 0; i < entityCount; i++)
         {
             sf::Vector2f spawnPos;
-            spawnPos.x = worldPosition.x + rand() % (static_cast<int>(tileSize) * 8);
-            spawnPos.y = worldPosition.y + rand() % (static_cast<int>(tileSize) * 8);
+            spawnPos.x = worldPosition.x + rand() % (static_cast<int>(TILE_SIZE_PIXELS_UNSCALED) * static_cast<int>(CHUNK_TILE_SIZE));
+            spawnPos.y = worldPosition.y + rand() % (static_cast<int>(TILE_SIZE_PIXELS_UNSCALED) * static_cast<int>(CHUNK_TILE_SIZE));
             unsigned int entityType = rand() % 2;
             std::unique_ptr<Entity> entity = std::make_unique<Entity>(spawnPos, entityType);
             entities.push_back(std::move(entity));
@@ -119,14 +119,6 @@ void Chunk::generateChunk(const FastNoise& noise, int worldSize, ChunkManager& c
     generateVisualEffectTiles(noise, worldSize, chunkManager);
 
     recalculateCollisionRects(chunkManager);
-}
-
-TileType Chunk::getTileTypeFromNoiseHeight(float noiseValue)
-{
-    if (noiseValue < 0.5) return TileType::Water;
-    if (noiseValue > 0.7) return TileType::DarkGrass;
-    if (noiseValue < 0.53) return TileType::Sand;
-    return TileType::Grass;
 }
 
 void Chunk::generateVisualEffectTiles(const FastNoise& noise, int worldSize, ChunkManager& chunkManager)
@@ -235,6 +227,14 @@ void Chunk::generateVisualEffectTiles(const FastNoise& noise, int worldSize, Chu
     }
 }
 
+TileType Chunk::getTileTypeFromNoiseHeight(float noiseValue)
+{
+    if (noiseValue < 0.5) return TileType::Water;
+    if (noiseValue > 0.7) return TileType::DarkGrass;
+    if (noiseValue < 0.53) return TileType::Sand;
+    return TileType::Grass;
+}
+
 void Chunk::drawChunkTerrain(sf::RenderTarget& window, float time)
 {
     // Get tile size and scale
@@ -245,7 +245,7 @@ void Chunk::drawChunkTerrain(sf::RenderTarget& window, float time)
     
     // Draw terrain tiles
     sf::Transform transform;
-    transform.translate(Camera::getIntegerDrawOffset() + worldPosition);
+    transform.translate(Camera::worldToScreenTransform(worldPosition));
     transform.scale(scale, scale);
 
     sf::RenderStates state;
@@ -254,29 +254,29 @@ void Chunk::drawChunkTerrain(sf::RenderTarget& window, float time)
     window.draw(groundVertexArray, state);
 
     // DEBUG DRAW LINE TO ENTITIES
-    // for (auto& entity : entities)
-    // {
-    //     sf::VertexArray lines(sf::Lines, 2);
-    //     lines[0].position = worldPosition + Camera::getIntegerDrawOffset();
-    //     lines[1].position = entity->getPosition() + Camera::getIntegerDrawOffset();
-    //     window.draw(lines);
-    // }
+    for (auto& entity : entities)
+    {
+        sf::VertexArray lines(sf::Lines, 2);
+        lines[0].position = Camera::worldToScreenTransform(worldPosition);
+        lines[1].position = Camera::worldToScreenTransform(entity->getPosition());
+        window.draw(lines);
+    }
 
-    // // DEBUG CHUNK OUTLINE DRAW
-    // sf::VertexArray lines(sf::Lines, 8);
-    // lines[0].position = Camera::getIntegerDrawOffset() + worldPosition; lines[1].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(tileSize * 8, 0);
-    // lines[2].position = Camera::getIntegerDrawOffset() + worldPosition; lines[3].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(0, tileSize * 8);
-    // lines[4].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(tileSize * 8, 0); lines[5].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(tileSize * 8, tileSize * 8);
-    // lines[6].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(0, tileSize * 8); lines[7].position = Camera::getIntegerDrawOffset() + worldPosition + sf::Vector2f(tileSize * 8, tileSize * 8);
+    // DEBUG CHUNK OUTLINE DRAW
+    sf::VertexArray lines(sf::Lines, 8);
+    lines[0].position = Camera::worldToScreenTransform(worldPosition); lines[1].position = Camera::worldToScreenTransform(worldPosition) + sf::Vector2f(tileSize * 8, 0);
+    lines[2].position = Camera::worldToScreenTransform(worldPosition); lines[3].position = Camera::worldToScreenTransform(worldPosition) + sf::Vector2f(0, tileSize * 8);
+    lines[4].position = Camera::worldToScreenTransform(worldPosition) + sf::Vector2f(tileSize * 8, 0); lines[5].position = Camera::worldToScreenTransform(worldPosition) + sf::Vector2f(tileSize * 8, tileSize * 8);
+    lines[6].position = Camera::worldToScreenTransform(worldPosition) + sf::Vector2f(0, tileSize * 8); lines[7].position = Camera::worldToScreenTransform(worldPosition) + sf::Vector2f(tileSize * 8, tileSize * 8);
 
-    // window.draw(lines);
+    window.draw(lines);
 }
 
 void Chunk::drawChunkTerrainVisual(sf::RenderTarget& window, float time)
 {
     // Get tile size and scale
     float scale = ResolutionHandler::getScale();
-    float tileSize = ResolutionHandler::getTileSize();
+    // float tileSize = ResolutionHandler::getTileSize();
 
     // Draw visual stuff (edge of tiles/cliffs etc)
     for (int y = 0; y < 8; y++)
@@ -288,7 +288,7 @@ void Chunk::drawChunkTerrainVisual(sf::RenderTarget& window, float time)
             if (visualTileType == TileType::Visual_BLANK)
                 continue;
 
-            sf::Vector2f tileWorldPosition(worldPosition.x + x * tileSize, worldPosition.y + y * tileSize);
+            sf::Vector2f tileWorldPosition(worldPosition.x + x * TILE_SIZE_PIXELS_UNSCALED, worldPosition.y + y * TILE_SIZE_PIXELS_UNSCALED);
             sf::IntRect textureRect;
 
             int cliffWaterFrame = static_cast<int>(std::min(std::max(std::sin(time / 2.0f + worldGridPosition.x + x) * 3.5f / 2.0f + 3.5f / 2.0f, 0.0f), 3.0f));
@@ -297,25 +297,25 @@ void Chunk::drawChunkTerrainVisual(sf::RenderTarget& window, float time)
             {
                 case TileType::Visual_Cliff:
                     textureRect = sf::IntRect(64 + cliffWaterFrame * 16, 0, 16, 16);
-                    tileWorldPosition.y -= 2 * scale;
+                    tileWorldPosition.y -= 2;
                     break;
                 case TileType::Visual_LCliff:
                     textureRect = sf::IntRect(64 + cliffWaterFrame * 16, 16, 16, 16);
-                    tileWorldPosition.y -= 2 * scale;
+                    tileWorldPosition.y -= 2;
                     break;
                 case TileType::Visual_RCliff:
                     textureRect = sf::IntRect(64 + cliffWaterFrame * 16, 32, 16, 16);
-                    tileWorldPosition.y -= 2 * scale;
+                    tileWorldPosition.y -= 2;
                     break;
                 case TileType::Visual_LRCliff:
                     textureRect = sf::IntRect(64 + cliffWaterFrame * 16, 48, 16, 16);
-                    tileWorldPosition.y -= 2 * scale;
+                    tileWorldPosition.y -= 2;
                     break;
             }
 
             // sf::Shader* cliffShader = Shaders::getShader(ShaderType::Cliff);
 
-            TextureManager::drawSubTexture(window, {TextureType::GroundTiles, tileWorldPosition + Camera::getIntegerDrawOffset(), 0, {scale, scale}}, textureRect);
+            TextureManager::drawSubTexture(window, {TextureType::GroundTiles, Camera::worldToScreenTransform(tileWorldPosition), 0, {scale, scale}}, textureRect);
         }
     }
 }
@@ -324,11 +324,11 @@ void Chunk::drawChunkWater(sf::RenderTarget& window, float time)
 {
     // Get tile size and scale
     float scale = ResolutionHandler::getScale();
-    float tileSize = ResolutionHandler::getTileSize();
+    // float tileSize = ResolutionHandler::getTileSize();
 
     // Draw water
-    sf::Vector2f waterPos = Camera::getIntegerDrawOffset() + worldPosition;
-    sf::IntRect waterRect(0, 0, tileSize / scale * 8, tileSize / scale * 8);
+    sf::Vector2f waterPos = Camera::worldToScreenTransform(worldPosition);
+    sf::IntRect waterRect(0, 0, TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE, TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE);
 
     sf::Shader* waterShader = Shaders::getShader(ShaderType::Water);
     waterShader->setUniform("time", time);
@@ -633,7 +633,7 @@ bool Chunk::canPlaceObject(sf::Vector2i position, unsigned int objectType, int w
 
 void Chunk::updateChunkEntities(float dt, int worldSize, ChunkManager& chunkManager)
 {
-    float tileSize = ResolutionHandler::getTileSize();
+    // float tileSize = ResolutionHandler::getTileSize();
 
     // Get world collision rects
     // std::vector<CollisionRect*> worldCollisionRects = chunkManager.getChunkCollisionRects();
@@ -662,7 +662,7 @@ void Chunk::updateChunkEntities(float dt, int worldSize, ChunkManager& chunkMana
             newChunk.x = (((worldGridPosition.x - 1) % worldSize) + worldSize) % worldSize;
             requiresMove = true;
         }
-        else if (relativePosition.x > tileSize * 8)
+        else if (relativePosition.x > TILE_SIZE_PIXELS_UNSCALED * 8)
         {
             newChunk.x = (((worldGridPosition.x + 1) % worldSize) + worldSize) % worldSize;
             requiresMove = true;
@@ -672,7 +672,7 @@ void Chunk::updateChunkEntities(float dt, int worldSize, ChunkManager& chunkMana
             newChunk.y = (((worldGridPosition.y - 1) % worldSize) + worldSize) % worldSize;
             requiresMove = true;
         }
-        else if (relativePosition.y > tileSize * 8)
+        else if (relativePosition.y > TILE_SIZE_PIXELS_UNSCALED * 8)
         {
             newChunk.y = (((worldGridPosition.y + 1) % worldSize) + worldSize) % worldSize;
             requiresMove = true;
@@ -710,18 +710,18 @@ void Chunk::recalculateCollisionRects(ChunkManager& chunkManager)
     collisionRects.clear();
 
     // Get tile size
-    float tileSize = ResolutionHandler::getTileSize();
+    // float tileSize = ResolutionHandler::getTileSize();
 
     // sf::Vector2f worldPosition = static_cast<sf::Vector2f>(worldGridPosition) * 8.0f * tileSize;
 
-    auto createCollisionRect = [this, tileSize](std::vector<std::unique_ptr<CollisionRect>>& rects, int x, int y) -> void
+    auto createCollisionRect = [this](std::vector<std::unique_ptr<CollisionRect>>& rects, int x, int y) -> void
     {
         std::unique_ptr<CollisionRect> collisionRect = std::make_unique<CollisionRect>();
 
-        collisionRect->x = this->worldPosition.x + x * tileSize;
-        collisionRect->y = this->worldPosition.y + y * tileSize;
-        collisionRect->width = tileSize;
-        collisionRect->height = tileSize;
+        collisionRect->x = this->worldPosition.x + x * TILE_SIZE_PIXELS_UNSCALED;
+        collisionRect->y = this->worldPosition.y + y * TILE_SIZE_PIXELS_UNSCALED;
+        collisionRect->width = TILE_SIZE_PIXELS_UNSCALED;
+        collisionRect->height = TILE_SIZE_PIXELS_UNSCALED;
 
         rects.push_back(std::move(collisionRect));
     };
@@ -830,7 +830,7 @@ void Chunk::setWorldPosition(sf::Vector2f position)
 
     worldPosition = position;
 
-    float tileSize = ResolutionHandler::getTileSize();
+    // float tileSize = ResolutionHandler::getTileSize();
 
     // Update all object positions
     for (int y = 0; y < objectGrid.size(); y++)
@@ -842,7 +842,7 @@ void Chunk::setWorldPosition(sf::Vector2f position)
                 continue;
             
             // Calculate updated object position
-            sf::Vector2f objectPos = worldPosition + sf::Vector2f(x * tileSize + tileSize / 2.0f, y * tileSize + tileSize / 2.0f);
+            sf::Vector2f objectPos = worldPosition + sf::Vector2f(x * TILE_SIZE_PIXELS_UNSCALED + TILE_SIZE_PIXELS_UNSCALED / 2.0f, y * TILE_SIZE_PIXELS_UNSCALED + TILE_SIZE_PIXELS_UNSCALED / 2.0f);
 
             objectGrid[y][x]->setWorldPosition(objectPos);
         }

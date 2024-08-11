@@ -15,17 +15,16 @@ sf::Vector2i Cursor::selectSize = {1, 1};
 void Cursor::updateTileCursor(sf::RenderWindow& window, float dt, bool buildMenuOpen, int worldSize, ChunkManager& chunkManager)
 {
     // Get mouse position in screen space and world space
-    sf::Vector2f mousePos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
-    sf::Vector2f mouseWorldPos = mousePos - Camera::getDrawOffset();
+    sf::Vector2f mouseWorldPos = getMouseWorldPos(window);
 
     // Get tile size
-    float tileSize = ResolutionHandler::getTileSize();
+    // float tileSize = ResolutionHandler::getTileSize();
 
     // Get selected tile position from mouse position
-    selectPosTile.x = std::floor(mouseWorldPos.x / tileSize);
-    selectPosTile.y = std::floor(mouseWorldPos.y / tileSize);
+    selectPosTile.x = std::floor(mouseWorldPos.x / TILE_SIZE_PIXELS_UNSCALED);
+    selectPosTile.y = std::floor(mouseWorldPos.y / TILE_SIZE_PIXELS_UNSCALED);
 
-    selectPos = static_cast<sf::Vector2f>(selectPosTile) * tileSize;
+    selectPos = static_cast<sf::Vector2f>(selectPosTile) * TILE_SIZE_PIXELS_UNSCALED;
 
     // Default tile cursor size is 1, 1
     selectSize = sf::Vector2i(1, 1);
@@ -78,11 +77,11 @@ void Cursor::updateTileCursor(sf::RenderWindow& window, float dt, bool buildMenu
         selectSize = ObjectDataLoader::getObjectData(selectedObject.getObjectType()).size;
 
         // Set position of tile cursor to object's position
-        selectPos = selectedObject.getPosition() - sf::Vector2f(tileSize / 2.0f, tileSize / 2.0f);
+        selectPos = selectedObject.getPosition() - sf::Vector2f(TILE_SIZE_PIXELS_UNSCALED / 2.0f, TILE_SIZE_PIXELS_UNSCALED / 2.0f);
 
         // Set selected tile to new overriden tile cursor position
-        selectPosTile.x = std::floor(selectPos.x / tileSize);
-        selectPosTile.y = std::floor(selectPos.y / tileSize);
+        selectPosTile.x = std::floor(selectPos.x / TILE_SIZE_PIXELS_UNSCALED);
+        selectPosTile.y = std::floor(selectPos.y / TILE_SIZE_PIXELS_UNSCALED);
 
         // Set draw state to tile
         drawState = CursorDrawState::Tile;
@@ -101,10 +100,10 @@ void Cursor::updateTileCursor(sf::RenderWindow& window, float dt, bool buildMenu
         drawState = CursorDrawState::Hidden;
 
     // Set tile cursor corner tile positions
-    cursorCornerPositions[0].worldPositionDestination = static_cast<sf::Vector2f>(selectPosTile) * tileSize;
-    cursorCornerPositions[1].worldPositionDestination = static_cast<sf::Vector2f>(selectPosTile + sf::Vector2i(selectSize.x - 1, 0)) * tileSize;
-    cursorCornerPositions[2].worldPositionDestination = static_cast<sf::Vector2f>(selectPosTile + sf::Vector2i(0, selectSize.y - 1)) * tileSize;
-    cursorCornerPositions[3].worldPositionDestination = static_cast<sf::Vector2f>(selectPosTile + sf::Vector2i(selectSize.x - 1, selectSize.y - 1)) * tileSize;
+    cursorCornerPositions[0].worldPositionDestination = static_cast<sf::Vector2f>(selectPosTile) * TILE_SIZE_PIXELS_UNSCALED;
+    cursorCornerPositions[1].worldPositionDestination = static_cast<sf::Vector2f>(selectPosTile + sf::Vector2i(selectSize.x - 1, 0)) * TILE_SIZE_PIXELS_UNSCALED;
+    cursorCornerPositions[2].worldPositionDestination = static_cast<sf::Vector2f>(selectPosTile + sf::Vector2i(0, selectSize.y - 1)) * TILE_SIZE_PIXELS_UNSCALED;
+    cursorCornerPositions[3].worldPositionDestination = static_cast<sf::Vector2f>(selectPosTile + sf::Vector2i(selectSize.x - 1, selectSize.y - 1)) * TILE_SIZE_PIXELS_UNSCALED;
 
     // Lerp tile cursor corners to desination positions if build menu open
     if (buildMenuOpen)
@@ -174,7 +173,7 @@ void Cursor::drawTileCursor(sf::RenderWindow& window)
     for (int cursorCornerIdx = 0; cursorCornerIdx < cursorCornerPositions.size(); cursorCornerIdx++)
     {
         TextureManager::drawSubTexture(window, {
-            TextureType::SelectTile, cursorCornerPositions[cursorCornerIdx].worldPosition + Camera::getIntegerDrawOffset(), 0, {scale, scale},
+            TextureType::SelectTile, Camera::worldToScreenTransform(cursorCornerPositions[cursorCornerIdx].worldPosition), 0, {scale, scale},
             {cursorTextureOrigin, cursorTextureOrigin}}, cursorAnimatedTextures[cursorCornerIdx].getTextureRect());
     }
 }
@@ -193,7 +192,7 @@ void Cursor::drawDynamicCursor(sf::RenderWindow& window)
     for (int cursorCornerIdx = 0; cursorCornerIdx < cursorCornerPositions.size(); cursorCornerIdx++)
     {
         TextureManager::drawSubTexture(window, {
-            TextureType::SelectTile, cursorCornerPositions[cursorCornerIdx].worldPosition + Camera::getIntegerDrawOffset(), 0, {scale, scale},
+            TextureType::SelectTile, Camera::worldToScreenTransform(cursorCornerPositions[cursorCornerIdx].worldPosition), 0, {scale, scale},
             cursorTextureOrigin[cursorCornerIdx]}, cursorAnimatedTextures[cursorCornerIdx].getTextureRect());
     }
 }
@@ -217,7 +216,7 @@ sf::Vector2i Cursor::getSelectedChunkTile()
 sf::Vector2f Cursor::getMouseWorldPos(sf::RenderWindow& window)
 {
     sf::Vector2f mousePos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
-    return mousePos - Camera::getDrawOffset();
+    return Camera::screenToWorldTransform(mousePos);
 }
 
 void Cursor::setCanReachTile(bool canReach)

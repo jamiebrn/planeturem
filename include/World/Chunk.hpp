@@ -20,6 +20,8 @@
 #include "Data/ObjectDataLoader.hpp"
 #include "Types/TileType.hpp"
 
+#include "GameConstants.hpp"
+
 // Forward declaration
 class ChunkManager;
 class Entity;

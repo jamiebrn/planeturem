@@ -2,6 +2,7 @@
 
 #include <SFML/Graphics.hpp>
 #include <algorithm>
+#include <cmath>
 
 // Include headers
 #include "Core/ResolutionHandler.hpp"
@@ -24,6 +25,13 @@ public:
     static sf::Vector2f getDrawOffset();
 
     static sf::Vector2f getIntegerDrawOffset();
+
+    // Get scaled draw offset (applies zoom etc)
+    static sf::Vector2f worldToScreenTransform(sf::Vector2f worldPos);
+
+    static sf::Vector2f screenToWorldTransform(sf::Vector2f screenPos);
+
+    static void handleScaleChange(float beforeScale, float afterScale, sf::Vector2f playerPosition);
 
     // Set offset of camera
     static void setOffset(sf::Vector2f newOffset);

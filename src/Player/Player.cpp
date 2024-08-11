@@ -41,7 +41,7 @@ void Player::update(float dt, sf::Vector2f mouseWorldPos, ChunkManager& chunkMan
             flippedTexture = direction.x < 0;
     }
 
-    float speed = 120.0f * ResolutionHandler::getScale();
+    float speed = 120.0f;
 
 
     // Handle collision with world (tiles, object)
@@ -84,7 +84,7 @@ void Player::draw(sf::RenderTarget& window, float dt, const sf::Color& color)
 {
     sf::Vector2f scale((float)ResolutionHandler::getScale(), (float)ResolutionHandler::getScale());
 
-    TextureManager::drawTexture(window, {TextureType::Shadow, position + Camera::getIntegerDrawOffset(), 0, scale, {0.5, 0.85}});
+    TextureManager::drawTexture(window, {TextureType::Shadow, Camera::worldToScreenTransform(position), 0, scale, {0.5, 0.85}});
 
     if (flippedTexture)
         scale.x *= -1;
@@ -95,12 +95,12 @@ void Player::draw(sf::RenderTarget& window, float dt, const sf::Color& color)
     else
         animationRect = runAnimation.getTextureRect();
 
-    TextureManager::drawSubTexture(window, {TextureType::Player, position + Camera::getIntegerDrawOffset(), 0, scale, {0.5, 1}}, animationRect);
+    TextureManager::drawSubTexture(window, {TextureType::Player, Camera::worldToScreenTransform(position), 0, scale, {0.5, 1}}, animationRect);
 
     // Draw equipped tool
     const ToolData& toolData = ToolDataLoader::getToolData(equippedTool);
 
-    sf::Vector2f toolPos = position + Camera::getIntegerDrawOffset() + sf::Vector2f(scale.x * toolOffset.x, scale.y * toolOffset.y);
+    sf::Vector2f toolPos = Camera::worldToScreenTransform(position) + sf::Vector2f(scale.x * toolOffset.x, scale.y * toolOffset.y);
 
     float pivotYOffset = (toolRotation / 90.0f) * 0.4;
 
@@ -120,7 +120,7 @@ void Player::drawLightMask(sf::RenderTarget& lightTexture)
 
     sf::IntRect lightMaskRect(0, 0, 80, 80);
 
-    TextureManager::drawSubTexture(lightTexture, {TextureType::LightMask, position + Camera::getIntegerDrawOffset(), 0, scale, {0.5, 0.5}}, lightMaskRect);
+    TextureManager::drawSubTexture(lightTexture, {TextureType::LightMask, Camera::worldToScreenTransform(position), 0, scale, {0.5, 0.5}}, lightMaskRect);
 }
 
 void Player::useTool()
@@ -138,6 +138,6 @@ bool Player::isUsingTool()
 bool Player::canReachPosition(sf::Vector2f worldPos)
 {
     float distance = std::sqrt(std::pow(worldPos.x - position.x, 2.0) + std::pow(worldPos.y - position.y, 2.0));
-    float tileDistance = distance / ResolutionHandler::getTileSize();
+    float tileDistance = distance / TILE_SIZE_PIXELS_UNSCALED;
     return tileDistance <= tileReach;
 }

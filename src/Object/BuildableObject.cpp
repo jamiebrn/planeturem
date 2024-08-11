@@ -28,13 +28,13 @@ void BuildableObject::draw(sf::RenderTarget& window, float dt, const sf::Color& 
 {
     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
 
-    float scaleMult = 0.4f * std::sin(M_PI / 2.0f * std::max(1.0f - flash_amount, 0.5f)) + 0.6f;
+    float scaleMult = 0.4f * std::sin(3.14 / 2.0f * std::max(1.0f - flash_amount, 0.5f)) + 0.6f;
     sf::Vector2f scale = sf::Vector2f((float)ResolutionHandler::getScale(), (float)ResolutionHandler::getScale() * scaleMult);
 
     sf::Shader* shader = Shaders::getShader(ShaderType::Flash);
     shader->setUniform("flash_amount", flash_amount);
     TextureManager::drawSubTexture(window, {
-        TextureType::BuildItems, position + Camera::getIntegerDrawOffset(), 0, scale, objectData.textureOrigin, color
+        TextureType::BuildItems, Camera::worldToScreenTransform(position), 0, scale, objectData.textureOrigin, color
         }, objectData.textureRect, shader);
 }
 
