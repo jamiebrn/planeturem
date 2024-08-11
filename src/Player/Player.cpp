@@ -111,7 +111,10 @@ void Player::draw(sf::RenderTarget& window, float dt, const sf::Color& color)
     TextureManager::drawSubTexture(window, {TextureType::Tools, toolPos, correctedToolRotation, scale, {toolData.pivot.x, toolData.pivot.y + pivotYOffset}}, toolData.textureRect);
 
     // DEBUG
-    // collisionRect.debugDraw(window);
+
+    #if DEBUG_DRAW
+    collisionRect.debugDraw(window);
+    #endif
 }
 
 void Player::drawLightMask(sf::RenderTarget& lightTexture)

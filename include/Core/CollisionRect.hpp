@@ -4,6 +4,7 @@
 #include <cmath>
 #include <algorithm>
 
+#include "Core/ResolutionHandler.hpp"
 #include "Core/Camera.hpp"
 
 struct CollisionRect
@@ -21,5 +22,5 @@ struct CollisionRect
     bool isColliding(const CollisionRect& otherRect);
     bool isPointInRect(float x, float y);
 
-    void debugDraw(sf::RenderWindow& window, sf::Color color = {255, 0, 0, 120});
+    void debugDraw(sf::RenderTarget& window, sf::Color color = {255, 0, 0, 120});
 };

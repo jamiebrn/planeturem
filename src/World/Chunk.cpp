@@ -253,6 +253,9 @@ void Chunk::drawChunkTerrain(sf::RenderTarget& window, float time)
     state.transform = transform;
     window.draw(groundVertexArray, state);
 
+
+    // DEBUG
+    #if DEBUG_DRAW
     // DEBUG DRAW LINE TO ENTITIES
     for (auto& entity : entities)
     {
@@ -270,6 +273,7 @@ void Chunk::drawChunkTerrain(sf::RenderTarget& window, float time)
     lines[6].position = Camera::worldToScreenTransform(worldPosition) + sf::Vector2f(0, tileSize * 8); lines[7].position = Camera::worldToScreenTransform(worldPosition) + sf::Vector2f(tileSize * 8, tileSize * 8);
 
     window.draw(lines);
+    #endif
 }
 
 void Chunk::drawChunkTerrainVisual(sf::RenderTarget& window, float time)
