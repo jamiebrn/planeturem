@@ -32,7 +32,7 @@ public:
     static bool loadFont(std::string path);
 
     // Draw text using draw data
-    static void drawText(sf::RenderWindow& window, TextDrawData drawData);
+    static void drawText(sf::RenderTarget& window, TextDrawData drawData);
 
 // Private member variables
 private:

@@ -16,17 +16,24 @@
 #include "Core/ResolutionHandler.hpp"
 #include "Core/Helper.hpp"
 #include "Core/Tween.hpp"
+
 #include "World/ChunkManager.hpp"
+
 #include "Player/Player.hpp"
 #include "Player/Cursor.hpp"
+#include "Player/SmeltingJobData.hpp"
+
 #include "Data/ItemDataLoader.hpp"
 #include "Data/ObjectDataLoader.hpp"
 #include "Data/BuildRecipeLoader.hpp"
 #include "Data/EntityDataLoader.hpp"
 #include "Data/ToolDataLoader.hpp"
 
+#include "Types/WorldMenuState.hpp"
+
 #include "GUI/InventoryGUI.hpp"
 #include "GUI/BuildGUI.hpp"
+#include "GUI/FurnaceGUI.hpp"
 
 class Game
 {
@@ -47,6 +54,7 @@ private:
 
     void handleEvents();
     void attemptUseTool();
+    void attemptObjectInteract();
     void attemptBuildObject();
 
 private:
@@ -71,8 +79,12 @@ private:
 
     std::array<sf::Texture, 2> waterNoiseTextures;
 
-    bool inventoryOpen;
-    bool buildMenuOpen;
+    std::unordered_map<uint64_t, SmeltingJobData> smeltJobs;
+
+    WorldMenuState worldMenuState;
+    // bool inventoryOpen;
+    // bool buildMenuOpen;
+    // bool furnaceMenuOpen;
 
     Tween<float> floatTween;
 };

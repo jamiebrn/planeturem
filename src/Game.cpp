@@ -46,8 +46,7 @@ bool Game::initialise()
     noise.SetFrequency(0.1);
 
     // Initialise values
-    inventoryOpen = false;
-    buildMenuOpen = false;
+    worldMenuState = WorldMenuState::Main;
     gameTime = 0;
 
     // Set world size
@@ -171,7 +170,7 @@ void Game::run()
     while (window.isOpen())
     {
         // std::cout << ResolutionHandler::getScale() << std::endl;
-        
+
         float dt = clock.restart().asSeconds();
         gameTime += dt;
 
@@ -190,11 +189,11 @@ void Game::run()
         // }
 
         Camera::update(player.getPosition(), dt);
-        Cursor::updateTileCursor(window, dt, buildMenuOpen, worldSize, chunkManager);
+        Cursor::updateTileCursor(window, dt, worldMenuState, worldSize, chunkManager);
 
         player.update(dt, Cursor::getMouseWorldPos(window), chunkManager);
 
-        if (!buildMenuOpen)
+        if (worldMenuState == WorldMenuState::Main)
             Cursor::setCanReachTile(player.canReachPosition(Cursor::getMouseWorldPos(window)));
 
         chunkManager.updateChunks(noise, worldSize);
@@ -260,30 +259,37 @@ void Game::run()
         lightingShader->setUniform("darkness", worldDarkness);
         window.draw(worldTextureSprite, lightingShader);
 
-        // Draw cursor
 
-        if (!inventoryOpen)
+        switch (worldMenuState)
         {
-            Cursor::drawCursor(window);
-        }
+            case WorldMenuState::Main:
+                Cursor::drawCursor(window);
+                break;
 
-        if (inventoryOpen)
-        {
-            InventoryGUI::draw(window);
-        }
+            case WorldMenuState::Build:
+            {
+                Cursor::drawCursor(window);
+                BuildGUI::draw(window);
 
-        if (buildMenuOpen)
-        {
-            BuildGUI::draw(window);
+                unsigned int selectedObjectType = BuildGUI::getSelectedObject();
 
-            unsigned int selectedObjectType = BuildGUI::getSelectedObject();
+                BuildableObject recipeObject(Cursor::getLerpedSelectPos() + sf::Vector2f(TILE_SIZE_PIXELS_UNSCALED / 2.0f, TILE_SIZE_PIXELS_UNSCALED / 2.0f), selectedObjectType);
 
-            BuildableObject recipeObject(Cursor::getLerpedSelectPos() + sf::Vector2f(TILE_SIZE_PIXELS_UNSCALED / 2.0f, TILE_SIZE_PIXELS_UNSCALED / 2.0f), selectedObjectType);
-
-            if (Inventory::canBuildObject(selectedObjectType) && chunkManager.canPlaceObject(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile(), selectedObjectType, worldSize))
-                recipeObject.draw(window, dt, {0, 255, 0, 180});
-            else
-                recipeObject.draw(window, dt, {255, 0, 0, 180});
+                if (Inventory::canBuildObject(selectedObjectType) && chunkManager.canPlaceObject(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile(), selectedObjectType, worldSize))
+                    recipeObject.draw(window, dt, {0, 255, 0, 180});
+                else
+                    recipeObject.draw(window, dt, {255, 0, 0, 180});
+                
+                break;
+            }
+            
+            case WorldMenuState::Inventory:
+                InventoryGUI::draw(window);
+                break;
+            
+            case WorldMenuState::Furnace:
+                FurnaceGUI::draw(window);
+                break;
         }
 
         window.display();
@@ -314,11 +320,25 @@ void Game::handleEvents()
                 toggleFullScreen();
             }
 
-            if (event.key.code == sf::Keyboard::E && !buildMenuOpen)
-                inventoryOpen = !inventoryOpen;
-            
-            if (event.key.code == sf::Keyboard::Tab && !inventoryOpen)
-                buildMenuOpen = !buildMenuOpen;
+            if (worldMenuState == WorldMenuState::Main)
+            {
+                if (event.key.code == sf::Keyboard::E)
+                    worldMenuState = WorldMenuState::Inventory;
+                
+                if (event.key.code == sf::Keyboard::Tab)
+                    worldMenuState = WorldMenuState::Build;
+            }
+            else
+            {
+                if (event.key.code == sf::Keyboard::E && worldMenuState == WorldMenuState::Inventory)
+                    worldMenuState = WorldMenuState::Main;
+                
+                if (event.key.code == sf::Keyboard::Tab && worldMenuState == WorldMenuState::Build)
+                    worldMenuState = WorldMenuState::Main;
+
+                if (event.key.code == sf::Keyboard::Escape)
+                    worldMenuState = WorldMenuState::Main;
+            }
         }
 
         if (event.type == sf::Event::MouseButtonPressed)
@@ -328,11 +348,15 @@ void Game::handleEvents()
                 attemptUseTool();
                 attemptBuildObject();
             }
+            else if (event.mouseButton.button == sf::Mouse::Right)
+            {
+                attemptObjectInteract();
+            }
         }
 
         if (event.type == sf::Event::MouseWheelScrolled)
         {
-            if (buildMenuOpen)
+            if (worldMenuState == WorldMenuState::Build)
                 BuildGUI::changeSelectedObject(-event.mouseWheelScroll.delta);
             else
                 handleZoom(event.mouseWheelScroll.delta);
@@ -342,7 +366,10 @@ void Game::handleEvents()
 
 void Game::attemptUseTool()
 {
-    if (inventoryOpen || buildMenuOpen || player.isUsingTool())
+    if (worldMenuState != WorldMenuState::Main)
+        return;
+    
+    if (player.isUsingTool())
         return;
 
     // Get mouse position in screen space and world space
@@ -369,9 +396,31 @@ void Game::attemptUseTool()
     }
 }
 
+void Game::attemptObjectInteract()
+{
+    if (worldMenuState != WorldMenuState::Main)
+        return;
+    
+    // Get mouse position in screen space and world space
+    sf::Vector2f mouseWorldPos = Cursor::getMouseWorldPos(window);
+
+    if (!player.canReachPosition(mouseWorldPos))
+        return;
+    
+    std::optional<BuildableObject>& selectedObjectOptional = chunkManager.getChunkObject(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile());
+    if (selectedObjectOptional.has_value())
+    {
+        BuildableObject& selectedObject = selectedObjectOptional.value();
+        ObjectInteraction interaction = selectedObject.interact();
+
+        if (interaction == ObjectInteraction::OpenFurnace)
+            worldMenuState = WorldMenuState::Furnace;
+    }
+}
+
 void Game::attemptBuildObject()
 {
-    if (!buildMenuOpen)
+    if (worldMenuState != WorldMenuState::Build)
         return;
     
     unsigned int objectType = BuildGUI::getSelectedObject();

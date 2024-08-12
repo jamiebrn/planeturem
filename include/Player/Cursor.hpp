@@ -12,6 +12,7 @@
 #include "World/ChunkPosition.hpp"
 #include "World/ChunkManager.hpp"
 #include "GUI/BuildGUI.hpp"
+#include "Types/WorldMenuState.hpp"
 
 #include "GameConstants.hpp"
 
@@ -33,7 +34,7 @@ class Cursor
     Cursor() = delete;
 
 public:
-    static void updateTileCursor(sf::RenderWindow& window, float dt, bool buildMenuOpen, int worldSize, ChunkManager& chunkManager);
+    static void updateTileCursor(sf::RenderWindow& window, float dt, WorldMenuState worldMenuState, int worldSize, ChunkManager& chunkManager);
 
     static ChunkPosition getSelectedChunk(int worldSize);
     static sf::Vector2i getSelectedChunkTile();

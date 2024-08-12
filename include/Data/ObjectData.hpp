@@ -16,7 +16,10 @@ struct ObjectData
 
     bool hasCollision = false;
     bool waterPlaceable = false;
+
     int drawLayer = 0;
+
+    float furnaceSpeed = -1;
 
     std::unordered_map<unsigned int, int> itemDrops;
 };

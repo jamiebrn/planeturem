@@ -2,6 +2,7 @@
 
 #include <SFML/Graphics.hpp>
 #include <optional>
+#include <iostream>
 
 #include "Core/TextureManager.hpp"
 #include "Core/Shaders.hpp"
@@ -12,6 +13,14 @@
 #include "Player/Inventory.hpp"
 #include "Data/ObjectData.hpp"
 #include "Data/ObjectDataLoader.hpp"
+
+#include "GUI/FurnaceGUI.hpp"
+
+enum ObjectInteraction
+{
+    NoAction,
+    OpenFurnace
+};
 
 class BuildableObject : public WorldObject
 {
@@ -24,7 +33,7 @@ public:
     void drawGUI(sf::RenderTarget& window, float dt, const sf::Color& color);
 
     void damage(int amount);
-    void interact();
+    ObjectInteraction interact();
 
     void setWorldPosition(sf::Vector2f position);
 
@@ -43,6 +52,8 @@ private:
     unsigned int objectType = 0;
     int health = 0;
     float flash_amount;
+
+    uint64_t furnaceID = 0;
 
     // If reference to a buildable object
     std::optional<ObjectReference> objectReference = std::nullopt;

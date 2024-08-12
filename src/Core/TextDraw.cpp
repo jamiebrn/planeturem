@@ -30,7 +30,7 @@ bool TextDraw::loadFont(std::string path)
 }
 
 // Draw text using draw data
-void TextDraw::drawText(sf::RenderWindow& window, TextDrawData drawData)
+void TextDraw::drawText(sf::RenderTarget& window, TextDrawData drawData)
 {
     // If font not loaded, do not draw text
     if (!loadedFont)

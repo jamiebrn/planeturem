@@ -72,6 +72,7 @@
         "texture-y-origin": 0.25,
         "size-x": 2,
         "size-y": 2,
-        "has-collision": true
+        "has-collision": true,
+        "furnace-speed": 1
     }
 }

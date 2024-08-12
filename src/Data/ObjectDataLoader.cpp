@@ -25,6 +25,7 @@ bool ObjectDataLoader::loadData(std::string objectDataPath)
         if (jsonObjectData.contains("has-collision")) objectData.hasCollision = jsonObjectData.at("has-collision");
         if (jsonObjectData.contains("water-placeable")) objectData.waterPlaceable = jsonObjectData.at("water-placeable");
         if (jsonObjectData.contains("draw-layer")) objectData.drawLayer = jsonObjectData.at("draw-layer");
+        if (jsonObjectData.contains("furnace-speed")) objectData.furnaceSpeed = jsonObjectData.at("furnace-speed");
         if (jsonObjectData.contains("size-x")) objectData.size.x = jsonObjectData.at("size-x");
         if (jsonObjectData.contains("size-y")) objectData.size.y = jsonObjectData.at("size-y");
 

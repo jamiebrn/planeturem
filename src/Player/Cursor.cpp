@@ -12,7 +12,7 @@ sf::Vector2f Cursor::selectPos = {0, 0};
 sf::Vector2i Cursor::selectPosTile = {0, 0};
 sf::Vector2i Cursor::selectSize = {1, 1};
 
-void Cursor::updateTileCursor(sf::RenderWindow& window, float dt, bool buildMenuOpen, int worldSize, ChunkManager& chunkManager)
+void Cursor::updateTileCursor(sf::RenderWindow& window, float dt, WorldMenuState worldMenuState, int worldSize, ChunkManager& chunkManager)
 {
     // Get mouse position in screen space and world space
     sf::Vector2f mouseWorldPos = getMouseWorldPos(window);
@@ -35,8 +35,8 @@ void Cursor::updateTileCursor(sf::RenderWindow& window, float dt, bool buildMenu
     // Get entity selected at cursor position (if any)
     Entity* selectedEntity = chunkManager.getSelectedEntity(Cursor::getSelectedChunk(worldSize), mouseWorldPos);
     
-    // If entity is selected and not in build menu, set size of cursor to entity size
-    if (selectedEntity != nullptr && !buildMenuOpen)
+    // If entity is selected and in main world state, set size of cursor to entity size
+    if (selectedEntity != nullptr && worldMenuState == WorldMenuState::Main)
     {
         selectPos = selectedEntity->getPosition();
 
@@ -68,7 +68,7 @@ void Cursor::updateTileCursor(sf::RenderWindow& window, float dt, bool buildMenu
     std::optional<BuildableObject>& selectedObjectOptional = chunkManager.getChunkObject(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile());
 
     // If an object in world is selected, override tile cursor size and position
-    if (selectedObjectOptional.has_value() && !buildMenuOpen)
+    if (selectedObjectOptional.has_value() && worldMenuState == WorldMenuState::Main)
     {
         // Get object selected
         BuildableObject& selectedObject = selectedObjectOptional.value();
@@ -86,7 +86,7 @@ void Cursor::updateTileCursor(sf::RenderWindow& window, float dt, bool buildMenu
         // Set draw state to tile
         drawState = CursorDrawState::Tile;
     }
-    else if (buildMenuOpen)
+    else if (worldMenuState == WorldMenuState::Build)
     {
         // Override cursor size to size of currently selected object, if in build menu
         selectSize = (ObjectDataLoader::getObjectData(BuildGUI::getSelectedObject()).size);
@@ -96,7 +96,7 @@ void Cursor::updateTileCursor(sf::RenderWindow& window, float dt, bool buildMenu
     }
 
     // If no object is selected, and not in build menu (and no entity selected), set draw state to hidden
-    if (!selectedObjectOptional.has_value() && !buildMenuOpen)
+    if (!selectedObjectOptional.has_value() && worldMenuState == WorldMenuState::Main)
         drawState = CursorDrawState::Hidden;
 
     // Set tile cursor corner tile positions
@@ -106,7 +106,7 @@ void Cursor::updateTileCursor(sf::RenderWindow& window, float dt, bool buildMenu
     cursorCornerPositions[3].worldPositionDestination = static_cast<sf::Vector2f>(selectPosTile + sf::Vector2i(selectSize.x - 1, selectSize.y - 1)) * TILE_SIZE_PIXELS_UNSCALED;
 
     // Lerp tile cursor corners to desination positions if build menu open
-    if (buildMenuOpen)
+    if (worldMenuState == WorldMenuState::Build)
     {
         for (CursorCornerPosition& cursorCorner : cursorCornerPositions)
         {

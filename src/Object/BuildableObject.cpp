@@ -64,9 +64,17 @@ void BuildableObject::damage(int amount)
     }
 }
 
-void BuildableObject::interact()
+ObjectInteraction BuildableObject::interact()
 {
-    
+    const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
+
+    if (objectData.furnaceSpeed > 0)
+    {
+        // Open furnace UI / initialise furnace ID for this object etc
+        return ObjectInteraction::OpenFurnace;
+    }
+
+    return ObjectInteraction::NoAction;
 }
 
 void BuildableObject::setWorldPosition(sf::Vector2f position)
