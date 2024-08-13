@@ -52,16 +52,25 @@ void BuildGUI::draw(sf::RenderWindow& window)
 
     std::string categoryString = BuildRecipeLoader::getCategoryString(selectedCategory);
 
+    bool drawScrollLeftPrompt = false;
+    bool drawScrollRightPrompt = false;
+
     for (auto& recipePair : BuildRecipeLoader::getBuildRecipeDataCategory(categoryString))
     {
         recipeIndex++;
         recipeBoxPosition.x += recipeBoxSize.x + xGap;
 
         if (recipeIndex < selectedItem - maxRecipesEachSide)
+        {
+            drawScrollLeftPrompt = true;
             continue;
+        }
         
         if (recipeIndex > selectedItem + maxRecipesEachSide)
+        {
+            drawScrollRightPrompt = true;
             continue;
+        }
 
         // If selected, draw white box to show selected
         if (selectedItem == recipeIndex)
@@ -133,6 +142,9 @@ void BuildGUI::draw(sf::RenderWindow& window)
     drawUIKeyboardButton(window, "Q", background.getPosition() - background.getSize() / 2.0f, 3, false);
     drawUIKeyboardButton(window, "E", background.getPosition() + sf::Vector2f(background.getSize().x, -background.getSize().y) / 2.0f - sf::Vector2f(16, 0) * 3.0f, 3, false);
 
-    drawUIMouseScrollWheelDirection(window, 1, background.getPosition() + sf::Vector2f(-background.getSize().x, 0) / 2.0f, 3, false);
-    drawUIMouseScrollWheelDirection(window, -1, background.getPosition() + sf::Vector2f(background.getSize().x, 0) / 2.0f - sf::Vector2f(16, 0) * 3.0f, 3, false);
+    if (drawScrollLeftPrompt)
+        drawUIMouseScrollWheelDirection(window, 1, background.getPosition() + sf::Vector2f(-background.getSize().x, 0) / 2.0f, 3, false);
+    
+    if (drawScrollRightPrompt)
+        drawUIMouseScrollWheelDirection(window, -1, background.getPosition() + sf::Vector2f(background.getSize().x, 0) / 2.0f - sf::Vector2f(16, 0) * 3.0f, 3, false);
 }

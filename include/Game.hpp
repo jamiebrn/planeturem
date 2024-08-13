@@ -12,6 +12,7 @@
 
 #include "Core/TextureManager.hpp"
 #include "Core/Shaders.hpp"
+#include "Core/Sounds.hpp"
 #include "Core/Camera.hpp"
 #include "Core/ResolutionHandler.hpp"
 #include "Core/Helper.hpp"

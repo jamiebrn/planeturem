@@ -26,6 +26,7 @@ bool Game::initialise()
     if(!TextureManager::loadTextures(window)) return false;
     if(!Shaders::loadShaders()) return false;
     if(!TextDraw::loadFont("Data/upheavtt.ttf")) return false;
+    if(!Sounds::loadSounds()) return false;
 
     if(!ItemDataLoader::loadData("Data/Info/item_data.data")) return false;
     if(!ObjectDataLoader::loadData("Data/Info/object_data.data")) return false;
@@ -58,6 +59,8 @@ bool Game::initialise()
     isDay = true;
 
     generateWaterNoiseTexture();
+
+    Sounds::playMusic(MusicType::Main);
 
     // Return true by default
     return true;

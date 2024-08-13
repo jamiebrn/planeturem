@@ -1,0 +1,139 @@
+#include "Core/Sounds.hpp"
+
+bool Sounds::loadSounds()
+{
+    // If sound have already been loaded, return true by default
+    if (loadedSounds)
+        return true;
+    
+    // Set loaded sounds to true by default
+    loadedSounds = true;
+
+    // Count of loaded sounds (uses float in order to perform float division, rather than casting from int to flat)
+    float soundsLoaded = 0;
+
+    // Iterate over every sound effect and its file path, and attempt to load it
+    for (std::pair<SoundType, std::string> soundPair : soundPaths)
+    {
+        // Get sound type and file path from map
+        SoundType soundType = soundPair.first;
+        std::string soundPath = soundPair.second;
+
+        // Create sound buffer object to store file stream data
+        sf::SoundBuffer soundBuffer;
+
+        // Load sound data from file stream - set loaded sound to false and stop loading if failed
+        if (!soundBuffer.loadFromFile(soundPath))
+        {
+            // Set loaded sounds to false
+            loadedSounds = false;
+            // Stop loading
+            break;
+        }
+
+        // Store sound buffer in map
+        soundBufferMap[soundType] = soundBuffer;
+
+        // Create a sound object to interface with the sound buffer
+        sf::Sound sound;
+        // Set the buffer object of the sound object to the sound buffer in the map
+        sound.setBuffer(soundBufferMap[soundType]);
+
+        // Store sound object in map
+        soundMap[soundType] = sound;
+
+        // Increment sounds loaded count
+        soundsLoaded++;
+    }
+
+    // Iterate over every music track and its file path, and attempt to load it
+    for (std::pair<MusicType, std::string> musicPair : musicPaths)
+    {
+        // Get music type and file path from map
+        MusicType musicType = musicPair.first;
+        std::string musicPath = musicPair.second;
+
+        // Create music object (on heap as music object is non-copyable)
+        std::unique_ptr<sf::Music> music = std::make_unique<sf::Music>();
+
+        // Attempt to load the music stream object into the music object
+        if (!music->openFromFile(musicPath))
+        {
+            // If failed, set loaded sounds to false
+            loadedSounds = false;
+            // Stop loading music
+            break;
+        }
+
+        // Enable music looping and set volume
+        music->setLoop(true);
+        music->setVolume(MUSIC_VOLUME);
+
+        // Move music pointer into map (must be moved as is a unique_ptr, i.e. cannot be copied)
+        musicMap[musicType] = std::move(music);
+
+        // Increment sounds loaded
+        soundsLoaded++;
+    }
+
+    // If loaded sounds is false (unsuccessful load), return false
+    if (!loadedSounds)
+        return false;
+    
+    // Return true by default
+    return true;
+}
+
+// Unload all sounds from memory
+void Sounds::unloadSounds()
+{
+    // Set loaded sounds to false, as they are about to be unloaded
+    loadedSounds = false;
+
+    // Delete all sound objects
+    soundMap.clear();
+    // Delete all sound buffers (must be deleted after sound objects)
+    soundBufferMap.clear();
+
+    // Delete all music objects
+    musicMap.clear();
+}
+
+// Play sound effect
+void Sounds::playSound(SoundType type)
+{
+    // If sounds have not been loaded, return by default
+    if (!loadedSounds)
+        return;
+
+    // Play sound from sound map
+    soundMap.at(type).play();
+}
+
+// Play music track
+void Sounds::playMusic(MusicType type)
+{
+    // If sounds have not been loaded, return by default
+    if (!loadedSounds)
+        return;
+    
+    // Stop all music tracks
+    for (auto& music : musicMap)
+    {
+        music.second->stop();
+    }
+    
+    // Play music track from map
+    musicMap.at(type)->play();
+}
+
+// Stop music track
+void Sounds::stopMusic(MusicType type)
+{
+    // If sounds have not been loaded, return by default
+    if (!loadedSounds)
+        return;
+    
+    // Stop music track from map
+    musicMap.at(type)->stop();
+}
