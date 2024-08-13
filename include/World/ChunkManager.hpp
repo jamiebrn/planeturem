@@ -95,6 +95,11 @@ public:
     std::vector<CollisionRect*> getChunkCollisionRects();
 
 
+    // Misc
+    inline int getLoadedChunkCount() {return loadedChunks.size();}
+    inline int getGeneratedChunkCount() {return loadedChunks.size() + storedChunks.size();}
+
+
 private:
     std::unordered_map<ChunkPosition, std::unique_ptr<Chunk>> storedChunks;
     std::unordered_map<ChunkPosition, std::unique_ptr<Chunk>> loadedChunks;

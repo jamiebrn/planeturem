@@ -10,12 +10,15 @@
 #include "Data/ItemDataLoader.hpp"
 #include "Data/BuildRecipeLoader.hpp"
 
+#include "GUI/GUIDraw.hpp"
+
 class BuildGUI
 {
     BuildGUI() = delete;
 
 public:
     static void changeSelectedObject(int change);
+    static void changeSelectedCategory(int change);
 
     static unsigned int getSelectedObject();
 
@@ -23,5 +26,6 @@ public:
 
 private:
     static int selectedItem;
+    static int selectedCategory;
 
 };

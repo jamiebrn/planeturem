@@ -3,6 +3,7 @@
 #include <SFML/Graphics.hpp>
 #include <fstream>
 #include <map>
+#include <string>
 
 #include "Core/json.hpp"
 #include "Data/BuildRecipe.hpp"
@@ -14,11 +15,22 @@ class BuildRecipeLoader
 public:
     static bool loadData(std::string buildRecipeDataPath);
 
-    static const BuildRecipe& getBuildRecipe(int index);
+    static const BuildRecipe& getBuildRecipe(unsigned int objectType);
 
-    inline static const std::map<unsigned int, BuildRecipe>& getBuildRecipeData() {return loaded_buildRecipeData;}
+    static const BuildRecipe& getBuildRecipe(int index, int categoryIndex);
+
+    static unsigned int getRecipeProductObject(int index, int categoryIndex);
+
+    static const std::string& getCategoryString(int categoryIndex);
+
+    inline static const std::map<unsigned int, BuildRecipe>& getBuildRecipeDataCategory(const std::string& category) {return loaded_buildRecipeData.at(category);}
+
+    inline static const std::map<std::string, std::map<unsigned int, BuildRecipe>>& getBuildRecipeData() {return loaded_buildRecipeData;}
 
 private:
-    static std::map<unsigned int, BuildRecipe> loaded_buildRecipeData;
+    // String - category
+    // Unsigned int - object ID of recipe product
+    // Build recipe - items required and amounts
+    static std::map<std::string, std::map<unsigned int, BuildRecipe>> loaded_buildRecipeData;
 
 };

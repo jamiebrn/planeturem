@@ -169,8 +169,6 @@ void Game::run()
 {
     while (window.isOpen())
     {
-        // std::cout << ResolutionHandler::getScale() << std::endl;
-
         float dt = clock.restart().asSeconds();
         gameTime += dt;
 
@@ -275,7 +273,8 @@ void Game::run()
 
                 BuildableObject recipeObject(Cursor::getLerpedSelectPos() + sf::Vector2f(TILE_SIZE_PIXELS_UNSCALED / 2.0f, TILE_SIZE_PIXELS_UNSCALED / 2.0f), selectedObjectType);
 
-                if (Inventory::canBuildObject(selectedObjectType) && chunkManager.canPlaceObject(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile(), selectedObjectType, worldSize))
+                if (Inventory::canBuildObject(selectedObjectType) && 
+                    chunkManager.canPlaceObject(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile(), selectedObjectType, worldSize))
                     recipeObject.draw(window, dt, {0, 255, 0, 180});
                 else
                     recipeObject.draw(window, dt, {255, 0, 0, 180});
@@ -292,9 +291,29 @@ void Game::run()
                 break;
         }
 
+        // Debug info
+        {
+            float intScale = static_cast<float>(ResolutionHandler::getResolutionIntegerScale());
+
+            TextDraw::drawText(window, {GAME_VERSION, sf::Vector2f(10, 5) * intScale, sf::Color(255, 255, 255), static_cast<unsigned int>(20 * intScale)});
+            TextDraw::drawText(window, {
+                std::to_string(static_cast<int>(1.0f / dt)) + "FPS", sf::Vector2f(10, 25) * intScale, sf::Color(255, 255, 255), static_cast<unsigned int>(20 * intScale)
+                });
+            
+            TextDraw::drawText(window, {
+                std::to_string(chunkManager.getLoadedChunkCount()) + " Chunks loaded", sf::Vector2f(10, 45) * intScale, sf::Color(255, 255, 255),
+                static_cast<unsigned int>(20 * intScale)
+                });
+            
+            TextDraw::drawText(window, {
+                std::to_string(chunkManager.getGeneratedChunkCount()) + " Chunks generated", sf::Vector2f(10, 65) * intScale, sf::Color(255, 255, 255),
+                static_cast<unsigned int>(20 * intScale)
+                });
+        }
+
         window.display();
 
-        window.setTitle("spacebuild - " + std::to_string((int)(1.0f / dt)) + "FPS");
+        // window.setTitle("spacebuild - " + std::to_string((int)(1.0f / dt)) + "FPS");
 
     }
 }
@@ -338,6 +357,15 @@ void Game::handleEvents()
 
                 if (event.key.code == sf::Keyboard::Escape)
                     worldMenuState = WorldMenuState::Main;
+            }
+
+            if (worldMenuState == WorldMenuState::Build)
+            {
+                if (event.key.code == sf::Keyboard::E)
+                    BuildGUI::changeSelectedCategory(1);
+                
+                if (event.key.code == sf::Keyboard::Q)
+                    BuildGUI::changeSelectedCategory(-1);
             }
         }
 

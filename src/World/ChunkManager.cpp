@@ -26,9 +26,9 @@ void ChunkManager::updateChunks(const FastNoise& noise, int worldSize)
     screenBottomRightGrid.y = std::ceil(screenBottomRight.y / (TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE));
 
     // Check any chunks needed to load
-    for (int y = screenTopLeftGrid.y - 1; y <= screenBottomRightGrid.y + 1; y++)
+    for (int y = screenTopLeftGrid.y; y <= screenBottomRightGrid.y; y++)
     {
-        for (int x = screenTopLeftGrid.x - 1; x <= screenBottomRightGrid.x + 1; x++)
+        for (int x = screenTopLeftGrid.x; x <= screenBottomRightGrid.x; x++)
         {
             // Get wrapped x and y using world size
             int wrappedX = ((x % worldSize) + worldSize) % worldSize;

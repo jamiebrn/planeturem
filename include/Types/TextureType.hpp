@@ -13,5 +13,6 @@ enum class TextureType
     Entities,
     Tools,
     Shadow,
-    LightMask
+    LightMask,
+    UI
 };

@@ -63,7 +63,7 @@ void Inventory::takeItem(unsigned int item, int amount)
 
 bool Inventory::canBuildObject(unsigned int object)
 {
-    const BuildRecipe& buildRecipe = BuildRecipeLoader::getBuildRecipeData().at(object);
+    const BuildRecipe& buildRecipe = BuildRecipeLoader::getBuildRecipe(object);
 
     std::unordered_map<unsigned int, int> inventoryItemCount = getTotalItemCount();
 

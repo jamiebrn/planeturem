@@ -62,7 +62,7 @@
         }
     },
     "5": {
-        "name": "Smelter",
+        "name": "Furnace",
         "health": 6,
         "texture-x": 64,
         "texture-y": 0,
@@ -74,5 +74,25 @@
         "size-y": 2,
         "has-collision": true,
         "furnace-speed": 1
+    },
+    "6": {
+        "name": "Table",
+        "health": 4,
+        "texture-x": 96,
+        "texture-y": 16,
+        "texture-width": 16,
+        "texture-height": 16,
+        "texture-x-origin": 0.5,
+        "texture-y-origin": 0.9375
+    },
+    "7": {
+        "name": "Chest",
+        "health": 5,
+        "texture-x": 112,
+        "texture-y": 16,
+        "texture-width": 16,
+        "texture-height": 16,
+        "texture-x-origin": 0.5,
+        "texture-y-origin": 0.9375
     }
 }

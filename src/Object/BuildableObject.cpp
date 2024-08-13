@@ -44,7 +44,7 @@ void BuildableObject::drawGUI(sf::RenderTarget& window, float dt, const sf::Colo
     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
 
     TextureManager::drawSubTexture(window, {
-        TextureType::BuildItems, position, 0, {3, 3}, {0.5, 0.5}, color
+        TextureType::BuildItems, position, 0, {2, 2}, {0.5, 0.5}, color
         }, objectData.textureRect);
 }
 
