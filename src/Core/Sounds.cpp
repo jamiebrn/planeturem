@@ -1,5 +1,7 @@
 #include "Core/Sounds.hpp"
 
+float Sounds::musicVolume = 30.0f;
+
 bool Sounds::loadSounds()
 {
     // If sound have already been loaded, return true by default
@@ -67,7 +69,7 @@ bool Sounds::loadSounds()
 
         // Enable music looping and set volume
         music->setLoop(true);
-        music->setVolume(MUSIC_VOLUME);
+        music->setVolume(musicVolume);
 
         // Move music pointer into map (must be moved as is a unique_ptr, i.e. cannot be copied)
         musicMap[musicType] = std::move(music);

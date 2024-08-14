@@ -62,7 +62,7 @@ private:
     inline static std::unordered_map<MusicType, std::unique_ptr<sf::Music>> musicMap;
 
     // Constant storing volume of music
-    static constexpr float MUSIC_VOLUME = 10.0f;
+    static float musicVolume;
 
     // Constant map storing file paths for all music tracks
     inline static const std::unordered_map<MusicType, std::string> musicPaths = {

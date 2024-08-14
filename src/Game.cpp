@@ -31,6 +31,7 @@ bool Game::initialise()
     if(!ItemDataLoader::loadData("Data/Info/item_data.data")) return false;
     if(!ObjectDataLoader::loadData("Data/Info/object_data.data")) return false;
     if(!BuildRecipeLoader::loadData("Data/Info/build_recipes.data")) return false;
+    if(!FurnaceRecipeLoader::loadData("Data/Info/furnace_recipes.data")) return false;
     if(!EntityDataLoader::loadData("Data/Info/entity_data.data")) return false;
     if(!ToolDataLoader::loadData("Data/Info/tool_data.data")) return false;
 
@@ -47,8 +48,10 @@ bool Game::initialise()
     noise.SetFrequency(0.1);
 
     // Initialise values
-    worldMenuState = WorldMenuState::Main;
     gameTime = 0;
+    worldMenuState = WorldMenuState::Main;
+    interactedObjectID = 0;
+    interactedObjectPos = sf::Vector2f(0, 0);
 
     // Set world size
     worldSize = 40;
@@ -60,7 +63,7 @@ bool Game::initialise()
 
     generateWaterNoiseTexture();
 
-    Sounds::playMusic(MusicType::Main);
+    // Sounds::playMusic(MusicType::Main);
 
     // Return true by default
     return true;
@@ -442,10 +445,13 @@ void Game::attemptObjectInteract()
     if (selectedObjectOptional.has_value())
     {
         BuildableObject& selectedObject = selectedObjectOptional.value();
-        ObjectInteraction interaction = selectedObject.interact();
+        ObjectInteractionEventData interactionEvent = selectedObject.interact();
 
-        if (interaction == ObjectInteraction::OpenFurnace)
+        if (interactionEvent.interactionType == ObjectInteraction::OpenFurnace)
+        {
             worldMenuState = WorldMenuState::Furnace;
+            interactedObjectID = interactionEvent.objectID;
+        }
     }
 }
 

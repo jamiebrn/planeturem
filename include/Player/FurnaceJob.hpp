@@ -2,7 +2,7 @@
 
 #include <stdint.h>
 
-struct SmeltingJobData
+struct FurnaceJob
 {
     unsigned int usingItem;
     uint64_t timeStarted;

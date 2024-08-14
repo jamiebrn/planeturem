@@ -22,11 +22,12 @@
 
 #include "Player/Player.hpp"
 #include "Player/Cursor.hpp"
-#include "Player/SmeltingJobData.hpp"
+#include "Player/FurnaceJob.hpp"
 
 #include "Data/ItemDataLoader.hpp"
 #include "Data/ObjectDataLoader.hpp"
 #include "Data/BuildRecipeLoader.hpp"
+#include "Data/FurnaceRecipeLoader.hpp"
 #include "Data/EntityDataLoader.hpp"
 #include "Data/ToolDataLoader.hpp"
 
@@ -80,12 +81,12 @@ private:
 
     std::array<sf::Texture, 2> waterNoiseTextures;
 
-    std::unordered_map<uint64_t, SmeltingJobData> smeltJobs;
+    // Maps furnace IDs to current jobs
+    std::unordered_map<uint64_t, FurnaceJob> furnaceJobs;
 
     WorldMenuState worldMenuState;
-    // bool inventoryOpen;
-    // bool buildMenuOpen;
-    // bool furnaceMenuOpen;
+    uint64_t interactedObjectID;
+    sf::Vector2f interactedObjectPos;
 
     Tween<float> floatTween;
 };

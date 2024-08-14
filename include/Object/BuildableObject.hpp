@@ -22,6 +22,12 @@ enum ObjectInteraction
     OpenFurnace
 };
 
+struct ObjectInteractionEventData
+{
+    ObjectInteraction interactionType;
+    uint64_t objectID;
+};
+
 class BuildableObject : public WorldObject
 {
 public:
@@ -33,7 +39,7 @@ public:
     void drawGUI(sf::RenderTarget& window, float dt, const sf::Color& color);
 
     void damage(int amount);
-    ObjectInteraction interact();
+    ObjectInteractionEventData interact();
 
     void setWorldPosition(sf::Vector2f position);
 
