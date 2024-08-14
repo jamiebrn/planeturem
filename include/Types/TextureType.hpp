@@ -14,5 +14,6 @@ enum class TextureType
     Tools,
     Shadow,
     LightMask,
-    UI
+    UI,
+    Ship
 };

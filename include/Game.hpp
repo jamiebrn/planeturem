@@ -31,6 +31,7 @@
 #include "Data/EntityDataLoader.hpp"
 #include "Data/ToolDataLoader.hpp"
 
+#include "Types/GameState.hpp"
 #include "Types/WorldMenuState.hpp"
 
 #include "GUI/InventoryGUI.hpp"
@@ -47,17 +48,22 @@ public:
     void run();
 
 private:
-    void toggleFullScreen();
-    void handleWindowResize(sf::Vector2u newSize);
+    void runMenu(float dt);
+    void runInShip(float dt);
+    void runOnPlanet(float dt);
+
+    void attemptUseTool();
+    void attemptObjectInteract();
+    void attemptBuildObject();
 
     void generateWaterNoiseTexture();
 
     void handleZoom(int zoomChange);
 
-    void handleEvents();
-    void attemptUseTool();
-    void attemptObjectInteract();
-    void attemptBuildObject();
+    void handleEventsWindow(sf::Event& event);
+
+    void toggleFullScreen();
+    void handleWindowResize(sf::Vector2u newSize);
 
 private:
     sf::RenderWindow window;
@@ -83,6 +89,8 @@ private:
 
     // Maps furnace IDs to current jobs
     std::unordered_map<uint64_t, FurnaceJob> furnaceJobs;
+
+    GameState gameState;
 
     WorldMenuState worldMenuState;
     uint64_t interactedObjectID;

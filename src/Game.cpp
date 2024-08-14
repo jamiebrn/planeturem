@@ -49,6 +49,7 @@ bool Game::initialise()
 
     // Initialise values
     gameTime = 0;
+    gameState = GameState::Menu;
     worldMenuState = WorldMenuState::Main;
     interactedObjectID = 0;
     interactedObjectPos = sf::Vector2f(0, 0);
@@ -63,7 +64,7 @@ bool Game::initialise()
 
     generateWaterNoiseTexture();
 
-    // Sounds::playMusic(MusicType::Main);
+    Sounds::playMusic(MusicType::Main);
 
     // Return true by default
     return true;
@@ -178,173 +179,96 @@ void Game::run()
         float dt = clock.restart().asSeconds();
         gameTime += dt;
 
-
-        floatTween.update(dt);
-
-        handleEvents();        
-
-        dayNightToggleTimer += dt;
-        // if (dayNightToggleTimer >= 20.0f)
-        // {
-        //     dayNightToggleTimer = 0.0f;
-        //     if (isDay) floatTween.startTween(&worldDarkness, 0.0f, 0.95f, 7, TweenTransition::Sine, TweenEasing::EaseInOut);
-        //     else floatTween.startTween(&worldDarkness, 0.95f, 0.0f, 7, TweenTransition::Sine, TweenEasing::EaseInOut);
-        //     isDay = !isDay;
-        // }
-
-        Camera::update(player.getPosition(), dt);
-        Cursor::updateTileCursor(window, dt, worldMenuState, worldSize, chunkManager);
-
-        player.update(dt, Cursor::getMouseWorldPos(window), chunkManager);
-
-        if (worldMenuState == WorldMenuState::Main)
-            Cursor::setCanReachTile(player.canReachPosition(Cursor::getMouseWorldPos(window)));
-
-        chunkManager.updateChunks(noise, worldSize);
-        chunkManager.updateChunksObjects(dt);
-        chunkManager.updateChunksEntities(dt, worldSize);
-
-        window.clear({80, 80, 80});
-
         window.setView(view);
 
-        // Draw all world onto texture for lighting
-        sf::RenderTexture worldTexture;
-        worldTexture.create(window.getSize().x, window.getSize().y);
-        worldTexture.clear();
-
-        // Draw water
-        chunkManager.drawChunkWater(worldTexture, gameTime);
-
-        // Draw objects for reflection FUTURE
-        std::vector<WorldObject*> worldObjects = chunkManager.getChunkObjects();
-        std::vector<WorldObject*> entities = chunkManager.getChunkEntities();
-        worldObjects.insert(worldObjects.end(), entities.begin(), entities.end());
-        worldObjects.push_back(&player);
-
-        std::sort(worldObjects.begin(), worldObjects.end(), [](WorldObject* a, WorldObject* b)
+        switch (gameState)
         {
-            if (a->getDrawLayer() != b->getDrawLayer()) return a->getDrawLayer() > b->getDrawLayer();
-            if (a->getPosition().y == b->getPosition().y) return a->getPosition().x < b->getPosition().x;
-            return a->getPosition().y < b->getPosition().y;
-        });
-
-        // Draw terrain
-        chunkManager.drawChunkTerrain(worldTexture, gameTime);
-
-
-        // Draw objects
-        for (WorldObject* worldObject : worldObjects)
-        {
-            worldObject->draw(worldTexture, dt, {255, 255, 255, 255});
-        }
-
-        worldTexture.display();
-
-        // Draw light sources on light texture
-        sf::RenderTexture lightTexture;
-        lightTexture.create(window.getSize().x, window.getSize().y);
-        lightTexture.clear({0, 0, 0, 0});
-
-        player.drawLightMask(lightTexture);
-
-        for (WorldObject* entity : entities)
-        {
-            Entity* entityCasted = static_cast<Entity*>(entity);
-            entityCasted->drawLightMask(lightTexture);
-        }
-
-        lightTexture.display();
-
-        // Finish drawing world - draw world texture
-        sf::Sprite worldTextureSprite(worldTexture.getTexture());
-        sf::Shader* lightingShader = Shaders::getShader(ShaderType::Lighting);
-        lightingShader->setUniform("lightingTexture", lightTexture.getTexture());
-        lightingShader->setUniform("darkness", worldDarkness);
-        window.draw(worldTextureSprite, lightingShader);
-
-
-        switch (worldMenuState)
-        {
-            case WorldMenuState::Main:
-                Cursor::drawCursor(window);
+            case GameState::Menu:
+                runMenu(dt);
                 break;
-
-            case WorldMenuState::Build:
-            {
-                Cursor::drawCursor(window);
-                BuildGUI::draw(window);
-
-                unsigned int selectedObjectType = BuildGUI::getSelectedObject();
-
-                BuildableObject recipeObject(Cursor::getLerpedSelectPos() + sf::Vector2f(TILE_SIZE_PIXELS_UNSCALED / 2.0f, TILE_SIZE_PIXELS_UNSCALED / 2.0f), selectedObjectType);
-
-                if (Inventory::canBuildObject(selectedObjectType) && 
-                    chunkManager.canPlaceObject(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile(), selectedObjectType, worldSize))
-                    recipeObject.draw(window, dt, {0, 255, 0, 180});
-                else
-                    recipeObject.draw(window, dt, {255, 0, 0, 180});
-                
+            case GameState::InShip:
+                runInShip(dt);
                 break;
-            }
-            
-            case WorldMenuState::Inventory:
-                InventoryGUI::draw(window);
-                break;
-            
-            case WorldMenuState::Furnace:
-                FurnaceGUI::draw(window);
+            case GameState::OnPlanet:
+                runOnPlanet(dt);
                 break;
         }
-
-        // Debug info
-        {
-            float intScale = static_cast<float>(ResolutionHandler::getResolutionIntegerScale());
-
-            TextDraw::drawText(window, {GAME_VERSION, sf::Vector2f(10, 5) * intScale, sf::Color(255, 255, 255), static_cast<unsigned int>(20 * intScale)});
-            TextDraw::drawText(window, {
-                std::to_string(static_cast<int>(1.0f / dt)) + "FPS", sf::Vector2f(10, 25) * intScale, sf::Color(255, 255, 255), static_cast<unsigned int>(20 * intScale)
-                });
-            
-            TextDraw::drawText(window, {
-                std::to_string(chunkManager.getLoadedChunkCount()) + " Chunks loaded", sf::Vector2f(10, 45) * intScale, sf::Color(255, 255, 255),
-                static_cast<unsigned int>(20 * intScale)
-                });
-            
-            TextDraw::drawText(window, {
-                std::to_string(chunkManager.getGeneratedChunkCount()) + " Chunks generated", sf::Vector2f(10, 65) * intScale, sf::Color(255, 255, 255),
-                static_cast<unsigned int>(20 * intScale)
-                });
-        }
-
-        window.display();
-
-        // window.setTitle("spacebuild - " + std::to_string((int)(1.0f / dt)) + "FPS");
-
     }
 }
 
-void Game::handleEvents()
+void Game::runMenu(float dt)
 {
     for (auto event = sf::Event{}; window.pollEvent(event);)
     {
-        if (event.type == sf::Event::Closed)
-        {
-            window.close();
-        }
-
-        if (event.type == sf::Event::Resized)
-        {
-            handleWindowResize(sf::Vector2u(event.size.width, event.size.height));
-        }
+        handleEventsWindow(event);
 
         if (event.type == sf::Event::KeyPressed)
         {
-            if (event.key.code == sf::Keyboard::F11)
+            if (event.key.code == sf::Keyboard::Enter)
             {
-                toggleFullScreen();
+                gameState = GameState::InShip;
             }
+        }
+    }
 
+    window.clear();
+
+    sf::Vector2f titlePos;
+    titlePos.x = ResolutionHandler::getResolution().x / 2.0f;
+    titlePos.y = 100.0f * ResolutionHandler::getResolutionIntegerScale();
+
+    TextDraw::drawText(window, {
+        "spacebuild", titlePos, {255, 255, 255}, static_cast<unsigned int>(48 * ResolutionHandler::getResolutionIntegerScale()), {0, 0, 0}, 0, true, false
+        });
+
+    sf::Vector2f continueTextPos;
+    continueTextPos.x = titlePos.x;
+    continueTextPos.y = ResolutionHandler::getResolution().y - 300.0f * ResolutionHandler::getResolutionIntegerScale();
+
+    TextDraw::drawText(window, {
+        "Enter to start", continueTextPos, {255, 255, 255}, static_cast<unsigned int>(30 * ResolutionHandler::getResolutionIntegerScale()), {0, 0, 0}, 0, true, false
+        });
+
+    window.display();
+}
+
+void Game::runInShip(float dt)
+{
+    for (auto event = sf::Event{}; window.pollEvent(event);)
+    {
+        handleEventsWindow(event);
+
+        if (event.type == sf::Event::KeyPressed)
+        {
+            if (event.key.code == sf::Keyboard::Enter)
+            {
+                gameState = GameState::OnPlanet;
+            }
+        }
+    }
+
+    window.clear();
+
+    sf::Vector2f textPos;
+    textPos.x = ResolutionHandler::getResolution().x / 2.0f;
+    textPos.y = ResolutionHandler::getResolution().y / 2.0f;
+
+    TextDraw::drawText(window, {
+        "In the ship", textPos, {255, 255, 255}, static_cast<unsigned int>(48 * ResolutionHandler::getResolutionIntegerScale()), {0, 0, 0}, 0, true, false
+        });
+
+    window.display();
+}
+
+void Game::runOnPlanet(float dt)
+{
+    // Handle events
+    for (auto event = sf::Event{}; window.pollEvent(event);)
+    {
+        handleEventsWindow(event);
+
+        if (event.type == sf::Event::KeyPressed)
+        {
             if (worldMenuState == WorldMenuState::Main)
             {
                 if (event.key.code == sf::Keyboard::E)
@@ -394,6 +318,168 @@ void Game::handleEvents()
                 BuildGUI::changeSelectedObject(-event.mouseWheelScroll.delta);
             else
                 handleZoom(event.mouseWheelScroll.delta);
+        }
+    }
+
+    floatTween.update(dt);
+
+    dayNightToggleTimer += dt;
+    // if (dayNightToggleTimer >= 20.0f)
+    // {
+    //     dayNightToggleTimer = 0.0f;
+    //     if (isDay) floatTween.startTween(&worldDarkness, 0.0f, 0.95f, 7, TweenTransition::Sine, TweenEasing::EaseInOut);
+    //     else floatTween.startTween(&worldDarkness, 0.95f, 0.0f, 7, TweenTransition::Sine, TweenEasing::EaseInOut);
+    //     isDay = !isDay;
+    // }
+
+    Camera::update(player.getPosition(), dt);
+    Cursor::updateTileCursor(window, dt, worldMenuState, worldSize, chunkManager);
+
+    player.update(dt, Cursor::getMouseWorldPos(window), chunkManager);
+
+    if (worldMenuState == WorldMenuState::Main)
+        Cursor::setCanReachTile(player.canReachPosition(Cursor::getMouseWorldPos(window)));
+
+    chunkManager.updateChunks(noise, worldSize);
+    chunkManager.updateChunksObjects(dt);
+    chunkManager.updateChunksEntities(dt, worldSize);
+
+    window.clear({80, 80, 80});
+
+    // Draw all world onto texture for lighting
+    sf::RenderTexture worldTexture;
+    worldTexture.create(window.getSize().x, window.getSize().y);
+    worldTexture.clear();
+
+    // Draw water
+    chunkManager.drawChunkWater(worldTexture, gameTime);
+
+    // Draw objects for reflection FUTURE
+    std::vector<WorldObject*> worldObjects = chunkManager.getChunkObjects();
+    std::vector<WorldObject*> entities = chunkManager.getChunkEntities();
+    worldObjects.insert(worldObjects.end(), entities.begin(), entities.end());
+    worldObjects.push_back(&player);
+
+    std::sort(worldObjects.begin(), worldObjects.end(), [](WorldObject* a, WorldObject* b)
+    {
+        if (a->getDrawLayer() != b->getDrawLayer()) return a->getDrawLayer() > b->getDrawLayer();
+        if (a->getPosition().y == b->getPosition().y) return a->getPosition().x < b->getPosition().x;
+        return a->getPosition().y < b->getPosition().y;
+    });
+
+    // Draw terrain
+    chunkManager.drawChunkTerrain(worldTexture, gameTime);
+
+
+    // Draw objects
+    for (WorldObject* worldObject : worldObjects)
+    {
+        worldObject->draw(worldTexture, dt, {255, 255, 255, 255});
+    }
+
+    worldTexture.display();
+
+    // Draw light sources on light texture
+    sf::RenderTexture lightTexture;
+    lightTexture.create(window.getSize().x, window.getSize().y);
+    lightTexture.clear({0, 0, 0, 0});
+
+    player.drawLightMask(lightTexture);
+
+    for (WorldObject* entity : entities)
+    {
+        Entity* entityCasted = static_cast<Entity*>(entity);
+        entityCasted->drawLightMask(lightTexture);
+    }
+
+    lightTexture.display();
+
+    // Finish drawing world - draw world texture
+    sf::Sprite worldTextureSprite(worldTexture.getTexture());
+    sf::Shader* lightingShader = Shaders::getShader(ShaderType::Lighting);
+    lightingShader->setUniform("lightingTexture", lightTexture.getTexture());
+    lightingShader->setUniform("darkness", worldDarkness);
+    window.draw(worldTextureSprite, lightingShader);
+
+
+    switch (worldMenuState)
+    {
+        case WorldMenuState::Main:
+            Cursor::drawCursor(window);
+            break;
+
+        case WorldMenuState::Build:
+        {
+            Cursor::drawCursor(window);
+            BuildGUI::draw(window);
+
+            unsigned int selectedObjectType = BuildGUI::getSelectedObject();
+
+            BuildableObject recipeObject(Cursor::getLerpedSelectPos() + sf::Vector2f(TILE_SIZE_PIXELS_UNSCALED / 2.0f, TILE_SIZE_PIXELS_UNSCALED / 2.0f), selectedObjectType);
+
+            if (Inventory::canBuildObject(selectedObjectType) && 
+                chunkManager.canPlaceObject(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile(), selectedObjectType, worldSize))
+                recipeObject.draw(window, dt, {0, 255, 0, 180});
+            else
+                recipeObject.draw(window, dt, {255, 0, 0, 180});
+            
+            break;
+        }
+        
+        case WorldMenuState::Inventory:
+            InventoryGUI::draw(window);
+            break;
+        
+        case WorldMenuState::Furnace:
+            FurnaceGUI::draw(window);
+            break;
+    }
+
+    // Debug info
+    {
+        float intScale = static_cast<float>(ResolutionHandler::getResolutionIntegerScale());
+
+        TextDraw::drawText(window, {GAME_VERSION, sf::Vector2f(10, 5) * intScale, sf::Color(255, 255, 255), static_cast<unsigned int>(20 * intScale)});
+        TextDraw::drawText(window, {
+            std::to_string(static_cast<int>(1.0f / dt)) + "FPS", sf::Vector2f(10, 25) * intScale, sf::Color(255, 255, 255), static_cast<unsigned int>(20 * intScale)
+            });
+        
+        TextDraw::drawText(window, {
+            std::to_string(chunkManager.getLoadedChunkCount()) + " Chunks loaded", sf::Vector2f(10, 45) * intScale, sf::Color(255, 255, 255),
+            static_cast<unsigned int>(20 * intScale)
+            });
+        
+        TextDraw::drawText(window, {
+            std::to_string(chunkManager.getGeneratedChunkCount()) + " Chunks generated", sf::Vector2f(10, 65) * intScale, sf::Color(255, 255, 255),
+            static_cast<unsigned int>(20 * intScale)
+            });
+    }
+
+    window.display();
+
+    // window.setTitle("spacebuild - " + std::to_string((int)(1.0f / dt)) + "FPS");
+}
+
+void Game::handleEventsWindow(sf::Event& event)
+{
+    if (event.type == sf::Event::Closed)
+    {
+        window.close();
+        return;
+    }
+
+    if (event.type == sf::Event::Resized)
+    {
+        handleWindowResize(sf::Vector2u(event.size.width, event.size.height));
+        return;
+    }
+
+    if (event.type == sf::Event::KeyPressed)
+    {
+        if (event.key.code == sf::Keyboard::F11)
+        {
+            toggleFullScreen();
+            return;
         }
     }
 }
