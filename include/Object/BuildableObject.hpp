@@ -1,6 +1,8 @@
 #pragma once
 
 #include <SFML/Graphics.hpp>
+#include <steam_api.h>
+#include <isteamuserstats.h>
 #include <optional>
 #include <iostream>
 

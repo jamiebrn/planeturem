@@ -1,6 +1,8 @@
 #pragma once
 
 #include <SFML/Graphics.hpp>
+#include <steam_api.h>
+
 #include <World/FastNoise.h>
 #include <Core/json.hpp>
 #include <cmath>

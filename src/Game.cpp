@@ -39,6 +39,10 @@ bool Game::initialise()
     if(!icon.loadFromFile("Data/icon.png")) return false;
     window.setIcon(256, 256, icon.getPixelsPtr());
 
+    // Load Steam API
+    if (!SteamAPI_Init()) return false;
+    SteamUserStats()->RequestCurrentStats();
+
     // Randomise
     srand(time(NULL));
 
@@ -49,7 +53,7 @@ bool Game::initialise()
 
     // Initialise values
     gameTime = 0;
-    gameState = GameState::Menu;
+    gameState = GameState::OnPlanet;
     worldMenuState = WorldMenuState::Main;
     interactedObjectID = 0;
     interactedObjectPos = sf::Vector2f(0, 0);
@@ -178,6 +182,8 @@ void Game::run()
     {
         float dt = clock.restart().asSeconds();
         gameTime += dt;
+
+        SteamAPI_RunCallbacks();
 
         window.setView(view);
 
