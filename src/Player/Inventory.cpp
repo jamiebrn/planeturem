@@ -82,27 +82,56 @@ void Inventory::takeItem(ItemType item, int amount)
 
         if (amountToTake <= 0)
             return;
+    }
+}
 
-        // Must be taken from multiple stacks
-        // if (amount_taken < amount_left)
-        // {
-        //     inventoryData.erase(inventoryData.begin() + i);
-        //     amount_left -= amount_taken;
-        //     continue;
-        // }
+void Inventory::addItemAtIndex(int index, ItemType item, int amount)
+{
+    if (index >= MAX_INVENTORY_SIZE)
+        return;
+    
+    std::optional<ItemCount>& itemSlot = inventoryData[index];
 
-        // // Stack has enough to take from
-        // itemPair.second -= amount_left;
+    // Attempt to add to stack
+    if (itemSlot.has_value())
+    {
+        ItemCount& itemCount = itemSlot.value();
 
-        // // Delete stack if now empty
-        // if (itemPair.second <= 0)
-        // {
-        //     inventoryData.erase(inventoryData.begin() + i);
-        //     amount_left -= amount_taken;
-        // }
+        // Item to add is same as item at index, so add
+        if (item == itemCount.first)
+        {
+            itemCount.second = std::min(itemCount.second + amount, INVENTORY_STACK_SIZE);
+        }
 
-        // // Removing items completed
-        // return;
+        return;
+    }
+
+    // Create new stack
+    ItemCount itemCount;
+    itemCount.first = item;
+    itemCount.second = std::min(amount, static_cast<int>(INVENTORY_STACK_SIZE));
+
+    itemSlot = itemCount;
+}
+
+void Inventory::takeItemAtIndex(int index, int amount)
+{
+    if (index >= MAX_INVENTORY_SIZE)
+        return;
+    
+    std::optional<ItemCount>& itemSlot = inventoryData[index];
+    if (!itemSlot.has_value())
+        return;
+    
+    ItemCount& itemCount = itemSlot.value();
+
+    if (amount >= itemCount.second)
+    {
+        itemSlot = std::nullopt;
+    }
+    else
+    {
+        itemCount.second -= amount;
     }
 }
 

@@ -363,7 +363,7 @@ void Chunk::updateChunkObjects(float dt, ChunkManager& chunkManager)
         }
     }
 
-    recalculateCollisionRects(chunkManager);
+    // recalculateCollisionRects(chunkManager);
 }
 
 std::vector<WorldObject*> Chunk::getObjects()
@@ -488,6 +488,7 @@ void Chunk::deleteObject(sf::Vector2i position, ChunkManager& chunkManager)
     if (objectSize == sf::Vector2i(1, 1))
     {
         objectGrid[position.y][position.x].reset();
+        recalculateCollisionRects(chunkManager);
         return;
     }
 
@@ -823,7 +824,7 @@ bool Chunk::collisionRectStaticCollisionY(CollisionRect& collisionRect, float dy
     return collision;
 }
 
-void Chunk::setWorldPosition(sf::Vector2f position)
+void Chunk::setWorldPosition(sf::Vector2f position, ChunkManager& chunkManager)
 {
     // Update all entity positions
     for (auto& entity : entities)
@@ -853,6 +854,8 @@ void Chunk::setWorldPosition(sf::Vector2f position)
             objectGrid[y][x]->setWorldPosition(objectPos);
         }
     }
+
+    recalculateCollisionRects(chunkManager);
 }
 
 std::vector<WorldObject*> Chunk::getEntities()

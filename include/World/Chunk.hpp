@@ -92,7 +92,7 @@ public:
     bool collisionRectStaticCollisionY(CollisionRect& collisionRect, float dy);
 
 
-    void setWorldPosition(sf::Vector2f position);
+    void setWorldPosition(sf::Vector2f position, ChunkManager& chunkManager);
 
 
     // bool isPointInChunk(sf::Vector2f position);

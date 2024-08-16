@@ -10,7 +10,7 @@
 #include "Data/BuildRecipeLoader.hpp"
 
 static constexpr unsigned int INVENTORY_STACK_SIZE = 20;
-static constexpr unsigned int MAX_INVENTORY_SIZE = 28;
+static constexpr unsigned int MAX_INVENTORY_SIZE = 32;
 
 // First is item type, second is amount of item
 typedef std::pair<ItemType, unsigned int> ItemCount;
@@ -23,6 +23,10 @@ public:
     static void addItem(ItemType item, int amount);
 
     static void takeItem(ItemType item, int amount);
+
+    static void addItemAtIndex(int index, ItemType item, int amount);
+
+    static void takeItemAtIndex(int index, int amount);
 
     static bool canBuildObject(ObjectType object);
 

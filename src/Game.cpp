@@ -268,6 +268,8 @@ void Game::runInShip(float dt)
 
 void Game::runOnPlanet(float dt)
 {
+    sf::Vector2f mouseScreenPos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
+
     // Handle events
     for (auto event = sf::Event{}; window.pollEvent(event);)
     {
@@ -309,12 +311,30 @@ void Game::runOnPlanet(float dt)
         {
             if (event.mouseButton.button == sf::Mouse::Left)
             {
-                attemptUseTool();
-                attemptBuildObject();
+                switch (worldMenuState)
+                {
+                    case WorldMenuState::Main:
+                        attemptUseTool();
+                        break;
+                    case WorldMenuState::Build:
+                        attemptBuildObject();
+                        break;
+                    case WorldMenuState::Inventory:
+                        InventoryGUI::handleLeftClick(mouseScreenPos);
+                        break;
+                }
             }
             else if (event.mouseButton.button == sf::Mouse::Right)
             {
-                attemptObjectInteract();
+                switch (worldMenuState)
+                {
+                    case WorldMenuState::Main:
+                        attemptObjectInteract();
+                        break;
+                    case WorldMenuState::Inventory:
+                        InventoryGUI::handleRightClick(mouseScreenPos);
+                        break;
+                }
             }
         }
 

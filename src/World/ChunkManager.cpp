@@ -53,7 +53,7 @@ void ChunkManager::updateChunks(const FastNoise& noise, int worldSize)
                 storedChunks.erase(ChunkPosition(wrappedX, wrappedY));
 
                 // Update chunk position
-                loadedChunks[ChunkPosition(wrappedX, wrappedY)]->setWorldPosition(chunkWorldPos);
+                loadedChunks[ChunkPosition(wrappedX, wrappedY)]->setWorldPosition(chunkWorldPos, *this);
 
                 continue;
             }
@@ -62,7 +62,7 @@ void ChunkManager::updateChunks(const FastNoise& noise, int worldSize)
             std::unique_ptr<Chunk> chunk = std::make_unique<Chunk>(sf::Vector2i(wrappedX, wrappedY));
             
             // Set chunk position
-            chunk->setWorldPosition(chunkWorldPos);
+            chunk->setWorldPosition(chunkWorldPos, *this);
 
             chunk->generateChunk(noise, worldSize, *this);
 
