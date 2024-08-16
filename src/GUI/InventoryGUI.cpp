@@ -81,7 +81,8 @@ void InventoryGUI::putDownItem(sf::Vector2f mouseScreenPos)
         const ItemCount& itemCount = itemSlot.value();
 
         // Item at selected position is same as in cursor, so add
-        if (pickedUpItem == itemCount.first)
+        // Don't add if stack is full, swap instead
+        if (pickedUpItem == itemCount.first && itemCount.second < INVENTORY_STACK_SIZE)
         {
             int amountAddedToStack = std::min(itemCount.second + pickedUpItemCount, INVENTORY_STACK_SIZE) - itemCount.second;
 
@@ -93,6 +94,20 @@ void InventoryGUI::putDownItem(sf::Vector2f mouseScreenPos)
 
             if (pickedUpItemCount <= 0)
                 isItemPickedUp = false;
+        }
+        else
+        {
+            // Swap picked up item with selected
+            // Copy item ready for swap
+            ItemCount toSwap = itemCount;
+
+            // Swap in inventory
+            Inventory::takeItemAtIndex(itemIndex, itemCount.second);
+            Inventory::addItemAtIndex(itemIndex, pickedUpItem, pickedUpItemCount);
+
+            // Swap item picked up
+            pickedUpItem = toSwap.first;
+            pickedUpItemCount = toSwap.second;
         }
 
         return;
