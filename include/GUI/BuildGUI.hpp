@@ -20,7 +20,7 @@ public:
     static void changeSelectedObject(int change);
     static void changeSelectedCategory(int change);
 
-    static unsigned int getSelectedObject();
+    static ObjectType getSelectedObject();
 
     static void draw(sf::RenderWindow& window);
 

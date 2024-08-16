@@ -29,7 +29,7 @@ bool ToolDataLoader::loadData(std::string toolDataPath)
     return true;
 }
 
-const ToolData& ToolDataLoader::getToolData(int index)
+const ToolData& ToolDataLoader::getToolData(ToolType tool)
 {
-    return loaded_toolData[index];
+    return loaded_toolData[tool];
 }

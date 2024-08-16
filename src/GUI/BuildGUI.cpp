@@ -17,7 +17,7 @@ void BuildGUI::changeSelectedCategory(int change)
     selectedItem = 0;
 }
 
-unsigned int BuildGUI::getSelectedObject()
+ObjectType BuildGUI::getSelectedObject()
 {
     return BuildRecipeLoader::getRecipeProductObject(selectedItem, selectedCategory);
 }

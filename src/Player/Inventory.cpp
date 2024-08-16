@@ -1,71 +1,116 @@
 #include "Player/Inventory.hpp"
 
-std::vector<std::pair<unsigned int, int>> Inventory::inventoryData;
+std::array<std::optional<ItemCount>, MAX_INVENTORY_SIZE> Inventory::inventoryData;
 
-void Inventory::addItem(unsigned int item, int amount)
+void Inventory::addItem(ItemType item, int amount)
 {
-    // Check if item already exists
-    for (auto& itemPair : inventoryData)
+    int amountToAdd = amount;
+
+    // Attempt to add items to existing stacks
+    for (std::optional<ItemCount>& itemSlot : inventoryData)
     {
-        if (itemPair.first == item && itemPair.second < 20)
-        {
-            int amount_added = std::min(itemPair.second + amount, 20) - itemPair.second;
+        if (!itemSlot.has_value())
+            continue;
+        
+        ItemCount& itemCount = itemSlot.value();
 
-            itemPair.second += amount_added;
+        if (itemCount.first != item)
+            continue;
 
-            if (itemPair.second == 20 && amount - amount_added > 0)
-                inventoryData.push_back({item, amount - amount_added});
-            
+        if (itemCount.second >= INVENTORY_STACK_SIZE)
+            continue;
+
+        int amountAddedToStack = std::min(itemCount.second + amountToAdd, INVENTORY_STACK_SIZE) - itemCount.second;
+
+        amountToAdd -= amountAddedToStack;
+
+        itemCount.second += amountAddedToStack;
+
+        if (amountToAdd <= 0)
             return;
-        }
+    }
+
+    // Attempt to put remaining items in empty slot
+    for (std::optional<ItemCount>& itemSlot : inventoryData)
+    {
+        if (itemSlot.has_value())
+            continue;
+        
+        int amountPutInSlot = std::min(amountToAdd, static_cast<int>(INVENTORY_STACK_SIZE));
+
+        amountToAdd -= amountPutInSlot;
+
+        itemSlot = ItemCount(item, amountPutInSlot);
+
+        if (amountToAdd <= 0)
+            return;
     }
 
     // Doesn't exist so add as new item
-    inventoryData.push_back({item, amount});
+    // inventoryData.push_back({item, amount});
 }
 
-void Inventory::takeItem(unsigned int item, int amount)
+void Inventory::takeItem(ItemType item, int amount)
 {
-    int amount_left = amount;
+    int amountToTake = amount;
 
     // Go backwards over inventory and subtract from item stacks
     for (int i = inventoryData.size() - 1; i >= 0; i--)
     {
-        auto& itemPair = inventoryData[i];
+        std::optional<ItemCount>& itemSlot = inventoryData[i];
 
-        if (itemPair.first != item)
+        if (!itemSlot.has_value())
+            continue;
+        
+        ItemCount& itemCount = itemSlot.value();
+
+        if (itemCount.first != item)
             continue;
 
-        int amount_taken = std::min(itemPair.second, amount_left);
+        int amountTaken = std::min(static_cast<int>(itemCount.second), amountToTake);
+
+        amountToTake -= amountTaken;
+
+        if (itemCount.second <= amountTaken)
+        {
+            itemSlot = std::nullopt;
+        }
+        else
+        {
+            itemCount.second -= amountTaken;
+        }
+
+        if (amountToTake <= 0)
+            return;
 
         // Must be taken from multiple stacks
-        if (amount_taken < amount_left)
-        {
-            inventoryData.erase(inventoryData.begin() + i);
-            amount_left -= amount_taken;
-            continue;
-        }
+        // if (amount_taken < amount_left)
+        // {
+        //     inventoryData.erase(inventoryData.begin() + i);
+        //     amount_left -= amount_taken;
+        //     continue;
+        // }
 
-        // Stack has enough to take from
-        itemPair.second -= amount_left;
+        // // Stack has enough to take from
+        // itemPair.second -= amount_left;
 
-        // Delete stack if now empty
-        if (itemPair.second <= 0)
-        {
-            inventoryData.erase(inventoryData.begin() + i);
-            amount_left -= amount_taken;
-        }
+        // // Delete stack if now empty
+        // if (itemPair.second <= 0)
+        // {
+        //     inventoryData.erase(inventoryData.begin() + i);
+        //     amount_left -= amount_taken;
+        // }
 
-        // Removing items completed
-        return;
+        // // Removing items completed
+        // return;
     }
 }
 
-bool Inventory::canBuildObject(unsigned int object)
+bool Inventory::canBuildObject(ObjectType object)
 {
     const BuildRecipe& buildRecipe = BuildRecipeLoader::getBuildRecipe(object);
 
-    std::unordered_map<unsigned int, int> inventoryItemCount = getTotalItemCount();
+    std::unordered_map<ItemType, unsigned int> inventoryItemCount = getTotalItemCount();
 
     for (auto& recipeItemPair : buildRecipe.itemRequirements)
     {
@@ -82,21 +127,26 @@ bool Inventory::canBuildObject(unsigned int object)
     return true;
 }
 
-std::unordered_map<unsigned int, int> Inventory::getTotalItemCount()
+std::unordered_map<ItemType, unsigned int> Inventory::getTotalItemCount()
 {
-    std::unordered_map<unsigned int, int> itemCount;
+    std::unordered_map<ItemType, unsigned int> totalItemCount;
 
-    for (auto& itemPair : inventoryData)
+    for (const std::optional<ItemCount>& itemSlot : inventoryData)
     {
+        if (!itemSlot.has_value())
+            continue;
+        
+        const ItemCount& itemCount = itemSlot.value();
+
         // If item already in map, add to it
-        if (itemCount.count(itemPair.first))
+        if (totalItemCount.count(itemCount.first))
         {
-            itemCount[itemPair.first] += itemPair.second;
+            totalItemCount[itemCount.first] += itemCount.second;
             continue;
         }
 
-        itemCount[itemPair.first] = itemPair.second;
+        totalItemCount[itemCount.first] = itemCount.second;
     }
 
-    return itemCount;
+    return totalItemCount;
 }

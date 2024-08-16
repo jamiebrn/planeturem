@@ -330,13 +330,13 @@ void Game::runOnPlanet(float dt)
     floatTween.update(dt);
 
     dayNightToggleTimer += dt;
-    // if (dayNightToggleTimer >= 20.0f)
-    // {
-    //     dayNightToggleTimer = 0.0f;
-    //     if (isDay) floatTween.startTween(&worldDarkness, 0.0f, 0.95f, 7, TweenTransition::Sine, TweenEasing::EaseInOut);
-    //     else floatTween.startTween(&worldDarkness, 0.95f, 0.0f, 7, TweenTransition::Sine, TweenEasing::EaseInOut);
-    //     isDay = !isDay;
-    // }
+    if (dayNightToggleTimer >= 20.0f)
+    {
+        dayNightToggleTimer = 0.0f;
+        if (isDay) floatTween.startTween(&worldDarkness, 0.0f, 0.95f, 7, TweenTransition::Sine, TweenEasing::EaseInOut);
+        else floatTween.startTween(&worldDarkness, 0.95f, 0.0f, 7, TweenTransition::Sine, TweenEasing::EaseInOut);
+        isDay = !isDay;
+    }
 
     Camera::update(player.getPosition(), dt);
     Cursor::updateTileCursor(window, dt, worldMenuState, worldSize, chunkManager);
@@ -537,8 +537,8 @@ void Game::attemptObjectInteract()
     if (selectedObjectOptional.has_value())
     {
         BuildableObject& selectedObject = selectedObjectOptional.value();
-        ObjectInteractionEventData interactionEvent = selectedObject.interact();
 
+        ObjectInteractionEventData interactionEvent = selectedObject.interact();
         if (interactionEvent.interactionType == ObjectInteraction::OpenFurnace)
         {
             worldMenuState = WorldMenuState::Furnace;

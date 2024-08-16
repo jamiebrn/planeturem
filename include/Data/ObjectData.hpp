@@ -4,6 +4,8 @@
 #include <string>
 #include <unordered_map>
 
+#include "Data/ItemDataLoader.hpp"
+
 struct ObjectData
 {
     std::string name;
@@ -21,5 +23,5 @@ struct ObjectData
 
     float furnaceSpeed = -1;
 
-    std::unordered_map<unsigned int, int> itemDrops;
+    std::unordered_map<ItemType, unsigned int> itemDrops;
 };

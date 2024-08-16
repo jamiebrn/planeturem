@@ -20,7 +20,7 @@ void InventoryGUI::draw(sf::RenderWindow& window)
 
     sf::Vector2f itemBoxPosition(resolution.x / 2.0f - 400 + 10, resolution.y / 2.0f - 200 + 10);
 
-    for (auto& itemPair : Inventory::getData())
+    for (const std::optional<ItemCount>& itemSlot : Inventory::getData())
     {
         sf::RectangleShape itemBackground({80, 80});
 
@@ -30,16 +30,21 @@ void InventoryGUI::draw(sf::RenderWindow& window)
 
         window.draw(itemBackground);
 
-        TextureManager::drawSubTexture(window, {
-            TextureType::Items,
-            itemBoxPosition + sf::Vector2f(40, 40),
-            0,
-            {3, 3},
-            {0.5, 0.5}
-        }, ItemDataLoader::getItemData(itemPair.first).textureRect);
+        if (itemSlot.has_value())
+        {
+            const ItemCount& itemCount = itemSlot.value();
 
-        TextDraw::drawText(window, {std::to_string(itemPair.second), itemBoxPosition + sf::Vector2f(70, 70), {255, 255, 255}, 24, {0, 0, 0}, 0, true, true});
+            TextureManager::drawSubTexture(window, {
+                TextureType::Items,
+                itemBoxPosition + sf::Vector2f(40, 40),
+                0,
+                {3, 3},
+                {0.5, 0.5}
+            }, ItemDataLoader::getItemData(itemCount.first).textureRect);
 
+            TextDraw::drawText(window, {std::to_string(itemCount.second), itemBoxPosition + sf::Vector2f(70, 70), {255, 255, 255}, 24, {0, 0, 0}, 0, true, true});
+        }
+        
         itemBoxPosition.x += 100;
         if (itemBoxPosition.x > resolution.x / 2.0f - 400 + 10 + 7 * 100)
         {

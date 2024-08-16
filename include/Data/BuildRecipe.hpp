@@ -2,7 +2,10 @@
 
 #include <map>
 
+#include "Data/ItemDataLoader.hpp"
+
 struct BuildRecipe
 {
-    std::map<unsigned int, unsigned int> itemRequirements;
+    // Stores how many of each type of item required for recipe
+    std::map<ItemType, unsigned int> itemRequirements;
 };

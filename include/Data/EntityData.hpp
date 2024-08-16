@@ -4,6 +4,8 @@
 #include <string>
 #include <unordered_map>
 
+#include "Data/ItemDataLoader.hpp"
+
 struct EntityData
 {
     std::string name;
@@ -16,5 +18,5 @@ struct EntityData
     // e.g. (1, 1) size means screen size is (tileSize * scale, tileSize * scale)
     sf::Vector2f size;
 
-    std::unordered_map<unsigned int, int> itemDrops;
+    std::unordered_map<ItemType, unsigned int> itemDrops;
 };

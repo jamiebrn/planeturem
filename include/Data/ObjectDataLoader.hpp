@@ -7,6 +7,8 @@
 #include "Core/json.hpp"
 #include "Data/ObjectData.hpp"
 
+typedef unsigned int ObjectType;
+
 class ObjectDataLoader
 {
     ObjectDataLoader() = delete;
@@ -14,7 +16,7 @@ class ObjectDataLoader
 public:
     static bool loadData(std::string objectDataPath);
 
-    static const ObjectData& getObjectData(unsigned int type_index);
+    static const ObjectData& getObjectData(ObjectType type_index);
 
 private:
     static std::vector<ObjectData> loaded_objectData;

@@ -7,6 +7,8 @@
 #include "Core/json.hpp"
 #include "Data/ToolData.hpp"
 
+typedef unsigned int ToolType;
+
 class ToolDataLoader
 {
     ToolDataLoader() = delete;
@@ -14,7 +16,7 @@ class ToolDataLoader
 public:
     static bool loadData(std::string toolDataPath);
 
-    static const ToolData& getToolData(int index);
+    static const ToolData& getToolData(ToolType tool);
 
 private:
     static std::vector<ToolData> loaded_toolData;

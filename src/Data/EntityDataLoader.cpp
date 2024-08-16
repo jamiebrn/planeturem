@@ -40,7 +40,7 @@ bool EntityDataLoader::loadData(std::string objectDataPath)
     return true;
 }
 
-const EntityData& EntityDataLoader::getEntityData(unsigned int type_index)
+const EntityData& EntityDataLoader::getEntityData(EntityType entity)
 {    
-    return loaded_entityData[type_index];
+    return loaded_entityData[entity];
 }

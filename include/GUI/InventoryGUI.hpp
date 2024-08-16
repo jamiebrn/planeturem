@@ -18,4 +18,6 @@ public:
 private:
     static sf::Vector2f screenPos;
 
+    
+
 };

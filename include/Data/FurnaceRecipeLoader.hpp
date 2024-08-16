@@ -7,6 +7,8 @@
 
 #include "Core/json.hpp"
 
+#include "Data/ItemDataLoader.hpp"
+
 class FurnaceRecipeLoader
 {
     FurnaceRecipeLoader() = delete;
@@ -14,10 +16,10 @@ class FurnaceRecipeLoader
 public:
     static bool loadData(std::string furnaceRecipeDataPath);
 
-    static inline unsigned int getFurnaceProduct(unsigned int item) {return loaded_furnaceRecipeData.at(item);}
+    static inline ItemType getFurnaceProduct(ItemType item) {return loaded_furnaceRecipeData.at(item);}
 
 private:
     // Maps item put in furnace : item created from furnace
-    static std::unordered_map<unsigned int, unsigned int> loaded_furnaceRecipeData;
+    static std::unordered_map<ItemType, ItemType> loaded_furnaceRecipeData;
 
 };

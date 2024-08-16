@@ -1,6 +1,6 @@
 #include "Data/BuildRecipeLoader.hpp"
 
-std::map<std::string, std::map<unsigned int, BuildRecipe>> BuildRecipeLoader::loaded_buildRecipeData;
+std::map<std::string, std::map<ObjectType, BuildRecipe>> BuildRecipeLoader::loaded_buildRecipeData;
 
 bool BuildRecipeLoader::loadData(std::string buildRecipeDataPath)
 {
@@ -29,7 +29,7 @@ bool BuildRecipeLoader::loadData(std::string buildRecipeDataPath)
     return true;
 }
 
-const BuildRecipe& BuildRecipeLoader::getBuildRecipe(unsigned int objectType)
+const BuildRecipe& BuildRecipeLoader::getBuildRecipe(ObjectType objectType)
 {
     for (auto iter = loaded_buildRecipeData.begin(); iter != loaded_buildRecipeData.end(); iter++)
     {
@@ -49,17 +49,17 @@ const BuildRecipe& BuildRecipeLoader::getBuildRecipe(int index, int categoryInde
     return loaded_buildRecipeData[categoryString][index];
 }
 
-unsigned int BuildRecipeLoader::getRecipeProductObject(int index, int categoryIndex)
+ObjectType BuildRecipeLoader::getRecipeProductObject(int index, int categoryIndex)
 {
     const std::string& categoryString = getCategoryString(categoryIndex);
-    std::map<unsigned int, BuildRecipe>::const_iterator iter = BuildRecipeLoader::getBuildRecipeData().at(categoryString).begin();
+    std::map<ObjectType, BuildRecipe>::const_iterator iter = BuildRecipeLoader::getBuildRecipeData().at(categoryString).begin();
     std::advance(iter, index);
     return iter->first;
 }
 
 const std::string& BuildRecipeLoader::getCategoryString(int categoryIndex)
 {
-    std::map<std::string, std::map<unsigned int, BuildRecipe>>::const_iterator iter = BuildRecipeLoader::getBuildRecipeData().begin();
+    std::map<std::string, std::map<ObjectType, BuildRecipe>>::const_iterator iter = BuildRecipeLoader::getBuildRecipeData().begin();
     std::advance(iter, categoryIndex);
     return iter->first;
 }

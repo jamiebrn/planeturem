@@ -26,7 +26,7 @@ bool ItemDataLoader::loadData(std::string itemDataPath)
     return true;
 }
 
-const ItemData& ItemDataLoader::getItemData(int index)
+const ItemData& ItemDataLoader::getItemData(ItemType item)
 {
-    return loaded_itemData[index];
+    return loaded_itemData[item];
 }
