@@ -94,5 +94,18 @@
         "texture-height": 16,
         "texture-x-origin": 0.5,
         "texture-y-origin": 0.9375
+    },
+    "8": {
+        "name": "Golden Tree",
+        "health": 4,
+        "texture-x": 0,
+        "texture-y": 96,
+        "texture-width": 32,
+        "texture-height": 48,
+        "texture-x-origin": 0.5,
+        "texture-y-origin": 0.94,
+        "item-drops": {
+            "0": 2000
+        }
     }
 }

@@ -161,6 +161,17 @@ int InventoryGUI::getInventorySelectedIndex(sf::Vector2f mouseScreenPos)
     return -1;
 }
 
+void InventoryGUI::handleClose()
+{
+    // Handle item still picked up when inventory is closed
+    if (isItemPickedUp)
+    {
+        isItemPickedUp = false;
+
+        Inventory::addItem(pickedUpItem, pickedUpItemCount);
+    }
+}
+
 void InventoryGUI::draw(sf::RenderWindow& window)
 {
     // Get resolution

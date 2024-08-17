@@ -57,8 +57,6 @@ sf::Vector2f Camera::screenToWorldTransform(sf::Vector2f screenPos)
     sf::Vector2f screenCentre = static_cast<sf::Vector2f>(ResolutionHandler::getResolution()) / 2.0f;
     sf::Vector2f screenCentreWorld = screenCentre / scale;
 
-    sf::Vector2f camPos = -getIntegerDrawOffset();
-
     sf::Vector2f worldPos;
     worldPos.x = (screenPos.x - screenCentre.x) / scale + screenCentreWorld.x + offset.x;
     worldPos.y = (screenPos.y - screenCentre.y) / scale + screenCentreWorld.y + offset.y;
@@ -72,6 +70,25 @@ void Camera::handleScaleChange(float beforeScale, float afterScale, sf::Vector2f
     adjustedCamPos.x = playerPosition.x - ((playerPosition.x - offset.x) * beforeScale) / afterScale;
     adjustedCamPos.y = playerPosition.y - ((playerPosition.y - offset.y) * beforeScale) / afterScale;
     Camera::setOffset(adjustedCamPos);
+}
+
+void Camera::handleWorldWrap(int worldSize)
+{
+    float worldPixelSize = worldSize * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
+
+    const sf::Vector2f resolution = static_cast<sf::Vector2f>(ResolutionHandler::getResolution());
+
+    // Wrap X
+    if (offset.x + screenToWorldTransform(resolution).x > worldPixelSize)
+        offset.x -= worldPixelSize;
+    else if (offset.x < -worldPixelSize)
+        offset.x += worldPixelSize;
+    
+    // Wrap Y
+    if (offset.y + screenToWorldTransform(resolution).y > worldPixelSize)
+        offset.y -= worldPixelSize;
+    else if (offset.y < -worldPixelSize)
+        offset.y += worldPixelSize;
 }
 
 // Set offset of camera

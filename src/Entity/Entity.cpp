@@ -95,6 +95,12 @@ bool Entity::isSelectedWithCursor(sf::Vector2f cursorWorldPos)
     return collisionRect.isPointInRect(cursorWorldPos.x, cursorWorldPos.y);
 }
 
+void Entity::setWorldPosition(sf::Vector2f newPosition)
+{
+    collisionRect.x = newPosition.x - collisionRect.width / 2.0f;
+    collisionRect.y = newPosition.y - collisionRect.height / 2.0f;
+}
+
 unsigned int Entity::getEntityType()
 {
     return entityType;

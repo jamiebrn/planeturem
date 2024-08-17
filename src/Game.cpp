@@ -1,5 +1,9 @@
 #include "Game.hpp"
 
+// TODO: Inventory item added notifications (maybe taking items?). Add in player class
+
+// FIX: Water shader seam on X at world wrap point
+
 Game::Game()
     : player(sf::Vector2f(0, 0)), window()
 {}
@@ -59,7 +63,7 @@ bool Game::initialise()
     interactedObjectPos = sf::Vector2f(0, 0);
 
     // Set world size
-    worldSize = 40;
+    worldSize = 20;
 
     // Initialise day/night cycle
     dayNightToggleTimer = 0.0f;
@@ -288,13 +292,19 @@ void Game::runOnPlanet(float dt)
             else
             {
                 if (event.key.code == sf::Keyboard::E && worldMenuState == WorldMenuState::Inventory)
+                {
+                    InventoryGUI::handleClose();
                     worldMenuState = WorldMenuState::Main;
+                }
                 
                 if (event.key.code == sf::Keyboard::Tab && worldMenuState == WorldMenuState::Build)
                     worldMenuState = WorldMenuState::Main;
 
                 if (event.key.code == sf::Keyboard::Escape)
+                {
+                    InventoryGUI::handleClose();
                     worldMenuState = WorldMenuState::Main;
+                }
             }
 
             if (worldMenuState == WorldMenuState::Build)
@@ -361,7 +371,17 @@ void Game::runOnPlanet(float dt)
     Camera::update(player.getPosition(), dt);
     Cursor::updateTileCursor(window, dt, worldMenuState, worldSize, chunkManager);
 
-    player.update(dt, Cursor::getMouseWorldPos(window), chunkManager);
+    // Update player
+    bool wrappedAroundWorld = false;
+    sf::Vector2f wrapPositionDelta;
+    player.update(dt, Cursor::getMouseWorldPos(window), chunkManager, worldSize, wrappedAroundWorld, wrapPositionDelta);
+    if (wrappedAroundWorld)
+    {
+        // Handle world wrapping for camera and cursor
+        Camera::handleWorldWrap(worldSize);
+        Cursor::handleWorldWrap(wrapPositionDelta);
+        chunkManager.reloadChunks();
+    }
 
     if (worldMenuState == WorldMenuState::Main)
         Cursor::setCanReachTile(player.canReachPosition(Cursor::getMouseWorldPos(window)));
@@ -478,6 +498,11 @@ void Game::runOnPlanet(float dt)
         TextDraw::drawText(window, {
             std::to_string(chunkManager.getGeneratedChunkCount()) + " Chunks generated", sf::Vector2f(10, 65) * intScale, sf::Color(255, 255, 255),
             static_cast<unsigned int>(20 * intScale)
+            });
+        
+        TextDraw::drawText(window, {
+            "Player pos: " + std::to_string(static_cast<int>(player.getPosition().x)) + ", " + std::to_string(static_cast<int>(player.getPosition().y)),
+            sf::Vector2f(10, 85) * intScale, sf::Color(255, 255, 255), static_cast<unsigned int>(20 * intScale)
             });
     }
 

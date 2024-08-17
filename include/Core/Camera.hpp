@@ -8,6 +8,8 @@
 #include "Core/ResolutionHandler.hpp"
 #include "Core/Helper.hpp"
 
+#include "GameConstants.hpp"
+
 // Declare camera class
 class Camera
 {
@@ -32,6 +34,8 @@ public:
     static sf::Vector2f screenToWorldTransform(sf::Vector2f screenPos);
 
     static void handleScaleChange(float beforeScale, float afterScale, sf::Vector2f playerPosition);
+
+    static void handleWorldWrap(int worldSize);
 
     // Set offset of camera
     static void setOffset(sf::Vector2f newOffset);

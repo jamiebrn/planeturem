@@ -224,3 +224,13 @@ void Cursor::setCanReachTile(bool canReach)
     if (!canReach)
         drawState = CursorDrawState::Hidden;
 }
+
+void Cursor::handleWorldWrap(sf::Vector2f positionDelta)
+{    
+    // Move all cursor corners to wrap around world
+    for (CursorCornerPosition& cursorCorner : cursorCornerPositions)
+    {
+        cursorCorner.worldPositionDestination += positionDelta;
+        cursorCorner.worldPosition += positionDelta;
+    }
+}

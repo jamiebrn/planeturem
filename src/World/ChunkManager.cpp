@@ -109,6 +109,19 @@ void ChunkManager::updateChunks(const FastNoise& noise, int worldSize)
     }
 }
 
+void ChunkManager::reloadChunks()
+{
+    for (auto iter = loadedChunks.begin(); iter != loadedChunks.end();)
+    {
+        ChunkPosition chunkPos = iter->first;
+        
+        // Store chunk in chunk memory
+        storedChunks[chunkPos] = std::move(iter->second);
+        // Unload chunk
+        iter = loadedChunks.erase(iter);
+    }
+}
+
 void ChunkManager::drawChunkTerrain(sf::RenderTarget& window, float time)
 {
     // Draw terrain

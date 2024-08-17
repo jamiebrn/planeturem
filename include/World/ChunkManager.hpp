@@ -29,6 +29,9 @@ public:
     // Load/unload chunks every frame
     void updateChunks(const FastNoise& noise, int worldSize);
 
+    // Forces a reload of chunks, used when wrapping around world
+    void reloadChunks();
+
     // Drawing functions for chunk terrain
     void drawChunkTerrain(sf::RenderTarget& window, float time);
     void drawChunkWater(sf::RenderTarget& window, float time);

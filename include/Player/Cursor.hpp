@@ -50,6 +50,8 @@ public:
 
     static void setCanReachTile(bool canReach);
 
+    static void handleWorldWrap(sf::Vector2f positionDelta);
+
 private:
     static void drawTileCursor(sf::RenderWindow& window);
 

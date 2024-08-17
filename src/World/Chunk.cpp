@@ -669,7 +669,7 @@ void Chunk::updateChunkEntities(float dt, int worldSize, ChunkManager& chunkMana
             newChunk.x = (((worldGridPosition.x - 1) % worldSize) + worldSize) % worldSize;
             requiresMove = true;
         }
-        else if (relativePosition.x > TILE_SIZE_PIXELS_UNSCALED * 8)
+        else if (relativePosition.x > TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE)
         {
             newChunk.x = (((worldGridPosition.x + 1) % worldSize) + worldSize) % worldSize;
             requiresMove = true;
@@ -679,7 +679,7 @@ void Chunk::updateChunkEntities(float dt, int worldSize, ChunkManager& chunkMana
             newChunk.y = (((worldGridPosition.y - 1) % worldSize) + worldSize) % worldSize;
             requiresMove = true;
         }
-        else if (relativePosition.y > TILE_SIZE_PIXELS_UNSCALED * 8)
+        else if (relativePosition.y > TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE)
         {
             newChunk.y = (((worldGridPosition.y + 1) % worldSize) + worldSize) % worldSize;
             requiresMove = true;
@@ -832,7 +832,7 @@ void Chunk::setWorldPosition(sf::Vector2f position, ChunkManager& chunkManager)
         // Get position relative to chunk before updating chunk position
         sf::Vector2f relativePosition = entity->getPosition() - worldPosition;
         // Set entity position to new chunk position + relative
-        entity->setPosition(position + relativePosition);
+        entity->setWorldPosition(position + relativePosition);
     }
 
     worldPosition = position;

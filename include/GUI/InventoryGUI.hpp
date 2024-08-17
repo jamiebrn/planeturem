@@ -28,6 +28,9 @@ public:
     // Put down whole stack held in cursor
     static void putDownItem(sf::Vector2f mouseScreenPos);
 
+    // Called when inventory is closed, handles item picked up (if any)
+    static void handleClose();
+
     static void draw(sf::RenderWindow& window);
 
 private:

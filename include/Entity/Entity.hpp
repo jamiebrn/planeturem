@@ -28,6 +28,8 @@ public:
 
     bool isSelectedWithCursor(sf::Vector2f cursorWorldPos);
 
+    void setWorldPosition(sf::Vector2f newPosition);
+
     unsigned int getEntityType();
 
     sf::Vector2f getSize();
