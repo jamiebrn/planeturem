@@ -145,12 +145,16 @@ void ChunkManager::drawChunkTerrain(sf::RenderTarget& window, float time)
 
 void ChunkManager::drawChunkWater(sf::RenderTarget& window, float time)
 {
+    // Set shader time paramenter
+    sf::Shader* waterShader = Shaders::getShader(ShaderType::Water);
+    waterShader->setUniform("time", time);
+
     for (auto& chunkPair : loadedChunks)
     {
         ChunkPosition chunkPos = chunkPair.first;
         std::unique_ptr<Chunk>& chunk = chunkPair.second;
         
-        chunk->drawChunkWater(window, time);
+        chunk->drawChunkWater(window);
     }
 }
 

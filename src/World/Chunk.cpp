@@ -324,19 +324,16 @@ void Chunk::drawChunkTerrainVisual(sf::RenderTarget& window, float time)
     }
 }
 
-void Chunk::drawChunkWater(sf::RenderTarget& window, float time)
+void Chunk::drawChunkWater(sf::RenderTarget& window)
 {
-    // Get tile size and scale
+    // Get scale
     float scale = ResolutionHandler::getScale();
-    // float tileSize = ResolutionHandler::getTileSize();
 
     // Draw water
     sf::Vector2f waterPos = Camera::worldToScreenTransform(worldPosition);
     sf::IntRect waterRect(0, 0, TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE, TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE);
 
     sf::Shader* waterShader = Shaders::getShader(ShaderType::Water);
-    waterShader->setUniform("time", time);
-    waterShader->setUniform("worldOffset", sf::Vector2f{(float)worldGridPosition.x, (float)worldGridPosition.y});
 
     TextureManager::drawSubTexture(window, {TextureType::Water, waterPos, 0, {scale, scale}}, waterRect, waterShader);
 }

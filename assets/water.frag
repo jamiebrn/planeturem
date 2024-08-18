@@ -5,11 +5,10 @@ uniform sampler2D noiseTwo;
 uniform vec4 waterColor;
 
 uniform float time;
-uniform vec2 worldOffset;
 
 void main()
 {
-    float waveFrequency = 2;
+    float waveFrequency = 1 * 3.14159265359;
     float waveHeight = 0.05;
 
     float noiseSpeed = 0.05;
@@ -34,20 +33,15 @@ void main()
 
     vec2 texCoord;
     texCoord.x = mod(gl_TexCoord[0].x + noiseCoordOffset, 1.0);
-    texCoord.y = mod(gl_TexCoord[0].y + sin(time + (gl_TexCoord[0].x + worldOffset.x * noiseSampleDivide) * waveFrequency) * waveHeight + noiseCoordOffset, 1.0);
-    // texCoord.y = gl_TexCoord[0].y + noiseCoordOffset;
+
+    float wave = sin(waveFrequency * gl_TexCoord[0].x + time) * noiseCoordOffset * 0.15;
+    texCoord.y = mod(gl_TexCoord[0].y + noiseCoordOffset + wave, 1.0);
 
     vec4 texColor = texture2D(texture, texCoord);
     
     vec4 color;
-    if (texColor.a == 0.0)
-        color = waterColor;
-    else
-        color = mix(texColor, waterColor, 0.7);
-    
-    // color = mix(noiseSample, noiseTwoSample, 0.5);
-    // color = noiseMixed;
-    // color = noiseSample;
+    if (texColor.a == 0.0) color = waterColor;
+    else color = mix(texColor, waterColor, 0.7);
 
     gl_FragColor = color * gl_Color;
 }

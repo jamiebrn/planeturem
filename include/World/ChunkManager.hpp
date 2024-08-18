@@ -10,6 +10,7 @@
 #include "Core/ResolutionHandler.hpp"
 #include "Core/Camera.hpp"
 #include "Core/CollisionRect.hpp"
+#include "Core/Shaders.hpp"
 #include "World/Chunk.hpp"
 #include "World/ChunkPosition.hpp"
 #include "Entity/Entity.hpp"

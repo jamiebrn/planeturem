@@ -2,8 +2,6 @@
 
 // TODO: Inventory item added notifications (maybe taking items?). Add in player class
 
-// FIX: Water shader seam on X at world wrap point
-
 Game::Game()
     : player(sf::Vector2f(0, 0)), window()
 {}
@@ -44,8 +42,9 @@ bool Game::initialise()
     window.setIcon(256, 256, icon.getPixelsPtr());
 
     // Load Steam API
-    if (!SteamAPI_Init()) return false;
-    SteamUserStats()->RequestCurrentStats();
+    steamInitialised = SteamAPI_Init();
+    if (steamInitialised)
+        SteamUserStats()->RequestCurrentStats();
 
     // Randomise
     srand(time(NULL));
@@ -360,13 +359,13 @@ void Game::runOnPlanet(float dt)
     floatTween.update(dt);
 
     dayNightToggleTimer += dt;
-    if (dayNightToggleTimer >= 20.0f)
-    {
-        dayNightToggleTimer = 0.0f;
-        if (isDay) floatTween.startTween(&worldDarkness, 0.0f, 0.95f, 7, TweenTransition::Sine, TweenEasing::EaseInOut);
-        else floatTween.startTween(&worldDarkness, 0.95f, 0.0f, 7, TweenTransition::Sine, TweenEasing::EaseInOut);
-        isDay = !isDay;
-    }
+    // if (dayNightToggleTimer >= 20.0f)
+    // {
+    //     dayNightToggleTimer = 0.0f;
+    //     if (isDay) floatTween.startTween(&worldDarkness, 0.0f, 0.95f, 7, TweenTransition::Sine, TweenEasing::EaseInOut);
+    //     else floatTween.startTween(&worldDarkness, 0.95f, 0.0f, 7, TweenTransition::Sine, TweenEasing::EaseInOut);
+    //     isDay = !isDay;
+    // }
 
     Camera::update(player.getPosition(), dt);
     Cursor::updateTileCursor(window, dt, worldMenuState, worldSize, chunkManager);

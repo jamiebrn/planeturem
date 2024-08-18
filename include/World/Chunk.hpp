@@ -42,7 +42,7 @@ public:
     // Drawing
     void drawChunkTerrain(sf::RenderTarget& window, float time);
     void drawChunkTerrainVisual(sf::RenderTarget& window, float time);
-    void drawChunkWater(sf::RenderTarget& window, float time);
+    void drawChunkWater(sf::RenderTarget& window);
 
     // Get vector of chunk object/entities for drawing
     std::vector<WorldObject*> getObjects();

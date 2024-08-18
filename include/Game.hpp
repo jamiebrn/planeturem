@@ -73,6 +73,8 @@ private:
     sf::Image icon;
     bool fullScreen = true;
 
+    bool steamInitialised;
+
     sf::Clock clock;
     float gameTime;
 
