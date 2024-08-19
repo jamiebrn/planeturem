@@ -17,7 +17,7 @@ void Chunk::generateChunk(const FastNoise& noise, int worldSize, ChunkManager& c
 
     // std::array<std::array<sf::Uint8, 8 * 4>, 8> heightMapData;
 
-    bool chunkHasWater = false;
+    containsWater = false;
 
     for (int y = 0; y < CHUNK_TILE_SIZE; y++)
     {
@@ -35,7 +35,7 @@ void Chunk::generateChunk(const FastNoise& noise, int worldSize, ChunkManager& c
 
             if (tileType == TileType::Water)
             {
-                chunkHasWater = true;
+                containsWater = true;
                 continue;
             }
 
@@ -102,7 +102,7 @@ void Chunk::generateChunk(const FastNoise& noise, int worldSize, ChunkManager& c
     // Spawn entities
     int spawnEnemyChance = rand() % 10;
 
-    if (spawnEnemyChance < 3 && !chunkHasWater)
+    if (spawnEnemyChance < 3 && !containsWater)
     {
         int entityCount = rand() % 3;
         for (int i = 0; i < entityCount; i++)
@@ -853,6 +853,11 @@ void Chunk::setWorldPosition(sf::Vector2f position, ChunkManager& chunkManager)
     }
 
     recalculateCollisionRects(chunkManager);
+}
+
+bool Chunk::getContainsWater()
+{
+    return containsWater;
 }
 
 std::vector<WorldObject*> Chunk::getEntities()

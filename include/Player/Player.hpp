@@ -31,6 +31,8 @@ public:
 
     bool canReachPosition(sf::Vector2f worldPos);
 
+    void setPosition(sf::Vector2f worldPos);
+
     void createPrompt(std::string text);
 
 private:

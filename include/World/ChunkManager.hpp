@@ -52,7 +52,7 @@ public:
     // Get tile type from all generated chunks (used in chunk visual detail generation)
     TileType getChunkTileType(ChunkPosition chunk, sf::Vector2i tile);
 
-    // Whether chunk has been generated, stored or loaded
+    // Whether chunk has been generated: stored or loaded
     bool isChunkGenerated(ChunkPosition chunk);
 
     // Sets object in chunk at tile
@@ -103,6 +103,17 @@ public:
     inline int getLoadedChunkCount() {return loadedChunks.size();}
     inline int getGeneratedChunkCount() {return loadedChunks.size() + storedChunks.size();}
 
+    // Finds valid spawn position for player i.e. no water
+    // Waterless area size checks for chunks +- waterlessAreaSize
+    // e.g. size 1 will check 3x3 area, size 2 will check 5x5 etc
+    sf::Vector2f findValidSpawnPosition(int waterlessAreaSize, const FastNoise& noise, int worldSize);
+
+private:
+    void generateChunk(const ChunkPosition& chunkPosition,
+                       const FastNoise& noise,
+                       int worldSize,
+                       bool putInLoaded = true,
+                       std::optional<sf::Vector2f> positionOverride = std::nullopt);
 
 private:
     std::unordered_map<ChunkPosition, std::unique_ptr<Chunk>> storedChunks;

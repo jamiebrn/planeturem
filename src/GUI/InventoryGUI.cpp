@@ -129,16 +129,17 @@ void InventoryGUI::putDownItem(sf::Vector2f mouseScreenPos)
 int InventoryGUI::getInventorySelectedIndex(sf::Vector2f mouseScreenPos)
 {
     const sf::Vector2u& resolution = ResolutionHandler::getResolution();
+    int intScale = ResolutionHandler::getResolutionIntegerScale();
 
     // Mimic GUI and create collision rects to test if item is being picked up
-    sf::Vector2f itemBoxPosition(resolution.x / 2.0f - 400 + 10, resolution.y / 2.0f - 200 + 10);
+    sf::Vector2f itemBoxPosition = sf::Vector2f(10, 10) * static_cast<float>(intScale) + sf::Vector2f(10, 10) * static_cast<float>(intScale);
 
     for (int itemIndex = 0; itemIndex < Inventory::getData().size(); itemIndex++)
     {
         CollisionRect itemPickUpRect;
         
-        itemPickUpRect.width = 80;
-        itemPickUpRect.height = 80;
+        itemPickUpRect.width = 80 * intScale;
+        itemPickUpRect.height = 80 * intScale;
         itemPickUpRect.x = itemBoxPosition.x;
         itemPickUpRect.y = itemBoxPosition.y;
 
@@ -149,11 +150,11 @@ int InventoryGUI::getInventorySelectedIndex(sf::Vector2f mouseScreenPos)
         }
 
         // Increment box position
-        itemBoxPosition.x += 100;
-        if (itemBoxPosition.x > resolution.x / 2.0f - 400 + 10 + 7 * 100)
+        itemBoxPosition.x += (80 + 20) * intScale;
+        if (itemBoxPosition.x > 10 * intScale + 10 * intScale + 7 * 100 * intScale)
         {
-            itemBoxPosition.x = resolution.x / 2.0f - 400 + 10;
-            itemBoxPosition.y += 100;
+            itemBoxPosition.x = 10 * intScale + 10 * intScale;
+            itemBoxPosition.y += 100 * intScale;
         }
     }
 
@@ -176,29 +177,38 @@ void InventoryGUI::draw(sf::RenderWindow& window)
 {
     // Get resolution
     const sf::Vector2u& resolution = ResolutionHandler::getResolution();
+    int intScale = ResolutionHandler::getResolutionIntegerScale();
 
     // Draw background
-    sf::RectangleShape background({800, 400});
+    sf::RectangleShape background({800 * static_cast<float>(intScale), 400 * static_cast<float>(intScale)});
 
-    background.setOrigin({400, 200});
-    background.setPosition({resolution.x / 2.0f, resolution.y / 2.0f});
+    // background.setOrigin({400, 200});
+    background.setPosition({10 * static_cast<float>(intScale), 10 * static_cast<float>(intScale)});
     background.setFillColor({40, 40, 40, 130});
 
-    window.draw(background);
+    // window.draw(background);
 
     // Draw items
 
-    sf::Vector2f itemBoxPosition(resolution.x / 2.0f - 400 + 10, resolution.y / 2.0f - 200 + 10);
+    sf::Vector2f itemBoxPosition = background.getPosition() + sf::Vector2f(10, 10) * static_cast<float>(intScale);
 
     for (const std::optional<ItemCount>& itemSlot : Inventory::getData())
     {
-        sf::RectangleShape itemBackground({80, 80});
+        sf::RectangleShape itemBackground({80 * static_cast<float>(intScale), 80 * static_cast<float>(intScale)});
 
         // itemBackground.setOrigin({40, 40});
-        itemBackground.setPosition(itemBoxPosition);
-        itemBackground.setFillColor({40, 40, 40, 140});
+        // itemBackground.setPosition(itemBoxPosition);
+        // itemBackground.setFillColor({40, 40, 40, 140});
 
-        window.draw(itemBackground);
+        // window.draw(itemBackground);
+
+        TextureManager::drawSubTexture(window, {
+                TextureType::UI,
+                itemBoxPosition + sf::Vector2f(40, 40),
+                0,
+                {5, 5},
+                {0.5, 0.5}
+            }, sf::IntRect(0, 16, 16, 16));
 
         if (itemSlot.has_value())
         {
@@ -215,11 +225,11 @@ void InventoryGUI::draw(sf::RenderWindow& window)
             TextDraw::drawText(window, {std::to_string(itemCount.second), itemBoxPosition + sf::Vector2f(70, 70), {255, 255, 255}, 24, {0, 0, 0}, 0, true, true});
         }
         
-        itemBoxPosition.x += 100;
-        if (itemBoxPosition.x > resolution.x / 2.0f - 400 + 10 + 7 * 100)
+        itemBoxPosition.x += (itemBackground.getSize().x + 20) * intScale;
+        if (itemBoxPosition.x > background.getPosition().x + 10 * intScale + 7 * 100 * intScale)
         {
-            itemBoxPosition.x = resolution.x / 2.0f - 400 + 10;
-            itemBoxPosition.y += 100;
+            itemBoxPosition.x = background.getPosition().x + 10 * intScale;
+            itemBoxPosition.y += 100 * intScale;
         }
     }
 

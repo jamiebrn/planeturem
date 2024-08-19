@@ -32,12 +32,13 @@ class Chunk
 public:
     Chunk(sf::Vector2i worldPosition);
 
-    // Initialisation
+    // Initialisation / generation
     void generateChunk(const FastNoise& noise, int worldSize, ChunkManager& chunkManager);
 
     void generateVisualEffectTiles(const FastNoise& noise, int worldSize, ChunkManager& chunkManager);
 
     static TileType getTileTypeFromNoiseHeight(float noiseValue);
+
 
     // Drawing
     void drawChunkTerrain(sf::RenderTarget& window, float time);
@@ -92,8 +93,10 @@ public:
     bool collisionRectStaticCollisionY(CollisionRect& collisionRect, float dy);
 
 
+    // Misc
     void setWorldPosition(sf::Vector2f position, ChunkManager& chunkManager);
 
+    bool getContainsWater();
 
     // bool isPointInChunk(sf::Vector2f position);
 
@@ -117,5 +120,7 @@ private:
     
     // Stores ACTUAL position in world, which may differ from grid position if repeating chunks
     sf::Vector2f worldPosition;
+
+    bool containsWater;
 
 };

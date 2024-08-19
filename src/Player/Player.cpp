@@ -206,6 +206,15 @@ bool Player::canReachPosition(sf::Vector2f worldPos)
     return tileDistance <= tileReach;
 }
 
+void Player::setPosition(sf::Vector2f worldPos)
+{
+    collisionRect.x = worldPos.x - collisionRect.width / 2.0f;
+    collisionRect.y = worldPos.y - collisionRect.height / 2.0f;
+
+    position.x = collisionRect.x + collisionRect.width / 2.0f;
+    position.y = collisionRect.y + collisionRect.height / 2.0f;
+}
+
 void Player::createPrompt(std::string text)
 {
     prompts.push_back({text, 5.0f});

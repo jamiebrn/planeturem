@@ -18,6 +18,15 @@ void Camera::update(sf::Vector2f playerPosition, float deltaTime)
     offset.y = Helper::lerp(offset.y, destinationOffset.y, MOVE_LERP_WEIGHT * deltaTime);
 }
 
+void Camera::instantUpdate(sf::Vector2f playerPosition)
+{
+    float scale = ResolutionHandler::getScale();
+
+    // Calculate position/offset camera should be in
+    offset.x = playerPosition.x - (ResolutionHandler::getResolution().x / scale) / 2.0f;
+    offset.y = playerPosition.y - (ResolutionHandler::getResolution().y / scale) / 2.0f;
+}
+
 // Get draw offset of camera
 sf::Vector2f Camera::getDrawOffset()
 {

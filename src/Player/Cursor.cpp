@@ -36,7 +36,7 @@ void Cursor::updateTileCursor(sf::RenderWindow& window, float dt, WorldMenuState
     Entity* selectedEntity = chunkManager.getSelectedEntity(Cursor::getSelectedChunk(worldSize), mouseWorldPos);
     
     // If entity is selected and in main world state, set size of cursor to entity size
-    if (selectedEntity != nullptr && worldMenuState == WorldMenuState::Main)
+    if (selectedEntity != nullptr && (worldMenuState == WorldMenuState::Main || worldMenuState == WorldMenuState::Inventory))
     {
         selectPos = selectedEntity->getPosition();
 
@@ -68,7 +68,7 @@ void Cursor::updateTileCursor(sf::RenderWindow& window, float dt, WorldMenuState
     std::optional<BuildableObject>& selectedObjectOptional = chunkManager.getChunkObject(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile());
 
     // If an object in world is selected, override tile cursor size and position
-    if (selectedObjectOptional.has_value() && worldMenuState == WorldMenuState::Main)
+    if (selectedObjectOptional.has_value() && (worldMenuState == WorldMenuState::Main || worldMenuState == WorldMenuState::Inventory))
     {
         // Get object selected
         BuildableObject& selectedObject = selectedObjectOptional.value();
@@ -96,7 +96,7 @@ void Cursor::updateTileCursor(sf::RenderWindow& window, float dt, WorldMenuState
     }
 
     // If no object is selected, and not in build menu (and no entity selected), set draw state to hidden
-    if (!selectedObjectOptional.has_value() && worldMenuState == WorldMenuState::Main)
+    if (!selectedObjectOptional.has_value() && (worldMenuState == WorldMenuState::Main || worldMenuState == WorldMenuState::Inventory))
         drawState = CursorDrawState::Hidden;
 
     // Set tile cursor corner tile positions

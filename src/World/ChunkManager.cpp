@@ -59,15 +59,7 @@ void ChunkManager::updateChunks(const FastNoise& noise, int worldSize)
             }
 
             // Generate new chunk if does not exist
-            std::unique_ptr<Chunk> chunk = std::make_unique<Chunk>(sf::Vector2i(wrappedX, wrappedY));
-            
-            // Set chunk position
-            chunk->setWorldPosition(chunkWorldPos, *this);
-
-            chunk->generateChunk(noise, worldSize, *this);
-
-
-            loadedChunks.emplace(ChunkPosition(wrappedX, wrappedY), std::move(chunk));
+            generateChunk(ChunkPosition(wrappedX, wrappedY), noise, worldSize, true, chunkWorldPos);
         }
     }
 
@@ -311,16 +303,15 @@ Entity* ChunkManager::getSelectedEntity(ChunkPosition chunk, sf::Vector2f cursor
     return nullptr;
 }
 
-std::vector<CollisionRect*> ChunkManager::getChunkCollisionRects()
+std::vector<WorldObject*> ChunkManager::getChunkEntities()
 {
-    std::vector<CollisionRect*> collisionRects;
+    std::vector<WorldObject*> entities;
     for (auto& chunkPair : loadedChunks)
     {
-        std::vector<CollisionRect*> chunkCollisionRects = chunkPair.second->getCollisionRects();
-        // collisionRects.insert(collisionRects.end(), std::make_move_iterator(chunkCollisionRects.begin()), std::make_move_iterator(chunkCollisionRects.end()));
-        collisionRects.insert(collisionRects.end(), chunkCollisionRects.begin(), chunkCollisionRects.end());
+        std::vector<WorldObject*> chunkEntities = chunkPair.second->getEntities();
+        entities.insert(entities.end(), chunkEntities.begin(), chunkEntities.end());
     }
-    return collisionRects;
+    return entities;
 }
 
 bool ChunkManager::collisionRectChunkStaticCollisionX(CollisionRect& collisionRect, float dx)
@@ -345,13 +336,105 @@ bool ChunkManager::collisionRectChunkStaticCollisionY(CollisionRect& collisionRe
     return collision;
 }
 
-std::vector<WorldObject*> ChunkManager::getChunkEntities()
+std::vector<CollisionRect*> ChunkManager::getChunkCollisionRects()
 {
-    std::vector<WorldObject*> entities;
+    std::vector<CollisionRect*> collisionRects;
     for (auto& chunkPair : loadedChunks)
     {
-        std::vector<WorldObject*> chunkEntities = chunkPair.second->getEntities();
-        entities.insert(entities.end(), chunkEntities.begin(), chunkEntities.end());
+        std::vector<CollisionRect*> chunkCollisionRects = chunkPair.second->getCollisionRects();
+        // collisionRects.insert(collisionRects.end(), std::make_move_iterator(chunkCollisionRects.begin()), std::make_move_iterator(chunkCollisionRects.end()));
+        collisionRects.insert(collisionRects.end(), chunkCollisionRects.begin(), chunkCollisionRects.end());
     }
-    return entities;
+    return collisionRects;
+}
+
+sf::Vector2f ChunkManager::findValidSpawnPosition(int waterlessAreaSize, const FastNoise& noise, int worldSize)
+{
+    // Move all loaded chunks (if any) into stored chunks temporarily
+    // Makes testing area simpler as only have to check stored chunk map
+    reloadChunks();
+
+    int searchIncrement = 1 + waterlessAreaSize * 2;
+
+    // Iterate over all chunks and check area
+    for (int y = 0; y < worldSize; y += searchIncrement)
+    {
+        for (int x = 0; x < worldSize; x += searchIncrement)
+        {
+            bool validSpawn = true;
+
+            // Check over area around chunk, including centre chunk
+            for (int yArea = y - waterlessAreaSize; yArea <= y + waterlessAreaSize; yArea++)
+            {
+                for (int xArea = x - waterlessAreaSize; xArea <= x + waterlessAreaSize; xArea++)
+                {
+                    int wrappedX = (xArea % worldSize + worldSize) % worldSize;
+                    int wrappedY = (yArea % worldSize + worldSize) % worldSize;
+
+                    // If not generated, generate
+                    if (storedChunks.count(ChunkPosition(wrappedX, wrappedY)) <= 0)
+                        generateChunk(ChunkPosition(wrappedX, wrappedY), noise, worldSize, false);
+                    
+                    // If chunk does not contain water, continue to check other chunks
+                    if (!storedChunks[ChunkPosition(wrappedX, wrappedY)]->getContainsWater())
+                        continue;
+                    
+                    // Chunk contains water - move onto checking next area
+                    validSpawn = false;
+                    break;
+                }
+
+                if (!validSpawn)
+                    break;
+            }
+
+            if (!validSpawn)
+                continue;
+            
+            // Is valid spawn - calculate position of centre of chunk and return
+            sf::Vector2f spawnPosition;
+            spawnPosition.x = x * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED + 0.5f * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
+            spawnPosition.y = y * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED + 0.5f * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
+
+            return spawnPosition;
+        }
+    }
+
+    // Recursive call to find smaller valid area
+    if (waterlessAreaSize > 0)
+        return findValidSpawnPosition(waterlessAreaSize - 1, noise, worldSize);
+    
+    // Can't find valid spawn, so default return
+    return sf::Vector2f(0, 0);
+}
+
+void ChunkManager::generateChunk(const ChunkPosition& chunkPosition, const FastNoise& noise, int worldSize, bool putInLoaded, std::optional<sf::Vector2f> positionOverride)
+{
+    std::unique_ptr<Chunk> chunk = std::make_unique<Chunk>(sf::Vector2i(chunkPosition.x, chunkPosition.y));
+
+    sf::Vector2f chunkWorldPos;
+    if (positionOverride.has_value())
+    {
+        chunkWorldPos.x = positionOverride->x;
+        chunkWorldPos.y = positionOverride->y;
+    }
+    else
+    {
+        chunkWorldPos.x = chunkPosition.x * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
+        chunkWorldPos.y = chunkPosition.y * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
+    }
+
+    // Set chunk position
+    chunk->setWorldPosition(chunkWorldPos, *this);
+
+    // Generate
+    chunk->generateChunk(noise, worldSize, *this);
+
+    if (putInLoaded)
+    {
+        loadedChunks.emplace(chunkPosition, std::move(chunk));
+        return;
+    }
+    
+    storedChunks.emplace(chunkPosition, std::move(chunk));
 }

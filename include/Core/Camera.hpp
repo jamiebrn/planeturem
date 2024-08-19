@@ -23,6 +23,9 @@ public:
     // Update camera based on player position (or any position)
     static void update(sf::Vector2f playerPosition, float deltaTime);
 
+    // Instantly set position to centre on player
+    static void instantUpdate(sf::Vector2f playerPosition);
+
     // Get draw offset of camera
     static sf::Vector2f getDrawOffset();
 

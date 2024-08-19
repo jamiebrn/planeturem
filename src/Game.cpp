@@ -1,5 +1,13 @@
 #include "Game.hpp"
 
+// FIX: Camera teleporting when wrapping world in some cases???
+
+// PRIORITY: HIGH
+// TODO: Find valid player spawn position before player spawns
+// TODO: Crafting system based on proximity to crafting stations
+
+// PRIORITY: LOW
+// TODO: Inventory interaction should block use of tool
 // TODO: Inventory item added notifications (maybe taking items?). Add in player class
 
 Game::Game()
@@ -62,7 +70,7 @@ bool Game::initialise()
     interactedObjectPos = sf::Vector2f(0, 0);
 
     // Set world size
-    worldSize = 20;
+    worldSize = 240;
 
     // Initialise day/night cycle
     dayNightToggleTimer = 0.0f;
@@ -70,6 +78,12 @@ bool Game::initialise()
     isDay = true;
 
     generateWaterNoiseTexture();
+
+    // Find valid player spawn
+    sf::Vector2f spawnPos = chunkManager.findValidSpawnPosition(2, noise, worldSize);
+    player.setPosition(spawnPos);
+
+    Camera::instantUpdate(player.getPosition());
 
     Sounds::playMusic(MusicType::Main);
 
@@ -330,6 +344,7 @@ void Game::runOnPlanet(float dt)
                         break;
                     case WorldMenuState::Inventory:
                         InventoryGUI::handleLeftClick(mouseScreenPos);
+                        attemptUseTool();
                         break;
                 }
             }
@@ -382,7 +397,7 @@ void Game::runOnPlanet(float dt)
         chunkManager.reloadChunks();
     }
 
-    if (worldMenuState == WorldMenuState::Main)
+    if (worldMenuState == WorldMenuState::Main || worldMenuState == WorldMenuState::Inventory)
         Cursor::setCanReachTile(player.canReachPosition(Cursor::getMouseWorldPos(window)));
 
     chunkManager.updateChunks(noise, worldSize);
@@ -472,6 +487,7 @@ void Game::runOnPlanet(float dt)
         }
         
         case WorldMenuState::Inventory:
+            Cursor::drawCursor(window);
             InventoryGUI::draw(window);
             break;
         
@@ -484,25 +500,22 @@ void Game::runOnPlanet(float dt)
     {
         float intScale = static_cast<float>(ResolutionHandler::getResolutionIntegerScale());
 
-        TextDraw::drawText(window, {GAME_VERSION, sf::Vector2f(10, 5) * intScale, sf::Color(255, 255, 255), static_cast<unsigned int>(20 * intScale)});
-        TextDraw::drawText(window, {
-            std::to_string(static_cast<int>(1.0f / dt)) + "FPS", sf::Vector2f(10, 25) * intScale, sf::Color(255, 255, 255), static_cast<unsigned int>(20 * intScale)
-            });
-        
-        TextDraw::drawText(window, {
-            std::to_string(chunkManager.getLoadedChunkCount()) + " Chunks loaded", sf::Vector2f(10, 45) * intScale, sf::Color(255, 255, 255),
-            static_cast<unsigned int>(20 * intScale)
-            });
-        
-        TextDraw::drawText(window, {
-            std::to_string(chunkManager.getGeneratedChunkCount()) + " Chunks generated", sf::Vector2f(10, 65) * intScale, sf::Color(255, 255, 255),
-            static_cast<unsigned int>(20 * intScale)
-            });
-        
-        TextDraw::drawText(window, {
-            "Player pos: " + std::to_string(static_cast<int>(player.getPosition().x)) + ", " + std::to_string(static_cast<int>(player.getPosition().y)),
-            sf::Vector2f(10, 85) * intScale, sf::Color(255, 255, 255), static_cast<unsigned int>(20 * intScale)
-            });
+        std::vector<std::string> debugStrings = {
+            GAME_VERSION,
+            std::to_string(static_cast<int>(1.0f / dt)) + "FPS",
+            std::to_string(chunkManager.getLoadedChunkCount()) + " Chunks loaded",
+            std::to_string(chunkManager.getGeneratedChunkCount()) + " Chunks generated",
+            "Player pos: " + std::to_string(static_cast<int>(player.getPosition().x)) + ", " + std::to_string(static_cast<int>(player.getPosition().y))
+        };
+
+        int yPos = ResolutionHandler::getResolution().y - debugStrings.size() * 20 * intScale - 10 * intScale;
+        int yIncrement = 20 * intScale;
+
+        for (const std::string& string : debugStrings)
+        {
+            TextDraw::drawText(window, {string, sf::Vector2f(10 * intScale, yPos), sf::Color(255, 255, 255), static_cast<unsigned int>(20 * intScale)});
+            yPos += yIncrement;
+        }
     }
 
     window.display();
@@ -536,7 +549,7 @@ void Game::handleEventsWindow(sf::Event& event)
 
 void Game::attemptUseTool()
 {
-    if (worldMenuState != WorldMenuState::Main)
+    if (worldMenuState != WorldMenuState::Main && worldMenuState != WorldMenuState::Inventory)
         return;
     
     if (player.isUsingTool())
