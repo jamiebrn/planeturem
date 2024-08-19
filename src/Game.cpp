@@ -1,9 +1,9 @@
 #include "Game.hpp"
 
 // FIX: Camera teleporting when wrapping world in some cases???
+// FIX: Horse in the water?
 
 // PRIORITY: HIGH
-// TODO: Find valid player spawn position before player spawns
 // TODO: Crafting system based on proximity to crafting stations
 
 // PRIORITY: LOW
@@ -115,14 +115,16 @@ void Game::handleWindowResize(sf::Vector2u newSize)
     view.setSize(newSize.x, newSize.y);
     view.setCenter({newSize.x / 2.0f, newSize.y / 2.0f});
 
-    float beforeScale = ResolutionHandler::getScale();
+    // float beforeScale = ResolutionHandler::getScale();
 
     ResolutionHandler::setResolution({newSize.x, newSize.y});
 
-    float afterScale = ResolutionHandler::getScale();
+    Camera::instantUpdate(player.getPosition());
 
-    if (beforeScale != afterScale)
-        Camera::handleScaleChange(beforeScale, afterScale, player.getPosition());
+    // float afterScale = ResolutionHandler::getScale();
+
+    // if (beforeScale != afterScale)
+        // Camera::handleScaleChange(beforeScale, afterScale, player.getPosition());
 }
 
 void Game::handleZoom(int zoomChange)
@@ -344,6 +346,8 @@ void Game::runOnPlanet(float dt)
                         break;
                     case WorldMenuState::Inventory:
                         InventoryGUI::handleLeftClick(mouseScreenPos);
+                        if (InventoryGUI::isMouseOverUI(mouseScreenPos))
+                            break;
                         attemptUseTool();
                         break;
                 }
@@ -370,6 +374,11 @@ void Game::runOnPlanet(float dt)
                 handleZoom(event.mouseWheelScroll.delta);
         }
     }
+
+
+    //
+    // -- UPDATING --
+    //
 
     floatTween.update(dt);
 
@@ -403,6 +412,11 @@ void Game::runOnPlanet(float dt)
     chunkManager.updateChunks(noise, worldSize);
     chunkManager.updateChunksObjects(dt);
     chunkManager.updateChunksEntities(dt, worldSize);
+
+
+    //
+    // -- DRAWING --
+    //
 
     window.clear({80, 80, 80});
 

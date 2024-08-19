@@ -2,6 +2,11 @@
 
 sf::Vector2f InventoryGUI::screenPos;
 
+int InventoryGUI::itemBoxSize = 75;
+int InventoryGUI::itemBoxSpacing = 10;
+int InventoryGUI::itemBoxPadding = 10;
+int InventoryGUI::itemBoxPerRow = 8;
+
 bool InventoryGUI::isItemPickedUp = false;
 ItemType InventoryGUI::pickedUpItem;
 int InventoryGUI::pickedUpItemCount;
@@ -132,14 +137,16 @@ int InventoryGUI::getInventorySelectedIndex(sf::Vector2f mouseScreenPos)
     int intScale = ResolutionHandler::getResolutionIntegerScale();
 
     // Mimic GUI and create collision rects to test if item is being picked up
-    sf::Vector2f itemBoxPosition = sf::Vector2f(10, 10) * static_cast<float>(intScale) + sf::Vector2f(10, 10) * static_cast<float>(intScale);
+    sf::Vector2f itemBoxPosition = sf::Vector2f(itemBoxPadding, itemBoxPadding) * static_cast<float>(intScale);
+
+    int currentRowIndex = 0;
 
     for (int itemIndex = 0; itemIndex < Inventory::getData().size(); itemIndex++)
     {
         CollisionRect itemPickUpRect;
         
-        itemPickUpRect.width = 80 * intScale;
-        itemPickUpRect.height = 80 * intScale;
+        itemPickUpRect.width = itemBoxSize * intScale;
+        itemPickUpRect.height = itemBoxSize * intScale;
         itemPickUpRect.x = itemBoxPosition.x;
         itemPickUpRect.y = itemBoxPosition.y;
 
@@ -150,11 +157,15 @@ int InventoryGUI::getInventorySelectedIndex(sf::Vector2f mouseScreenPos)
         }
 
         // Increment box position
-        itemBoxPosition.x += (80 + 20) * intScale;
-        if (itemBoxPosition.x > 10 * intScale + 10 * intScale + 7 * 100 * intScale)
+        itemBoxPosition.x += (itemBoxSize + itemBoxSpacing) * intScale;
+
+        currentRowIndex++;
+        if (currentRowIndex >= itemBoxPerRow)
         {
-            itemBoxPosition.x = 10 * intScale + 10 * intScale;
-            itemBoxPosition.y += 100 * intScale;
+            // Increment to next row
+            currentRowIndex = 0;
+            itemBoxPosition.x = itemBoxPadding * intScale;
+            itemBoxPosition.y += (itemBoxSize + itemBoxSpacing) * intScale;
         }
     }
 
@@ -173,28 +184,42 @@ void InventoryGUI::handleClose()
     }
 }
 
+bool InventoryGUI::isMouseOverUI(sf::Vector2f mouseScreenPos)
+{
+    CollisionRect uiMask;
+
+    uiMask.x = itemBoxPadding;
+    uiMask.y = itemBoxPadding;
+    uiMask.width = (itemBoxSize + itemBoxSpacing) * itemBoxPerRow;
+    uiMask.height = (itemBoxSize + itemBoxSpacing) * std::round(Inventory::getData().size() / itemBoxPerRow);
+
+    return uiMask.isPointInRect(mouseScreenPos.x, mouseScreenPos.y);
+}
+
 void InventoryGUI::draw(sf::RenderWindow& window)
 {
     // Get resolution
     const sf::Vector2u& resolution = ResolutionHandler::getResolution();
-    int intScale = ResolutionHandler::getResolutionIntegerScale();
+    float intScale = ResolutionHandler::getResolutionIntegerScale();
 
     // Draw background
-    sf::RectangleShape background({800 * static_cast<float>(intScale), 400 * static_cast<float>(intScale)});
+    // sf::RectangleShape background({800 * static_cast<float>(intScale), 400 * static_cast<float>(intScale)});
 
     // background.setOrigin({400, 200});
-    background.setPosition({10 * static_cast<float>(intScale), 10 * static_cast<float>(intScale)});
-    background.setFillColor({40, 40, 40, 130});
+    // background.setPosition({10 * static_cast<float>(intScale), 10 * static_cast<float>(intScale)});
+    // background.setFillColor({40, 40, 40, 130});
 
     // window.draw(background);
 
     // Draw items
 
-    sf::Vector2f itemBoxPosition = background.getPosition() + sf::Vector2f(10, 10) * static_cast<float>(intScale);
+    sf::Vector2f itemBoxPosition = sf::Vector2f(itemBoxPadding, itemBoxPadding) * intScale;
+
+    int currentRowIndex = 0;
 
     for (const std::optional<ItemCount>& itemSlot : Inventory::getData())
     {
-        sf::RectangleShape itemBackground({80 * static_cast<float>(intScale), 80 * static_cast<float>(intScale)});
+        sf::RectangleShape itemBackground({75 * intScale, 75 * intScale});
 
         // itemBackground.setOrigin({40, 40});
         // itemBackground.setPosition(itemBoxPosition);
@@ -204,11 +229,10 @@ void InventoryGUI::draw(sf::RenderWindow& window)
 
         TextureManager::drawSubTexture(window, {
                 TextureType::UI,
-                itemBoxPosition + sf::Vector2f(40, 40),
+                itemBoxPosition,
                 0,
-                {5, 5},
-                {0.5, 0.5}
-            }, sf::IntRect(0, 16, 16, 16));
+                {3 * intScale, 3 * intScale},
+            }, sf::IntRect(16, 16, 25, 25));
 
         if (itemSlot.has_value())
         {
@@ -216,20 +240,32 @@ void InventoryGUI::draw(sf::RenderWindow& window)
 
             TextureManager::drawSubTexture(window, {
                 TextureType::Items,
-                itemBoxPosition + sf::Vector2f(40, 40),
+                itemBoxPosition + (sf::Vector2f(std::round(itemBoxSize / 2.0f), std::round(itemBoxSize / 2.0f))) * intScale,
                 0,
-                {3, 3},
+                {3 * intScale, 3 * intScale},
                 {0.5, 0.5}
             }, ItemDataLoader::getItemData(itemCount.first).textureRect);
 
-            TextDraw::drawText(window, {std::to_string(itemCount.second), itemBoxPosition + sf::Vector2f(70, 70), {255, 255, 255}, 24, {0, 0, 0}, 0, true, true});
+            TextDraw::drawText(window, {
+                std::to_string(itemCount.second),
+                itemBoxPosition + (sf::Vector2f(std::round(itemBoxSize / 4.0f) * 3.0f, std::round(itemBoxSize / 4.0f) * 3.0f)) * intScale,
+                {255, 255, 255},
+                24 * static_cast<unsigned int>(intScale),
+                {0, 0, 0},
+                0,
+                true,
+                true});
         }
-        
-        itemBoxPosition.x += (itemBackground.getSize().x + 20) * intScale;
-        if (itemBoxPosition.x > background.getPosition().x + 10 * intScale + 7 * 100 * intScale)
+
+        itemBoxPosition.x += (itemBoxSize + itemBoxSpacing) * intScale;
+
+        currentRowIndex++;
+        if (currentRowIndex >= itemBoxPerRow)
         {
-            itemBoxPosition.x = background.getPosition().x + 10 * intScale;
-            itemBoxPosition.y += 100 * intScale;
+            // Increment to next row
+            currentRowIndex = 0;
+            itemBoxPosition.x = itemBoxPadding * intScale;
+            itemBoxPosition.y += (itemBoxSize + itemBoxSpacing) * intScale;
         }
     }
 
@@ -242,15 +278,15 @@ void InventoryGUI::draw(sf::RenderWindow& window)
             TextureType::Items,
             mousePos,
             0,
-            {3, 3},
+            {3 * intScale, 3 * intScale},
             {0.5, 0.5}
         }, ItemDataLoader::getItemData(pickedUpItem).textureRect);
 
         TextDraw::drawText(window, {
             std::to_string(pickedUpItemCount),
-            mousePos + sf::Vector2f(8, 8) * 3.0f,
+            mousePos + (sf::Vector2f(std::round(itemBoxSize / 4.0f), std::round(itemBoxSize / 4.0f))) * intScale,
             {255, 255, 255},
-            24,
+            24 * static_cast<unsigned int>(intScale),
             {0, 0, 0},
             0,
             true,

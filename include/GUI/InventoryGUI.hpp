@@ -31,6 +31,8 @@ public:
     // Called when inventory is closed, handles item picked up (if any)
     static void handleClose();
 
+    static bool isMouseOverUI(sf::Vector2f mouseScreenPos);
+
     static void draw(sf::RenderWindow& window);
 
 private:
@@ -39,6 +41,11 @@ private:
 
 private:
     static sf::Vector2f screenPos;
+
+    static int itemBoxSize;
+    static int itemBoxSpacing;
+    static int itemBoxPadding;
+    static int itemBoxPerRow;
 
     static bool isItemPickedUp;
     static ItemType pickedUpItem;
