@@ -554,7 +554,7 @@ bool Chunk::canPlaceObject(sf::Vector2i position, unsigned int objectType, int w
         for (int x = position.x; x < std::min(position.x + objectData.size.x, (int)objectGrid[0].size()); x++)
         {
             // Test tile
-            if (!objectData.waterPlaceable)
+            if (!objectData.placeOnWater)
             {
                 if (getTileType(sf::Vector2i(x, y)) == TileType::Water)
                     return false;
@@ -580,7 +580,7 @@ bool Chunk::canPlaceObject(sf::Vector2i position, unsigned int objectType, int w
         for (int x = 0; x < x_remaining; x++)
         {
             // Test tile
-            if (!objectData.waterPlaceable)
+            if (!objectData.placeOnWater)
             {
                 if (chunkManager.getLoadedChunkTileType(ChunkPosition(chunkNextPosX, worldGridPosition.y), sf::Vector2i(x, y)) == TileType::Water)
                     return false;
@@ -599,7 +599,7 @@ bool Chunk::canPlaceObject(sf::Vector2i position, unsigned int objectType, int w
         for (int x = position.x; x < std::min(position.x + objectData.size.x, (int)objectGrid[0].size()); x++)
         {
             // Test tile
-            if (!objectData.waterPlaceable)
+            if (!objectData.placeOnWater)
             {
                 if (chunkManager.getLoadedChunkTileType(ChunkPosition(worldGridPosition.x, chunkNextPosY), sf::Vector2i(x, y)) == TileType::Water)
                     return false;
@@ -618,7 +618,7 @@ bool Chunk::canPlaceObject(sf::Vector2i position, unsigned int objectType, int w
         for (int x = 0; x < x_remaining; x++)
         {
             // Test tile
-            if (!objectData.waterPlaceable)
+            if (!objectData.placeOnWater)
             {
                 if (chunkManager.getLoadedChunkTileType(ChunkPosition(chunkNextPosX, chunkNextPosY), sf::Vector2i(x, y)) == TileType::Water)
                     return false;
@@ -821,6 +821,17 @@ bool Chunk::collisionRectStaticCollisionY(CollisionRect& collisionRect, float dy
     return collision;
 }
 
+bool Chunk::isCollisionRectCollidingWithEntities(const CollisionRect& collisionRect)
+{
+    for (auto& entity : entities)
+    {
+        const CollisionRect& entityCollisionRect = entity->getCollisionRect();
+        if (entityCollisionRect.isColliding(collisionRect))
+            return true;
+    }
+    return false;
+}
+
 void Chunk::setWorldPosition(sf::Vector2f position, ChunkManager& chunkManager)
 {
     // Update all entity positions
@@ -853,6 +864,11 @@ void Chunk::setWorldPosition(sf::Vector2f position, ChunkManager& chunkManager)
     }
 
     recalculateCollisionRects(chunkManager);
+}
+
+sf::Vector2f Chunk::getWorldPosition()
+{
+    return worldPosition;
 }
 
 bool Chunk::getContainsWater()

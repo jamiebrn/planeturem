@@ -239,13 +239,107 @@ void ChunkManager::setObjectReference(const ChunkPosition& chunk, const ObjectRe
     loadedChunks[chunk]->setObjectReference(objectReference, tile, *this);
 }
 
-bool ChunkManager::canPlaceObject(ChunkPosition chunk, sf::Vector2i tile, unsigned int objectType, int worldSize)
+bool ChunkManager::canPlaceObject(ChunkPosition chunk, sf::Vector2i tile, unsigned int objectType, int worldSize, const CollisionRect& playerCollisionRect)
 {
     // Chunk does not exist
     if (loadedChunks.count(chunk) <= 0)
         return false;
 
+    const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
+
+    if (objectData.hasCollision)
+    {
+        // Create collision rect for object using world position
+        sf::Vector2f chunkWorldPosition = loadedChunks[chunk]->getWorldPosition();
+
+        CollisionRect objectCollisionRect;
+        objectCollisionRect.x = chunkWorldPosition.x + tile.x * TILE_SIZE_PIXELS_UNSCALED;
+        objectCollisionRect.y = chunkWorldPosition.y + tile.y * TILE_SIZE_PIXELS_UNSCALED;
+        objectCollisionRect.width = objectData.size.x * TILE_SIZE_PIXELS_UNSCALED;
+        objectCollisionRect.height = objectData.size.y * TILE_SIZE_PIXELS_UNSCALED;
+
+        // Test if colliding with player
+        if (playerCollisionRect.isColliding(objectCollisionRect))
+            return false;
+        
+        // Test if colliding with entities in adjacent chunks
+        for (int y = chunk.y - 1; y <= chunk.y + 1; y++)
+        {
+            for (int x = chunk.x - 1; x <= chunk.x + 1; x++)
+            {
+                int wrappedX = (x % worldSize + worldSize) % worldSize;
+                int wrappedY = (y % worldSize + worldSize) % worldSize;
+
+                // FIX: May have to check entities in stored chunks aswell
+
+                // If chunk does not exist, do not attempt to check collision
+                if (loadedChunks.count(ChunkPosition(wrappedX, wrappedY)) <= 0)
+                    continue;
+                
+                if (loadedChunks[ChunkPosition(wrappedX, wrappedY)]->isCollisionRectCollidingWithEntities(objectCollisionRect))
+                    return false;
+            }
+        }
+    }
+
+    // If not colliding with player / entities, test whether colliding with other objects
     return loadedChunks[chunk]->canPlaceObject(tile, objectType, worldSize, *this);
+}
+
+bool ChunkManager::canDestroyObject(ChunkPosition chunk, sf::Vector2i tile, int worldSize, const CollisionRect& playerCollisionRect)
+{
+    // Chunk does not exist
+    if (loadedChunks.count(chunk) <= 0)
+        return false;
+    
+    std::optional<BuildableObject>& objectOptional = loadedChunks[chunk]->getObject(tile);
+
+    if (!objectOptional.has_value())
+        return false;
+    
+    BuildableObject& object = objectOptional.value();
+
+    const ObjectData& objectData = ObjectDataLoader::getObjectData(object.getObjectType());
+
+    // Object is a water object, so may support player / entities over water
+    // Therefore must check against player / entities before destroying
+    if (objectData.placeOnWater)
+    {
+        // Create collision rect for object using world position
+        sf::Vector2f chunkWorldPosition = loadedChunks[chunk]->getWorldPosition();
+
+        CollisionRect objectCollisionRect;
+        objectCollisionRect.x = chunkWorldPosition.x + tile.x * TILE_SIZE_PIXELS_UNSCALED;
+        objectCollisionRect.y = chunkWorldPosition.y + tile.y * TILE_SIZE_PIXELS_UNSCALED;
+        objectCollisionRect.width = objectData.size.x * TILE_SIZE_PIXELS_UNSCALED;
+        objectCollisionRect.height = objectData.size.y * TILE_SIZE_PIXELS_UNSCALED;
+
+        // Test if colliding with player
+        if (playerCollisionRect.isColliding(objectCollisionRect))
+            return false;
+        
+        // Test if colliding with entities in adjacent chunks
+        for (int x = chunk.x - 1; x <= chunk.x + 1; x++)
+        {
+            for (int y = chunk.y - 1; y <= chunk.y + 1; y++)
+            {
+                int wrappedX = (x % worldSize + worldSize) % worldSize;
+                int wrappedY = (y % worldSize + worldSize) % worldSize;
+
+                // FIX: May have to check entities in stored chunks aswell
+
+                // If chunk does not exist, do not attempt to check collision
+                if (loadedChunks.count(ChunkPosition(wrappedX, wrappedY)) <= 0)
+                    continue;
+                
+                if (loadedChunks[ChunkPosition(wrappedX, wrappedY)]->isCollisionRectCollidingWithEntities(objectCollisionRect))
+                    return false;
+            }
+        }
+    }
+
+    // Default case
+    return true;
 }
 
 std::vector<WorldObject*> ChunkManager::getChunkObjects()

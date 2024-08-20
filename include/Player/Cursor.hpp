@@ -34,7 +34,12 @@ class Cursor
     Cursor() = delete;
 
 public:
-    static void updateTileCursor(sf::RenderWindow& window, float dt, WorldMenuState worldMenuState, int worldSize, ChunkManager& chunkManager);
+    static void updateTileCursor(sf::RenderWindow& window,
+                                 float dt,
+                                 WorldMenuState worldMenuState,
+                                 int worldSize,
+                                 ChunkManager& chunkManager,
+                                 const CollisionRect& playerCollisionRect);
 
     static ChunkPosition getSelectedChunk(int worldSize);
     static sf::Vector2i getSelectedChunkTile();

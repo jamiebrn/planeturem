@@ -12,7 +12,12 @@ sf::Vector2f Cursor::selectPos = {0, 0};
 sf::Vector2i Cursor::selectPosTile = {0, 0};
 sf::Vector2i Cursor::selectSize = {1, 1};
 
-void Cursor::updateTileCursor(sf::RenderWindow& window, float dt, WorldMenuState worldMenuState, int worldSize, ChunkManager& chunkManager)
+void Cursor::updateTileCursor(sf::RenderWindow& window,
+                              float dt,
+                              WorldMenuState worldMenuState,
+                              int worldSize,
+                              ChunkManager& chunkManager,
+                              const CollisionRect& playerCollisionRect)
 {
     // Get mouse position in screen space and world space
     sf::Vector2f mouseWorldPos = getMouseWorldPos(window);
@@ -70,6 +75,13 @@ void Cursor::updateTileCursor(sf::RenderWindow& window, float dt, WorldMenuState
     // If an object in world is selected, override tile cursor size and position
     if (selectedObjectOptional.has_value() && (worldMenuState == WorldMenuState::Main || worldMenuState == WorldMenuState::Inventory))
     {
+        // Test if can destroy selected object - don't draw cursor if cannot destroy
+        if (!chunkManager.canDestroyObject(getSelectedChunk(worldSize), getSelectedChunkTile(), worldSize, playerCollisionRect))
+        {
+            drawState = CursorDrawState::Hidden;
+            return;
+        }
+
         // Get object selected
         BuildableObject& selectedObject = selectedObjectOptional.value();
 

@@ -63,7 +63,7 @@ bool CollisionRect::handleStaticCollisionY(const CollisionRect& staticRect, floa
     return true;
 }
 
-bool CollisionRect::isColliding(const CollisionRect& otherRect)
+bool CollisionRect::isColliding(const CollisionRect& otherRect) const
 {
     return (x < otherRect.x + otherRect.width &&
     x + width > otherRect.x &&
@@ -71,12 +71,12 @@ bool CollisionRect::isColliding(const CollisionRect& otherRect)
     y + height > otherRect.y);
 }
 
-bool CollisionRect::isPointInRect(float x, float y)
+bool CollisionRect::isPointInRect(float x, float y) const
 {
     return (this->x <= x && this->x + width >= x && this->y <= y && this->y + height >= y);
 }
 
-void CollisionRect::debugDraw(sf::RenderTarget& window, sf::Color color)
+void CollisionRect::debugDraw(sf::RenderTarget& window, sf::Color color) const
 {
     float scale = ResolutionHandler::getScale();
     sf::RectangleShape rect({width * scale, height * scale});

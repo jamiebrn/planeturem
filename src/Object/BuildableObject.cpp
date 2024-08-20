@@ -1,6 +1,6 @@
 #include "Object/BuildableObject.hpp"
 
-BuildableObject::BuildableObject(sf::Vector2f position, unsigned int objectType)
+BuildableObject::BuildableObject(sf::Vector2f position, ObjectType objectType)
     : WorldObject(position)
 {
     this->objectType = objectType;

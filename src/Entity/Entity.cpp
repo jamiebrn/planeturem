@@ -110,3 +110,8 @@ sf::Vector2f Entity::getSize()
 {
     return sf::Vector2f(collisionRect.width, collisionRect.height);
 }
+
+const CollisionRect& Entity::getCollisionRect()
+{
+    return collisionRect;
+}

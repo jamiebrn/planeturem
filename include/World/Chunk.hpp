@@ -92,9 +92,13 @@ public:
     bool collisionRectStaticCollisionX(CollisionRect& collisionRect, float dx);
     bool collisionRectStaticCollisionY(CollisionRect& collisionRect, float dy);
 
+    // Test collision rect against entities (used for testing when placing / destroying objects)
+    bool isCollisionRectCollidingWithEntities(const CollisionRect& collisionRect);
+
 
     // Misc
     void setWorldPosition(sf::Vector2f position, ChunkManager& chunkManager);
+    sf::Vector2f getWorldPosition();
 
     bool getContainsWater();
 

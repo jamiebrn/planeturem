@@ -33,6 +33,8 @@ public:
 
     void setPosition(sf::Vector2f worldPos);
 
+    const CollisionRect& getCollisionRect();
+
     void createPrompt(std::string text);
 
 private:

@@ -17,7 +17,7 @@ struct ObjectData
     sf::Vector2i size = {1, 1};
 
     bool hasCollision = false;
-    bool waterPlaceable = false;
+    bool placeOnWater = false;
 
     int drawLayer = 0;
 

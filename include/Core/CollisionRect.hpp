@@ -19,8 +19,8 @@ struct CollisionRect
     bool handleStaticCollisionX(const CollisionRect& staticRect, float dx);
     bool handleStaticCollisionY(const CollisionRect& staticRect, float dy);
 
-    bool isColliding(const CollisionRect& otherRect);
-    bool isPointInRect(float x, float y);
+    bool isColliding(const CollisionRect& otherRect) const;
+    bool isPointInRect(float x, float y) const;
 
-    void debugDraw(sf::RenderTarget& window, sf::Color color = {255, 0, 0, 120});
+    void debugDraw(sf::RenderTarget& window, sf::Color color = {255, 0, 0, 120}) const;
 };

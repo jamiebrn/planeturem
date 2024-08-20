@@ -46,7 +46,7 @@
         "texture-x-origin": 0.5,
         "texture-y-origin": 0.5,
         "draw-layer": 1,
-        "water-placeable": true
+        "place-on-water": true
     },
     "4": {
         "name": "Rock",

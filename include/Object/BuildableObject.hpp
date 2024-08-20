@@ -33,7 +33,7 @@ struct ObjectInteractionEventData
 class BuildableObject : public WorldObject
 {
 public:
-    BuildableObject(sf::Vector2f position, unsigned int objectType);
+    BuildableObject(sf::Vector2f position, ObjectType objectType);
 
     void update(float dt);
 
@@ -45,7 +45,7 @@ public:
 
     void setWorldPosition(sf::Vector2f position);
 
-    inline unsigned int getObjectType() const {return objectType;}
+    inline ObjectType getObjectType() const {return objectType;}
 
     inline bool isAlive() {return health > 0;}
 
@@ -57,7 +57,7 @@ public:
     inline const std::optional<ObjectReference>& getObjectReference() const {return objectReference;}
 
 private:
-    unsigned int objectType = 0;
+    ObjectType objectType = 0;
     int health = 0;
     float flash_amount;
 

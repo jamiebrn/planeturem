@@ -391,7 +391,7 @@ void Game::runOnPlanet(float dt)
     // }
 
     Camera::update(player.getPosition(), dt);
-    Cursor::updateTileCursor(window, dt, worldMenuState, worldSize, chunkManager);
+    Cursor::updateTileCursor(window, dt, worldMenuState, worldSize, chunkManager, player.getCollisionRect());
 
     // Update player
     bool wrappedAroundWorld = false;
@@ -474,7 +474,6 @@ void Game::runOnPlanet(float dt)
     lightingShader->setUniform("darkness", worldDarkness);
     window.draw(worldTextureSprite, lightingShader);
 
-
     switch (worldMenuState)
     {
         case WorldMenuState::Main:
@@ -490,17 +489,25 @@ void Game::runOnPlanet(float dt)
 
             BuildableObject recipeObject(Cursor::getLerpedSelectPos() + sf::Vector2f(TILE_SIZE_PIXELS_UNSCALED / 2.0f, TILE_SIZE_PIXELS_UNSCALED / 2.0f), selectedObjectType);
 
-            if (Inventory::canBuildObject(selectedObjectType) && 
-                chunkManager.canPlaceObject(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile(), selectedObjectType, worldSize))
-                recipeObject.draw(window, dt, {0, 255, 0, 180});
-            else
-                recipeObject.draw(window, dt, {255, 0, 0, 180});
+            bool canAfford = Inventory::canBuildObject(selectedObjectType);
+            bool canPlace = chunkManager.canPlaceObject(Cursor::getSelectedChunk(worldSize),
+                                                        Cursor::getSelectedChunkTile(),
+                                                        selectedObjectType,
+                                                        worldSize,
+                                                        player.getCollisionRect());
+
+            sf::Color drawColor(255, 0, 0, 180);
+            if (canAfford && canPlace)
+                drawColor = sf::Color(0, 255, 0, 180);
+            
+            recipeObject.draw(window, dt, drawColor);
             
             break;
         }
         
         case WorldMenuState::Inventory:
-            Cursor::drawCursor(window);
+            if (!InventoryGUI::isMouseOverUI(mouseScreenPos))
+                Cursor::drawCursor(window);
             InventoryGUI::draw(window);
             break;
         
@@ -583,6 +590,14 @@ void Game::attemptUseTool()
     }
     else
     {
+        bool canDestroyObject = chunkManager.canDestroyObject(Cursor::getSelectedChunk(worldSize),
+                                                        Cursor::getSelectedChunkTile(),
+                                                        worldSize,
+                                                        player.getCollisionRect());
+
+        if (!canDestroyObject)
+            return;
+
         std::optional<BuildableObject>& selectedObjectOptional = chunkManager.getChunkObject(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile());
         if (selectedObjectOptional.has_value())
         {
@@ -623,7 +638,15 @@ void Game::attemptBuildObject()
         return;
     
     unsigned int objectType = BuildGUI::getSelectedObject();
-    if (Inventory::canBuildObject(objectType) && chunkManager.canPlaceObject(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile(), objectType, worldSize))
+
+    bool canAfford = Inventory::canBuildObject(objectType);
+    bool canPlace = chunkManager.canPlaceObject(Cursor::getSelectedChunk(worldSize),
+                                                Cursor::getSelectedChunkTile(),
+                                                objectType,
+                                                worldSize,
+                                                player.getCollisionRect());
+
+    if (canAfford && canPlace)
     {
         // Take resources
         for (auto& itemPair : BuildRecipeLoader::getBuildRecipe(objectType).itemRequirements)

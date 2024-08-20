@@ -67,7 +67,10 @@ public:
     void setObjectReference(const ChunkPosition& chunk, const ObjectReference& objectReference, sf::Vector2i tile);
 
     // Tests whether an object can be placed in chunk at tile, taking into account object size etc
-    bool canPlaceObject(ChunkPosition chunk, sf::Vector2i tile, unsigned int objectType, int worldSize);
+    bool canPlaceObject(ChunkPosition chunk, sf::Vector2i tile, unsigned int objectType, int worldSize, const CollisionRect& playerCollisionRect);
+
+    // Tests whether an object can be destroyed, e.g. can't destroy bridge object if player or entity is on it
+    bool canDestroyObject(ChunkPosition chunk, sf::Vector2i tile, int worldSize, const CollisionRect& playerCollisionRect);
 
     // Get all objects in loaded chunks (used for drawing)
     std::vector<WorldObject*> getChunkObjects();

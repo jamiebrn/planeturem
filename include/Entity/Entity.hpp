@@ -34,6 +34,8 @@ public:
 
     sf::Vector2f getSize();
 
+    const CollisionRect& getCollisionRect();
+
     inline bool isAlive() {return health > 0;}
 
 private:

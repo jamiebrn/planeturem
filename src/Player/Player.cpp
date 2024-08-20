@@ -215,6 +215,11 @@ void Player::setPosition(sf::Vector2f worldPos)
     position.y = collisionRect.y + collisionRect.height / 2.0f;
 }
 
+const CollisionRect& Player::getCollisionRect()
+{
+    return collisionRect;
+}
+
 void Player::createPrompt(std::string text)
 {
     prompts.push_back({text, 5.0f});
