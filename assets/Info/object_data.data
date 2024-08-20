@@ -107,5 +107,18 @@
         "item-drops": {
             "0": 2000
         }
+    },
+    "9": {
+        "name": "Golden Rock",
+        "health": 4,
+        "texture-x": 32,
+        "texture-y": 96,
+        "texture-width": 16,
+        "texture-height": 16,
+        "texture-x-origin": 0.5,
+        "texture-y-origin": 0.81,
+        "item-drops": {
+            "2": 2000
+        }
     }
 }

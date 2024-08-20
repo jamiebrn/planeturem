@@ -7,7 +7,6 @@
 // TODO: Crafting system based on proximity to crafting stations
 
 // PRIORITY: LOW
-// TODO: Inventory interaction should block use of tool
 // TODO: Inventory item added notifications (maybe taking items?). Add in player class
 
 Game::Game()

@@ -51,10 +51,12 @@ void InventoryGUI::pickUpItem(sf::Vector2f mouseScreenPos, unsigned int amount)
         // Add to stack already in hand
         if (pickedUpItem == itemCount.first)
         {
-            pickedUpItemCount += std::min(itemCount.second, amount);
+            unsigned int amountPickedUp = std::min(amount, INVENTORY_STACK_SIZE - pickedUpItemCount);
+
+            pickedUpItemCount += std::min(itemCount.second, amountPickedUp);
 
             // Take from inventory
-            Inventory::takeItemAtIndex(itemIndex, amount);
+            Inventory::takeItemAtIndex(itemIndex, amountPickedUp);
         }
     }
     else
@@ -190,8 +192,8 @@ bool InventoryGUI::isMouseOverUI(sf::Vector2f mouseScreenPos)
 
     uiMask.x = itemBoxPadding;
     uiMask.y = itemBoxPadding;
-    uiMask.width = (itemBoxSize + itemBoxSpacing) * itemBoxPerRow;
-    uiMask.height = (itemBoxSize + itemBoxSpacing) * std::round(Inventory::getData().size() / itemBoxPerRow);
+    uiMask.width = (itemBoxSize + itemBoxSpacing) * itemBoxPerRow - itemBoxSpacing;
+    uiMask.height = (itemBoxSize + itemBoxSpacing) * std::round(Inventory::getData().size() / itemBoxPerRow) - itemBoxSpacing;
 
     return uiMask.isPointInRect(mouseScreenPos.x, mouseScreenPos.y);
 }
@@ -219,7 +221,7 @@ void InventoryGUI::draw(sf::RenderWindow& window)
 
     for (const std::optional<ItemCount>& itemSlot : Inventory::getData())
     {
-        sf::RectangleShape itemBackground({75 * intScale, 75 * intScale});
+        // sf::RectangleShape itemBackground({75 * intScale, 75 * intScale});
 
         // itemBackground.setOrigin({40, 40});
         // itemBackground.setPosition(itemBoxPosition);
