@@ -19,5 +19,33 @@
         "texture-y": 0,
         "texture-width": 16,
         "texture-height": 16
+    },
+    "3": {
+        "name": "Refined Stone",
+        "texture-x": 48,
+        "texture-y": 0,
+        "texture-width": 16,
+        "texture-height": 16
+    },
+    "4": {
+        "name": "Raw Coal",
+        "texture-x": 48,
+        "texture-y": 16,
+        "texture-width": 16,
+        "texture-height": 16
+    },
+    "5": {
+        "name": "Raw Iron",
+        "texture-x": 16,
+        "texture-y": 16,
+        "texture-width": 16,
+        "texture-height": 16
+    },
+    "6": {
+        "name": "Raw Gold",
+        "texture-x": 32,
+        "texture-y": 16,
+        "texture-width": 16,
+        "texture-height": 16
     }
 }

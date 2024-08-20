@@ -7,8 +7,6 @@
 #include "Core/json.hpp"
 #include "Data/EntityData.hpp"
 
-typedef unsigned int EntityType;
-
 class EntityDataLoader
 {
     EntityDataLoader() = delete;

@@ -26,7 +26,7 @@ void AnimatedTexture::update(float dt)
         frameTick = 0;
         frame++;
 
-        if (frame >= frameCount - 1)
+        if (frame >= frameCount)
         {
             frame = 0;
         }

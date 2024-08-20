@@ -34,18 +34,18 @@ bool Game::initialise()
     // Load assets
     if(!TextureManager::loadTextures(window)) return false;
     if(!Shaders::loadShaders()) return false;
-    if(!TextDraw::loadFont("Data/upheavtt.ttf")) return false;
+    if(!TextDraw::loadFont("Data/Fonts/upheavtt.ttf")) return false;
     if(!Sounds::loadSounds()) return false;
 
     if(!ItemDataLoader::loadData("Data/Info/item_data.data")) return false;
+    if(!RecipeDataLoader::loadData("Data/Info/item_recipes.data")) return false;
     if(!ObjectDataLoader::loadData("Data/Info/object_data.data")) return false;
     if(!BuildRecipeLoader::loadData("Data/Info/build_recipes.data")) return false;
-    if(!FurnaceRecipeLoader::loadData("Data/Info/furnace_recipes.data")) return false;
     if(!EntityDataLoader::loadData("Data/Info/entity_data.data")) return false;
     if(!ToolDataLoader::loadData("Data/Info/tool_data.data")) return false;
 
     // Load icon
-    if(!icon.loadFromFile("Data/icon.png")) return false;
+    if(!icon.loadFromFile("Data/Textures/icon.png")) return false;
     window.setIcon(256, 256, icon.getPixelsPtr());
 
     // Load Steam API
@@ -390,7 +390,7 @@ void Game::runOnPlanet(float dt)
     //     isDay = !isDay;
     // }
 
-    Camera::update(player.getPosition(), dt);
+    Camera::update(player.getPosition(), mouseScreenPos, dt);
     Cursor::updateTileCursor(window, dt, worldMenuState, worldSize, chunkManager, player.getCollisionRect());
 
     // Update player

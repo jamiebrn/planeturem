@@ -3,17 +3,14 @@
 enum class TextureType
 {
     Player,
-    Tree,
-    Bush,
     SelectTile,
     GroundTiles,
     Water,
     Items,
-    BuildItems,
+    Objects,
     Entities,
     Tools,
     Shadow,
     LightMask,
-    UI,
-    Ship
+    UI
 };

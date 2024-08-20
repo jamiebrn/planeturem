@@ -3,11 +3,10 @@
 #include <SFML/Graphics.hpp>
 #include <fstream>
 #include <vector>
+#include <iostream>
 
 #include "Core/json.hpp"
 #include "Data/ObjectData.hpp"
-
-typedef unsigned int ObjectType;
 
 class ObjectDataLoader
 {

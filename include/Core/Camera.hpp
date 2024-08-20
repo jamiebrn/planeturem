@@ -21,7 +21,7 @@ private:
 // Public class functions
 public:
     // Update camera based on player position (or any position)
-    static void update(sf::Vector2f playerPosition, float deltaTime);
+    static void update(sf::Vector2f playerPosition, sf::Vector2f mouseScreenPos, float deltaTime);
 
     // Instantly set position to centre on player
     static void instantUpdate(sf::Vector2f playerPosition);
@@ -50,6 +50,8 @@ public:
 private:
     // Constant storing interpolation weight for camera movement
     static constexpr float MOVE_LERP_WEIGHT = 6;
+    
+    static constexpr float MOUSE_DELTA_DAMPEN = 15;
 
     // Variable storing offset/position of camera
     static sf::Vector2f offset;

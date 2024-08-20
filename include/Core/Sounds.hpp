@@ -66,7 +66,7 @@ private:
 
     // Constant map storing file paths for all music tracks
     inline static const std::unordered_map<MusicType, std::string> musicPaths = {
-        {MusicType::Main, "Data/first tune.ogg"}
+        {MusicType::Main, "Data/Sounds/first tune.ogg"}
     };
 
 };

@@ -4,7 +4,9 @@
 #include <string>
 #include <unordered_map>
 
-#include "Data/ItemDataLoader.hpp"
+#include "Data/ItemData.hpp"
+
+typedef unsigned int EntityType;
 
 struct EntityData
 {

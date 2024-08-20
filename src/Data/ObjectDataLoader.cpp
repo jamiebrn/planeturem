@@ -5,10 +5,10 @@ std::vector<ObjectData> ObjectDataLoader::loaded_objectData;
 bool ObjectDataLoader::loadData(std::string objectDataPath)
 {
     std::ifstream file(objectDataPath);
-    nlohmann::json data = nlohmann::json::parse(file);
+    nlohmann::ordered_json data = nlohmann::ordered_json::parse(file);
 
     // Load data
-    for (nlohmann::json::iterator iter = data.begin(); iter != data.end(); ++iter)
+    for (nlohmann::ordered_json::iterator iter = data.begin(); iter != data.end(); ++iter)
     {
         ObjectData objectData;
         auto jsonObjectData = iter.value();
@@ -32,7 +32,7 @@ bool ObjectDataLoader::loadData(std::string objectDataPath)
         if (jsonObjectData.contains("item-drops"))
         {
             auto itemDrops = jsonObjectData.at("item-drops");
-            for (nlohmann::json::iterator itemDropsIter = itemDrops.begin(); itemDropsIter != itemDrops.end(); ++itemDropsIter)
+            for (nlohmann::ordered_json::iterator itemDropsIter = itemDrops.begin(); itemDropsIter != itemDrops.end(); ++itemDropsIter)
             {
                 objectData.itemDrops[std::stoi(itemDropsIter.key())] = itemDropsIter.value();
             }

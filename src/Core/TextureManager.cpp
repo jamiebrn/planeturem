@@ -11,20 +11,17 @@ std::unordered_map<TextureType, sf::Sprite> TextureManager::spriteMap;
 
 // All file paths for textures are listed here
 const std::unordered_map<TextureType, std::string> TextureManager::texturePaths = {
-    {TextureType::Player, "Data/monkeyplayer.png"},
-    {TextureType::Tree, "Data/tree.png"},
-    {TextureType::Bush, "Data/bush.png"},
-    {TextureType::SelectTile, "Data/select_tile_animated.png"},
-    {TextureType::GroundTiles, "Data/tiles.png"},
-    {TextureType::Water, "Data/water.png"},
-    {TextureType::Items, "Data/item_sheet.png"},
-    {TextureType::BuildItems, "Data/objects.png"},
-    {TextureType::Entities, "Data/entities.png"},
-    {TextureType::Tools, "Data/tools.png"},
-    {TextureType::Shadow, "Data/shadow.png"},
-    {TextureType::LightMask, "Data/light_mask.png"},
-    {TextureType::UI, "Data/UIkeys.png"},
-    {TextureType::Ship, "Data/ship.png"}
+    {TextureType::Player, "Data/Textures/monkeyplayer.png"},
+    {TextureType::SelectTile, "Data/Textures/select_tile_animated.png"},
+    {TextureType::GroundTiles, "Data/Textures/tiles.png"},
+    {TextureType::Water, "Data/Textures/water.png"},
+    {TextureType::Items, "Data/Textures/items.png"},
+    {TextureType::Objects, "Data/Textures/objects.png"},
+    {TextureType::Entities, "Data/Textures/entities.png"},
+    {TextureType::Tools, "Data/Textures/tools.png"},
+    {TextureType::Shadow, "Data/Textures/shadow.png"},
+    {TextureType::LightMask, "Data/Textures/light_mask.png"},
+    {TextureType::UI, "Data/Textures/UI.png"},
 };
 
 // Loads all textures from paths specified into texture map

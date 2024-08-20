@@ -15,7 +15,7 @@ Player::Player(sf::Vector2f position)
 
     flippedTexture = false;
 
-    idleAnimation.create(1, 16, 18, 0, 0, 0);
+    idleAnimation.create(3, 16, 18, 0, 0, 0.3);
     runAnimation.create(5, 16, 18, 48, 0, 0.1);
 
     equippedTool = 0;

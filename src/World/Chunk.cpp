@@ -96,6 +96,11 @@ void Chunk::generateChunk(const FastNoise& noise, int worldSize, ChunkManager& c
                 // Make rock
                 objectGrid[y][x] = BuildableObject(objectPos, 4);
             }
+            else if (spawn_chance == 6)
+            {
+                // Make ore rock
+                objectGrid[y][x] = BuildableObject(objectPos, 10 + rand() % 3);
+            }
         }
     }
 

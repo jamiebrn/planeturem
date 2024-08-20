@@ -120,5 +120,44 @@
         "item-drops": {
             "2": 2000
         }
+    },
+    "10": {
+        "name": "Iron Rock",
+        "health": 7,
+        "texture-x": 64,
+        "texture-y": 48,
+        "texture-width": 16,
+        "texture-height": 16,
+        "texture-x-origin": 0.5,
+        "texture-y-origin": 0.81,
+        "item-drops": {
+            "5": 2
+        }
+    },
+    "11": {
+        "name": "Gold Rock",
+        "health": 7,
+        "texture-x": 64,
+        "texture-y": 64,
+        "texture-width": 16,
+        "texture-height": 16,
+        "texture-x-origin": 0.5,
+        "texture-y-origin": 0.81,
+        "item-drops": {
+            "6": 2
+        }
+    },
+    "12": {
+        "name": "Coal Rock",
+        "health": 7,
+        "texture-x": 80,
+        "texture-y": 48,
+        "texture-width": 16,
+        "texture-height": 16,
+        "texture-x-origin": 0.5,
+        "texture-y-origin": 0.81,
+        "item-drops": {
+            "4": 2
+        }
     }
 }

@@ -35,7 +35,7 @@ void BuildableObject::draw(sf::RenderTarget& window, float dt, const sf::Color& 
     shader->setUniform("flash_amount", flash_amount);
     
     TextureManager::drawSubTexture(window, {
-        TextureType::BuildItems, Camera::worldToScreenTransform(position), 0, scale, objectData.textureOrigin, color
+        TextureType::Objects, Camera::worldToScreenTransform(position), 0, scale, objectData.textureOrigin, color
         }, objectData.textureRect, shader);
 }
 
@@ -44,7 +44,7 @@ void BuildableObject::drawGUI(sf::RenderTarget& window, float dt, const sf::Colo
     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
 
     TextureManager::drawSubTexture(window, {
-        TextureType::BuildItems, position, 0, {2, 2}, {0.5, 0.5}, color
+        TextureType::Objects, position, 0, {2, 2}, {0.5, 0.5}, color
         }, objectData.textureRect);
 }
 

@@ -7,8 +7,6 @@
 #include "Core/json.hpp"
 #include "Data/ItemData.hpp"
 
-typedef unsigned int ItemType;
-
 class ItemDataLoader
 {
     ItemDataLoader() = delete;
