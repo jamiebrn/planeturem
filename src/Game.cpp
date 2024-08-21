@@ -69,7 +69,7 @@ bool Game::initialise()
     interactedObjectPos = sf::Vector2f(0, 0);
 
     // Set world size
-    worldSize = 20;
+    worldSize = 240;
 
     // Initialise day/night cycle
     dayNightToggleTimer = 0.0f;
@@ -79,8 +79,8 @@ bool Game::initialise()
     generateWaterNoiseTexture();
 
     // Find valid player spawn
-    // sf::Vector2f spawnPos = chunkManager.findValidSpawnPosition(2, noise, worldSize);
-    // player.setPosition(spawnPos);
+    sf::Vector2f spawnPos = chunkManager.findValidSpawnPosition(2, noise, worldSize);
+    player.setPosition(spawnPos);
 
     Camera::instantUpdate(player.getPosition());
 

@@ -119,8 +119,8 @@ public:
                                                                         int searchArea,
                                                                         int worldSize);
 
-    // TODO: Make this function suitable for offsets >= chunk size
     // Used to calculate chunk and tile positions from an offset value, from another chunk and tile
+    // Correct for offsets < worldSize * CHUNK_SIZE
     static std::pair<ChunkPosition, sf::Vector2i> getChunkTileFromOffset(ChunkPosition chunk, sf::Vector2i tile, int xOffset, int yOffset, int worldSize);
 
 private:

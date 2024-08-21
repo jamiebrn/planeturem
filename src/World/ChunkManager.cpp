@@ -547,15 +547,16 @@ std::pair<ChunkPosition, sf::Vector2i> ChunkManager::getChunkTileFromOffset(Chun
     if (tile.x < 0 || tile.x >= static_cast<int>(CHUNK_TILE_SIZE) || tile.y < 0 || tile.y >= static_cast<int>(CHUNK_TILE_SIZE))
     {
         // Add to chunk position and convert tile position
+        // Took way too long to come up with these formulae...
         if (tile.x < 0)
-            chunk.x -= 1;
+            chunk.x -= std::ceil(std::abs(tile.x) / CHUNK_TILE_SIZE);
         else if (tile.x >= static_cast<int>(CHUNK_TILE_SIZE))
-            chunk.x += 1;
+            chunk.x += std::ceil((1 + tile.x) / CHUNK_TILE_SIZE) - 1;
 
         if (tile.y < 0)
-            chunk.y -= 1;
+            chunk.y -= std::ceil(std::abs(tile.y) / CHUNK_TILE_SIZE);
         else if (tile.y >= static_cast<int>(CHUNK_TILE_SIZE))
-            chunk.y += 1;
+            chunk.y += std::ceil((1 + tile.y) / CHUNK_TILE_SIZE) - 1;
 
         // Wrap tile
         tile.x = (tile.x % static_cast<int>(CHUNK_TILE_SIZE) + static_cast<int>(CHUNK_TILE_SIZE)) % static_cast<int>(CHUNK_TILE_SIZE);
