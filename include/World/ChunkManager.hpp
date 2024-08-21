@@ -120,7 +120,7 @@ public:
                                                                         int worldSize);
 
     // Used to calculate chunk and tile positions from an offset value, from another chunk and tile
-    // Correct for offsets < worldSize * CHUNK_SIZE
+    // Correct for offsets < worldSize * CHUNK_TILE_SIZE
     static std::pair<ChunkPosition, sf::Vector2i> getChunkTileFromOffset(ChunkPosition chunk, sf::Vector2i tile, int xOffset, int yOffset, int worldSize);
 
 private:

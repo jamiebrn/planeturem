@@ -504,7 +504,42 @@ sf::Vector2f ChunkManager::findValidSpawnPosition(int waterlessAreaSize, const F
 
 std::unordered_map<std::string, int> ChunkManager::getNearbyCraftingStationLevels(ChunkPosition playerChunk, sf::Vector2i playerTile, int searchArea, int worldSize)
 {
+    std::unordered_map<std::string, int> craftingStationLevels;
 
+    // Search area
+    for (int xOffset = -searchArea; xOffset <= searchArea; xOffset++)
+    {
+        for (int yOffset = -searchArea; yOffset <= searchArea; yOffset++)
+        {
+            // Get chunk and tile
+            std::pair<ChunkPosition, sf::Vector2i> chunkTile = getChunkTileFromOffset(playerChunk, playerTile, xOffset, yOffset, worldSize);
+
+            // If chunk not loaded, do not get object
+            if (loadedChunks.count(chunkTile.first) <= 0)
+                continue;
+            
+            std::optional<BuildableObject>& object = getChunkObject(chunkTile.first, chunkTile.second);
+
+            // If no object, do not get data
+            if (!object.has_value())
+                continue;
+            
+            // No need to test if object reference as getChunkObject handles this
+
+            // Get object data
+            ObjectType objectType = object->getObjectType();
+            const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
+
+            // If not a crafting station, do not add to hashmap
+            if (objectData.craftingStation.empty())
+                continue;
+            
+            // Add crafting station to map
+            craftingStationLevels[objectData.craftingStation] = objectData.craftingStationLevel;
+        }
+    }
+
+    return craftingStationLevels;
 }
 
 void ChunkManager::generateChunk(const ChunkPosition& chunkPosition, const FastNoise& noise, int worldSize, bool putInLoaded, std::optional<sf::Vector2f> positionOverride)

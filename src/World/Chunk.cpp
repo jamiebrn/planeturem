@@ -258,6 +258,12 @@ void Chunk::drawChunkTerrain(sf::RenderTarget& window, float time)
     lines[6].position = Camera::worldToScreenTransform(worldPosition) + sf::Vector2f(0, tileSize * 8); lines[7].position = Camera::worldToScreenTransform(worldPosition) + sf::Vector2f(tileSize * 8, tileSize * 8);
 
     window.draw(lines);
+
+    // DRAW COLLISIONS
+    for (auto& collisionRect : collisionRects)
+    {
+        collisionRect->debugDraw(window);
+    }
     #endif
 }
 
@@ -397,6 +403,9 @@ void Chunk::setObject(sf::Vector2i position, unsigned int objectType, int worldS
 
     sf::Vector2i objectSize = ObjectDataLoader::getObjectData(objectType).size;
 
+    // Set object in chunk
+    objectGrid[position.y][position.x] = object;
+
     // Create object reference objects if object is larger than one tile
     if (objectSize != sf::Vector2i(1, 1))
     {
@@ -452,8 +461,6 @@ void Chunk::setObject(sf::Vector2i position, unsigned int objectType, int worldS
             }
         }
     }
-
-    objectGrid[position.y][position.x] = object;
 
     recalculateCollisionRects(chunkManager);
 }
@@ -716,9 +723,9 @@ void Chunk::recalculateCollisionRects(ChunkManager& chunkManager)
     };
 
     // Get collisions for tiles
-    for (int y = 0; y < 8; y++)
+    for (int y = 0; y < CHUNK_TILE_SIZE; y++)
     {
-        for (int x = 0; x < 8; x++)
+        for (int x = 0; x < CHUNK_TILE_SIZE; x++)
         {
             bool bridgeObjectOnWater = false;
 
@@ -739,34 +746,40 @@ void Chunk::recalculateCollisionRects(ChunkManager& chunkManager)
     }
 
     // Get collisions for objects
-    for (int y = 0; y < 8; y++)
+    for (int y = 0; y < CHUNK_TILE_SIZE; y++)
     {
-        for (int x = 0; x < 8; x++)
+        for (int x = 0; x < CHUNK_TILE_SIZE; x++)
         {
             if (!objectGrid[y][x].has_value())
                 continue;
             
             // Get object data for reference
-            if (objectGrid[y][x]->isObjectReference())
-            {
-                // Get referenced object
-                const ObjectReference& objectReference = objectGrid[y][x]->getObjectReference().value();
-                std::optional<BuildableObject>& objectOptional = chunkManager.getChunkObject(objectReference.chunk, objectReference.tile);
+            // if (objectGrid[y][x]->isObjectReference())
+            // {
+            //     // Get referenced object
+            //     const ObjectReference& objectReference = objectGrid[y][x]->getObjectReference().value();
+            //     std::optional<BuildableObject>& objectOptional = chunkManager.getChunkObject(objectReference.chunk, objectReference.tile);
 
-                // If valid object, add collision from object if required
-                if (objectOptional.has_value())
-                {
-                    BuildableObject& object = objectOptional.value();
+            //     // If valid object, add collision from object if required
+            //     if (objectOptional.has_value())
+            //     {
+            //         BuildableObject& object = objectOptional.value();
 
-                    unsigned int objectType = object.getObjectType();
-                    const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
+            //         unsigned int objectType = object.getObjectType();
+            //         const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
 
-                    if (objectData.hasCollision)
-                        createCollisionRect(collisionRects, x, y);
-                }
-            }
+            //         if (objectData.hasCollision)
+            //             createCollisionRect(collisionRects, x, y);
+            //     }
+            // }
 
-            const ObjectData& objectData = ObjectDataLoader::getObjectData(objectGrid[y][x]->getObjectType());
+            // Go through chunk manager in case of object reference
+            std::optional<BuildableObject>& objectOptional = chunkManager.getChunkObject(chunkPosition, sf::Vector2i(x, y));
+
+            if (!objectOptional.has_value())
+                continue;
+
+            const ObjectData& objectData = ObjectDataLoader::getObjectData(objectOptional->getObjectType());
             
             if (objectData.hasCollision)
                 createCollisionRect(collisionRects, x, y);

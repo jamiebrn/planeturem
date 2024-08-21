@@ -7,7 +7,7 @@
 #include <Core/json.hpp>
 #include <cmath>
 #include <array>
-#include <map>
+#include <unordered_map>
 #include <iostream>
 #include <string>
 #include <memory>
@@ -100,6 +100,8 @@ private:
     GameState gameState;
 
     WorldMenuState worldMenuState;
+
+    std::unordered_map<std::string, int> nearbyCraftingStationLevels;
 
     // Not used yet
     uint64_t interactedObjectID;

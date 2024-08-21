@@ -379,8 +379,10 @@ void Game::runOnPlanet(float dt)
     // -- UPDATING --
     //
 
+    // Update tweens
     floatTween.update(dt);
 
+    // Update day / night cycle
     dayNightToggleTimer += dt;
     // if (dayNightToggleTimer >= 20.0f)
     // {
@@ -390,24 +392,33 @@ void Game::runOnPlanet(float dt)
     //     isDay = !isDay;
     // }
 
+    // Update camera
     Camera::update(player.getPosition(), mouseScreenPos, dt);
+
+    // Update cursor
     Cursor::updateTileCursor(window, dt, worldMenuState, worldSize, chunkManager, player.getCollisionRect());
 
     // Update player
     bool wrappedAroundWorld = false;
     sf::Vector2f wrapPositionDelta;
     player.update(dt, Cursor::getMouseWorldPos(window), chunkManager, worldSize, wrappedAroundWorld, wrapPositionDelta);
+
+    // Handle world wrapping for camera and cursor, if player wrapped around
     if (wrappedAroundWorld)
     {
-        // Handle world wrapping for camera and cursor
         Camera::handleWorldWrap(worldSize);
         Cursor::handleWorldWrap(wrapPositionDelta);
         chunkManager.reloadChunks();
     }
 
+    // Enable / disable cursor drawing depending on player reach
     if (worldMenuState == WorldMenuState::Main || worldMenuState == WorldMenuState::Inventory)
         Cursor::setCanReachTile(player.canReachPosition(Cursor::getMouseWorldPos(window)));
+    
+    // Get nearby crafting stations
+    nearbyCraftingStationLevels = chunkManager.getNearbyCraftingStationLevels(player.getChunkInside(worldSize), player.getChunkTileInside(), 3, worldSize);
 
+    // Update (loaded) chunks
     chunkManager.updateChunks(noise, worldSize);
     chunkManager.updateChunksObjects(dt);
     chunkManager.updateChunksEntities(dt, worldSize);
@@ -529,6 +540,11 @@ void Game::runOnPlanet(float dt)
             std::to_string(chunkManager.getGeneratedChunkCount()) + " Chunks generated",
             "Player pos: " + std::to_string(static_cast<int>(player.getPosition().x)) + ", " + std::to_string(static_cast<int>(player.getPosition().y))
         };
+
+        for (const auto& craftingStationLevel : nearbyCraftingStationLevels)
+        {
+            debugStrings.push_back(craftingStationLevel.first + " level " + std::to_string(craftingStationLevel.second));
+        }
 
         int yPos = ResolutionHandler::getResolution().y - debugStrings.size() * 20 * intScale - 10 * intScale;
         int yIncrement = 20 * intScale;

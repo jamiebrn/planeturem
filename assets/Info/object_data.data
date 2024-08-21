@@ -85,7 +85,9 @@
         "texture-width": 16,
         "texture-height": 16,
         "texture-x-origin": 0.5,
-        "texture-y-origin": 0.9375
+        "texture-y-origin": 0.9375,
+        "crafting-station": "anvil",
+        "crafting-station-level": 1
     },
     "7": {
         "name": "Chest",
@@ -121,7 +123,9 @@
         "texture-y-origin": 0.81,
         "item-drops": {
             "2": [2000, 2000, 1.0]
-        }
+        },
+        "crafting-station": "anvil",
+        "crafting-station-level": 2
     },
     "10": {
         "name": "Iron Rock",
