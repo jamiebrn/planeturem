@@ -4,6 +4,7 @@
 #include <World/FastNoise.h>
 #include <array>
 #include <vector>
+#include <unordered_map>
 #include <memory>
 #include <optional>
 #include <iostream>
@@ -30,7 +31,7 @@ class Chunk
 {
 
 public:
-    Chunk(sf::Vector2i worldPosition);
+    Chunk(ChunkPosition worldPosition);
 
     // Initialisation / generation
     void generateChunk(const FastNoise& noise, int worldSize, ChunkManager& chunkManager);
@@ -120,7 +121,7 @@ private:
     std::vector<std::unique_ptr<CollisionRect>> collisionRects;
 
     // Stores chunk position in chunkmanager hashmap (NOT actual world position)
-    sf::Vector2i worldGridPosition;
+    ChunkPosition chunkPosition;
     
     // Stores ACTUAL position in world, which may differ from grid position if repeating chunks
     sf::Vector2f worldPosition;

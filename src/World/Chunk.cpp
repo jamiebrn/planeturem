@@ -1,8 +1,8 @@
 #include "World/Chunk.hpp"
 
-Chunk::Chunk(sf::Vector2i worldGridPosition)
+Chunk::Chunk(ChunkPosition chunkPosition)
 {
-    this->worldGridPosition = worldGridPosition;
+    this->chunkPosition = chunkPosition;
     groundVertexArray = sf::VertexArray(sf::Quads, 8 * 8 * 4);
 }
 
@@ -11,7 +11,7 @@ void Chunk::generateChunk(const FastNoise& noise, int worldSize, ChunkManager& c
     // Get tile size
     // float tileSize = ResolutionHandler::getTileSize();
     
-    sf::Vector2f worldNoisePosition = static_cast<sf::Vector2f>(worldGridPosition) * CHUNK_TILE_SIZE;
+    sf::Vector2f worldNoisePosition = sf::Vector2f(chunkPosition.x, chunkPosition.y) * CHUNK_TILE_SIZE;
 
     float noiseSize = CHUNK_TILE_SIZE * worldSize;
 
@@ -78,7 +78,7 @@ void Chunk::generateChunk(const FastNoise& noise, int worldSize, ChunkManager& c
             if (!canSpawnObject)
                 continue;
 
-            int spawn_chance = rand() % 40;
+            int spawn_chance = rand() % 60;
             sf::Vector2f objectPos = worldPosition + sf::Vector2f(x * TILE_SIZE_PIXELS_UNSCALED + TILE_SIZE_PIXELS_UNSCALED / 2.0f, y * TILE_SIZE_PIXELS_UNSCALED + TILE_SIZE_PIXELS_UNSCALED / 2.0f);
 
             if (spawn_chance < 4)
@@ -158,75 +158,55 @@ void Chunk::generateVisualEffectTiles(const FastNoise& noise, int worldSize, Chu
         return TileType::Visual_BLANK;
     };
 
-    auto getTileTypeAt = [this](int x, int y, int offsetX, int offsetY, ChunkManager& chunkManager, const FastNoise& noise, const sf::Vector2i& worldGridPosition, int noiseSize)
+    auto getTileTypeAt = [this](ChunkPosition chunk, sf::Vector2i tile, int xOffset, int yOffset,
+                                ChunkManager& chunkManager, const FastNoise& noise, int worldSize)
     {
-        int gridX = x + offsetX;
-        int gridY = y + offsetY;
+        std::pair<ChunkPosition, sf::Vector2i> wrappedChunkTile = ChunkManager::getChunkTileFromOffset(chunk, tile, xOffset, yOffset, worldSize);
         
-        if (gridX < 0 || gridX >= 8 || gridY < 0 || gridY >= 8) {
-            ChunkPosition chunkPos(worldGridPosition.x, worldGridPosition.y);
-            sf::Vector2i localPos(gridX, gridY);
-
-            // Adjust for chunk boundaries
-            if (gridX < 0)
+        // If chunk has changed due to offset, check tile in different chunk
+        if (wrappedChunkTile.first != chunk)
+        {
+            if (chunkManager.isChunkGenerated(wrappedChunkTile.first))
             {
-                chunkPos.x -= 1;
-                localPos.x = 7;
-            }
-            else if (gridX >= 8)
-            {
-                chunkPos.x += 1;
-                localPos.x = 0;
-            }
-
-            if (gridY < 0)
-            {
-                chunkPos.y -= 1;
-                localPos.y = 7;
-            }
-            else if (gridY >= 8)
-            {
-                chunkPos.y += 1;
-                localPos.y = 0;
-            }
-
-            if (chunkManager.isChunkGenerated(chunkPos))
-            {
-                return chunkManager.getChunkTileType(chunkPos, localPos);
+                return chunkManager.getChunkTileType(wrappedChunkTile.first, wrappedChunkTile.second);
             }
             else
             {
-                float noiseValue = noise.GetNoiseSeamless2D(worldGridPosition.x * 8 + gridX, worldGridPosition.y * 8 + gridY, noiseSize, noiseSize);
+                // Take tile type from noise value as chunk has not been generated yet
+                float noiseSize = CHUNK_TILE_SIZE * worldSize;
+                float noiseValue = noise.GetNoiseSeamless2D(
+                    static_cast<float>(wrappedChunkTile.first.x) * CHUNK_TILE_SIZE + wrappedChunkTile.second.x,
+                    static_cast<float>(wrappedChunkTile.first.y) * CHUNK_TILE_SIZE + wrappedChunkTile.second.y,
+                    noiseSize, noiseSize
+                    );
                 noiseValue = FastNoise::Normalise(noiseValue);
                 return getTileTypeFromNoiseHeight(noiseValue);
             }
         }
         else
         {
-            return this->groundTileGrid[gridY][gridX];
+            return this->groundTileGrid[wrappedChunkTile.second.y][wrappedChunkTile.second.x];
         }
     };
 
-    float noiseSize = 8.0f * worldSize;
-
     // Generate visual tiles
-    for (int y = 0; y < 8; y++)
+    for (int y = 0; y < CHUNK_TILE_SIZE; y++)
     {
-        for (int x = 0; x < 8; x++)
+        for (int x = 0; x < CHUNK_TILE_SIZE; x++)
         {
             TileType groundTileType = groundTileGrid[y][x];
             if (groundTileType != TileType::Water)
                 continue;
 
             visualTileGrid[y][x] = getVisualTileType(
-                getTileTypeAt(x, y, -1, -1, chunkManager, noise, worldGridPosition, noiseSize), // NW
-                getTileTypeAt(x, y, 0, -1, chunkManager, noise, worldGridPosition, noiseSize),  // N
-                getTileTypeAt(x, y, 1, -1, chunkManager, noise, worldGridPosition, noiseSize),  // NE
-                getTileTypeAt(x, y, -1, 0, chunkManager, noise, worldGridPosition, noiseSize),  // W
-                getTileTypeAt(x, y, 1, 0, chunkManager, noise, worldGridPosition, noiseSize),   // E
-                getTileTypeAt(x, y, -1, 1, chunkManager, noise, worldGridPosition, noiseSize),  // SW
-                getTileTypeAt(x, y, 0, 1, chunkManager, noise, worldGridPosition, noiseSize),   // S
-                getTileTypeAt(x, y, 1, 1, chunkManager, noise, worldGridPosition, noiseSize)    // SE
+                getTileTypeAt(chunkPosition, {x, y}, -1, -1, chunkManager, noise, worldSize),
+                getTileTypeAt(chunkPosition, {x, y}, 0, -1, chunkManager, noise, worldSize),
+                getTileTypeAt(chunkPosition, {x, y}, 1, -1, chunkManager, noise, worldSize),
+                getTileTypeAt(chunkPosition, {x, y}, -1, 0, chunkManager, noise, worldSize),
+                getTileTypeAt(chunkPosition, {x, y}, 1, 0, chunkManager, noise, worldSize),
+                getTileTypeAt(chunkPosition, {x, y}, -1, 1, chunkManager, noise, worldSize),
+                getTileTypeAt(chunkPosition, {x, y}, 0, 1, chunkManager, noise, worldSize),
+                getTileTypeAt(chunkPosition, {x, y}, 1, 1, chunkManager, noise, worldSize)
             );
         }
     }
@@ -246,7 +226,7 @@ void Chunk::drawChunkTerrain(sf::RenderTarget& window, float time)
     float scale = ResolutionHandler::getScale();
     float tileSize = ResolutionHandler::getTileSize();
 
-    // sf::Vector2f worldPosition = static_cast<sf::Vector2f>(worldGridPosition) * 8.0f * tileSize;
+    // sf::Vector2f worldPosition = static_cast<sf::Vector2f>(chunkPosition) * 8.0f * tileSize;
     
     // Draw terrain tiles
     sf::Transform transform;
@@ -300,7 +280,7 @@ void Chunk::drawChunkTerrainVisual(sf::RenderTarget& window, float time)
             sf::Vector2f tileWorldPosition(worldPosition.x + x * TILE_SIZE_PIXELS_UNSCALED, worldPosition.y + y * TILE_SIZE_PIXELS_UNSCALED);
             sf::IntRect textureRect;
 
-            int cliffWaterFrame = static_cast<int>(std::min(std::max(std::sin(time / 2.0f + worldGridPosition.x + x) * 3.5f / 2.0f + 3.5f / 2.0f, 0.0f), 3.0f));
+            int cliffWaterFrame = static_cast<int>(std::min(std::max(std::sin(time / 2.0f + chunkPosition.x + x) * 3.5f / 2.0f + 3.5f / 2.0f, 0.0f), 3.0f));
             
             switch (visualTileType)
             {
@@ -407,7 +387,7 @@ void Chunk::setObject(sf::Vector2i position, unsigned int objectType, int worldS
     // Get tile size
     // float tileSize = ResolutionHandler::getTileSize();
 
-    // sf::Vector2f worldPosition = static_cast<sf::Vector2f>(worldGridPosition) * 8.0f * tileSize;
+    // sf::Vector2f worldPosition = static_cast<sf::Vector2f>(chunkPosition) * 8.0f * tileSize;
     sf::Vector2f objectPos;
     objectPos.x = worldPosition.x + position.x * TILE_SIZE_PIXELS_UNSCALED + TILE_SIZE_PIXELS_UNSCALED / 2.0f;
     objectPos.y = worldPosition.y + position.y * TILE_SIZE_PIXELS_UNSCALED + TILE_SIZE_PIXELS_UNSCALED / 2.0f;
@@ -421,7 +401,7 @@ void Chunk::setObject(sf::Vector2i position, unsigned int objectType, int worldS
     if (objectSize != sf::Vector2i(1, 1))
     {
         ObjectReference objectReference;
-        objectReference.chunk = ChunkPosition(worldGridPosition.x, worldGridPosition.y);
+        objectReference.chunk = ChunkPosition(chunkPosition.x, chunkPosition.y);
         objectReference.tile = position;
 
         // Iterate over all tiles which object occupies and add object reference
@@ -442,15 +422,15 @@ void Chunk::setObject(sf::Vector2i position, unsigned int objectType, int worldS
         int y_remaining = objectSize.y - ((int)objectGrid.size() - 1 - position.y) - 1;
 
         // Calculate next chunk index
-        int chunkNextPosX = (((worldGridPosition.x + 1) % worldSize) + worldSize) % worldSize;
-        int chunkNextPosY = (((worldGridPosition.y + 1) % worldSize) + worldSize) % worldSize;
+        int chunkNextPosX = (((chunkPosition.x + 1) % worldSize) + worldSize) % worldSize;
+        int chunkNextPosY = (((chunkPosition.y + 1) % worldSize) + worldSize) % worldSize;
 
         // Add tiles to right (direction) chunk if required
         for (int y = position.y; y < std::min(position.y + objectSize.y, (int)objectGrid.size()); y++)
         {
             for (int x = 0; x < x_remaining; x++)
             {
-                chunkManager.setObjectReference(ChunkPosition(chunkNextPosX, worldGridPosition.y), objectReference, sf::Vector2i(x, y));
+                chunkManager.setObjectReference(ChunkPosition(chunkNextPosX, chunkPosition.y), objectReference, sf::Vector2i(x, y));
             }
         }
 
@@ -459,7 +439,7 @@ void Chunk::setObject(sf::Vector2i position, unsigned int objectType, int worldS
         {
             for (int x = position.x; x < std::min(position.x + objectSize.x, (int)objectGrid[0].size()); x++)
             {
-                chunkManager.setObjectReference(ChunkPosition(worldGridPosition.x, chunkNextPosY), objectReference, sf::Vector2i(x, y));
+                chunkManager.setObjectReference(ChunkPosition(chunkPosition.x, chunkNextPosY), objectReference, sf::Vector2i(x, y));
             }
         }
 
@@ -514,7 +494,7 @@ void Chunk::deleteObject(sf::Vector2i position, ChunkManager& chunkManager)
     {
         for (int x = 0; x < x_remaining; x++)
         {
-            chunkManager.deleteObject(ChunkPosition(worldGridPosition.x + 1, worldGridPosition.y), sf::Vector2i(x, y));
+            chunkManager.deleteObject(ChunkPosition(chunkPosition.x + 1, chunkPosition.y), sf::Vector2i(x, y));
         }
     }
 
@@ -523,7 +503,7 @@ void Chunk::deleteObject(sf::Vector2i position, ChunkManager& chunkManager)
     {
         for (int x = position.x; x < std::min(position.x + objectSize.x, (int)objectGrid[0].size()); x++)
         {
-            chunkManager.deleteObject(ChunkPosition(worldGridPosition.x, worldGridPosition.y + 1), sf::Vector2i(x, y));
+            chunkManager.deleteObject(ChunkPosition(chunkPosition.x, chunkPosition.y + 1), sf::Vector2i(x, y));
         }
     }
 
@@ -532,7 +512,7 @@ void Chunk::deleteObject(sf::Vector2i position, ChunkManager& chunkManager)
     {
         for (int x = 0; x < x_remaining; x++)
         {
-            chunkManager.deleteObject(ChunkPosition(worldGridPosition.x + 1, worldGridPosition.y + 1), sf::Vector2i(x, y));
+            chunkManager.deleteObject(ChunkPosition(chunkPosition.x + 1, chunkPosition.y + 1), sf::Vector2i(x, y));
         }
     }
 
@@ -576,8 +556,8 @@ bool Chunk::canPlaceObject(sf::Vector2i position, unsigned int objectType, int w
     int y_remaining = objectData.size.y - ((int)objectGrid.size() - 1 - position.y) - 1;
 
     // Calculate next chunk index
-    int chunkNextPosX = (((worldGridPosition.x + 1) % worldSize) + worldSize) % worldSize;
-    int chunkNextPosY = (((worldGridPosition.y + 1) % worldSize) + worldSize) % worldSize;
+    int chunkNextPosX = (((chunkPosition.x + 1) % worldSize) + worldSize) % worldSize;
+    int chunkNextPosY = (((chunkPosition.y + 1) % worldSize) + worldSize) % worldSize;
 
     // Test tiles to right (direction) chunk if required
     for (int y = position.y; y < std::min(position.y + objectData.size.y, (int)objectGrid.size()); y++)
@@ -587,12 +567,12 @@ bool Chunk::canPlaceObject(sf::Vector2i position, unsigned int objectType, int w
             // Test tile
             if (!objectData.placeOnWater)
             {
-                if (chunkManager.getLoadedChunkTileType(ChunkPosition(chunkNextPosX, worldGridPosition.y), sf::Vector2i(x, y)) == TileType::Water)
+                if (chunkManager.getLoadedChunkTileType(ChunkPosition(chunkNextPosX, chunkPosition.y), sf::Vector2i(x, y)) == TileType::Water)
                     return false;
             }
             
             // Test object
-            std::optional<BuildableObject>& objectOptional = chunkManager.getChunkObject(ChunkPosition(chunkNextPosX, worldGridPosition.y), sf::Vector2i(x, y));
+            std::optional<BuildableObject>& objectOptional = chunkManager.getChunkObject(ChunkPosition(chunkNextPosX, chunkPosition.y), sf::Vector2i(x, y));
             if (objectOptional.has_value())
                 return false;
         }
@@ -606,12 +586,12 @@ bool Chunk::canPlaceObject(sf::Vector2i position, unsigned int objectType, int w
             // Test tile
             if (!objectData.placeOnWater)
             {
-                if (chunkManager.getLoadedChunkTileType(ChunkPosition(worldGridPosition.x, chunkNextPosY), sf::Vector2i(x, y)) == TileType::Water)
+                if (chunkManager.getLoadedChunkTileType(ChunkPosition(chunkPosition.x, chunkNextPosY), sf::Vector2i(x, y)) == TileType::Water)
                     return false;
             }
 
             // Test object
-            std::optional<BuildableObject>& objectOptional = chunkManager.getChunkObject(ChunkPosition(worldGridPosition.x, chunkNextPosY), sf::Vector2i(x, y));
+            std::optional<BuildableObject>& objectOptional = chunkManager.getChunkObject(ChunkPosition(chunkPosition.x, chunkNextPosY), sf::Vector2i(x, y));
             if (objectOptional.has_value())
                 return false;
         }
@@ -664,26 +644,26 @@ void Chunk::updateChunkEntities(float dt, int worldSize, ChunkManager& chunkMana
         sf::Vector2f relativePosition = entity->getPosition() - worldPosition;
 
         bool requiresMove = false;
-        ChunkPosition newChunk(worldGridPosition.x, worldGridPosition.y);
+        ChunkPosition newChunk(chunkPosition.x, chunkPosition.y);
 
         if (relativePosition.x < 0)
         {
-            newChunk.x = (((worldGridPosition.x - 1) % worldSize) + worldSize) % worldSize;
+            newChunk.x = (((chunkPosition.x - 1) % worldSize) + worldSize) % worldSize;
             requiresMove = true;
         }
         else if (relativePosition.x > TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE)
         {
-            newChunk.x = (((worldGridPosition.x + 1) % worldSize) + worldSize) % worldSize;
+            newChunk.x = (((chunkPosition.x + 1) % worldSize) + worldSize) % worldSize;
             requiresMove = true;
         }
         else if (relativePosition.y < 0)
         {
-            newChunk.y = (((worldGridPosition.y - 1) % worldSize) + worldSize) % worldSize;
+            newChunk.y = (((chunkPosition.y - 1) % worldSize) + worldSize) % worldSize;
             requiresMove = true;
         }
         else if (relativePosition.y > TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE)
         {
-            newChunk.y = (((worldGridPosition.y + 1) % worldSize) + worldSize) % worldSize;
+            newChunk.y = (((chunkPosition.y + 1) % worldSize) + worldSize) % worldSize;
             requiresMove = true;
         }
 
@@ -721,7 +701,7 @@ void Chunk::recalculateCollisionRects(ChunkManager& chunkManager)
     // Get tile size
     // float tileSize = ResolutionHandler::getTileSize();
 
-    // sf::Vector2f worldPosition = static_cast<sf::Vector2f>(worldGridPosition) * 8.0f * tileSize;
+    // sf::Vector2f worldPosition = static_cast<sf::Vector2f>(chunkPosition) * 8.0f * tileSize;
 
     auto createCollisionRect = [this](std::vector<std::unique_ptr<CollisionRect>>& rects, int x, int y) -> void
     {

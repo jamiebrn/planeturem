@@ -25,16 +25,23 @@ bool ObjectDataLoader::loadData(std::string objectDataPath)
         if (jsonObjectData.contains("has-collision")) objectData.hasCollision = jsonObjectData.at("has-collision");
         if (jsonObjectData.contains("place-on-water")) objectData.placeOnWater = jsonObjectData.at("place-on-water");
         if (jsonObjectData.contains("draw-layer")) objectData.drawLayer = jsonObjectData.at("draw-layer");
-        if (jsonObjectData.contains("furnace-speed")) objectData.furnaceSpeed = jsonObjectData.at("furnace-speed");
         if (jsonObjectData.contains("size-x")) objectData.size.x = jsonObjectData.at("size-x");
         if (jsonObjectData.contains("size-y")) objectData.size.y = jsonObjectData.at("size-y");
+        if (jsonObjectData.contains("crafting-station")) objectData.craftingStation = jsonObjectData.at("crafting-station");
+        if (jsonObjectData.contains("crafting-station-level")) objectData.craftingStationLevel = jsonObjectData.at("crafting-station-level");
 
         if (jsonObjectData.contains("item-drops"))
         {
             auto itemDrops = jsonObjectData.at("item-drops");
             for (nlohmann::ordered_json::iterator itemDropsIter = itemDrops.begin(); itemDropsIter != itemDrops.end(); ++itemDropsIter)
             {
-                objectData.itemDrops[std::stoi(itemDropsIter.key())] = itemDropsIter.value();
+                ItemDrop itemDrop;
+                itemDrop.item = std::stoi(itemDropsIter.key());
+                itemDrop.minAmount = itemDropsIter.value()[0];
+                itemDrop.maxAmount = itemDropsIter.value()[1];
+                itemDrop.chance = itemDropsIter.value()[2];
+
+                objectData.itemDrops.push_back(itemDrop);
             }
         }
 

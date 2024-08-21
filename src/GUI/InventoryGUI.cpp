@@ -198,7 +198,7 @@ bool InventoryGUI::isMouseOverUI(sf::Vector2f mouseScreenPos)
     return uiMask.isPointInRect(mouseScreenPos.x, mouseScreenPos.y);
 }
 
-void InventoryGUI::draw(sf::RenderWindow& window)
+void InventoryGUI::draw(sf::RenderWindow& window, sf::Vector2f mouseScreenPos)
 {
     // Get resolution
     const sf::Vector2u& resolution = ResolutionHandler::getResolution();
@@ -274,11 +274,9 @@ void InventoryGUI::draw(sf::RenderWindow& window)
     // Draw picked up item at cursor
     if (isItemPickedUp)
     {
-        sf::Vector2f mousePos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
-
         TextureManager::drawSubTexture(window, {
             TextureType::Items,
-            mousePos,
+            mouseScreenPos,
             0,
             {3 * intScale, 3 * intScale},
             {0.5, 0.5}
@@ -286,7 +284,7 @@ void InventoryGUI::draw(sf::RenderWindow& window)
 
         TextDraw::drawText(window, {
             std::to_string(pickedUpItemCount),
-            mousePos + (sf::Vector2f(std::round(itemBoxSize / 4.0f), std::round(itemBoxSize / 4.0f))) * intScale,
+            mouseScreenPos + (sf::Vector2f(std::round(itemBoxSize / 4.0f), std::round(itemBoxSize / 4.0f))) * intScale,
             {255, 255, 255},
             24 * static_cast<unsigned int>(intScale),
             {0, 0, 0},
@@ -295,4 +293,44 @@ void InventoryGUI::draw(sf::RenderWindow& window)
             true
         });
     }
+    else
+    {
+        // Draw item info box if no item held in cursor and hovering over item
+        int selectedItemIndex = getInventorySelectedIndex(mouseScreenPos);
+
+        // If an item is hovered over, draw item info box
+        if (selectedItemIndex >= 0)
+        {
+            drawItemInfoBox(window, selectedItemIndex, mouseScreenPos);
+        }
+    }
+}
+
+void InventoryGUI::drawItemInfoBox(sf::RenderWindow& window, int itemIndex, sf::Vector2f mouseScreenPos)
+{
+    const std::optional<ItemCount>& itemSlot = Inventory::getData()[itemIndex];
+
+    // If no item in slot, do not draw box
+    if (!itemSlot.has_value())
+        return;
+    
+    // Get item data
+    ItemType itemType = itemSlot.value().first;
+    unsigned int itemAmount = itemSlot.value().second;
+
+    const ItemData& itemData = ItemDataLoader::getItemData(itemType);
+
+    float intScale = ResolutionHandler::getResolutionIntegerScale();
+
+    // Draw item name
+    TextDraw::drawText(window, {
+        itemData.name,
+        mouseScreenPos - (sf::Vector2f(0, 16)) * intScale,
+        {255, 255, 255},
+        24 * static_cast<unsigned int>(intScale),
+        {0, 0, 0},
+        0,
+        true,
+        true
+    });
 }

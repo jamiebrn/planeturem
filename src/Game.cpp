@@ -69,7 +69,7 @@ bool Game::initialise()
     interactedObjectPos = sf::Vector2f(0, 0);
 
     // Set world size
-    worldSize = 240;
+    worldSize = 20;
 
     // Initialise day/night cycle
     dayNightToggleTimer = 0.0f;
@@ -79,8 +79,8 @@ bool Game::initialise()
     generateWaterNoiseTexture();
 
     // Find valid player spawn
-    sf::Vector2f spawnPos = chunkManager.findValidSpawnPosition(2, noise, worldSize);
-    player.setPosition(spawnPos);
+    // sf::Vector2f spawnPos = chunkManager.findValidSpawnPosition(2, noise, worldSize);
+    // player.setPosition(spawnPos);
 
     Camera::instantUpdate(player.getPosition());
 
@@ -474,6 +474,8 @@ void Game::runOnPlanet(float dt)
     lightingShader->setUniform("darkness", worldDarkness);
     window.draw(worldTextureSprite, lightingShader);
 
+    // UI
+
     switch (worldMenuState)
     {
         case WorldMenuState::Main:
@@ -508,7 +510,7 @@ void Game::runOnPlanet(float dt)
         case WorldMenuState::Inventory:
             if (!InventoryGUI::isMouseOverUI(mouseScreenPos))
                 Cursor::drawCursor(window);
-            InventoryGUI::draw(window);
+            InventoryGUI::draw(window, mouseScreenPos);
             break;
         
         case WorldMenuState::Furnace:

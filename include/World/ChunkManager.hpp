@@ -111,6 +111,18 @@ public:
     // e.g. size 1 will check 3x3 area, size 2 will check 5x5 etc
     sf::Vector2f findValidSpawnPosition(int waterlessAreaSize, const FastNoise& noise, int worldSize);
 
+    // Gets levels of nearby crafting stations
+    // Search area grows with one extra tile in each direction per 1 increase
+    // E.g. 0 search area searches only player tile, 1 searches 3x3 area around player, 2 searches 5x5 etc
+    std::unordered_map<std::string, int> getNearbyCraftingStationLevels(ChunkPosition playerChunk,
+                                                                        sf::Vector2i playerTile,
+                                                                        int searchArea,
+                                                                        int worldSize);
+
+    // TODO: Make this function suitable for offsets >= chunk size
+    // Used to calculate chunk and tile positions from an offset value, from another chunk and tile
+    static std::pair<ChunkPosition, sf::Vector2i> getChunkTileFromOffset(ChunkPosition chunk, sf::Vector2i tile, int xOffset, int yOffset, int worldSize);
+
 private:
     void generateChunk(const ChunkPosition& chunkPosition,
                        const FastNoise& noise,

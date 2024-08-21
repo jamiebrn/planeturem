@@ -57,9 +57,15 @@ void BuildableObject::damage(int amount)
     {
         // Give item drops
         const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
-        for (auto& itemDropPair : objectData.itemDrops)
+        float dropChance = (rand() % 1000) / 1000.0f;
+        for (const ItemDrop& itemDrop : objectData.itemDrops)
         {
-            Inventory::addItem(itemDropPair.first, itemDropPair.second);
+            if (dropChance < itemDrop.chance)
+            {
+                // Give items
+                unsigned int itemAmount = rand() % std::max(itemDrop.maxAmount - itemDrop.minAmount + 1, 1U) + itemDrop.minAmount;
+                Inventory::addItem(itemDrop.item, itemAmount);
+            }
         }
     }
 }
@@ -71,12 +77,12 @@ ObjectInteractionEventData BuildableObject::interact()
 
     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
 
-    if (objectData.furnaceSpeed > 0)
-    {
-        // Open furnace UI / initialise furnace ID for this object etc
-        interactionData.interactionType = ObjectInteraction::OpenFurnace;
-        interactionData.objectID = furnaceID;
-    }
+    // if (objectData.furnaceSpeed > 0)
+    // {
+    //     // Open furnace UI / initialise furnace ID for this object etc
+    //     interactionData.interactionType = ObjectInteraction::OpenFurnace;
+    //     interactionData.objectID = furnaceID;
+    // }
 
     return interactionData;
 }

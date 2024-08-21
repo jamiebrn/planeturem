@@ -502,9 +502,14 @@ sf::Vector2f ChunkManager::findValidSpawnPosition(int waterlessAreaSize, const F
     return sf::Vector2f(0, 0);
 }
 
+std::unordered_map<std::string, int> ChunkManager::getNearbyCraftingStationLevels(ChunkPosition playerChunk, sf::Vector2i playerTile, int searchArea, int worldSize)
+{
+
+}
+
 void ChunkManager::generateChunk(const ChunkPosition& chunkPosition, const FastNoise& noise, int worldSize, bool putInLoaded, std::optional<sf::Vector2f> positionOverride)
 {
-    std::unique_ptr<Chunk> chunk = std::make_unique<Chunk>(sf::Vector2i(chunkPosition.x, chunkPosition.y));
+    std::unique_ptr<Chunk> chunk = std::make_unique<Chunk>(chunkPosition);
 
     sf::Vector2f chunkWorldPos;
     if (positionOverride.has_value())
@@ -531,4 +536,35 @@ void ChunkManager::generateChunk(const ChunkPosition& chunkPosition, const FastN
     }
     
     storedChunks.emplace(chunkPosition, std::move(chunk));
+}
+
+// Static method
+std::pair<ChunkPosition, sf::Vector2i> ChunkManager::getChunkTileFromOffset(ChunkPosition chunk, sf::Vector2i tile, int xOffset, int yOffset, int worldSize)
+{
+    tile.x += xOffset;
+    tile.y += yOffset;
+
+    if (tile.x < 0 || tile.x >= static_cast<int>(CHUNK_TILE_SIZE) || tile.y < 0 || tile.y >= static_cast<int>(CHUNK_TILE_SIZE))
+    {
+        // Add to chunk position and convert tile position
+        if (tile.x < 0)
+            chunk.x -= 1;
+        else if (tile.x >= static_cast<int>(CHUNK_TILE_SIZE))
+            chunk.x += 1;
+
+        if (tile.y < 0)
+            chunk.y -= 1;
+        else if (tile.y >= static_cast<int>(CHUNK_TILE_SIZE))
+            chunk.y += 1;
+
+        // Wrap tile
+        tile.x = (tile.x % static_cast<int>(CHUNK_TILE_SIZE) + static_cast<int>(CHUNK_TILE_SIZE)) % static_cast<int>(CHUNK_TILE_SIZE);
+        tile.y = (tile.y % static_cast<int>(CHUNK_TILE_SIZE) + static_cast<int>(CHUNK_TILE_SIZE)) % static_cast<int>(CHUNK_TILE_SIZE);
+
+        // Wrap around world if necessary
+        chunk.x = (chunk.x % worldSize + worldSize) % worldSize;
+        chunk.y = (chunk.y % worldSize + worldSize) % worldSize;
+    }
+
+    return {chunk, tile};
 }

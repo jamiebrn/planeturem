@@ -33,11 +33,13 @@ public:
 
     static bool isMouseOverUI(sf::Vector2f mouseScreenPos);
 
-    static void draw(sf::RenderWindow& window);
+    static void draw(sf::RenderWindow& window, sf::Vector2f mouseScreenPos);
 
 private:
     // Returns -1 if no index selected (mouse not hovered over item)
     static int getInventorySelectedIndex(sf::Vector2f mouseScreenPos);
+
+    static void drawItemInfoBox(sf::RenderWindow& window, int itemIndex, sf::Vector2f mouseScreenPos);
 
 private:
     static sf::Vector2f screenPos;

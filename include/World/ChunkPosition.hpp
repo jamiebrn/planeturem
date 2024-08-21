@@ -2,12 +2,16 @@
 
 struct ChunkPosition
 {
-    uint16_t x, y;
+    int16_t x, y;
     ChunkPosition() : x(0), y(0) {}
     ChunkPosition(int _x, int _y) : x(_x), y(_y) {}
     bool operator==(const ChunkPosition& other) const
     {
         return (x == other.x && y == other.y);
+    }
+    bool operator!=(const ChunkPosition& other) const
+    {
+        return (x != other.x || y != other.y);
     }
     bool operator<(const ChunkPosition& other) const
     {

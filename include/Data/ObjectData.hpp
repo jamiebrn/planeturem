@@ -2,7 +2,8 @@
 
 #include <SFML/Graphics.hpp>
 #include <string>
-#include <unordered_map>
+// #include <unordered_map>
+#include <vector>
 
 #include "Data/ItemData.hpp"
 
@@ -23,7 +24,9 @@ struct ObjectData
 
     int drawLayer = 0;
 
-    float furnaceSpeed = -1;
+    std::string craftingStation = "";
+    int craftingStationLevel = 0;
 
-    std::unordered_map<ItemType, unsigned int> itemDrops;
+    // std::unordered_map<ItemType, > itemDrops;
+    std::vector<ItemDrop> itemDrops;
 };

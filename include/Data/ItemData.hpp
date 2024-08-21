@@ -10,3 +10,11 @@ struct ItemData
     std::string name;
     sf::IntRect textureRect;
 };
+
+struct ItemDrop
+{
+    ItemType item;
+    unsigned int minAmount;
+    unsigned int maxAmount;
+    float chance;
+};
