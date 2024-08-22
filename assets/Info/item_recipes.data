@@ -1,10 +1,17 @@
-{
-    "3": {
+[
+    {
+        "product": 3,
         "item-requirements": {
             "2": 2,
-            "4": 1
+            "1": 1
         },
         "crafting-station": "furnace",
         "crafting-station-level": 1
+    },
+    {
+        "product": 7,
+        "item-requirements": {
+            "0": 3
+        }
     }
-}
+]

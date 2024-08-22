@@ -11,6 +11,12 @@ bool InventoryGUI::isItemPickedUp = false;
 ItemType InventoryGUI::pickedUpItem;
 int InventoryGUI::pickedUpItemCount;
 
+std::unordered_map<std::string, int> InventoryGUI::previous_nearbyCraftingStationLevels;
+std::unordered_map<ItemType, unsigned int> InventoryGUI::previous_inventoryItemCount;
+std::vector<int> InventoryGUI::availableRecipes;
+
+int InventoryGUI::selectedRecipe;
+
 void InventoryGUI::handleLeftClick(sf::Vector2f mouseScreenPos)
 {
     if (isItemPickedUp)
@@ -26,6 +32,16 @@ void InventoryGUI::handleLeftClick(sf::Vector2f mouseScreenPos)
 void InventoryGUI::handleRightClick(sf::Vector2f mouseScreenPos)
 {
     pickUpItem(mouseScreenPos, 1);
+}
+
+bool InventoryGUI::handleScroll(sf::Vector2f mouseScreenPos, int direction)
+{
+    if (!isMouseOverUI(mouseScreenPos))
+        return false;
+    
+    selectedRecipe = ((selectedRecipe + direction) % availableRecipes.size() + availableRecipes.size()) % availableRecipes.size();
+
+    return true;
 }
 
 void InventoryGUI::pickUpItem(sf::Vector2f mouseScreenPos, unsigned int amount)
@@ -219,12 +235,78 @@ bool InventoryGUI::isMouseOverUI(sf::Vector2f mouseScreenPos)
 
     CollisionRect uiMask;
 
-    uiMask.x = itemBoxPadding;
-    uiMask.y = itemBoxPadding;
+    uiMask.x = itemBoxPadding * intScale;
+    uiMask.y = itemBoxPadding * intScale;
     uiMask.width = ((itemBoxSize + itemBoxSpacing) * itemBoxPerRow - itemBoxSpacing) * intScale;
     uiMask.height = ((itemBoxSize + itemBoxSpacing) * std::round(Inventory::getData().size() / itemBoxPerRow) - itemBoxSpacing) * intScale;
 
     return uiMask.isPointInRect(mouseScreenPos.x, mouseScreenPos.y) || isBinSelected(mouseScreenPos);
+}
+
+void InventoryGUI::updateAvailableRecipes(std::unordered_map<std::string, int> nearbyCraftingStationLevels)
+{
+    std::unordered_map<ItemType, unsigned int> inventoryItemCount = Inventory::getTotalItemCount();
+
+    // If crafting stations and items have not changed, do not update recipes
+    if (nearbyCraftingStationLevels == previous_nearbyCraftingStationLevels && inventoryItemCount == previous_inventoryItemCount)
+        return;
+    
+    previous_nearbyCraftingStationLevels = nearbyCraftingStationLevels;
+    previous_inventoryItemCount = inventoryItemCount;
+
+    // Reset available recipes
+    availableRecipes.clear();
+
+    // Iterate over all recipes and determine if available to player
+    for (int recipeIdx = 0; recipeIdx <= RecipeDataLoader::getRecipeData().size(); recipeIdx++)
+    {
+        // Get recipe data
+        const RecipeData& recipeData = RecipeDataLoader::getRecipeData()[recipeIdx];
+
+        // If crafting station required not nearby, do not add to recipes
+        if (!recipeData.craftingStationRequired.empty())
+        {
+            if (nearbyCraftingStationLevels.count(recipeData.craftingStationRequired) <= 0)
+                continue;
+
+            if (nearbyCraftingStationLevels[recipeData.craftingStationRequired] < recipeData.craftingStationLevelRequired)
+                continue; 
+        }
+
+        // Check items
+        bool hasItems = true;
+        for (const auto& itemRequired : recipeData.itemRequirements)
+        {
+            // If player does not have any of the item, cannot craft
+            if (inventoryItemCount.count(itemRequired.first) <= 0)
+            {
+                hasItems = false;
+                break;
+            }
+
+            // If player has item but not enough, cannot craft
+            if (inventoryItemCount[itemRequired.first] < itemRequired.second)
+            {
+                hasItems = false;
+                break;
+            }
+        }
+
+        if (!hasItems)
+            continue;
+        
+        // Player has items and is near required crafting station, so add to available recipes
+        availableRecipes.push_back(recipeIdx);
+    }
+
+    if (availableRecipes.size() > 0)
+    {
+        selectedRecipe = (selectedRecipe % availableRecipes.size() + availableRecipes.size()) % availableRecipes.size();
+    }
+    else
+    {
+        selectedRecipe = 0;
+    }
 }
 
 void InventoryGUI::draw(sf::RenderWindow& window, sf::Vector2f mouseScreenPos)
@@ -233,59 +315,24 @@ void InventoryGUI::draw(sf::RenderWindow& window, sf::Vector2f mouseScreenPos)
     const sf::Vector2u& resolution = ResolutionHandler::getResolution();
     float intScale = ResolutionHandler::getResolutionIntegerScale();
 
-    // Draw background
-    // sf::RectangleShape background({800 * static_cast<float>(intScale), 400 * static_cast<float>(intScale)});
-
-    // background.setOrigin({400, 200});
-    // background.setPosition({10 * static_cast<float>(intScale), 10 * static_cast<float>(intScale)});
-    // background.setFillColor({40, 40, 40, 130});
-
-    // window.draw(background);
 
     // Draw items
-
     sf::Vector2f itemBoxPosition = sf::Vector2f(itemBoxPadding, itemBoxPadding) * intScale;
 
     int currentRowIndex = 0;
 
     for (const std::optional<ItemCount>& itemSlot : Inventory::getData())
     {
-        // sf::RectangleShape itemBackground({75 * intScale, 75 * intScale});
-
-        // itemBackground.setOrigin({40, 40});
-        // itemBackground.setPosition(itemBoxPosition);
-        // itemBackground.setFillColor({40, 40, 40, 140});
-
-        // window.draw(itemBackground);
-
-        TextureManager::drawSubTexture(window, {
-                TextureType::UI,
-                itemBoxPosition,
-                0,
-                {3 * intScale, 3 * intScale},
-            }, sf::IntRect(16, 16, 25, 25));
-
         if (itemSlot.has_value())
         {
             const ItemCount& itemCount = itemSlot.value();
 
-            TextureManager::drawSubTexture(window, {
-                TextureType::Items,
-                itemBoxPosition + (sf::Vector2f(std::round(itemBoxSize / 2.0f), std::round(itemBoxSize / 2.0f))) * intScale,
-                0,
-                {3 * intScale, 3 * intScale},
-                {0.5, 0.5}
-            }, ItemDataLoader::getItemData(itemCount.first).textureRect);
-
-            TextDraw::drawText(window, {
-                std::to_string(itemCount.second),
-                itemBoxPosition + (sf::Vector2f(std::round(itemBoxSize / 4.0f) * 3.0f, std::round(itemBoxSize / 4.0f) * 3.0f)) * intScale,
-                {255, 255, 255},
-                24 * static_cast<unsigned int>(intScale),
-                {0, 0, 0},
-                0,
-                true,
-                true});
+            drawItemBox(window, itemBoxPosition, itemCount.first, itemCount.second);
+        }
+        else
+        {
+            // Draw blank item box
+            drawItemBox(window, itemBoxPosition);
         }
 
         itemBoxPosition.x += (itemBoxSize + itemBoxSpacing) * intScale;
@@ -308,27 +355,81 @@ void InventoryGUI::draw(sf::RenderWindow& window, sf::Vector2f mouseScreenPos)
         {3 * intScale, 3 * intScale},
     }, sf::IntRect(64, 16, 16, 16));
 
+
+    // Draw Available recipes
+    if (availableRecipes.size() > 0)
+    {
+        // Calculate starting x position of recipes
+        int xPos = itemBoxPadding * intScale;
+
+        // Calculate y position
+        int yPos = itemBoxPadding + ((itemBoxSize + itemBoxSpacing) * std::round(Inventory::getData().size() / itemBoxPerRow) - itemBoxSpacing) * intScale;
+        yPos += itemBoxSize * intScale;
+
+        // Store recipe index hovered over for drawing
+        int hoveredRecipeIdx = -1;
+
+        // Draw recipes
+        for (int i = selectedRecipe; i < availableRecipes.size() + selectedRecipe; i++)
+        {
+            // Get recipe index
+            int recipeIdx = availableRecipes[i % availableRecipes.size()];
+
+            // Get recipe data
+            const RecipeData& recipeData = RecipeDataLoader::getRecipeData()[recipeIdx];
+
+            // If recipe is selected, draw requirements
+            bool selected = false;
+            if (i == selectedRecipe)
+            {
+                selected = true;
+
+                int requirementXPos = itemBoxPadding * intScale;
+                int requirementYPos = yPos + itemBoxSize * intScale;
+
+                for (const auto& itemRequired : recipeData.itemRequirements)
+                {
+                    // Draw requirement
+                    drawItemBox(window, sf::Vector2f(requirementXPos, requirementYPos), itemRequired.first, itemRequired.second, true);
+
+                    // Increment position
+                    requirementYPos += (itemBoxSize + itemBoxSpacing) * intScale;
+                }
+            }
+
+            // Draw item box for product
+            drawItemBox(window, sf::Vector2f(xPos, yPos), recipeData.product, recipeData.productAmount, false, selected);
+
+            // Test whether mouse is over - if so, store recipe index for drawing info later
+            CollisionRect recipeRect(xPos, yPos, itemBoxSize * intScale, itemBoxSize * intScale);
+            if (recipeRect.isPointInRect(mouseScreenPos.x, mouseScreenPos.y))
+            {
+                hoveredRecipeIdx = recipeIdx;
+            }
+
+            // Increment x position
+            xPos += (itemBoxSize + itemBoxSpacing) * intScale;
+        }
+
+        // Draw hammer icon
+        TextureManager::drawSubTexture(window, {
+            TextureType::UI,
+            sf::Vector2f(xPos, yPos),
+            0,
+            {3 * intScale, 3 * intScale},
+        }, sf::IntRect(80, 16, 16, 16));
+
+        // Draw info of recipe hovered over (if any)
+        if (hoveredRecipeIdx >= 0)
+        {
+            drawItemInfoBoxRecipe(window, hoveredRecipeIdx, mouseScreenPos);
+        }
+    }
+
     // Draw picked up item at cursor
     if (isItemPickedUp)
     {
-        TextureManager::drawSubTexture(window, {
-            TextureType::Items,
-            mouseScreenPos,
-            0,
-            {3 * intScale, 3 * intScale},
-            {0.5, 0.5}
-        }, ItemDataLoader::getItemData(pickedUpItem).textureRect);
-
-        TextDraw::drawText(window, {
-            std::to_string(pickedUpItemCount),
-            mouseScreenPos + (sf::Vector2f(std::round(itemBoxSize / 4.0f), std::round(itemBoxSize / 4.0f))) * intScale,
-            {255, 255, 255},
-            24 * static_cast<unsigned int>(intScale),
-            {0, 0, 0},
-            0,
-            true,
-            true
-        });
+        drawItemBox(window, mouseScreenPos - sf::Vector2f(std::round(itemBoxSize / 2.0f), std::round(itemBoxSize / 2.0f)) * intScale, pickedUpItem, pickedUpItemCount, true);
     }
     else
     {
@@ -338,12 +439,12 @@ void InventoryGUI::draw(sf::RenderWindow& window, sf::Vector2f mouseScreenPos)
         // If an item is hovered over, draw item info box
         if (selectedItemIndex >= 0)
         {
-            drawItemInfoBox(window, selectedItemIndex, mouseScreenPos);
+            drawItemInfoBoxInventory(window, selectedItemIndex, mouseScreenPos);
         }
     }
 }
 
-void InventoryGUI::drawItemInfoBox(sf::RenderWindow& window, int itemIndex, sf::Vector2f mouseScreenPos)
+void InventoryGUI::drawItemInfoBoxInventory(sf::RenderWindow& window, int itemIndex, sf::Vector2f mouseScreenPos)
 {
     const std::optional<ItemCount>& itemSlot = Inventory::getData()[itemIndex];
 
@@ -368,6 +469,87 @@ void InventoryGUI::drawItemInfoBox(sf::RenderWindow& window, int itemIndex, sf::
         {0, 0, 0},
         0,
         true,
+        true,
+        true,
         true
     });
+}
+
+void InventoryGUI::drawItemInfoBoxRecipe(sf::RenderWindow& window, int recipeIdx, sf::Vector2f mouseScreenPos)
+{
+    const RecipeData& recipeData = RecipeDataLoader::getRecipeData()[recipeIdx];
+
+    const ItemData& itemData = ItemDataLoader::getItemData(recipeData.product);
+
+    float intScale = ResolutionHandler::getResolutionIntegerScale();
+
+    // Draw item name
+    TextDraw::drawText(window, {
+        itemData.name,
+        mouseScreenPos - (sf::Vector2f(0, 16)) * intScale,
+        {255, 255, 255},
+        24 * static_cast<unsigned int>(intScale),
+        {0, 0, 0},
+        0,
+        true,
+        true,
+        true,
+        true
+    });
+}
+
+void InventoryGUI::drawItemBox(sf::RenderWindow& window,
+                               sf::Vector2f position,
+                               std::optional<ItemType> itemType,
+                               std::optional<int> itemAmount,
+                               bool hiddenBackground,
+                               bool selectHighlight)
+{
+    float intScale = ResolutionHandler::getResolutionIntegerScale();
+
+    // Draw background
+    if (!hiddenBackground)
+    {
+        sf::IntRect boxRect(16, 16, 25, 25);
+        if (selectHighlight)
+        {
+            boxRect = sf::IntRect(16, 48, 25, 25);
+        }
+
+        TextureManager::drawSubTexture(window, {
+            TextureType::UI,
+            position,
+            0,
+            {3 * intScale, 3 * intScale},
+        }, boxRect);
+    }
+
+    // Draw item
+    if (itemType.has_value())
+    {
+        TextureManager::drawSubTexture(window, {
+            TextureType::Items,
+            position + (sf::Vector2f(std::round(itemBoxSize / 2.0f), std::round(itemBoxSize / 2.0f))) * intScale,
+            0,
+            {3 * intScale, 3 * intScale},
+            {0.5, 0.5}
+        }, ItemDataLoader::getItemData(itemType.value()).textureRect);
+    }
+
+    // Draw item count (if > 1)
+    if (itemAmount.has_value())
+    {
+        if (itemAmount.value() > 1)
+        {
+            TextDraw::drawText(window, {
+                std::to_string(itemAmount.value()),
+                position + (sf::Vector2f(std::round(itemBoxSize / 4.0f) * 3.0f, std::round(itemBoxSize / 4.0f) * 3.0f)) * intScale,
+                {255, 255, 255},
+                24 * static_cast<unsigned int>(intScale),
+                {0, 0, 0},
+                0,
+                true,
+                true});
+        }
+    }
 }

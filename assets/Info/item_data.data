@@ -47,5 +47,12 @@
         "texture-y": 16,
         "texture-width": 16,
         "texture-height": 16
+    },
+    "7": {
+        "name": "Refined Wood",
+        "texture-x": 0,
+        "texture-y": 16,
+        "texture-width": 16,
+        "texture-height": 16
     }
 }

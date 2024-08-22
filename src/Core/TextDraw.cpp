@@ -35,14 +35,42 @@ void TextDraw::drawText(sf::RenderTarget& window, TextDrawData drawData)
     // If font not loaded, do not draw text
     if (!loadedFont)
         return;
-    
+
     // Set text data from draw data
     text.setString(drawData.text);
-    text.setPosition(drawData.position);
     text.setFillColor(drawData.colour);
     text.setCharacterSize(drawData.size);
     text.setOutlineColor(drawData.outlineColour);
     text.setOutlineThickness(drawData.outlineThickness);
+
+    // Clamp to edges of screen if required
+    if (drawData.containOnScreenX)
+    {
+        float width = text.getLocalBounds().width;
+        if (drawData.centeredX)
+        {
+            drawData.position.x = std::min(std::max(drawData.position.x, width / 2.0f), window.getSize().x - width / 2.0f);
+        }
+        else
+        {
+            drawData.position.x = std::min(std::max(drawData.position.x, 0.0f), window.getSize().x - width);
+        }
+    }
+    if (drawData.containOnScreenY)
+    {
+        float height = text.getLocalBounds().height;
+        if (drawData.centeredY)
+        {
+            drawData.position.y = std::min(std::max(drawData.position.y, height / 2.0f), window.getSize().y - height / 2.0f);
+        }
+        else
+        {
+            drawData.position.y = std::min(std::max(drawData.position.y, 0.0f), window.getSize().y - height);
+        }
+    }
+
+    // Set position
+    text.setPosition(drawData.position);
 
     // Set text centre to top left by default
     sf::Vector2f textCentre(0, 0);

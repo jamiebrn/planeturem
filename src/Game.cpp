@@ -2,9 +2,11 @@
 
 // FIX: Camera teleporting when wrapping world in some cases???
 // FIX: Horse in the water?
+// FIX: Cliffs are broken again? (cliff on grass field)
 
 // PRIORITY: HIGH
 // TODO: Crafting system based on proximity to crafting stations
+// TODO: Modify item / recipe load system to use item names in json file, and convert to int type in code
 
 // PRIORITY: LOW
 // TODO: Inventory item added notifications (maybe taking items?). Add in player class
@@ -367,10 +369,19 @@ void Game::runOnPlanet(float dt)
 
         if (event.type == sf::Event::MouseWheelScrolled)
         {
-            if (worldMenuState == WorldMenuState::Build)
-                BuildGUI::changeSelectedObject(-event.mouseWheelScroll.delta);
-            else
-                handleZoom(event.mouseWheelScroll.delta);
+            switch (worldMenuState)
+            {
+                case WorldMenuState::Build:
+                    BuildGUI::changeSelectedObject(-event.mouseWheelScroll.delta);
+                    break;
+                case WorldMenuState::Inventory:
+                    if (!InventoryGUI::handleScroll(mouseScreenPos, -event.mouseWheelScroll.delta))
+                        handleZoom(event.mouseWheelScroll.delta);
+                    break;
+                case WorldMenuState::Main:
+                    handleZoom(event.mouseWheelScroll.delta);
+                    break;
+            }
         }
     }
 
@@ -417,6 +428,10 @@ void Game::runOnPlanet(float dt)
     
     // Get nearby crafting stations
     nearbyCraftingStationLevels = chunkManager.getNearbyCraftingStationLevels(player.getChunkInside(worldSize), player.getChunkTileInside(), 4, worldSize);
+
+    // Update inventory GUI available recipes if required
+    if (worldMenuState == WorldMenuState::Inventory)
+        InventoryGUI::updateAvailableRecipes(nearbyCraftingStationLevels);
 
     // Update (loaded) chunks
     chunkManager.updateChunks(noise, worldSize);
@@ -541,10 +556,20 @@ void Game::runOnPlanet(float dt)
             "Player pos: " + std::to_string(static_cast<int>(player.getPosition().x)) + ", " + std::to_string(static_cast<int>(player.getPosition().y))
         };
 
+/*
         for (const auto& craftingStationLevel : nearbyCraftingStationLevels)
         {
             debugStrings.push_back(craftingStationLevel.first + " level " + std::to_string(craftingStationLevel.second));
         }
+
+        for (int recipeIdx : InventoryGUI::getAvailableRecipes())
+        {
+            ItemType itemType = RecipeDataLoader::getRecipeData()[recipeIdx].product;
+            const std::string& itemName = ItemDataLoader::getItemData(itemType).name;
+
+            debugStrings.push_back("can craft " + itemName);
+        }
+*/
 
         int yPos = ResolutionHandler::getResolution().y - debugStrings.size() * 20 * intScale - 10 * intScale;
         int yIncrement = 20 * intScale;

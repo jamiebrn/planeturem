@@ -1,9 +1,10 @@
-#pragma one
+#pragma once
 
 #include <SFML/Graphics.hpp>
 #include <fstream>
-#include <unordered_map>
+#include <vector>
 #include <string>
+#include <iostream>
 
 #include "Core/json.hpp"
 
@@ -17,7 +18,9 @@ class RecipeDataLoader
 public:
     static bool loadData(std::string recipeDataPath);
 
+    static const std::vector<RecipeData>& getRecipeData();
+
 private:
-    static std::map<ItemType, RecipeData> loaded_recipeData;
+    static std::vector<RecipeData> loaded_recipeData;
 
 };

@@ -16,6 +16,9 @@ struct TextDrawData
 
     bool centeredX = false;
     bool centeredY = false;
+
+    bool containOnScreenX = false;
+    bool containOnScreenY = false;
 };
 
 // Declare text renderer class

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <SFML/Graphics.hpp>
+#include <unordered_map>
 
 #include "Core/TextureManager.hpp"
 #include "Core/TextDraw.hpp"
@@ -8,7 +9,10 @@
 #include "Core/CollisionRect.hpp"
 
 #include "Player/Inventory.hpp"
+
 #include "Data/ItemDataLoader.hpp"
+#include "Data/RecipeData.hpp"
+#include "Data/RecipeDataLoader.hpp"
 
 class InventoryGUI
 {
@@ -20,6 +24,8 @@ public:
 
     // May pick up single item
     static void handleRightClick(sf::Vector2f mouseScreenPos);
+
+    static bool handleScroll(sf::Vector2f mouseScreenPos, int direction);
 
     // Pickup max stack size to pickup whole stack (may be less than whole stack)
     // Pickup less (e.g 1) to limit pickup amount
@@ -33,7 +39,11 @@ public:
 
     static bool isMouseOverUI(sf::Vector2f mouseScreenPos);
 
+    static void updateAvailableRecipes(std::unordered_map<std::string, int> nearbyCraftingStationLevels);
+
     static void draw(sf::RenderWindow& window, sf::Vector2f mouseScreenPos);
+
+    static inline const std::vector<int>& getAvailableRecipes() {return availableRecipes;}
 
 private:
     // Returns -1 if no index selected (mouse not hovered over item)
@@ -41,7 +51,16 @@ private:
 
     static bool isBinSelected(sf::Vector2f mouseScreenPos);
 
-    static void drawItemInfoBox(sf::RenderWindow& window, int itemIndex, sf::Vector2f mouseScreenPos);
+    static void drawItemInfoBoxInventory(sf::RenderWindow& window, int itemIndex, sf::Vector2f mouseScreenPos);
+    static void drawItemInfoBoxRecipe(sf::RenderWindow& window, int recipeIdx, sf::Vector2f mouseScreenPos);
+
+    // Position refers to top left of item box
+    static void drawItemBox(sf::RenderWindow& window,
+                            sf::Vector2f position,
+                            std::optional<ItemType> itemType = std::nullopt,
+                            std::optional<int> itemAmount = std::nullopt,
+                            bool hiddenBackground = false,
+                            bool selectHighlight = false);
 
 private:
     static sf::Vector2f screenPos;
@@ -54,5 +73,12 @@ private:
     static bool isItemPickedUp;
     static ItemType pickedUpItem;
     static int pickedUpItemCount;
+
+    static std::unordered_map<std::string, int> previous_nearbyCraftingStationLevels;
+    static std::unordered_map<ItemType, unsigned int> previous_inventoryItemCount;
+    static std::vector<int> availableRecipes;
+
+    // Index of selected recipe in available recipes
+    static int selectedRecipe;
 
 };
