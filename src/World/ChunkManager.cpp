@@ -533,9 +533,16 @@ std::unordered_map<std::string, int> ChunkManager::getNearbyCraftingStationLevel
             // If not a crafting station, do not add to hashmap
             if (objectData.craftingStation.empty())
                 continue;
-            
+
             // Add crafting station to map
-            craftingStationLevels[objectData.craftingStation] = objectData.craftingStationLevel;
+            if (craftingStationLevels.count(objectData.craftingStation) > 0)
+            {
+                craftingStationLevels[objectData.craftingStation] = std::max(objectData.craftingStationLevel, craftingStationLevels[objectData.craftingStation]);
+            }
+            else
+            {
+                craftingStationLevels[objectData.craftingStation] = objectData.craftingStationLevel;
+            }
         }
     }
 

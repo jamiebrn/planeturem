@@ -18,16 +18,16 @@ public:
     inline ChunkPosition getChunkInside(int worldSize)
     {
         ChunkPosition chunk;
-        chunk.x = ((static_cast<int>(std::floor(position.x / CHUNK_TILE_SIZE)) % worldSize) + worldSize) % worldSize;
-        chunk.y = ((static_cast<int>(std::floor(position.y / CHUNK_TILE_SIZE)) % worldSize) + worldSize) % worldSize;
+        chunk.x = ((static_cast<int>(std::floor(position.x / (CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED))) % worldSize) + worldSize) % worldSize;
+        chunk.y = ((static_cast<int>(std::floor(position.y / (CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED))) % worldSize) + worldSize) % worldSize;
         return chunk;
     }
 
     inline sf::Vector2i getChunkTileInside()
     {
         sf::Vector2i chunkTile;
-        chunkTile.x = ((static_cast<int>(position.x) % 8) + 8) % 8;
-        chunkTile.y = ((static_cast<int>(position.y) % 8) + 8) % 8;
+        chunkTile.x = static_cast<int>((static_cast<int>(position.x / TILE_SIZE_PIXELS_UNSCALED) % static_cast<int>(CHUNK_TILE_SIZE)) + CHUNK_TILE_SIZE) % static_cast<int>(CHUNK_TILE_SIZE);
+        chunkTile.y = static_cast<int>((static_cast<int>(position.y / TILE_SIZE_PIXELS_UNSCALED) % static_cast<int>(CHUNK_TILE_SIZE)) + CHUNK_TILE_SIZE) % static_cast<int>(CHUNK_TILE_SIZE);
         return chunkTile;
     }
 

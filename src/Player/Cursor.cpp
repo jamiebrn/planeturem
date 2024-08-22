@@ -220,8 +220,8 @@ ChunkPosition Cursor::getSelectedChunk(int worldSize)
 sf::Vector2i Cursor::getSelectedChunkTile()
 {
     sf::Vector2i selectedTile;
-    selectedTile.x = ((selectPosTile.x % 8) + 8) % 8;
-    selectedTile.y = ((selectPosTile.y % 8) + 8) % 8;
+    selectedTile.x = static_cast<int>((selectPosTile.x % static_cast<int>(CHUNK_TILE_SIZE)) + CHUNK_TILE_SIZE) % static_cast<int>(CHUNK_TILE_SIZE);
+    selectedTile.y = static_cast<int>((selectPosTile.y % static_cast<int>(CHUNK_TILE_SIZE)) + CHUNK_TILE_SIZE) % static_cast<int>(CHUNK_TILE_SIZE);
     return selectedTile;
 }
 
