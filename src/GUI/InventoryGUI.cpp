@@ -73,6 +73,18 @@ void InventoryGUI::pickUpItem(sf::Vector2f mouseScreenPos, unsigned int amount)
 
 void InventoryGUI::putDownItem(sf::Vector2f mouseScreenPos)
 {
+    if (!isItemPickedUp)
+        return;
+
+    // If bin selected, delete item and return
+    if (isBinSelected(mouseScreenPos))
+    {
+        isItemPickedUp = false;
+        pickedUpItem = 0;
+        pickedUpItemCount = 0;
+        return;
+    }
+
     // Get item selected at mouse
     int itemIndex = getInventorySelectedIndex(mouseScreenPos);
 
@@ -175,6 +187,21 @@ int InventoryGUI::getInventorySelectedIndex(sf::Vector2f mouseScreenPos)
     return -1;
 }
 
+bool InventoryGUI::isBinSelected(sf::Vector2f mouseScreenPos)
+{
+    float intScale = ResolutionHandler::getResolutionIntegerScale();
+     
+    sf::Vector2f binPos = sf::Vector2f(itemBoxPadding, itemBoxPadding) * intScale + sf::Vector2f(itemBoxSize + itemBoxSpacing, 0) * static_cast<float>(itemBoxPerRow) * intScale;
+
+    CollisionRect binCollisionRect;
+    binCollisionRect.x = binPos.x;
+    binCollisionRect.y = binPos.y;
+    binCollisionRect.width = 16.0f * 3 * intScale;
+    binCollisionRect.height = 16.0f * 3 * intScale;
+
+    return binCollisionRect.isPointInRect(mouseScreenPos.x, mouseScreenPos.y);
+}
+
 void InventoryGUI::handleClose()
 {
     // Handle item still picked up when inventory is closed
@@ -188,14 +215,16 @@ void InventoryGUI::handleClose()
 
 bool InventoryGUI::isMouseOverUI(sf::Vector2f mouseScreenPos)
 {
+    float intScale = ResolutionHandler::getResolutionIntegerScale();
+
     CollisionRect uiMask;
 
     uiMask.x = itemBoxPadding;
     uiMask.y = itemBoxPadding;
-    uiMask.width = (itemBoxSize + itemBoxSpacing) * itemBoxPerRow - itemBoxSpacing;
-    uiMask.height = (itemBoxSize + itemBoxSpacing) * std::round(Inventory::getData().size() / itemBoxPerRow) - itemBoxSpacing;
+    uiMask.width = ((itemBoxSize + itemBoxSpacing) * itemBoxPerRow - itemBoxSpacing) * intScale;
+    uiMask.height = ((itemBoxSize + itemBoxSpacing) * std::round(Inventory::getData().size() / itemBoxPerRow) - itemBoxSpacing) * intScale;
 
-    return uiMask.isPointInRect(mouseScreenPos.x, mouseScreenPos.y);
+    return uiMask.isPointInRect(mouseScreenPos.x, mouseScreenPos.y) || isBinSelected(mouseScreenPos);
 }
 
 void InventoryGUI::draw(sf::RenderWindow& window, sf::Vector2f mouseScreenPos)
@@ -270,6 +299,14 @@ void InventoryGUI::draw(sf::RenderWindow& window, sf::Vector2f mouseScreenPos)
             itemBoxPosition.y += (itemBoxSize + itemBoxSpacing) * intScale;
         }
     }
+
+    // Draw bin
+    TextureManager::drawSubTexture(window, {
+        TextureType::UI,
+        sf::Vector2f(itemBoxPadding, itemBoxPadding) * intScale + sf::Vector2f(itemBoxSize + itemBoxSpacing, 0) * static_cast<float>(itemBoxPerRow) * intScale,
+        0,
+        {3 * intScale, 3 * intScale},
+    }, sf::IntRect(64, 16, 16, 16));
 
     // Draw picked up item at cursor
     if (isItemPickedUp)

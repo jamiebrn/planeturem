@@ -39,6 +39,8 @@ private:
     // Returns -1 if no index selected (mouse not hovered over item)
     static int getInventorySelectedIndex(sf::Vector2f mouseScreenPos);
 
+    static bool isBinSelected(sf::Vector2f mouseScreenPos);
+
     static void drawItemInfoBox(sf::RenderWindow& window, int itemIndex, sf::Vector2f mouseScreenPos);
 
 private:

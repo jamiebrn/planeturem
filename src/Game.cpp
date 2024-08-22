@@ -416,7 +416,7 @@ void Game::runOnPlanet(float dt)
         Cursor::setCanReachTile(player.canReachPosition(Cursor::getMouseWorldPos(window)));
     
     // Get nearby crafting stations
-    nearbyCraftingStationLevels = chunkManager.getNearbyCraftingStationLevels(player.getChunkInside(worldSize), player.getChunkTileInside(), 3, worldSize);
+    nearbyCraftingStationLevels = chunkManager.getNearbyCraftingStationLevels(player.getChunkInside(worldSize), player.getChunkTileInside(), 4, worldSize);
 
     // Update (loaded) chunks
     chunkManager.updateChunks(noise, worldSize);
