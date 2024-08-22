@@ -1,17 +1,17 @@
 [
     {
-        "product": 3,
+        "product": "Refined Stone",
         "item-requirements": {
-            "2": 2,
-            "1": 1
+            "Stone": 2,
+            "Coal": 1
         },
         "crafting-station": "furnace",
         "crafting-station-level": 1
     },
     {
-        "product": 7,
+        "product": "Refined Wood",
         "item-requirements": {
-            "0": 3
+            "Wood": 3
         }
     }
 ]

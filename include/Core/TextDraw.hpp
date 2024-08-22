@@ -19,6 +19,10 @@ struct TextDrawData
 
     bool containOnScreenX = false;
     bool containOnScreenY = false;
+    float containPaddingLeft = 0;
+    float containPaddingRight = 0;
+    float containPaddingTop = 0;
+    float containPaddingBottom = 0;
 };
 
 // Declare text renderer class

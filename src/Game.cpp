@@ -1,12 +1,12 @@
 #include "Game.hpp"
 
-// FIX: Camera teleporting when wrapping world in some cases???
+// FIX: Camera teleporting when wrapping world in some cases??? - maybe fixed???
 // FIX: Horse in the water?
-// FIX: Cliffs are broken again? (cliff on grass field)
+// FIX: Cliffs are broken again? (cliff on grass field) - maybe fixed????
 
 // PRIORITY: HIGH
 // TODO: Crafting system based on proximity to crafting stations
-// TODO: Modify item / recipe load system to use item names in json file, and convert to int type in code
+// TODO: Remove build menu in favour of placing objects from inventory
 
 // PRIORITY: LOW
 // TODO: Inventory item added notifications (maybe taking items?). Add in player class

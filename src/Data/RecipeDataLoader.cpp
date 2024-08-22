@@ -13,7 +13,7 @@ bool RecipeDataLoader::loadData(std::string recipeDataPath)
         RecipeData recipeData;
         auto jsonRecipeData = iter.value();
 
-        recipeData.product = jsonRecipeData.at("product");
+        recipeData.product = ItemDataLoader::getItemTypeFromName(jsonRecipeData.at("product"));
         if (jsonRecipeData.contains("product-amount")) recipeData.productAmount = jsonRecipeData.at("product-amount");
 
         if (jsonRecipeData.contains("item-requirements"))
@@ -21,7 +21,7 @@ bool RecipeDataLoader::loadData(std::string recipeDataPath)
             auto itemRequirements = jsonRecipeData.at("item-requirements");
             for (auto itemIter = itemRequirements.begin(); itemIter != itemRequirements.end(); ++itemIter)
             {
-                recipeData.itemRequirements[std::stoi(itemIter.key())] = itemIter.value();
+                recipeData.itemRequirements[ItemDataLoader::getItemTypeFromName(itemIter.key())] = itemIter.value();
             }
         }
 

@@ -94,15 +94,15 @@ void Camera::handleWorldWrap(int worldSize)
     const sf::Vector2f resolution = static_cast<sf::Vector2f>(ResolutionHandler::getResolution());
 
     // Wrap X
-    if (offset.x + screenToWorldTransform(resolution).x > worldPixelSize)
+    if (offset.x + screenToWorldTransform(resolution).x >= worldPixelSize)
         offset.x -= worldPixelSize;
-    else if (offset.x < -worldPixelSize)
+    else if (offset.x <= -worldPixelSize)
         offset.x += worldPixelSize;
     
     // Wrap Y
-    if (offset.y + screenToWorldTransform(resolution).y > worldPixelSize)
+    if (offset.y + screenToWorldTransform(resolution).y >= worldPixelSize)
         offset.y -= worldPixelSize;
-    else if (offset.y < -worldPixelSize)
+    else if (offset.y <= -worldPixelSize)
         offset.y += worldPixelSize;
 }
 

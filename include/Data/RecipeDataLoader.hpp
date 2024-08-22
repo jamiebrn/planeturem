@@ -10,6 +10,7 @@
 
 #include "Data/RecipeData.hpp"
 #include "Data/ItemData.hpp"
+#include "Data/ItemDataLoader.hpp"
 
 class RecipeDataLoader
 {

@@ -56,25 +56,25 @@ void Player::update(float dt, sf::Vector2f mouseWorldPos, ChunkManager& chunkMan
 
     // Wrap position around world
     float worldPixelSize = worldSize * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
-    if (collisionRect.x > worldPixelSize) 
+    if (collisionRect.x >= worldPixelSize) 
     {
         collisionRect.x -= worldPixelSize;
         wrapPositionDelta.x = -worldPixelSize;
         wrappedAroundWorld = true;
     }
-    else if (collisionRect.x < -worldPixelSize)
+    else if (collisionRect.x <= -worldPixelSize)
     {
         collisionRect.x += worldPixelSize;
         wrapPositionDelta.x = worldPixelSize;
         wrappedAroundWorld = true;
     }
-    if (collisionRect.y > worldPixelSize)
+    if (collisionRect.y >= worldPixelSize)
     {
         collisionRect.y -= worldPixelSize;
         wrapPositionDelta.y = -worldPixelSize;
         wrappedAroundWorld = true;
     }
-    else if (collisionRect.y < -worldPixelSize)
+    else if (collisionRect.y <= -worldPixelSize)
     {
         collisionRect.y += worldPixelSize;
         wrapPositionDelta.y = worldPixelSize;

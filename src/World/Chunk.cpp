@@ -23,7 +23,7 @@ void Chunk::generateChunk(const FastNoise& noise, int worldSize, ChunkManager& c
     {
         for (int x = 0; x < CHUNK_TILE_SIZE; x++)
         {
-            float height = noise.GetNoiseSeamless2D(worldNoisePosition.x + (float)x, worldNoisePosition.y + (float)y, noiseSize, noiseSize);
+            float height = noise.GetNoiseSeamless2D(worldNoisePosition.x + x, worldNoisePosition.y + y, noiseSize, noiseSize);
             height = FastNoise::Normalise(height);
             // std::cout << height << std::endl;
             // static const float sqrt2Div2 = 0.70710678119f;

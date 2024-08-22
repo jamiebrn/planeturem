@@ -49,11 +49,12 @@ void TextDraw::drawText(sf::RenderTarget& window, TextDrawData drawData)
         float width = text.getLocalBounds().width;
         if (drawData.centeredX)
         {
-            drawData.position.x = std::min(std::max(drawData.position.x, width / 2.0f), window.getSize().x - width / 2.0f);
+            drawData.position.x = std::min(std::max(
+                drawData.position.x, width / 2.0f + drawData.containPaddingLeft), window.getSize().x - width / 2.0f - drawData.containPaddingRight);
         }
         else
         {
-            drawData.position.x = std::min(std::max(drawData.position.x, 0.0f), window.getSize().x - width);
+            drawData.position.x = std::min(std::max(drawData.position.x, drawData.containPaddingLeft), window.getSize().x - width - drawData.containPaddingRight);
         }
     }
     if (drawData.containOnScreenY)
@@ -61,11 +62,12 @@ void TextDraw::drawText(sf::RenderTarget& window, TextDrawData drawData)
         float height = text.getLocalBounds().height;
         if (drawData.centeredY)
         {
-            drawData.position.y = std::min(std::max(drawData.position.y, height / 2.0f), window.getSize().y - height / 2.0f);
+            drawData.position.y = std::min(std::max(
+                drawData.position.y, height / 2.0f + drawData.containPaddingTop), window.getSize().y - height / 2.0f - drawData.containPaddingBottom);
         }
         else
         {
-            drawData.position.y = std::min(std::max(drawData.position.y, 0.0f), window.getSize().y - height);
+            drawData.position.y = std::min(std::max(drawData.position.y, drawData.containPaddingTop), window.getSize().y - height - drawData.containPaddingBottom);
         }
     }
 
