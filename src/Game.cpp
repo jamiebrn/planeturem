@@ -1,12 +1,12 @@
 #include "Game.hpp"
 
-// FIX: Camera teleporting when wrapping world in some cases??? - maybe fixed???
 // FIX: Horse in the water? - also saw horse teleporting on collision with water (may be related)
 // FIX: Cliffs are broken again? (cliff on grass field) - maybe fixed????
 
 // PRIORITY: HIGH
-// TODO: Crafting system based on proximity to crafting stations
 // TODO: Remove build menu in favour of placing objects from inventory
+// TODO: Make hotbar from inventory
+// TODO: Allow changing of tools through hotbar selection
 
 // PRIORITY: LOW
 // TODO: Inventory item added notifications (maybe taking items?). Add in player class
@@ -417,7 +417,7 @@ void Game::runOnPlanet(float dt)
     // Handle world wrapping for camera and cursor, if player wrapped around
     if (wrappedAroundWorld)
     {
-        Camera::handleWorldWrap(worldSize);
+        Camera::handleWorldWrap(wrapPositionDelta);
         Cursor::handleWorldWrap(wrapPositionDelta);
         chunkManager.reloadChunks();
     }

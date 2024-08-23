@@ -38,7 +38,7 @@ public:
 
     static void handleScaleChange(float beforeScale, float afterScale, sf::Vector2f playerPosition);
 
-    static void handleWorldWrap(int worldSize);
+    static void handleWorldWrap(sf::Vector2f positionDelta);
 
     // Set offset of camera
     static void setOffset(sf::Vector2f newOffset);

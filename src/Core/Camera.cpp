@@ -87,23 +87,10 @@ void Camera::handleScaleChange(float beforeScale, float afterScale, sf::Vector2f
     Camera::setOffset(adjustedCamPos);
 }
 
-void Camera::handleWorldWrap(int worldSize)
+void Camera::handleWorldWrap(sf::Vector2f positionDelta)
 {
-    float worldPixelSize = worldSize * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
-
-    const sf::Vector2f resolution = static_cast<sf::Vector2f>(ResolutionHandler::getResolution());
-
-    // Wrap X
-    if (offset.x + screenToWorldTransform(resolution).x >= worldPixelSize)
-        offset.x -= worldPixelSize;
-    else if (offset.x < 0)
-        offset.x += worldPixelSize;
-    
-    // Wrap Y
-    if (offset.y + screenToWorldTransform(resolution).y >= worldPixelSize)
-        offset.y -= worldPixelSize;
-    else if (offset.y < 0)
-        offset.y += worldPixelSize;
+    offset.x += positionDelta.x;
+    offset.y += positionDelta.y;
 }
 
 // Set offset of camera
