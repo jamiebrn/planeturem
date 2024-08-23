@@ -43,7 +43,7 @@ bool CollisionRect::handleStaticCollisionX(const CollisionRect& staticRect, floa
         return false;
     
     // Test both x directions
-    if (dx >= 0) x = staticRect.x - width;
+    if (dx > 0) x = staticRect.x - width;
     else if (dx < 0) x = staticRect.x + staticRect.width;
     
     // Collision has occured
@@ -56,7 +56,7 @@ bool CollisionRect::handleStaticCollisionY(const CollisionRect& staticRect, floa
         return false;
     
     // Test both y directions
-    if (dy >= 0) y = staticRect.y - height;
+    if (dy > 0) y = staticRect.y - height;
     else if (dy < 0) y = staticRect.y + staticRect.height;
 
     // Collision has occured

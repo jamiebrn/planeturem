@@ -258,7 +258,7 @@ void InventoryGUI::updateAvailableRecipes(std::unordered_map<std::string, int> n
     availableRecipes.clear();
 
     // Iterate over all recipes and determine if available to player
-    for (int recipeIdx = 0; recipeIdx <= RecipeDataLoader::getRecipeData().size(); recipeIdx++)
+    for (int recipeIdx = 0; recipeIdx < RecipeDataLoader::getRecipeData().size(); recipeIdx++)
     {
         // Get recipe data
         const RecipeData& recipeData = RecipeDataLoader::getRecipeData()[recipeIdx];

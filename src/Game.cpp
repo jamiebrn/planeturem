@@ -1,7 +1,7 @@
 #include "Game.hpp"
 
 // FIX: Camera teleporting when wrapping world in some cases??? - maybe fixed???
-// FIX: Horse in the water?
+// FIX: Horse in the water? - also saw horse teleporting on collision with water (may be related)
 // FIX: Cliffs are broken again? (cliff on grass field) - maybe fixed????
 
 // PRIORITY: HIGH
