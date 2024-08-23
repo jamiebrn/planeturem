@@ -27,6 +27,21 @@ void InventoryGUI::handleLeftClick(sf::Vector2f mouseScreenPos)
     {
         pickUpItem(mouseScreenPos);
     }
+
+    int recipeClicked = getClickedRecipe(mouseScreenPos);
+    if (recipeClicked >= 0)
+    {
+        // If clicked on recipe is selected, attempt to craft item
+        if (recipeClicked == selectedRecipe)
+        {
+            craftSelectedRecipe();
+        }
+        else
+        {
+            // Change selected recipe to recipe clicked on
+            selectedRecipe = recipeClicked;
+        }
+    }
 }
 
 void InventoryGUI::handleRightClick(sf::Vector2f mouseScreenPos)
@@ -39,7 +54,10 @@ bool InventoryGUI::handleScroll(sf::Vector2f mouseScreenPos, int direction)
     if (!isMouseOverUI(mouseScreenPos))
         return false;
     
-    selectedRecipe = ((selectedRecipe + direction) % availableRecipes.size() + availableRecipes.size()) % availableRecipes.size();
+    if (availableRecipes.size() > 0)
+    {
+        selectedRecipe = ((selectedRecipe + direction) % availableRecipes.size() + availableRecipes.size()) % availableRecipes.size();
+    }
 
     return true;
 }
@@ -96,7 +114,7 @@ void InventoryGUI::putDownItem(sf::Vector2f mouseScreenPos)
     if (isBinSelected(mouseScreenPos))
     {
         isItemPickedUp = false;
-        pickedUpItem = 0;
+        pickedUpItem = -1;
         pickedUpItemCount = 0;
         return;
     }
@@ -203,6 +221,40 @@ int InventoryGUI::getInventorySelectedIndex(sf::Vector2f mouseScreenPos)
     return -1;
 }
 
+int InventoryGUI::getClickedRecipe(sf::Vector2f mouseScreenPos)
+{
+    float intScale = ResolutionHandler::getResolutionIntegerScale();
+
+    // Mimic recipe GUI
+    if (availableRecipes.size() > 0)
+    {
+        // Calculate starting x position of recipes
+        int xPos = itemBoxPadding * intScale;
+
+        // Calculate y position
+        int yPos = itemBoxPadding + ((itemBoxSize + itemBoxSpacing) * std::round(Inventory::getData().size() / itemBoxPerRow) - itemBoxSpacing) * intScale;
+        yPos += itemBoxSize * intScale;
+
+        // Iterate over recipes on screen
+        for (int i = selectedRecipe; i < availableRecipes.size() + selectedRecipe; i++)
+        {
+            // Test if clicked on
+            CollisionRect recipeRect(xPos, yPos, itemBoxSize * intScale, itemBoxSize * intScale);
+
+            if (recipeRect.isPointInRect(mouseScreenPos.x, mouseScreenPos.y))
+            {
+                return i % availableRecipes.size();
+            }
+
+            // Increment x position
+            xPos += (itemBoxSize + itemBoxSpacing) * intScale;
+        }
+    }
+
+    // Default case
+    return -1;
+}
+
 bool InventoryGUI::isBinSelected(sf::Vector2f mouseScreenPos)
 {
     float intScale = ResolutionHandler::getResolutionIntegerScale();
@@ -218,6 +270,80 @@ bool InventoryGUI::isBinSelected(sf::Vector2f mouseScreenPos)
     return binCollisionRect.isPointInRect(mouseScreenPos.x, mouseScreenPos.y);
 }
 
+bool InventoryGUI::isInventorySelected(sf::Vector2f mouseScreenPos)
+{
+    float intScale = ResolutionHandler::getResolutionIntegerScale();
+
+    CollisionRect uiMask;
+
+    uiMask.x = itemBoxPadding * intScale;
+    uiMask.y = itemBoxPadding * intScale;
+    uiMask.width = ((itemBoxSize + itemBoxSpacing) * itemBoxPerRow - itemBoxSpacing) * intScale;
+    uiMask.height = ((itemBoxSize + itemBoxSpacing) * std::round(Inventory::getData().size() / itemBoxPerRow) - itemBoxSpacing) * intScale;
+
+    return uiMask.isPointInRect(mouseScreenPos.x, mouseScreenPos.y);
+}
+
+bool InventoryGUI::isCraftingSelected(sf::Vector2f mouseScreenPos)
+{
+    float intScale = ResolutionHandler::getResolutionIntegerScale();
+
+    CollisionRect uiMask;
+
+    uiMask.x = itemBoxPadding * intScale;
+    uiMask.y = itemBoxPadding * intScale + ((itemBoxSize + itemBoxSpacing) * std::round(Inventory::getData().size() / itemBoxPerRow) - itemBoxSpacing) * intScale;
+    uiMask.width = ((itemBoxSize + itemBoxSpacing) * itemBoxPerRow - itemBoxSpacing) * intScale;
+    uiMask.height = (itemBoxSize + itemBoxSpacing) * 4 * intScale;
+
+    return uiMask.isPointInRect(mouseScreenPos.x, mouseScreenPos.y);
+}
+
+void InventoryGUI::craftSelectedRecipe()
+{
+    // Get recipe data
+    int recipeIdx = availableRecipes[selectedRecipe];
+    const RecipeData& recipeData = RecipeDataLoader::getRecipeData()[recipeIdx];
+
+    // If item in hand and is not item to be crafted, do not craft recipe (as won't be able to pick up crafted item)
+    if (isItemPickedUp && pickedUpItem != recipeData.product && pickedUpItemCount < INVENTORY_STACK_SIZE)
+        return;
+
+    // Get inventory to check if has items (should have items as recipe is in available recipes, check just in case)
+    std::unordered_map<ItemType, unsigned int> inventoryItemCount = Inventory::getTotalItemCount();
+
+    // Check has items
+    for (const auto& itemRequired : recipeData.itemRequirements)
+    {
+        if (inventoryItemCount.count(itemRequired.first) <= 0)  
+            return;
+        
+        if (inventoryItemCount[itemRequired.first] < itemRequired.second)
+            return;
+    }
+
+    // Take items
+    for (const auto& itemRequired : recipeData.itemRequirements)
+    {
+        Inventory::takeItem(itemRequired.first, itemRequired.second);
+    }
+
+    // Give crafted item to player
+    if (isItemPickedUp)
+    {
+        pickedUpItemCount += recipeData.productAmount;   
+    }
+    else
+    {
+        isItemPickedUp = true;
+        pickedUpItem = recipeData.product;
+        pickedUpItemCount = recipeData.productAmount;
+    }
+
+    // Inventory changed, so update available recipes
+    // Use previous crafting station levels stored as only updating for item change
+    updateAvailableRecipes(previous_nearbyCraftingStationLevels);
+}
+
 void InventoryGUI::handleClose()
 {
     // Handle item still picked up when inventory is closed
@@ -231,16 +357,7 @@ void InventoryGUI::handleClose()
 
 bool InventoryGUI::isMouseOverUI(sf::Vector2f mouseScreenPos)
 {
-    float intScale = ResolutionHandler::getResolutionIntegerScale();
-
-    CollisionRect uiMask;
-
-    uiMask.x = itemBoxPadding * intScale;
-    uiMask.y = itemBoxPadding * intScale;
-    uiMask.width = ((itemBoxSize + itemBoxSpacing) * itemBoxPerRow - itemBoxSpacing) * intScale;
-    uiMask.height = ((itemBoxSize + itemBoxSpacing) * std::round(Inventory::getData().size() / itemBoxPerRow) - itemBoxSpacing) * intScale;
-
-    return uiMask.isPointInRect(mouseScreenPos.x, mouseScreenPos.y) || isBinSelected(mouseScreenPos);
+    return isInventorySelected(mouseScreenPos) || isCraftingSelected(mouseScreenPos) || isBinSelected(mouseScreenPos);
 }
 
 void InventoryGUI::updateAvailableRecipes(std::unordered_map<std::string, int> nearbyCraftingStationLevels)
@@ -420,7 +537,7 @@ void InventoryGUI::draw(sf::RenderWindow& window, sf::Vector2f mouseScreenPos)
         }, sf::IntRect(80, 16, 16, 16));
 
         // Draw info of recipe hovered over (if any)
-        if (hoveredRecipeIdx >= 0)
+        if (hoveredRecipeIdx >= 0 && !isItemPickedUp)
         {
             drawItemInfoBoxRecipe(window, hoveredRecipeIdx, mouseScreenPos);
         }

@@ -3,7 +3,7 @@
 #include <SFML/Graphics.hpp>
 #include <string>
 
-typedef unsigned int ItemType;
+typedef int ItemType;
 
 struct ItemData
 {

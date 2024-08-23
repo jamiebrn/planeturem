@@ -49,7 +49,16 @@ private:
     // Returns -1 if no index selected (mouse not hovered over item)
     static int getInventorySelectedIndex(sf::Vector2f mouseScreenPos);
 
+    // Returns -1 if not clicked / hovering over recipe
+    // Call on left click
+    static int getClickedRecipe(sf::Vector2f mouseScreenPos);
+
     static bool isBinSelected(sf::Vector2f mouseScreenPos);
+    static bool isInventorySelected(sf::Vector2f mouseScreenPos);
+    static bool isCraftingSelected(sf::Vector2f mouseScreenPos);
+
+    // Attempt to craft recipe selected
+    static void craftSelectedRecipe();
 
     static void drawItemInfoBoxInventory(sf::RenderWindow& window, int itemIndex, sf::Vector2f mouseScreenPos);
     static void drawItemInfoBoxRecipe(sf::RenderWindow& window, int recipeIdx, sf::Vector2f mouseScreenPos);
