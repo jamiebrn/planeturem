@@ -30,3 +30,21 @@ private:
     float frameTick;
 
 };
+
+// Use to save memory when texture rects, frame count, and max frame tick are stored elsewhere
+// Used when animations are used across many objects
+class AnimatedTextureMinimal
+{
+public:
+    AnimatedTextureMinimal() = default;
+
+    void update(float dt, int frameCount, float maxFrameTick);
+
+    inline void setFrame(int frame) {this->frame = frame;}
+    inline int getFrame() {return frame;}
+
+private:
+    int frame;
+
+    float frameTick;
+};

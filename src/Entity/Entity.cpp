@@ -22,6 +22,9 @@ Entity::Entity(sf::Vector2f position, unsigned int entityType)
     drawLayer = 0;
 
     flash_amount = 0.0f;
+    
+    idleAnim.setFrame(rand() % entityData.idleTextureRects.size());
+    walkAnim.setFrame(rand() % entityData.walkTextureRects.size());
 }
 
 void Entity::update(float dt, ChunkManager& chunkManager)
@@ -44,6 +47,10 @@ void Entity::update(float dt, ChunkManager& chunkManager)
 
     // Update animations
     flash_amount = std::max(flash_amount - dt * 3.0f, 0.0f);
+
+    const EntityData& entityData = EntityDataLoader::getEntityData(entityType);
+    idleAnim.update(dt, entityData.idleTextureRects.size(), entityData.idleAnimSpeed);
+    walkAnim.update(dt, entityData.walkTextureRects.size(), entityData.walkAnimSpeed);
 }
 
 void Entity::draw(sf::RenderTarget& window, float dt, const sf::Color& color)
@@ -61,8 +68,18 @@ void Entity::draw(sf::RenderTarget& window, float dt, const sf::Color& color)
     sf::Shader* shader = Shaders::getShader(ShaderType::Flash);
     shader->setUniform("flash_amount", flash_amount);
 
+    sf::IntRect textureRect;
+    if (velocity.x == 0 && velocity.y == 0)
+    {
+        textureRect = entityData.idleTextureRects[idleAnim.getFrame()];
+    }
+    else
+    {
+        textureRect = entityData.walkTextureRects[walkAnim.getFrame()];
+    }
+
     TextureManager::drawSubTexture(window, {TextureType::Entities, Camera::worldToScreenTransform(position), 0, 
-        scale, entityData.textureOrigin, color}, entityData.textureRect, shader);
+        scale, entityData.textureOrigin, color}, textureRect, shader);
 
     // DEBUG
     #if DEBUG_DRAW

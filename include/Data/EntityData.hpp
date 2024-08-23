@@ -3,6 +3,7 @@
 #include <SFML/Graphics.hpp>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "Data/ItemData.hpp"
 
@@ -13,7 +14,12 @@ struct EntityData
     std::string name;
     int health;
 
-    sf::IntRect textureRect;
+    // sf::IntRect textureRect;
+    std::vector<sf::IntRect> idleTextureRects;
+    std::vector<sf::IntRect> walkTextureRects;
+    float idleAnimSpeed;
+    float walkAnimSpeed;
+
     sf::Vector2f textureOrigin;
 
     // Size of entity IN TILES

@@ -43,3 +43,18 @@ sf::IntRect AnimatedTexture::getTextureRect()
 
     return textureRect;
 }
+
+void AnimatedTextureMinimal::update(float dt, int frameCount, float maxFrameTick)
+{
+    frameTick += dt;
+    if (frameTick >= maxFrameTick)
+    {
+        frameTick = 0;
+        frame++;
+
+        if (frame >= frameCount)
+        {
+            frame = 0;
+        }
+    }
+}

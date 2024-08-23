@@ -96,13 +96,13 @@ void Camera::handleWorldWrap(int worldSize)
     // Wrap X
     if (offset.x + screenToWorldTransform(resolution).x >= worldPixelSize)
         offset.x -= worldPixelSize;
-    else if (offset.x <= -worldPixelSize)
+    else if (offset.x < 0)
         offset.x += worldPixelSize;
     
     // Wrap Y
     if (offset.y + screenToWorldTransform(resolution).y >= worldPixelSize)
         offset.y -= worldPixelSize;
-    else if (offset.y <= -worldPixelSize)
+    else if (offset.y < 0)
         offset.y += worldPixelSize;
 }
 

@@ -62,7 +62,7 @@ void Player::update(float dt, sf::Vector2f mouseWorldPos, ChunkManager& chunkMan
         wrapPositionDelta.x = -worldPixelSize;
         wrappedAroundWorld = true;
     }
-    else if (collisionRect.x <= -worldPixelSize)
+    else if (collisionRect.x < 0)
     {
         collisionRect.x += worldPixelSize;
         wrapPositionDelta.x = worldPixelSize;
@@ -74,7 +74,7 @@ void Player::update(float dt, sf::Vector2f mouseWorldPos, ChunkManager& chunkMan
         wrapPositionDelta.y = -worldPixelSize;
         wrappedAroundWorld = true;
     }
-    else if (collisionRect.y <= -worldPixelSize)
+    else if (collisionRect.y < 0)
     {
         collisionRect.y += worldPixelSize;
         wrapPositionDelta.y = worldPixelSize;

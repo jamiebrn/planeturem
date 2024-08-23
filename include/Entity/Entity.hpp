@@ -6,6 +6,8 @@
 #include "Core/Camera.hpp"
 #include "Core/ResolutionHandler.hpp"
 #include "Core/CollisionRect.hpp"
+#include "Core/AnimatedTexture.hpp"
+
 #include "Object/WorldObject.hpp"
 #include "World/ChunkManager.hpp"
 #include "Data/EntityData.hpp"
@@ -45,5 +47,8 @@ private:
 
     CollisionRect collisionRect;
     sf::Vector2f velocity;
+
+    AnimatedTextureMinimal idleAnim;
+    AnimatedTextureMinimal walkAnim;
 
 };

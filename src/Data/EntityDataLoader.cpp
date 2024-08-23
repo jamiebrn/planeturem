@@ -15,10 +15,43 @@ bool EntityDataLoader::loadData(std::string objectDataPath)
 
         entityData.name = jsonEntityData.at("name");
 
-        if (jsonEntityData.contains("texture-x")) entityData.textureRect.left = jsonEntityData.at("texture-x");
-        if (jsonEntityData.contains("texture-y")) entityData.textureRect.top = jsonEntityData.at("texture-y");
-        if (jsonEntityData.contains("texture-width")) entityData.textureRect.width = jsonEntityData.at("texture-width");
-        if (jsonEntityData.contains("texture-height")) entityData.textureRect.height = jsonEntityData.at("texture-height");
+        int textureWidth = jsonEntityData.at("texture-width");
+        int textureHeight = jsonEntityData.at("texture-height");
+
+        if (jsonEntityData.contains("texture-idle"))
+        {
+            auto idleTexture = jsonEntityData.at("texture-idle");
+            for (nlohmann::json::iterator texturePositionIter = idleTexture.begin(); texturePositionIter != idleTexture.end(); ++texturePositionIter)
+            {
+                sf::IntRect textureRect;
+                textureRect.left = texturePositionIter.value()[0];
+                textureRect.top = texturePositionIter.value()[1];
+                textureRect.width = textureWidth;
+                textureRect.height = textureHeight;
+
+                entityData.idleTextureRects.push_back(textureRect);
+            }
+        }
+
+        if (jsonEntityData.contains("texture-walk-speed")) entityData.walkAnimSpeed = jsonEntityData.at("texture-walk-speed");
+
+        if (jsonEntityData.contains("texture-walk"))
+        {
+            auto walkTexture = jsonEntityData.at("texture-walk");
+            for (nlohmann::json::iterator texturePositionIter = walkTexture.begin(); texturePositionIter != walkTexture.end(); ++texturePositionIter)
+            {
+                sf::IntRect textureRect;
+                textureRect.left = texturePositionIter.value()[0];
+                textureRect.top = texturePositionIter.value()[1];
+                textureRect.width = textureWidth;
+                textureRect.height = textureHeight;
+
+                entityData.walkTextureRects.push_back(textureRect);
+            }
+        }
+
+        if (jsonEntityData.contains("texture-idle-speed")) entityData.idleAnimSpeed = jsonEntityData.at("texture-idle-speed");
+
         if (jsonEntityData.contains("texture-x-origin")) entityData.textureOrigin.x = jsonEntityData.at("texture-x-origin");
         if (jsonEntityData.contains("texture-y-origin")) entityData.textureOrigin.y = jsonEntityData.at("texture-y-origin");
         if (jsonEntityData.contains("health")) entityData.health = jsonEntityData.at("health");
