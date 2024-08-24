@@ -453,7 +453,7 @@ void Game::runOnPlanet(float dt)
     // Draw objects
     for (WorldObject* worldObject : worldObjects)
     {
-        worldObject->draw(worldTexture, dt, {255, 255, 255, 255});
+        worldObject->draw(worldTexture, dt, gameTime, {255, 255, 255, 255});
     }
 
     worldTexture.display();
@@ -508,7 +508,7 @@ void Game::runOnPlanet(float dt)
                 
                 BuildableObject objectGhost(Cursor::getLerpedSelectPos() + sf::Vector2f(TILE_SIZE_PIXELS_UNSCALED / 2.0f, TILE_SIZE_PIXELS_UNSCALED / 2.0f), placeObject);
 
-                objectGhost.draw(window, dt, drawColor);
+                objectGhost.draw(window, dt, gameTime, drawColor);
             }
 
             InventoryGUI::draw(window, mouseScreenPos);

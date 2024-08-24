@@ -15,15 +15,46 @@
         }
     },
     {
+        "product": "Iron Bar",
+        "item-requirements": {
+            "Raw Iron": 2,
+            "Coal": 1
+        },
+        "crafting-station": "furnace",
+        "crafting-station-level": 1
+    },
+    {
+        "product": "Gold Bar",
+        "item-requirements": {
+            "Raw Gold": 2,
+            "Coal": 1
+        },
+        "crafting-station": "furnace",
+        "crafting-station-level": 1
+    },
+    
+    
+    
+    
+    
+    
+    
+    {
+        "product": "Furnace",
+        "item-requirements": {
+            "Stone": 5,
+            "Wood": 2
+        }
+    },
+    {
         "product": "Wood Wall",
         "item-requirements": {
             "Wood": 4
         }
     },
     {
-        "product": "Furnace",
+        "product": "Wood Bridge",
         "item-requirements": {
-            "Stone": 5,
             "Wood": 2
         }
     }

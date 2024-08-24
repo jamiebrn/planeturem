@@ -546,11 +546,13 @@ bool Chunk::canPlaceObject(sf::Vector2i position, unsigned int objectType, int w
         for (int x = position.x; x < std::min(position.x + objectData.size.x, (int)objectGrid[0].size()); x++)
         {
             // Test tile
-            if (!objectData.placeOnWater)
+            if (objectData.placeOnWater)
             {
-                if (getTileType(sf::Vector2i(x, y)) == TileType::Water)
-                    return false;
+                return getTileType(sf::Vector2i(x, y)) == TileType::Water;
             }
+
+            if (getTileType(sf::Vector2i(x, y)) == TileType::Water)
+                return false;
             
             // Test object
             if (objectGrid[y][x].has_value())
@@ -572,12 +574,14 @@ bool Chunk::canPlaceObject(sf::Vector2i position, unsigned int objectType, int w
         for (int x = 0; x < x_remaining; x++)
         {
             // Test tile
-            if (!objectData.placeOnWater)
+            if (objectData.placeOnWater)
             {
-                if (chunkManager.getLoadedChunkTileType(ChunkPosition(chunkNextPosX, chunkPosition.y), sf::Vector2i(x, y)) == TileType::Water)
-                    return false;
+                return (chunkManager.getLoadedChunkTileType(ChunkPosition(chunkNextPosX, chunkPosition.y), sf::Vector2i(x, y)) == TileType::Water);
             }
             
+            if (chunkManager.getLoadedChunkTileType(ChunkPosition(chunkNextPosX, chunkPosition.y), sf::Vector2i(x, y)) == TileType::Water)
+                return false;
+
             // Test object
             std::optional<BuildableObject>& objectOptional = chunkManager.getChunkObject(ChunkPosition(chunkNextPosX, chunkPosition.y), sf::Vector2i(x, y));
             if (objectOptional.has_value())
@@ -591,11 +595,13 @@ bool Chunk::canPlaceObject(sf::Vector2i position, unsigned int objectType, int w
         for (int x = position.x; x < std::min(position.x + objectData.size.x, (int)objectGrid[0].size()); x++)
         {
             // Test tile
-            if (!objectData.placeOnWater)
+            if (objectData.placeOnWater)
             {
-                if (chunkManager.getLoadedChunkTileType(ChunkPosition(chunkPosition.x, chunkNextPosY), sf::Vector2i(x, y)) == TileType::Water)
-                    return false;
+                return (chunkManager.getLoadedChunkTileType(ChunkPosition(chunkPosition.x, chunkNextPosY), sf::Vector2i(x, y)) == TileType::Water);
             }
+
+            if (chunkManager.getLoadedChunkTileType(ChunkPosition(chunkPosition.x, chunkNextPosY), sf::Vector2i(x, y)) == TileType::Water)
+                return false;
 
             // Test object
             std::optional<BuildableObject>& objectOptional = chunkManager.getChunkObject(ChunkPosition(chunkPosition.x, chunkNextPosY), sf::Vector2i(x, y));
@@ -610,12 +616,14 @@ bool Chunk::canPlaceObject(sf::Vector2i position, unsigned int objectType, int w
         for (int x = 0; x < x_remaining; x++)
         {
             // Test tile
-            if (!objectData.placeOnWater)
+            if (objectData.placeOnWater)
             {
-                if (chunkManager.getLoadedChunkTileType(ChunkPosition(chunkNextPosX, chunkNextPosY), sf::Vector2i(x, y)) == TileType::Water)
-                    return false;
+                return (chunkManager.getLoadedChunkTileType(ChunkPosition(chunkNextPosX, chunkNextPosY), sf::Vector2i(x, y)) == TileType::Water);
             }
 
+            if (chunkManager.getLoadedChunkTileType(ChunkPosition(chunkNextPosX, chunkNextPosY), sf::Vector2i(x, y)) == TileType::Water)
+                return false;
+            
             // Test object
             std::optional<BuildableObject>& objectOptional = chunkManager.getChunkObject(ChunkPosition(chunkNextPosX, chunkNextPosY), sf::Vector2i(x, y));
             if (objectOptional.has_value())

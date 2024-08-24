@@ -53,7 +53,7 @@ void Entity::update(float dt, ChunkManager& chunkManager)
     walkAnim.update(dt, entityData.walkTextureRects.size(), entityData.walkAnimSpeed);
 }
 
-void Entity::draw(sf::RenderTarget& window, float dt, const sf::Color& color)
+void Entity::draw(sf::RenderTarget& window, float dt, float gameTime, const sf::Color& color)
 {
     const EntityData& entityData = EntityDataLoader::getEntityData(entityType);
 

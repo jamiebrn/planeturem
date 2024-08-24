@@ -18,10 +18,23 @@ bool ObjectDataLoader::loadData(std::string objectDataPath)
 
         objectData.name = jsonObjectData.at("name");
 
-        if (jsonObjectData.contains("texture-x")) objectData.textureRect.left = jsonObjectData.at("texture-x");
-        if (jsonObjectData.contains("texture-y")) objectData.textureRect.top = jsonObjectData.at("texture-y");
-        if (jsonObjectData.contains("texture-width")) objectData.textureRect.width = jsonObjectData.at("texture-width");
-        if (jsonObjectData.contains("texture-height")) objectData.textureRect.height = jsonObjectData.at("texture-height");
+        int textureWidth = jsonObjectData.at("texture-width");
+        int textureHeight = jsonObjectData.at("texture-height");
+
+        auto textures = jsonObjectData.at("textures");
+        for (nlohmann::ordered_json::iterator texturePositionIter = textures.begin(); texturePositionIter != textures.end(); ++texturePositionIter)
+        {
+            sf::IntRect textureRect;
+            textureRect.left = texturePositionIter.value()[0];
+            textureRect.top = texturePositionIter.value()[1];
+            textureRect.width = textureWidth;
+            textureRect.height = textureHeight;
+
+            objectData.textureRects.push_back(textureRect);
+        }
+
+        if (jsonObjectData.contains("texture-frame-delay")) objectData.textureFrameDelay = jsonObjectData.at("texture-frame-delay");
+
         if (jsonObjectData.contains("texture-x-origin")) objectData.textureOrigin.x = jsonObjectData.at("texture-x-origin");
         if (jsonObjectData.contains("texture-y-origin")) objectData.textureOrigin.y = jsonObjectData.at("texture-y-origin");
         if (jsonObjectData.contains("health")) objectData.health = jsonObjectData.at("health");

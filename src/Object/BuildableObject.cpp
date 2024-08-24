@@ -22,9 +22,13 @@ BuildableObject::BuildableObject(ObjectReference _objectReference)
 void BuildableObject::update(float dt)
 {
     flash_amount = std::max(flash_amount - dt * 3, 0.0f);
+
+    const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
+
+    animatedTexture.update(dt, objectData.textureRects.size(), objectData.textureFrameDelay);
 }
 
-void BuildableObject::draw(sf::RenderTarget& window, float dt, const sf::Color& color)
+void BuildableObject::draw(sf::RenderTarget& window, float dt, float gameTime, const sf::Color& color)
 {
     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
 
@@ -33,10 +37,18 @@ void BuildableObject::draw(sf::RenderTarget& window, float dt, const sf::Color& 
 
     sf::Shader* shader = Shaders::getShader(ShaderType::Flash);
     shader->setUniform("flash_amount", flash_amount);
+
+    const sf::IntRect& textureRect = objectData.textureRects[animatedTexture.getFrame()];
+
+    float waterYOffset = 0.0f;
+    if (objectData.placeOnWater)
+    {
+        waterYOffset = std::sin(position.x + gameTime);
+    }
     
     TextureManager::drawSubTexture(window, {
-        TextureType::Objects, Camera::worldToScreenTransform(position), 0, scale, objectData.textureOrigin, color
-        }, objectData.textureRect, shader);
+        TextureType::Objects, Camera::worldToScreenTransform(position + sf::Vector2f(0, waterYOffset)), 0, scale, objectData.textureOrigin, color
+        }, textureRect, shader);
 }
 
 void BuildableObject::drawGUI(sf::RenderTarget& window, float dt, const sf::Color& color)
@@ -45,7 +57,7 @@ void BuildableObject::drawGUI(sf::RenderTarget& window, float dt, const sf::Colo
 
     TextureManager::drawSubTexture(window, {
         TextureType::Objects, position, 0, {2, 2}, {0.5, 0.5}, color
-        }, objectData.textureRect);
+        }, objectData.textureRects[0]);
 }
 
 void BuildableObject::damage(int amount)

@@ -10,6 +10,7 @@
 #include "Core/Shaders.hpp"
 #include "Core/ResolutionHandler.hpp"
 #include "Core/Camera.hpp"
+#include "Core/AnimatedTexture.hpp"
 #include "Object/WorldObject.hpp"
 #include "Object/ObjectReference.hpp"
 #include "Player/Inventory.hpp"
@@ -37,7 +38,7 @@ public:
 
     void update(float dt);
 
-    void draw(sf::RenderTarget& window, float dt, const sf::Color& color) override;
+    void draw(sf::RenderTarget& window, float dt, float gameTime, const sf::Color& color) override;
     void drawGUI(sf::RenderTarget& window, float dt, const sf::Color& color);
 
     void damage(int amount);
@@ -60,6 +61,8 @@ private:
     ObjectType objectType = 0;
     int health = 0;
     float flash_amount;
+
+    AnimatedTextureMinimal animatedTexture;
 
     uint64_t furnaceID = 0;
 

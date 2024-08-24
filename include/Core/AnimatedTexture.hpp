@@ -44,7 +44,7 @@ public:
     inline int getFrame() {return frame;}
 
 private:
-    int frame;
+    int frame = 0;
 
-    float frameTick;
+    float frameTick = 0;
 };

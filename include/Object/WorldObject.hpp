@@ -34,7 +34,7 @@ public:
     inline int getDrawLayer() {return drawLayer;}
 
     // Overriden by inherited classes (specific)
-    virtual void draw(sf::RenderTarget& window, float dt, const sf::Color& color) = 0;
+    virtual void draw(sf::RenderTarget& window, float dt, float gameTime, const sf::Color& color) = 0;
 
 protected:
     sf::Vector2f position;

@@ -679,7 +679,7 @@ void InventoryGUI::drawItemBox(sf::RenderWindow& window,
         {
             const ObjectData& objectData = ObjectDataLoader::getObjectData(itemData.placesObjectType);
 
-            int objectScale = std::max(4 - std::max(objectData.textureRect.width / 16.0f, objectData.textureRect.height / 16.0f), 1.0f);
+            int objectScale = std::max(4 - std::max(objectData.textureRects[0].width / 16.0f, objectData.textureRects[0].height / 16.0f), 1.0f);
 
             // Draw object
             TextureManager::drawSubTexture(window, {
@@ -688,7 +688,7 @@ void InventoryGUI::drawItemBox(sf::RenderWindow& window,
                 0,
                 {objectScale * intScale, objectScale * intScale},
                 {0.5, 0.5}
-            }, objectData.textureRect);
+            }, objectData.textureRects[0]);
         }
         else
         {

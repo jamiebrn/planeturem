@@ -2,8 +2,7 @@
     {
         "name": "Tree",
         "health": 4,
-        "texture-x": 0,
-        "texture-y": 48,
+        "textures": [[0, 48]],
         "texture-width": 32,
         "texture-height": 48,
         "texture-x-origin": 0.5,
@@ -15,8 +14,7 @@
     {
         "name": "Bush",
         "health": 2,
-        "texture-x": 48,
-        "texture-y": 48,
+        "textures": [[48, 48]],
         "texture-width": 16,
         "texture-height": 16,
         "texture-x-origin": 0.5,
@@ -28,8 +26,7 @@
     {
         "name": "Wood Wall",
         "health": 4,
-        "texture-x": 32,
-        "texture-y": 0,
+        "textures": [[32, 0]],
         "texture-width": 16,
         "texture-height": 32,
         "texture-x-origin": 0.5,
@@ -37,10 +34,9 @@
         "has-collision": true
     },
     {
-        "name": "Wood Floor",
+        "name": "Wood Bridge",
         "health": 2,
-        "texture-x": 48,
-        "texture-y": 16,
+        "textures": [[48, 16]],
         "texture-width": 16,
         "texture-height": 16,
         "texture-x-origin": 0.5,
@@ -51,8 +47,7 @@
     {
         "name": "Rock",
         "health": 6,
-        "texture-x": 32,
-        "texture-y": 48,
+        "textures": [[32, 48]],
         "texture-width": 16,
         "texture-height": 16,
         "texture-x-origin": 0.5,
@@ -65,14 +60,14 @@
     {
         "name": "Furnace",
         "health": 6,
-        "texture-x": 64,
-        "texture-y": 0,
+        "textures": [[112, 48], [144, 48], [176, 48], [208, 48]],
+        "texture-frame-delay": 0.1,
         "texture-width": 32,
         "texture-height": 32,
         "texture-x-origin": 0.25,
-        "texture-y-origin": 0.25,
+        "texture-y-origin": 0.75,
         "size-x": 2,
-        "size-y": 2,
+        "size-y": 1,
         "has-collision": true,
         "crafting-station": "furnace",
         "crafting-station-level": 1
@@ -80,8 +75,7 @@
     {
         "name": "Table",
         "health": 4,
-        "texture-x": 96,
-        "texture-y": 16,
+        "textures": [[96, 16]],
         "texture-width": 16,
         "texture-height": 16,
         "texture-x-origin": 0.5,
@@ -90,8 +84,7 @@
     {
         "name": "Chest",
         "health": 5,
-        "texture-x": 112,
-        "texture-y": 16,
+        "textures": [[112, 16]],
         "texture-width": 16,
         "texture-height": 16,
         "texture-x-origin": 0.5,
@@ -100,8 +93,7 @@
     {
         "name": "Golden Tree",
         "health": 4,
-        "texture-x": 0,
-        "texture-y": 96,
+        "textures": [[0, 96]],
         "texture-width": 32,
         "texture-height": 48,
         "texture-x-origin": 0.5,
@@ -113,8 +105,7 @@
     {
         "name": "Golden Rock",
         "health": 4,
-        "texture-x": 32,
-        "texture-y": 96,
+        "textures": [[32, 96]],
         "texture-width": 16,
         "texture-height": 16,
         "texture-x-origin": 0.5,
@@ -126,8 +117,7 @@
     {
         "name": "Iron Rock",
         "health": 7,
-        "texture-x": 64,
-        "texture-y": 48,
+        "textures": [[64, 48]],
         "texture-width": 16,
         "texture-height": 16,
         "texture-x-origin": 0.5,
@@ -139,8 +129,7 @@
     {
         "name": "Gold Rock",
         "health": 7,
-        "texture-x": 64,
-        "texture-y": 64,
+        "textures" : [[64, 64]],
         "texture-width": 16,
         "texture-height": 16,
         "texture-x-origin": 0.5,
@@ -152,8 +141,7 @@
     {
         "name": "Coal Rock",
         "health": 7,
-        "texture-x": 80,
-        "texture-y": 48,
+        "textures": [[80, 48]],
         "texture-width": 16,
         "texture-height": 16,
         "texture-x-origin": 0.5,

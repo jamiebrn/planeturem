@@ -22,7 +22,7 @@ public:
 
     void update(float dt, ChunkManager& chunkManager);
 
-    void draw(sf::RenderTarget& window, float dt, const sf::Color& color) override;
+    void draw(sf::RenderTarget& window, float dt, float gameTime, const sf::Color& color) override;
     void drawLightMask(sf::RenderTarget& lightTexture);
 
     void damage(int amount);

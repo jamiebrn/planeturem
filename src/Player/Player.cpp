@@ -120,7 +120,7 @@ void Player::update(float dt, sf::Vector2f mouseWorldPos, ChunkManager& chunkMan
     // std::cout << position.x << ", " << position.y << std::endl;
 }
 
-void Player::draw(sf::RenderTarget& window, float dt, const sf::Color& color)
+void Player::draw(sf::RenderTarget& window, float dt, float gameTime, const sf::Color& color)
 {
     sf::Vector2f playerScale((float)ResolutionHandler::getScale(), (float)ResolutionHandler::getScale());
 

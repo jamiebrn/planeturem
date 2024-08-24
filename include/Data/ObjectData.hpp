@@ -13,7 +13,9 @@ struct ObjectData
     std::string name;
     int health;
     
-    sf::IntRect textureRect;
+    std::vector<sf::IntRect> textureRects;
+    float textureFrameDelay = 0.0f;
+
     sf::Vector2f textureOrigin;
 
     sf::Vector2i size = {1, 1};
