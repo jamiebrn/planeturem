@@ -5,9 +5,8 @@
 #include <string>
 
 #include "Core/json.hpp"
+#include "Data/typedefs.hpp"
 #include "Data/ToolData.hpp"
-
-typedef unsigned int ToolType;
 
 class ToolDataLoader
 {

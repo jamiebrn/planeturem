@@ -286,14 +286,17 @@ bool InventoryGUI::isInventorySelected(sf::Vector2f mouseScreenPos)
 
 bool InventoryGUI::isCraftingSelected(sf::Vector2f mouseScreenPos)
 {
+    if (availableRecipes.size() <= 0)
+        return false;
+
     float intScale = ResolutionHandler::getResolutionIntegerScale();
 
     CollisionRect uiMask;
 
     uiMask.x = itemBoxPadding * intScale;
     uiMask.y = itemBoxPadding * intScale + ((itemBoxSize + itemBoxSpacing) * std::round(Inventory::getData().size() / itemBoxPerRow) - itemBoxSpacing) * intScale;
-    uiMask.width = ((itemBoxSize + itemBoxSpacing) * itemBoxPerRow - itemBoxSpacing) * intScale;
-    uiMask.height = (itemBoxSize + itemBoxSpacing) * 4 * intScale;
+    uiMask.width = ((itemBoxSize + itemBoxSpacing) * (availableRecipes.size() + 1) - itemBoxSpacing) * intScale;
+    uiMask.height = (itemBoxSize + itemBoxSpacing) * 3 * intScale;
 
     return uiMask.isPointInRect(mouseScreenPos.x, mouseScreenPos.y);
 }
@@ -305,7 +308,7 @@ void InventoryGUI::craftSelectedRecipe()
     const RecipeData& recipeData = RecipeDataLoader::getRecipeData()[recipeIdx];
 
     // If item in hand and is not item to be crafted, do not craft recipe (as won't be able to pick up crafted item)
-    if (isItemPickedUp && pickedUpItem != recipeData.product && pickedUpItemCount < INVENTORY_STACK_SIZE)
+    if (isItemPickedUp && (pickedUpItem != recipeData.product || pickedUpItemCount >= INVENTORY_STACK_SIZE))
         return;
 
     // Get inventory to check if has items (should have items as recipe is in available recipes, check just in case)
@@ -423,6 +426,31 @@ void InventoryGUI::updateAvailableRecipes(std::unordered_map<std::string, int> n
     else
     {
         selectedRecipe = 0;
+    }
+}
+
+ObjectType InventoryGUI::getHeldObjectType()
+{
+    if (!isItemPickedUp)
+        return -1;
+    
+    ObjectType placeObjectType = ItemDataLoader::getItemData(pickedUpItem).placesObjectType;
+
+    return placeObjectType;
+}
+
+void InventoryGUI::placeHeldObject()
+{
+    if (!isItemPickedUp)
+        return;
+    
+    pickedUpItemCount--;
+
+    if (pickedUpItemCount <= 0)
+    {
+        isItemPickedUp = false;
+        pickedUpItem = -1;
+        pickedUpItemCount = 0;
     }
 }
 
@@ -644,13 +672,35 @@ void InventoryGUI::drawItemBox(sf::RenderWindow& window,
     // Draw item
     if (itemType.has_value())
     {
-        TextureManager::drawSubTexture(window, {
-            TextureType::Items,
-            position + (sf::Vector2f(std::round(itemBoxSize / 2.0f), std::round(itemBoxSize / 2.0f))) * intScale,
-            0,
-            {3 * intScale, 3 * intScale},
-            {0.5, 0.5}
-        }, ItemDataLoader::getItemData(itemType.value()).textureRect);
+        const ItemData& itemData = ItemDataLoader::getItemData(itemType.value());
+
+        // Draw object if item places object
+        if (itemData.placesObjectType >= 0)
+        {
+            const ObjectData& objectData = ObjectDataLoader::getObjectData(itemData.placesObjectType);
+
+            int objectScale = std::max(4 - std::max(objectData.textureRect.width / 16.0f, objectData.textureRect.height / 16.0f), 1.0f);
+
+            // Draw object
+            TextureManager::drawSubTexture(window, {
+                TextureType::Objects,
+                position + (sf::Vector2f(std::round(itemBoxSize / 2.0f), std::round(itemBoxSize / 2.0f))) * intScale,
+                0,
+                {objectScale * intScale, objectScale * intScale},
+                {0.5, 0.5}
+            }, objectData.textureRect);
+        }
+        else
+        {
+            // Draw as normal
+            TextureManager::drawSubTexture(window, {
+                TextureType::Items,
+                position + (sf::Vector2f(std::round(itemBoxSize / 2.0f), std::round(itemBoxSize / 2.0f))) * intScale,
+                0,
+                {3 * intScale, 3 * intScale},
+                {0.5, 0.5}
+            }, itemData.textureRect);
+        }
     }
 
     // Draw item count (if > 1)

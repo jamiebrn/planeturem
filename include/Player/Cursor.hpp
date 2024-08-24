@@ -11,9 +11,10 @@
 #include "Entity/Entity.hpp"
 #include "World/ChunkPosition.hpp"
 #include "World/ChunkManager.hpp"
-#include "GUI/BuildGUI.hpp"
 #include "Types/WorldMenuState.hpp"
 
+#include "Data/typedefs.hpp"
+#include "Data/ObjectDataLoader.hpp"
 #include "GameConstants.hpp"
 
 enum CursorDrawState
@@ -36,10 +37,10 @@ class Cursor
 public:
     static void updateTileCursor(sf::RenderWindow& window,
                                  float dt,
-                                 WorldMenuState worldMenuState,
                                  int worldSize,
                                  ChunkManager& chunkManager,
-                                 const CollisionRect& playerCollisionRect);
+                                 const CollisionRect& playerCollisionRect,
+                                 ObjectType placeObjectType);
 
     static ChunkPosition getSelectedChunk(int worldSize);
     static sf::Vector2i getSelectedChunkTile();

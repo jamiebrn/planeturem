@@ -14,16 +14,13 @@ sf::Vector2i Cursor::selectSize = {1, 1};
 
 void Cursor::updateTileCursor(sf::RenderWindow& window,
                               float dt,
-                              WorldMenuState worldMenuState,
                               int worldSize,
                               ChunkManager& chunkManager,
-                              const CollisionRect& playerCollisionRect)
+                              const CollisionRect& playerCollisionRect,
+                              ObjectType placeObjectType)
 {
     // Get mouse position in screen space and world space
     sf::Vector2f mouseWorldPos = getMouseWorldPos(window);
-
-    // Get tile size
-    // float tileSize = ResolutionHandler::getTileSize();
 
     // Get selected tile position from mouse position
     selectPosTile.x = std::floor(mouseWorldPos.x / TILE_SIZE_PIXELS_UNSCALED);
@@ -37,24 +34,10 @@ void Cursor::updateTileCursor(sf::RenderWindow& window,
     // Set drawing to hidden by default
     drawState = CursorDrawState::Hidden;
 
-    // Get entity selected at cursor position (if any)
-    Entity* selectedEntity = chunkManager.getSelectedEntity(Cursor::getSelectedChunk(worldSize), mouseWorldPos);
-    
-    // If entity is selected and in main world state, set size of cursor to entity size
-    if (selectedEntity != nullptr && (worldMenuState == WorldMenuState::Main || worldMenuState == WorldMenuState::Inventory))
+    // Override cursor size if object is being placed
+    if (placeObjectType >= 0)
     {
-        selectPos = selectedEntity->getPosition();
-
-        sf::Vector2f selectSizeFloat = selectedEntity->getSize();
-
-        // Set tile cursor corner tile positions
-        cursorCornerPositions[0].worldPositionDestination = selectPos - selectSizeFloat / 2.0f;
-        cursorCornerPositions[1].worldPositionDestination = selectPos + sf::Vector2f(selectSizeFloat.x, -selectSizeFloat.y) / 2.0f;
-        cursorCornerPositions[2].worldPositionDestination = selectPos + sf::Vector2f(-selectSizeFloat.x, selectSizeFloat.y) / 2.0f;
-        cursorCornerPositions[3].worldPositionDestination = selectPos + selectSizeFloat / 2.0f;
-
-        // Immediately set cursor position to destination position (no lerp)
-        setCursorCornersToDestination();
+        selectSize = ObjectDataLoader::getObjectData(placeObjectType).size;
 
         // Set cursor animation to freeze at index 0
         for (int cursorCornerIdx = 0; cursorCornerIdx < cursorAnimatedTextures.size(); cursorCornerIdx++)
@@ -62,54 +45,85 @@ void Cursor::updateTileCursor(sf::RenderWindow& window,
             cursorAnimatedTextures[cursorCornerIdx].setFrame(0);
         }
 
-        // Set dynamic draw to true as is not a tile-based selection
-        drawState = CursorDrawState::Dynamic;
-
-        // Entity is selected, so should not attempt to find objects/tile
-        return;
+        drawState = CursorDrawState::Tile;
     }
-
-    // Get object selected at cursor position (if any)
-    std::optional<BuildableObject>& selectedObjectOptional = chunkManager.getChunkObject(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile());
-
-    // If an object in world is selected, override tile cursor size and position
-    if (selectedObjectOptional.has_value() && (worldMenuState == WorldMenuState::Main || worldMenuState == WorldMenuState::Inventory))
+    else
     {
-        // Test if can destroy selected object - don't draw cursor if cannot destroy
-        if (!chunkManager.canDestroyObject(getSelectedChunk(worldSize), getSelectedChunkTile(), worldSize, playerCollisionRect))
+        // Get entity selected at cursor position (if any)
+        Entity* selectedEntity = chunkManager.getSelectedEntity(Cursor::getSelectedChunk(worldSize), mouseWorldPos);
+        
+        // If entity is selected and in main world state, set size of cursor to entity size
+        if (selectedEntity != nullptr)
         {
-            drawState = CursorDrawState::Hidden;
+            selectPos = selectedEntity->getPosition();
+
+            sf::Vector2f selectSizeFloat = selectedEntity->getSize();
+
+            // Set tile cursor corner tile positions
+            cursorCornerPositions[0].worldPositionDestination = selectPos - selectSizeFloat / 2.0f;
+            cursorCornerPositions[1].worldPositionDestination = selectPos + sf::Vector2f(selectSizeFloat.x, -selectSizeFloat.y) / 2.0f;
+            cursorCornerPositions[2].worldPositionDestination = selectPos + sf::Vector2f(-selectSizeFloat.x, selectSizeFloat.y) / 2.0f;
+            cursorCornerPositions[3].worldPositionDestination = selectPos + selectSizeFloat / 2.0f;
+
+            // Immediately set cursor position to destination position (no lerp)
+            setCursorCornersToDestination();
+
+            // Set cursor animation to freeze at index 0
+            for (int cursorCornerIdx = 0; cursorCornerIdx < cursorAnimatedTextures.size(); cursorCornerIdx++)
+            {
+                cursorAnimatedTextures[cursorCornerIdx].setFrame(0);
+            }
+
+            // Set dynamic draw to true as is not a tile-based selection
+            drawState = CursorDrawState::Dynamic;
+
+            // Entity is selected, so should not attempt to find objects/tile
             return;
         }
 
-        // Get object selected
-        BuildableObject& selectedObject = selectedObjectOptional.value();
+        // Get object selected at cursor position (if any)
+        std::optional<BuildableObject>& selectedObjectOptional = chunkManager.getChunkObject(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile());
 
-        // Get size of selected object and set size of tile cursor
-        selectSize = ObjectDataLoader::getObjectData(selectedObject.getObjectType()).size;
+        // If an object in world is selected, override tile cursor size and position
+        if (selectedObjectOptional.has_value())
+        {
+            // Test if can destroy selected object - don't draw cursor if cannot destroy
+            if (!chunkManager.canDestroyObject(getSelectedChunk(worldSize), getSelectedChunkTile(), worldSize, playerCollisionRect))
+            {
+                drawState = CursorDrawState::Hidden;
+                return;
+            }
 
-        // Set position of tile cursor to object's position
-        selectPos = selectedObject.getPosition() - sf::Vector2f(TILE_SIZE_PIXELS_UNSCALED / 2.0f, TILE_SIZE_PIXELS_UNSCALED / 2.0f);
+            // Get object selected
+            BuildableObject& selectedObject = selectedObjectOptional.value();
 
-        // Set selected tile to new overriden tile cursor position
-        selectPosTile.x = std::floor(selectPos.x / TILE_SIZE_PIXELS_UNSCALED);
-        selectPosTile.y = std::floor(selectPos.y / TILE_SIZE_PIXELS_UNSCALED);
+            // Get size of selected object and set size of tile cursor
+            selectSize = ObjectDataLoader::getObjectData(selectedObject.getObjectType()).size;
 
-        // Set draw state to tile
-        drawState = CursorDrawState::Tile;
+            // Set position of tile cursor to object's position
+            selectPos = selectedObject.getPosition() - sf::Vector2f(TILE_SIZE_PIXELS_UNSCALED / 2.0f, TILE_SIZE_PIXELS_UNSCALED / 2.0f);
+
+            // Set selected tile to new overriden tile cursor position
+            selectPosTile.x = std::floor(selectPos.x / TILE_SIZE_PIXELS_UNSCALED);
+            selectPosTile.y = std::floor(selectPos.y / TILE_SIZE_PIXELS_UNSCALED);
+
+            // Set draw state to tile
+            drawState = CursorDrawState::Tile;
+
+            // Update cursor animation
+            cursorAnimatedTextures[0].update(dt);
+            int cursorTopLeftAnimationFrame = cursorAnimatedTextures[0].getFrame();
+
+            for (int cursorCornerIdx = 1; cursorCornerIdx < cursorAnimatedTextures.size(); cursorCornerIdx++)
+            {
+                cursorAnimatedTextures[cursorCornerIdx].setFrame(cursorTopLeftAnimationFrame);
+            }
+        }
+        else
+        {
+            drawState = CursorDrawState::Hidden;
+        }
     }
-    else if (worldMenuState == WorldMenuState::Build)
-    {
-        // Override cursor size to size of currently selected object, if in build menu
-        selectSize = (ObjectDataLoader::getObjectData(BuildGUI::getSelectedObject()).size);
-
-        // Set draw state to tile
-        drawState = CursorDrawState::Tile;
-    }
-
-    // If no object is selected, and not in build menu (and no entity selected), set draw state to hidden
-    if (!selectedObjectOptional.has_value() && (worldMenuState == WorldMenuState::Main || worldMenuState == WorldMenuState::Inventory))
-        drawState = CursorDrawState::Hidden;
 
     // Set tile cursor corner tile positions
     cursorCornerPositions[0].worldPositionDestination = static_cast<sf::Vector2f>(selectPosTile) * TILE_SIZE_PIXELS_UNSCALED;
@@ -117,36 +131,7 @@ void Cursor::updateTileCursor(sf::RenderWindow& window,
     cursorCornerPositions[2].worldPositionDestination = static_cast<sf::Vector2f>(selectPosTile + sf::Vector2i(0, selectSize.y - 1)) * TILE_SIZE_PIXELS_UNSCALED;
     cursorCornerPositions[3].worldPositionDestination = static_cast<sf::Vector2f>(selectPosTile + sf::Vector2i(selectSize.x - 1, selectSize.y - 1)) * TILE_SIZE_PIXELS_UNSCALED;
 
-    // Lerp tile cursor corners to desination positions if build menu open
-    if (worldMenuState == WorldMenuState::Build)
-    {
-        for (CursorCornerPosition& cursorCorner : cursorCornerPositions)
-        {
-            cursorCorner.worldPosition.x = Helper::lerp(cursorCorner.worldPosition.x, cursorCorner.worldPositionDestination.x, 25 * dt);
-            cursorCorner.worldPosition.y = Helper::lerp(cursorCorner.worldPosition.y, cursorCorner.worldPositionDestination.y, 25 * dt);
-        }
-
-        // Set cursor animation to freeze at index 0
-        for (int cursorCornerIdx = 0; cursorCornerIdx < cursorAnimatedTextures.size(); cursorCornerIdx++)
-        {
-            cursorAnimatedTextures[cursorCornerIdx].setFrame(0);
-        }
-    }
-    else
-    {
-        // Immediately set cursor position to destination position (no lerp)
-        setCursorCornersToDestination();
-
-        // Update animations
-        // Update top left then set all others to same frame
-        cursorAnimatedTextures[0].update(dt);
-        int cursorTopLeftAnimationFrame = cursorAnimatedTextures[0].getFrame();
-
-        for (int cursorCornerIdx = 1; cursorCornerIdx < cursorAnimatedTextures.size(); cursorCornerIdx++)
-        {
-            cursorAnimatedTextures[cursorCornerIdx].setFrame(cursorTopLeftAnimationFrame);
-        }
-    }
+    setCursorCornersToDestination();
 }
 
 void Cursor::setCursorCornersToDestination()

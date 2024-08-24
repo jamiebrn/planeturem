@@ -7,7 +7,6 @@
 
 #include "Data/ItemDataLoader.hpp"
 #include "Data/ObjectDataLoader.hpp"
-#include "Data/BuildRecipeLoader.hpp"
 
 static constexpr unsigned int INVENTORY_STACK_SIZE = 20;
 static constexpr unsigned int MAX_INVENTORY_SIZE = 32;
@@ -28,7 +27,8 @@ public:
 
     static void takeItemAtIndex(int index, int amount);
 
-    static bool canBuildObject(ObjectType object);
+    // Deprecated
+    // static bool canBuildObject(ObjectType object);
 
     static std::unordered_map<ItemType, unsigned int> getTotalItemCount();
 

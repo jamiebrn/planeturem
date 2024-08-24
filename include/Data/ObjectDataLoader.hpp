@@ -3,6 +3,7 @@
 #include <SFML/Graphics.hpp>
 #include <fstream>
 #include <vector>
+#include <unordered_map>
 #include <iostream>
 
 #include "Core/json.hpp"
@@ -17,7 +18,11 @@ public:
 
     static const ObjectData& getObjectData(ObjectType type_index);
 
+    static ObjectType getObjectTypeFromName(const std::string& objectName);
+
 private:
     static std::vector<ObjectData> loaded_objectData;
+
+    static std::unordered_map<std::string, ObjectType> objectNameToTypeMap;
 
 };

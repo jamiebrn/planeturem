@@ -29,12 +29,10 @@
 #include "Data/ItemData.hpp"
 #include "Data/ObjectData.hpp"
 #include "Data/ItemData.hpp"
-#include "Data/BuildRecipe.hpp"
 #include "Data/RecipeData.hpp"
 #include "Data/EntityData.hpp"
 #include "Data/ItemDataLoader.hpp"
 #include "Data/ObjectDataLoader.hpp"
-#include "Data/BuildRecipeLoader.hpp"
 #include "Data/RecipeDataLoader.hpp"
 #include "Data/EntityDataLoader.hpp"
 #include "Data/ToolDataLoader.hpp"
@@ -43,7 +41,6 @@
 #include "Types/WorldMenuState.hpp"
 
 #include "GUI/InventoryGUI.hpp"
-#include "GUI/BuildGUI.hpp"
 #include "GUI/FurnaceGUI.hpp"
 
 class Game

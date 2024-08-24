@@ -5,9 +5,8 @@
 // #include <unordered_map>
 #include <vector>
 
-#include "Data/ItemData.hpp"
-
-typedef unsigned int ObjectType;
+#include "Data/typedefs.hpp"
+#include "Data/ItemDrop.hpp"
 
 struct ObjectData
 {

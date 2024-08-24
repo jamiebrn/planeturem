@@ -1,11 +1,14 @@
 #include "Data/ObjectDataLoader.hpp"
 
 std::vector<ObjectData> ObjectDataLoader::loaded_objectData;
+std::unordered_map<std::string, ObjectType> ObjectDataLoader::objectNameToTypeMap;
 
 bool ObjectDataLoader::loadData(std::string objectDataPath)
 {
     std::ifstream file(objectDataPath);
     nlohmann::ordered_json data = nlohmann::ordered_json::parse(file);
+
+    int objectIdx = 0;
 
     // Load data
     for (nlohmann::ordered_json::iterator iter = data.begin(); iter != data.end(); ++iter)
@@ -46,6 +49,9 @@ bool ObjectDataLoader::loadData(std::string objectDataPath)
         }
 
         loaded_objectData.push_back(objectData);
+
+        objectNameToTypeMap[objectData.name] = objectIdx;
+        objectIdx++;
     }
 
     return true;
@@ -54,4 +60,9 @@ bool ObjectDataLoader::loadData(std::string objectDataPath)
 const ObjectData& ObjectDataLoader::getObjectData(ObjectType type_index)
 {    
     return loaded_objectData[type_index];
+}
+
+ObjectType ObjectDataLoader::getObjectTypeFromName(const std::string& objectName)
+{
+    return objectNameToTypeMap[objectName];
 }

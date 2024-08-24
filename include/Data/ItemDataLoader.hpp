@@ -6,7 +6,9 @@
 #include <unordered_map>
 
 #include "Core/json.hpp"
+#include "Data/typedefs.hpp"
 #include "Data/ItemData.hpp"
+#include "Data/ObjectDataLoader.hpp"
 
 class ItemDataLoader
 {

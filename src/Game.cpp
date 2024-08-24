@@ -4,7 +4,6 @@
 // FIX: Cliffs are broken again? (cliff on grass field) - maybe fixed????
 
 // PRIORITY: HIGH
-// TODO: Remove build menu in favour of placing objects from inventory
 // TODO: Make hotbar from inventory
 // TODO: Allow changing of tools through hotbar selection
 
@@ -39,10 +38,10 @@ bool Game::initialise()
     if(!TextDraw::loadFont("Data/Fonts/upheavtt.ttf")) return false;
     if(!Sounds::loadSounds()) return false;
 
+    if(!ObjectDataLoader::loadData("Data/Info/object_data.data")) return false;
     if(!ItemDataLoader::loadData("Data/Info/item_data.data")) return false;
     if(!RecipeDataLoader::loadData("Data/Info/item_recipes.data")) return false;
-    if(!ObjectDataLoader::loadData("Data/Info/object_data.data")) return false;
-    if(!BuildRecipeLoader::loadData("Data/Info/build_recipes.data")) return false;
+    // if(!BuildRecipeLoader::loadData("Data/Info/build_recipes.data")) return false;
     if(!EntityDataLoader::loadData("Data/Info/entity_data.data")) return false;
     if(!ToolDataLoader::loadData("Data/Info/tool_data.data")) return false;
 
@@ -301,9 +300,6 @@ void Game::runOnPlanet(float dt)
             {
                 if (event.key.code == sf::Keyboard::E)
                     worldMenuState = WorldMenuState::Inventory;
-                
-                if (event.key.code == sf::Keyboard::Tab)
-                    worldMenuState = WorldMenuState::Build;
             }
             else
             {
@@ -312,24 +308,12 @@ void Game::runOnPlanet(float dt)
                     InventoryGUI::handleClose();
                     worldMenuState = WorldMenuState::Main;
                 }
-                
-                if (event.key.code == sf::Keyboard::Tab && worldMenuState == WorldMenuState::Build)
-                    worldMenuState = WorldMenuState::Main;
 
                 if (event.key.code == sf::Keyboard::Escape)
                 {
                     InventoryGUI::handleClose();
                     worldMenuState = WorldMenuState::Main;
                 }
-            }
-
-            if (worldMenuState == WorldMenuState::Build)
-            {
-                if (event.key.code == sf::Keyboard::E)
-                    BuildGUI::changeSelectedCategory(1);
-                
-                if (event.key.code == sf::Keyboard::Q)
-                    BuildGUI::changeSelectedCategory(-1);
             }
         }
 
@@ -342,14 +326,13 @@ void Game::runOnPlanet(float dt)
                     case WorldMenuState::Main:
                         attemptUseTool();
                         break;
-                    case WorldMenuState::Build:
-                        attemptBuildObject();
-                        break;
                     case WorldMenuState::Inventory:
+                        if (!InventoryGUI::isMouseOverUI(mouseScreenPos))
+                        {
+                            attemptUseTool();
+                            attemptBuildObject();
+                        }
                         InventoryGUI::handleLeftClick(mouseScreenPos);
-                        if (InventoryGUI::isMouseOverUI(mouseScreenPos))
-                            break;
-                        attemptUseTool();
                         break;
                 }
             }
@@ -371,9 +354,6 @@ void Game::runOnPlanet(float dt)
         {
             switch (worldMenuState)
             {
-                case WorldMenuState::Build:
-                    BuildGUI::changeSelectedObject(-event.mouseWheelScroll.delta);
-                    break;
                 case WorldMenuState::Inventory:
                     if (!InventoryGUI::handleScroll(mouseScreenPos, -event.mouseWheelScroll.delta))
                         handleZoom(event.mouseWheelScroll.delta);
@@ -407,7 +387,7 @@ void Game::runOnPlanet(float dt)
     Camera::update(player.getPosition(), mouseScreenPos, dt);
 
     // Update cursor
-    Cursor::updateTileCursor(window, dt, worldMenuState, worldSize, chunkManager, player.getCollisionRect());
+    Cursor::updateTileCursor(window, dt, worldSize, chunkManager, player.getCollisionRect(), InventoryGUI::getHeldObjectType());
 
     // Update player
     bool wrappedAroundWorld = false;
@@ -423,7 +403,7 @@ void Game::runOnPlanet(float dt)
     }
 
     // Enable / disable cursor drawing depending on player reach
-    if (worldMenuState == WorldMenuState::Main || worldMenuState == WorldMenuState::Inventory)
+    if (InventoryGUI::getHeldObjectType() < 0)
         Cursor::setCanReachTile(player.canReachPosition(Cursor::getMouseWorldPos(window)));
     
     // Get nearby crafting stations
@@ -507,41 +487,33 @@ void Game::runOnPlanet(float dt)
         case WorldMenuState::Main:
             Cursor::drawCursor(window);
             break;
-
-        case WorldMenuState::Build:
-        {
-            Cursor::drawCursor(window);
-            BuildGUI::draw(window);
-
-            unsigned int selectedObjectType = BuildGUI::getSelectedObject();
-
-            BuildableObject recipeObject(Cursor::getLerpedSelectPos() + sf::Vector2f(TILE_SIZE_PIXELS_UNSCALED / 2.0f, TILE_SIZE_PIXELS_UNSCALED / 2.0f), selectedObjectType);
-
-            bool canAfford = Inventory::canBuildObject(selectedObjectType);
-            bool canPlace = chunkManager.canPlaceObject(Cursor::getSelectedChunk(worldSize),
-                                                        Cursor::getSelectedChunkTile(),
-                                                        selectedObjectType,
-                                                        worldSize,
-                                                        player.getCollisionRect());
-
-            sf::Color drawColor(255, 0, 0, 180);
-            if (canAfford && canPlace)
-                drawColor = sf::Color(0, 255, 0, 180);
-            
-            recipeObject.draw(window, dt, drawColor);
-            
-            break;
-        }
         
         case WorldMenuState::Inventory:
-            if (!InventoryGUI::isMouseOverUI(mouseScreenPos))
-                Cursor::drawCursor(window);
+        {
+            Cursor::drawCursor(window);
+            
+            ObjectType placeObject = InventoryGUI::getHeldObjectType();
+            if (placeObject >= 0)
+            {
+                // Draw object to be placed if held
+                bool canPlace = chunkManager.canPlaceObject(Cursor::getSelectedChunk(worldSize),
+                                                            Cursor::getSelectedChunkTile(),
+                                                            placeObject,
+                                                            worldSize,
+                                                            player.getCollisionRect());
+
+                sf::Color drawColor(255, 0, 0, 180);
+                if (canPlace)
+                    drawColor = sf::Color(0, 255, 0, 180);
+                
+                BuildableObject objectGhost(Cursor::getLerpedSelectPos() + sf::Vector2f(TILE_SIZE_PIXELS_UNSCALED / 2.0f, TILE_SIZE_PIXELS_UNSCALED / 2.0f), placeObject);
+
+                objectGhost.draw(window, dt, drawColor);
+            }
+
             InventoryGUI::draw(window, mouseScreenPos);
             break;
-        
-        case WorldMenuState::Furnace:
-            FurnaceGUI::draw(window);
-            break;
+        }
     }
 
     // Debug info
@@ -612,10 +584,7 @@ void Game::handleEventsWindow(sf::Event& event)
 
 void Game::attemptUseTool()
 {
-    if (worldMenuState != WorldMenuState::Main && worldMenuState != WorldMenuState::Inventory)
-        return;
-    
-    if (player.isUsingTool())
+    if (player.isUsingTool() || InventoryGUI::getHeldObjectType() >= 0)
         return;
 
     // Get mouse position in screen space and world space
@@ -669,7 +638,7 @@ void Game::attemptObjectInteract()
         ObjectInteractionEventData interactionEvent = selectedObject.interact();
         if (interactionEvent.interactionType == ObjectInteraction::OpenFurnace)
         {
-            worldMenuState = WorldMenuState::Furnace;
+            // worldMenuState = WorldMenuState::Furnace;
             interactedObjectID = interactionEvent.objectID;
         }
     }
@@ -677,25 +646,22 @@ void Game::attemptObjectInteract()
 
 void Game::attemptBuildObject()
 {
-    if (worldMenuState != WorldMenuState::Build)
-        return;
-    
-    unsigned int objectType = BuildGUI::getSelectedObject();
+    ObjectType objectType = InventoryGUI::getHeldObjectType();
 
-    bool canAfford = Inventory::canBuildObject(objectType);
+    if (objectType < 0)
+        return;
+
+    // bool canAfford = Inventory::canBuildObject(objectType);
     bool canPlace = chunkManager.canPlaceObject(Cursor::getSelectedChunk(worldSize),
                                                 Cursor::getSelectedChunkTile(),
                                                 objectType,
                                                 worldSize,
                                                 player.getCollisionRect());
 
-    if (canAfford && canPlace)
+    if (canPlace)
     {
-        // Take resources
-        for (auto& itemPair : BuildRecipeLoader::getBuildRecipe(objectType).itemRequirements)
-        {
-            Inventory::takeItem(itemPair.first, itemPair.second);
-        }
+        // Remove object from being held
+        InventoryGUI::placeHeldObject();
 
         // Build object
         chunkManager.setObject(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile(), objectType, worldSize);

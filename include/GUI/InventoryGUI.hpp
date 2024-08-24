@@ -10,7 +10,11 @@
 
 #include "Player/Inventory.hpp"
 
+#include "Data/typedefs.hpp"
+#include "Data/ItemData.hpp"
 #include "Data/ItemDataLoader.hpp"
+#include "Data/ObjectData.hpp"
+#include "Data/ObjectDataLoader.hpp"
 #include "Data/RecipeData.hpp"
 #include "Data/RecipeDataLoader.hpp"
 
@@ -40,6 +44,12 @@ public:
     static bool isMouseOverUI(sf::Vector2f mouseScreenPos);
 
     static void updateAvailableRecipes(std::unordered_map<std::string, int> nearbyCraftingStationLevels);
+
+    // Gets type of object that will be placed from item currently picked up
+    static ObjectType getHeldObjectType();
+
+    // Subtracts from currently held item, called when object is placed
+    static void placeHeldObject();
 
     static void draw(sf::RenderWindow& window, sf::Vector2f mouseScreenPos);
 

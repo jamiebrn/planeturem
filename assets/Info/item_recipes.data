@@ -13,5 +13,18 @@
         "item-requirements": {
             "Wood": 3
         }
+    },
+    {
+        "product": "Wood Wall",
+        "item-requirements": {
+            "Wood": 4
+        }
+    },
+    {
+        "product": "Furnace",
+        "item-requirements": {
+            "Stone": 5,
+            "Wood": 2
+        }
     }
 ]

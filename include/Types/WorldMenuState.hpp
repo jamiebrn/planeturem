@@ -3,7 +3,5 @@
 enum WorldMenuState
 {
     Main,
-    Inventory,
-    Build,
-    Furnace
+    Inventory
 };

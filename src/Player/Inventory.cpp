@@ -135,26 +135,26 @@ void Inventory::takeItemAtIndex(int index, int amount)
     }
 }
 
-bool Inventory::canBuildObject(ObjectType object)
-{
-    const BuildRecipe& buildRecipe = BuildRecipeLoader::getBuildRecipe(object);
+// bool Inventory::canBuildObject(ObjectType object)
+// {
+//     const BuildRecipe& buildRecipe = BuildRecipeLoader::getBuildRecipe(object);
 
-    std::unordered_map<ItemType, unsigned int> inventoryItemCount = getTotalItemCount();
+//     std::unordered_map<ItemType, unsigned int> inventoryItemCount = getTotalItemCount();
 
-    for (auto& recipeItemPair : buildRecipe.itemRequirements)
-    {
-        // If item not in inventory, return false (cannot build object)
-        if (inventoryItemCount.count(recipeItemPair.first) <= 0)
-            return false;
+//     for (auto& recipeItemPair : buildRecipe.itemRequirements)
+//     {
+//         // If item not in inventory, return false (cannot build object)
+//         if (inventoryItemCount.count(recipeItemPair.first) <= 0)
+//             return false;
         
-        // If item is in inventory, but not enough, return false (cannot build object)
-        if (inventoryItemCount[recipeItemPair.first] < recipeItemPair.second)
-            return false;
-    }
+//         // If item is in inventory, but not enough, return false (cannot build object)
+//         if (inventoryItemCount[recipeItemPair.first] < recipeItemPair.second)
+//             return false;
+//     }
 
-    // Can build object as has passed tests
-    return true;
-}
+//     // Can build object as has passed tests
+//     return true;
+// }
 
 std::unordered_map<ItemType, unsigned int> Inventory::getTotalItemCount()
 {

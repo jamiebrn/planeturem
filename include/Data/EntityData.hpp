@@ -5,9 +5,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include "Data/typedefs.hpp"
 #include "Data/ItemData.hpp"
-
-typedef unsigned int EntityType;
 
 struct EntityData
 {
