@@ -38,8 +38,8 @@ bool Game::initialise()
     if(!TextDraw::loadFont("Data/Fonts/upheavtt.ttf")) return false;
     if(!Sounds::loadSounds()) return false;
 
-    if(!ObjectDataLoader::loadData("Data/Info/object_data.data")) return false;
     if(!ItemDataLoader::loadData("Data/Info/item_data.data")) return false;
+    if(!ObjectDataLoader::loadData("Data/Info/object_data.data")) return false;
     if(!RecipeDataLoader::loadData("Data/Info/item_recipes.data")) return false;
     // if(!BuildRecipeLoader::loadData("Data/Info/build_recipes.data")) return false;
     if(!EntityDataLoader::loadData("Data/Info/entity_data.data")) return false;

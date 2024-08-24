@@ -8,6 +8,8 @@
 
 #include "Core/json.hpp"
 #include "Data/ObjectData.hpp"
+#include "Data/ItemData.hpp"
+#include "Data/ItemDataLoader.hpp"
 
 class ObjectDataLoader
 {

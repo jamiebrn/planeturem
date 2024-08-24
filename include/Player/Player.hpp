@@ -58,6 +58,8 @@ private:
     bool swingingTool;
     bool usingTool;
 
+    bool onWater = false;
+
     // Prompts
     // String - prompt text
     // Float - prompt current lifetime

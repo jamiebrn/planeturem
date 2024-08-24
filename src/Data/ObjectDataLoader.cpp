@@ -52,7 +52,7 @@ bool ObjectDataLoader::loadData(std::string objectDataPath)
             for (nlohmann::ordered_json::iterator itemDropsIter = itemDrops.begin(); itemDropsIter != itemDrops.end(); ++itemDropsIter)
             {
                 ItemDrop itemDrop;
-                itemDrop.item = std::stoi(itemDropsIter.key());
+                itemDrop.item = ItemDataLoader::getItemTypeFromName(itemDropsIter.key());
                 itemDrop.minAmount = itemDropsIter.value()[0];
                 itemDrop.maxAmount = itemDropsIter.value()[1];
                 itemDrop.chance = itemDropsIter.value()[2];
@@ -64,6 +64,10 @@ bool ObjectDataLoader::loadData(std::string objectDataPath)
         loaded_objectData.push_back(objectData);
 
         objectNameToTypeMap[objectData.name] = objectIdx;
+
+        // Create item corresponding to object
+        ItemDataLoader::createItemFromObject(objectData.name, objectIdx);
+
         objectIdx++;
     }
 

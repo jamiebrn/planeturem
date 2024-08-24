@@ -32,13 +32,7 @@
         "crafting-station": "furnace",
         "crafting-station-level": 1
     },
-    
-    
-    
-    
-    
-    
-    
+
     {
         "product": "Furnace",
         "item-requirements": {
@@ -54,6 +48,18 @@
     },
     {
         "product": "Wood Bridge",
+        "item-requirements": {
+            "Wood": 2
+        }
+    },
+    {
+        "product": "Golden Tree",
+        "item-requirements": {
+            "Wood": 1
+        }
+    },
+    {
+        "product": "Golden Rock",
         "item-requirements": {
             "Wood": 2
         }

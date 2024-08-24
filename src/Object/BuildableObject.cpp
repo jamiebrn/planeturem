@@ -43,7 +43,7 @@ void BuildableObject::draw(sf::RenderTarget& window, float dt, float gameTime, c
     float waterYOffset = 0.0f;
     if (objectData.placeOnWater)
     {
-        waterYOffset = std::sin(position.x + gameTime);
+        waterYOffset = std::sin(position.x + position.y + gameTime * 3.0f) * 0.5f;
     }
     
     TextureManager::drawSubTexture(window, {

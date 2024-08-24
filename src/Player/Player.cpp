@@ -105,6 +105,9 @@ void Player::update(float dt, sf::Vector2f mouseWorldPos, ChunkManager& chunkMan
         if (toolTweener.isTweenFinished(rotationTweenID)) usingTool = false;
     }
 
+    // Update on water
+    onWater = (chunkManager.getChunkTileType(getChunkInside(worldSize), getChunkTileInside()) == TileType::Water);
+
     // Update prompts
     for (auto prompt = prompts.begin(); prompt != prompts.end();)
     {
@@ -124,7 +127,13 @@ void Player::draw(sf::RenderTarget& window, float dt, float gameTime, const sf::
 {
     sf::Vector2f playerScale((float)ResolutionHandler::getScale(), (float)ResolutionHandler::getScale());
 
-    TextureManager::drawTexture(window, {TextureType::Shadow, Camera::worldToScreenTransform(position), 0, playerScale, {0.5, 0.85}});
+    float waterYOffset = 0.0f;
+    if (onWater)
+    {
+        waterYOffset = std::sin(position.x + position.y + gameTime * 3.0f) * 0.5f;
+    }
+
+    TextureManager::drawTexture(window, {TextureType::Shadow, Camera::worldToScreenTransform(position + sf::Vector2f(0, waterYOffset)), 0, playerScale, {0.5, 0.85}});
 
     if (flippedTexture)
         playerScale.x *= -1;
@@ -135,12 +144,13 @@ void Player::draw(sf::RenderTarget& window, float dt, float gameTime, const sf::
     else
         animationRect = runAnimation.getTextureRect();
 
-    TextureManager::drawSubTexture(window, {TextureType::Player, Camera::worldToScreenTransform(position), 0, playerScale, {0.5, 1}}, animationRect);
+    TextureManager::drawSubTexture(window, {TextureType::Player, Camera::worldToScreenTransform(position + sf::Vector2f(0, waterYOffset)), 0, playerScale, {0.5, 1}}, 
+        animationRect);
 
     // Draw equipped tool
     const ToolData& toolData = ToolDataLoader::getToolData(equippedTool);
 
-    sf::Vector2f toolPos = Camera::worldToScreenTransform(position) + sf::Vector2f(playerScale.x * toolOffset.x, playerScale.y * toolOffset.y);
+    sf::Vector2f toolPos = Camera::worldToScreenTransform(position + sf::Vector2f(0, waterYOffset)) + sf::Vector2f(playerScale.x * toolOffset.x, playerScale.y * toolOffset.y);
 
     float pivotYOffset = (toolRotation / 90.0f) * 0.4;
 
