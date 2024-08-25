@@ -19,16 +19,18 @@ BuildableObject::BuildableObject(ObjectReference _objectReference)
     objectReference = _objectReference;
 }
 
-void BuildableObject::update(float dt)
+void BuildableObject::update(float dt, bool onWater)
 {
     flash_amount = std::max(flash_amount - dt * 3, 0.0f);
 
     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
 
     animatedTexture.update(dt, objectData.textureRects.size(), objectData.textureFrameDelay);
+
+    this->onWater = onWater;
 }
 
-void BuildableObject::draw(sf::RenderTarget& window, float dt, float gameTime, const sf::Color& color)
+void BuildableObject::draw(sf::RenderTarget& window, float dt, float gameTime, int worldSize, const sf::Color& color)
 {
     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
 
@@ -40,11 +42,7 @@ void BuildableObject::draw(sf::RenderTarget& window, float dt, float gameTime, c
 
     const sf::IntRect& textureRect = objectData.textureRects[animatedTexture.getFrame()];
 
-    float waterYOffset = 0.0f;
-    if (objectData.placeOnWater)
-    {
-        waterYOffset = std::sin(position.x + position.y + gameTime * 3.0f) * 0.5f;
-    }
+    float waterYOffset = getWaterBobYOffset(worldSize, gameTime);
     
     TextureManager::drawSubTexture(window, {
         TextureType::Objects, Camera::worldToScreenTransform(position + sf::Vector2f(0, waterYOffset)), 0, scale, objectData.textureOrigin, color

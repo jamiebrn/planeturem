@@ -27,7 +27,7 @@ Entity::Entity(sf::Vector2f position, unsigned int entityType)
     walkAnim.setFrame(rand() % entityData.walkTextureRects.size());
 }
 
-void Entity::update(float dt, ChunkManager& chunkManager)
+void Entity::update(float dt, ChunkManager& chunkManager, bool onWater)
 {
     // Handle collision with world (tiles, object)
 
@@ -51,16 +51,20 @@ void Entity::update(float dt, ChunkManager& chunkManager)
     const EntityData& entityData = EntityDataLoader::getEntityData(entityType);
     idleAnim.update(dt, entityData.idleTextureRects.size(), entityData.idleAnimSpeed);
     walkAnim.update(dt, entityData.walkTextureRects.size(), entityData.walkAnimSpeed);
+
+    this->onWater = onWater;
 }
 
-void Entity::draw(sf::RenderTarget& window, float dt, float gameTime, const sf::Color& color)
+void Entity::draw(sf::RenderTarget& window, float dt, float gameTime, int worldSize, const sf::Color& color)
 {
     const EntityData& entityData = EntityDataLoader::getEntityData(entityType);
 
     sf::Vector2f scale(ResolutionHandler::getScale(), ResolutionHandler::getScale());
 
+    float waterYOffset = getWaterBobYOffset(worldSize, gameTime);
+
     // Draw shadow
-    TextureManager::drawTexture(window, {TextureType::Shadow, Camera::worldToScreenTransform(position), 0, scale, {0.5, 0.85}});
+    TextureManager::drawTexture(window, {TextureType::Shadow, Camera::worldToScreenTransform(position + sf::Vector2f(0, waterYOffset)), 0, scale, {0.5, 0.85}});
 
     if (velocity.x < 0)
         scale.x *= -1;
@@ -78,7 +82,7 @@ void Entity::draw(sf::RenderTarget& window, float dt, float gameTime, const sf::
         textureRect = entityData.walkTextureRects[walkAnim.getFrame()];
     }
 
-    TextureManager::drawSubTexture(window, {TextureType::Entities, Camera::worldToScreenTransform(position), 0, 
+    TextureManager::drawSubTexture(window, {TextureType::Entities, Camera::worldToScreenTransform(position + sf::Vector2f(0, waterYOffset)), 0, 
         scale, entityData.textureOrigin, color}, textureRect, shader);
 
     // DEBUG

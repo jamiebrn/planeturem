@@ -193,7 +193,7 @@ TileType ChunkManager::getLoadedChunkTileType(ChunkPosition chunk, sf::Vector2i 
     return loadedChunks.at(chunk)->getTileType(tile);
 }
 
-TileType ChunkManager::getChunkTileType(ChunkPosition chunk, sf::Vector2i tile)
+TileType ChunkManager::getChunkTileType(ChunkPosition chunk, sf::Vector2i tile) const
 {
     // Chunk is not generated
     if (!isChunkGenerated(chunk))
@@ -206,12 +206,12 @@ TileType ChunkManager::getChunkTileType(ChunkPosition chunk, sf::Vector2i tile)
     return loadedChunks.at(chunk)->getTileType(tile);
 }
 
-bool ChunkManager::isChunkGenerated(ChunkPosition chunk)
+bool ChunkManager::isChunkGenerated(ChunkPosition chunk) const
 {
     return (loadedChunks.count(chunk) + storedChunks.count(chunk)) > 0;
 }
 
-void ChunkManager::setObject(ChunkPosition chunk, sf::Vector2i tile, unsigned int objectType, int worldSize)
+void ChunkManager::setObject(ChunkPosition chunk, sf::Vector2i tile, ObjectType objectType, int worldSize)
 {
     // Chunk does not exist
     if (loadedChunks.count(chunk) <= 0)
@@ -239,7 +239,7 @@ void ChunkManager::setObjectReference(const ChunkPosition& chunk, const ObjectRe
     loadedChunks[chunk]->setObjectReference(objectReference, tile, *this);
 }
 
-bool ChunkManager::canPlaceObject(ChunkPosition chunk, sf::Vector2i tile, unsigned int objectType, int worldSize, const CollisionRect& playerCollisionRect)
+bool ChunkManager::canPlaceObject(ChunkPosition chunk, sf::Vector2i tile, ObjectType objectType, int worldSize, const CollisionRect& playerCollisionRect)
 {
     // Chunk does not exist
     if (loadedChunks.count(chunk) <= 0)

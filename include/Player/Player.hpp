@@ -23,7 +23,7 @@ public:
     Player(sf::Vector2f position);
 
     void update(float dt, sf::Vector2f mouseWorldPos, ChunkManager& chunkManager, int worldSize, bool& wrappedAroundWorld, sf::Vector2f& wrapPositionDelta);
-    void draw(sf::RenderTarget& window, float dt, float gameTime, const sf::Color& color) override;
+    void draw(sf::RenderTarget& window, float dt, float gameTime, int worldSize, const sf::Color& color) override;
     void drawLightMask(sf::RenderTarget& lightTexture);
 
     void useTool();
@@ -57,8 +57,6 @@ private:
     TweenID rotationTweenID;
     bool swingingTool;
     bool usingTool;
-
-    bool onWater = false;
 
     // Prompts
     // String - prompt text

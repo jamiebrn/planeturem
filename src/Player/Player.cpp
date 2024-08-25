@@ -123,15 +123,11 @@ void Player::update(float dt, sf::Vector2f mouseWorldPos, ChunkManager& chunkMan
     // std::cout << position.x << ", " << position.y << std::endl;
 }
 
-void Player::draw(sf::RenderTarget& window, float dt, float gameTime, const sf::Color& color)
+void Player::draw(sf::RenderTarget& window, float dt, float gameTime, int worldSize, const sf::Color& color)
 {
     sf::Vector2f playerScale((float)ResolutionHandler::getScale(), (float)ResolutionHandler::getScale());
 
-    float waterYOffset = 0.0f;
-    if (onWater)
-    {
-        waterYOffset = std::sin(position.x + position.y + gameTime * 3.0f) * 0.5f;
-    }
+    float waterYOffset = getWaterBobYOffset(worldSize, gameTime);
 
     TextureManager::drawTexture(window, {TextureType::Shadow, Camera::worldToScreenTransform(position + sf::Vector2f(0, waterYOffset)), 0, playerScale, {0.5, 0.85}});
 

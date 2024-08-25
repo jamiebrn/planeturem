@@ -36,9 +36,9 @@ class BuildableObject : public WorldObject
 public:
     BuildableObject(sf::Vector2f position, ObjectType objectType);
 
-    void update(float dt);
+    void update(float dt, bool onWater);
 
-    void draw(sf::RenderTarget& window, float dt, float gameTime, const sf::Color& color) override;
+    void draw(sf::RenderTarget& window, float dt, float gameTime, int worldSize, const sf::Color& color) override;
     void drawGUI(sf::RenderTarget& window, float dt, const sf::Color& color);
 
     void damage(int amount);

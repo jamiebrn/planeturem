@@ -20,9 +20,9 @@ class Entity : public WorldObject
 public:
     Entity(sf::Vector2f position, unsigned int entityType);
 
-    void update(float dt, ChunkManager& chunkManager);
+    void update(float dt, ChunkManager& chunkManager, bool onWater);
 
-    void draw(sf::RenderTarget& window, float dt, float gameTime, const sf::Color& color) override;
+    void draw(sf::RenderTarget& window, float dt, float gameTime, int worldSize, const sf::Color& color) override;
     void drawLightMask(sf::RenderTarget& lightTexture);
 
     void damage(int amount);

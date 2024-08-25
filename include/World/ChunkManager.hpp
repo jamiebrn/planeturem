@@ -50,14 +50,14 @@ public:
     TileType getLoadedChunkTileType(ChunkPosition chunk, sf::Vector2i tile) const;
 
     // Get tile type from all generated chunks (used in chunk visual detail generation)
-    TileType getChunkTileType(ChunkPosition chunk, sf::Vector2i tile);
+    TileType getChunkTileType(ChunkPosition chunk, sf::Vector2i tile) const;
 
     // Whether chunk has been generated: stored or loaded
-    bool isChunkGenerated(ChunkPosition chunk);
+    bool isChunkGenerated(ChunkPosition chunk) const;
 
     // Sets object in chunk at tile
     // Places object references if required
-    void setObject(ChunkPosition chunk, sf::Vector2i tile, unsigned int objectType, int worldSize);
+    void setObject(ChunkPosition chunk, sf::Vector2i tile, ObjectType objectType, int worldSize);
 
     // Deletes object in chunk at tile
     // Deletes object references if required
@@ -67,7 +67,7 @@ public:
     void setObjectReference(const ChunkPosition& chunk, const ObjectReference& objectReference, sf::Vector2i tile);
 
     // Tests whether an object can be placed in chunk at tile, taking into account object size etc
-    bool canPlaceObject(ChunkPosition chunk, sf::Vector2i tile, unsigned int objectType, int worldSize, const CollisionRect& playerCollisionRect);
+    bool canPlaceObject(ChunkPosition chunk, sf::Vector2i tile, ObjectType objectType, int worldSize, const CollisionRect& playerCollisionRect);
 
     // Tests whether an object can be destroyed, e.g. can't destroy bridge object if player or entity is on it
     bool canDestroyObject(ChunkPosition chunk, sf::Vector2i tile, int worldSize, const CollisionRect& playerCollisionRect);
