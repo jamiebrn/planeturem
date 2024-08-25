@@ -33,17 +33,21 @@ void Chunk::generateChunk(const FastNoise& noise, int worldSize, ChunkManager& c
 
             groundTileGrid[y][x] = tileType;
 
-            if (tileType == TileType::Water)
-            {
-                containsWater = true;
-                continue;
-            }
-
             int vertexArrayIndex = (x + y * CHUNK_TILE_SIZE) * 4;
             groundVertexArray[vertexArrayIndex].position = sf::Vector2f(x * TILE_SIZE_PIXELS_UNSCALED, y * TILE_SIZE_PIXELS_UNSCALED);
             groundVertexArray[vertexArrayIndex + 1].position = sf::Vector2f(x * TILE_SIZE_PIXELS_UNSCALED + TILE_SIZE_PIXELS_UNSCALED, y * TILE_SIZE_PIXELS_UNSCALED);
             groundVertexArray[vertexArrayIndex + 3].position = sf::Vector2f(x * TILE_SIZE_PIXELS_UNSCALED, y * TILE_SIZE_PIXELS_UNSCALED + TILE_SIZE_PIXELS_UNSCALED);
             groundVertexArray[vertexArrayIndex + 2].position = sf::Vector2f(x * TILE_SIZE_PIXELS_UNSCALED + TILE_SIZE_PIXELS_UNSCALED, y * TILE_SIZE_PIXELS_UNSCALED + TILE_SIZE_PIXELS_UNSCALED);
+
+            if (tileType == TileType::Water)
+            {
+                containsWater = true;
+                groundVertexArray[vertexArrayIndex].color = sf::Color(0, 0, 0, 0);
+                groundVertexArray[vertexArrayIndex + 1].color = sf::Color(0, 0, 0, 0);
+                groundVertexArray[vertexArrayIndex + 3].color = sf::Color(0, 0, 0, 0);
+                groundVertexArray[vertexArrayIndex + 2].color = sf::Color(0, 0, 0, 0);
+                continue;
+            }
 
             int textureVariation;
 
@@ -188,6 +192,12 @@ void Chunk::generateVisualEffectTiles(const FastNoise& noise, int worldSize, Chu
             return this->groundTileGrid[wrappedChunkTile.second.y][wrappedChunkTile.second.x];
         }
     };
+
+    // Clear previously generated visual tiles
+    for (auto& row : visualTileGrid)
+    {
+        row.fill(TileType::Visual_BLANK);
+    }
 
     // Generate visual tiles
     for (int y = 0; y < CHUNK_TILE_SIZE; y++)
@@ -842,6 +852,45 @@ bool Chunk::isCollisionRectCollidingWithEntities(const CollisionRect& collisionR
             return true;
     }
     return false;
+}
+
+bool Chunk::canPlaceLand(sf::Vector2i tile)
+{
+    if (objectGrid[tile.y][tile.x].has_value())
+        return false;
+    
+    if (getTileType(tile) != TileType::Water)
+        return false;
+    
+    return true;
+}
+
+void Chunk::placeLand(sf::Vector2i tile, int worldSize, const FastNoise& noise, ChunkManager& chunkManager)
+{
+    // Set tile
+    groundTileGrid[tile.y][tile.x] = TileType::Sand;
+
+    // TODO: Make setting tiles modular / standardised
+
+    // Set vertex array
+    int vertexArrayIndex = (tile.x + tile.y * CHUNK_TILE_SIZE) * 4;
+
+    int textureVariation = rand() % 3;
+    groundVertexArray[vertexArrayIndex].texCoords = {2 * 16, 0 + textureVariation * 16.0f};
+    groundVertexArray[vertexArrayIndex + 1].texCoords = {2 * 16 + 16, 0 + textureVariation * 16.0f};
+    groundVertexArray[vertexArrayIndex + 3].texCoords = {2 * 16, 16 + textureVariation * 16.0f};
+    groundVertexArray[vertexArrayIndex + 2].texCoords = {2 * 16 + 16, 16 + textureVariation * 16.0f};
+
+    groundVertexArray[vertexArrayIndex].color = sf::Color(255, 255, 255, 255);
+    groundVertexArray[vertexArrayIndex + 1].color = sf::Color(255, 255, 255, 255);
+    groundVertexArray[vertexArrayIndex + 3].color = sf::Color(255, 255, 255, 255);
+    groundVertexArray[vertexArrayIndex + 2].color = sf::Color(255, 255, 255, 255);
+
+    // Update visual tiles
+    generateVisualEffectTiles(noise, worldSize, chunkManager);
+
+    // Recalculate collision rects
+    recalculateCollisionRects(chunkManager);
 }
 
 void Chunk::setWorldPosition(sf::Vector2f position, ChunkManager& chunkManager)

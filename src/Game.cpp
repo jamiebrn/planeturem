@@ -4,6 +4,7 @@
 // FIX: Cliffs are broken again? (cliff on grass field) - maybe fixed????
 
 // PRIORITY: HIGH
+// TODO: Stop using cursor to select objects when holding an item
 // TODO: Make hotbar from inventory
 // TODO: Allow changing of tools through hotbar selection
 
@@ -331,6 +332,7 @@ void Game::runOnPlanet(float dt)
                         {
                             attemptUseTool();
                             attemptBuildObject();
+                            attemptPlaceLand();
                         }
                         InventoryGUI::handleLeftClick(mouseScreenPos);
                         break;
@@ -491,7 +493,7 @@ void Game::runOnPlanet(float dt)
         case WorldMenuState::Inventory:
         {
             Cursor::drawCursor(window);
-            
+
             ObjectType placeObject = InventoryGUI::getHeldObjectType();
             if (placeObject >= 0)
             {
@@ -509,6 +511,12 @@ void Game::runOnPlanet(float dt)
                 BuildableObject objectGhost(Cursor::getLerpedSelectPos() + sf::Vector2f(TILE_SIZE_PIXELS_UNSCALED / 2.0f, TILE_SIZE_PIXELS_UNSCALED / 2.0f), placeObject);
 
                 objectGhost.draw(window, dt, 0, worldSize, drawColor);
+            }
+
+            // Draw land to place if held
+            if (InventoryGUI::heldItemPlacesLand())
+            {
+                drawGhostPlaceTileAtCursor();
             }
 
             InventoryGUI::draw(window, mouseScreenPos);
@@ -666,4 +674,44 @@ void Game::attemptBuildObject()
         // Build object
         chunkManager.setObject(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile(), objectType, worldSize);
     }
+}
+
+void Game::attemptPlaceLand()
+{
+    if (!InventoryGUI::heldItemPlacesLand())
+        return;
+    
+    if (!chunkManager.canPlaceLand(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile()))
+        return;
+    
+    // Place land
+    chunkManager.placeLand(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile(), noise, worldSize);
+
+    // Subtract from land held
+    InventoryGUI::placeHeldObject();
+}
+
+void Game::drawGhostPlaceTileAtCursor()
+{
+    sf::Vector2f tileWorldPosition = Cursor::getLerpedSelectPos();
+
+    // Change color depending on whether can place land or not
+    sf::Color landGhostColor(255, 0, 0, 180);
+    if (chunkManager.canPlaceLand(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile()))
+    {
+        landGhostColor = sf::Color(0, 255, 0, 180);
+    }
+
+    float scale = ResolutionHandler::getScale();
+
+    // TODO: In future, change texture rect used depending on world
+    sf::IntRect textureRect(32, 0, 16, 16);
+
+    // Draw tile at screen position
+    TextureManager::drawSubTexture(window, {
+        .type = TextureType::GroundTiles,
+        .position = Camera::worldToScreenTransform(tileWorldPosition),
+        .scale = {scale, scale},
+        .colour = landGhostColor
+    }, textureRect);
 }

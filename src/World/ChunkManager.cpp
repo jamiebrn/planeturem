@@ -442,6 +442,46 @@ std::vector<CollisionRect*> ChunkManager::getChunkCollisionRects()
     return collisionRects;
 }
 
+bool ChunkManager::canPlaceLand(ChunkPosition chunk, sf::Vector2i tile)
+{
+    // Chunk not loaded
+    if (loadedChunks.count(chunk) <= 0)
+        return false;
+    
+    return loadedChunks[chunk]->canPlaceLand(tile);
+}
+
+void ChunkManager::placeLand(ChunkPosition chunk, sf::Vector2i tile, const FastNoise& noise, int worldSize)
+{
+    // Chunk not loaded
+    if (loadedChunks.count(chunk) <= 0)
+        return;
+    
+    // Cannot place land
+    if (!loadedChunks[chunk]->canPlaceLand(tile))
+        return;
+    
+    // Place land and update visual tiles for chunk
+    loadedChunks[chunk]->placeLand(tile, worldSize, noise, *this);
+
+    // Update visual tiles for adjacent chunks
+    for (int x = chunk.x - 1; x <= chunk.x + 1; x++)
+    {
+        for (int y = chunk.y - 1; y <= chunk.y + 1; y++)
+        {
+            // If chunk is centre chunk, do not update as has already been updated
+            if (ChunkPosition(x, y) == chunk)
+                continue;
+            
+            // Wrap around world if required
+            int wrappedX = (x % worldSize + worldSize) % worldSize;
+            int wrappedY = (y % worldSize + worldSize) % worldSize;
+
+            loadedChunks[ChunkPosition(wrappedX, wrappedY)]->generateVisualEffectTiles(noise, worldSize, *this);
+        }
+    }
+}
+
 sf::Vector2f ChunkManager::findValidSpawnPosition(int waterlessAreaSize, const FastNoise& noise, int worldSize)
 {
     // Move all loaded chunks (if any) into stored chunks temporarily

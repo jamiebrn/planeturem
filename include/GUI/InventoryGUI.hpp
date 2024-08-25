@@ -51,6 +51,8 @@ public:
     // Subtracts from currently held item, called when object is placed
     static void placeHeldObject();
 
+    static bool heldItemPlacesLand();
+
     static void draw(sf::RenderWindow& window, sf::Vector2f mouseScreenPos);
 
     static inline const std::vector<int>& getAvailableRecipes() {return availableRecipes;}

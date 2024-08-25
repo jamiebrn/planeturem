@@ -97,6 +97,16 @@ public:
     bool isCollisionRectCollidingWithEntities(const CollisionRect& collisionRect);
 
 
+    // -- Land -- //
+    // Check whether land can be placed
+    bool canPlaceLand(sf::Vector2i tile);
+
+    // Place land and update visual tiles for chunk
+    // Requires worldSize, noise, and chunk manager as regenerates visual tiles and collision rects
+    // ONLY CALL IF CHECKED WHETHER CAN PLACE FIRST, DOES NOT RECHECK
+    void placeLand(sf::Vector2i tile, int worldSize, const FastNoise& noise, ChunkManager& chunkManager);
+
+
     // Misc
     void setWorldPosition(sf::Vector2f position, ChunkManager& chunkManager);
     sf::Vector2f getWorldPosition();

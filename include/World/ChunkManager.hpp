@@ -102,6 +102,15 @@ public:
     std::vector<CollisionRect*> getChunkCollisionRects();
 
 
+    // -- Land -- //
+    // Check whether land can be placed at position
+    bool canPlaceLand(ChunkPosition chunk, sf::Vector2i tile);
+
+    // Place land at position
+    void placeLand(ChunkPosition chunk, sf::Vector2i tile, const FastNoise& noise, int worldSize);
+
+    
+
     // Misc
     inline int getLoadedChunkCount() {return loadedChunks.size();}
     inline int getGeneratedChunkCount() {return loadedChunks.size() + storedChunks.size();}

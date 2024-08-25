@@ -454,6 +454,16 @@ void InventoryGUI::placeHeldObject()
     }
 }
 
+bool InventoryGUI::heldItemPlacesLand()
+{
+    if (!isItemPickedUp)
+        return false;
+    
+    const ItemData& itemData = ItemDataLoader::getItemData(pickedUpItem);
+
+    return itemData.placesLand;
+}
+
 void InventoryGUI::draw(sf::RenderWindow& window, sf::Vector2f mouseScreenPos)
 {
     // Get resolution

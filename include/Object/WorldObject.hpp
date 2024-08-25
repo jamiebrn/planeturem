@@ -46,7 +46,8 @@ public:
         int xPos = chunk.x * CHUNK_TILE_SIZE + tile.x;
         int yPos = chunk.y * CHUNK_TILE_SIZE + tile.y;
 
-        return std::sin(xPos * xWavelength + yPos * yWavelength + gameTime * frequency);
+        // return -std::pow(std::sin(xPos * xWavelength + yPos * yWavelength + gameTime * frequency), 2.0f);
+        return std::sin(xPos * xWavelength + yPos * yWavelength + gameTime * frequency) - 1.0f;
     }
 
     inline int getDrawLayer() const {return drawLayer;}

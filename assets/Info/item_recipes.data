@@ -61,7 +61,13 @@
     {
         "product": "Golden Rock",
         "item-requirements": {
-            "Wood": 2
+            "Stone": 1
+        }
+    },
+    {
+        "product": "Land",
+        "item-requirements": {
+            "Stone": 5
         }
     }
 ]

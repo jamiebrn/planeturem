@@ -60,6 +60,9 @@ private:
     void attemptUseTool();
     void attemptObjectInteract();
     void attemptBuildObject();
+    void attemptPlaceLand();
+
+    void drawGhostPlaceTileAtCursor();
 
     void generateWaterNoiseTexture();
 
