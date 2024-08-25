@@ -10,6 +10,11 @@ bool ObjectDataLoader::loadData(std::string objectDataPath)
 
     int objectIdx = 0;
 
+    // Store all item drops to add to objects after loading
+    // Allows objects to drop other objects, including themselves, as items
+    // Pair stores name of item to drop as string, and item drop (item drop item type will be overridden)
+    std::unordered_map<ObjectType, std::vector<std::pair<std::string, ItemDrop>>> objectItemDrops;
+
     // Load data
     for (nlohmann::ordered_json::iterator iter = data.begin(); iter != data.end(); ++iter)
     {
@@ -52,12 +57,13 @@ bool ObjectDataLoader::loadData(std::string objectDataPath)
             for (nlohmann::ordered_json::iterator itemDropsIter = itemDrops.begin(); itemDropsIter != itemDrops.end(); ++itemDropsIter)
             {
                 ItemDrop itemDrop;
-                itemDrop.item = ItemDataLoader::getItemTypeFromName(itemDropsIter.key());
+                // itemDrop.item = ItemDataLoader::getItemTypeFromName(itemDropsIter.key());
                 itemDrop.minAmount = itemDropsIter.value()[0];
                 itemDrop.maxAmount = itemDropsIter.value()[1];
                 itemDrop.chance = itemDropsIter.value()[2];
 
-                objectData.itemDrops.push_back(itemDrop);
+                // objectData.itemDrops.push_back(itemDrop);
+                objectItemDrops[objectIdx].push_back({itemDropsIter.key(), itemDrop});
             }
         }
 
@@ -69,6 +75,21 @@ bool ObjectDataLoader::loadData(std::string objectDataPath)
         ItemDataLoader::createItemFromObject(objectData.name, objectIdx);
 
         objectIdx++;
+    }
+
+    // Load all item drops into objects
+    for (const auto& objectItemDrop : objectItemDrops)
+    {
+        const ObjectType& objectType = objectItemDrop.first;
+        const std::vector<std::pair<std::string, ItemDrop>>& itemDrops = objectItemDrop.second;
+
+        for (const auto& itemDropWithString : itemDrops)
+        {
+            ItemDrop itemDrop = itemDropWithString.second;
+            itemDrop.item = ItemDataLoader::getItemTypeFromName(itemDropWithString.first);
+
+            loaded_objectData[objectType].itemDrops.push_back(itemDrop);
+        }
     }
 
     return true;

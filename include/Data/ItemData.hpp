@@ -12,4 +12,5 @@ struct ItemData
     sf::IntRect textureRect;
 
     ObjectType placesObjectType = -1;
+    bool placesLand = false;
 };

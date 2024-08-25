@@ -32,7 +32,8 @@ bool ItemDataLoader::loadData(std::string itemDataPath)
         if (jsonItemData.contains("texture-y")) itemData.textureRect.top = jsonItemData.at("texture-y");
         if (jsonItemData.contains("texture-width")) itemData.textureRect.width = jsonItemData.at("texture-width");
         if (jsonItemData.contains("texture-height")) itemData.textureRect.height = jsonItemData.at("texture-height");
-        
+
+        if (jsonItemData.contains("places-land")) itemData.placesLand = jsonItemData.at("places-land");
 
         // Add to item name to type map
         itemNameToTypeMap[itemData.name] = itemIndex;

@@ -68,5 +68,14 @@
         "texture-y": 32,
         "texture-width": 16,
         "texture-height": 16
+    },
+
+    {
+        "name": "Land",
+        "texture-x": 112,
+        "texture-y": 112,
+        "texture-width": 16,
+        "texture-height": 16,
+        "places-land": true
     }
 ]
