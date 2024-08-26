@@ -18,12 +18,14 @@ std::vector<int> InventoryGUI::availableRecipes;
 int InventoryGUI::selectedRecipe;
 
 AnimatedTexture InventoryGUI::binAnimation;
+float InventoryGUI::binScale;
 
 std::array<float, MAX_INVENTORY_SIZE> InventoryGUI::inventoryItemScales;
 
 void InventoryGUI::initialise()
 {
     binAnimation.create(4, 16, 20, 96, 12, 0.04f, false);
+    binScale = 1.0f;
 
     inventoryItemScales.fill(1.0f);
 }
@@ -31,9 +33,17 @@ void InventoryGUI::initialise()
 void InventoryGUI::updateAnimations(sf::Vector2f mouseScreenPos, float dt)
 {
     // Update bin animation
-    int binAnimationUpdateDirection = -1;
+    int binAnimationUpdateDirection = 0;
     if (isBinSelected(mouseScreenPos) && isItemPickedUp)
+    {
         binAnimationUpdateDirection = 1;
+        binScale = Helper::lerp(binScale, BIN_HOVERED_SCALE, ITEM_HOVERED_SCALE_LERP_WEIGHT * dt);
+    }
+    else
+    {
+        binAnimationUpdateDirection = -1;
+        binScale = Helper::lerp(binScale, 1.0f, ITEM_HOVERED_SCALE_LERP_WEIGHT * dt);
+    }
 
     binAnimation.update(dt, binAnimationUpdateDirection);
 
@@ -555,11 +565,16 @@ void InventoryGUI::draw(sf::RenderWindow& window, sf::Vector2f mouseScreenPos)
     }
 
     // Draw bin
+    sf::Vector2f binPosition;
+    binPosition.x = itemBoxPadding * intScale + (itemBoxSize + itemBoxSpacing) * static_cast<float>(itemBoxPerRow) * intScale + (16 / 2) * 3 * intScale;
+    binPosition.y = itemBoxPadding * intScale + (20 / 2) * 3 * intScale;
+
     TextureManager::drawSubTexture(window, {
         TextureType::UI,
-        sf::Vector2f(itemBoxPadding, itemBoxPadding) * intScale + sf::Vector2f(itemBoxSize + itemBoxSpacing, 0) * static_cast<float>(itemBoxPerRow) * intScale,
+        binPosition,
         0,
-        {3 * intScale, 3 * intScale},
+        {3 * binScale * intScale, 3 * binScale * intScale},
+        {0.5, 0.5}
     }, binAnimation.getTextureRect());
 
 

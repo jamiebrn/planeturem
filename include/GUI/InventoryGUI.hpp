@@ -111,6 +111,8 @@ private:
 
     // Animation
     static AnimatedTexture binAnimation;
+    static float binScale;
+    static constexpr float BIN_HOVERED_SCALE = 1.05f;
 
     static std::array<float, MAX_INVENTORY_SIZE> inventoryItemScales;
     static constexpr float ITEM_HOVERED_SCALE = 1.1f;
