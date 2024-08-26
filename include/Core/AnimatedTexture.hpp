@@ -6,11 +6,11 @@ class AnimatedTexture
 {
 public:
     AnimatedTexture() = default;
-    AnimatedTexture(int frameCount, int frameWidth, int frameHeight, int xStart, int y, float maxFrameTick);
+    AnimatedTexture(int frameCount, int frameWidth, int frameHeight, int xStart, int y, float maxFrameTick, bool looping = true);
 
-    void create(int frameCount, int frameWidth, int frameHeight, int xStart, int y, float maxFrameTick);
+    void create(int frameCount, int frameWidth, int frameHeight, int xStart, int y, float maxFrameTick, bool looping = true);
     
-    void update(float dt);
+    void update(float dt, int direction = 1);
 
     sf::IntRect getTextureRect();
 
@@ -28,6 +28,8 @@ private:
 
     float maxFrameTick;
     float frameTick;
+
+    bool looping;
 
 };
 

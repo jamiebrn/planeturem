@@ -32,6 +32,14 @@
         "crafting-station": "furnace",
         "crafting-station-level": 1
     },
+    {
+        "product": "Coal",
+        "item-requirements": {
+            "Raw Coal": 1
+        },
+        "crafting-station": "furnace",
+        "crafting-station-level": 1
+    },
 
     {
         "product": "Furnace",

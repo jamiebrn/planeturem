@@ -17,6 +17,45 @@ std::vector<int> InventoryGUI::availableRecipes;
 
 int InventoryGUI::selectedRecipe;
 
+AnimatedTexture InventoryGUI::binAnimation;
+
+std::array<float, MAX_INVENTORY_SIZE> InventoryGUI::inventoryItemScales;
+
+void InventoryGUI::initialise()
+{
+    binAnimation.create(4, 16, 20, 96, 12, 0.04f, false);
+
+    inventoryItemScales.fill(1.0f);
+}
+
+void InventoryGUI::updateAnimations(sf::Vector2f mouseScreenPos, float dt)
+{
+    // Update bin animation
+    int binAnimationUpdateDirection = -1;
+    if (isBinSelected(mouseScreenPos) && isItemPickedUp)
+        binAnimationUpdateDirection = 1;
+
+    binAnimation.update(dt, binAnimationUpdateDirection);
+
+    // Update item scales
+    int hoveredItem = getInventoryHoveredIndex(mouseScreenPos);
+
+    for (int i = 0; i < inventoryItemScales.size(); i++)
+    {
+        float& itemScale = inventoryItemScales[i];
+
+        if (i == hoveredItem)
+        {
+            // Scale up
+            itemScale = Helper::lerp(itemScale, ITEM_HOVERED_SCALE, ITEM_HOVERED_SCALE_LERP_WEIGHT * dt);
+            continue;
+        }
+
+        // Scale down to 1.0f
+        itemScale = Helper::lerp(itemScale, 1.0f, ITEM_HOVERED_SCALE_LERP_WEIGHT * dt);
+    }
+}
+
 void InventoryGUI::handleLeftClick(sf::Vector2f mouseScreenPos)
 {
     if (isItemPickedUp)
@@ -28,7 +67,7 @@ void InventoryGUI::handleLeftClick(sf::Vector2f mouseScreenPos)
         pickUpItem(mouseScreenPos);
     }
 
-    int recipeClicked = getClickedRecipe(mouseScreenPos);
+    int recipeClicked = getHoveredRecipe(mouseScreenPos);
     if (recipeClicked >= 0)
     {
         // If clicked on recipe is selected, attempt to craft item
@@ -65,7 +104,7 @@ bool InventoryGUI::handleScroll(sf::Vector2f mouseScreenPos, int direction)
 void InventoryGUI::pickUpItem(sf::Vector2f mouseScreenPos, unsigned int amount)
 {
     // Get item selected at mouse
-    int itemIndex = getInventorySelectedIndex(mouseScreenPos);
+    int itemIndex = getInventoryHoveredIndex(mouseScreenPos);
 
     // No valid item selected
     if (itemIndex < 0)
@@ -120,7 +159,7 @@ void InventoryGUI::putDownItem(sf::Vector2f mouseScreenPos)
     }
 
     // Get item selected at mouse
-    int itemIndex = getInventorySelectedIndex(mouseScreenPos);
+    int itemIndex = getInventoryHoveredIndex(mouseScreenPos);
 
     // No valid item selected
     if (itemIndex < 0)
@@ -179,7 +218,7 @@ void InventoryGUI::putDownItem(sf::Vector2f mouseScreenPos)
         isItemPickedUp = false;
 }
 
-int InventoryGUI::getInventorySelectedIndex(sf::Vector2f mouseScreenPos)
+int InventoryGUI::getInventoryHoveredIndex(sf::Vector2f mouseScreenPos)
 {
     const sf::Vector2u& resolution = ResolutionHandler::getResolution();
     int intScale = ResolutionHandler::getResolutionIntegerScale();
@@ -221,7 +260,7 @@ int InventoryGUI::getInventorySelectedIndex(sf::Vector2f mouseScreenPos)
     return -1;
 }
 
-int InventoryGUI::getClickedRecipe(sf::Vector2f mouseScreenPos)
+int InventoryGUI::getHoveredRecipe(sf::Vector2f mouseScreenPos)
 {
     float intScale = ResolutionHandler::getResolutionIntegerScale();
 
@@ -260,6 +299,9 @@ bool InventoryGUI::isBinSelected(sf::Vector2f mouseScreenPos)
     float intScale = ResolutionHandler::getResolutionIntegerScale();
      
     sf::Vector2f binPos = sf::Vector2f(itemBoxPadding, itemBoxPadding) * intScale + sf::Vector2f(itemBoxSize + itemBoxSpacing, 0) * static_cast<float>(itemBoxPerRow) * intScale;
+    
+    // Add offset due to sprite size
+    binPos += sf::Vector2f(0, 4) * 3.0f * intScale;
 
     CollisionRect binCollisionRect;
     binCollisionRect.x = binPos.x;
@@ -470,19 +512,29 @@ void InventoryGUI::draw(sf::RenderWindow& window, sf::Vector2f mouseScreenPos)
     const sf::Vector2u& resolution = ResolutionHandler::getResolution();
     float intScale = ResolutionHandler::getResolutionIntegerScale();
 
+    // Get currently hovered over item
+    int hoveredItemIndex = getInventoryHoveredIndex(mouseScreenPos);
+
+    // Get currently hovered recipe
+    int hoveredRecipeIndex = getHoveredRecipe(mouseScreenPos);
 
     // Draw items
     sf::Vector2f itemBoxPosition = sf::Vector2f(itemBoxPadding, itemBoxPadding) * intScale;
 
     int currentRowIndex = 0;
 
-    for (const std::optional<ItemCount>& itemSlot : Inventory::getData())
+    for (int i = 0; i < Inventory::getData().size(); i++)
     {
+        const std::optional<ItemCount>& itemSlot = Inventory::getData()[i];
+
         if (itemSlot.has_value())
         {
             const ItemCount& itemCount = itemSlot.value();
 
-            drawItemBox(window, itemBoxPosition, itemCount.first, itemCount.second);
+            // Scale item up slightly if hovered over
+            float itemScaleMult = inventoryItemScales[i];
+
+            drawItemBox(window, itemBoxPosition, itemCount.first, itemCount.second, false, false, itemScaleMult);
         }
         else
         {
@@ -508,7 +560,7 @@ void InventoryGUI::draw(sf::RenderWindow& window, sf::Vector2f mouseScreenPos)
         sf::Vector2f(itemBoxPadding, itemBoxPadding) * intScale + sf::Vector2f(itemBoxSize + itemBoxSpacing, 0) * static_cast<float>(itemBoxPerRow) * intScale,
         0,
         {3 * intScale, 3 * intScale},
-    }, sf::IntRect(64, 16, 16, 16));
+    }, binAnimation.getTextureRect());
 
 
     // Draw Available recipes
@@ -589,12 +641,11 @@ void InventoryGUI::draw(sf::RenderWindow& window, sf::Vector2f mouseScreenPos)
     else
     {
         // Draw item info box if no item held in cursor and hovering over item
-        int selectedItemIndex = getInventorySelectedIndex(mouseScreenPos);
-
+    
         // If an item is hovered over, draw item info box
-        if (selectedItemIndex >= 0)
+        if (hoveredItemIndex >= 0)
         {
-            drawItemInfoBoxInventory(window, selectedItemIndex, mouseScreenPos);
+            drawItemInfoBoxInventory(window, hoveredItemIndex, mouseScreenPos);
         }
     }
 }
@@ -658,7 +709,8 @@ void InventoryGUI::drawItemBox(sf::RenderWindow& window,
                                std::optional<ItemType> itemType,
                                std::optional<int> itemAmount,
                                bool hiddenBackground,
-                               bool selectHighlight)
+                               bool selectHighlight,
+                               float itemScaleMult)
 {
     float intScale = ResolutionHandler::getResolutionIntegerScale();
 
@@ -689,7 +741,7 @@ void InventoryGUI::drawItemBox(sf::RenderWindow& window,
         {
             const ObjectData& objectData = ObjectDataLoader::getObjectData(itemData.placesObjectType);
 
-            int objectScale = std::max(4 - std::max(objectData.textureRects[0].width / 16.0f, objectData.textureRects[0].height / 16.0f), 1.0f);
+            float objectScale = std::max(4 - std::max(objectData.textureRects[0].width / 16.0f, objectData.textureRects[0].height / 16.0f), 1.0f) * itemScaleMult;
 
             // Draw object
             TextureManager::drawSubTexture(window, {
@@ -707,7 +759,7 @@ void InventoryGUI::drawItemBox(sf::RenderWindow& window,
                 TextureType::Items,
                 position + (sf::Vector2f(std::round(itemBoxSize / 2.0f), std::round(itemBoxSize / 2.0f))) * intScale,
                 0,
-                {3 * intScale, 3 * intScale},
+                {3 * itemScaleMult * intScale, 3 * itemScaleMult * intScale},
                 {0.5, 0.5}
             }, itemData.textureRect);
         }

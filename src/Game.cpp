@@ -78,6 +78,9 @@ bool Game::initialise()
     worldDarkness = 0.0f;
     isDay = true;
 
+    // Initialise GUI
+    InventoryGUI::initialise();
+
     generateWaterNoiseTexture();
 
     // Find valid player spawn
@@ -411,15 +414,18 @@ void Game::runOnPlanet(float dt)
     // Get nearby crafting stations
     nearbyCraftingStationLevels = chunkManager.getNearbyCraftingStationLevels(player.getChunkInside(worldSize), player.getChunkTileInside(), 4, worldSize);
 
-    // Update inventory GUI available recipes if required
+    // Update inventory GUI available recipes if required, and animations
     if (worldMenuState == WorldMenuState::Inventory)
+    {
         InventoryGUI::updateAvailableRecipes(nearbyCraftingStationLevels);
+        InventoryGUI::updateAnimations(mouseScreenPos, dt);
+    }
 
     // Update (loaded) chunks
     chunkManager.updateChunks(noise, worldSize);
     chunkManager.updateChunksObjects(dt);
     chunkManager.updateChunksEntities(dt, worldSize);
-
+    
 
     //
     // -- DRAWING --

@@ -7,6 +7,8 @@
 #include "Core/TextDraw.hpp"
 #include "Core/ResolutionHandler.hpp"
 #include "Core/CollisionRect.hpp"
+#include "Core/AnimatedTexture.hpp"
+#include "Core/Helper.hpp"
 
 #include "Player/Inventory.hpp"
 
@@ -23,6 +25,11 @@ class InventoryGUI
     InventoryGUI() = delete;
 
 public:
+    // Initialise animations etc
+    static void initialise();
+
+    static void updateAnimations(sf::Vector2f mouseScreenPos, float dt);
+
     // May pick up item stack, may put down item stack
     static void handleLeftClick(sf::Vector2f mouseScreenPos);
 
@@ -59,11 +66,10 @@ public:
 
 private:
     // Returns -1 if no index selected (mouse not hovered over item)
-    static int getInventorySelectedIndex(sf::Vector2f mouseScreenPos);
+    static int getInventoryHoveredIndex(sf::Vector2f mouseScreenPos);
 
-    // Returns -1 if not clicked / hovering over recipe
-    // Call on left click
-    static int getClickedRecipe(sf::Vector2f mouseScreenPos);
+    // Returns -1 if not hovering over recipe
+    static int getHoveredRecipe(sf::Vector2f mouseScreenPos);
 
     static bool isBinSelected(sf::Vector2f mouseScreenPos);
     static bool isInventorySelected(sf::Vector2f mouseScreenPos);
@@ -81,7 +87,8 @@ private:
                             std::optional<ItemType> itemType = std::nullopt,
                             std::optional<int> itemAmount = std::nullopt,
                             bool hiddenBackground = false,
-                            bool selectHighlight = false);
+                            bool selectHighlight = false,
+                            float itemScaleMult = 1.0f);
 
 private:
     static sf::Vector2f screenPos;
@@ -101,5 +108,12 @@ private:
 
     // Index of selected recipe in available recipes
     static int selectedRecipe;
+
+    // Animation
+    static AnimatedTexture binAnimation;
+
+    static std::array<float, MAX_INVENTORY_SIZE> inventoryItemScales;
+    static constexpr float ITEM_HOVERED_SCALE = 1.1f;
+    static constexpr float ITEM_HOVERED_SCALE_LERP_WEIGHT = 10.0f;
 
 };

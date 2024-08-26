@@ -1,11 +1,11 @@
 #include "Core/AnimatedTexture.hpp"
 
-AnimatedTexture::AnimatedTexture(int frameCount, int frameWidth, int frameHeight, int xStart, int y, float maxFrameTick)
+AnimatedTexture::AnimatedTexture(int frameCount, int frameWidth, int frameHeight, int xStart, int y, float maxFrameTick, bool looping)
 {
     create(frameCount, frameWidth, frameHeight, xStart, y, maxFrameTick);
 }
 
-void AnimatedTexture::create(int frameCount, int frameWidth, int frameHeight, int xStart, int y, float maxFrameTick)
+void AnimatedTexture::create(int frameCount, int frameWidth, int frameHeight, int xStart, int y, float maxFrameTick, bool looping)
 {
     this->frameCount = frameCount;
     this->frameWidth = frameWidth;
@@ -16,19 +16,33 @@ void AnimatedTexture::create(int frameCount, int frameWidth, int frameHeight, in
 
     frame = 0;
     frameTick = 0;
+
+    this->looping = looping;
 }
 
-void AnimatedTexture::update(float dt)
+void AnimatedTexture::update(float dt, int direction)
 {
     frameTick += dt;
     if (frameTick >= maxFrameTick)
     {
         frameTick = 0;
-        frame++;
+        frame += direction;
 
-        if (frame >= frameCount)
+        if (direction > 0)
         {
-            frame = 0;
+            if (frame >= frameCount)
+            {
+                if (looping) frame = 0;
+                else frame = frameCount - 1;
+            }
+        }
+        else
+        {
+            if (frame < 0)
+            {
+                if (looping) frame = frameCount - 1;
+                else frame = 0;
+            }
         }
     }
 }
