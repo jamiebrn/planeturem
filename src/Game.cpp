@@ -364,7 +364,8 @@ void Game::runOnPlanet(float dt)
                         handleZoom(event.mouseWheelScroll.delta);
                     break;
                 case WorldMenuState::Main:
-                    handleZoom(event.mouseWheelScroll.delta);
+                    // handleZoom(event.mouseWheelScroll.delta);
+                    InventoryGUI::handleScrollHotbar(-event.mouseWheelScroll.delta);
                     break;
             }
         }
@@ -414,9 +415,13 @@ void Game::runOnPlanet(float dt)
     // Get nearby crafting stations
     nearbyCraftingStationLevels = chunkManager.getNearbyCraftingStationLevels(player.getChunkInside(worldSize), player.getChunkTileInside(), 4, worldSize);
 
-    // Update inventory GUI available recipes if required, and animations
-    if (worldMenuState == WorldMenuState::Inventory)
+    if (worldMenuState == WorldMenuState::Main)
     {
+        InventoryGUI::updateAnimationsHotbar(dt);
+    }
+    else if (worldMenuState == WorldMenuState::Inventory)
+    {
+        // Update inventory GUI available recipes if required, and animations
         InventoryGUI::updateAvailableRecipes(nearbyCraftingStationLevels);
         InventoryGUI::updateAnimations(mouseScreenPos, dt);
     }
@@ -494,6 +499,7 @@ void Game::runOnPlanet(float dt)
     {
         case WorldMenuState::Main:
             Cursor::drawCursor(window);
+            InventoryGUI::drawHotbar(window, mouseScreenPos);
             break;
         
         case WorldMenuState::Inventory:

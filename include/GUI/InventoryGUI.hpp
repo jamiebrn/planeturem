@@ -64,6 +64,15 @@ public:
 
     static inline const std::vector<int>& getAvailableRecipes() {return availableRecipes;}
 
+    // -- Hotbar -- //
+
+    static void updateAnimationsHotbar(float dt);
+
+    static void handleScrollHotbar(int direction);
+
+    // Hotbar drawn when not in inventory
+    static void drawHotbar(sf::RenderWindow& window, sf::Vector2f mouseScreenPos);
+
 private:
     // Returns -1 if no index selected (mouse not hovered over item)
     static int getInventoryHoveredIndex(sf::Vector2f mouseScreenPos);
@@ -96,7 +105,7 @@ private:
     static int itemBoxSize;
     static int itemBoxSpacing;
     static int itemBoxPadding;
-    static int itemBoxPerRow;
+    static constexpr int ITEM_BOX_PER_ROW = 8;
 
     static bool isItemPickedUp;
     static ItemType pickedUpItem;
@@ -109,13 +118,19 @@ private:
     // Index of selected recipe in available recipes
     static int selectedRecipe;
 
+    // Hotbar
+    static int selectedHotbarIndex;
+
     // Animation
     static AnimatedTexture binAnimation;
     static float binScale;
-    static constexpr float BIN_HOVERED_SCALE = 1.05f;
+    static constexpr float BIN_HOVERED_SCALE = 1.2f;
 
     static std::array<float, MAX_INVENTORY_SIZE> inventoryItemScales;
-    static constexpr float ITEM_HOVERED_SCALE = 1.1f;
-    static constexpr float ITEM_HOVERED_SCALE_LERP_WEIGHT = 10.0f;
+    static constexpr float ITEM_HOVERED_SCALE = 1.3f;
+    static constexpr float ITEM_HOVERED_SCALE_LERP_WEIGHT = 15.0f;
+
+    static std::array<float, ITEM_BOX_PER_ROW> hotbarItemScales;
+    static constexpr float HOTBAR_SELECTED_SCALE = 1.3f;
 
 };
