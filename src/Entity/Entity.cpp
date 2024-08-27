@@ -93,11 +93,16 @@ void Entity::draw(sf::RenderTarget& window, float dt, float gameTime, int worldS
 
 void Entity::drawLightMask(sf::RenderTarget& lightTexture)
 {
-    sf::Vector2f scale((float)ResolutionHandler::getScale(), (float)ResolutionHandler::getScale());
+    static constexpr float lightScale = 0.3f;
+    static const sf::Color lightColor(255, 220, 140);
 
-    sf::IntRect lightMaskRect(128, 0, 32, 32);
+    sf::Vector2f scale((float)ResolutionHandler::getScale() * lightScale, (float)ResolutionHandler::getScale() * lightScale);
 
-    TextureManager::drawSubTexture(lightTexture, {TextureType::LightMask, Camera::worldToScreenTransform(position), 0, scale, {0.5, 0.5}}, lightMaskRect);
+    sf::IntRect lightMaskRect(0, 0, 256, 256);
+
+    TextureManager::drawSubTexture(lightTexture, {
+        TextureType::LightMask, Camera::worldToScreenTransform(position), 0, scale, {0.5, 0.5}, .colour = lightColor
+        }, lightMaskRect, sf::BlendAdd);
 }
 
 void Entity::damage(int amount)

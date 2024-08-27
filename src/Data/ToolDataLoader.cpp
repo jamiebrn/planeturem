@@ -1,11 +1,14 @@
 #include "Data/ToolDataLoader.hpp"
 
 std::vector<ToolData> ToolDataLoader::loaded_toolData;
+std::unordered_map<std::string, ToolType> ToolDataLoader::toolNameToTypeMap;
 
 bool ToolDataLoader::loadData(std::string toolDataPath)
 {
     std::ifstream file(toolDataPath);
     nlohmann::json data = nlohmann::json::parse(file);
+
+    int toolIdx = 0;
 
     // Load data
     for (nlohmann::json::iterator iter = data.begin(); iter != data.end(); ++iter)
@@ -24,6 +27,13 @@ bool ToolDataLoader::loadData(std::string toolDataPath)
         if (jsonToolData.contains("pivot-y")) toolData.pivot.y = jsonToolData.at("pivot-y");
 
         loaded_toolData.push_back(toolData);
+
+        toolNameToTypeMap[toolData.name] = toolIdx;
+
+        // Create item representing tool
+        ItemDataLoader::createItemFromTool(toolData.name, toolIdx);
+
+        toolIdx++;
     }
 
     return true;
@@ -32,4 +42,9 @@ bool ToolDataLoader::loadData(std::string toolDataPath)
 const ToolData& ToolDataLoader::getToolData(ToolType tool)
 {
     return loaded_toolData[tool];
+}
+
+ToolType ToolDataLoader::getToolTypeFromName(const std::string& toolName)
+{
+    return toolNameToTypeMap[toolName];
 }

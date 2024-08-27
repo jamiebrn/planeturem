@@ -1,5 +1,5 @@
-{
-    "0": {
+[
+    {
         "name": "Wooden Pickaxe",
         "texture-x": 16,
         "texture-y": 0,
@@ -8,7 +8,7 @@
         "pivot-x": 0.6875,
         "pivot-y": 0.6875
     },
-    "1": {
+    {
         "name": "Metal Pickaxe",
         "texture-x": 0,
         "texture-y": 0,
@@ -17,4 +17,4 @@
         "pivot-x": 0.75,
         "pivot-y": 0.75
     }
-}
+]

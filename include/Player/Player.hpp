@@ -12,6 +12,7 @@
 #include "Core/TextDraw.hpp"
 #include "Object/WorldObject.hpp"
 #include "World/ChunkManager.hpp"
+#include "Data/typedefs.hpp"
 #include "Data/ToolData.hpp"
 #include "Data/ToolDataLoader.hpp"
 
@@ -25,6 +26,9 @@ public:
     void update(float dt, sf::Vector2f mouseWorldPos, ChunkManager& chunkManager, int worldSize, bool& wrappedAroundWorld, sf::Vector2f& wrapPositionDelta);
     void draw(sf::RenderTarget& window, float dt, float gameTime, int worldSize, const sf::Color& color) override;
     void drawLightMask(sf::RenderTarget& lightTexture);
+
+    void setTool(ToolType toolType);
+    ToolType getTool();
 
     void useTool();
     bool isUsingTool();
@@ -49,7 +53,7 @@ private:
 
     int tileReach = 4;
 
-    unsigned int equippedTool;
+    ToolType equippedTool;
 
     // Tool animation
     float toolRotation;

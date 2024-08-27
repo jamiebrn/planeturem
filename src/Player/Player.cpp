@@ -18,7 +18,7 @@ Player::Player(sf::Vector2f position)
     idleAnimation.create(3, 16, 18, 0, 0, 0.3);
     runAnimation.create(5, 16, 18, 48, 0, 0.1);
 
-    equippedTool = 0;
+    equippedTool = -1;
     toolRotation = 0;
     usingTool = false;
 }
@@ -144,19 +144,22 @@ void Player::draw(sf::RenderTarget& window, float dt, float gameTime, int worldS
         animationRect);
 
     // Draw equipped tool
-    const ToolData& toolData = ToolDataLoader::getToolData(equippedTool);
+    if (equippedTool >= 0)
+    {
+        const ToolData& toolData = ToolDataLoader::getToolData(equippedTool);
 
-    sf::Vector2f toolPos = Camera::worldToScreenTransform(position + sf::Vector2f(0, waterYOffset)) + sf::Vector2f(playerScale.x * toolOffset.x, playerScale.y * toolOffset.y);
+        sf::Vector2f toolPos = Camera::worldToScreenTransform(position + sf::Vector2f(0, waterYOffset)) + sf::Vector2f(playerScale.x * toolOffset.x, playerScale.y * toolOffset.y);
 
-    float pivotYOffset = (toolRotation / 90.0f) * 0.4;
+        float pivotYOffset = (toolRotation / 90.0f) * 0.4;
 
-    float correctedToolRotation = toolRotation;
-    if (flippedTexture)
-        correctedToolRotation = -toolRotation;
+        float correctedToolRotation = toolRotation;
+        if (flippedTexture)
+            correctedToolRotation = -toolRotation;
 
-    TextureManager::drawSubTexture(window, {
-        TextureType::Tools, toolPos, correctedToolRotation, playerScale, {toolData.pivot.x, toolData.pivot.y + pivotYOffset
-        }}, toolData.textureRect);
+        TextureManager::drawSubTexture(window, {
+            TextureType::Tools, toolPos, correctedToolRotation, playerScale, {toolData.pivot.x, toolData.pivot.y + pivotYOffset
+            }}, toolData.textureRect);
+    }
 
     float scale = ResolutionHandler::getScale();
 
@@ -186,11 +189,26 @@ void Player::draw(sf::RenderTarget& window, float dt, float gameTime, int worldS
 
 void Player::drawLightMask(sf::RenderTarget& lightTexture)
 {
-    sf::Vector2f scale((float)ResolutionHandler::getScale(), (float)ResolutionHandler::getScale());
+    static constexpr float lightScale = 0.7f;
+    static const sf::Color lightColor(255, 220, 140);
 
-    sf::IntRect lightMaskRect(0, 0, 80, 80);
+    sf::Vector2f scale((float)ResolutionHandler::getScale() * lightScale, (float)ResolutionHandler::getScale() * lightScale);
 
-    TextureManager::drawSubTexture(lightTexture, {TextureType::LightMask, Camera::worldToScreenTransform(position), 0, scale, {0.5, 0.5}}, lightMaskRect);
+    sf::IntRect lightMaskRect(0, 0, 256, 256);
+
+    TextureManager::drawSubTexture(lightTexture, {
+        TextureType::LightMask, Camera::worldToScreenTransform(position), 0, scale, {0.5, 0.5}, .colour=lightColor
+        }, lightMaskRect, sf::BlendAdd);
+}
+
+void Player::setTool(ToolType toolType)
+{
+    equippedTool = toolType;
+}
+
+ToolType Player::getTool()
+{
+    return equippedTool;
 }
 
 void Player::useTool()

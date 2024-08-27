@@ -22,6 +22,8 @@ public:
 
     static void createItemFromObject(const std::string& objectName, ObjectType placesObject);
 
+    static void createItemFromTool(const std::string& toolName, ToolType toolType);
+
 private:
     static std::vector<ItemData> loaded_itemData;
 

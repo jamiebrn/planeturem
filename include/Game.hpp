@@ -58,11 +58,17 @@ private:
     void runOnPlanet(float dt);
 
     void attemptUseTool();
+    void changePlayerTool();
+
     void attemptObjectInteract();
     void attemptBuildObject();
     void attemptPlaceLand();
 
+    bool isPlacingObject();
+
     void drawGhostPlaceTileAtCursor();
+
+    void giveStartingInventory();
 
     void generateWaterNoiseTexture();
 

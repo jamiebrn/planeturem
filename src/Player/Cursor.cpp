@@ -17,7 +17,8 @@ void Cursor::updateTileCursor(sf::RenderWindow& window,
                               int worldSize,
                               ChunkManager& chunkManager,
                               const CollisionRect& playerCollisionRect,
-                              ObjectType placeObjectType)
+                              ObjectType placeObjectType,
+                              ToolType toolType)
 {
     // Get mouse position in screen space and world space
     sf::Vector2f mouseWorldPos = getMouseWorldPos(window);
@@ -34,6 +35,9 @@ void Cursor::updateTileCursor(sf::RenderWindow& window,
     // Set drawing to hidden by default
     drawState = CursorDrawState::Hidden;
 
+    // Get current tool data
+    const ToolData& toolData = ToolDataLoader::getToolData(toolType);
+
     // Override cursor size if object is being placed
     if (placeObjectType >= 0)
     {
@@ -47,7 +51,7 @@ void Cursor::updateTileCursor(sf::RenderWindow& window,
 
         drawState = CursorDrawState::Tile;
     }
-    else
+    else if (toolType >= 0)
     {
         // Get entity selected at cursor position (if any)
         Entity* selectedEntity = chunkManager.getSelectedEntity(Cursor::getSelectedChunk(worldSize), mouseWorldPos);

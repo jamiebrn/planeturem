@@ -19,6 +19,8 @@
 #include "Data/ObjectDataLoader.hpp"
 #include "Data/RecipeData.hpp"
 #include "Data/RecipeDataLoader.hpp"
+#include "Data/ToolData.hpp"
+#include "Data/ToolDataLoader.hpp"
 
 class InventoryGUI
 {
@@ -55,6 +57,9 @@ public:
     // Gets type of object that will be placed from item currently picked up
     static ObjectType getHeldObjectType();
 
+    // Get type of tool currently picked up from inventory
+    static ToolType getHeldToolType();
+
     // Subtracts from currently held item, called when object is placed
     static void placeHeldObject();
 
@@ -69,6 +74,12 @@ public:
     static void updateAnimationsHotbar(float dt);
 
     static void handleScrollHotbar(int direction);
+
+    static ObjectType getHotbarSelectedObject();
+    static ToolType getHotbarSelectedTool();
+    static bool hotbarItemPlacesLand();
+
+    static void placeHotbarObject();
 
     // Hotbar drawn when not in inventory
     static void drawHotbar(sf::RenderWindow& window, sf::Vector2f mouseScreenPos);

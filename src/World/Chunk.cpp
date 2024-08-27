@@ -88,22 +88,22 @@ void Chunk::generateChunk(const FastNoise& noise, int worldSize, ChunkManager& c
             if (spawn_chance < 4)
             {
                 // Make tree
-                objectGrid[y][x] = BuildableObject(objectPos, 0);
+                objectGrid[y][x] = BuildableObject(objectPos, ObjectDataLoader::getObjectTypeFromName("Tree"));
             }
             else if (spawn_chance == 4)
             {
                 // Make bush
-                objectGrid[y][x] = BuildableObject(objectPos, 1);
+                objectGrid[y][x] = BuildableObject(objectPos, ObjectDataLoader::getObjectTypeFromName("Bush"));
             }
             else if (spawn_chance == 5)
             {
                 // Make rock
-                objectGrid[y][x] = BuildableObject(objectPos, 4);
+                objectGrid[y][x] = BuildableObject(objectPos, ObjectDataLoader::getObjectTypeFromName("Rock"));
             }
             else if (spawn_chance == 6)
             {
                 // Make ore rock
-                objectGrid[y][x] = BuildableObject(objectPos, 10 + rand() % 3);
+                objectGrid[y][x] = BuildableObject(objectPos, ObjectDataLoader::getObjectTypeFromName("Iron Rock") + rand() % 3);
             }
         }
     }

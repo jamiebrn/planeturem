@@ -41,10 +41,10 @@ bool Game::initialise()
 
     if(!ItemDataLoader::loadData("Data/Info/item_data.data")) return false;
     if(!ObjectDataLoader::loadData("Data/Info/object_data.data")) return false;
+    if(!ToolDataLoader::loadData("Data/Info/tool_data.data")) return false;
+    if(!EntityDataLoader::loadData("Data/Info/entity_data.data")) return false;
     if(!RecipeDataLoader::loadData("Data/Info/item_recipes.data")) return false;
     // if(!BuildRecipeLoader::loadData("Data/Info/build_recipes.data")) return false;
-    if(!EntityDataLoader::loadData("Data/Info/entity_data.data")) return false;
-    if(!ToolDataLoader::loadData("Data/Info/tool_data.data")) return false;
 
     // Load icon
     if(!icon.loadFromFile("Data/Textures/icon.png")) return false;
@@ -87,6 +87,9 @@ bool Game::initialise()
     sf::Vector2f spawnPos = chunkManager.findValidSpawnPosition(2, noise, worldSize);
     player.setPosition(spawnPos);
 
+    // Initialise inventory
+    giveStartingInventory();
+
     Camera::instantUpdate(player.getPosition());
 
     Sounds::playMusic(MusicType::Main);
@@ -116,12 +119,23 @@ void Game::toggleFullScreen()
 
 void Game::handleWindowResize(sf::Vector2u newSize)
 {
-    view.setSize(newSize.x, newSize.y);
-    view.setCenter({newSize.x / 2.0f, newSize.y / 2.0f});
+    unsigned int newWidth = newSize.x;
+    unsigned int newHeight = newSize.y;
+
+    if (!fullScreen)
+    {
+        newWidth = std::max(newSize.x, 1280U);
+        newHeight = std::max(newSize.y, 720U);
+    }
+
+    window.setSize(sf::Vector2u(newWidth, newHeight));
+
+    view.setSize(newWidth, newHeight);
+    view.setCenter({newWidth / 2.0f, newHeight / 2.0f});
 
     // float beforeScale = ResolutionHandler::getScale();
 
-    ResolutionHandler::setResolution({newSize.x, newSize.y});
+    ResolutionHandler::setResolution({newWidth, newHeight});
 
     Camera::instantUpdate(player.getPosition());
 
@@ -197,6 +211,13 @@ void Game::generateWaterNoiseTexture()
 
     // Set water color (blue)
     waterShader->setUniform("waterColor", sf::Glsl::Vec4(77 / 255.0f, 155 / 255.0f, 230 / 255.0f, 1.0f));
+}
+
+void Game::giveStartingInventory()
+{
+    Inventory::addItem(ItemDataLoader::getItemTypeFromName("Wooden Pickaxe"), 1);
+
+    changePlayerTool();
 }
 
 void Game::run()
@@ -329,6 +350,8 @@ void Game::runOnPlanet(float dt)
                 {
                     case WorldMenuState::Main:
                         attemptUseTool();
+                        attemptBuildObject();
+                        attemptPlaceLand();
                         break;
                     case WorldMenuState::Inventory:
                         if (!InventoryGUI::isMouseOverUI(mouseScreenPos))
@@ -338,6 +361,7 @@ void Game::runOnPlanet(float dt)
                             attemptPlaceLand();
                         }
                         InventoryGUI::handleLeftClick(mouseScreenPos);
+                        changePlayerTool();
                         break;
                 }
             }
@@ -350,6 +374,7 @@ void Game::runOnPlanet(float dt)
                         break;
                     case WorldMenuState::Inventory:
                         InventoryGUI::handleRightClick(mouseScreenPos);
+                        changePlayerTool();
                         break;
                 }
             }
@@ -366,6 +391,7 @@ void Game::runOnPlanet(float dt)
                 case WorldMenuState::Main:
                     // handleZoom(event.mouseWheelScroll.delta);
                     InventoryGUI::handleScrollHotbar(-event.mouseWheelScroll.delta);
+                    changePlayerTool();
                     break;
             }
         }
@@ -381,7 +407,7 @@ void Game::runOnPlanet(float dt)
 
     // Update day / night cycle
     dayNightToggleTimer += dt;
-    // if (dayNightToggleTimer >= 20.0f)
+    // if (dayNightToggleTimer >= 15.0f)
     // {
     //     dayNightToggleTimer = 0.0f;
     //     if (isDay) floatTween.startTween(&worldDarkness, 0.0f, 0.95f, 7, TweenTransition::Sine, TweenEasing::EaseInOut);
@@ -393,7 +419,10 @@ void Game::runOnPlanet(float dt)
     Camera::update(player.getPosition(), mouseScreenPos, dt);
 
     // Update cursor
-    Cursor::updateTileCursor(window, dt, worldSize, chunkManager, player.getCollisionRect(), InventoryGUI::getHeldObjectType());
+    ObjectType objectType = InventoryGUI::getHeldObjectType();
+    if (objectType <= 0) objectType = InventoryGUI::getHotbarSelectedObject();
+
+    Cursor::updateTileCursor(window, dt, worldSize, chunkManager, player.getCollisionRect(), objectType, player.getTool());
 
     // Update player
     bool wrappedAroundWorld = false;
@@ -409,7 +438,8 @@ void Game::runOnPlanet(float dt)
     }
 
     // Enable / disable cursor drawing depending on player reach
-    if (InventoryGUI::getHeldObjectType() < 0)
+    // FIX: SORT THIS OUT
+    if (!isPlacingObject())
         Cursor::setCanReachTile(player.canReachPosition(Cursor::getMouseWorldPos(window)));
     
     // Get nearby crafting stations
@@ -474,7 +504,12 @@ void Game::runOnPlanet(float dt)
     // Draw light sources on light texture
     sf::RenderTexture lightTexture;
     lightTexture.create(window.getSize().x, window.getSize().y);
-    lightTexture.clear({0, 0, 0, 0});
+
+    unsigned char ambientRedLight = (1.f - worldDarkness) * 255.0f;
+    unsigned char ambientGreenLight = (1.f - worldDarkness * 0.97f) * 255.0f;
+    unsigned char ambientBlueLight = (1.f - worldDarkness * 0.93f) * 255.0f;
+
+    lightTexture.clear({ambientRedLight, ambientGreenLight, ambientBlueLight, 255});
 
     player.drawLightMask(lightTexture);
 
@@ -486,54 +521,65 @@ void Game::runOnPlanet(float dt)
 
     lightTexture.display();
 
-    // Finish drawing world - draw world texture
+    sf::Sprite lightTextureSprite(lightTexture.getTexture());
+    // lightTextureSprite.setColor(sf::Color(255, 255, 255, 255));
+
+    worldTexture.draw(lightTextureSprite, sf::BlendMultiply);
+
+    worldTexture.display();
+
     sf::Sprite worldTextureSprite(worldTexture.getTexture());
-    sf::Shader* lightingShader = Shaders::getShader(ShaderType::Lighting);
-    lightingShader->setUniform("lightingTexture", lightTexture.getTexture());
-    lightingShader->setUniform("darkness", worldDarkness);
-    window.draw(worldTextureSprite, lightingShader);
+    window.draw(worldTextureSprite);
+
+    // Finish drawing world - draw world texture
+    // sf::Shader* lightingShader = Shaders::getShader(ShaderType::Lighting);
+    // lightingShader->setUniform("lightingTexture", lightTexture.getTexture());
+    // lightingShader->setUniform("darkness", worldDarkness);
+    // window.draw(worldTextureSprite, lightingShader);    
+
 
     // UI
+    Cursor::drawCursor(window);
+
+    ObjectType placeObject = InventoryGUI::getHeldObjectType();
+    if (placeObject < 0)
+    {
+        placeObject = InventoryGUI::getHotbarSelectedObject();
+    }
+
+    if (placeObject >= 0)
+    {
+        // Draw object to be placed if held
+        bool canPlace = chunkManager.canPlaceObject(Cursor::getSelectedChunk(worldSize),
+                                                    Cursor::getSelectedChunkTile(),
+                                                    placeObject,
+                                                    worldSize,
+                                                    player.getCollisionRect());
+
+        sf::Color drawColor(255, 0, 0, 180);
+        if (canPlace)
+            drawColor = sf::Color(0, 255, 0, 180);
+        
+        BuildableObject objectGhost(Cursor::getLerpedSelectPos() + sf::Vector2f(TILE_SIZE_PIXELS_UNSCALED / 2.0f, TILE_SIZE_PIXELS_UNSCALED / 2.0f), placeObject);
+
+        objectGhost.draw(window, dt, 0, worldSize, drawColor);
+    }
+
+    // Draw land to place if held
+    if (InventoryGUI::heldItemPlacesLand() || InventoryGUI::hotbarItemPlacesLand())
+    {
+        drawGhostPlaceTileAtCursor();
+    }
 
     switch (worldMenuState)
     {
         case WorldMenuState::Main:
-            Cursor::drawCursor(window);
             InventoryGUI::drawHotbar(window, mouseScreenPos);
             break;
         
         case WorldMenuState::Inventory:
-        {
-            Cursor::drawCursor(window);
-
-            ObjectType placeObject = InventoryGUI::getHeldObjectType();
-            if (placeObject >= 0)
-            {
-                // Draw object to be placed if held
-                bool canPlace = chunkManager.canPlaceObject(Cursor::getSelectedChunk(worldSize),
-                                                            Cursor::getSelectedChunkTile(),
-                                                            placeObject,
-                                                            worldSize,
-                                                            player.getCollisionRect());
-
-                sf::Color drawColor(255, 0, 0, 180);
-                if (canPlace)
-                    drawColor = sf::Color(0, 255, 0, 180);
-                
-                BuildableObject objectGhost(Cursor::getLerpedSelectPos() + sf::Vector2f(TILE_SIZE_PIXELS_UNSCALED / 2.0f, TILE_SIZE_PIXELS_UNSCALED / 2.0f), placeObject);
-
-                objectGhost.draw(window, dt, 0, worldSize, drawColor);
-            }
-
-            // Draw land to place if held
-            if (InventoryGUI::heldItemPlacesLand())
-            {
-                drawGhostPlaceTileAtCursor();
-            }
-
             InventoryGUI::draw(window, mouseScreenPos);
             break;
-        }
     }
 
     // Debug info
@@ -604,6 +650,9 @@ void Game::handleEventsWindow(sf::Event& event)
 
 void Game::attemptUseTool()
 {
+    if (player.getTool() < 0)
+        return;
+
     if (player.isUsingTool() || InventoryGUI::getHeldObjectType() >= 0)
         return;
 
@@ -639,6 +688,30 @@ void Game::attemptUseTool()
     }
 }
 
+void Game::changePlayerTool()
+{
+    // Get currently selected tool in inventory and hotbar
+    ToolType hotbarTool = InventoryGUI::getHotbarSelectedTool();
+    ToolType inventoryTool = InventoryGUI::getHeldToolType();
+
+    // Get tool currently held by player
+
+    // If inventory tool is selected, override hotbar tool
+    if (inventoryTool >= 0)
+    {
+        player.setTool(inventoryTool);
+    }
+    else if (hotbarTool >= 0)
+    {
+        // Set tool from hotbar, as not selected from inventory
+        player.setTool(hotbarTool);
+    }
+    else
+    {
+        player.setTool(-1);
+    }
+}
+
 void Game::attemptObjectInteract()
 {
     if (worldMenuState != WorldMenuState::Main)
@@ -667,6 +740,14 @@ void Game::attemptObjectInteract()
 void Game::attemptBuildObject()
 {
     ObjectType objectType = InventoryGUI::getHeldObjectType();
+    bool placeFromHotbar = false;
+
+    // If object not picked up from inventory, check hotbar
+    if (objectType <= 0)
+    {
+        objectType = InventoryGUI::getHotbarSelectedObject();
+        placeFromHotbar = true;
+    }
 
     if (objectType < 0)
         return;
@@ -681,7 +762,14 @@ void Game::attemptBuildObject()
     if (canPlace)
     {
         // Remove object from being held
-        InventoryGUI::placeHeldObject();
+        if (placeFromHotbar)
+        {
+            InventoryGUI::placeHotbarObject();
+        }
+        else
+        {
+            InventoryGUI::placeHeldObject();
+        }
 
         // Build object
         chunkManager.setObject(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile(), objectType, worldSize);
@@ -690,8 +778,19 @@ void Game::attemptBuildObject()
 
 void Game::attemptPlaceLand()
 {
+    bool placeFromHotbar = false;
+
     if (!InventoryGUI::heldItemPlacesLand())
-        return;
+    {
+        if (InventoryGUI::hotbarItemPlacesLand())
+        {
+            placeFromHotbar = true;
+        }
+        else
+        {
+            return;
+        }
+    }
     
     if (!chunkManager.canPlaceLand(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile()))
         return;
@@ -700,7 +799,43 @@ void Game::attemptPlaceLand()
     chunkManager.placeLand(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile(), noise, worldSize);
 
     // Subtract from land held
-    InventoryGUI::placeHeldObject();
+    if (placeFromHotbar)
+    {
+        InventoryGUI::placeHotbarObject();
+    }
+    else
+    {
+        InventoryGUI::placeHeldObject();
+    }
+}
+
+bool Game::isPlacingObject()
+{
+    if (InventoryGUI::getHeldObjectType() <= 0)
+    {
+        if (InventoryGUI::getHotbarSelectedObject() >= 0)
+        {
+            return true;
+        }
+    }
+    else
+    {
+        return true;
+    }
+
+    if (!InventoryGUI::heldItemPlacesLand())
+    {
+        if (InventoryGUI::hotbarItemPlacesLand)
+        {
+            return true;
+        }
+    }
+    else
+    {
+        return true;
+    }
+
+    return false;
 }
 
 void Game::drawGhostPlaceTileAtCursor()

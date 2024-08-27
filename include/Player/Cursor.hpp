@@ -14,7 +14,10 @@
 #include "Types/WorldMenuState.hpp"
 
 #include "Data/typedefs.hpp"
+#include "Data/ObjectData.hpp"
 #include "Data/ObjectDataLoader.hpp"
+#include "Data/ToolData.hpp"
+#include "Data/ToolDataLoader.hpp"
 #include "GameConstants.hpp"
 
 enum CursorDrawState
@@ -40,7 +43,8 @@ public:
                                  int worldSize,
                                  ChunkManager& chunkManager,
                                  const CollisionRect& playerCollisionRect,
-                                 ObjectType placeObjectType);
+                                 ObjectType placeObjectType,
+                                 ToolType toolType);
 
     static ChunkPosition getSelectedChunk(int worldSize);
     static sf::Vector2i getSelectedChunkTile();

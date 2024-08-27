@@ -49,6 +49,12 @@
         }
     },
     {
+        "product": "Anvil",
+        "item-requirements": {
+            "Iron Bar": 2
+        }
+    },
+    {
         "product": "Wood Wall",
         "item-requirements": {
             "Wood": 4
@@ -77,5 +83,14 @@
         "item-requirements": {
             "Stone": 5
         }
+    },
+    {
+        "product": "Metal Pickaxe",
+        "item-requirements": {
+            "Iron Bar": 5,
+            "Wood": 3
+        },
+        "crafting-station": "anvil",
+        "crafting-station-level": 1
     }
 ]

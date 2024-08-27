@@ -495,6 +495,16 @@ ObjectType InventoryGUI::getHeldObjectType()
     return placeObjectType;
 }
 
+ToolType InventoryGUI::getHeldToolType()
+{
+    if (!isItemPickedUp)
+        return -1;
+    
+    ToolType toolType = ItemDataLoader::getItemData(pickedUpItem).toolType;
+
+    return toolType;
+}
+
 void InventoryGUI::placeHeldObject()
 {
     if (!isItemPickedUp)
@@ -774,6 +784,22 @@ void InventoryGUI::drawItemBox(sf::RenderWindow& window,
                 {0.5, 0.5}
             }, objectData.textureRects[0]);
         }
+        else if (itemData.toolType >= 0)
+        {
+            // Draw tool
+            const ToolData& toolData = ToolDataLoader::getToolData(itemData.toolType);
+
+            float objectScale = std::max(4 - std::max(toolData.textureRect.width / 16.0f, toolData.textureRect.height / 16.0f), 1.0f) * itemScaleMult;
+
+            // Draw object
+            TextureManager::drawSubTexture(window, {
+                TextureType::Tools,
+                position + (sf::Vector2f(std::round(itemBoxSize / 2.0f), std::round(itemBoxSize / 2.0f))) * intScale,
+                0,
+                {objectScale * intScale, objectScale * intScale},
+                {0.5, 0.5}
+            }, toolData.textureRect);
+        }
         else
         {
             // Draw as normal
@@ -829,6 +855,56 @@ void InventoryGUI::updateAnimationsHotbar(float dt)
 void InventoryGUI::handleScrollHotbar(int direction)
 {
     selectedHotbarIndex = ((selectedHotbarIndex + direction) % ITEM_BOX_PER_ROW + ITEM_BOX_PER_ROW) % ITEM_BOX_PER_ROW;
+}
+
+ObjectType InventoryGUI::getHotbarSelectedObject()
+{
+    // Get item
+    const std::optional<ItemCount>& itemSlot = Inventory::getData()[selectedHotbarIndex];
+
+    if (!itemSlot.has_value())
+        return -1;
+    
+    ItemType itemType = itemSlot.value().first;
+
+    const ItemData& itemData = ItemDataLoader::getItemData(itemType);
+
+    return itemData.placesObjectType;
+}
+
+ToolType InventoryGUI::getHotbarSelectedTool()
+{
+    // Get item
+    const std::optional<ItemCount>& itemSlot = Inventory::getData()[selectedHotbarIndex];
+
+    if (!itemSlot.has_value())
+        return -1;
+    
+    ItemType itemType = itemSlot.value().first;
+
+    const ItemData& itemData = ItemDataLoader::getItemData(itemType);
+
+    return itemData.toolType;
+}
+
+bool InventoryGUI::hotbarItemPlacesLand()
+{
+    // Get item
+    const std::optional<ItemCount>& itemSlot = Inventory::getData()[selectedHotbarIndex];
+
+    if (!itemSlot.has_value())
+        return false;
+    
+    ItemType itemType = itemSlot.value().first;
+
+    const ItemData& itemData = ItemDataLoader::getItemData(itemType);
+
+    return itemData.placesLand;
+}
+
+void InventoryGUI::placeHotbarObject()
+{
+    Inventory::takeItemAtIndex(selectedHotbarIndex, 1);
 }
 
 void InventoryGUI::drawHotbar(sf::RenderWindow& window, sf::Vector2f mouseScreenPos)

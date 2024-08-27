@@ -67,3 +67,16 @@ void ItemDataLoader::createItemFromObject(const std::string& objectName, ObjectT
 
     itemNameToTypeMap[objectItemData.name] = itemIndex;
 }
+
+void ItemDataLoader::createItemFromTool(const std::string& toolName, ToolType toolType)
+{
+    ItemData toolItemData;
+    toolItemData.name = toolName;
+    toolItemData.toolType = toolType;
+
+    int itemIndex = loaded_itemData.size();
+
+    loaded_itemData.push_back(toolItemData);
+
+    itemNameToTypeMap[toolItemData.name] = itemIndex;
+}
