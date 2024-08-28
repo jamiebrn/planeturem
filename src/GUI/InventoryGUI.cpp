@@ -25,6 +25,8 @@ std::array<float, MAX_INVENTORY_SIZE> InventoryGUI::inventoryItemScales;
 
 std::array<float, InventoryGUI::ITEM_BOX_PER_ROW> InventoryGUI::hotbarItemScales;
 
+float InventoryGUI::hotbarItemStringTimer = 0.0f;
+
 void InventoryGUI::initialise()
 {
     binAnimation.create(4, 16, 20, 96, 12, 0.04f, false);
@@ -232,7 +234,7 @@ void InventoryGUI::putDownItem(sf::Vector2f mouseScreenPos)
         isItemPickedUp = false;
 }
 
-int InventoryGUI::getInventoryHoveredIndex(sf::Vector2f mouseScreenPos)
+int InventoryGUI::getInventoryHoveredIndex(sf::Vector2f mouseScreenPos, bool onlyHotbar)
 {
     const sf::Vector2u& resolution = ResolutionHandler::getResolution();
     int intScale = ResolutionHandler::getResolutionIntegerScale();
@@ -240,9 +242,15 @@ int InventoryGUI::getInventoryHoveredIndex(sf::Vector2f mouseScreenPos)
     // Mimic GUI and create collision rects to test if item is being picked up
     sf::Vector2f itemBoxPosition = sf::Vector2f(itemBoxPadding, itemBoxPadding) * static_cast<float>(intScale);
 
+    int itemBoxCount = Inventory::getData().size();
+    if (onlyHotbar)
+    {
+        itemBoxCount = ITEM_BOX_PER_ROW;
+    }
+
     int currentRowIndex = 0;
 
-    for (int itemIndex = 0; itemIndex < Inventory::getData().size(); itemIndex++)
+    for (int itemIndex = 0; itemIndex < itemBoxCount; itemIndex++)
     {
         CollisionRect itemPickUpRect;
         
@@ -834,13 +842,15 @@ void InventoryGUI::drawItemBox(sf::RenderWindow& window,
 
 // -- Hotbar -- //
 
-void InventoryGUI::updateAnimationsHotbar(float dt)
+void InventoryGUI::updateAnimationsHotbar(float dt, sf::Vector2f mouseScreenPos)
 {
+    int hoveredItem = getInventoryHoveredIndex(mouseScreenPos, true);
+
     for (int i = 0; i < hotbarItemScales.size(); i++)
     {
         float& itemScale = hotbarItemScales[i];
 
-        if (i == selectedHotbarIndex)
+        if (i == selectedHotbarIndex ||i == hoveredItem)
         {
             // Scale up
             itemScale = Helper::lerp(itemScale, HOTBAR_SELECTED_SCALE, ITEM_HOVERED_SCALE_LERP_WEIGHT * dt);
@@ -850,11 +860,35 @@ void InventoryGUI::updateAnimationsHotbar(float dt)
         // Scale down to 1.0f
         itemScale = Helper::lerp(itemScale, 1.0f, ITEM_HOVERED_SCALE_LERP_WEIGHT * dt);
     }
+
+    // Update item string timer
+    hotbarItemStringTimer = std::max(hotbarItemStringTimer - dt, 0.0f);
+}
+
+bool InventoryGUI::handleLeftClickHotbar(sf::Vector2f mouseScreenPos)
+{
+    // Get hovered index
+    int hoveredIndex = getInventoryHoveredIndex(mouseScreenPos, true);
+
+    // Set selected index to hovered, as left click has occured
+    if (hoveredIndex >= 0)
+    {
+        selectedHotbarIndex = hoveredIndex;
+        handleHotbarItemChange();
+
+        // Interaction with hotbar
+        return true;
+    }
+
+    // No interaction with hotbar
+    return false;
 }
 
 void InventoryGUI::handleScrollHotbar(int direction)
 {
     selectedHotbarIndex = ((selectedHotbarIndex + direction) % ITEM_BOX_PER_ROW + ITEM_BOX_PER_ROW) % ITEM_BOX_PER_ROW;
+
+    handleHotbarItemChange();
 }
 
 ObjectType InventoryGUI::getHotbarSelectedObject()
@@ -907,6 +941,12 @@ void InventoryGUI::placeHotbarObject()
     Inventory::takeItemAtIndex(selectedHotbarIndex, 1);
 }
 
+void InventoryGUI::handleHotbarItemChange()
+{
+    // Set timer to max
+    hotbarItemStringTimer = HOTBAR_ITEM_STRING_OPAQUE_TIME + HOTBAR_ITEM_STRING_FADE_TIME;
+}
+
 void InventoryGUI::drawHotbar(sf::RenderWindow& window, sf::Vector2f mouseScreenPos)
 {
     // Get resolution
@@ -914,6 +954,8 @@ void InventoryGUI::drawHotbar(sf::RenderWindow& window, sf::Vector2f mouseScreen
     float intScale = ResolutionHandler::getResolutionIntegerScale();
 
     sf::Vector2f itemBoxPosition = sf::Vector2f(itemBoxPadding, itemBoxPadding) * intScale;
+
+    std::string selectedItemName = "";
 
     // Draw first row of inventory
     for (int i = 0; i < ITEM_BOX_PER_ROW; i++)
@@ -934,6 +976,13 @@ void InventoryGUI::drawHotbar(sf::RenderWindow& window, sf::Vector2f mouseScreen
             float itemScaleMult = hotbarItemScales[i];
 
             drawItemBox(window, itemBoxPosition, itemCount.first, itemCount.second, false, selected, itemScaleMult);
+
+            // Set item name string if selected
+            if (selected)
+            {
+                ItemType itemType = itemCount.first;
+                selectedItemName = ItemDataLoader::getItemData(itemType).name;
+            }
         }
         else
         {
@@ -942,5 +991,20 @@ void InventoryGUI::drawHotbar(sf::RenderWindow& window, sf::Vector2f mouseScreen
         }
 
         itemBoxPosition.x += (itemBoxSize + itemBoxSpacing) * intScale;
+    }
+
+    // Draw item name string
+    if (hotbarItemStringTimer > 0)
+    {
+        // Fade string color if required
+        float alpha = std::min(hotbarItemStringTimer / HOTBAR_ITEM_STRING_FADE_TIME, 1.0f) * 255.0f;
+
+        // Draw text
+        TextDraw::drawText(window, {
+            .text = selectedItemName,
+            .position = sf::Vector2f(itemBoxPadding, itemBoxPadding + itemBoxSize) * intScale,
+            .colour = sf::Color(255, 255, 255, alpha),
+            .size = 24 * static_cast<unsigned int>(intScale)
+        });
     }
 }

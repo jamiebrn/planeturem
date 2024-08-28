@@ -349,10 +349,16 @@ void Game::runOnPlanet(float dt)
                 switch (worldMenuState)
                 {
                     case WorldMenuState::Main:
-                        attemptUseTool();
-                        attemptBuildObject();
-                        attemptPlaceLand();
+                    {
+                        bool hotbarInteracted = InventoryGUI::handleLeftClickHotbar(mouseScreenPos);
+                        if (!hotbarInteracted)
+                        {
+                            attemptUseTool();
+                            attemptBuildObject();
+                            attemptPlaceLand();
+                        }
                         break;
+                    }
                     case WorldMenuState::Inventory:
                         if (!InventoryGUI::isMouseOverUI(mouseScreenPos))
                         {
@@ -424,6 +430,15 @@ void Game::runOnPlanet(float dt)
 
     Cursor::updateTileCursor(window, dt, worldSize, chunkManager, player.getCollisionRect(), objectType, player.getTool());
 
+    // Cursor enable / disable
+    if (InventoryGUI::heldItemPlacesLand() || InventoryGUI::hotbarItemPlacesLand())
+        Cursor::setCursorPlacingLand();
+
+    // Enable / disable cursor drawing depending on player reach
+    if (player.getTool() >= 0)
+        Cursor::setCursorHidden(!player.canReachPosition(Cursor::getMouseWorldPos(window)));
+    
+
     // Update player
     bool wrappedAroundWorld = false;
     sf::Vector2f wrapPositionDelta;
@@ -437,17 +452,13 @@ void Game::runOnPlanet(float dt)
         chunkManager.reloadChunks();
     }
 
-    // Enable / disable cursor drawing depending on player reach
-    // FIX: SORT THIS OUT
-    if (!isPlacingObject())
-        Cursor::setCanReachTile(player.canReachPosition(Cursor::getMouseWorldPos(window)));
     
     // Get nearby crafting stations
     nearbyCraftingStationLevels = chunkManager.getNearbyCraftingStationLevels(player.getChunkInside(worldSize), player.getChunkTileInside(), 4, worldSize);
 
     if (worldMenuState == WorldMenuState::Main)
     {
-        InventoryGUI::updateAnimationsHotbar(dt);
+        InventoryGUI::updateAnimationsHotbar(dt, mouseScreenPos);
     }
     else if (worldMenuState == WorldMenuState::Inventory)
     {
@@ -455,6 +466,7 @@ void Game::runOnPlanet(float dt)
         InventoryGUI::updateAvailableRecipes(nearbyCraftingStationLevels);
         InventoryGUI::updateAnimations(mouseScreenPos, dt);
     }
+
 
     // Update (loaded) chunks
     chunkManager.updateChunks(noise, worldSize);
@@ -653,7 +665,10 @@ void Game::attemptUseTool()
     if (player.getTool() < 0)
         return;
 
-    if (player.isUsingTool() || InventoryGUI::getHeldObjectType() >= 0)
+    if (player.isUsingTool())
+        return;
+    
+    if (InventoryGUI::getHeldObjectType() >= 0 || InventoryGUI::heldItemPlacesLand())
         return;
 
     // Get mouse position in screen space and world space
@@ -807,35 +822,6 @@ void Game::attemptPlaceLand()
     {
         InventoryGUI::placeHeldObject();
     }
-}
-
-bool Game::isPlacingObject()
-{
-    if (InventoryGUI::getHeldObjectType() <= 0)
-    {
-        if (InventoryGUI::getHotbarSelectedObject() >= 0)
-        {
-            return true;
-        }
-    }
-    else
-    {
-        return true;
-    }
-
-    if (!InventoryGUI::heldItemPlacesLand())
-    {
-        if (InventoryGUI::hotbarItemPlacesLand)
-        {
-            return true;
-        }
-    }
-    else
-    {
-        return true;
-    }
-
-    return false;
 }
 
 void Game::drawGhostPlaceTileAtCursor()

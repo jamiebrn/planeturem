@@ -220,10 +220,21 @@ sf::Vector2f Cursor::getMouseWorldPos(sf::RenderWindow& window)
     return Camera::screenToWorldTransform(mousePos);
 }
 
-void Cursor::setCanReachTile(bool canReach)
+void Cursor::setCursorHidden(bool hidden)
 {
-    if (!canReach)
+    if (hidden)
         drawState = CursorDrawState::Hidden;
+}
+
+void Cursor::setCursorPlacingLand()
+{
+    drawState = CursorDrawState::Tile;
+
+    // Set cursor animation to freeze at index 0
+    for (int cursorCornerIdx = 0; cursorCornerIdx < cursorAnimatedTextures.size(); cursorCornerIdx++)
+    {
+        cursorAnimatedTextures[cursorCornerIdx].setFrame(0);
+    }
 }
 
 void Cursor::handleWorldWrap(sf::Vector2f positionDelta)

@@ -16,8 +16,8 @@ void Camera::update(sf::Vector2f playerPosition, sf::Vector2f mouseScreenPos, fl
     destinationOffset.y = playerPosition.y - (resolution.y / scale) / 2.0f;
 
     // Add mouse delta
-    destinationOffset.x += std::max(std::min(mouseScreenPos.x - (resolution.x / 2.0f), resolution.x / 2.0f), -resolution.x / 2.0f) / MOUSE_DELTA_DAMPEN / scale;
-    destinationOffset.y += std::max(std::min(mouseScreenPos.y - (resolution.y / 2.0f), resolution.y / 2.0f), -resolution.y / 2.0f) / MOUSE_DELTA_DAMPEN / scale;
+    destinationOffset.x += std::round(std::max(std::min(mouseScreenPos.x - (resolution.x / 2.0f), resolution.x / 2.0f), -resolution.x / 2.0f) / MOUSE_DELTA_DAMPEN / scale);
+    destinationOffset.y += std::round(std::max(std::min(mouseScreenPos.y - (resolution.y / 2.0f), resolution.y / 2.0f), -resolution.y / 2.0f) / MOUSE_DELTA_DAMPEN / scale);
 
     // Interpolate towards desired position
     offset.x = Helper::lerp(offset.x, destinationOffset.x, MOVE_LERP_WEIGHT * deltaTime);

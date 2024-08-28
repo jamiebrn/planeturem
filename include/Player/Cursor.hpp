@@ -33,6 +33,8 @@ struct CursorCornerPosition
     sf::Vector2f worldPosition = {0, 0};
 };
 
+// TODO: Probably needs to be rewritten at some point
+
 class Cursor
 {
     Cursor() = delete;
@@ -58,7 +60,9 @@ public:
 
     static void drawCursor(sf::RenderWindow& window);
 
-    static void setCanReachTile(bool canReach);
+    static void setCursorHidden(bool canReach);
+
+    static void setCursorPlacingLand();
 
     static void handleWorldWrap(sf::Vector2f positionDelta);
 

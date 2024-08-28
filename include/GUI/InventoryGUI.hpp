@@ -71,7 +71,9 @@ public:
 
     // -- Hotbar -- //
 
-    static void updateAnimationsHotbar(float dt);
+    static void updateAnimationsHotbar(float dt, sf::Vector2f mouseScreenPos);
+
+    static bool handleLeftClickHotbar(sf::Vector2f mouseScreenPos);
 
     static void handleScrollHotbar(int direction);
 
@@ -86,7 +88,7 @@ public:
 
 private:
     // Returns -1 if no index selected (mouse not hovered over item)
-    static int getInventoryHoveredIndex(sf::Vector2f mouseScreenPos);
+    static int getInventoryHoveredIndex(sf::Vector2f mouseScreenPos, bool onlyHotbar = false);
 
     // Returns -1 if not hovering over recipe
     static int getHoveredRecipe(sf::Vector2f mouseScreenPos);
@@ -109,6 +111,9 @@ private:
                             bool hiddenBackground = false,
                             bool selectHighlight = false,
                             float itemScaleMult = 1.0f);
+
+    // -- Hotbar --
+    static void handleHotbarItemChange();
 
 private:
     static sf::Vector2f screenPos;
@@ -143,5 +148,9 @@ private:
 
     static std::array<float, ITEM_BOX_PER_ROW> hotbarItemScales;
     static constexpr float HOTBAR_SELECTED_SCALE = 1.3f;
+
+    static float hotbarItemStringTimer;
+    static constexpr float HOTBAR_ITEM_STRING_OPAQUE_TIME = 2.5f;
+    static constexpr float HOTBAR_ITEM_STRING_FADE_TIME = 0.6f;
 
 };

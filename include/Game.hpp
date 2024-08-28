@@ -64,8 +64,6 @@ private:
     void attemptBuildObject();
     void attemptPlaceLand();
 
-    bool isPlacingObject();
-
     void drawGhostPlaceTileAtCursor();
 
     void giveStartingInventory();
