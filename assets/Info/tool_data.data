@@ -6,7 +6,8 @@
         "texture-width": 16,
         "texture-height": 16,
         "pivot-x": 0.6875,
-        "pivot-y": 0.6875
+        "pivot-y": 0.6875,
+        "damage": 1
     },
     {
         "name": "Metal Pickaxe",
@@ -15,6 +16,7 @@
         "texture-width": 16,
         "texture-height": 16,
         "pivot-x": 0.75,
-        "pivot-y": 0.75
+        "pivot-y": 0.75,
+        "damage": 2
     }
 ]

@@ -4,9 +4,9 @@
 // FIX: Cliffs are broken again? (cliff on grass field) - maybe fixed????
 
 // PRIORITY: HIGH
-// TODO: Stop using cursor to select objects when holding an item
-// TODO: Make hotbar from inventory
-// TODO: Allow changing of tools through hotbar selection
+// TODO: Different damage values from tools
+// TODO: Chests!!!
+// TODO: Different types of tools? (fishing rod etc)
 
 // PRIORITY: LOW
 // TODO: Inventory item added notifications (maybe taking items?). Add in player class
@@ -678,11 +678,16 @@ void Game::attemptUseTool()
 
     if (!player.canReachPosition(mouseWorldPos))
         return;
+    
+    // Get current tool damage amount
+    ToolType currentTool = player.getTool();
+
+    const ToolData& toolData = ToolDataLoader::getToolData(currentTool);
 
     Entity* selectedEntity = chunkManager.getSelectedEntity(Cursor::getSelectedChunk(worldSize), mouseWorldPos);
     if (selectedEntity != nullptr)
     {
-        selectedEntity->damage(1);
+        selectedEntity->damage(toolData.damage);
     }
     else
     {
@@ -698,7 +703,7 @@ void Game::attemptUseTool()
         if (selectedObjectOptional.has_value())
         {
             BuildableObject& selectedObject = selectedObjectOptional.value();
-            selectedObject.damage(1);
+            selectedObject.damage(toolData.damage);
         }
     }
 }

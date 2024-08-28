@@ -12,7 +12,9 @@
         "product": "Refined Wood",
         "item-requirements": {
             "Wood": 3
-        }
+        },
+        "crafting-station": "bench",
+        "crafting-station-level": 1
     },
     {
         "product": "Iron Bar",
@@ -37,7 +39,7 @@
         "item-requirements": {
             "Raw Coal": 1
         },
-        "crafting-station": "furnace",
+        "crafting-station": "bench",
         "crafting-station-level": 1
     },
 
@@ -46,36 +48,54 @@
         "item-requirements": {
             "Stone": 5,
             "Wood": 2
-        }
+        },
+        "crafting-station": "bench",
+        "crafting-station-level": 1
     },
     {
         "product": "Anvil",
         "item-requirements": {
             "Iron Bar": 2
+        },
+        "crafting-station": "bench",
+        "crafting-station-level": 1
+    },
+    {
+        "product": "Wooden Bench",
+        "item-requirements": {
+            "Wood": 10
         }
     },
     {
         "product": "Wood Wall",
         "item-requirements": {
             "Wood": 4
-        }
+        },
+        "crafting-station": "bench",
+        "crafting-station-level": 1
     },
     {
         "product": "Wood Bridge",
         "item-requirements": {
             "Wood": 2
-        }
+        },
+        "crafting-station": "bench",
+        "crafting-station-level": 1
     },
     {
         "product": "Golden Tree",
-        "item-requirements": {
-            "Wood": 1
-        }
+        "crafting-station": "devorb",
+        "crafting-station-level": 1
     },
     {
         "product": "Golden Rock",
+        "crafting-station": "devorb",
+        "crafting-station-level": 1
+    },
+    {
+        "product": "Development Orb",
         "item-requirements": {
-            "Stone": 1
+            "Wood": 1
         }
     },
     {

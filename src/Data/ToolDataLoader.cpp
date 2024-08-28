@@ -26,6 +26,8 @@ bool ToolDataLoader::loadData(std::string toolDataPath)
         if (jsonToolData.contains("pivot-x")) toolData.pivot.x = jsonToolData.at("pivot-x");
         if (jsonToolData.contains("pivot-y")) toolData.pivot.y = jsonToolData.at("pivot-y");
 
+        if (jsonToolData.contains("damage")) toolData.damage = jsonToolData.at("damage");
+
         loaded_toolData.push_back(toolData);
 
         toolNameToTypeMap[toolData.name] = toolIdx;

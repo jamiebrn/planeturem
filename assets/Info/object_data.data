@@ -80,20 +80,21 @@
         "texture-height": 16,
         "texture-x-origin": 0.5,
         "texture-y-origin": 0.75,
-        "size-x": 1,
-        "size-y": 1,
         "has-collision": true,
         "crafting-station": "anvil",
         "crafting-station-level": 1
     },
     {
-        "name": "Table",
-        "health": 4,
-        "textures": [[96, 16]],
+        "name": "Wooden Bench",
+        "health": 5,
+        "textures": [[96, 96]],
         "texture-width": 16,
         "texture-height": 16,
         "texture-x-origin": 0.5,
-        "texture-y-origin": 0.9375
+        "texture-y-origin": 0.75,
+        "has-collision": true,
+        "crafting-station": "bench",
+        "crafting-station-level": 1
     },
     {
         "name": "Chest",
@@ -163,5 +164,18 @@
         "item-drops": {
             "Raw Coal": [2, 2, 1.0]
         }
+    },
+    {
+        "name": "Development Orb",
+        "health": 9999,
+        "textures": [[128, 112], [144, 112], [160, 112], [176, 112], [192, 112], [208, 112], [224, 112], [240, 112]],
+        "texture-frame-delay": 0.1,
+        "texture-width": 16,
+        "texture-height": 16,
+        "texture-x-origin": 0.5,
+        "texture-y-origin": 0.75,
+        "has-collision": true,
+        "crafting-station": "devorb",
+        "crafting-station-level": 999
     }
 ]
