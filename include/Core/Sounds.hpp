@@ -9,7 +9,8 @@
 // Enum containing all sound effects
 enum class SoundType
 {
-    
+    HitObject, HitObject2, HitObject3,
+    CraftBuild1, CraftBuild2
 };
 
 // Enum containing all music tracks
@@ -35,7 +36,7 @@ public:
     static void unloadSounds();
 
     // Play sound effect
-    static void playSound(SoundType type);
+    static void playSound(SoundType type, float volume = 100.0f);
 
     // Play music track
     static void playMusic(MusicType type);
@@ -56,6 +57,11 @@ private:
 
     // Constant map storing file paths for all sound effects
     inline static const std::unordered_map<SoundType, std::string> soundPaths = {
+        {SoundType::HitObject, "Data/Sounds/hit_object.ogg"},
+        {SoundType::HitObject2, "Data/Sounds/hit_object_2.ogg"},
+        {SoundType::HitObject3, "Data/Sounds/hit_object_3.ogg"},
+        {SoundType::CraftBuild1, "Data/Sounds/craftbuild1.ogg"},
+        {SoundType::CraftBuild2, "Data/Sounds/craftbuild2.ogg"}
     };
 
     // Map storing music objects, which interface with the music streams

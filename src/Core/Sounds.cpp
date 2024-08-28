@@ -102,14 +102,18 @@ void Sounds::unloadSounds()
 }
 
 // Play sound effect
-void Sounds::playSound(SoundType type)
+void Sounds::playSound(SoundType type, float volume)
 {
     // If sounds have not been loaded, return by default
     if (!loadedSounds)
         return;
 
+    sf::Sound& sound = soundMap.at(type);
+
+    sound.setVolume(volume);
+
     // Play sound from sound map
-    soundMap.at(type).play();
+    sound.play();
 }
 
 // Play music track

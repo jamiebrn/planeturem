@@ -7,6 +7,7 @@
 #include "Core/TextDraw.hpp"
 #include "Core/ResolutionHandler.hpp"
 #include "Core/CollisionRect.hpp"
+#include "Core/Sounds.hpp"
 #include "Core/AnimatedTexture.hpp"
 #include "Core/Helper.hpp"
 

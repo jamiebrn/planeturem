@@ -357,6 +357,10 @@ void Game::runOnPlanet(float dt)
                             attemptBuildObject();
                             attemptPlaceLand();
                         }
+                        else
+                        {
+                            changePlayerTool();
+                        }
                         break;
                     }
                     case WorldMenuState::Inventory:
@@ -791,6 +795,13 @@ void Game::attemptBuildObject()
             InventoryGUI::placeHeldObject();
         }
 
+        // Play build sound
+        int soundChance = rand() % 2;
+        SoundType buildSound = SoundType::CraftBuild1;
+        if (soundChance == 1) buildSound = SoundType::CraftBuild2;
+
+        Sounds::playSound(buildSound, 60.0f);
+
         // Build object
         chunkManager.setObject(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile(), objectType, worldSize);
     }
@@ -817,6 +828,13 @@ void Game::attemptPlaceLand()
     
     // Place land
     chunkManager.placeLand(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile(), noise, worldSize);
+
+    // Play build sound
+    int soundChance = rand() % 2;
+    SoundType buildSound = SoundType::CraftBuild1;
+    if (soundChance == 1) buildSound = SoundType::CraftBuild2;
+
+    Sounds::playSound(buildSound, 60.0f);
 
     // Subtract from land held
     if (placeFromHotbar)

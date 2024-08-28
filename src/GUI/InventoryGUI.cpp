@@ -406,6 +406,13 @@ void InventoryGUI::craftSelectedRecipe()
         pickedUpItemCount = recipeData.productAmount;
     }
 
+    // Play craft sound
+    int soundChance = rand() % 2;
+    SoundType craftSound = SoundType::CraftBuild1;
+    if (soundChance == 1) craftSound = SoundType::CraftBuild2;
+
+    Sounds::playSound(craftSound, 60.0f);
+
     // Inventory changed, so update available recipes
     // Use previous crafting station levels stored as only updating for item change
     updateAvailableRecipes(previous_nearbyCraftingStationLevels);
