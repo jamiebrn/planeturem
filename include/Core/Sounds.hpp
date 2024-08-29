@@ -16,7 +16,8 @@ enum class SoundType
 // Enum containing all music tracks
 enum class MusicType
 {
-    Main
+    WorldTheme,
+    WorldTheme2
 };
 
 // Declare sound manager class
@@ -39,10 +40,12 @@ public:
     static void playSound(SoundType type, float volume = 100.0f);
 
     // Play music track
-    static void playMusic(MusicType type);
+    static void playMusic(MusicType type, float volume = 100.0f);
 
     // Stop music track
     static void stopMusic(MusicType type);
+
+    static bool isMusicFinished(MusicType type);
 
 // Private member variables
 private:
@@ -67,12 +70,10 @@ private:
     // Map storing music objects, which interface with the music streams
     inline static std::unordered_map<MusicType, std::unique_ptr<sf::Music>> musicMap;
 
-    // Constant storing volume of music
-    static float musicVolume;
-
     // Constant map storing file paths for all music tracks
     inline static const std::unordered_map<MusicType, std::string> musicPaths = {
-        {MusicType::Main, "Data/Sounds/first tune.ogg"}
+        {MusicType::WorldTheme, "Data/Sounds/world_theme.ogg"},
+        {MusicType::WorldTheme2, "Data/Sounds/world_theme_2.ogg"}
     };
 
 };

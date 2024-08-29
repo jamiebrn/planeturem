@@ -23,13 +23,13 @@
 enum ObjectInteraction
 {
     NoAction,
-    OpenFurnace
+    Chest
 };
 
 struct ObjectInteractionEventData
 {
     ObjectInteraction interactionType;
-    uint64_t objectID;
+    uint16_t chestID;
 };
 
 class BuildableObject : public WorldObject
@@ -65,7 +65,7 @@ private:
 
     AnimatedTextureMinimal animatedTexture;
 
-    uint64_t furnaceID = 0;
+    uint16_t chestID = 0;
 
     // If reference to a buildable object
     std::optional<ObjectReference> objectReference = std::nullopt;

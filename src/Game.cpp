@@ -4,11 +4,11 @@
 // FIX: Cliffs are broken again? (cliff on grass field) - maybe fixed????
 
 // PRIORITY: HIGH
-// TODO: Different damage values from tools
 // TODO: Chests!!!
 // TODO: Different types of tools? (fishing rod etc)
 
 // PRIORITY: LOW
+// TODO: Fade music
 // TODO: Inventory item added notifications (maybe taking items?). Add in player class
 
 Game::Game()
@@ -67,8 +67,12 @@ bool Game::initialise()
     gameTime = 0;
     gameState = GameState::OnPlanet;
     worldMenuState = WorldMenuState::Main;
-    interactedObjectID = 0;
-    interactedObjectPos = sf::Vector2f(0, 0);
+    openedChestID = 0;
+    openedChestPos = sf::Vector2f(0, 0);
+
+    musicTypePlaying = std::nullopt;
+    musicGapTimer = 0.0f;
+    musicGap = 0.0f;
 
     // Set world size
     worldSize = 240;
@@ -91,8 +95,6 @@ bool Game::initialise()
     giveStartingInventory();
 
     Camera::instantUpdate(player.getPosition());
-
-    Sounds::playMusic(MusicType::Main);
 
     // Return true by default
     return true;
@@ -412,6 +414,8 @@ void Game::runOnPlanet(float dt)
     // -- UPDATING --
     //
 
+    updateMusic(dt);
+
     // Update tweens
     floatTween.update(dt);
 
@@ -640,6 +644,37 @@ void Game::runOnPlanet(float dt)
     // window.setTitle("spacebuild - " + std::to_string((int)(1.0f / dt)) + "FPS");
 }
 
+void Game::updateMusic(float dt)
+{
+    // Music playing
+    if (musicTypePlaying.has_value())
+    {
+        if (Sounds::isMusicFinished(musicTypePlaying.value()))
+        {
+            musicTypePlaying = std::nullopt;
+        }
+        else
+        {
+            return;
+        }
+    }
+    
+    musicGapTimer += dt;
+
+    if (musicGapTimer < musicGap)
+        return;
+    
+    // Play new music as music gap has ended
+    static constexpr std::array<MusicType, 2> musicTypes = {MusicType::WorldTheme, MusicType::WorldTheme2};
+    int musicTypeChance = rand() % musicTypes.size();
+
+    musicTypePlaying = musicTypes[musicTypeChance];
+    Sounds::playMusic(musicTypePlaying.value(), 30.0f);
+
+    musicGapTimer = 0.0f;
+    musicGap = MUSIC_GAP_MIN + rand() % 5;
+}
+
 void Game::handleEventsWindow(sf::Event& event)
 {
     if (event.type == sf::Event::Closed)
@@ -753,10 +788,10 @@ void Game::attemptObjectInteract()
         BuildableObject& selectedObject = selectedObjectOptional.value();
 
         ObjectInteractionEventData interactionEvent = selectedObject.interact();
-        if (interactionEvent.interactionType == ObjectInteraction::OpenFurnace)
+        if (interactionEvent.interactionType == ObjectInteraction::Chest)
         {
             // worldMenuState = WorldMenuState::Furnace;
-            interactedObjectID = interactionEvent.objectID;
+            openedChestID = interactionEvent.chestID;
         }
     }
 }

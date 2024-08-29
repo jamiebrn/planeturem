@@ -70,6 +70,8 @@ private:
 
     void generateWaterNoiseTexture();
 
+    void updateMusic(float dt);
+
     void handleZoom(int zoomChange);
 
     void handleEventsWindow(sf::Event& event);
@@ -94,6 +96,11 @@ private:
     float worldDarkness;
     bool isDay;
 
+    static constexpr float MUSIC_GAP_MIN = 5.0f;
+    std::optional<MusicType> musicTypePlaying;
+    float musicGapTimer;
+    float musicGap;
+
     FastNoise noise;
 
     Player player;
@@ -108,8 +115,9 @@ private:
     std::unordered_map<std::string, int> nearbyCraftingStationLevels;
 
     // Not used yet
-    uint64_t interactedObjectID;
-    sf::Vector2f interactedObjectPos;
+    // 0 chest ID means no chest opened
+    uint16_t openedChestID;
+    sf::Vector2f openedChestPos;
 
     Tween<float> floatTween;
 };

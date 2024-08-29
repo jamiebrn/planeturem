@@ -117,7 +117,7 @@ private:
     static void handleHotbarItemChange();
 
 private:
-    static sf::Vector2f screenPos;
+    // static sf::Vector2f screenPos;
 
     static int itemBoxSize;
     static int itemBoxSpacing;

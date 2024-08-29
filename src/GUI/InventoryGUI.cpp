@@ -1,7 +1,5 @@
 #include "GUI/InventoryGUI.hpp"
 
-sf::Vector2f InventoryGUI::screenPos;
-
 int InventoryGUI::itemBoxSize = 75;
 int InventoryGUI::itemBoxSpacing = 10;
 int InventoryGUI::itemBoxPadding = 10;

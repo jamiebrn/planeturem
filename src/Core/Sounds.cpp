@@ -1,7 +1,5 @@
 #include "Core/Sounds.hpp"
 
-float Sounds::musicVolume = 30.0f;
-
 bool Sounds::loadSounds()
 {
     // If sound have already been loaded, return true by default
@@ -68,8 +66,8 @@ bool Sounds::loadSounds()
         }
 
         // Enable music looping and set volume
-        music->setLoop(true);
-        music->setVolume(musicVolume);
+        // music->setLoop(true);
+        // music->setVolume(musicVolume);
 
         // Move music pointer into map (must be moved as is a unique_ptr, i.e. cannot be copied)
         musicMap[musicType] = std::move(music);
@@ -117,7 +115,7 @@ void Sounds::playSound(SoundType type, float volume)
 }
 
 // Play music track
-void Sounds::playMusic(MusicType type)
+void Sounds::playMusic(MusicType type, float volume)
 {
     // If sounds have not been loaded, return by default
     if (!loadedSounds)
@@ -128,9 +126,13 @@ void Sounds::playMusic(MusicType type)
     {
         music.second->stop();
     }
+
+    sf::Music* music = musicMap.at(type).get();
+
+    music->setVolume(volume);
     
     // Play music track from map
-    musicMap.at(type)->play();
+    music->play();
 }
 
 // Stop music track
@@ -142,4 +144,14 @@ void Sounds::stopMusic(MusicType type)
     
     // Stop music track from map
     musicMap.at(type)->stop();
+}
+
+bool Sounds::isMusicFinished(MusicType type)
+{
+    if (!loadedSounds)
+        return false;
+
+    sf::Music* music = musicMap.at(type).get();
+
+    return (music->getPlayingOffset() >= music->getDuration());
 }
