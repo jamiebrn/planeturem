@@ -36,7 +36,7 @@ void Cursor::updateTileCursor(sf::RenderWindow& window,
     drawState = CursorDrawState::Hidden;
 
     // Get current tool data
-    const ToolData& toolData = ToolDataLoader::getToolData(toolType);
+    // const ToolData& toolData = ToolDataLoader::getToolData(toolType);
 
     // Override cursor size if object is being placed
     if (placeObjectType >= 0)

@@ -37,9 +37,6 @@ void BuildableObject::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, f
     float scaleMult = 0.4f * std::sin(3.14 / 2.0f * std::max(1.0f - flash_amount, 0.5f)) + 0.6f;
     sf::Vector2f scale = sf::Vector2f((float)ResolutionHandler::getScale(), (float)ResolutionHandler::getScale() * scaleMult);
 
-    sf::Shader* shader = Shaders::getShader(ShaderType::Flash);
-    shader->setUniform("flash_amount", flash_amount);
-
     const sf::IntRect& textureRect = objectData.textureRects[animatedTexture.getFrame()];
 
     float waterYOffset = getWaterBobYOffset(worldSize, gameTime);
@@ -56,6 +53,9 @@ void BuildableObject::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, f
     {
         // End batch
         spriteBatch.endDrawing(window);
+
+        sf::Shader* shader = Shaders::getShader(ShaderType::Flash);
+        shader->setUniform("flash_amount", flash_amount);
 
         TextureManager::drawSubTexture(window, drawData, textureRect, shader);
     }

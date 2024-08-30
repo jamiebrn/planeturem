@@ -587,26 +587,13 @@ void Game::runOnPlanet(float dt)
 
     if (placeObject >= 0)
     {
-        // Draw object to be placed if held
-        bool canPlace = chunkManager.canPlaceObject(Cursor::getSelectedChunk(worldSize),
-                                                    Cursor::getSelectedChunkTile(),
-                                                    placeObject,
-                                                    worldSize,
-                                                    player.getCollisionRect());
-
-        sf::Color drawColor(255, 0, 0, 180);
-        if (canPlace)
-            drawColor = sf::Color(0, 255, 0, 180);
-        
-        BuildableObject objectGhost(Cursor::getLerpedSelectPos() + sf::Vector2f(TILE_SIZE_PIXELS_UNSCALED / 2.0f, TILE_SIZE_PIXELS_UNSCALED / 2.0f), placeObject);
-
-        objectGhost.draw(window, spriteBatch, dt, 0, worldSize, drawColor);
+        drawGhostPlaceObjectAtCursor(spriteBatch, placeObject);
     }
 
     // Draw land to place if held
     if (InventoryGUI::heldItemPlacesLand() || InventoryGUI::hotbarItemPlacesLand())
     {
-        drawGhostPlaceTileAtCursor();
+        drawGhostPlaceLandAtCursor();
     }
 
     switch (worldMenuState)
@@ -848,7 +835,9 @@ void Game::attemptBuildObject()
                                                 worldSize,
                                                 player.getCollisionRect());
 
-    if (canPlace)
+    bool inRange = player.canReachPosition(Cursor::getMouseWorldPos(window));
+
+    if (canPlace && inRange)
     {
         // Remove object from being held
         if (placeFromHotbar)
@@ -891,6 +880,9 @@ void Game::attemptPlaceLand()
     if (!chunkManager.canPlaceLand(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile()))
         return;
     
+    if (!player.canReachPosition(Cursor::getMouseWorldPos(window)))
+        return;
+    
     // Place land
     chunkManager.placeLand(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile(), noise, worldSize);
 
@@ -912,7 +904,29 @@ void Game::attemptPlaceLand()
     }
 }
 
-void Game::drawGhostPlaceTileAtCursor()
+void Game::drawGhostPlaceObjectAtCursor(SpriteBatch& spriteBatch, ObjectType object)
+{
+    // Draw object to be placed if held
+    bool canPlace = chunkManager.canPlaceObject(Cursor::getSelectedChunk(worldSize),
+                                                Cursor::getSelectedChunkTile(),
+                                                object,
+                                                worldSize,
+                                                player.getCollisionRect());
+
+    bool inRange = player.canReachPosition(Cursor::getMouseWorldPos(window));
+
+    sf::Color drawColor(255, 0, 0, 180);
+    if (canPlace && inRange)
+        drawColor = sf::Color(0, 255, 0, 180);
+    
+    BuildableObject objectGhost(Cursor::getLerpedSelectPos() + sf::Vector2f(TILE_SIZE_PIXELS_UNSCALED / 2.0f, TILE_SIZE_PIXELS_UNSCALED / 2.0f), object);
+
+    objectGhost.draw(window, spriteBatch, 0.0f, 0, worldSize, drawColor);
+
+    spriteBatch.endDrawing(window);
+}
+
+void Game::drawGhostPlaceLandAtCursor()
 {
     sf::Vector2f tileWorldPosition = Cursor::getLerpedSelectPos();
 

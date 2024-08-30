@@ -65,7 +65,8 @@ private:
     void attemptBuildObject();
     void attemptPlaceLand();
 
-    void drawGhostPlaceTileAtCursor();
+    void drawGhostPlaceObjectAtCursor(SpriteBatch& spriteBatch, ObjectType object);
+    void drawGhostPlaceLandAtCursor();
 
     void giveStartingInventory();
 
