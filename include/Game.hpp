@@ -85,6 +85,8 @@ private:
 
     void updateMusic(float dt);
 
+    void drawMouseCursor();
+
     void handleZoom(int zoomChange);
 
     void handleEventsWindow(sf::Event& event);

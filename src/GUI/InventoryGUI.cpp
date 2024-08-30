@@ -131,9 +131,9 @@ void InventoryGUI::handleRightClick(sf::Vector2f mouseScreenPos, ChestData* ches
     pickUpItem(mouseScreenPos, 1, chestData);
 }
 
-bool InventoryGUI::handleScroll(sf::Vector2f mouseScreenPos, int direction)
+bool InventoryGUI::handleScroll(sf::Vector2f mouseScreenPos, int direction, ChestData* chestData)
 {
-    if (!isMouseOverUI(mouseScreenPos))
+    if (!isMouseOverUI(mouseScreenPos, chestData))
         return false;
     
     if (availableRecipes.size() > 0)
@@ -563,9 +563,10 @@ void InventoryGUI::handleClose(ChestData* chestData)
     }
 }
 
-bool InventoryGUI::isMouseOverUI(sf::Vector2f mouseScreenPos)
+bool InventoryGUI::isMouseOverUI(sf::Vector2f mouseScreenPos, ChestData* chestData)
 {
-    return isInventorySelected(mouseScreenPos) || isCraftingSelected(mouseScreenPos) || isBinSelected(mouseScreenPos);
+    return (isInventorySelected(mouseScreenPos) || isCraftingSelected(mouseScreenPos) || isBinSelected(mouseScreenPos) || 
+        (getHoveredChestIndex(mouseScreenPos, chestData) >= 0));
 }
 
 void InventoryGUI::updateAvailableRecipes(std::unordered_map<std::string, int> nearbyCraftingStationLevels)

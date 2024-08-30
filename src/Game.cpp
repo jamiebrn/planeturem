@@ -27,6 +27,9 @@ bool Game::initialise()
     window.setFramerateLimit(165);
     window.setVerticalSyncEnabled(true);
 
+    // Hide mouse cursor
+    window.setMouseCursorVisible(false);
+
     // Create game view from resolution
     view = sf::View({videoMode.width / 2.0f, videoMode.height / 2.0f}, {(float)videoMode.width, (float)videoMode.height});
 
@@ -116,6 +119,7 @@ void Game::toggleFullScreen()
     window.setIcon(256, 256, icon.getPixelsPtr());
     window.setFramerateLimit(165);
     window.setVerticalSyncEnabled(true);
+    window.setMouseCursorVisible(false);
 
     handleWindowResize(sf::Vector2u(videoMode.width, videoMode.height));
 }
@@ -221,6 +225,16 @@ void Game::giveStartingInventory()
     Inventory::addItem(ItemDataLoader::getItemTypeFromName("Wooden Pickaxe"), 1);
 
     changePlayerTool();
+}
+
+void Game::drawMouseCursor()
+{
+    sf::Vector2f mouseScreenPos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
+
+    mouseScreenPos.x = std::max(std::min(mouseScreenPos.x, static_cast<float>(window.getSize().x)), 0.0f);
+    mouseScreenPos.y = std::max(std::min(mouseScreenPos.y, static_cast<float>(window.getSize().y)), 0.0f);
+
+    TextureManager::drawSubTexture(window, {TextureType::UI, mouseScreenPos, 0, {3, 3}}, sf::IntRect(80, 32, 8, 8));
 }
 
 void Game::run()
@@ -372,7 +386,7 @@ void Game::runOnPlanet(float dt)
                         break;
                     }
                     case WorldMenuState::Inventory:
-                        if (!InventoryGUI::isMouseOverUI(mouseScreenPos))
+                        if (!InventoryGUI::isMouseOverUI(mouseScreenPos, chestDataPool.getChestDataPtr(openedChestID)))
                         {
                             attemptUseTool();
                             attemptBuildObject();
@@ -391,7 +405,7 @@ void Game::runOnPlanet(float dt)
                         attemptObjectInteract();
                         break;
                     case WorldMenuState::Inventory:
-                        if (InventoryGUI::isMouseOverUI(mouseScreenPos))
+                        if (InventoryGUI::isMouseOverUI(mouseScreenPos, chestDataPool.getChestDataPtr(openedChestID)))
                         {
                             InventoryGUI::handleRightClick(mouseScreenPos, chestDataPool.getChestDataPtr(openedChestID));
                             changePlayerTool();
@@ -573,6 +587,8 @@ void Game::runOnPlanet(float dt)
             yPos += yIncrement;
         }
     }
+
+    drawMouseCursor();
 
     window.display();
 

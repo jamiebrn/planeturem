@@ -43,7 +43,7 @@ public:
     // May pick up single item
     static void handleRightClick(sf::Vector2f mouseScreenPos, ChestData* chestData = nullptr);
 
-    static bool handleScroll(sf::Vector2f mouseScreenPos, int direction);
+    static bool handleScroll(sf::Vector2f mouseScreenPos, int direction, ChestData* chestData = nullptr);
 
     // Pickup max stack size to pickup whole stack (may be less than whole stack)
     // Pickup less (e.g 1) to limit pickup amount
@@ -55,7 +55,7 @@ public:
     // Called when inventory is closed, handles item picked up (if any)
     static void handleClose(ChestData* chestData = nullptr);
 
-    static bool isMouseOverUI(sf::Vector2f mouseScreenPos);
+    static bool isMouseOverUI(sf::Vector2f mouseScreenPos, ChestData* chestData);
 
     static void updateAvailableRecipes(std::unordered_map<std::string, int> nearbyCraftingStationLevels);
 
