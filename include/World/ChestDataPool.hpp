@@ -21,6 +21,8 @@ public:
 
     ChestData& getChestData(uint16_t id);
 
+    ChestData* getChestDataPtr(uint16_t id);
+
 private:
     // 0xFFFF reserved for uninitialised chest / null
     std::unique_ptr<std::array<ChestData, 0xFFFF - 1>> chestData;

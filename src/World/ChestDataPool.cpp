@@ -52,3 +52,13 @@ ChestData& ChestDataPool::getChestData(uint16_t id)
 
     return chestData->at(id);
 }
+
+ChestData* ChestDataPool::getChestDataPtr(uint16_t id)
+{
+    if (id == 0xFFFF)
+    {
+        return nullptr;
+    }
+
+    return &(chestData->at(id));
+}

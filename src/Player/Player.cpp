@@ -131,16 +131,25 @@ void Player::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, 
 
     float waterYOffset = getWaterBobYOffset(worldSize, gameTime);
 
-    TextureManager::drawTexture(window, {TextureType::Shadow, Camera::worldToScreenTransform(position + sf::Vector2f(0, waterYOffset)), 0, playerScale, {0.5, 0.85}});
-
     if (flippedTexture)
         playerScale.x *= -1;
+
+    float shadowScale = 1.0f;
     
     sf::IntRect animationRect;
     if (direction.x == 0 && direction.y == 0)
+    {
         animationRect = idleAnimation.getTextureRect();
+    }
     else
+    {
+        shadowScale = runningShadowScale[runAnimation.getFrame()];
         animationRect = runAnimation.getTextureRect();
+    }
+
+    TextureManager::drawTexture(window, {
+        TextureType::Shadow, Camera::worldToScreenTransform(position + sf::Vector2f(0, waterYOffset)), 0, playerScale * shadowScale, {0.5, 0.85}
+        });
 
     TextureManager::drawSubTexture(window, {TextureType::Player, Camera::worldToScreenTransform(position + sf::Vector2f(0, waterYOffset)), 0, playerScale, {0.5, 1}}, 
         animationRect);
@@ -150,7 +159,8 @@ void Player::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, 
     {
         const ToolData& toolData = ToolDataLoader::getToolData(equippedTool);
 
-        sf::Vector2f toolPos = Camera::worldToScreenTransform(position + sf::Vector2f(0, waterYOffset)) + sf::Vector2f(playerScale.x * toolOffset.x, playerScale.y * toolOffset.y);
+        sf::Vector2f toolPos = (Camera::worldToScreenTransform(position + sf::Vector2f(0, waterYOffset)) +
+            sf::Vector2f(playerScale.x * toolOffset.x, playerScale.y * toolOffset.y));
 
         float pivotYOffset = (toolRotation / 90.0f) * 0.4;
 

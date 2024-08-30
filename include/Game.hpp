@@ -66,13 +66,20 @@ private:
     void attemptBuildObject();
     void attemptPlaceLand();
 
-    void drawGhostPlaceObjectAtCursor(SpriteBatch& spriteBatch, ObjectType object);
+    void drawGhostPlaceObjectAtCursor(ObjectType object);
     void drawGhostPlaceLandAtCursor();
 
     void giveStartingInventory();
 
     void initChestInData(BuildableObject& chest);
     void removeChestFromData(BuildableObject& chest);
+    void checkChestOpenInRange();
+    void closeChest();
+
+    void updateDayNightCycle(float dt);
+
+    void drawWorld(float dt, std::vector<WorldObject*>& worldObjects, std::vector<WorldObject*>& entities);
+    void drawLighting(float dt, std::vector<WorldObject*>& worldObjects, std::vector<WorldObject*>& entities);
 
     void generateWaterNoiseTexture();
 
@@ -90,6 +97,9 @@ private:
     sf::View view;
     sf::Image icon;
     bool fullScreen = true;
+
+    SpriteBatch spriteBatch;
+    sf::RenderTexture worldTexture;
 
     bool steamInitialised;
 

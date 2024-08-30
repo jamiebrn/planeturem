@@ -4,14 +4,12 @@
 // FIX: Cliffs are broken again? (cliff on grass field) - maybe fixed????
 
 // PRIORITY: HIGH
-// TODO: Chests!!!
 // TODO: Different types of tools? (fishing rod etc)
 // TODO: Biomes (desert/oasis, rock etc)
 
 // PRIORITY: LOW
-// TODO: Fade music
 // TODO: Inventory item added notifications (maybe taking items?). Add in player class
-// TODO: Limit build reach
+// TODO: Prevent chests from being destroyed when containing items
 
 Game::Game()
     : player(sf::Vector2f(0, 0)), window()
@@ -329,7 +327,10 @@ void Game::runOnPlanet(float dt)
             if (worldMenuState == WorldMenuState::Main)
             {
                 if (event.key.code == sf::Keyboard::E)
+                {
                     worldMenuState = WorldMenuState::Inventory;
+                    closeChest();
+                }
             }
             else
             {
@@ -337,12 +338,14 @@ void Game::runOnPlanet(float dt)
                 {
                     InventoryGUI::handleClose();
                     worldMenuState = WorldMenuState::Main;
+                    closeChest();
                 }
 
                 if (event.key.code == sf::Keyboard::Escape)
                 {
                     InventoryGUI::handleClose();
                     worldMenuState = WorldMenuState::Main;
+                    closeChest();
                 }
             }
         }
@@ -375,7 +378,7 @@ void Game::runOnPlanet(float dt)
                             attemptBuildObject();
                             attemptPlaceLand();
                         }
-                        InventoryGUI::handleLeftClick(mouseScreenPos);
+                        InventoryGUI::handleLeftClick(mouseScreenPos, chestDataPool.getChestDataPtr(openedChestID));
                         changePlayerTool();
                         break;
                 }
@@ -390,7 +393,7 @@ void Game::runOnPlanet(float dt)
                     case WorldMenuState::Inventory:
                         if (InventoryGUI::isMouseOverUI(mouseScreenPos))
                         {
-                            InventoryGUI::handleRightClick(mouseScreenPos);
+                            InventoryGUI::handleRightClick(mouseScreenPos, chestDataPool.getChestDataPtr(openedChestID));
                             changePlayerTool();
                         }
                         else
@@ -429,15 +432,7 @@ void Game::runOnPlanet(float dt)
     // Update tweens
     floatTween.update(dt);
 
-    // Update day / night cycle
-    dayNightToggleTimer += dt;
-    // if (dayNightToggleTimer >= 15.0f)
-    // {
-    //     dayNightToggleTimer = 0.0f;
-    //     if (isDay) floatTween.startTween(&worldDarkness, 0.0f, 0.95f, 7, TweenTransition::Sine, TweenEasing::EaseInOut);
-    //     else floatTween.startTween(&worldDarkness, 0.95f, 0.0f, 7, TweenTransition::Sine, TweenEasing::EaseInOut);
-    //     isDay = !isDay;
-    // }
+    // updateDayNightCycle(dt);
 
     // Update camera
     Camera::update(player.getPosition(), mouseScreenPos, dt);
@@ -474,6 +469,9 @@ void Game::runOnPlanet(float dt)
     // Get nearby crafting stations
     nearbyCraftingStationLevels = chunkManager.getNearbyCraftingStationLevels(player.getChunkInside(worldSize), player.getChunkTileInside(), 4, worldSize);
 
+    // Close chest if out of range
+    checkChestOpenInRange();
+
     if (worldMenuState == WorldMenuState::Main)
     {
         InventoryGUI::updateAnimationsHotbar(dt, mouseScreenPos);
@@ -482,7 +480,7 @@ void Game::runOnPlanet(float dt)
     {
         // Update inventory GUI available recipes if required, and animations
         InventoryGUI::updateAvailableRecipes(nearbyCraftingStationLevels);
-        InventoryGUI::updateAnimations(mouseScreenPos, dt);
+        InventoryGUI::updateAnimations(mouseScreenPos, dt, chestDataPool.getChestDataPtr(openedChestID));
     }
 
 
@@ -498,80 +496,14 @@ void Game::runOnPlanet(float dt)
 
     window.clear({80, 80, 80});
 
-    // Create spritebatch
-    SpriteBatch spriteBatch;
-
-    // Draw all world onto texture for lighting
-    sf::RenderTexture worldTexture;
-    worldTexture.create(window.getSize().x, window.getSize().y);
-    worldTexture.clear();
-
-    // Draw water
-    chunkManager.drawChunkWater(worldTexture, gameTime);
-
-    // Draw objects for reflection FUTURE
+    // Get world objects
     std::vector<WorldObject*> worldObjects = chunkManager.getChunkObjects();
     std::vector<WorldObject*> entities = chunkManager.getChunkEntities();
     worldObjects.insert(worldObjects.end(), entities.begin(), entities.end());
     worldObjects.push_back(&player);
 
-    std::sort(worldObjects.begin(), worldObjects.end(), [](WorldObject* a, WorldObject* b)
-    {
-        if (a->getDrawLayer() != b->getDrawLayer()) return a->getDrawLayer() > b->getDrawLayer();
-        if (a->getPosition().y == b->getPosition().y) return a->getPosition().x < b->getPosition().x;
-        return a->getPosition().y < b->getPosition().y;
-    });
-
-    spriteBatch.beginDrawing();
-
-    // Draw terrain
-    chunkManager.drawChunkTerrain(worldTexture, spriteBatch, gameTime);
-
-    // Draw objects
-    for (WorldObject* worldObject : worldObjects)
-    {
-        worldObject->draw(worldTexture, spriteBatch, dt, gameTime, worldSize, {255, 255, 255, 255});
-    }
-
-    spriteBatch.endDrawing(worldTexture);
-
-    worldTexture.display();
-
-    // Draw light sources on light texture
-    sf::RenderTexture lightTexture;
-    lightTexture.create(window.getSize().x, window.getSize().y);
-
-    unsigned char ambientRedLight = (1.f - worldDarkness) * 255.0f;
-    unsigned char ambientGreenLight = (1.f - worldDarkness * 0.97f) * 255.0f;
-    unsigned char ambientBlueLight = (1.f - worldDarkness * 0.93f) * 255.0f;
-
-    lightTexture.clear({ambientRedLight, ambientGreenLight, ambientBlueLight, 255});
-
-    player.drawLightMask(lightTexture);
-
-    for (WorldObject* entity : entities)
-    {
-        Entity* entityCasted = static_cast<Entity*>(entity);
-        entityCasted->drawLightMask(lightTexture);
-    }
-
-    lightTexture.display();
-
-    sf::Sprite lightTextureSprite(lightTexture.getTexture());
-    // lightTextureSprite.setColor(sf::Color(255, 255, 255, 255));
-
-    worldTexture.draw(lightTextureSprite, sf::BlendMultiply);
-
-    worldTexture.display();
-
-    sf::Sprite worldTextureSprite(worldTexture.getTexture());
-    window.draw(worldTextureSprite);
-
-    // Finish drawing world - draw world texture
-    // sf::Shader* lightingShader = Shaders::getShader(ShaderType::Lighting);
-    // lightingShader->setUniform("lightingTexture", lightTexture.getTexture());
-    // lightingShader->setUniform("darkness", worldDarkness);
-    // window.draw(worldTextureSprite, lightingShader);    
+    drawWorld(dt, worldObjects, entities);
+    drawLighting(dt, worldObjects, entities);  
 
 
     // UI
@@ -585,7 +517,7 @@ void Game::runOnPlanet(float dt)
 
     if (placeObject >= 0)
     {
-        drawGhostPlaceObjectAtCursor(spriteBatch, placeObject);
+        drawGhostPlaceObjectAtCursor(placeObject);
     }
 
     // Draw land to place if held
@@ -601,7 +533,7 @@ void Game::runOnPlanet(float dt)
             break;
         
         case WorldMenuState::Inventory:
-            InventoryGUI::draw(window, mouseScreenPos);
+            InventoryGUI::draw(window, mouseScreenPos, chestDataPool.getChestDataPtr(openedChestID));
             break;
     }
 
@@ -672,7 +604,7 @@ void Game::updateMusic(float dt)
     int musicTypeChance = rand() % musicTypes.size();
 
     musicTypePlaying = musicTypes[musicTypeChance];
-    Sounds::playMusic(musicTypePlaying.value(), 30.0f);
+    Sounds::playMusic(musicTypePlaying.value(), 70.0f);
 
     musicGapTimer = 0.0f;
     musicGap = MUSIC_GAP_MIN + rand() % 5;
@@ -805,10 +737,22 @@ void Game::attemptObjectInteract()
                 initChestInData(selectedObject);
             }
 
-            openedChestID = selectedObject.getChestID();
-            openedChestPos = selectedObject.getPosition();
+            // Close chest if currently open
+            if (selectedObject.getChestID() == openedChestID)
+            {
+                closeChest();
+            }
+            else
+            {
+                openedChestID = selectedObject.getChestID();
+                openedChestPos = selectedObject.getPosition();
 
-            std::cout << "opened chest " << openedChestID << "\n";
+                // Reset chest animations as opened new chest
+                InventoryGUI::resetChestAnimations();
+
+                // Open inventory to see chest
+                worldMenuState = WorldMenuState::Inventory;
+            }
         }
     }
 }
@@ -904,7 +848,7 @@ void Game::attemptPlaceLand()
     }
 }
 
-void Game::drawGhostPlaceObjectAtCursor(SpriteBatch& spriteBatch, ObjectType object)
+void Game::drawGhostPlaceObjectAtCursor(ObjectType object)
 {
     // Draw object to be placed if held
     bool canPlace = chunkManager.canPlaceObject(Cursor::getSelectedChunk(worldSize),
@@ -951,6 +895,71 @@ void Game::drawGhostPlaceLandAtCursor()
     }, textureRect);
 }
 
+void Game::drawWorld(float dt, std::vector<WorldObject*>& worldObjects, std::vector<WorldObject*>& entities)
+{
+    // Draw all world onto texture for lighting
+    worldTexture.create(window.getSize().x, window.getSize().y);
+    worldTexture.clear();
+
+    // Draw water
+    chunkManager.drawChunkWater(worldTexture, gameTime);
+
+    std::sort(worldObjects.begin(), worldObjects.end(), [](WorldObject* a, WorldObject* b)
+    {
+        if (a->getDrawLayer() != b->getDrawLayer()) return a->getDrawLayer() > b->getDrawLayer();
+        if (a->getPosition().y == b->getPosition().y) return a->getPosition().x < b->getPosition().x;
+        return a->getPosition().y < b->getPosition().y;
+    });
+
+    spriteBatch.beginDrawing();
+
+    // Draw terrain
+    chunkManager.drawChunkTerrain(worldTexture, spriteBatch, gameTime);
+
+    // Draw objects
+    for (WorldObject* worldObject : worldObjects)
+    {
+        worldObject->draw(worldTexture, spriteBatch, dt, gameTime, worldSize, {255, 255, 255, 255});
+    }
+
+    spriteBatch.endDrawing(worldTexture);
+
+    worldTexture.display();
+}
+
+void Game::drawLighting(float dt, std::vector<WorldObject*>& worldObjects, std::vector<WorldObject*>& entities)
+{
+    // Draw light sources on light texture
+    sf::RenderTexture lightTexture;
+    lightTexture.create(window.getSize().x, window.getSize().y);
+
+    unsigned char ambientRedLight = (1.f - worldDarkness) * 255.0f;
+    unsigned char ambientGreenLight = (1.f - worldDarkness * 0.97f) * 255.0f;
+    unsigned char ambientBlueLight = (1.f - worldDarkness * 0.93f) * 255.0f;
+
+    lightTexture.clear({ambientRedLight, ambientGreenLight, ambientBlueLight, 255});
+
+    player.drawLightMask(lightTexture);
+
+    for (WorldObject* entity : entities)
+    {
+        Entity* entityCasted = static_cast<Entity*>(entity);
+        entityCasted->drawLightMask(lightTexture);
+    }
+
+    lightTexture.display();
+
+    sf::Sprite lightTextureSprite(lightTexture.getTexture());
+    // lightTextureSprite.setColor(sf::Color(255, 255, 255, 255));
+
+    worldTexture.draw(lightTextureSprite, sf::BlendMultiply);
+
+    worldTexture.display();
+
+    sf::Sprite worldTextureSprite(worldTexture.getTexture());
+    window.draw(worldTextureSprite);
+}
+
 void Game::initChestInData(BuildableObject& chest)
 {
     int chestCapacity = chest.getChestCapactity();
@@ -969,7 +978,37 @@ void Game::removeChestFromData(BuildableObject& chest)
 
     if (openedChestID == chest.getChestID())
     {
-        openedChestID = 0xFFFF;
-        openedChestPos = sf::Vector2f(0, 0);
+        closeChest();
+    }
+}
+
+void Game::checkChestOpenInRange()
+{
+    if (openedChestID == 0xFFFF)
+        return;
+
+    if (!player.canReachPosition(openedChestPos))
+    {
+        closeChest();
+    }
+}
+
+void Game::closeChest()
+{
+    openedChestID = 0xFFFF;
+    openedChestPos = sf::Vector2f(0, 0);
+}
+
+void Game::updateDayNightCycle(float dt)
+{
+    // Update day / night cycle
+    dayNightToggleTimer += dt;
+
+    if (dayNightToggleTimer >= 15.0f)
+    {
+        dayNightToggleTimer = 0.0f;
+        if (isDay) floatTween.startTween(&worldDarkness, 0.0f, 0.95f, 7, TweenTransition::Sine, TweenEasing::EaseInOut);
+        else floatTween.startTween(&worldDarkness, 0.95f, 0.0f, 7, TweenTransition::Sine, TweenEasing::EaseInOut);
+        isDay = !isDay;
     }
 }
