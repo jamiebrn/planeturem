@@ -72,8 +72,6 @@ bool Game::initialise()
 
     openedChestID = 0xFFFF;
     openedChestPos = sf::Vector2f(0, 0);
-    chestData = std::make_unique<std::array<std::vector<std::optional<ItemCount>>, 0xFFFF - 1>>();
-    chestDataTop = 0;
 
     musicTypePlaying = std::nullopt;
     musicGapTimer = 0.0f;
@@ -753,7 +751,7 @@ void Game::attemptUseTool()
             {
                 if (selectedObject.getChestCapactity() >= 0)
                 {
-                    removeChestFromData(selectedObject.getChestID());
+                    removeChestFromData(selectedObject);
                 }
             }
         }
@@ -807,8 +805,10 @@ void Game::attemptObjectInteract()
                 initChestInData(selectedObject);
             }
 
-            openedChestID = interactionEvent.chestID;
+            openedChestID = selectedObject.getChestID();
             openedChestPos = selectedObject.getPosition();
+
+            std::cout << "opened chest " << openedChestID << "\n";
         }
     }
 }
@@ -953,24 +953,23 @@ void Game::drawGhostPlaceLandAtCursor()
 
 void Game::initChestInData(BuildableObject& chest)
 {
-    chest.setChestID(chestDataTop);
-    
     int chestCapacity = chest.getChestCapactity();
 
-    std::vector<std::optional<ItemCount>> chestItemData = chestData->at(chestDataTop);
+    uint16_t chestID = chestDataPool.createChest(chestCapacity);
 
-    chestItemData.reserve(chestCapacity);
-
-    // Fill chest data with empty item slots
-    for (int i = 0; i < chestCapacity; i++)
-    {
-        chestItemData[i] = std::nullopt;
-    }
-
-    chestDataTop++;
+    if (chestID == 0xFFFF)
+        return;
+    
+    chest.setChestID(chestID);
 }
 
-void Game::removeChestFromData(uint16_t chestID)
+void Game::removeChestFromData(BuildableObject& chest)
 {
+    chestDataPool.destroyChest(chest.getChestID());
 
+    if (openedChestID == chest.getChestID())
+    {
+        openedChestID = 0xFFFF;
+        openedChestPos = sf::Vector2f(0, 0);
+    }
 }

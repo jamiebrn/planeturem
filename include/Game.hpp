@@ -22,6 +22,7 @@
 #include "Core/SpriteBatch.hpp"
 
 #include "World/ChunkManager.hpp"
+#include "World/ChestDataPool.hpp"
 
 #include "Player/Player.hpp"
 #include "Player/Cursor.hpp"
@@ -71,7 +72,7 @@ private:
     void giveStartingInventory();
 
     void initChestInData(BuildableObject& chest);
-    void removeChestFromData(uint16_t chestID);
+    void removeChestFromData(BuildableObject& chest);
 
     void generateWaterNoiseTexture();
 
@@ -119,12 +120,11 @@ private:
 
     std::unordered_map<std::string, int> nearbyCraftingStationLevels;
 
-    // Not used yet
     // 0xFFFF chest ID reserved for no chest opened / non-initialised chest
     uint16_t openedChestID;
     sf::Vector2f openedChestPos;
-    std::unique_ptr<std::array<std::vector<std::optional<ItemCount>>, 0xFFFF - 1>> chestData;
-    uint16_t chestDataTop;
+    ChestDataPool chestDataPool;
+
 
     Tween<float> floatTween;
 };

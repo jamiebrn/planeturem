@@ -48,8 +48,11 @@ bool ObjectDataLoader::loadData(std::string objectDataPath)
         if (jsonObjectData.contains("draw-layer")) objectData.drawLayer = jsonObjectData.at("draw-layer");
         if (jsonObjectData.contains("size-x")) objectData.size.x = jsonObjectData.at("size-x");
         if (jsonObjectData.contains("size-y")) objectData.size.y = jsonObjectData.at("size-y");
+
         if (jsonObjectData.contains("crafting-station")) objectData.craftingStation = jsonObjectData.at("crafting-station");
         if (jsonObjectData.contains("crafting-station-level")) objectData.craftingStationLevel = jsonObjectData.at("crafting-station-level");
+
+        if (jsonObjectData.contains("chest-capacity")) objectData.chestCapacity = jsonObjectData.at("chest-capacity");
 
         if (jsonObjectData.contains("item-drops"))
         {
