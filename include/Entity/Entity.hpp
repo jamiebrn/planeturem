@@ -7,6 +7,7 @@
 #include "Core/ResolutionHandler.hpp"
 #include "Core/CollisionRect.hpp"
 #include "Core/AnimatedTexture.hpp"
+#include "Core/SpriteBatch.hpp"
 
 #include "Object/WorldObject.hpp"
 #include "World/ChunkManager.hpp"
@@ -22,7 +23,7 @@ public:
 
     void update(float dt, ChunkManager& chunkManager, bool onWater);
 
-    void draw(sf::RenderTarget& window, float dt, float gameTime, int worldSize, const sf::Color& color) override;
+    void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime, int worldSize, const sf::Color& color) override;
     void drawLightMask(sf::RenderTarget& lightTexture);
 
     void damage(int amount);

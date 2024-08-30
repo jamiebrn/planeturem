@@ -3,6 +3,7 @@
 #include <SFML/Graphics.hpp>
 #include <cmath>
 
+#include "Core/SpriteBatch.hpp"
 #include "World/ChunkPosition.hpp"
 
 class WorldObject
@@ -53,7 +54,7 @@ public:
     inline int getDrawLayer() const {return drawLayer;}
 
     // Overriden by inherited classes (specific)
-    virtual void draw(sf::RenderTarget& window, float dt, float gameTime, int worldSize, const sf::Color& color) = 0;
+    virtual void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime, int worldSize, const sf::Color& color) = 0;
 
 protected:
     sf::Vector2f position;

@@ -98,12 +98,13 @@
     },
     {
         "name": "Chest",
-        "health": 5,
+        "health": 10,
         "textures": [[112, 16]],
         "texture-width": 16,
         "texture-height": 16,
         "texture-x-origin": 0.5,
-        "texture-y-origin": 0.9375
+        "texture-y-origin": 0.9375,
+        "chest-capacity": 16
     },
     {
         "name": "Golden Tree",

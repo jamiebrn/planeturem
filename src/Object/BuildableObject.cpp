@@ -30,7 +30,7 @@ void BuildableObject::update(float dt, bool onWater)
     this->onWater = onWater;
 }
 
-void BuildableObject::draw(sf::RenderTarget& window, float dt, float gameTime, int worldSize, const sf::Color& color)
+void BuildableObject::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime, int worldSize, const sf::Color& color)
 {
     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
 
@@ -43,10 +43,22 @@ void BuildableObject::draw(sf::RenderTarget& window, float dt, float gameTime, i
     const sf::IntRect& textureRect = objectData.textureRects[animatedTexture.getFrame()];
 
     float waterYOffset = getWaterBobYOffset(worldSize, gameTime);
-    
-    TextureManager::drawSubTexture(window, {
+
+    TextureDrawData drawData = {
         TextureType::Objects, Camera::worldToScreenTransform(position + sf::Vector2f(0, waterYOffset)), 0, scale, objectData.textureOrigin, color
-        }, textureRect, shader);
+        };
+
+    if (flash_amount <= 0)
+    {
+        spriteBatch.draw(window, drawData, static_cast<sf::FloatRect>(textureRect));
+    }
+    else
+    {
+        // End batch
+        spriteBatch.endDrawing(window);
+
+        TextureManager::drawSubTexture(window, drawData, textureRect, shader);
+    }
 }
 
 void BuildableObject::drawGUI(sf::RenderTarget& window, float dt, const sf::Color& color)
@@ -58,7 +70,7 @@ void BuildableObject::drawGUI(sf::RenderTarget& window, float dt, const sf::Colo
         }, objectData.textureRects[0]);
 }
 
-void BuildableObject::damage(int amount)
+bool BuildableObject::damage(int amount)
 {
     flash_amount = 1.0f;
     health -= amount;
@@ -85,7 +97,11 @@ void BuildableObject::damage(int amount)
                 Inventory::addItem(itemDrop.item, itemAmount);
             }
         }
+
+        return true;
     }
+
+    return false;
 }
 
 ObjectInteractionEventData BuildableObject::interact()
@@ -95,12 +111,12 @@ ObjectInteractionEventData BuildableObject::interact()
 
     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
 
-    // if (objectData.furnaceSpeed > 0)
-    // {
-    //     // Open furnace UI / initialise furnace ID for this object etc
-    //     interactionData.interactionType = ObjectInteraction::OpenFurnace;
-    //     interactionData.objectID = furnaceID;
-    // }
+    if (objectData.chestCapacity > 0)
+    {
+        // Object is chest
+        interactionData.chestID = chestID;
+        interactionData.interactionType = ObjectInteraction::Chest;
+    }
 
     return interactionData;
 }
@@ -108,4 +124,12 @@ ObjectInteractionEventData BuildableObject::interact()
 void BuildableObject::setWorldPosition(sf::Vector2f position)
 {
     this->position = position;
+}
+
+// Chest functionality
+int BuildableObject::getChestCapactity()
+{
+    const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
+
+    return objectData.chestCapacity;
 }

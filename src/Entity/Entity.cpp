@@ -55,8 +55,10 @@ void Entity::update(float dt, ChunkManager& chunkManager, bool onWater)
     this->onWater = onWater;
 }
 
-void Entity::draw(sf::RenderTarget& window, float dt, float gameTime, int worldSize, const sf::Color& color)
+void Entity::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime, int worldSize, const sf::Color& color)
 {
+    spriteBatch.endDrawing(window);
+
     const EntityData& entityData = EntityDataLoader::getEntityData(entityType);
 
     sf::Vector2f scale(ResolutionHandler::getScale(), ResolutionHandler::getScale());

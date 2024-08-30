@@ -153,5 +153,5 @@ bool Sounds::isMusicFinished(MusicType type)
 
     sf::Music* music = musicMap.at(type).get();
 
-    return (music->getPlayingOffset() >= music->getDuration());
+    return (music->getStatus() == sf::Sound::Stopped);
 }

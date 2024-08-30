@@ -114,7 +114,7 @@ void ChunkManager::reloadChunks()
     }
 }
 
-void ChunkManager::drawChunkTerrain(sf::RenderTarget& window, float time)
+void ChunkManager::drawChunkTerrain(sf::RenderTarget& window, SpriteBatch& spriteBatch, float time)
 {
     // Draw terrain
     for (auto& chunkPair : loadedChunks)
@@ -131,7 +131,7 @@ void ChunkManager::drawChunkTerrain(sf::RenderTarget& window, float time)
         ChunkPosition chunkPos = chunkPair.first;
         std::unique_ptr<Chunk>& chunk = chunkPair.second;
         
-        chunk->drawChunkTerrainVisual(window, time);
+        chunk->drawChunkTerrainVisual(window, spriteBatch, time);
     }
 }
 

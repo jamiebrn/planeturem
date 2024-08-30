@@ -12,6 +12,7 @@
 #include "Core/ResolutionHandler.hpp"
 #include "Core/Camera.hpp"
 #include "Core/AnimatedTexture.hpp"
+#include "Core/SpriteBatch.hpp"
 #include "Object/WorldObject.hpp"
 #include "Object/ObjectReference.hpp"
 #include "Player/Inventory.hpp"
@@ -39,10 +40,11 @@ public:
 
     void update(float dt, bool onWater);
 
-    void draw(sf::RenderTarget& window, float dt, float gameTime, int worldSize, const sf::Color& color) override;
+    void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime, int worldSize, const sf::Color& color) override;
     void drawGUI(sf::RenderTarget& window, float dt, const sf::Color& color);
 
-    void damage(int amount);
+    // Returns true if destroyed
+    bool damage(int amount);
     ObjectInteractionEventData interact();
 
     void setWorldPosition(sf::Vector2f position);
@@ -58,6 +60,12 @@ public:
 
     inline const std::optional<ObjectReference>& getObjectReference() const {return objectReference;}
 
+    // Chest specific functionality
+    inline void setChestID(uint16_t chestID) {this->chestID = chestID;}
+    inline uint16_t getChestID() {return chestID;}
+
+    int getChestCapactity();
+
 private:
     ObjectType objectType = 0;
     int health = 0;
@@ -65,7 +73,7 @@ private:
 
     AnimatedTextureMinimal animatedTexture;
 
-    uint16_t chestID = 0;
+    uint16_t chestID = 0xFFFF;
 
     // If reference to a buildable object
     std::optional<ObjectReference> objectReference = std::nullopt;

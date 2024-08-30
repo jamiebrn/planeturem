@@ -123,8 +123,10 @@ void Player::update(float dt, sf::Vector2f mouseWorldPos, ChunkManager& chunkMan
     // std::cout << position.x << ", " << position.y << std::endl;
 }
 
-void Player::draw(sf::RenderTarget& window, float dt, float gameTime, int worldSize, const sf::Color& color)
+void Player::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime, int worldSize, const sf::Color& color)
 {
+    spriteBatch.endDrawing(window);
+
     sf::Vector2f playerScale((float)ResolutionHandler::getScale(), (float)ResolutionHandler::getScale());
 
     float waterYOffset = getWaterBobYOffset(worldSize, gameTime);

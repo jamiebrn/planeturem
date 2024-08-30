@@ -67,6 +67,15 @@
         }
     },
     {
+        "product": "Chest",
+        "item-requirements": {
+            "Wood": 10,
+            "Iron Bar": 2
+        },
+        "crafting-station": "bench",
+        "crafting-station-level": 1
+    },
+    {
         "product": "Wood Wall",
         "item-requirements": {
             "Wood": 4

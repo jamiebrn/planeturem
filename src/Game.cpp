@@ -6,10 +6,12 @@
 // PRIORITY: HIGH
 // TODO: Chests!!!
 // TODO: Different types of tools? (fishing rod etc)
+// TODO: Biomes (desert/oasis, rock etc)
 
 // PRIORITY: LOW
 // TODO: Fade music
 // TODO: Inventory item added notifications (maybe taking items?). Add in player class
+// TODO: Limit build reach
 
 Game::Game()
     : player(sf::Vector2f(0, 0)), window()
@@ -67,8 +69,11 @@ bool Game::initialise()
     gameTime = 0;
     gameState = GameState::OnPlanet;
     worldMenuState = WorldMenuState::Main;
-    openedChestID = 0;
+
+    openedChestID = 0xFFFF;
     openedChestPos = sf::Vector2f(0, 0);
+    chestData = std::make_unique<std::array<std::vector<std::optional<ItemCount>>, 0xFFFF - 1>>();
+    chestDataTop = 0;
 
     musicTypePlaying = std::nullopt;
     musicGapTimer = 0.0f;
@@ -385,8 +390,15 @@ void Game::runOnPlanet(float dt)
                         attemptObjectInteract();
                         break;
                     case WorldMenuState::Inventory:
-                        InventoryGUI::handleRightClick(mouseScreenPos);
-                        changePlayerTool();
+                        if (InventoryGUI::isMouseOverUI(mouseScreenPos))
+                        {
+                            InventoryGUI::handleRightClick(mouseScreenPos);
+                            changePlayerTool();
+                        }
+                        else
+                        {
+                            attemptObjectInteract();
+                        }
                         break;
                 }
             }
@@ -443,8 +455,8 @@ void Game::runOnPlanet(float dt)
         Cursor::setCursorPlacingLand();
 
     // Enable / disable cursor drawing depending on player reach
-    if (player.getTool() >= 0)
-        Cursor::setCursorHidden(!player.canReachPosition(Cursor::getMouseWorldPos(window)));
+    // if (player.getTool() >= 0)
+    Cursor::setCursorHidden(!player.canReachPosition(Cursor::getMouseWorldPos(window)));
     
 
     // Update player
@@ -488,6 +500,9 @@ void Game::runOnPlanet(float dt)
 
     window.clear({80, 80, 80});
 
+    // Create spritebatch
+    SpriteBatch spriteBatch;
+
     // Draw all world onto texture for lighting
     sf::RenderTexture worldTexture;
     worldTexture.create(window.getSize().x, window.getSize().y);
@@ -509,15 +524,18 @@ void Game::runOnPlanet(float dt)
         return a->getPosition().y < b->getPosition().y;
     });
 
-    // Draw terrain
-    chunkManager.drawChunkTerrain(worldTexture, gameTime);
+    spriteBatch.beginDrawing();
 
+    // Draw terrain
+    chunkManager.drawChunkTerrain(worldTexture, spriteBatch, gameTime);
 
     // Draw objects
     for (WorldObject* worldObject : worldObjects)
     {
-        worldObject->draw(worldTexture, dt, gameTime, worldSize, {255, 255, 255, 255});
+        worldObject->draw(worldTexture, spriteBatch, dt, gameTime, worldSize, {255, 255, 255, 255});
     }
+
+    spriteBatch.endDrawing(worldTexture);
 
     worldTexture.display();
 
@@ -582,7 +600,7 @@ void Game::runOnPlanet(float dt)
         
         BuildableObject objectGhost(Cursor::getLerpedSelectPos() + sf::Vector2f(TILE_SIZE_PIXELS_UNSCALED / 2.0f, TILE_SIZE_PIXELS_UNSCALED / 2.0f), placeObject);
 
-        objectGhost.draw(window, dt, 0, worldSize, drawColor);
+        objectGhost.draw(window, spriteBatch, dt, 0, worldSize, drawColor);
     }
 
     // Draw land to place if held
@@ -742,7 +760,15 @@ void Game::attemptUseTool()
         if (selectedObjectOptional.has_value())
         {
             BuildableObject& selectedObject = selectedObjectOptional.value();
-            selectedObject.damage(toolData.damage);
+            bool destroyed = selectedObject.damage(toolData.damage);
+
+            if (destroyed)
+            {
+                if (selectedObject.getChestCapactity() >= 0)
+                {
+                    removeChestFromData(selectedObject.getChestID());
+                }
+            }
         }
     }
 }
@@ -772,10 +798,7 @@ void Game::changePlayerTool()
 }
 
 void Game::attemptObjectInteract()
-{
-    if (worldMenuState != WorldMenuState::Main)
-        return;
-    
+{    
     // Get mouse position in screen space and world space
     sf::Vector2f mouseWorldPos = Cursor::getMouseWorldPos(window);
 
@@ -790,8 +813,15 @@ void Game::attemptObjectInteract()
         ObjectInteractionEventData interactionEvent = selectedObject.interact();
         if (interactionEvent.interactionType == ObjectInteraction::Chest)
         {
-            // worldMenuState = WorldMenuState::Furnace;
+            // If chest has ID 0xFFFF, then has not been initialised
+            // Therefore must initialise chest
+            if (interactionEvent.chestID == 0xFFFF)
+            {
+                initChestInData(selectedObject);
+            }
+
             openedChestID = interactionEvent.chestID;
+            openedChestPos = selectedObject.getPosition();
         }
     }
 }
@@ -905,4 +935,28 @@ void Game::drawGhostPlaceTileAtCursor()
         .scale = {scale, scale},
         .colour = landGhostColor
     }, textureRect);
+}
+
+void Game::initChestInData(BuildableObject& chest)
+{
+    chest.setChestID(chestDataTop);
+    
+    int chestCapacity = chest.getChestCapactity();
+
+    std::vector<std::optional<ItemCount>> chestItemData = chestData->at(chestDataTop);
+
+    chestItemData.reserve(chestCapacity);
+
+    // Fill chest data with empty item slots
+    for (int i = 0; i < chestCapacity; i++)
+    {
+        chestItemData[i] = std::nullopt;
+    }
+
+    chestDataTop++;
+}
+
+void Game::removeChestFromData(uint16_t chestID)
+{
+
 }

@@ -13,6 +13,7 @@
 #include "Core/Camera.hpp"
 #include "Core/ResolutionHandler.hpp"
 #include "Core/CollisionRect.hpp"
+#include "Core/SpriteBatch.hpp"
 #include "Object/WorldObject.hpp"
 #include "Object/BuildableObject.hpp"
 #include "Object/ObjectReference.hpp"
@@ -43,7 +44,7 @@ public:
 
     // Drawing
     void drawChunkTerrain(sf::RenderTarget& window, float time);
-    void drawChunkTerrainVisual(sf::RenderTarget& window, float time);
+    void drawChunkTerrainVisual(sf::RenderTarget& window, SpriteBatch& spriteBatch, float time);
     void drawChunkWater(sf::RenderTarget& window);
 
     // Get vector of chunk object/entities for drawing

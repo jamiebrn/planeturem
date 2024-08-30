@@ -28,6 +28,8 @@ struct ObjectData
     std::string craftingStation = "";
     int craftingStationLevel = 0;
 
+    int chestCapacity = 0;
+
     // std::unordered_map<ItemType, > itemDrops;
     std::vector<ItemDrop> itemDrops;
 };

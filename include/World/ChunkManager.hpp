@@ -11,6 +11,7 @@
 #include "Core/Camera.hpp"
 #include "Core/CollisionRect.hpp"
 #include "Core/Shaders.hpp"
+#include "Core/SpriteBatch.hpp"
 #include "World/Chunk.hpp"
 #include "World/ChunkPosition.hpp"
 #include "Entity/Entity.hpp"
@@ -34,7 +35,7 @@ public:
     void reloadChunks();
 
     // Drawing functions for chunk terrain
-    void drawChunkTerrain(sf::RenderTarget& window, float time);
+    void drawChunkTerrain(sf::RenderTarget& window, SpriteBatch& spriteBatch, float time);
     void drawChunkWater(sf::RenderTarget& window, float time);
 
 

@@ -277,7 +277,7 @@ void Chunk::drawChunkTerrain(sf::RenderTarget& window, float time)
     #endif
 }
 
-void Chunk::drawChunkTerrainVisual(sf::RenderTarget& window, float time)
+void Chunk::drawChunkTerrainVisual(sf::RenderTarget& window, SpriteBatch& spriteBatch, float time)
 {
     // Get tile size and scale
     float scale = ResolutionHandler::getScale();
@@ -320,7 +320,10 @@ void Chunk::drawChunkTerrainVisual(sf::RenderTarget& window, float time)
 
             // sf::Shader* cliffShader = Shaders::getShader(ShaderType::Cliff);
 
-            TextureManager::drawSubTexture(window, {TextureType::GroundTiles, Camera::worldToScreenTransform(tileWorldPosition), 0, {scale, scale}}, textureRect);
+            spriteBatch.draw(window, {TextureType::GroundTiles, Camera::worldToScreenTransform(tileWorldPosition), 0, {scale, scale}},
+                static_cast<sf::FloatRect>(textureRect));
+
+            // TextureManager::drawSubTexture(window, {TextureType::GroundTiles, Camera::worldToScreenTransform(tileWorldPosition), 0, {scale, scale}}, textureRect);
         }
     }
 }

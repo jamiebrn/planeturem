@@ -10,6 +10,7 @@
 #include "Core/Tween.hpp"
 #include "Core/TextureManager.hpp"
 #include "Core/TextDraw.hpp"
+#include "Core/SpriteBatch.hpp"
 #include "Object/WorldObject.hpp"
 #include "World/ChunkManager.hpp"
 #include "Data/typedefs.hpp"
@@ -24,7 +25,7 @@ public:
     Player(sf::Vector2f position);
 
     void update(float dt, sf::Vector2f mouseWorldPos, ChunkManager& chunkManager, int worldSize, bool& wrappedAroundWorld, sf::Vector2f& wrapPositionDelta);
-    void draw(sf::RenderTarget& window, float dt, float gameTime, int worldSize, const sf::Color& color) override;
+    void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime, int worldSize, const sf::Color& color) override;
     void drawLightMask(sf::RenderTarget& lightTexture);
 
     void setTool(ToolType toolType);

@@ -51,7 +51,7 @@ void Cursor::updateTileCursor(sf::RenderWindow& window,
 
         drawState = CursorDrawState::Tile;
     }
-    else if (toolType >= 0)
+    else
     {
         // Get entity selected at cursor position (if any)
         Entity* selectedEntity = chunkManager.getSelectedEntity(Cursor::getSelectedChunk(worldSize), mouseWorldPos);
