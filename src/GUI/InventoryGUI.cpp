@@ -12,7 +12,7 @@ std::unordered_map<std::string, int> InventoryGUI::previous_nearbyCraftingStatio
 std::unordered_map<ItemType, unsigned int> InventoryGUI::previous_inventoryItemCount;
 std::vector<int> InventoryGUI::availableRecipes;
 
-std::array<ItemSlot, MAX_INVENTORY_SIZE> InventoryGUI::inventoryItemSlots;
+std::vector<ItemSlot> InventoryGUI::inventoryItemSlots;
 std::array<ItemSlot, InventoryGUI::ITEM_BOX_PER_ROW> InventoryGUI::hotbarItemSlots;
 std::vector<ItemSlot> InventoryGUI::recipeItemSlots;
 std::vector<ItemSlot> InventoryGUI::chestItemSlots;
@@ -32,7 +32,7 @@ float InventoryGUI::binScale = 1.0f;
 
 float InventoryGUI::hotbarItemStringTimer = 0.0f;
 
-void InventoryGUI::initialise()
+void InventoryGUI::initialise(InventoryData& inventory)
 {
     binAnimation.create(4, 16, 20, 96, 12, 0.04f, false);
 
@@ -40,19 +40,19 @@ void InventoryGUI::initialise()
 
     // hotbarItemScales.fill(1.0f);
 
-    initialiseInventory();
+    initialiseInventory(inventory);
     initialiseHotbar();
 }
 
-void InventoryGUI::initialiseInventory()
+void InventoryGUI::initialiseInventory(InventoryData& inventory)
 {
     sf::Vector2f itemBoxPosition = sf::Vector2f(itemBoxPadding, itemBoxPadding);
 
     int currentRowIndex = 0;
 
-    for (int itemIndex = 0; itemIndex < inventoryItemSlots.size(); itemIndex++)
+    for (int itemIndex = 0; itemIndex < inventory.getSize(); itemIndex++)
     {
-        inventoryItemSlots[itemIndex] = ItemSlot(itemBoxPosition, itemBoxSize);
+        inventoryItemSlots.push_back(ItemSlot(itemBoxPosition, itemBoxSize));
 
         // Increment box position
         itemBoxPosition.x += itemBoxSize + itemBoxSpacing;
@@ -81,13 +81,13 @@ void InventoryGUI::initialiseHotbar()
     }
 }
 
-void InventoryGUI::createRecipeItemSlots()
+void InventoryGUI::createRecipeItemSlots(InventoryData& inventory)
 {
     // Calculate starting x position of recipes
     int xPos = itemBoxPadding;
 
     // Calculate y position
-    int yPos = itemBoxPadding + (itemBoxSize + itemBoxSpacing) * std::round(Inventory::getData().size() / ITEM_BOX_PER_ROW) - itemBoxSpacing;
+    int yPos = itemBoxPadding + (itemBoxSize + itemBoxSpacing) * std::round(inventory.getSize() / ITEM_BOX_PER_ROW) - itemBoxSpacing;
     yPos += itemBoxSize;
 
     recipeItemSlots.clear();
@@ -104,7 +104,7 @@ void InventoryGUI::createRecipeItemSlots()
     }
 }
 
-void InventoryGUI::updateInventory(sf::Vector2f mouseScreenPos, float dt, ChestData* chestData)
+void InventoryGUI::updateInventory(sf::Vector2f mouseScreenPos, float dt, InventoryData* chestData)
 {
     // Update bin animation
     int binAnimationUpdateDirection = 0;
@@ -128,9 +128,13 @@ void InventoryGUI::updateInventory(sf::Vector2f mouseScreenPos, float dt, ChestD
     }
 
     // Update recipe item slots
-    for (ItemSlot& itemSlot : recipeItemSlots)
+    for (int i = 0; i < recipeItemSlots.size(); i++)
     {
-        itemSlot.update(mouseScreenPos, dt);
+        ItemSlot& itemSlot = recipeItemSlots[i];
+
+        bool selected = (i == selectedRecipe);
+
+        itemSlot.update(mouseScreenPos, dt, selected);
     }
 
     // Update chest item slots
@@ -140,15 +144,15 @@ void InventoryGUI::updateInventory(sf::Vector2f mouseScreenPos, float dt, ChestD
     }
 }
 
-void InventoryGUI::handleLeftClick(sf::Vector2f mouseScreenPos, ChestData* chestData)
+void InventoryGUI::handleLeftClick(sf::Vector2f mouseScreenPos, InventoryData& inventory, InventoryData* chestData)
 {
     if (isItemPickedUp)
     {
-        putDownItem(mouseScreenPos, chestData);
+        putDownItem(mouseScreenPos, inventory, chestData);
     }
     else
     {
-        pickUpItem(mouseScreenPos, INVENTORY_STACK_SIZE, chestData);
+        pickUpItem(mouseScreenPos, INVENTORY_STACK_SIZE, inventory, chestData);
     }
 
     int recipeClicked = getHoveredRecipe(mouseScreenPos);
@@ -157,7 +161,7 @@ void InventoryGUI::handleLeftClick(sf::Vector2f mouseScreenPos, ChestData* chest
         // If clicked on recipe is selected, attempt to craft item
         if (recipeClicked == selectedRecipe)
         {
-            craftSelectedRecipe();
+            craftSelectedRecipe(inventory);
         }
         else
         {
@@ -167,30 +171,31 @@ void InventoryGUI::handleLeftClick(sf::Vector2f mouseScreenPos, ChestData* chest
     }
 }
 
-void InventoryGUI::handleRightClick(sf::Vector2f mouseScreenPos, ChestData* chestData)
+void InventoryGUI::handleRightClick(sf::Vector2f mouseScreenPos, InventoryData& inventory, InventoryData* chestData)
 {
-    pickUpItem(mouseScreenPos, 1, chestData);
+    pickUpItem(mouseScreenPos, 1, inventory, chestData);
 }
 
-bool InventoryGUI::handleScroll(sf::Vector2f mouseScreenPos, int direction, ChestData* chestData)
+bool InventoryGUI::handleScroll(sf::Vector2f mouseScreenPos, int direction)
 {
-    if (!isMouseOverUI(mouseScreenPos, chestData))
+    if (!isMouseOverUI(mouseScreenPos))
         return false;
     
     if (availableRecipes.size() > 0)
     {
-        selectedRecipe = ((selectedRecipe + direction) % availableRecipes.size() + availableRecipes.size()) % availableRecipes.size();
+        int recipeCount = availableRecipes.size();
+        selectedRecipe = ((selectedRecipe + direction) % recipeCount + recipeCount) % recipeCount;
     }
 
     return true;
 }
 
-void InventoryGUI::pickUpItem(sf::Vector2f mouseScreenPos, unsigned int amount, ChestData* chestData)
+void InventoryGUI::pickUpItem(sf::Vector2f mouseScreenPos, unsigned int amount, InventoryData& inventory, InventoryData* chestData)
 {
     // Get item selected at mouse
     int itemIndex = getInventoryHoveredIndex(mouseScreenPos);
 
-    int chestHoveredItemIndex = getHoveredChestIndex(mouseScreenPos, chestData);
+    int chestHoveredItemIndex = getHoveredChestIndex(mouseScreenPos);
 
     // No valid item selected
     if (itemIndex < 0 && chestHoveredItemIndex < 0)
@@ -202,11 +207,11 @@ void InventoryGUI::pickUpItem(sf::Vector2f mouseScreenPos, unsigned int amount, 
 
     if (itemIndex >= 0)
     {
-        itemSlot = &Inventory::getData()[itemIndex];
+        itemSlot = &inventory.getItemSlotData(itemIndex);
     }
     else
     {
-        itemSlot = &chestData->at(chestHoveredItemIndex);
+        itemSlot = &chestData->getItemSlotData(chestHoveredItemIndex);
         placingInChest = true;
     }
 
@@ -229,11 +234,12 @@ void InventoryGUI::pickUpItem(sf::Vector2f mouseScreenPos, unsigned int amount, 
             // Take from inventory / chest
             if (placingInChest)
             {
-                takeItemFromChestAtIndex(chestHoveredItemIndex, amountPickedUp, chestData);
+                // takeItemFromChestAtIndex(chestHoveredItemIndex, amountPickedUp, chestData);
+                chestData->takeItemAtIndex(chestHoveredItemIndex, amount);
             }
             else
             {
-                Inventory::takeItemAtIndex(itemIndex, amountPickedUp);
+                inventory.takeItemAtIndex(itemIndex, amountPickedUp);
             }
         }
     }
@@ -247,16 +253,17 @@ void InventoryGUI::pickUpItem(sf::Vector2f mouseScreenPos, unsigned int amount, 
         // Take from inventory / chest
         if (placingInChest)
         {
-            takeItemFromChestAtIndex(chestHoveredItemIndex, amount, chestData);
+            // takeItemFromChestAtIndex(chestHoveredItemIndex, amount, chestData);
+            chestData->takeItemAtIndex(chestHoveredItemIndex, amount);
         }
         else
         {
-            Inventory::takeItemAtIndex(itemIndex, amount);
+            inventory.takeItemAtIndex(itemIndex, amount);
         }
     }
 }
 
-void InventoryGUI::putDownItem(sf::Vector2f mouseScreenPos, ChestData* chestData)
+void InventoryGUI::putDownItem(sf::Vector2f mouseScreenPos, InventoryData& inventory, InventoryData* chestData)
 {
     if (!isItemPickedUp)
         return;
@@ -270,7 +277,7 @@ void InventoryGUI::putDownItem(sf::Vector2f mouseScreenPos, ChestData* chestData
         return;
     }
 
-    int chestHoveredItemIndex = getHoveredChestIndex(mouseScreenPos, chestData);
+    int chestHoveredItemIndex = getHoveredChestIndex(mouseScreenPos);
 
     // Get item selected at mouse
     int itemIndex = getInventoryHoveredIndex(mouseScreenPos);
@@ -285,11 +292,11 @@ void InventoryGUI::putDownItem(sf::Vector2f mouseScreenPos, ChestData* chestData
 
     if (itemIndex >= 0)
     {
-        itemSlot = &Inventory::getData()[itemIndex];
+        itemSlot = &inventory.getItemSlotData(itemIndex);
     }
     else
     {
-        itemSlot = &chestData->at(chestHoveredItemIndex);
+        itemSlot = &chestData->getItemSlotData(chestHoveredItemIndex);
         placingInChest = true;
     }
 
@@ -307,11 +314,12 @@ void InventoryGUI::putDownItem(sf::Vector2f mouseScreenPos, ChestData* chestData
             // Add to stack
             if (placingInChest)
             {
-                addItemToChestAtIndex(chestHoveredItemIndex, pickedUpItem, amountAddedToStack, chestData);
+                // addItemToChestAtIndex(chestHoveredItemIndex, pickedUpItem, amountAddedToStack, chestData);
+                chestData->addItemAtIndex(chestHoveredItemIndex, pickedUpItem, amountAddedToStack);
             }
             else
             {
-                Inventory::addItemAtIndex(itemIndex, pickedUpItem, amountAddedToStack);
+                inventory.addItemAtIndex(itemIndex, pickedUpItem, amountAddedToStack);
             }
 
             // Take from cursor
@@ -329,13 +337,15 @@ void InventoryGUI::putDownItem(sf::Vector2f mouseScreenPos, ChestData* chestData
             // Swap in inventory / chest
             if (placingInChest)
             {
-                takeItemFromChestAtIndex(chestHoveredItemIndex, itemCount.second, chestData);
-                addItemToChestAtIndex(chestHoveredItemIndex, pickedUpItem, pickedUpItemCount, chestData);
+                // takeItemFromChestAtIndex(chestHoveredItemIndex, itemCount.second, chestData);
+                // addItemToChestAtIndex(chestHoveredItemIndex, pickedUpItem, pickedUpItemCount, chestData);
+                chestData->takeItemAtIndex(chestHoveredItemIndex, itemCount.second);
+                chestData->addItemAtIndex(chestHoveredItemIndex, pickedUpItem, pickedUpItemCount);
             }
             else
             {
-                Inventory::takeItemAtIndex(itemIndex, itemCount.second);
-                Inventory::addItemAtIndex(itemIndex, pickedUpItem, pickedUpItemCount);
+                inventory.takeItemAtIndex(itemIndex, itemCount.second);
+                inventory.addItemAtIndex(itemIndex, pickedUpItem, pickedUpItemCount);
             }
 
             // Swap item picked up
@@ -352,11 +362,12 @@ void InventoryGUI::putDownItem(sf::Vector2f mouseScreenPos, ChestData* chestData
     // Create stack
     if (placingInChest)
     {
-        addItemToChestAtIndex(chestHoveredItemIndex, pickedUpItem, amountPutDown, chestData);
+        // addItemToChestAtIndex(chestHoveredItemIndex, pickedUpItem, amountPutDown, chestData);
+        chestData->addItemAtIndex(chestHoveredItemIndex, pickedUpItem, amountPutDown);
     }
     else
     {
-        Inventory::addItemAtIndex(itemIndex, pickedUpItem, amountPutDown);
+        inventory.addItemAtIndex(itemIndex, pickedUpItem, amountPutDown);
     }
 
     // Take from cursor
@@ -398,11 +409,8 @@ int InventoryGUI::getHoveredRecipe(sf::Vector2f mouseScreenPos)
     return -1;
 }
 
-int InventoryGUI::getHoveredChestIndex(sf::Vector2f mouseScreenPos, ChestData* chestData)
-{
-    if (chestData == nullptr)
-        return -1;
-    
+int InventoryGUI::getHoveredChestIndex(sf::Vector2f mouseScreenPos)
+{    
     for (int itemIndex = 0; itemIndex < chestItemSlots.size(); itemIndex++)
     {
         ItemSlot& itemSlot = chestItemSlots[itemIndex];
@@ -453,36 +461,15 @@ bool InventoryGUI::isBinSelected(sf::Vector2f mouseScreenPos)
 
 bool InventoryGUI::isInventorySelected(sf::Vector2f mouseScreenPos)
 {
-    float intScale = ResolutionHandler::getResolutionIntegerScale();
-
-    CollisionRect uiMask;
-
-    uiMask.x = itemBoxPadding * intScale;
-    uiMask.y = itemBoxPadding * intScale;
-    uiMask.width = ((itemBoxSize + itemBoxSpacing) * ITEM_BOX_PER_ROW - itemBoxSpacing) * intScale;
-    uiMask.height = ((itemBoxSize + itemBoxSpacing) * std::round(Inventory::getData().size() / ITEM_BOX_PER_ROW) - itemBoxSpacing) * intScale;
-
-    return uiMask.isPointInRect(mouseScreenPos.x, mouseScreenPos.y);
+    return (getInventoryHoveredIndex(mouseScreenPos) >= 0);
 }
 
 bool InventoryGUI::isCraftingSelected(sf::Vector2f mouseScreenPos)
 {
-    if (availableRecipes.size() <= 0)
-        return false;
-
-    float intScale = ResolutionHandler::getResolutionIntegerScale();
-
-    CollisionRect uiMask;
-
-    uiMask.x = itemBoxPadding * intScale;
-    uiMask.y = itemBoxPadding * intScale + ((itemBoxSize + itemBoxSpacing) * std::round(Inventory::getData().size() / ITEM_BOX_PER_ROW) - itemBoxSpacing) * intScale;
-    uiMask.width = ((itemBoxSize + itemBoxSpacing) * (availableRecipes.size() + 1) - itemBoxSpacing) * intScale;
-    uiMask.height = (itemBoxSize + itemBoxSpacing) * 3 * intScale;
-
-    return uiMask.isPointInRect(mouseScreenPos.x, mouseScreenPos.y);
+    return (getHoveredRecipe(mouseScreenPos) >= 0);
 }
 
-void InventoryGUI::craftSelectedRecipe()
+void InventoryGUI::craftSelectedRecipe(InventoryData& inventory)
 {
     // Get recipe data
     int recipeIdx = availableRecipes[selectedRecipe];
@@ -493,7 +480,7 @@ void InventoryGUI::craftSelectedRecipe()
         return;
 
     // Get inventory to check if has items (should have items as recipe is in available recipes, check just in case)
-    std::unordered_map<ItemType, unsigned int> inventoryItemCount = Inventory::getTotalItemCount();
+    std::unordered_map<ItemType, unsigned int> inventoryItemCount = inventory.getTotalItemCount();
 
     // Check has items
     for (const auto& itemRequired : recipeData.itemRequirements)
@@ -508,7 +495,7 @@ void InventoryGUI::craftSelectedRecipe()
     // Take items
     for (const auto& itemRequired : recipeData.itemRequirements)
     {
-        Inventory::takeItem(itemRequired.first, itemRequired.second);
+        inventory.takeItem(itemRequired.first, itemRequired.second);
     }
 
     // Give crafted item to player
@@ -532,29 +519,29 @@ void InventoryGUI::craftSelectedRecipe()
 
     // Inventory changed, so update available recipes
     // Use previous crafting station levels stored as only updating for item change
-    updateAvailableRecipes(previous_nearbyCraftingStationLevels);
+    updateAvailableRecipes(inventory, previous_nearbyCraftingStationLevels);
 }
 
-void InventoryGUI::handleClose(ChestData* chestData)
+void InventoryGUI::handleClose(InventoryData& inventory, InventoryData* chestData)
 {
     // Handle item still picked up when inventory is closed
     if (isItemPickedUp)
     {
         isItemPickedUp = false;
 
-        Inventory::addItem(pickedUpItem, pickedUpItemCount);
+        inventory.addItem(pickedUpItem, pickedUpItemCount);
     }
 }
 
-bool InventoryGUI::isMouseOverUI(sf::Vector2f mouseScreenPos, ChestData* chestData)
+bool InventoryGUI::isMouseOverUI(sf::Vector2f mouseScreenPos)
 {
     return (isInventorySelected(mouseScreenPos) || isCraftingSelected(mouseScreenPos) || isBinSelected(mouseScreenPos) || 
-        (getHoveredChestIndex(mouseScreenPos, chestData) >= 0));
+        (getHoveredChestIndex(mouseScreenPos) >= 0));
 }
 
-void InventoryGUI::updateAvailableRecipes(std::unordered_map<std::string, int> nearbyCraftingStationLevels)
+void InventoryGUI::updateAvailableRecipes(InventoryData& inventory, std::unordered_map<std::string, int> nearbyCraftingStationLevels)
 {
-    std::unordered_map<ItemType, unsigned int> inventoryItemCount = Inventory::getTotalItemCount();
+    std::unordered_map<ItemType, unsigned int> inventoryItemCount = inventory.getTotalItemCount();
 
     // If crafting stations and items have not changed, do not update recipes
     if (nearbyCraftingStationLevels == previous_nearbyCraftingStationLevels && inventoryItemCount == previous_inventoryItemCount)
@@ -562,6 +549,8 @@ void InventoryGUI::updateAvailableRecipes(std::unordered_map<std::string, int> n
     
     previous_nearbyCraftingStationLevels = nearbyCraftingStationLevels;
     previous_inventoryItemCount = inventoryItemCount;
+
+    std::vector<int> previous_availableRecipes = availableRecipes;
 
     // Reset available recipes
     availableRecipes.clear();
@@ -608,17 +597,20 @@ void InventoryGUI::updateAvailableRecipes(std::unordered_map<std::string, int> n
         availableRecipes.push_back(recipeIdx);
     }
 
-    if (availableRecipes.size() > 0)
+    // Update UI if required
+    if (availableRecipes != previous_availableRecipes)
     {
-        selectedRecipe = (selectedRecipe % availableRecipes.size() + availableRecipes.size()) % availableRecipes.size();
-    }
-    else
-    {
-        selectedRecipe = 0;
-    }
+        if (availableRecipes.size() > 0)
+        {
+            selectedRecipe = (selectedRecipe % availableRecipes.size() + availableRecipes.size()) % availableRecipes.size();
+        }
+        else
+        {
+            selectedRecipe = 0;
+        }
 
-    // Update UI
-    createRecipeItemSlots();
+        createRecipeItemSlots(inventory);
+    }
 }
 
 ObjectType InventoryGUI::getHeldObjectType()
@@ -666,7 +658,7 @@ bool InventoryGUI::heldItemPlacesLand()
     return itemData.placesLand;
 }
 
-void InventoryGUI::draw(sf::RenderWindow& window, sf::Vector2f mouseScreenPos, ChestData* chestData)
+void InventoryGUI::draw(sf::RenderWindow& window, sf::Vector2f mouseScreenPos, InventoryData& inventory, InventoryData* chestData)
 {
     // Get intscale
     float intScale = ResolutionHandler::getResolutionIntegerScale();
@@ -680,7 +672,7 @@ void InventoryGUI::draw(sf::RenderWindow& window, sf::Vector2f mouseScreenPos, C
     // Draw inventory data
     for (int itemIdx = 0; itemIdx < inventoryItemSlots.size(); itemIdx++)
     {
-        const std::optional<ItemCount>& itemSlotData = Inventory::getData()[itemIdx];
+        const std::optional<ItemCount>& itemSlotData = inventory.getItemSlotData(itemIdx);
 
         ItemSlot& itemSlot = inventoryItemSlots[itemIdx];
 
@@ -781,7 +773,7 @@ void InventoryGUI::draw(sf::RenderWindow& window, sf::Vector2f mouseScreenPos, C
     {
         for (int itemIdx = 0; itemIdx < chestItemSlots.size(); itemIdx++)
         {
-            const std::optional<ItemCount>& itemSlotData = chestData->at(itemIdx);
+            const std::optional<ItemCount>& itemSlotData = chestData->getItemSlotData(itemIdx);
 
             ItemSlot& itemSlot = chestItemSlots[itemIdx];
 
@@ -813,23 +805,23 @@ void InventoryGUI::draw(sf::RenderWindow& window, sf::Vector2f mouseScreenPos, C
         // If an item is hovered over, draw item info box
         if (hoveredItemIndex >= 0)
         {
-            drawItemInfoBoxInventory(window, hoveredItemIndex, mouseScreenPos);
+            drawItemInfoBox(window, hoveredItemIndex, inventory, mouseScreenPos);
         }
         else if (chestData != nullptr)
         {
             // Draw chest hovered item info
-            int chestHoveredItemIndex = getHoveredChestIndex(mouseScreenPos, chestData);
+            int chestHoveredItemIndex = getHoveredChestIndex(mouseScreenPos);
             if (chestHoveredItemIndex >= 0)
             {
-                drawItemInfoBoxChest(window, chestHoveredItemIndex, mouseScreenPos, chestData);
+                drawItemInfoBox(window, chestHoveredItemIndex, *chestData, mouseScreenPos);
             }
         }
     }
 }
 
-void InventoryGUI::drawItemInfoBoxInventory(sf::RenderWindow& window, int itemIndex, sf::Vector2f mouseScreenPos)
+void InventoryGUI::drawItemInfoBox(sf::RenderWindow& window, int itemIndex, InventoryData& inventory, sf::Vector2f mouseScreenPos)
 {
-    const std::optional<ItemCount>& itemSlot = Inventory::getData()[itemIndex];
+    const std::optional<ItemCount>& itemSlot = inventory.getItemSlotData(itemIndex);
 
     // If no item in slot, do not draw box
     if (!itemSlot.has_value())
@@ -881,40 +873,6 @@ void InventoryGUI::drawItemInfoBoxRecipe(sf::RenderWindow& window, int recipeIdx
     });
 }
 
-void InventoryGUI::drawItemInfoBoxChest(sf::RenderWindow& window, int itemIndex, sf::Vector2f mouseScreenPos, ChestData* chestData)
-{
-    if (chestData == nullptr)
-        return;
-
-    const std::optional<ItemCount>& itemSlot = chestData->at(itemIndex);
-
-    // If no item in slot, do not draw box
-    if (!itemSlot.has_value())
-        return;
-    
-    // Get item data
-    ItemType itemType = itemSlot.value().first;
-    unsigned int itemAmount = itemSlot.value().second;
-
-    const ItemData& itemData = ItemDataLoader::getItemData(itemType);
-
-    float intScale = ResolutionHandler::getResolutionIntegerScale();
-
-    // Draw item name
-    TextDraw::drawText(window, {
-        itemData.name,
-        mouseScreenPos - (sf::Vector2f(0, 16)) * intScale,
-        {255, 255, 255},
-        24 * static_cast<unsigned int>(intScale),
-        {0, 0, 0},
-        0,
-        true,
-        true,
-        true,
-        true
-    });    
-}
-
 
 // -- Hotbar -- //
 
@@ -959,10 +917,10 @@ void InventoryGUI::handleScrollHotbar(int direction)
     handleHotbarItemChange();
 }
 
-ObjectType InventoryGUI::getHotbarSelectedObject()
+ObjectType InventoryGUI::getHotbarSelectedObject(InventoryData& inventory)
 {
     // Get item
-    const std::optional<ItemCount>& itemSlot = Inventory::getData()[selectedHotbarIndex];
+    const std::optional<ItemCount>& itemSlot = inventory.getItemSlotData(selectedHotbarIndex);
 
     if (!itemSlot.has_value())
         return -1;
@@ -974,10 +932,10 @@ ObjectType InventoryGUI::getHotbarSelectedObject()
     return itemData.placesObjectType;
 }
 
-ToolType InventoryGUI::getHotbarSelectedTool()
+ToolType InventoryGUI::getHotbarSelectedTool(InventoryData& inventory)
 {
     // Get item
-    const std::optional<ItemCount>& itemSlot = Inventory::getData()[selectedHotbarIndex];
+    const std::optional<ItemCount>& itemSlot = inventory.getItemSlotData(selectedHotbarIndex);
 
     if (!itemSlot.has_value())
         return -1;
@@ -989,10 +947,10 @@ ToolType InventoryGUI::getHotbarSelectedTool()
     return itemData.toolType;
 }
 
-bool InventoryGUI::hotbarItemPlacesLand()
+bool InventoryGUI::hotbarItemPlacesLand(InventoryData& inventory)
 {
     // Get item
-    const std::optional<ItemCount>& itemSlot = Inventory::getData()[selectedHotbarIndex];
+    const std::optional<ItemCount>& itemSlot = inventory.getItemSlotData(selectedHotbarIndex);
 
     if (!itemSlot.has_value())
         return false;
@@ -1004,9 +962,9 @@ bool InventoryGUI::hotbarItemPlacesLand()
     return itemData.placesLand;
 }
 
-void InventoryGUI::placeHotbarObject()
+void InventoryGUI::placeHotbarObject(InventoryData& inventory)
 {
-    Inventory::takeItemAtIndex(selectedHotbarIndex, 1);
+    inventory.takeItemAtIndex(selectedHotbarIndex, 1);
 }
 
 void InventoryGUI::handleHotbarItemChange()
@@ -1015,7 +973,7 @@ void InventoryGUI::handleHotbarItemChange()
     hotbarItemStringTimer = HOTBAR_ITEM_STRING_OPAQUE_TIME + HOTBAR_ITEM_STRING_FADE_TIME;
 }
 
-void InventoryGUI::drawHotbar(sf::RenderWindow& window, sf::Vector2f mouseScreenPos)
+void InventoryGUI::drawHotbar(sf::RenderWindow& window, sf::Vector2f mouseScreenPos, InventoryData& inventory)
 {
     // Get resolution
     const sf::Vector2u& resolution = ResolutionHandler::getResolution();
@@ -1025,7 +983,7 @@ void InventoryGUI::drawHotbar(sf::RenderWindow& window, sf::Vector2f mouseScreen
 
     for (int i = 0; i < hotbarItemSlots.size(); i++)
     {
-        const std::optional<ItemCount>& itemSlotData = Inventory::getData()[i];
+        const std::optional<ItemCount>& itemSlotData = inventory.getItemSlotData(i);
 
         bool selected = (i == selectedHotbarIndex);
 
@@ -1068,12 +1026,12 @@ void InventoryGUI::drawHotbar(sf::RenderWindow& window, sf::Vector2f mouseScreen
 }
 
 // -- Chest -- //
-void InventoryGUI::chestOpened(ChestData* chestData)
+void InventoryGUI::chestOpened(InventoryData* chestData)
 {
     createChestItemSlots(chestData);
 }
 
-void InventoryGUI::createChestItemSlots(ChestData* chestData)
+void InventoryGUI::createChestItemSlots(InventoryData* chestData)
 {
     if (chestData == nullptr)
         return;
@@ -1083,7 +1041,7 @@ void InventoryGUI::createChestItemSlots(ChestData* chestData)
     sf::Vector2f chestItemBoxPosition = sf::Vector2f(itemBoxPadding + (ITEM_BOX_PER_ROW + 2) * itemBoxSize, itemBoxPadding);
 
     int currentRowIndex = 0;
-    for (int itemIndex = 0; itemIndex < chestData->size(); itemIndex++)
+    for (int itemIndex = 0; itemIndex < chestData->getSize(); itemIndex++)
     {
         ItemSlot chestItemSlot(chestItemBoxPosition, itemBoxSize);
 
@@ -1103,58 +1061,58 @@ void InventoryGUI::createChestItemSlots(ChestData* chestData)
     }
 }
 
-void InventoryGUI::addItemToChestAtIndex(int index, ItemType item, int amount, ChestData* chestData)
-{
-    if (chestData == nullptr)
-        return;
+// void InventoryGUI::addItemToChestAtIndex(int index, ItemType item, int amount, InventoryData* chestData)
+// {
+//     if (chestData == nullptr)
+//         return;
     
-    if (index >= MAX_INVENTORY_SIZE)
-        return;
+//     if (index >= MAX_INVENTORY_SIZE)
+//         return;
     
-    std::optional<ItemCount>& itemSlot = chestData->at(index);
+//     std::optional<ItemCount>& itemSlot = chestData->getItemSlotData(index);
 
-    // Attempt to add to stack
-    if (itemSlot.has_value())
-    {
-        ItemCount& itemCount = itemSlot.value();
+//     // Attempt to add to stack
+//     if (itemSlot.has_value())
+//     {
+//         ItemCount& itemCount = itemSlot.value();
 
-        // Item to add is same as item at index, so add
-        if (item == itemCount.first)
-        {
-            itemCount.second = std::min(itemCount.second + amount, INVENTORY_STACK_SIZE);
-        }
+//         // Item to add is same as item at index, so add
+//         if (item == itemCount.first)
+//         {
+//             itemCount.second = std::min(itemCount.second + amount, INVENTORY_STACK_SIZE);
+//         }
 
-        return;
-    }
+//         return;
+//     }
 
-    // Create new stack
-    ItemCount itemCount;
-    itemCount.first = item;
-    itemCount.second = std::min(amount, static_cast<int>(INVENTORY_STACK_SIZE));
+//     // Create new stack
+//     ItemCount itemCount;
+//     itemCount.first = item;
+//     itemCount.second = std::min(amount, static_cast<int>(INVENTORY_STACK_SIZE));
 
-    itemSlot = itemCount;
-}
+//     itemSlot = itemCount;
+// }
 
-void InventoryGUI::takeItemFromChestAtIndex(int index, int amount, ChestData* chestData)
-{
-    if (chestData == nullptr)
-        return;
+// void InventoryGUI::takeItemFromChestAtIndex(int index, int amount, InventoryData* chestData)
+// {
+//     if (chestData == nullptr)
+//         return;
     
-    if (index >= MAX_INVENTORY_SIZE)
-        return;
+//     if (index >= MAX_INVENTORY_SIZE)
+//         return;
     
-    std::optional<ItemCount>& itemSlot = chestData->at(index);
-    if (!itemSlot.has_value())
-        return;
+//     std::optional<ItemCount>& itemSlot = chestData->getItemSlotData(index);
+//     if (!itemSlot.has_value())
+//         return;
     
-    ItemCount& itemCount = itemSlot.value();
+//     ItemCount& itemCount = itemSlot.value();
 
-    if (amount >= itemCount.second)
-    {
-        itemSlot = std::nullopt;
-    }
-    else
-    {
-        itemCount.second -= amount;
-    }
-}
+//     if (amount >= itemCount.second)
+//     {
+//         itemSlot = std::nullopt;
+//     }
+//     else
+//     {
+//         itemCount.second -= amount;
+//     }
+// }

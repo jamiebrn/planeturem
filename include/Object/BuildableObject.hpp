@@ -15,7 +15,7 @@
 #include "Core/SpriteBatch.hpp"
 #include "Object/WorldObject.hpp"
 #include "Object/ObjectReference.hpp"
-#include "Player/Inventory.hpp"
+#include "Player/InventoryData.hpp"
 #include "Data/ObjectData.hpp"
 #include "Data/ObjectDataLoader.hpp"
 
@@ -44,7 +44,7 @@ public:
     void drawGUI(sf::RenderTarget& window, float dt, const sf::Color& color);
 
     // Returns true if destroyed
-    bool damage(int amount);
+    bool damage(int amount, InventoryData& inventory);
     ObjectInteractionEventData interact();
 
     void setWorldPosition(sf::Vector2f position);

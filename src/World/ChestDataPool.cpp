@@ -2,7 +2,7 @@
 
 ChestDataPool::ChestDataPool()
 {
-    chestData = std::make_unique<std::array<ChestData, 0xFFFF - 1>>();
+    chestData = std::make_unique<std::array<std::optional<InventoryData>, 0xFFFF - 1>>();
 
     openDataSlots.clear();
 
@@ -29,7 +29,7 @@ uint16_t ChestDataPool::createChest(int capacity)
     if (chestID < 0xFFFF)
     {
         // Initialise chest data
-        chestData->at(chestID) = ChestData(capacity, std::nullopt);
+        chestData->at(chestID) = InventoryData(capacity);
     }
 
     return chestID;
@@ -42,23 +42,23 @@ void ChestDataPool::destroyChest(uint16_t id)
         return;
     }
 
-    chestData->at(id).clear();
+    chestData->at(id) = std::nullopt;
     openDataSlots.push_back(id);
 }
 
-ChestData& ChestDataPool::getChestData(uint16_t id)
+InventoryData& ChestDataPool::getChestData(uint16_t id)
 {
     assert(id != 0xFFFF);
 
-    return chestData->at(id);
+    return chestData->at(id).value();
 }
 
-ChestData* ChestDataPool::getChestDataPtr(uint16_t id)
+InventoryData* ChestDataPool::getChestDataPtr(uint16_t id)
 {
     if (id == 0xFFFF)
     {
         return nullptr;
     }
 
-    return &(chestData->at(id));
+    return &(chestData->at(id).value());
 }

@@ -9,7 +9,6 @@
 // TODO: Biomes (desert/oasis, rock etc)
 
 // PRIORITY: LOW
-// TODO: Scroll wrapping in recipe menu
 // TODO: Recipe next line / button to hide
 // TODO: Inventory item added notifications (maybe taking items?). Add in player class
 // TODO: Prevent chests from being destroyed when containing items
@@ -81,6 +80,8 @@ bool Game::initialise()
     musicGapTimer = 0.0f;
     musicGap = 0.0f;
 
+    inventory = InventoryData(32);
+
     // Set world size
     worldSize = 240;
 
@@ -90,7 +91,7 @@ bool Game::initialise()
     isDay = true;
 
     // Initialise GUI
-    InventoryGUI::initialise();
+    InventoryGUI::initialise(inventory);
 
     generateWaterNoiseTexture();
 
@@ -225,7 +226,7 @@ void Game::generateWaterNoiseTexture()
 
 void Game::giveStartingInventory()
 {
-    Inventory::addItem(ItemDataLoader::getItemTypeFromName("Wooden Pickaxe"), 1);
+    inventory.addItem(ItemDataLoader::getItemTypeFromName("Wooden Pickaxe"), 1);
 
     changePlayerTool();
 }
@@ -355,14 +356,14 @@ void Game::runOnPlanet(float dt)
             {
                 if (event.key.code == sf::Keyboard::E && worldMenuState == WorldMenuState::Inventory)
                 {
-                    InventoryGUI::handleClose();
+                    InventoryGUI::handleClose(inventory, chestDataPool.getChestDataPtr(openedChestID));
                     worldMenuState = WorldMenuState::Main;
                     closeChest();
                 }
 
                 if (event.key.code == sf::Keyboard::Escape)
                 {
-                    InventoryGUI::handleClose();
+                    InventoryGUI::handleClose(inventory, chestDataPool.getChestDataPtr(openedChestID));
                     worldMenuState = WorldMenuState::Main;
                     closeChest();
                 }
@@ -391,13 +392,13 @@ void Game::runOnPlanet(float dt)
                         break;
                     }
                     case WorldMenuState::Inventory:
-                        if (!InventoryGUI::isMouseOverUI(mouseScreenPos, chestDataPool.getChestDataPtr(openedChestID)))
+                        if (!InventoryGUI::isMouseOverUI(mouseScreenPos))
                         {
                             attemptUseTool();
                             attemptBuildObject();
                             attemptPlaceLand();
                         }
-                        InventoryGUI::handleLeftClick(mouseScreenPos, chestDataPool.getChestDataPtr(openedChestID));
+                        InventoryGUI::handleLeftClick(mouseScreenPos, inventory, chestDataPool.getChestDataPtr(openedChestID));
                         changePlayerTool();
                         break;
                 }
@@ -410,9 +411,9 @@ void Game::runOnPlanet(float dt)
                         attemptObjectInteract();
                         break;
                     case WorldMenuState::Inventory:
-                        if (InventoryGUI::isMouseOverUI(mouseScreenPos, chestDataPool.getChestDataPtr(openedChestID)))
+                        if (InventoryGUI::isMouseOverUI(mouseScreenPos))
                         {
-                            InventoryGUI::handleRightClick(mouseScreenPos, chestDataPool.getChestDataPtr(openedChestID));
+                            InventoryGUI::handleRightClick(mouseScreenPos, inventory, chestDataPool.getChestDataPtr(openedChestID));
                             changePlayerTool();
                         }
                         else
@@ -458,12 +459,12 @@ void Game::runOnPlanet(float dt)
 
     // Update cursor
     ObjectType objectType = InventoryGUI::getHeldObjectType();
-    if (objectType <= 0) objectType = InventoryGUI::getHotbarSelectedObject();
+    if (objectType <= 0) objectType = InventoryGUI::getHotbarSelectedObject(inventory);
 
-    Cursor::updateTileCursor(window, dt, worldSize, chunkManager, player.getCollisionRect(), objectType, player.getTool());
+    Cursor::updateTileCursor(window, dt, worldSize, chunkManager, player.getCollisionRect(), objectType);
 
     // Cursor enable / disable
-    if (InventoryGUI::heldItemPlacesLand() || InventoryGUI::hotbarItemPlacesLand())
+    if (InventoryGUI::heldItemPlacesLand() || InventoryGUI::hotbarItemPlacesLand(inventory))
         Cursor::setCursorPlacingLand();
 
     // Enable / disable cursor drawing depending on player reach
@@ -498,7 +499,7 @@ void Game::runOnPlanet(float dt)
     else if (worldMenuState == WorldMenuState::Inventory)
     {
         // Update inventory GUI available recipes if required, and animations
-        InventoryGUI::updateAvailableRecipes(nearbyCraftingStationLevels);
+        InventoryGUI::updateAvailableRecipes(inventory, nearbyCraftingStationLevels);
         InventoryGUI::updateInventory(mouseScreenPos, dt, chestDataPool.getChestDataPtr(openedChestID));
     }
 
@@ -528,31 +529,34 @@ void Game::runOnPlanet(float dt)
     // UI
     Cursor::drawCursor(window);
 
-    ObjectType placeObject = InventoryGUI::getHeldObjectType();
-    if (placeObject < 0)
+    if (InventoryGUI::getHeldToolType() < 0)
     {
-        placeObject = InventoryGUI::getHotbarSelectedObject();
-    }
+        ObjectType placeObject = InventoryGUI::getHeldObjectType();
+        if (placeObject < 0)
+        {
+            placeObject = InventoryGUI::getHotbarSelectedObject(inventory);
+        }
 
-    if (placeObject >= 0)
-    {
-        drawGhostPlaceObjectAtCursor(placeObject);
-    }
+        if (placeObject >= 0)
+        {
+            drawGhostPlaceObjectAtCursor(placeObject);
+        }
 
-    // Draw land to place if held
-    if (InventoryGUI::heldItemPlacesLand() || InventoryGUI::hotbarItemPlacesLand())
-    {
-        drawGhostPlaceLandAtCursor();
+        // Draw land to place if held
+        if ((InventoryGUI::heldItemPlacesLand() || InventoryGUI::hotbarItemPlacesLand(inventory)))
+        {
+            drawGhostPlaceLandAtCursor();
+        }
     }
 
     switch (worldMenuState)
     {
         case WorldMenuState::Main:
-            InventoryGUI::drawHotbar(window, mouseScreenPos);
+            InventoryGUI::drawHotbar(window, mouseScreenPos, inventory);
             break;
         
         case WorldMenuState::Inventory:
-            InventoryGUI::draw(window, mouseScreenPos, chestDataPool.getChestDataPtr(openedChestID));
+            InventoryGUI::draw(window, mouseScreenPos, inventory, chestDataPool.getChestDataPtr(openedChestID));
             break;
     }
 
@@ -698,7 +702,7 @@ void Game::attemptUseTool()
         if (selectedObjectOptional.has_value())
         {
             BuildableObject& selectedObject = selectedObjectOptional.value();
-            bool destroyed = selectedObject.damage(toolData.damage);
+            bool destroyed = selectedObject.damage(toolData.damage, inventory);
 
             if (destroyed)
             {
@@ -714,7 +718,7 @@ void Game::attemptUseTool()
 void Game::changePlayerTool()
 {
     // Get currently selected tool in inventory and hotbar
-    ToolType hotbarTool = InventoryGUI::getHotbarSelectedTool();
+    ToolType hotbarTool = InventoryGUI::getHotbarSelectedTool(inventory);
     ToolType inventoryTool = InventoryGUI::getHeldToolType();
 
     // Get tool currently held by player
@@ -783,10 +787,14 @@ void Game::attemptBuildObject()
     ObjectType objectType = InventoryGUI::getHeldObjectType();
     bool placeFromHotbar = false;
 
+    // Do not build if holding tool in inventory (not in hotbar)
+    if (InventoryGUI::getHeldToolType() >= 0)
+        return;
+
     // If object not picked up from inventory, check hotbar
     if (objectType <= 0)
     {
-        objectType = InventoryGUI::getHotbarSelectedObject();
+        objectType = InventoryGUI::getHotbarSelectedObject(inventory);
         placeFromHotbar = true;
     }
 
@@ -807,7 +815,7 @@ void Game::attemptBuildObject()
         // Remove object from being held
         if (placeFromHotbar)
         {
-            InventoryGUI::placeHotbarObject();
+            InventoryGUI::placeHotbarObject(inventory);
         }
         else
         {
@@ -828,11 +836,15 @@ void Game::attemptBuildObject()
 
 void Game::attemptPlaceLand()
 {
+    // Do not build if holding tool in inventory (not in hotbar)
+    if (InventoryGUI::getHeldToolType() >= 0)
+        return;
+
     bool placeFromHotbar = false;
 
     if (!InventoryGUI::heldItemPlacesLand())
     {
-        if (InventoryGUI::hotbarItemPlacesLand())
+        if (InventoryGUI::hotbarItemPlacesLand(inventory))
         {
             placeFromHotbar = true;
         }
@@ -861,7 +873,7 @@ void Game::attemptPlaceLand()
     // Subtract from land held
     if (placeFromHotbar)
     {
-        InventoryGUI::placeHotbarObject();
+        InventoryGUI::placeHotbarObject(inventory);
     }
     else
     {

@@ -70,7 +70,7 @@ void BuildableObject::drawGUI(sf::RenderTarget& window, float dt, const sf::Colo
         }, objectData.textureRects[0]);
 }
 
-bool BuildableObject::damage(int amount)
+bool BuildableObject::damage(int amount, InventoryData& inventory)
 {
     flash_amount = 1.0f;
     health -= amount;
@@ -94,7 +94,7 @@ bool BuildableObject::damage(int amount)
             {
                 // Give items
                 unsigned int itemAmount = rand() % std::max(itemDrop.maxAmount - itemDrop.minAmount + 1, 1U) + itemDrop.minAmount;
-                Inventory::addItem(itemDrop.item, itemAmount);
+                inventory.addItem(itemDrop.item, itemAmount);
             }
         }
 

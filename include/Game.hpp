@@ -26,7 +26,8 @@
 
 #include "Player/Player.hpp"
 #include "Player/Cursor.hpp"
-#include "Player/FurnaceJob.hpp"
+#include "Player/InventoryData.hpp"
+// #include "Player/FurnaceJob.hpp"
 
 #include "Data/ItemData.hpp"
 #include "Data/ObjectData.hpp"
@@ -122,6 +123,8 @@ private:
     FastNoise noise;
 
     Player player;
+    InventoryData inventory;
+
     ChunkManager chunkManager;
 
     std::array<sf::Texture, 2> waterNoiseTextures;

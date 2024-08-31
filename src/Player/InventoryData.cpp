@@ -1,8 +1,11 @@
-#include "Player/Inventory.hpp"
+#include "Player/InventoryData.hpp"
 
-std::array<std::optional<ItemCount>, MAX_INVENTORY_SIZE> Inventory::inventoryData;
+InventoryData::InventoryData(int size)
+{
+    inventoryData = std::vector<std::optional<ItemCount>>(size, std::nullopt);
+}
 
-void Inventory::addItem(ItemType item, int amount)
+void InventoryData::addItem(ItemType item, int amount)
 {
     int amountToAdd = amount;
 
@@ -50,7 +53,7 @@ void Inventory::addItem(ItemType item, int amount)
     // inventoryData.push_back({item, amount});
 }
 
-void Inventory::takeItem(ItemType item, int amount)
+void InventoryData::takeItem(ItemType item, int amount)
 {
     int amountToTake = amount;
 
@@ -85,9 +88,9 @@ void Inventory::takeItem(ItemType item, int amount)
     }
 }
 
-void Inventory::addItemAtIndex(int index, ItemType item, int amount)
+void InventoryData::addItemAtIndex(int index, ItemType item, int amount)
 {
-    if (index >= MAX_INVENTORY_SIZE)
+    if (index >= inventoryData.size())
         return;
     
     std::optional<ItemCount>& itemSlot = inventoryData[index];
@@ -114,9 +117,9 @@ void Inventory::addItemAtIndex(int index, ItemType item, int amount)
     itemSlot = itemCount;
 }
 
-void Inventory::takeItemAtIndex(int index, int amount)
+void InventoryData::takeItemAtIndex(int index, int amount)
 {
-    if (index >= MAX_INVENTORY_SIZE)
+    if (index >= inventoryData.size())
         return;
     
     std::optional<ItemCount>& itemSlot = inventoryData[index];
@@ -135,28 +138,7 @@ void Inventory::takeItemAtIndex(int index, int amount)
     }
 }
 
-// bool Inventory::canBuildObject(ObjectType object)
-// {
-//     const BuildRecipe& buildRecipe = BuildRecipeLoader::getBuildRecipe(object);
-
-//     std::unordered_map<ItemType, unsigned int> inventoryItemCount = getTotalItemCount();
-
-//     for (auto& recipeItemPair : buildRecipe.itemRequirements)
-//     {
-//         // If item not in inventory, return false (cannot build object)
-//         if (inventoryItemCount.count(recipeItemPair.first) <= 0)
-//             return false;
-        
-//         // If item is in inventory, but not enough, return false (cannot build object)
-//         if (inventoryItemCount[recipeItemPair.first] < recipeItemPair.second)
-//             return false;
-//     }
-
-//     // Can build object as has passed tests
-//     return true;
-// }
-
-std::unordered_map<ItemType, unsigned int> Inventory::getTotalItemCount()
+std::unordered_map<ItemType, unsigned int> InventoryData::getTotalItemCount()
 {
     std::unordered_map<ItemType, unsigned int> totalItemCount;
 
@@ -178,4 +160,13 @@ std::unordered_map<ItemType, unsigned int> Inventory::getTotalItemCount()
     }
 
     return totalItemCount;
+}
+
+std::optional<ItemCount>& InventoryData::getItemSlotData(int index)
+{
+    assert(index < inventoryData.size());
+
+    std::optional<ItemCount>& itemSlotData = inventoryData.at(index);
+
+    return itemSlotData;
 }

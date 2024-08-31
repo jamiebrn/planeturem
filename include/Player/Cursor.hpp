@@ -20,6 +20,8 @@
 #include "Data/ToolDataLoader.hpp"
 #include "GameConstants.hpp"
 
+#include "GUI/InventoryGUI.hpp"
+
 enum CursorDrawState
 {
     Hidden,
@@ -45,8 +47,7 @@ public:
                                  int worldSize,
                                  ChunkManager& chunkManager,
                                  const CollisionRect& playerCollisionRect,
-                                 ObjectType placeObjectType,
-                                 ToolType toolType);
+                                 ObjectType placeObjectType);
 
     static ChunkPosition getSelectedChunk(int worldSize);
     static sf::Vector2i getSelectedChunkTile();

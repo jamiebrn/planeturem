@@ -5,9 +5,12 @@
 #include <vector>
 #include <optional>
 
-#include "Player/Inventory.hpp"
+// #include "Player/Inventory.hpp
 
-typedef std::vector<std::optional<ItemCount>> ChestData;
+// typedef std::vector<std::optional<ItemCount>> ChestData;
+
+// #include "World/ChestData.hpp"
+#include "Player/InventoryData.hpp"
 
 class ChestDataPool
 {
@@ -19,13 +22,13 @@ public:
 
     void destroyChest(uint16_t id);
 
-    ChestData& getChestData(uint16_t id);
+    InventoryData& getChestData(uint16_t id);
 
-    ChestData* getChestDataPtr(uint16_t id);
+    InventoryData* getChestDataPtr(uint16_t id);
 
 private:
     // 0xFFFF reserved for uninitialised chest / null
-    std::unique_ptr<std::array<ChestData, 0xFFFF - 1>> chestData;
+    std::unique_ptr<std::array<std::optional<InventoryData>, 0xFFFF - 1>> chestData;
 
     std::vector<uint16_t> openDataSlots;
 
