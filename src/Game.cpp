@@ -4,10 +4,13 @@
 // FIX: Cliffs are broken again? (cliff on grass field) - maybe fixed????
 
 // PRIORITY: HIGH
+// TODO: Shift-click inventory controls (quick deposit etc)
 // TODO: Different types of tools? (fishing rod etc)
 // TODO: Biomes (desert/oasis, rock etc)
 
 // PRIORITY: LOW
+// TODO: Scroll wrapping in recipe menu
+// TODO: Recipe next line / button to hide
 // TODO: Inventory item added notifications (maybe taking items?). Add in player class
 // TODO: Prevent chests from being destroyed when containing items
 
@@ -231,10 +234,12 @@ void Game::drawMouseCursor()
 {
     sf::Vector2f mouseScreenPos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
 
+    float intScale = ResolutionHandler::getResolutionIntegerScale();
+
     mouseScreenPos.x = std::max(std::min(mouseScreenPos.x, static_cast<float>(window.getSize().x)), 0.0f);
     mouseScreenPos.y = std::max(std::min(mouseScreenPos.y, static_cast<float>(window.getSize().y)), 0.0f);
 
-    TextureManager::drawSubTexture(window, {TextureType::UI, mouseScreenPos, 0, {3, 3}}, sf::IntRect(80, 32, 8, 8));
+    TextureManager::drawSubTexture(window, {TextureType::UI, mouseScreenPos, 0, {3 * intScale, 3 * intScale}}, sf::IntRect(80, 32, 8, 8));
 }
 
 void Game::run()
@@ -488,13 +493,13 @@ void Game::runOnPlanet(float dt)
 
     if (worldMenuState == WorldMenuState::Main)
     {
-        InventoryGUI::updateAnimationsHotbar(dt, mouseScreenPos);
+        InventoryGUI::updateHotbar(dt, mouseScreenPos);
     }
     else if (worldMenuState == WorldMenuState::Inventory)
     {
         // Update inventory GUI available recipes if required, and animations
         InventoryGUI::updateAvailableRecipes(nearbyCraftingStationLevels);
-        InventoryGUI::updateAnimations(mouseScreenPos, dt, chestDataPool.getChestDataPtr(openedChestID));
+        InventoryGUI::updateInventory(mouseScreenPos, dt, chestDataPool.getChestDataPtr(openedChestID));
     }
 
 
@@ -764,7 +769,7 @@ void Game::attemptObjectInteract()
                 openedChestPos = selectedObject.getPosition();
 
                 // Reset chest animations as opened new chest
-                InventoryGUI::resetChestAnimations();
+                InventoryGUI::chestOpened(chestDataPool.getChestDataPtr(openedChestID));
 
                 // Open inventory to see chest
                 worldMenuState = WorldMenuState::Inventory;

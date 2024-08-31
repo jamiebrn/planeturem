@@ -237,6 +237,10 @@ bool Player::isUsingTool()
 
 bool Player::canReachPosition(sf::Vector2f worldPos)
 {
+    // Calculate centre of tile based on world pos
+    worldPos.x = (std::floor(worldPos.x / TILE_SIZE_PIXELS_UNSCALED) + 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
+    worldPos.y = (std::floor(worldPos.y / TILE_SIZE_PIXELS_UNSCALED) + 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
+
     float distance = std::sqrt(std::pow(worldPos.x - position.x, 2.0) + std::pow(worldPos.y - position.y, 2.0));
     float tileDistance = distance / TILE_SIZE_PIXELS_UNSCALED;
     return tileDistance <= tileReach;

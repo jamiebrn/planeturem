@@ -27,6 +27,8 @@
 
 #include "World/ChestDataPool.hpp"
 
+#include "GUI/ItemSlot.hpp"
+
 class InventoryGUI
 {
     InventoryGUI() = delete;
@@ -35,7 +37,7 @@ public:
     // Initialise animations etc
     static void initialise();
 
-    static void updateAnimations(sf::Vector2f mouseScreenPos, float dt, ChestData* chestData = nullptr);
+    static void updateInventory(sf::Vector2f mouseScreenPos, float dt, ChestData* chestData = nullptr);
 
     // May pick up item stack, may put down item stack
     static void handleLeftClick(sf::Vector2f mouseScreenPos, ChestData* chestData = nullptr);
@@ -76,7 +78,7 @@ public:
 
     // -- Hotbar -- //
 
-    static void updateAnimationsHotbar(float dt, sf::Vector2f mouseScreenPos);
+    static void updateHotbar(float dt, sf::Vector2f mouseScreenPos);
 
     static bool handleLeftClickHotbar(sf::Vector2f mouseScreenPos);
 
@@ -92,16 +94,23 @@ public:
     static void drawHotbar(sf::RenderWindow& window, sf::Vector2f mouseScreenPos);
 
     // -- Chest -- //
-    static void resetChestAnimations();
+    static void chestOpened(ChestData* chestData);
 
 private:
+    static void initialiseInventory();
+    static void initialiseHotbar();
+    static void createRecipeItemSlots();
+    static void createChestItemSlots(ChestData* chestData);
+
     // Returns -1 if no index selected (mouse not hovered over item)
-    static int getInventoryHoveredIndex(sf::Vector2f mouseScreenPos, bool onlyHotbar = false);
+    static int getInventoryHoveredIndex(sf::Vector2f mouseScreenPos);
 
     // Returns -1 if not hovering over recipe
     static int getHoveredRecipe(sf::Vector2f mouseScreenPos);
 
     static int getHoveredChestIndex(sf::Vector2f mouseScreenPos, ChestData* chestData);
+
+    static int getHotbarHoveredIndex(sf::Vector2f mouseScreenPos);
 
     static bool isBinSelected(sf::Vector2f mouseScreenPos);
     static bool isInventorySelected(sf::Vector2f mouseScreenPos);
@@ -115,13 +124,13 @@ private:
     static void drawItemInfoBoxChest(sf::RenderWindow& window, int itemIndex, sf::Vector2f mouseScreenPos, ChestData* chestData);
 
     // Position refers to top left of item box
-    static void drawItemBox(sf::RenderWindow& window,
-                            sf::Vector2f position,
-                            std::optional<ItemType> itemType = std::nullopt,
-                            std::optional<int> itemAmount = std::nullopt,
-                            bool hiddenBackground = false,
-                            bool selectHighlight = false,
-                            float itemScaleMult = 1.0f);
+    // static void drawItemBox(sf::RenderWindow& window,
+    //                         sf::Vector2f position,
+    //                         std::optional<ItemType> itemType = std::nullopt,
+    //                         std::optional<int> itemAmount = std::nullopt,
+    //                         bool hiddenBackground = false,
+    //                         bool selectHighlight = false,
+    //                         float itemScaleMult = 1.0f);
 
     // -- Hotbar --
     static void handleHotbarItemChange();
@@ -146,6 +155,12 @@ private:
     static std::unordered_map<ItemType, unsigned int> previous_inventoryItemCount;
     static std::vector<int> availableRecipes;
 
+    // Item Slots (visual / interacting)
+    static std::array<ItemSlot, MAX_INVENTORY_SIZE> inventoryItemSlots;
+    static std::array<ItemSlot, ITEM_BOX_PER_ROW> hotbarItemSlots;
+    static std::vector<ItemSlot> recipeItemSlots;
+    static std::vector<ItemSlot> chestItemSlots;
+
     // Index of selected recipe in available recipes
     static int selectedRecipe;
 
@@ -159,15 +174,14 @@ private:
     static AnimatedTexture binAnimation;
     static float binScale;
     static constexpr float BIN_HOVERED_SCALE = 1.2f;
+    static constexpr float BIN_HOVERED_SCALE_LERP_WEIGHT = 15.0f;
 
-    static std::array<float, MAX_INVENTORY_SIZE> inventoryItemScales;
-    static constexpr float ITEM_HOVERED_SCALE = 1.3f;
-    static constexpr float ITEM_HOVERED_SCALE_LERP_WEIGHT = 15.0f;
+    // static std::array<float, MAX_INVENTORY_SIZE> inventoryItemScales;
 
-    static std::vector<float> chestItemScales;
+    // static std::vector<float> chestItemScales;
 
-    static std::array<float, ITEM_BOX_PER_ROW> hotbarItemScales;
-    static constexpr float HOTBAR_SELECTED_SCALE = 1.3f;
+    // static std::array<float, ITEM_BOX_PER_ROW> hotbarItemScales;
+    // static constexpr float HOTBAR_SELECTED_SCALE = 1.3f;
 
     static float hotbarItemStringTimer;
     static constexpr float HOTBAR_ITEM_STRING_OPAQUE_TIME = 2.5f;

@@ -12,6 +12,11 @@ std::unordered_map<std::string, int> InventoryGUI::previous_nearbyCraftingStatio
 std::unordered_map<ItemType, unsigned int> InventoryGUI::previous_inventoryItemCount;
 std::vector<int> InventoryGUI::availableRecipes;
 
+std::array<ItemSlot, MAX_INVENTORY_SIZE> InventoryGUI::inventoryItemSlots;
+std::array<ItemSlot, InventoryGUI::ITEM_BOX_PER_ROW> InventoryGUI::hotbarItemSlots;
+std::vector<ItemSlot> InventoryGUI::recipeItemSlots;
+std::vector<ItemSlot> InventoryGUI::chestItemSlots;
+
 int InventoryGUI::selectedRecipe = 0;
 
 int InventoryGUI::selectedHotbarIndex = 0;
@@ -19,11 +24,11 @@ int InventoryGUI::selectedHotbarIndex = 0;
 AnimatedTexture InventoryGUI::binAnimation;
 float InventoryGUI::binScale = 1.0f;
 
-std::array<float, MAX_INVENTORY_SIZE> InventoryGUI::inventoryItemScales;
+// std::array<float, MAX_INVENTORY_SIZE> InventoryGUI::inventoryItemScales;
 
-std::vector<float> InventoryGUI::chestItemScales;
+// std::vector<float> InventoryGUI::chestItemScales;
 
-std::array<float, InventoryGUI::ITEM_BOX_PER_ROW> InventoryGUI::hotbarItemScales;
+// std::array<float, InventoryGUI::ITEM_BOX_PER_ROW> InventoryGUI::hotbarItemScales;
 
 float InventoryGUI::hotbarItemStringTimer = 0.0f;
 
@@ -31,71 +36,107 @@ void InventoryGUI::initialise()
 {
     binAnimation.create(4, 16, 20, 96, 12, 0.04f, false);
 
-    inventoryItemScales.fill(1.0f);
+    // inventoryItemScales.fill(1.0f);
 
-    hotbarItemScales.fill(1.0f);
+    // hotbarItemScales.fill(1.0f);
+
+    initialiseInventory();
+    initialiseHotbar();
 }
 
-void InventoryGUI::updateAnimations(sf::Vector2f mouseScreenPos, float dt, ChestData* chestData)
+void InventoryGUI::initialiseInventory()
+{
+    sf::Vector2f itemBoxPosition = sf::Vector2f(itemBoxPadding, itemBoxPadding);
+
+    int currentRowIndex = 0;
+
+    for (int itemIndex = 0; itemIndex < inventoryItemSlots.size(); itemIndex++)
+    {
+        inventoryItemSlots[itemIndex] = ItemSlot(itemBoxPosition, itemBoxSize);
+
+        // Increment box position
+        itemBoxPosition.x += itemBoxSize + itemBoxSpacing;
+
+        currentRowIndex++;
+        if (currentRowIndex >= ITEM_BOX_PER_ROW)
+        {
+            // Increment to next row
+            currentRowIndex = 0;
+            itemBoxPosition.x = itemBoxPadding;
+            itemBoxPosition.y += itemBoxSize + itemBoxSpacing;
+        }
+    }
+}
+
+void InventoryGUI::initialiseHotbar()
+{
+    sf::Vector2f itemBoxPosition = sf::Vector2f(itemBoxPadding, itemBoxPadding);
+
+    for (int itemIndex = 0; itemIndex < hotbarItemSlots.size(); itemIndex++)
+    {
+        hotbarItemSlots[itemIndex] = ItemSlot(itemBoxPosition, itemBoxSize);
+
+        // Increment box position
+        itemBoxPosition.x += itemBoxSize + itemBoxSpacing;
+    }
+}
+
+void InventoryGUI::createRecipeItemSlots()
+{
+    // Calculate starting x position of recipes
+    int xPos = itemBoxPadding;
+
+    // Calculate y position
+    int yPos = itemBoxPadding + (itemBoxSize + itemBoxSpacing) * std::round(Inventory::getData().size() / ITEM_BOX_PER_ROW) - itemBoxSpacing;
+    yPos += itemBoxSize;
+
+    recipeItemSlots.clear();
+
+    // Create recipe item slots
+    for (int i = 0; i < availableRecipes.size(); i++)
+    {
+        ItemSlot recipeItemSlot(sf::Vector2f(xPos, yPos), itemBoxSize);
+
+        recipeItemSlots.push_back(recipeItemSlot);
+
+        // Increment x position
+        xPos += itemBoxSize + itemBoxSpacing;
+    }
+}
+
+void InventoryGUI::updateInventory(sf::Vector2f mouseScreenPos, float dt, ChestData* chestData)
 {
     // Update bin animation
     int binAnimationUpdateDirection = 0;
     if (isBinSelected(mouseScreenPos) && isItemPickedUp)
     {
         binAnimationUpdateDirection = 1;
-        binScale = Helper::lerp(binScale, BIN_HOVERED_SCALE, ITEM_HOVERED_SCALE_LERP_WEIGHT * dt);
+        binScale = Helper::lerp(binScale, BIN_HOVERED_SCALE, BIN_HOVERED_SCALE_LERP_WEIGHT * dt);
     }
     else
     {
         binAnimationUpdateDirection = -1;
-        binScale = Helper::lerp(binScale, 1.0f, ITEM_HOVERED_SCALE_LERP_WEIGHT * dt);
+        binScale = Helper::lerp(binScale, 1.0f, BIN_HOVERED_SCALE_LERP_WEIGHT * dt);
     }
 
     binAnimation.update(dt, binAnimationUpdateDirection);
 
-    // Update item scales
-    int hoveredItem = getInventoryHoveredIndex(mouseScreenPos);
-
-    for (int i = 0; i < inventoryItemScales.size(); i++)
+    // Update inventory item slots
+    for (ItemSlot& itemSlot : inventoryItemSlots)
     {
-        float& itemScale = inventoryItemScales[i];
-
-        if (i == hoveredItem)
-        {
-            // Scale up
-            itemScale = Helper::lerp(itemScale, ITEM_HOVERED_SCALE, ITEM_HOVERED_SCALE_LERP_WEIGHT * dt);
-            continue;
-        }
-
-        // Scale down to 1.0f
-        itemScale = Helper::lerp(itemScale, 1.0f, ITEM_HOVERED_SCALE_LERP_WEIGHT * dt);
+        itemSlot.update(mouseScreenPos, dt);
     }
 
-    // Update chest item scales
-    if (chestData != nullptr)
+    // Update recipe item slots
+    for (ItemSlot& itemSlot : recipeItemSlots)
     {
-        int hoveredChestItem = getHoveredChestIndex(mouseScreenPos, chestData);
+        itemSlot.update(mouseScreenPos, dt);
+    }
 
-        for (int i = 0; i < chestData->size(); i++)
-        {
-            // Add to vector if too small
-            if (chestItemScales.size() <= i)
-            {
-                chestItemScales.push_back(1.0f);
-            }
-
-            float& itemScale = chestItemScales[i];
-
-            if (i == hoveredChestItem)
-            {
-                // Scale up
-                itemScale = Helper::lerp(itemScale, ITEM_HOVERED_SCALE, ITEM_HOVERED_SCALE_LERP_WEIGHT * dt);
-                continue;
-            }
-
-            // Scale down to 1.0f
-            itemScale = Helper::lerp(itemScale, 1.0f, ITEM_HOVERED_SCALE_LERP_WEIGHT * dt);
-        }
+    // Update chest item slots
+    for (ItemSlot& itemSlot : chestItemSlots)
+    {
+        itemSlot.update(mouseScreenPos, dt);
     }
 }
 
@@ -325,47 +366,15 @@ void InventoryGUI::putDownItem(sf::Vector2f mouseScreenPos, ChestData* chestData
         isItemPickedUp = false;
 }
 
-int InventoryGUI::getInventoryHoveredIndex(sf::Vector2f mouseScreenPos, bool onlyHotbar)
+int InventoryGUI::getInventoryHoveredIndex(sf::Vector2f mouseScreenPos)
 {
-    const sf::Vector2u& resolution = ResolutionHandler::getResolution();
-    int intScale = ResolutionHandler::getResolutionIntegerScale();
-
-    // Mimic GUI and create collision rects to test if item is being picked up
-    sf::Vector2f itemBoxPosition = sf::Vector2f(itemBoxPadding, itemBoxPadding) * static_cast<float>(intScale);
-
-    int itemBoxCount = Inventory::getData().size();
-    if (onlyHotbar)
+    for (int itemIndex = 0; itemIndex < inventoryItemSlots.size(); itemIndex++)
     {
-        itemBoxCount = ITEM_BOX_PER_ROW;
-    }
+        ItemSlot& itemSlot = inventoryItemSlots[itemIndex];
 
-    int currentRowIndex = 0;
-
-    for (int itemIndex = 0; itemIndex < itemBoxCount; itemIndex++)
-    {
-        CollisionRect itemPickUpRect;
-        
-        itemPickUpRect.width = itemBoxSize * intScale;
-        itemPickUpRect.height = itemBoxSize * intScale;
-        itemPickUpRect.x = itemBoxPosition.x;
-        itemPickUpRect.y = itemBoxPosition.y;
-
-        // Test if in item box area
-        if (itemPickUpRect.isPointInRect(mouseScreenPos.x, mouseScreenPos.y))
+        if (itemSlot.isHovered())
         {
             return itemIndex;
-        }
-
-        // Increment box position
-        itemBoxPosition.x += (itemBoxSize + itemBoxSpacing) * intScale;
-
-        currentRowIndex++;
-        if (currentRowIndex >= ITEM_BOX_PER_ROW)
-        {
-            // Increment to next row
-            currentRowIndex = 0;
-            itemBoxPosition.x = itemBoxPadding * intScale;
-            itemBoxPosition.y += (itemBoxSize + itemBoxSpacing) * intScale;
         }
     }
 
@@ -375,31 +384,13 @@ int InventoryGUI::getInventoryHoveredIndex(sf::Vector2f mouseScreenPos, bool onl
 
 int InventoryGUI::getHoveredRecipe(sf::Vector2f mouseScreenPos)
 {
-    float intScale = ResolutionHandler::getResolutionIntegerScale();
-
-    // Mimic recipe GUI
-    if (availableRecipes.size() > 0)
+    for (int itemIndex = 0; itemIndex < recipeItemSlots.size(); itemIndex++)
     {
-        // Calculate starting x position of recipes
-        int xPos = itemBoxPadding * intScale;
+        ItemSlot& itemSlot = recipeItemSlots[itemIndex];
 
-        // Calculate y position
-        int yPos = itemBoxPadding + ((itemBoxSize + itemBoxSpacing) * std::round(Inventory::getData().size() / ITEM_BOX_PER_ROW) - itemBoxSpacing) * intScale;
-        yPos += itemBoxSize * intScale;
-
-        // Iterate over recipes on screen
-        for (int i = selectedRecipe; i < availableRecipes.size() + selectedRecipe; i++)
+        if (itemSlot.isHovered())
         {
-            // Test if clicked on
-            CollisionRect recipeRect(xPos, yPos, itemBoxSize * intScale, itemBoxSize * intScale);
-
-            if (recipeRect.isPointInRect(mouseScreenPos.x, mouseScreenPos.y))
-            {
-                return i % availableRecipes.size();
-            }
-
-            // Increment x position
-            xPos += (itemBoxSize + itemBoxSpacing) * intScale;
+            return itemIndex;
         }
     }
 
@@ -409,40 +400,32 @@ int InventoryGUI::getHoveredRecipe(sf::Vector2f mouseScreenPos)
 
 int InventoryGUI::getHoveredChestIndex(sf::Vector2f mouseScreenPos, ChestData* chestData)
 {
-    // Mimic chest UI
     if (chestData == nullptr)
         return -1;
     
-    float intScale = ResolutionHandler::getResolutionIntegerScale();
-    
-    sf::Vector2f chestItemBoxPosition = sf::Vector2f(itemBoxPadding + (ITEM_BOX_PER_ROW + 2) * itemBoxSize, itemBoxPadding) * intScale;
-
-    int currentRowIndex = 0;
-    for (int itemIndex = 0; itemIndex < chestData->size(); itemIndex++)
+    for (int itemIndex = 0; itemIndex < chestItemSlots.size(); itemIndex++)
     {
-        CollisionRect itemPickUpRect;
-        
-        itemPickUpRect.width = itemBoxSize * intScale;
-        itemPickUpRect.height = itemBoxSize * intScale;
-        itemPickUpRect.x = chestItemBoxPosition.x;
-        itemPickUpRect.y = chestItemBoxPosition.y;
+        ItemSlot& itemSlot = chestItemSlots[itemIndex];
 
-        // Test if in item box area
-        if (itemPickUpRect.isPointInRect(mouseScreenPos.x, mouseScreenPos.y))
+        if (itemSlot.isHovered())
         {
             return itemIndex;
         }
+    }
 
-        // Increment box position
-        chestItemBoxPosition.x += (itemBoxSize + itemBoxSpacing) * intScale;
+    // Default case
+    return -1;
+}
 
-        currentRowIndex++;
-        if (currentRowIndex >= CHEST_BOX_PER_ROW)
+int InventoryGUI::getHotbarHoveredIndex(sf::Vector2f mouseScreenPos)
+{
+    for (int itemIndex = 0; itemIndex < hotbarItemSlots.size(); itemIndex++)
+    {
+        ItemSlot& itemSlot = hotbarItemSlots[itemIndex];
+
+        if (itemSlot.isHovered())
         {
-            // Increment to next row
-            currentRowIndex = 0;
-            chestItemBoxPosition.x = itemBoxPadding + (ITEM_BOX_PER_ROW + 2) * itemBoxSize * intScale;
-            chestItemBoxPosition.y += (itemBoxSize + itemBoxSpacing) * intScale;
+            return itemIndex;
         }
     }
 
@@ -633,6 +616,9 @@ void InventoryGUI::updateAvailableRecipes(std::unordered_map<std::string, int> n
     {
         selectedRecipe = 0;
     }
+
+    // Update UI
+    createRecipeItemSlots();
 }
 
 ObjectType InventoryGUI::getHeldObjectType()
@@ -682,8 +668,7 @@ bool InventoryGUI::heldItemPlacesLand()
 
 void InventoryGUI::draw(sf::RenderWindow& window, sf::Vector2f mouseScreenPos, ChestData* chestData)
 {
-    // Get resolution
-    const sf::Vector2u& resolution = ResolutionHandler::getResolution();
+    // Get intscale
     float intScale = ResolutionHandler::getResolutionIntegerScale();
 
     // Get currently hovered over item
@@ -692,39 +677,23 @@ void InventoryGUI::draw(sf::RenderWindow& window, sf::Vector2f mouseScreenPos, C
     // Get currently hovered recipe
     int hoveredRecipeIndex = getHoveredRecipe(mouseScreenPos);
 
-    // Draw items
-    sf::Vector2f itemBoxPosition = sf::Vector2f(itemBoxPadding, itemBoxPadding) * intScale;
-
-    int currentRowIndex = 0;
-
-    for (int i = 0; i < Inventory::getData().size(); i++)
+    // Draw inventory data
+    for (int itemIdx = 0; itemIdx < inventoryItemSlots.size(); itemIdx++)
     {
-        const std::optional<ItemCount>& itemSlot = Inventory::getData()[i];
+        const std::optional<ItemCount>& itemSlotData = Inventory::getData()[itemIdx];
 
-        if (itemSlot.has_value())
+        ItemSlot& itemSlot = inventoryItemSlots[itemIdx];
+
+        if (itemSlotData.has_value())
         {
-            const ItemCount& itemCount = itemSlot.value();
+            const ItemCount& itemCount = itemSlotData.value();
 
-            // Scale item up slightly if hovered over
-            float itemScaleMult = inventoryItemScales[i];
-
-            drawItemBox(window, itemBoxPosition, itemCount.first, itemCount.second, false, false, itemScaleMult);
+            itemSlot.draw(window, itemCount.first, itemCount.second);
         }
         else
         {
             // Draw blank item box
-            drawItemBox(window, itemBoxPosition);
-        }
-
-        itemBoxPosition.x += (itemBoxSize + itemBoxSpacing) * intScale;
-
-        currentRowIndex++;
-        if (currentRowIndex >= ITEM_BOX_PER_ROW)
-        {
-            // Increment to next row
-            currentRowIndex = 0;
-            itemBoxPosition.x = itemBoxPadding * intScale;
-            itemBoxPosition.y += (itemBoxSize + itemBoxSpacing) * intScale;
+            itemSlot.draw(window);
         }
     }
 
@@ -743,26 +712,22 @@ void InventoryGUI::draw(sf::RenderWindow& window, sf::Vector2f mouseScreenPos, C
 
 
     // Draw Available recipes
-    if (availableRecipes.size() > 0)
+    if (recipeItemSlots.size() > 0)
     {
-        // Calculate starting x position of recipes
-        int xPos = itemBoxPadding * intScale;
-
-        // Calculate y position
-        int yPos = itemBoxPadding + ((itemBoxSize + itemBoxSpacing) * std::round(Inventory::getData().size() / ITEM_BOX_PER_ROW) - itemBoxSpacing) * intScale;
-        yPos += itemBoxSize * intScale;
-
         // Store recipe index hovered over for drawing
-        int hoveredRecipeIdx = -1;
+        int hoveredRecipeIdx = getHoveredRecipe(mouseScreenPos);
 
         // Draw recipes
-        for (int i = selectedRecipe; i < availableRecipes.size() + selectedRecipe; i++)
+        for (int i = 0; i < recipeItemSlots.size(); i++)
         {
             // Get recipe index
-            int recipeIdx = availableRecipes[i % availableRecipes.size()];
+            int recipeIdx = availableRecipes[i % recipeItemSlots.size()];
 
             // Get recipe data
             const RecipeData& recipeData = RecipeDataLoader::getRecipeData()[recipeIdx];
+
+            // Get item slot
+            ItemSlot& itemSlot = recipeItemSlots[i];
 
             // If recipe is selected, draw requirements
             bool selected = false;
@@ -770,37 +735,35 @@ void InventoryGUI::draw(sf::RenderWindow& window, sf::Vector2f mouseScreenPos, C
             {
                 selected = true;
 
-                int requirementXPos = itemBoxPadding * intScale;
-                int requirementYPos = yPos + itemBoxSize * intScale;
+                int requirementXPos = itemSlot.getPosition().x;
+                int requirementYPos = itemSlot.getPosition().y + itemBoxSize;
 
                 for (const auto& itemRequired : recipeData.itemRequirements)
                 {
                     // Draw requirement
-                    drawItemBox(window, sf::Vector2f(requirementXPos, requirementYPos), itemRequired.first, itemRequired.second, true);
+                    ItemSlot recipeItem(sf::Vector2f(requirementXPos, requirementYPos), itemBoxSize);
+
+                    recipeItem.draw(window, itemRequired.first, itemRequired.second, true);
 
                     // Increment position
-                    requirementYPos += (itemBoxSize + itemBoxSpacing) * intScale;
+                    requirementYPos += itemBoxSize + itemBoxSpacing;
                 }
             }
 
             // Draw item box for product
-            drawItemBox(window, sf::Vector2f(xPos, yPos), recipeData.product, recipeData.productAmount, false, selected);
-
+            itemSlot.draw(window, recipeData.product, recipeData.productAmount, false, selected);
+            
             // Test whether mouse is over - if so, store recipe index for drawing info later
-            CollisionRect recipeRect(xPos, yPos, itemBoxSize * intScale, itemBoxSize * intScale);
-            if (recipeRect.isPointInRect(mouseScreenPos.x, mouseScreenPos.y))
+            if (itemSlot.isHovered())
             {
                 hoveredRecipeIdx = recipeIdx;
             }
-
-            // Increment x position
-            xPos += (itemBoxSize + itemBoxSpacing) * intScale;
         }
 
         // Draw hammer icon
         TextureManager::drawSubTexture(window, {
             TextureType::UI,
-            sf::Vector2f(xPos, yPos),
+            (recipeItemSlots.back().getPosition() + sf::Vector2f(itemBoxSize + itemBoxSpacing, 0)) * intScale,
             0,
             {3 * intScale, 3 * intScale},
         }, sf::IntRect(80, 16, 16, 16));
@@ -816,50 +779,32 @@ void InventoryGUI::draw(sf::RenderWindow& window, sf::Vector2f mouseScreenPos, C
     // Draw Chest
     if (chestData != nullptr)
     {
-        sf::Vector2f chestItemBoxPosition = sf::Vector2f(itemBoxPadding + (ITEM_BOX_PER_ROW + 2) * itemBoxSize, itemBoxPadding) * intScale;
-
-        int currentRowIndex = 0;
-        for (int i = 0; i < chestData->size(); i++)
+        for (int itemIdx = 0; itemIdx < chestItemSlots.size(); itemIdx++)
         {
-            const std::optional<ItemCount>& itemSlot = chestData->at(i);
+            const std::optional<ItemCount>& itemSlotData = chestData->at(itemIdx);
 
-            if (itemSlot.has_value())
+            ItemSlot& itemSlot = chestItemSlots[itemIdx];
+
+            if (itemSlotData.has_value())
             {
-                const ItemCount& itemCount = itemSlot.value();
+                const ItemCount& itemCount = itemSlotData.value();
 
-                // Scale item up slightly if hovered over
-                float itemScaleMult = 1.0f;
-                if (chestItemScales.size() > i)
-                {
-                    itemScaleMult = chestItemScales[i];
-                }
-
-                drawItemBox(window, chestItemBoxPosition, itemCount.first, itemCount.second, false, false, itemScaleMult);
+                itemSlot.draw(window, itemCount.first, itemCount.second);
             }
             else
             {
                 // Draw blank item box
-                drawItemBox(window, chestItemBoxPosition);
-            }
-
-            chestItemBoxPosition.x += (itemBoxSize + itemBoxSpacing) * intScale;
-
-            currentRowIndex++;
-            if (currentRowIndex >= CHEST_BOX_PER_ROW)
-            {
-                // Increment to next row
-                currentRowIndex = 0;
-                chestItemBoxPosition.x = itemBoxPadding + (ITEM_BOX_PER_ROW + 2) * itemBoxSize * intScale;
-                chestItemBoxPosition.y += (itemBoxSize + itemBoxSpacing) * intScale;
+                itemSlot.draw(window);
             }
         }
     }
 
-
     // Draw picked up item at cursor
     if (isItemPickedUp)
     {
-        drawItemBox(window, mouseScreenPos - sf::Vector2f(std::round(itemBoxSize / 2.0f), std::round(itemBoxSize / 2.0f)) * intScale, pickedUpItem, pickedUpItemCount, true);
+        // Create dummy item slot at cursor
+        ItemSlot pickedUpItemSlot(mouseScreenPos - sf::Vector2f(std::round(itemBoxSize / 2.0f), std::round(itemBoxSize / 2.0f)) * intScale, itemBoxSize, false);
+        pickedUpItemSlot.draw(window, pickedUpItem, pickedUpItemCount, true);
     }
     else
     {
@@ -970,124 +915,18 @@ void InventoryGUI::drawItemInfoBoxChest(sf::RenderWindow& window, int itemIndex,
     });    
 }
 
-void InventoryGUI::drawItemBox(sf::RenderWindow& window,
-                               sf::Vector2f position,
-                               std::optional<ItemType> itemType,
-                               std::optional<int> itemAmount,
-                               bool hiddenBackground,
-                               bool selectHighlight,
-                               float itemScaleMult)
-{
-    float intScale = ResolutionHandler::getResolutionIntegerScale();
-
-    // Draw background
-    if (!hiddenBackground)
-    {
-        sf::IntRect boxRect(16, 16, 25, 25);
-        sf::Vector2f origin(0, 0);
-        if (selectHighlight)
-        {
-            boxRect = sf::IntRect(16, 48, 27, 27);
-            origin = sf::Vector2f(1 / 27.0f, 1 / 27.0f);
-        }
-
-        TextureManager::drawSubTexture(window, {
-            TextureType::UI,
-            position,
-            0,
-            {3 * intScale, 3 * intScale},
-            origin
-        }, boxRect);
-    }
-
-    // Draw item
-    if (itemType.has_value())
-    {
-        const ItemData& itemData = ItemDataLoader::getItemData(itemType.value());
-
-        // Draw object if item places object
-        if (itemData.placesObjectType >= 0)
-        {
-            const ObjectData& objectData = ObjectDataLoader::getObjectData(itemData.placesObjectType);
-
-            float objectScale = std::max(4 - std::max(objectData.textureRects[0].width / 16.0f, objectData.textureRects[0].height / 16.0f), 1.0f) * itemScaleMult;
-
-            // Draw object
-            TextureManager::drawSubTexture(window, {
-                TextureType::Objects,
-                position + (sf::Vector2f(std::round(itemBoxSize / 2.0f), std::round(itemBoxSize / 2.0f))) * intScale,
-                0,
-                {objectScale * intScale, objectScale * intScale},
-                {0.5, 0.5}
-            }, objectData.textureRects[0]);
-        }
-        else if (itemData.toolType >= 0)
-        {
-            // Draw tool
-            const ToolData& toolData = ToolDataLoader::getToolData(itemData.toolType);
-
-            float objectScale = std::max(4 - std::max(toolData.textureRect.width / 16.0f, toolData.textureRect.height / 16.0f), 1.0f) * itemScaleMult;
-
-            // Draw object
-            TextureManager::drawSubTexture(window, {
-                TextureType::Tools,
-                position + (sf::Vector2f(std::round(itemBoxSize / 2.0f), std::round(itemBoxSize / 2.0f))) * intScale,
-                0,
-                {objectScale * intScale, objectScale * intScale},
-                {0.5, 0.5}
-            }, toolData.textureRect);
-        }
-        else
-        {
-            // Draw as normal
-            TextureManager::drawSubTexture(window, {
-                TextureType::Items,
-                position + (sf::Vector2f(std::round(itemBoxSize / 2.0f), std::round(itemBoxSize / 2.0f))) * intScale,
-                0,
-                {3 * itemScaleMult * intScale, 3 * itemScaleMult * intScale},
-                {0.5, 0.5}
-            }, itemData.textureRect);
-        }
-    }
-
-    // Draw item count (if > 1)
-    if (itemAmount.has_value())
-    {
-        if (itemAmount.value() > 1)
-        {
-            TextDraw::drawText(window, {
-                std::to_string(itemAmount.value()),
-                position + (sf::Vector2f(std::round(itemBoxSize / 4.0f) * 3.0f, std::round(itemBoxSize / 4.0f) * 3.0f)) * intScale,
-                {255, 255, 255},
-                24 * static_cast<unsigned int>(intScale),
-                {0, 0, 0},
-                0,
-                true,
-                true});
-        }
-    }
-}
-
 
 // -- Hotbar -- //
 
-void InventoryGUI::updateAnimationsHotbar(float dt, sf::Vector2f mouseScreenPos)
+void InventoryGUI::updateHotbar(float dt, sf::Vector2f mouseScreenPos)
 {
-    int hoveredItem = getInventoryHoveredIndex(mouseScreenPos, true);
-
-    for (int i = 0; i < hotbarItemScales.size(); i++)
+    for (int i = 0; i < hotbarItemSlots.size(); i++)
     {
-        float& itemScale = hotbarItemScales[i];
+        ItemSlot& hotbarItemSlot = hotbarItemSlots[i];
 
-        if (i == selectedHotbarIndex ||i == hoveredItem)
-        {
-            // Scale up
-            itemScale = Helper::lerp(itemScale, HOTBAR_SELECTED_SCALE, ITEM_HOVERED_SCALE_LERP_WEIGHT * dt);
-            continue;
-        }
+        bool hotbarSelected = (i == selectedHotbarIndex);
 
-        // Scale down to 1.0f
-        itemScale = Helper::lerp(itemScale, 1.0f, ITEM_HOVERED_SCALE_LERP_WEIGHT * dt);
+        hotbarItemSlot.update(mouseScreenPos, dt, hotbarSelected);
     }
 
     // Update item string timer
@@ -1097,7 +936,7 @@ void InventoryGUI::updateAnimationsHotbar(float dt, sf::Vector2f mouseScreenPos)
 bool InventoryGUI::handleLeftClickHotbar(sf::Vector2f mouseScreenPos)
 {
     // Get hovered index
-    int hoveredIndex = getInventoryHoveredIndex(mouseScreenPos, true);
+    int hoveredIndex = getHotbarHoveredIndex(mouseScreenPos);
 
     // Set selected index to hovered, as left click has occured
     if (hoveredIndex >= 0)
@@ -1182,29 +1021,21 @@ void InventoryGUI::drawHotbar(sf::RenderWindow& window, sf::Vector2f mouseScreen
     const sf::Vector2u& resolution = ResolutionHandler::getResolution();
     float intScale = ResolutionHandler::getResolutionIntegerScale();
 
-    sf::Vector2f itemBoxPosition = sf::Vector2f(itemBoxPadding, itemBoxPadding) * intScale;
-
     std::string selectedItemName = "";
 
-    // Draw first row of inventory
-    for (int i = 0; i < ITEM_BOX_PER_ROW; i++)
+    for (int i = 0; i < hotbarItemSlots.size(); i++)
     {
-        const std::optional<ItemCount>& itemSlot = Inventory::getData()[i];
+        const std::optional<ItemCount>& itemSlotData = Inventory::getData()[i];
 
-        bool selected = false;
-        if (i == selectedHotbarIndex)
+        bool selected = (i == selectedHotbarIndex);
+
+        ItemSlot& itemSlot = hotbarItemSlots[i];
+
+        if (itemSlotData.has_value())
         {
-            selected = true;
-        }
+            const ItemCount& itemCount = itemSlotData.value();
 
-        if (itemSlot.has_value())
-        {
-            const ItemCount& itemCount = itemSlot.value();
-
-            // Scale item up slightly if hovered over
-            float itemScaleMult = hotbarItemScales[i];
-
-            drawItemBox(window, itemBoxPosition, itemCount.first, itemCount.second, false, selected, itemScaleMult);
+            itemSlot.draw(window, itemCount.first, itemCount.second, false, selected);
 
             // Set item name string if selected
             if (selected)
@@ -1216,10 +1047,8 @@ void InventoryGUI::drawHotbar(sf::RenderWindow& window, sf::Vector2f mouseScreen
         else
         {
             // Draw blank item box
-            drawItemBox(window, itemBoxPosition, std::nullopt, std::nullopt, false, selected);
+            itemSlot.draw(window, std::nullopt, std::nullopt, false, selected);
         }
-
-        itemBoxPosition.x += (itemBoxSize + itemBoxSpacing) * intScale;
     }
 
     // Draw item name string
@@ -1231,7 +1060,7 @@ void InventoryGUI::drawHotbar(sf::RenderWindow& window, sf::Vector2f mouseScreen
         // Draw text
         TextDraw::drawText(window, {
             .text = selectedItemName,
-            .position = sf::Vector2f(itemBoxPadding, itemBoxPadding + itemBoxSize) * intScale,
+            .position = (hotbarItemSlots[0].getPosition() + sf::Vector2f(0, itemBoxSize)) * intScale,
             .colour = sf::Color(255, 255, 255, alpha),
             .size = 24 * static_cast<unsigned int>(intScale)
         });
@@ -1239,11 +1068,38 @@ void InventoryGUI::drawHotbar(sf::RenderWindow& window, sf::Vector2f mouseScreen
 }
 
 // -- Chest -- //
-void InventoryGUI::resetChestAnimations()
+void InventoryGUI::chestOpened(ChestData* chestData)
 {
-    for (int i = 0; i < chestItemScales.size(); i++)
+    createChestItemSlots(chestData);
+}
+
+void InventoryGUI::createChestItemSlots(ChestData* chestData)
+{
+    if (chestData == nullptr)
+        return;
+    
+    chestItemSlots.clear();
+
+    sf::Vector2f chestItemBoxPosition = sf::Vector2f(itemBoxPadding + (ITEM_BOX_PER_ROW + 2) * itemBoxSize, itemBoxPadding);
+
+    int currentRowIndex = 0;
+    for (int itemIndex = 0; itemIndex < chestData->size(); itemIndex++)
     {
-        chestItemScales[i] = 1.0f;
+        ItemSlot chestItemSlot(chestItemBoxPosition, itemBoxSize);
+
+        chestItemSlots.push_back(chestItemSlot);
+
+        // Increment box position
+        chestItemBoxPosition.x += itemBoxSize + itemBoxSpacing;
+
+        currentRowIndex++;
+        if (currentRowIndex >= CHEST_BOX_PER_ROW)
+        {
+            // Increment to next row
+            currentRowIndex = 0;
+            chestItemBoxPosition.x = itemBoxPadding + (ITEM_BOX_PER_ROW + 2) * itemBoxSize;
+            chestItemBoxPosition.y += itemBoxSize + itemBoxSpacing;
+        }
     }
 }
 
