@@ -40,10 +40,10 @@ public:
     static void updateInventory(sf::Vector2f mouseScreenPos, float dt, InventoryData* chestData = nullptr);
 
     // May pick up item stack, may put down item stack
-    static void handleLeftClick(sf::Vector2f mouseScreenPos, InventoryData& inventory, InventoryData* chestData = nullptr);
+    static void handleLeftClick(sf::Vector2f mouseScreenPos, bool shiftMode, InventoryData& inventory, InventoryData* chestData = nullptr);
 
     // May pick up single item
-    static void handleRightClick(sf::Vector2f mouseScreenPos, InventoryData& inventory, InventoryData* chestData = nullptr);
+    static void handleRightClick(sf::Vector2f mouseScreenPos, bool shiftMode, InventoryData& inventory, InventoryData* chestData = nullptr);
 
     static bool handleScroll(sf::Vector2f mouseScreenPos, int direction);
 
@@ -97,6 +97,9 @@ public:
     static void chestOpened(InventoryData* chestData);
     static void chestClosed();
 
+    // -- Misc -- //
+    static bool canQuickTransfer(sf::Vector2f mouseScreenPos, bool shiftMode, InventoryData& inventory, InventoryData* chestData);
+
 private:
     static void initialiseInventory(InventoryData& inventory);
     static void initialiseHotbar();
@@ -136,8 +139,7 @@ private:
     static void handleHotbarItemChange();
 
     // -- Chest --
-    // static void addItemToChestAtIndex(int index, ItemType item, int amount, InventoryData* chestData);
-    // static void takeItemFromChestAtIndex(int index, int amount, InventoryData* chestData);
+    static void inventoryChestItemQuickTransfer(sf::Vector2f mouseScreenPos, unsigned int amount, InventoryData& inventory, InventoryData& chestData);
 
 private:
     // static sf::Vector2f screenPos;

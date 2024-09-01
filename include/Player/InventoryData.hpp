@@ -18,7 +18,7 @@ public:
     InventoryData() = default;
     InventoryData(int size);
 
-    void addItem(ItemType item, int amount);
+    int addItem(ItemType item, int amount);
 
     void takeItem(ItemType item, int amount);
 
@@ -26,14 +26,9 @@ public:
 
     void takeItemAtIndex(int index, int amount);
 
-    // Deprecated
-    // static bool canBuildObject(ObjectType object);
-
-    std::unordered_map<ItemType, unsigned int> getTotalItemCount();
+    std::unordered_map<ItemType, unsigned int> getTotalItemCount() const;
 
     std::optional<ItemCount>& getItemSlotData(int index);
-
-    // inline static const std::vector<std::pair<unsigned int, int>>& getData() {return inventoryData;}
 
     inline int getSize() {return inventoryData.size();}
 
@@ -41,8 +36,6 @@ public:
 
 private:
     std::vector<std::optional<ItemCount>> inventoryData;
-
-    // static std::vector<std::pair<unsigned int, int>> inventoryData;
 
     int inventorySize;
 

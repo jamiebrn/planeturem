@@ -241,7 +241,16 @@ void Game::drawMouseCursor()
     mouseScreenPos.x = std::max(std::min(mouseScreenPos.x, static_cast<float>(window.getSize().x)), 0.0f);
     mouseScreenPos.y = std::max(std::min(mouseScreenPos.y, static_cast<float>(window.getSize().y)), 0.0f);
 
-    TextureManager::drawSubTexture(window, {TextureType::UI, mouseScreenPos, 0, {3 * intScale, 3 * intScale}}, sf::IntRect(80, 32, 8, 8));
+    // Switch mouse cursor mode
+    sf::IntRect textureRect(80, 32, 8, 8);
+    bool shiftMode = sf::Keyboard::isKeyPressed(sf::Keyboard::LShift);
+
+    if (InventoryGUI::canQuickTransfer(mouseScreenPos, shiftMode, inventory, chestDataPool.getChestDataPtr(openedChestID)))
+    {
+        textureRect = sf::IntRect(96, 32, 12, 12);
+    }
+
+    TextureManager::drawSubTexture(window, {TextureType::UI, mouseScreenPos, 0, {3 * intScale, 3 * intScale}}, textureRect);
 }
 
 void Game::run()
@@ -338,6 +347,8 @@ void Game::runOnPlanet(float dt)
 {
     sf::Vector2f mouseScreenPos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
 
+    bool shiftMode = sf::Keyboard::isKeyPressed(sf::Keyboard::LShift);
+
     // Handle events
     for (auto event = sf::Event{}; window.pollEvent(event);)
     {
@@ -399,7 +410,7 @@ void Game::runOnPlanet(float dt)
                             attemptBuildObject();
                             attemptPlaceLand();
                         }
-                        InventoryGUI::handleLeftClick(mouseScreenPos, inventory, chestDataPool.getChestDataPtr(openedChestID));
+                        InventoryGUI::handleLeftClick(mouseScreenPos, shiftMode, inventory, chestDataPool.getChestDataPtr(openedChestID));
                         changePlayerTool();
                         break;
                 }
@@ -414,7 +425,7 @@ void Game::runOnPlanet(float dt)
                     case WorldMenuState::Inventory:
                         if (InventoryGUI::isMouseOverUI(mouseScreenPos))
                         {
-                            InventoryGUI::handleRightClick(mouseScreenPos, inventory, chestDataPool.getChestDataPtr(openedChestID));
+                            InventoryGUI::handleRightClick(mouseScreenPos, shiftMode, inventory, chestDataPool.getChestDataPtr(openedChestID));
                             changePlayerTool();
                         }
                         else

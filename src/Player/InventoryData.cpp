@@ -5,7 +5,7 @@ InventoryData::InventoryData(int size)
     inventoryData = std::vector<std::optional<ItemCount>>(size, std::nullopt);
 }
 
-void InventoryData::addItem(ItemType item, int amount)
+int InventoryData::addItem(ItemType item, int amount)
 {
     int amountToAdd = amount;
 
@@ -32,7 +32,7 @@ void InventoryData::addItem(ItemType item, int amount)
         itemCount.second += amountAddedToStack;
 
         if (amountToAdd <= 0)
-            return;
+            return amount;
     }
 
     // Attempt to put remaining items in empty slot
@@ -50,8 +50,11 @@ void InventoryData::addItem(ItemType item, int amount)
         itemSlot = ItemCount(item, amountPutInSlot);
 
         if (amountToAdd <= 0)
-            return;
+            return amount;
     }
+
+    // Return total items added
+    return amount - amountToAdd;
 
     // Doesn't exist so add as new item
     // inventoryData.push_back({item, amount});
@@ -146,7 +149,7 @@ void InventoryData::takeItemAtIndex(int index, int amount)
     }
 }
 
-std::unordered_map<ItemType, unsigned int> InventoryData::getTotalItemCount()
+std::unordered_map<ItemType, unsigned int> InventoryData::getTotalItemCount() const
 {
     std::unordered_map<ItemType, unsigned int> totalItemCount;
 

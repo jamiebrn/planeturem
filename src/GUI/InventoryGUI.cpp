@@ -24,12 +24,6 @@ int InventoryGUI::selectedHotbarIndex = 0;
 AnimatedTexture InventoryGUI::binAnimation;
 float InventoryGUI::binScale = 1.0f;
 
-// std::array<float, MAX_INVENTORY_SIZE> InventoryGUI::inventoryItemScales;
-
-// std::vector<float> InventoryGUI::chestItemScales;
-
-// std::array<float, InventoryGUI::ITEM_BOX_PER_ROW> InventoryGUI::hotbarItemScales;
-
 float InventoryGUI::hotbarItemStringTimer = 0.0f;
 
 void InventoryGUI::initialise(InventoryData& inventory)
@@ -144,7 +138,7 @@ void InventoryGUI::updateInventory(sf::Vector2f mouseScreenPos, float dt, Invent
     }
 }
 
-void InventoryGUI::handleLeftClick(sf::Vector2f mouseScreenPos, InventoryData& inventory, InventoryData* chestData)
+void InventoryGUI::handleLeftClick(sf::Vector2f mouseScreenPos, bool shiftMode, InventoryData& inventory, InventoryData* chestData)
 {
     if (isItemPickedUp)
     {
@@ -153,7 +147,14 @@ void InventoryGUI::handleLeftClick(sf::Vector2f mouseScreenPos, InventoryData& i
     else
     {
         // Pickup max items possible
-        pickUpItem(mouseScreenPos, 999999999, inventory, chestData);
+        if (canQuickTransfer(mouseScreenPos, shiftMode, inventory, chestData))
+        {
+            inventoryChestItemQuickTransfer(mouseScreenPos, 999999999, inventory, *chestData);
+        }
+        else
+        {
+            pickUpItem(mouseScreenPos, 999999999, inventory, chestData);
+        }
     }
 
     int recipeClicked = getHoveredRecipe(mouseScreenPos);
@@ -172,9 +173,16 @@ void InventoryGUI::handleLeftClick(sf::Vector2f mouseScreenPos, InventoryData& i
     }
 }
 
-void InventoryGUI::handleRightClick(sf::Vector2f mouseScreenPos, InventoryData& inventory, InventoryData* chestData)
+void InventoryGUI::handleRightClick(sf::Vector2f mouseScreenPos, bool shiftMode, InventoryData& inventory, InventoryData* chestData)
 {
-    pickUpItem(mouseScreenPos, 1, inventory, chestData);
+    if (canQuickTransfer(mouseScreenPos, shiftMode, inventory, chestData))
+    {
+        inventoryChestItemQuickTransfer(mouseScreenPos, 1, inventory, *chestData);
+    }
+    else
+    {
+        pickUpItem(mouseScreenPos, 1, inventory, chestData);
+    }
 }
 
 bool InventoryGUI::handleScroll(sf::Vector2f mouseScreenPos, int direction)
@@ -1027,58 +1035,65 @@ void InventoryGUI::createChestItemSlots(InventoryData* chestData)
     }
 }
 
-// void InventoryGUI::addItemToChestAtIndex(int index, ItemType item, int amount, InventoryData* chestData)
-// {
-//     if (chestData == nullptr)
-//         return;
+void InventoryGUI::inventoryChestItemQuickTransfer(sf::Vector2f mouseScreenPos, unsigned int amount, InventoryData& inventory, InventoryData& chestData)
+{
+    InventoryData* hoveredInventory = &inventory;
+    InventoryData* destinationInventory = &chestData;
+
+    int itemHovered = getInventoryHoveredIndex(mouseScreenPos);
+    if (itemHovered < 0)
+    {
+        itemHovered = getHoveredChestIndex(mouseScreenPos);
+        hoveredInventory = &chestData;
+        destinationInventory = &inventory;
+    }
+
+    if (itemHovered < 0)
+        return;
     
-//     if (index >= MAX_INVENTORY_SIZE)
-//         return;
+    // Get item data from source inventory
+    std::optional<ItemCount>& itemSlotData = hoveredInventory->getItemSlotData(itemHovered);
+
+    if (!itemSlotData.has_value())
+        return;
     
-//     std::optional<ItemCount>& itemSlot = chestData->getItemSlotData(index);
+    ItemCount& itemCount = itemSlotData.value();
 
-//     // Attempt to add to stack
-//     if (itemSlot.has_value())
-//     {
-//         ItemCount& itemCount = itemSlot.value();
+    // Attempt to add amount of item to destination inventory
+    int amountTransfered = destinationInventory->addItem(itemCount.first, std::min(itemCount.second, amount));
 
-//         // Item to add is same as item at index, so add
-//         if (item == itemCount.first)
-//         {
-//             itemCount.second = std::min(itemCount.second + amount, INVENTORY_STACK_SIZE);
-//         }
+    // Subtract amount from source inventory
+    hoveredInventory->takeItemAtIndex(itemHovered, amountTransfered);
+}
 
-//         return;
-//     }
 
-//     // Create new stack
-//     ItemCount itemCount;
-//     itemCount.first = item;
-//     itemCount.second = std::min(amount, static_cast<int>(INVENTORY_STACK_SIZE));
-
-//     itemSlot = itemCount;
-// }
-
-// void InventoryGUI::takeItemFromChestAtIndex(int index, int amount, InventoryData* chestData)
-// {
-//     if (chestData == nullptr)
-//         return;
+// -- Misc -- //
+bool InventoryGUI::canQuickTransfer(sf::Vector2f mouseScreenPos, bool shiftMode, InventoryData& inventory, InventoryData* chestData)
+{
+    if (!shiftMode)
+        return false;
     
-//     if (index >= MAX_INVENTORY_SIZE)
-//         return;
+    if (chestData == nullptr)
+        return false;
     
-//     std::optional<ItemCount>& itemSlot = chestData->getItemSlotData(index);
-//     if (!itemSlot.has_value())
-//         return;
+    InventoryData* hoveredInventory = &inventory;
     
-//     ItemCount& itemCount = itemSlot.value();
+    int itemHovered = getInventoryHoveredIndex(mouseScreenPos);
+    if (itemHovered < 0)
+    {
+        itemHovered = getHoveredChestIndex(mouseScreenPos);
+        hoveredInventory = chestData;
+    }
 
-//     if (amount >= itemCount.second)
-//     {
-//         itemSlot = std::nullopt;
-//     }
-//     else
-//     {
-//         itemCount.second -= amount;
-//     }
-// }
+    // Not hovered over inventory / chest
+    if (itemHovered < 0)
+        return false;
+    
+    std::optional<ItemCount>& itemSlotData = hoveredInventory->getItemSlotData(itemHovered);
+
+    // No item in hovered slot
+    if (!itemSlotData.has_value())
+        return false;
+    
+    return true;
+}
