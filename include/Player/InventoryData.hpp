@@ -9,8 +9,8 @@
 #include "Data/ItemDataLoader.hpp"
 #include "Data/ObjectDataLoader.hpp"
 
-static constexpr unsigned int INVENTORY_STACK_SIZE = 20;
-static constexpr unsigned int MAX_INVENTORY_SIZE = 32;
+// static constexpr unsigned int INVENTORY_STACK_SIZE = 20;
+// static constexpr unsigned int MAX_INVENTORY_SIZE = 32;
 
 class InventoryData
 {

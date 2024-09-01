@@ -111,6 +111,12 @@
         }
     },
     {
+        "product": "Wooden Pickaxe",
+        "item-requirements": {
+            "Wood": 1
+        }
+    },
+    {
         "product": "Metal Pickaxe",
         "item-requirements": {
             "Iron Bar": 5,

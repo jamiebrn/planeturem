@@ -17,13 +17,15 @@ void InventoryData::addItem(ItemType item, int amount)
         
         ItemCount& itemCount = itemSlot.value();
 
+        const ItemData& itemData = ItemDataLoader::getItemData(itemCount.first);
+
         if (itemCount.first != item)
             continue;
 
-        if (itemCount.second >= INVENTORY_STACK_SIZE)
+        if (itemCount.second >= itemData.maxStackSize)
             continue;
 
-        int amountAddedToStack = std::min(itemCount.second + amountToAdd, INVENTORY_STACK_SIZE) - itemCount.second;
+        int amountAddedToStack = std::min(itemCount.second + amountToAdd, itemData.maxStackSize) - itemCount.second;
 
         amountToAdd -= amountAddedToStack;
 
@@ -39,7 +41,9 @@ void InventoryData::addItem(ItemType item, int amount)
         if (itemSlot.has_value())
             continue;
         
-        int amountPutInSlot = std::min(amountToAdd, static_cast<int>(INVENTORY_STACK_SIZE));
+        const ItemData& itemData = ItemDataLoader::getItemData(item);
+        
+        int amountPutInSlot = std::min(amountToAdd, static_cast<int>(itemData.maxStackSize));
 
         amountToAdd -= amountPutInSlot;
 
@@ -100,19 +104,23 @@ void InventoryData::addItemAtIndex(int index, ItemType item, int amount)
     {
         ItemCount& itemCount = itemSlot.value();
 
+        const ItemData& itemData = ItemDataLoader::getItemData(itemCount.first);
+
         // Item to add is same as item at index, so add
         if (item == itemCount.first)
         {
-            itemCount.second = std::min(itemCount.second + amount, INVENTORY_STACK_SIZE);
+            itemCount.second = std::min(itemCount.second + amount, itemData.maxStackSize);
         }
 
         return;
     }
 
+    const ItemData& itemData = ItemDataLoader::getItemData(item);
+
     // Create new stack
     ItemCount itemCount;
     itemCount.first = item;
-    itemCount.second = std::min(amount, static_cast<int>(INVENTORY_STACK_SIZE));
+    itemCount.second = std::min(amount, static_cast<int>(itemData.maxStackSize));
 
     itemSlot = itemCount;
 }

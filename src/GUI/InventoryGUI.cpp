@@ -152,7 +152,8 @@ void InventoryGUI::handleLeftClick(sf::Vector2f mouseScreenPos, InventoryData& i
     }
     else
     {
-        pickUpItem(mouseScreenPos, INVENTORY_STACK_SIZE, inventory, chestData);
+        // Pickup max items possible
+        pickUpItem(mouseScreenPos, 999999999, inventory, chestData);
     }
 
     int recipeClicked = getHoveredRecipe(mouseScreenPos);
@@ -194,32 +195,28 @@ void InventoryGUI::pickUpItem(sf::Vector2f mouseScreenPos, unsigned int amount, 
 {
     // Get item selected at mouse
     int itemIndex = getInventoryHoveredIndex(mouseScreenPos);
-
     int chestHoveredItemIndex = getHoveredChestIndex(mouseScreenPos);
 
     // No valid item selected
     if (itemIndex < 0 && chestHoveredItemIndex < 0)
         return;
     
-    const std::optional<ItemCount>* itemSlot = nullptr;
-
-    bool placingInChest = false;
-
-    if (itemIndex >= 0)
+    InventoryData* hoveredInventory = &inventory;
+    if (chestHoveredItemIndex >= 0 && chestData != nullptr)
     {
-        itemSlot = &inventory.getItemSlotData(itemIndex);
+        hoveredInventory = chestData;
+        itemIndex = chestHoveredItemIndex;
     }
-    else
-    {
-        itemSlot = &chestData->getItemSlotData(chestHoveredItemIndex);
-        placingInChest = true;
-    }
+    
+    std::optional<ItemCount>& itemSlotData = hoveredInventory->getItemSlotData(itemIndex);
 
     // If no item, do not pick up
-    if (!itemSlot->has_value())
+    if (!itemSlotData.has_value())
         return;
     
-    const ItemCount& itemCount = itemSlot->value();
+    const ItemCount& itemCount = itemSlotData.value();
+
+    const ItemData& itemData = ItemDataLoader::getItemData(itemCount.first);
 
     // Pick up item
     if (isItemPickedUp)
@@ -227,20 +224,12 @@ void InventoryGUI::pickUpItem(sf::Vector2f mouseScreenPos, unsigned int amount, 
         // Add to stack already in hand
         if (pickedUpItem == itemCount.first)
         {
-            unsigned int amountPickedUp = std::min(amount, INVENTORY_STACK_SIZE - pickedUpItemCount);
+            unsigned int amountPickedUp = std::min(amount, itemData.maxStackSize - pickedUpItemCount);
 
             pickedUpItemCount += std::min(itemCount.second, amountPickedUp);
 
             // Take from inventory / chest
-            if (placingInChest)
-            {
-                // takeItemFromChestAtIndex(chestHoveredItemIndex, amountPickedUp, chestData);
-                chestData->takeItemAtIndex(chestHoveredItemIndex, amount);
-            }
-            else
-            {
-                inventory.takeItemAtIndex(itemIndex, amountPickedUp);
-            }
+            hoveredInventory->takeItemAtIndex(itemIndex, amountPickedUp);
         }
     }
     else
@@ -251,15 +240,7 @@ void InventoryGUI::pickUpItem(sf::Vector2f mouseScreenPos, unsigned int amount, 
         pickedUpItemCount = std::min(itemCount.second, amount);
 
         // Take from inventory / chest
-        if (placingInChest)
-        {
-            // takeItemFromChestAtIndex(chestHoveredItemIndex, amount, chestData);
-            chestData->takeItemAtIndex(chestHoveredItemIndex, amount);
-        }
-        else
-        {
-            inventory.takeItemAtIndex(itemIndex, amount);
-        }
+        hoveredInventory->takeItemAtIndex(itemIndex, amount);
     }
 }
 
@@ -277,50 +258,38 @@ void InventoryGUI::putDownItem(sf::Vector2f mouseScreenPos, InventoryData& inven
         return;
     }
 
-    int chestHoveredItemIndex = getHoveredChestIndex(mouseScreenPos);
-
     // Get item selected at mouse
+    int chestHoveredItemIndex = getHoveredChestIndex(mouseScreenPos);
     int itemIndex = getInventoryHoveredIndex(mouseScreenPos);
 
     // No valid item selected
     if (itemIndex < 0 && chestHoveredItemIndex < 0)
         return;
-    
-    const std::optional<ItemCount>* itemSlot = nullptr;
 
-    bool placingInChest = false;
+    InventoryData* hoveredInventory = &inventory;
+    if (chestHoveredItemIndex >= 0 && chestData != nullptr)
+    {
+        hoveredInventory = chestData;
+        itemIndex = chestHoveredItemIndex;
+    }
 
-    if (itemIndex >= 0)
-    {
-        itemSlot = &inventory.getItemSlotData(itemIndex);
-    }
-    else
-    {
-        itemSlot = &chestData->getItemSlotData(chestHoveredItemIndex);
-        placingInChest = true;
-    }
+    std::optional<ItemCount>& itemSlotData = hoveredInventory->getItemSlotData(itemIndex);
 
     // If item at selected position, attempt to add to stack
-    if (itemSlot->has_value())
+    if (itemSlotData.has_value())
     {
-        const ItemCount& itemCount = itemSlot->value();
+        const ItemCount& itemCount = itemSlotData.value();
+
+        const ItemData& itemData = ItemDataLoader::getItemData(itemCount.first);
 
         // Item at selected position is same as in cursor, so add
         // Don't add if stack is full, swap instead
-        if (pickedUpItem == itemCount.first && itemCount.second < INVENTORY_STACK_SIZE)
+        if (pickedUpItem == itemCount.first && itemCount.second < itemData.maxStackSize)
         {
-            int amountAddedToStack = std::min(itemCount.second + pickedUpItemCount, INVENTORY_STACK_SIZE) - itemCount.second;
+            int amountAddedToStack = std::min(itemCount.second + pickedUpItemCount, itemData.maxStackSize) - itemCount.second;
 
             // Add to stack
-            if (placingInChest)
-            {
-                // addItemToChestAtIndex(chestHoveredItemIndex, pickedUpItem, amountAddedToStack, chestData);
-                chestData->addItemAtIndex(chestHoveredItemIndex, pickedUpItem, amountAddedToStack);
-            }
-            else
-            {
-                inventory.addItemAtIndex(itemIndex, pickedUpItem, amountAddedToStack);
-            }
+            hoveredInventory->addItemAtIndex(itemIndex, pickedUpItem, amountAddedToStack);
 
             // Take from cursor
             pickedUpItemCount -= amountAddedToStack;
@@ -335,18 +304,8 @@ void InventoryGUI::putDownItem(sf::Vector2f mouseScreenPos, InventoryData& inven
             ItemCount toSwap = itemCount;
 
             // Swap in inventory / chest
-            if (placingInChest)
-            {
-                // takeItemFromChestAtIndex(chestHoveredItemIndex, itemCount.second, chestData);
-                // addItemToChestAtIndex(chestHoveredItemIndex, pickedUpItem, pickedUpItemCount, chestData);
-                chestData->takeItemAtIndex(chestHoveredItemIndex, itemCount.second);
-                chestData->addItemAtIndex(chestHoveredItemIndex, pickedUpItem, pickedUpItemCount);
-            }
-            else
-            {
-                inventory.takeItemAtIndex(itemIndex, itemCount.second);
-                inventory.addItemAtIndex(itemIndex, pickedUpItem, pickedUpItemCount);
-            }
+            hoveredInventory->takeItemAtIndex(itemIndex, itemCount.second);
+            hoveredInventory->addItemAtIndex(itemIndex, pickedUpItem, pickedUpItemCount);
 
             // Swap item picked up
             pickedUpItem = toSwap.first;
@@ -356,19 +315,13 @@ void InventoryGUI::putDownItem(sf::Vector2f mouseScreenPos, InventoryData& inven
         return;
     }
 
+    const ItemData& pickedUpItemData = ItemDataLoader::getItemData(pickedUpItem);
+
     // No item at selected position, so attempt to put down whole stack
-    int amountPutDown = std::min(pickedUpItemCount, static_cast<int>(INVENTORY_STACK_SIZE));
+    int amountPutDown = std::min(pickedUpItemCount, static_cast<int>(pickedUpItemData.maxStackSize));
 
     // Create stack
-    if (placingInChest)
-    {
-        // addItemToChestAtIndex(chestHoveredItemIndex, pickedUpItem, amountPutDown, chestData);
-        chestData->addItemAtIndex(chestHoveredItemIndex, pickedUpItem, amountPutDown);
-    }
-    else
-    {
-        inventory.addItemAtIndex(itemIndex, pickedUpItem, amountPutDown);
-    }
+    hoveredInventory->addItemAtIndex(itemIndex, pickedUpItem, amountPutDown);
 
     // Take from cursor
     pickedUpItemCount -= amountPutDown;
@@ -476,8 +429,15 @@ void InventoryGUI::craftSelectedRecipe(InventoryData& inventory)
     const RecipeData& recipeData = RecipeDataLoader::getRecipeData()[recipeIdx];
 
     // If item in hand and is not item to be crafted, do not craft recipe (as won't be able to pick up crafted item)
-    if (isItemPickedUp && (pickedUpItem != recipeData.product || pickedUpItemCount >= INVENTORY_STACK_SIZE))
-        return;
+    if (isItemPickedUp)
+    {
+        const ItemData& pickedUpItemData = ItemDataLoader::getItemData(pickedUpItem);
+
+        if ((pickedUpItem != recipeData.product || pickedUpItemCount >= pickedUpItemData.maxStackSize))
+        {
+            return;
+        }
+    }
 
     // Get inventory to check if has items (should have items as recipe is in available recipes, check just in case)
     std::unordered_map<ItemType, unsigned int> inventoryItemCount = inventory.getTotalItemCount();
@@ -1029,6 +989,12 @@ void InventoryGUI::drawHotbar(sf::RenderWindow& window, sf::Vector2f mouseScreen
 void InventoryGUI::chestOpened(InventoryData* chestData)
 {
     createChestItemSlots(chestData);
+}
+
+void InventoryGUI::chestClosed()
+{
+    // Delete chest item slots GUI elements
+    chestItemSlots.clear();
 }
 
 void InventoryGUI::createChestItemSlots(InventoryData* chestData)

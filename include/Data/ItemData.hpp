@@ -11,6 +11,8 @@ struct ItemData
     std::string name;
     sf::IntRect textureRect;
 
+    unsigned int maxStackSize = 99;
+
     ObjectType placesObjectType = -1;
     ToolType toolType = -1;
     bool placesLand = false;

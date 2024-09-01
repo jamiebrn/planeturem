@@ -35,6 +35,8 @@ bool ItemDataLoader::loadData(std::string itemDataPath)
 
         if (jsonItemData.contains("places-land")) itemData.placesLand = jsonItemData.at("places-land");
 
+        if (jsonItemData.contains("max-stack-size")) itemData.maxStackSize = jsonItemData.at("max-stack-size");
+
         // Add to item name to type map
         itemNameToTypeMap[itemData.name] = itemIndex;
         itemIndex++;
@@ -60,6 +62,7 @@ void ItemDataLoader::createItemFromObject(const std::string& objectName, ObjectT
     ItemData objectItemData;
     objectItemData.name = objectName;
     objectItemData.placesObjectType = placesObject;
+    objectItemData.maxStackSize = 10;
 
     int itemIndex = loaded_itemData.size();
 
@@ -73,6 +76,7 @@ void ItemDataLoader::createItemFromTool(const std::string& toolName, ToolType to
     ItemData toolItemData;
     toolItemData.name = toolName;
     toolItemData.toolType = toolType;
+    toolItemData.maxStackSize = 1;
 
     int itemIndex = loaded_itemData.size();
 

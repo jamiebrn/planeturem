@@ -5,6 +5,7 @@
 
 // PRIORITY: HIGH
 // TODO: Shift-click inventory controls (quick deposit etc)
+// TODO: Better item info box (as well as showing recipe info for recipes in this box)
 // TODO: Different types of tools? (fishing rod etc)
 // TODO: Biomes (desert/oasis, rock etc)
 
@@ -1030,6 +1031,7 @@ void Game::closeChest()
 {
     openedChestID = 0xFFFF;
     openedChestPos = sf::Vector2f(0, 0);
+    InventoryGUI::chestClosed();
 }
 
 void Game::updateDayNightCycle(float dt)

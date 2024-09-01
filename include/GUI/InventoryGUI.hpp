@@ -95,6 +95,7 @@ public:
 
     // -- Chest -- //
     static void chestOpened(InventoryData* chestData);
+    static void chestClosed();
 
 private:
     static void initialiseInventory(InventoryData& inventory);
