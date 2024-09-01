@@ -40,13 +40,13 @@ class AnimatedTextureMinimal
 public:
     AnimatedTextureMinimal() = default;
 
-    void update(float dt, int frameCount, float maxFrameTick);
+    void update(float dt, int direction, int frameCount, float maxFrameTick, bool looping = true);
 
     inline void setFrame(int frame) {this->frame = frame;}
     inline int getFrame() {return frame;}
 
 private:
-    int frame = 0;
+    int8_t frame = 0;
 
     float frameTick = 0;
 };

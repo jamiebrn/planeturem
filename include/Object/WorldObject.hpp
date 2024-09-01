@@ -24,11 +24,17 @@ public:
         return chunk;
     }
 
-    inline sf::Vector2i getChunkTileInside() const
+    inline sf::Vector2i getChunkTileInside(int worldSize) const
     {
+        int worldTotalSize = worldSize * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
+
+        sf::Vector2f wrappedPosition;
+        wrappedPosition.x = (static_cast<int>(position.x) % worldTotalSize + worldTotalSize) % worldTotalSize;
+        wrappedPosition.y = (static_cast<int>(position.y) % worldTotalSize + worldTotalSize) % worldTotalSize;
+
         sf::Vector2i chunkTile;
-        chunkTile.x = static_cast<int>((static_cast<int>(position.x / TILE_SIZE_PIXELS_UNSCALED) % static_cast<int>(CHUNK_TILE_SIZE)) + CHUNK_TILE_SIZE) % static_cast<int>(CHUNK_TILE_SIZE);
-        chunkTile.y = static_cast<int>((static_cast<int>(position.y / TILE_SIZE_PIXELS_UNSCALED) % static_cast<int>(CHUNK_TILE_SIZE)) + CHUNK_TILE_SIZE) % static_cast<int>(CHUNK_TILE_SIZE);
+        chunkTile.x = static_cast<int>((static_cast<int>(wrappedPosition.x / TILE_SIZE_PIXELS_UNSCALED) % static_cast<int>(CHUNK_TILE_SIZE)) + CHUNK_TILE_SIZE) % static_cast<int>(CHUNK_TILE_SIZE);
+        chunkTile.y = static_cast<int>((static_cast<int>(wrappedPosition.y / TILE_SIZE_PIXELS_UNSCALED) % static_cast<int>(CHUNK_TILE_SIZE)) + CHUNK_TILE_SIZE) % static_cast<int>(CHUNK_TILE_SIZE);
         return chunkTile;
     }
 
@@ -38,7 +44,7 @@ public:
             return 0.0f;
         
         ChunkPosition chunk = getChunkInside(worldSize);
-        sf::Vector2i tile = getChunkTileInside();
+        sf::Vector2i tile = getChunkTileInside(worldSize);
 
         static constexpr float xWavelength = 0.9f;
         static constexpr float yWavelength = 0.7f;

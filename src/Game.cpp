@@ -75,7 +75,6 @@ bool Game::initialise()
     worldMenuState = WorldMenuState::Main;
 
     openedChestID = 0xFFFF;
-    openedChestPos = sf::Vector2f(0, 0);
 
     musicTypePlaying = std::nullopt;
     musicGapTimer = 0.0f;
@@ -494,12 +493,17 @@ void Game::runOnPlanet(float dt)
     {
         Camera::handleWorldWrap(wrapPositionDelta);
         Cursor::handleWorldWrap(wrapPositionDelta);
+        handleOpenChestPositionWorldWrap(wrapPositionDelta);
         chunkManager.reloadChunks();
     }
 
+    // Update (loaded) chunks
+    chunkManager.updateChunks(noise, worldSize);
+    chunkManager.updateChunksObjects(dt, worldSize);
+    chunkManager.updateChunksEntities(dt, worldSize);
     
     // Get nearby crafting stations
-    nearbyCraftingStationLevels = chunkManager.getNearbyCraftingStationLevels(player.getChunkInside(worldSize), player.getChunkTileInside(), 4, worldSize);
+    nearbyCraftingStationLevels = chunkManager.getNearbyCraftingStationLevels(player.getChunkInside(worldSize), player.getChunkTileInside(worldSize), 4, worldSize);
 
     // Close chest if out of range
     checkChestOpenInRange();
@@ -515,12 +519,6 @@ void Game::runOnPlanet(float dt)
         InventoryGUI::updateInventory(mouseScreenPos, dt, chestDataPool.getChestDataPtr(openedChestID));
     }
 
-
-    // Update (loaded) chunks
-    chunkManager.updateChunks(noise, worldSize);
-    chunkManager.updateChunksObjects(dt);
-    chunkManager.updateChunksEntities(dt, worldSize);
-    
 
     //
     // -- DRAWING --
@@ -718,7 +716,7 @@ void Game::attemptUseTool()
 
             if (destroyed)
             {
-                if (selectedObject.getChestCapactity() >= 0)
+                if (selectedObject.getChestCapactity() > 0)
                 {
                     removeChestFromData(selectedObject);
                 }
@@ -769,23 +767,34 @@ void Game::attemptObjectInteract()
         {
             // If chest has ID 0xFFFF, then has not been initialised
             // Therefore must initialise chest
-            if (interactionEvent.chestID == 0xFFFF)
+            if (selectedObject.getChestID() == 0xFFFF)
             {
                 initChestInData(selectedObject);
             }
 
-            // Close chest if currently open
+            // Close chest if currently open is selected
             if (selectedObject.getChestID() == openedChestID)
             {
                 closeChest();
             }
             else
             {
+                // If a chest is currently open, close it
+                if (openedChestID != 0xFFFF)
+                {
+                    closeChest();
+                }
+
                 openedChestID = selectedObject.getChestID();
+                openedChest.chunk = selectedObject.getChunkInside(worldSize);
+                openedChest.tile = selectedObject.getChunkTileInside(worldSize);
                 openedChestPos = selectedObject.getPosition();
 
-                // Reset chest animations as opened new chest
+                // Reset chest UI animations as opened new chest
                 InventoryGUI::chestOpened(chestDataPool.getChestDataPtr(openedChestID));
+
+                // Tell chest object it has been opened
+                selectedObject.openChest();
 
                 // Open inventory to see chest
                 worldMenuState = WorldMenuState::Inventory;
@@ -1031,6 +1040,14 @@ void Game::checkChestOpenInRange()
 {
     if (openedChestID == 0xFFFF)
         return;
+    
+    std::optional<BuildableObject>& chestObject = chunkManager.getChunkObject(openedChest.chunk, openedChest.tile);
+
+    if (!chestObject.has_value())
+    {
+        closeChest();
+        return;
+    }
 
     if (!player.canReachPosition(openedChestPos))
     {
@@ -1038,11 +1055,27 @@ void Game::checkChestOpenInRange()
     }
 }
 
+void Game::handleOpenChestPositionWorldWrap(sf::Vector2f positionDelta)
+{
+    openedChestPos += positionDelta;
+}
+
 void Game::closeChest()
 {
-    openedChestID = 0xFFFF;
-    openedChestPos = sf::Vector2f(0, 0);
     InventoryGUI::chestClosed();
+    
+    // Tell chest object it has been closed
+    std::optional<BuildableObject>& chestObject = chunkManager.getChunkObject(openedChest.chunk, openedChest.tile);
+    if (chestObject.has_value())
+    {
+        BuildableObject& chest = chestObject.value();
+        chest.closeChest();
+    }
+
+    openedChestID = 0xFFFF;
+    openedChest.chunk = ChunkPosition(0, 0);
+    openedChest.tile = sf::Vector2i(0, 0);
+    openedChestPos = sf::Vector2f(0, 0);
 }
 
 void Game::updateDayNightCycle(float dt)

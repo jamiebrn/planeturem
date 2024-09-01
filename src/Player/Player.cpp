@@ -106,7 +106,7 @@ void Player::update(float dt, sf::Vector2f mouseWorldPos, ChunkManager& chunkMan
     }
 
     // Update on water
-    onWater = (chunkManager.getChunkTileType(getChunkInside(worldSize), getChunkTileInside()) == TileType::Water);
+    onWater = (chunkManager.getChunkTileType(getChunkInside(worldSize), getChunkTileInside(worldSize)) == TileType::Water);
 
     // Update prompts
     for (auto prompt = prompts.begin(); prompt != prompts.end();)

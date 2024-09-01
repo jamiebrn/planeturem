@@ -45,6 +45,7 @@ public:
 
     // Returns true if destroyed
     bool damage(int amount, InventoryData& inventory);
+    
     ObjectInteractionEventData interact();
 
     void setWorldPosition(sf::Vector2f position);
@@ -53,24 +54,31 @@ public:
 
     inline bool isAlive() {return health > 0;}
 
-    // When used as a reference to another object
+    // -- Object reference (blank / filler object) -- //
+
     BuildableObject(ObjectReference _objectReference);
 
     inline bool isObjectReference() const {return objectReference.has_value();}
 
     inline const std::optional<ObjectReference>& getObjectReference() const {return objectReference;}
 
-    // Chest specific functionality
+    // -- Chest -- //
+
     inline void setChestID(uint16_t chestID) {this->chestID = chestID;}
     inline uint16_t getChestID() {return chestID;}
 
     int getChestCapactity();
+
+    void openChest();
+    void closeChest();
+
 
 private:
     ObjectType objectType = 0;
     int health = 0;
     float flash_amount;
 
+    int8_t animationDirection = 1;
     AnimatedTextureMinimal animatedTexture;
 
     uint16_t chestID = 0xFFFF;

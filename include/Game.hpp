@@ -75,6 +75,7 @@ private:
     void initChestInData(BuildableObject& chest);
     void removeChestFromData(BuildableObject& chest);
     void checkChestOpenInRange();
+    void handleOpenChestPositionWorldWrap(sf::Vector2f positionDelta);
     void closeChest();
 
     void updateDayNightCycle(float dt);
@@ -137,6 +138,7 @@ private:
 
     // 0xFFFF chest ID reserved for no chest opened / non-initialised chest
     uint16_t openedChestID;
+    ObjectReference openedChest;
     sf::Vector2f openedChestPos;
     ChestDataPool chestDataPool;
 

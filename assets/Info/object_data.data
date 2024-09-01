@@ -99,12 +99,14 @@
     {
         "name": "Chest",
         "health": 10,
-        "textures": [[112, 16]],
+        "textures": [[112, 14], [128, 14], [144, 14], [160, 14]],
+        "texture-frame-delay": 0.05,
         "texture-width": 16,
-        "texture-height": 16,
+        "texture-height": 18,
         "texture-x-origin": 0.5,
-        "texture-y-origin": 0.9375,
-        "chest-capacity": 16
+        "texture-y-origin": 0.5,
+        "chest-capacity": 16,
+        "has-collision": true
     },
     {
         "name": "Golden Tree",

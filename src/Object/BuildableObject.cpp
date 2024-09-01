@@ -11,6 +11,12 @@ BuildableObject::BuildableObject(sf::Vector2f position, ObjectType objectType)
     flash_amount = 0.0f;
 
     drawLayer = objectData.drawLayer;
+
+    // Initialise chest
+    if (objectData.chestCapacity > 0)
+    {
+        animationDirection = -1;
+    }
 }
 
 BuildableObject::BuildableObject(ObjectReference _objectReference)
@@ -25,7 +31,13 @@ void BuildableObject::update(float dt, bool onWater)
 
     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
 
-    animatedTexture.update(dt, objectData.textureRects.size(), objectData.textureFrameDelay);
+    bool loopingAnimation = true;
+    if (objectData.chestCapacity > 0)
+    {
+        loopingAnimation = false;
+    }
+
+    animatedTexture.update(dt, animationDirection, objectData.textureRects.size(), objectData.textureFrameDelay, loopingAnimation);
 
     this->onWater = onWater;
 }
@@ -132,4 +144,16 @@ int BuildableObject::getChestCapactity()
     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
 
     return objectData.chestCapacity;
+}
+
+void BuildableObject::openChest()
+{
+    // Play open chest animation
+    animationDirection = 1;
+}
+
+void BuildableObject::closeChest()
+{
+    // Rewind open chest animation
+    animationDirection = -1;
 }

@@ -41,7 +41,7 @@ public:
 
     // -- Objects -- //
     // Update objects in all chunks
-    void updateChunksObjects(float dt);
+    void updateChunksObjects(float dt, int worldSize);
 
     // Get object at certain world position
     // Returns actual object if object reference is at position requested

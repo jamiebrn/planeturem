@@ -150,11 +150,11 @@ void ChunkManager::drawChunkWater(sf::RenderTarget& window, float time)
     }
 }
 
-void ChunkManager::updateChunksObjects(float dt)
+void ChunkManager::updateChunksObjects(float dt, int worldSize)
 {
     for (auto& chunkPair : loadedChunks)
     {
-        chunkPair.second->updateChunkObjects(dt, *this);
+        chunkPair.second->updateChunkObjects(dt,worldSize,  *this);
     }
 }
 

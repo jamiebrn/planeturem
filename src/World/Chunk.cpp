@@ -342,7 +342,7 @@ void Chunk::drawChunkWater(sf::RenderTarget& window)
     TextureManager::drawSubTexture(window, {TextureType::Water, waterPos, 0, {scale, scale}}, waterRect, waterShader);
 }
 
-void Chunk::updateChunkObjects(float dt, ChunkManager& chunkManager)
+void Chunk::updateChunkObjects(float dt, int worldSize, ChunkManager& chunkManager)
 {
     for (int y = 0; y < objectGrid.size(); y++)
     {
@@ -358,7 +358,7 @@ void Chunk::updateChunkObjects(float dt, ChunkManager& chunkManager)
                     continue;
                 
                 // Determine whether on water
-                bool onWater = (getTileType(object->getChunkTileInside()) == TileType::Water);
+                bool onWater = (getTileType(object->getChunkTileInside(worldSize)) == TileType::Water);
                 
                 object->update(dt, onWater);
                 if (!object->isAlive())
@@ -663,7 +663,7 @@ void Chunk::updateChunkEntities(float dt, int worldSize, ChunkManager& chunkMana
         std::unique_ptr<Entity>& entity = *entityIter;
 
         // Determine whether on water
-        bool onWater = (getTileType(entity->getChunkTileInside()) == TileType::Water);
+        bool onWater = (getTileType(entity->getChunkTileInside(worldSize)) == TileType::Water);
 
         entity->update(dt, chunkManager, onWater);
 

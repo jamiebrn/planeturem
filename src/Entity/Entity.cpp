@@ -49,8 +49,8 @@ void Entity::update(float dt, ChunkManager& chunkManager, bool onWater)
     flash_amount = std::max(flash_amount - dt * 3.0f, 0.0f);
 
     const EntityData& entityData = EntityDataLoader::getEntityData(entityType);
-    idleAnim.update(dt, entityData.idleTextureRects.size(), entityData.idleAnimSpeed);
-    walkAnim.update(dt, entityData.walkTextureRects.size(), entityData.walkAnimSpeed);
+    idleAnim.update(dt, 1, entityData.idleTextureRects.size(), entityData.idleAnimSpeed);
+    walkAnim.update(dt, 1, entityData.walkTextureRects.size(), entityData.walkAnimSpeed);
 
     this->onWater = onWater;
 }

@@ -57,7 +57,7 @@ public:
 
     // -- Object handling -- //
     // Update all objects
-    void updateChunkObjects(float dt, ChunkManager& chunkManager);
+    void updateChunkObjects(float dt, int worldSize, ChunkManager& chunkManager);
     
     // Get object (optional) at position
     std::optional<BuildableObject>& getObject(sf::Vector2i position);
