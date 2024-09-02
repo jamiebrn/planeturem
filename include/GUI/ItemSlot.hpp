@@ -29,6 +29,8 @@ public:
 
     sf::Vector2f getPosition();
 
+    void overrideItemScaleMult(float scale);
+
     void draw(sf::RenderWindow& window,
               std::optional<ItemType> itemType = std::nullopt,
               std::optional<int> itemAmount = std::nullopt,

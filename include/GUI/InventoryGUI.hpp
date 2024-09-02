@@ -4,6 +4,8 @@
 #include <unordered_map>
 #include <array>
 #include <vector>
+#include <optional>
+#include <cmath>
 
 #include "Core/TextureManager.hpp"
 #include "Core/TextDraw.hpp"
@@ -29,6 +31,15 @@
 #include "World/ChestDataPool.hpp"
 
 #include "GUI/ItemSlot.hpp"
+
+struct ItemInfoString
+{
+    std::string string;
+    unsigned int size = 24;
+    sf::Color color = sf::Color(255, 255, 255);
+
+    std::optional<ItemCount> itemCount = std::nullopt;
+};
 
 class InventoryGUI
 {
@@ -73,7 +84,7 @@ public:
 
     static bool heldItemPlacesLand();
 
-    static void draw(sf::RenderWindow& window, sf::Vector2f mouseScreenPos, InventoryData& inventory, InventoryData* chestData = nullptr);
+    static void draw(sf::RenderWindow& window, float gameTime, sf::Vector2f mouseScreenPos, InventoryData& inventory, InventoryData* chestData = nullptr);
 
     static inline const std::vector<int>& getAvailableRecipes() {return availableRecipes;}
 
@@ -124,9 +135,9 @@ private:
     // Attempt to craft recipe selected
     static void craftSelectedRecipe(InventoryData& inventory);
 
-    static void drawItemInfoBox(sf::RenderWindow& window, int itemIndex, InventoryData& inventory, sf::Vector2f mouseScreenPos);
-    static void drawItemInfoBoxRecipe(sf::RenderWindow& window, int recipeIdx, sf::Vector2f mouseScreenPos);
-    static void drawInfoBox(sf::RenderWindow& window, sf::Vector2f position, const std::vector<std::string>& infoStrings);
+    static void drawItemInfoBox(sf::RenderWindow& window, float gameTime, int itemIndex, InventoryData& inventory, sf::Vector2f mouseScreenPos);
+    static void drawItemInfoBoxRecipe(sf::RenderWindow& window, float gameTime, int recipeIdx, sf::Vector2f mouseScreenPos);
+    static void drawInfoBox(sf::RenderWindow& window, sf::Vector2f position, const std::vector<ItemInfoString>& infoStrings);
 
     // Position refers to top left of item box
     // static void drawItemBox(sf::RenderWindow& window,

@@ -565,7 +565,7 @@ void Game::runOnPlanet(float dt)
             break;
         
         case WorldMenuState::Inventory:
-            InventoryGUI::draw(window, mouseScreenPos, inventory, chestDataPool.getChestDataPtr(openedChestID));
+            InventoryGUI::draw(window, gameTime, mouseScreenPos, inventory, chestDataPool.getChestDataPtr(openedChestID));
             break;
     }
 

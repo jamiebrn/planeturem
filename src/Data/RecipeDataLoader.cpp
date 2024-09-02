@@ -21,7 +21,10 @@ bool RecipeDataLoader::loadData(std::string recipeDataPath)
             auto itemRequirements = jsonRecipeData.at("item-requirements");
             for (auto itemIter = itemRequirements.begin(); itemIter != itemRequirements.end(); ++itemIter)
             {
-                recipeData.itemRequirements[ItemDataLoader::getItemTypeFromName(itemIter.key())] = itemIter.value();
+                ItemType item = ItemDataLoader::getItemTypeFromName(itemIter.key());
+
+                recipeData.itemRequirements[item] = itemIter.value();
+                ItemDataLoader::setItemIsMaterial(item, true);
             }
         }
 

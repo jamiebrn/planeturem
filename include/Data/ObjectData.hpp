@@ -32,4 +32,6 @@ struct ObjectData
 
     // std::unordered_map<ItemType, > itemDrops;
     std::vector<ItemDrop> itemDrops;
+
+    bool mythicalItem = false;
 };

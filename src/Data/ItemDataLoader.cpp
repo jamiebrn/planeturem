@@ -57,12 +57,18 @@ ItemType ItemDataLoader::getItemTypeFromName(const std::string& itemName)
     return itemNameToTypeMap[itemName];
 }
 
-void ItemDataLoader::createItemFromObject(const std::string& objectName, ObjectType placesObject)
+void ItemDataLoader::createItemFromObject(ObjectType objectType, const ObjectData& objectData)
 {
     ItemData objectItemData;
-    objectItemData.name = objectName;
-    objectItemData.placesObjectType = placesObject;
+    objectItemData.name = objectData.name;
+    objectItemData.placesObjectType = objectType;
     objectItemData.maxStackSize = 10;
+
+    if (objectData.mythicalItem)
+    {
+        // Rainbow
+        objectItemData.nameColor = sf::Color(0, 0, 0);
+    }
 
     int itemIndex = loaded_itemData.size();
 
@@ -83,4 +89,14 @@ void ItemDataLoader::createItemFromTool(const std::string& toolName, ToolType to
     loaded_itemData.push_back(toolItemData);
 
     itemNameToTypeMap[toolItemData.name] = itemIndex;
+}
+
+void ItemDataLoader::setItemIsMaterial(ItemType item, bool isMaterial)
+{
+    if (loaded_itemData.size() <= item)
+        return;
+    
+    ItemData& itemData = loaded_itemData[item];
+
+    itemData.isMaterial = isMaterial;
 }

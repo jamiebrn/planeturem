@@ -46,6 +46,11 @@ sf::Vector2f ItemSlot::getPosition()
     return position;
 }
 
+void ItemSlot::overrideItemScaleMult(float scale)
+{
+    itemScaleMult = scale;
+}
+
 void ItemSlot::draw(sf::RenderWindow& window,
                     std::optional<ItemType> itemType,
                     std::optional<int> itemAmount,

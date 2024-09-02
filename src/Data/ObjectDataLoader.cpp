@@ -54,6 +54,8 @@ bool ObjectDataLoader::loadData(std::string objectDataPath)
 
         if (jsonObjectData.contains("chest-capacity")) objectData.chestCapacity = jsonObjectData.at("chest-capacity");
 
+        if (jsonObjectData.contains("mythical-item")) objectData.mythicalItem = jsonObjectData.at("mythical-item");
+
         if (jsonObjectData.contains("item-drops"))
         {
             auto itemDrops = jsonObjectData.at("item-drops");
@@ -75,7 +77,7 @@ bool ObjectDataLoader::loadData(std::string objectDataPath)
         objectNameToTypeMap[objectData.name] = objectIdx;
 
         // Create item corresponding to object
-        ItemDataLoader::createItemFromObject(objectData.name, objectIdx);
+        ItemDataLoader::createItemFromObject(objectIdx, objectData);
 
         objectIdx++;
     }

@@ -8,6 +8,7 @@
 #include "Core/json.hpp"
 #include "Data/typedefs.hpp"
 #include "Data/ItemData.hpp"
+#include "Data/ObjectData.hpp"
 
 class ItemDataLoader
 {
@@ -20,9 +21,11 @@ public:
 
     static ItemType getItemTypeFromName(const std::string& itemName);
 
-    static void createItemFromObject(const std::string& objectName, ObjectType placesObject);
+    static void createItemFromObject(ObjectType objectType, const ObjectData& objectData);
 
     static void createItemFromTool(const std::string& toolName, ToolType toolType);
+
+    static void setItemIsMaterial(ItemType item, bool isMaterial = true);
 
 private:
     static std::vector<ItemData> loaded_itemData;

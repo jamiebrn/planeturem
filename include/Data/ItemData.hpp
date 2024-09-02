@@ -16,4 +16,9 @@ struct ItemData
     ObjectType placesObjectType = -1;
     ToolType toolType = -1;
     bool placesLand = false;
+
+    bool isMaterial = false;
+
+    // 0, 0, 0 reserved for rainbow effect
+    sf::Color nameColor = sf::Color(255, 255, 255);
 };

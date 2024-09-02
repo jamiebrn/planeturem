@@ -179,6 +179,7 @@
         "texture-y-origin": 0.75,
         "has-collision": true,
         "crafting-station": "devorb",
-        "crafting-station-level": 999
+        "crafting-station-level": 999,
+        "mythical-item": true
     }
 ]
