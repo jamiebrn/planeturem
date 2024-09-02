@@ -59,7 +59,7 @@ void BuildableObject::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, f
 
     if (flash_amount <= 0)
     {
-        spriteBatch.draw(window, drawData, static_cast<sf::FloatRect>(textureRect));
+        spriteBatch.draw(window, drawData, textureRect);
     }
     else
     {

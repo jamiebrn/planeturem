@@ -804,18 +804,33 @@ void InventoryGUI::drawItemInfoBox(sf::RenderWindow& window, int itemIndex, Inve
     float intScale = ResolutionHandler::getResolutionIntegerScale();
 
     // Draw item name
-    TextDraw::drawText(window, {
-        itemData.name,
-        mouseScreenPos - (sf::Vector2f(0, 16)) * intScale,
-        {255, 255, 255},
-        24 * static_cast<unsigned int>(intScale),
-        {0, 0, 0},
-        0,
-        true,
-        true,
-        true,
-        true
-    });
+    // TextDraw::drawText(window, {
+    //     itemData.name,
+    //     mouseScreenPos - (sf::Vector2f(0, 16)) * intScale,
+    //     {255, 255, 255},
+    //     24 * static_cast<unsigned int>(intScale),
+    //     {0, 0, 0},
+    //     0,
+    //     true,
+    //     true,
+    //     true,
+    //     true
+    // });
+    std::vector<std::string> infoStrings;
+    infoStrings.push_back(itemData.name);
+
+    if (itemData.placesObjectType >= 0 || itemData.placesLand)
+    {
+        infoStrings.push_back("Can be placed");
+    }
+    else if (itemData.toolType >= 0)
+    {
+        const ToolData& toolData = ToolDataLoader::getToolData(itemData.toolType);
+
+        infoStrings.push_back(std::to_string(toolData.damage) + " damage");
+    }
+
+    drawInfoBox(window, mouseScreenPos + sf::Vector2f(8, 8) * 3.0f * intScale, infoStrings);
 }
 
 void InventoryGUI::drawItemInfoBoxRecipe(sf::RenderWindow& window, int recipeIdx, sf::Vector2f mouseScreenPos)
@@ -827,18 +842,109 @@ void InventoryGUI::drawItemInfoBoxRecipe(sf::RenderWindow& window, int recipeIdx
     float intScale = ResolutionHandler::getResolutionIntegerScale();
 
     // Draw item name
-    TextDraw::drawText(window, {
-        itemData.name,
-        mouseScreenPos - (sf::Vector2f(0, 16)) * intScale,
-        {255, 255, 255},
-        24 * static_cast<unsigned int>(intScale),
-        {0, 0, 0},
-        0,
-        true,
-        true,
-        true,
-        true
-    });
+    // TextDraw::drawText(window, {
+    //     itemData.name,
+    //     mouseScreenPos - (sf::Vector2f(0, 16)) * intScale,
+    //     {255, 255, 255},
+    //     24 * static_cast<unsigned int>(intScale),
+    //     {0, 0, 0},
+    //     0,
+    //     true,
+    //     true,
+    //     true,
+    //     true
+    // });
+    std::vector<std::string> infoStrings;
+    infoStrings.push_back(itemData.name);
+
+    if (itemData.placesObjectType >= 0 || itemData.placesLand)
+    {
+        infoStrings.push_back("Can be placed");
+    }
+    else if (itemData.toolType >= 0)
+    {
+        const ToolData& toolData = ToolDataLoader::getToolData(itemData.toolType);
+
+        infoStrings.push_back(std::to_string(toolData.damage) + " damage");
+    }
+
+    drawInfoBox(window, mouseScreenPos + sf::Vector2f(8, 8) * 3.0f * intScale, infoStrings);
+}
+
+void InventoryGUI::drawInfoBox(sf::RenderWindow& window, sf::Vector2f position, const std::vector<std::string>& infoStrings)
+{
+    static const std::array<sf::IntRect, 4> sides = {
+        sf::IntRect(20, 80, 1, 3), // top
+        sf::IntRect(22, 84, 3, 1), // right
+        sf::IntRect(20, 86, 1, 3), // bottom
+        sf::IntRect(16, 84, 3, 1)  // left
+    };
+    static const std::array<sf::IntRect, 4> corners = {
+        sf::IntRect(16, 80, 3, 3), // top left
+        sf::IntRect(22, 80, 3, 3), // top right
+        sf::IntRect(22, 86, 3, 3),  // bottom right
+        sf::IntRect(16, 86, 3, 3) // bottom left
+    };
+    static const sf::IntRect centre(20, 84, 1, 1);
+
+    int intScale = ResolutionHandler::getResolutionIntegerScale();
+
+    // Get size of box
+    int width = 0;
+    int height = 0;
+    static constexpr int textXPadding = 5;
+    static constexpr int textYPadding = 10;
+
+    for (const std::string& string : infoStrings)
+    {
+        TextDrawData textDrawData = {
+            .text = string,
+            .size = 24 * static_cast<unsigned int>(intScale)
+        };
+
+        width = std::max(width, static_cast<int>(TextDraw::getTextSize(textDrawData).width) + textXPadding * 2 * intScale);
+        height += TextDraw::getTextSize(textDrawData).height + textYPadding * intScale;
+    }
+
+    // Draw box
+    SpriteBatch spriteBatch;
+
+    sf::Vector2f scale(3 * intScale, 3 * intScale);
+
+    spriteBatch.draw(window, {TextureType::UI, position, 0, scale}, corners[0]);
+    spriteBatch.draw(window, {TextureType::UI, position + sf::Vector2f(width + sides[1].width * 3 * intScale, 0), 0, scale}, corners[1]);
+    spriteBatch.draw(window, {TextureType::UI, position + sf::Vector2f(width + sides[1].width * 3 * intScale, height + sides[0].height * 3 * intScale), 0, scale}, corners[2]);
+    spriteBatch.draw(window, {TextureType::UI, position + sf::Vector2f(0, height + sides[0].height * 3 * intScale), 0, scale}, corners[3]);
+
+    spriteBatch.draw(window, {TextureType::UI, position + sf::Vector2f(sides[3].width * 3 * intScale, 0), 0, sf::Vector2f(scale.x * width / (3 * intScale), scale.y)}, sides[0]);
+    spriteBatch.draw(window, {TextureType::UI, position + sf::Vector2f(sides[3].width * 3 * intScale + width, sides[0].height * 3 * intScale), 0, sf::Vector2f(scale.x, scale.y * height / (3 * intScale))}, sides[1]);
+    spriteBatch.draw(window, {TextureType::UI, position + sf::Vector2f(sides[3].width * 3 * intScale, sides[0].height * 3 * intScale + height), 0, sf::Vector2f(scale.x * width / (3 * intScale), scale.y)}, sides[2]);
+    spriteBatch.draw(window, {TextureType::UI, position + sf::Vector2f(0, sides[0].height * 3 * intScale), 0, sf::Vector2f(scale.x, scale.y * height / (3 * intScale))}, sides[3]);
+
+    spriteBatch.draw(window, {TextureType::UI, position + sf::Vector2f(sides[3].width * 3 * intScale, sides[0].height * 3 * intScale), 0, sf::Vector2f(scale.x * width / (3 * intScale), scale.y * height / (3 * intScale))}, centre);
+
+    spriteBatch.endDrawing(window);
+
+    // Draw text
+    int textYOffset = 0;
+    static constexpr int textYShift = 6;
+
+    for (int i = 0; i < infoStrings.size(); i++)
+    {
+        const std::string& string = infoStrings[i];
+
+        TextDrawData textDrawData = {
+            .text = string,
+            .position = position + sf::Vector2f(sides[3].width * 3 * intScale + textXPadding * intScale, sides[0].height * 3 * intScale + textYOffset - textYShift * intScale),
+            .colour = sf::Color(255, 255, 255),
+            .size = 24 * static_cast<unsigned int>(intScale)
+        };
+
+        TextDraw::drawText(window, textDrawData);
+
+        // Update y offset
+        textYOffset += TextDraw::getTextSize(textDrawData).height + textYPadding * intScale;
+    }
 }
 
 

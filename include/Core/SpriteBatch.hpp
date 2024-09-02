@@ -12,7 +12,7 @@ public:
 
     void beginDrawing();
 
-    void draw(sf::RenderTarget& window, TextureDrawData drawData, sf::FloatRect textureRect);
+    void draw(sf::RenderTarget& window, TextureDrawData drawData, sf::IntRect textureRect);
 
     void endDrawing(sf::RenderTarget& window);
 

@@ -41,6 +41,8 @@ public:
     // Draw text using draw data
     static void drawText(sf::RenderTarget& window, TextDrawData drawData);
 
+    static sf::FloatRect getTextSize(const TextDrawData& drawData);
+
 // Private member variables
 private:
     // Whether font has been loaded into memory

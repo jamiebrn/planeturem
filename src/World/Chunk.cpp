@@ -321,7 +321,7 @@ void Chunk::drawChunkTerrainVisual(sf::RenderTarget& window, SpriteBatch& sprite
             // sf::Shader* cliffShader = Shaders::getShader(ShaderType::Cliff);
 
             spriteBatch.draw(window, {TextureType::GroundTiles, Camera::worldToScreenTransform(tileWorldPosition), 0, {scale, scale}},
-                static_cast<sf::FloatRect>(textureRect));
+                textureRect);
 
             // TextureManager::drawSubTexture(window, {TextureType::GroundTiles, Camera::worldToScreenTransform(tileWorldPosition), 0, {scale, scale}}, textureRect);
         }

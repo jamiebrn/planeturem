@@ -4,7 +4,6 @@
 // FIX: Cliffs are broken again? (cliff on grass field) - maybe fixed????
 
 // PRIORITY: HIGH
-// TODO: Shift-click inventory controls (quick deposit etc)
 // TODO: Better item info box (as well as showing recipe info for recipes in this box)
 // TODO: Different types of tools? (fishing rod etc)
 // TODO: Biomes (desert/oasis, rock etc)

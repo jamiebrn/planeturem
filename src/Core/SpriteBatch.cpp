@@ -10,7 +10,7 @@ void SpriteBatch::beginDrawing()
     resetBatchValues();
 }
 
-void SpriteBatch::draw(sf::RenderTarget& window, TextureDrawData drawData, sf::FloatRect textureRect)
+void SpriteBatch::draw(sf::RenderTarget& window, TextureDrawData drawData, sf::IntRect textureRect)
 {
     if (batchTextureType.has_value())
     {
@@ -37,16 +37,16 @@ void SpriteBatch::draw(sf::RenderTarget& window, TextureDrawData drawData, sf::F
     // Draw to vertex array
     sf::Vertex vertices[4];
     vertices[0].position = topLeft;
-    vertices[0].texCoords = textureRect.getPosition();
+    vertices[0].texCoords = static_cast<sf::Vector2f>(textureRect.getPosition());
     vertices[0].color = drawData.colour;
     vertices[1].position = topLeft + sf::Vector2f(size.x, 0);
-    vertices[1].texCoords = textureRect.getPosition() + sf::Vector2f(textureRect.width, 0);
+    vertices[1].texCoords = static_cast<sf::Vector2f>(textureRect.getPosition()) + sf::Vector2f(textureRect.width, 0);
     vertices[1].color = drawData.colour;
     vertices[2].position = topLeft + sf::Vector2f(size.x, size.y);
-    vertices[2].texCoords = textureRect.getPosition() + textureRect.getSize();
+    vertices[2].texCoords = static_cast<sf::Vector2f>(textureRect.getPosition() + textureRect.getSize());
     vertices[2].color = drawData.colour;
     vertices[3].position = topLeft + sf::Vector2f(0, size.y);
-    vertices[3].texCoords = textureRect.getPosition() + sf::Vector2f(0, textureRect.height);
+    vertices[3].texCoords = static_cast<sf::Vector2f>(textureRect.getPosition()) + sf::Vector2f(0, textureRect.height);
     vertices[3].color = drawData.colour;
 
     for (int i = 0; i < 4; i++)

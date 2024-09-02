@@ -12,6 +12,7 @@
 #include "Core/Sounds.hpp"
 #include "Core/AnimatedTexture.hpp"
 #include "Core/Helper.hpp"
+#include "Core/SpriteBatch.hpp"
 
 #include "Player/InventoryData.hpp"
 
@@ -125,6 +126,7 @@ private:
 
     static void drawItemInfoBox(sf::RenderWindow& window, int itemIndex, InventoryData& inventory, sf::Vector2f mouseScreenPos);
     static void drawItemInfoBoxRecipe(sf::RenderWindow& window, int recipeIdx, sf::Vector2f mouseScreenPos);
+    static void drawInfoBox(sf::RenderWindow& window, sf::Vector2f position, const std::vector<std::string>& infoStrings);
 
     // Position refers to top left of item box
     // static void drawItemBox(sf::RenderWindow& window,

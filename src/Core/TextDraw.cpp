@@ -95,3 +95,13 @@ void TextDraw::drawText(sf::RenderTarget& window, TextDrawData drawData)
     // Draw text to window
     window.draw(text);
 }
+
+sf::FloatRect TextDraw::getTextSize(const TextDrawData& drawData)
+{
+    text.setString(drawData.text);
+    text.setCharacterSize(drawData.size);
+    text.setOutlineColor(drawData.outlineColour);
+    text.setOutlineThickness(drawData.outlineThickness);
+
+    return text.getLocalBounds();
+}
