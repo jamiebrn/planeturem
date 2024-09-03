@@ -474,8 +474,11 @@ void Game::runOnPlanet(float dt)
     Cursor::updateTileCursor(window, dt, worldSize, chunkManager, player.getCollisionRect(), objectType);
 
     // Cursor enable / disable
-    if (InventoryGUI::heldItemPlacesLand() || InventoryGUI::hotbarItemPlacesLand(inventory))
-        Cursor::setCursorPlacingLand();
+    if (InventoryGUI::getHeldToolType() < 0)
+    {
+        if (InventoryGUI::heldItemPlacesLand() || InventoryGUI::hotbarItemPlacesLand(inventory))
+            Cursor::setCursorPlacingLand();
+    }
 
     // Enable / disable cursor drawing depending on player reach
     // if (player.getTool() >= 0)

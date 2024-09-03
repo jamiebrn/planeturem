@@ -86,50 +86,8 @@ void ItemSlot::draw(sf::RenderWindow& window,
     // Draw item
     if (itemType.has_value())
     {
-        const ItemData& itemData = ItemDataLoader::getItemData(itemType.value());
-
-        // Draw object if item places object
-        if (itemData.placesObjectType >= 0)
-        {
-            const ObjectData& objectData = ObjectDataLoader::getObjectData(itemData.placesObjectType);
-
-            float objectScale = std::max(4 - std::max(objectData.textureRects[0].width / 16.0f, objectData.textureRects[0].height / 16.0f), 1.0f) * itemScaleMult;
-
-            // Draw object
-            TextureManager::drawSubTexture(window, {
-                TextureType::Objects,
-                position * positionIntScale + (sf::Vector2f(std::round(boxSize / 2.0f), std::round(boxSize / 2.0f))) * intScale,
-                0,
-                {objectScale * intScale, objectScale * intScale},
-                {0.5, 0.5}
-            }, objectData.textureRects[0]);
-        }
-        else if (itemData.toolType >= 0)
-        {
-            // Draw tool
-            const ToolData& toolData = ToolDataLoader::getToolData(itemData.toolType);
-
-            float objectScale = std::max(4 - std::max(toolData.textureRect.width / 16.0f, toolData.textureRect.height / 16.0f), 1.0f) * itemScaleMult;
-
-            TextureManager::drawSubTexture(window, {
-                TextureType::Tools,
-                position * positionIntScale + (sf::Vector2f(std::round(boxSize / 2.0f), std::round(boxSize / 2.0f))) * intScale,
-                0,
-                {objectScale * intScale, objectScale * intScale},
-                {0.5, 0.5}
-            }, toolData.textureRect);
-        }
-        else
-        {
-            // Draw as normal
-            TextureManager::drawSubTexture(window, {
-                TextureType::Items,
-                position * positionIntScale + (sf::Vector2f(std::round(boxSize / 2.0f), std::round(boxSize / 2.0f))) * intScale,
-                0,
-                {3 * itemScaleMult * intScale, 3 * itemScaleMult * intScale},
-                {0.5, 0.5}
-            }, itemData.textureRect);
-        }
+        sf::Vector2f itemPos = position * positionIntScale + (sf::Vector2f(std::round(boxSize / 2.0f), std::round(boxSize / 2.0f))) * intScale;
+        drawItem(window, itemType.value(), itemPos, itemScaleMult);
     }
 
     // Draw item count (if > 1)
@@ -147,5 +105,61 @@ void ItemSlot::draw(sf::RenderWindow& window,
                 true,
                 true});
         }
+    }
+}
+
+void ItemSlot::drawItem(sf::RenderWindow& window, ItemType itemType, sf::Vector2f position, float scaleMult, bool centred)
+{
+    float intScale = ResolutionHandler::getResolutionIntegerScale();
+
+    const ItemData& itemData = ItemDataLoader::getItemData(itemType);
+
+    sf::Vector2f origin(0, 0);
+    if (centred)
+    {
+        origin = sf::Vector2f(0.5, 0.5);
+    }
+
+    // Draw object if item places object
+    if (itemData.placesObjectType >= 0)
+    {
+        const ObjectData& objectData = ObjectDataLoader::getObjectData(itemData.placesObjectType);
+
+        float objectScale = std::max(4 - std::max(objectData.textureRects[0].width / 16.0f, objectData.textureRects[0].height / 16.0f), 1.0f) * scaleMult;
+
+        // Draw object
+        TextureManager::drawSubTexture(window, {
+            TextureType::Objects,
+            position,
+            0,
+            {objectScale * intScale, objectScale * intScale},
+            origin
+        }, objectData.textureRects[0]);
+    }
+    else if (itemData.toolType >= 0)
+    {
+        // Draw tool
+        const ToolData& toolData = ToolDataLoader::getToolData(itemData.toolType);
+
+        float objectScale = std::max(4 - std::max(toolData.textureRect.width / 16.0f, toolData.textureRect.height / 16.0f), 1.0f) * scaleMult;
+
+        TextureManager::drawSubTexture(window, {
+            TextureType::Tools,
+            position,
+            0,
+            {objectScale * intScale, objectScale * intScale},
+            origin
+        }, toolData.textureRect);
+    }
+    else
+    {
+        // Draw as normal
+        TextureManager::drawSubTexture(window, {
+            TextureType::Items,
+            position,
+            0,
+            {3 * scaleMult * intScale, 3 * scaleMult * intScale},
+            origin
+        }, itemData.textureRect);
     }
 }

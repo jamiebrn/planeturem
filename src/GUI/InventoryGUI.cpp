@@ -86,6 +86,8 @@ void InventoryGUI::createRecipeItemSlots(InventoryData& inventory)
 
     recipeItemSlots.clear();
 
+    int rowIndex = 0;
+
     // Create recipe item slots
     for (int i = 0; i < availableRecipes.size(); i++)
     {
@@ -95,6 +97,14 @@ void InventoryGUI::createRecipeItemSlots(InventoryData& inventory)
 
         // Increment x position
         xPos += itemBoxSize + itemBoxSpacing;
+
+        rowIndex++;
+        if (rowIndex >= ITEM_BOX_PER_ROW)
+        {
+            rowIndex = 0;
+            yPos += itemBoxSize + itemBoxSpacing;
+            xPos = itemBoxPadding;
+        }
     }
 }
 
@@ -523,6 +533,8 @@ void InventoryGUI::updateAvailableRecipes(InventoryData& inventory, std::unorder
     // Reset available recipes
     availableRecipes.clear();
 
+    std::vector<int> partiallyAvailableRecipes;
+
     // Iterate over all recipes and determine if available to player
     for (int recipeIdx = 0; recipeIdx < RecipeDataLoader::getRecipeData().size(); recipeIdx++)
     {
@@ -539,31 +551,49 @@ void InventoryGUI::updateAvailableRecipes(InventoryData& inventory, std::unorder
                 continue; 
         }
 
-        // Check items
+        // Check items - add recipe if player has at least one of required items
         bool hasItems = true;
+        bool hasItemType = false;
         for (const auto& itemRequired : recipeData.itemRequirements)
         {
+            if (inventoryItemCount.count(itemRequired.first) > 0)
+            {
+                hasItemType = true;
+            }
             // If player does not have any of the item, cannot craft
             if (inventoryItemCount.count(itemRequired.first) <= 0)
             {
                 hasItems = false;
-                break;
             }
-
-            // If player has item but not enough, cannot craft
-            if (inventoryItemCount[itemRequired.first] < itemRequired.second)
+            else
             {
-                hasItems = false;
-                break;
+                // If player has item but not enough, cannot craft
+                if (inventoryItemCount[itemRequired.first] < itemRequired.second)
+                {
+                    hasItems = false;
+                }
             }
+                // if (inventoryItemCount[itemRequired.first] >= itemRequired.second)
+                // {
+                //     hasItems = true;
+                //     break;
+                // }
         }
 
         if (!hasItems)
+        {
+            if (hasItemType)
+            {
+                partiallyAvailableRecipes.push_back(recipeIdx);   
+            }
             continue;
+        }
         
         // Player has items and is near required crafting station, so add to available recipes
         availableRecipes.push_back(recipeIdx);
     }
+
+    availableRecipes.insert(availableRecipes.end(), partiallyAvailableRecipes.begin(), partiallyAvailableRecipes.end());
 
     // Update UI if required
     if (availableRecipes != previous_availableRecipes)
@@ -675,7 +705,7 @@ void InventoryGUI::draw(sf::RenderWindow& window, float gameTime, sf::Vector2f m
     if (recipeItemSlots.size() > 0)
     {
         // Store recipe index hovered over for drawing
-        int hoveredRecipeIdx = getHoveredRecipe(mouseScreenPos);
+        int hoveredRecipeIdx = -1;
 
         // Draw recipes
         for (int i = 0; i < recipeItemSlots.size(); i++)
@@ -690,25 +720,25 @@ void InventoryGUI::draw(sf::RenderWindow& window, float gameTime, sf::Vector2f m
             ItemSlot& itemSlot = recipeItemSlots[i];
 
             // If recipe is selected, draw requirements
-            bool selected = false;
-            if (i == selectedRecipe)
-            {
-                selected = true;
+            bool selected = i == selectedRecipe;
+            // if (i == selectedRecipe)
+            // {
+            //     selected = true;
 
-                int requirementXPos = itemSlot.getPosition().x;
-                int requirementYPos = itemSlot.getPosition().y + itemBoxSize;
+            //     int requirementXPos = itemSlot.getPosition().x;
+            //     int requirementYPos = itemSlot.getPosition().y + itemBoxSize;
 
-                for (const auto& itemRequired : recipeData.itemRequirements)
-                {
-                    // Draw requirement
-                    ItemSlot recipeItem(sf::Vector2f(requirementXPos, requirementYPos), itemBoxSize);
+            //     for (const auto& itemRequired : recipeData.itemRequirements)
+            //     {
+            //         // Draw requirement
+            //         ItemSlot recipeItem(sf::Vector2f(requirementXPos, requirementYPos), itemBoxSize);
 
-                    recipeItem.draw(window, itemRequired.first, itemRequired.second, true);
+            //         recipeItem.draw(window, itemRequired.first, itemRequired.second, true);
 
-                    // Increment position
-                    requirementYPos += itemBoxSize + itemBoxSpacing;
-                }
-            }
+            //         // Increment position
+            //         requirementYPos += itemBoxSize + itemBoxSpacing;
+            //     }
+            // }
 
             // Draw item box for product
             itemSlot.draw(window, recipeData.product, recipeData.productAmount, false, selected);
@@ -804,19 +834,6 @@ void InventoryGUI::drawItemInfoBox(sf::RenderWindow& window, float gameTime, int
 
     float intScale = ResolutionHandler::getResolutionIntegerScale();
 
-    // Draw item name
-    // TextDraw::drawText(window, {
-    //     itemData.name,
-    //     mouseScreenPos - (sf::Vector2f(0, 16)) * intScale,
-    //     {255, 255, 255},
-    //     24 * static_cast<unsigned int>(intScale),
-    //     {0, 0, 0},
-    //     0,
-    //     true,
-    //     true,
-    //     true,
-    //     true
-    // });
     std::vector<ItemInfoString> infoStrings;
 
     sf::Color itemNameColor = itemData.nameColor;
@@ -856,19 +873,6 @@ void InventoryGUI::drawItemInfoBoxRecipe(sf::RenderWindow& window, float gameTim
 
     float intScale = ResolutionHandler::getResolutionIntegerScale();
 
-    // Draw item name
-    // TextDraw::drawText(window, {
-    //     itemData.name,
-    //     mouseScreenPos - (sf::Vector2f(0, 16)) * intScale,
-    //     {255, 255, 255},
-    //     24 * static_cast<unsigned int>(intScale),
-    //     {0, 0, 0},
-    //     0,
-    //     true,
-    //     true,
-    //     true,
-    //     true
-    // });
     std::vector<ItemInfoString> infoStrings;
 
     sf::Color itemNameColor = itemData.nameColor;
@@ -897,10 +901,37 @@ void InventoryGUI::drawItemInfoBoxRecipe(sf::RenderWindow& window, float gameTim
         infoStrings.push_back({"Material", 20});
     }
 
-    drawInfoBox(window, mouseScreenPos + sf::Vector2f(8, 8) * 3.0f * intScale, infoStrings);
+    sf::Vector2f itemInfoBoxSize = drawInfoBox(window, mouseScreenPos + sf::Vector2f(8, 8) * 3.0f * intScale, infoStrings);
+
+    infoStrings.clear();
+
+    infoStrings.push_back({"Requires", 20});
+
+    for (const auto& item : recipeData.itemRequirements)
+    {
+        ItemInfoString itemRequirement;
+        itemRequirement.itemCount = ItemCount(item.first, item.second);
+
+        const ItemData& itemData = ItemDataLoader::getItemData(item.first);
+        itemRequirement.string = itemData.name;
+        itemRequirement.size = 20;
+
+        itemRequirement.color = sf::Color(232, 59, 59);
+        if (previous_inventoryItemCount.count(item.first) >= 0)
+        {
+            if (previous_inventoryItemCount[item.first] >= item.second)
+            {
+                itemRequirement.color = sf::Color(255, 255, 255);
+            }
+        }
+
+        infoStrings.push_back(itemRequirement);
+    }
+
+    drawInfoBox(window, mouseScreenPos + sf::Vector2f(8, 8 + 6) * 3.0f * intScale + sf::Vector2f(0, itemInfoBoxSize.y), infoStrings);
 }
 
-void InventoryGUI::drawInfoBox(sf::RenderWindow& window, sf::Vector2f position, const std::vector<ItemInfoString>& infoStrings)
+sf::Vector2f InventoryGUI::drawInfoBox(sf::RenderWindow& window, sf::Vector2f position, const std::vector<ItemInfoString>& infoStrings)
 {
     static const std::array<sf::IntRect, 4> sides = {
         sf::IntRect(20, 80, 1, 3), // top
@@ -924,6 +955,8 @@ void InventoryGUI::drawInfoBox(sf::RenderWindow& window, sf::Vector2f position, 
     static constexpr int textXPadding = 5;
     static constexpr int textYPadding = 10;
 
+    static constexpr int itemSize = 16 * 3;
+
     for (const ItemInfoString& infoString : infoStrings)
     {
         TextDrawData textDrawData = {
@@ -931,8 +964,16 @@ void InventoryGUI::drawInfoBox(sf::RenderWindow& window, sf::Vector2f position, 
             .size = infoString.size * static_cast<unsigned int>(intScale)
         };
 
-        width = std::max(width, static_cast<int>(TextDraw::getTextSize(textDrawData).width) + textXPadding * 2 * intScale);
-        height += TextDraw::getTextSize(textDrawData).height + textYPadding * intScale;
+        if (infoString.itemCount.has_value())
+        {
+            width = std::max(width, static_cast<int>(TextDraw::getTextSize(textDrawData).width) + (textXPadding * 4 + itemSize) * intScale);
+            height += itemSize * intScale + textYPadding * intScale;
+        }
+        else
+        {
+            width = std::max(width, static_cast<int>(TextDraw::getTextSize(textDrawData).width) + textXPadding * 2 * intScale);
+            height += TextDraw::getTextSize(textDrawData).height + textYPadding * intScale;
+        }
     }
 
     // Draw box
@@ -942,27 +983,25 @@ void InventoryGUI::drawInfoBox(sf::RenderWindow& window, sf::Vector2f position, 
 
     // Draw corners
     spriteBatch.draw(window, {TextureType::UI, position, 0, scale}, corners[0]);
-    spriteBatch.draw(window, {TextureType::UI, position + sf::Vector2f(width + sides[1].width * 3 * intScale, 0), 0, scale}, corners[1]);
+    spriteBatch.draw(window, {TextureType::UI, position + sf::Vector2f(width + sides[1].width * scale.y, 0), 0, scale}, corners[1]);
     spriteBatch.draw(window, {TextureType::UI,
-        position + sf::Vector2f(width + sides[1].width * 3 * intScale, height + sides[0].height * 3 * intScale), 0, scale}, corners[2]);
-    spriteBatch.draw(window, {TextureType::UI, position + sf::Vector2f(0, height + sides[0].height * 3 * intScale), 0, scale}, corners[3]);
+        position + sf::Vector2f(width + sides[1].width * scale.x, height + sides[0].height * scale.y), 0, scale}, corners[2]);
+    spriteBatch.draw(window, {TextureType::UI, position + sf::Vector2f(0, height + sides[0].height * scale.y), 0, scale}, corners[3]);
 
     // Draw sides
     spriteBatch.draw(window, {TextureType::UI,
-        position + sf::Vector2f(sides[3].width * 3 * intScale, 0), 0, sf::Vector2f(scale.x * width / (3 * intScale), scale.y)}, sides[0]);
+        position + sf::Vector2f(sides[3].width * scale.x, 0), 0, sf::Vector2f(width, scale.y)}, sides[0]);
     spriteBatch.draw(window, {TextureType::UI,
-        position + sf::Vector2f(sides[3].width * 3 * intScale + width, sides[0].height * 3 * intScale), 0,
-        sf::Vector2f(scale.x, scale.y * height / (3 * intScale))}, sides[1]);
+        position + sf::Vector2f(sides[3].width * scale.x + width, sides[0].height * scale.y), 0, sf::Vector2f(scale.x, height)}, sides[1]);
     spriteBatch.draw(window, {TextureType::UI,
-        position + sf::Vector2f(sides[3].width * 3 * intScale, sides[0].height * 3 * intScale + height), 0,
-        sf::Vector2f(scale.x * width / (3 * intScale), scale.y)}, sides[2]);
+        position + sf::Vector2f(sides[3].width * scale.x, sides[0].height * scale.y + height), 0, sf::Vector2f(width, scale.y)}, sides[2]);
     spriteBatch.draw(window, {TextureType::UI,
-        position + sf::Vector2f(0, sides[0].height * 3 * intScale), 0, sf::Vector2f(scale.x, scale.y * height / (3 * intScale))}, sides[3]);
+        position + sf::Vector2f(0, sides[0].height * scale.x), 0, sf::Vector2f(scale.x, height)}, sides[3]);
 
     // Draw centre
     spriteBatch.draw(window, {TextureType::UI,
-        position + sf::Vector2f(sides[3].width * 3 * intScale, sides[0].height * 3 * intScale), 0,
-        sf::Vector2f(scale.x * width / (3 * intScale), scale.y * height / (3 * intScale))}, centre);
+        position + sf::Vector2f(sides[3].width * scale.x, sides[0].height * scale.y), 0,
+        sf::Vector2f(width,  height)}, centre);
 
     spriteBatch.endDrawing(window);
 
@@ -982,11 +1021,52 @@ void InventoryGUI::drawInfoBox(sf::RenderWindow& window, sf::Vector2f position, 
             .size = infoString.size * static_cast<unsigned int>(intScale)
         };
 
+        if (infoString.itemCount.has_value())
+        {
+            const ItemCount& itemCount = infoString.itemCount.value();
+
+            // Draw item using item slot
+            // ItemSlot itemSlot(textDrawData.position, itemSize * intScale, false);
+            // itemSlot.draw(window, itemCount.first, itemCount.second, true);
+            // Offset text draw data position downwards
+            textDrawData.position.y += textYPadding * intScale;
+            ItemSlot::drawItem(window, itemCount.first, textDrawData.position + sf::Vector2f(itemSize, itemSize) * 0.5f * static_cast<float>(intScale), 1.0f, true);
+
+            // Draw item amount
+            TextDrawData itemAmountText = {
+                .text = std::to_string(itemCount.second),
+                .position = textDrawData.position + sf::Vector2f(itemSize, itemSize) * 0.85f * static_cast<float>(intScale),
+                .colour = textDrawData.colour,
+                .size = textDrawData.size,
+                .centeredX = true,
+                .centeredY = true
+            };
+
+            TextDraw::drawText(window, itemAmountText);
+
+            // Offset text draw data
+            textDrawData.position.x += (itemSize + textXPadding * 2) * intScale;
+            textDrawData.position.y += itemSize * 0.5f * intScale;
+            textDrawData.centeredY = true;
+        }
+
         TextDraw::drawText(window, textDrawData);
 
         // Update y offset
-        textYOffset += TextDraw::getTextSize(textDrawData).height + textYPadding * intScale;
+        if (infoString.itemCount.has_value())
+        {
+            textYOffset += (itemSize + textYPadding) * intScale;
+        }
+        else
+        {
+            textYOffset += TextDraw::getTextSize(textDrawData).height + textYPadding * intScale;
+        }
     }
+
+    float totalWidth = (sides[3].width + sides[1].width) * 3 * intScale + width;
+    float totalHeight = (sides[0].width + sides[2].width) * 3 * intScale + height;
+
+    return sf::Vector2f(totalWidth, totalHeight);
 }
 
 

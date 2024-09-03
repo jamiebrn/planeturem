@@ -36,6 +36,8 @@ public:
               std::optional<int> itemAmount = std::nullopt,
               bool hiddenBackground = false,
               bool selectHighlight = false);
+    
+    static void drawItem(sf::RenderWindow& window, ItemType itemType, sf::Vector2f position, float scaleMult = 1.0f, bool centred = true);
 
 private:
     sf::Vector2f position;

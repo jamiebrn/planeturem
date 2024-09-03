@@ -137,7 +137,9 @@ private:
 
     static void drawItemInfoBox(sf::RenderWindow& window, float gameTime, int itemIndex, InventoryData& inventory, sf::Vector2f mouseScreenPos);
     static void drawItemInfoBoxRecipe(sf::RenderWindow& window, float gameTime, int recipeIdx, sf::Vector2f mouseScreenPos);
-    static void drawInfoBox(sf::RenderWindow& window, sf::Vector2f position, const std::vector<ItemInfoString>& infoStrings);
+
+    // Returns size of drawn info box
+    static sf::Vector2f drawInfoBox(sf::RenderWindow& window, sf::Vector2f position, const std::vector<ItemInfoString>& infoStrings);
 
     // Position refers to top left of item box
     // static void drawItemBox(sf::RenderWindow& window,
