@@ -23,6 +23,7 @@
 
 #include "World/ChunkManager.hpp"
 #include "World/ChestDataPool.hpp"
+#include "World/TileMap.hpp"
 
 #include "Player/Player.hpp"
 #include "Player/Cursor.hpp"
@@ -144,4 +145,8 @@ private:
 
 
     Tween<float> floatTween;
+
+
+    // Testing
+    TileMap tileMap;
 };

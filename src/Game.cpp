@@ -70,8 +70,10 @@ bool Game::initialise()
 
     // Initialise values
     gameTime = 0;
-    gameState = GameState::OnPlanet;
+    gameState = GameState::Menu;
     worldMenuState = WorldMenuState::Main;
+    tileMap.setTilesetOffset(sf::Vector2i(32, 192));
+    tileMap.setTilesetVariation(2);
 
     openedChestID = 0xFFFF;
 
@@ -122,7 +124,7 @@ void Game::toggleFullScreen()
     window.setIcon(256, 256, icon.getPixelsPtr());
     window.setFramerateLimit(165);
     window.setVerticalSyncEnabled(true);
-    window.setMouseCursorVisible(false);
+    // window.setMouseCursorVisible(false);
 
     handleWindowResize(sf::Vector2u(videoMode.width, videoMode.height));
 }
@@ -292,23 +294,22 @@ void Game::runMenu(float dt)
         }
     }
 
+    if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left))
+    {
+        // Add tile
+        sf::Vector2i mousePos = sf::Mouse::getPosition(window);
+        tileMap.setTile(std::floor(mousePos.x / (TILE_SIZE_PIXELS_UNSCALED * 3)), std::floor(mousePos.y / (TILE_SIZE_PIXELS_UNSCALED * 3)));
+    }
+    if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Right))
+    {
+        // Add tile
+        sf::Vector2i mousePos = sf::Mouse::getPosition(window);
+        tileMap.removeTile(std::floor(mousePos.x / (TILE_SIZE_PIXELS_UNSCALED * 3)), std::floor(mousePos.y / (TILE_SIZE_PIXELS_UNSCALED * 3)));
+    }
+
     window.clear();
 
-    sf::Vector2f titlePos;
-    titlePos.x = ResolutionHandler::getResolution().x / 2.0f;
-    titlePos.y = 100.0f * ResolutionHandler::getResolutionIntegerScale();
-
-    TextDraw::drawText(window, {
-        "spacebuild", titlePos, {255, 255, 255}, static_cast<unsigned int>(48 * ResolutionHandler::getResolutionIntegerScale()), {0, 0, 0}, 0, true, false
-        });
-
-    sf::Vector2f continueTextPos;
-    continueTextPos.x = titlePos.x;
-    continueTextPos.y = ResolutionHandler::getResolution().y - 300.0f * ResolutionHandler::getResolutionIntegerScale();
-
-    TextDraw::drawText(window, {
-        "Enter to start", continueTextPos, {255, 255, 255}, static_cast<unsigned int>(30 * ResolutionHandler::getResolutionIntegerScale()), {0, 0, 0}, 0, true, false
-        });
+    tileMap.draw(window, {0, 0}, {3, 3});
 
     window.display();
 }

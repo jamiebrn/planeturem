@@ -70,7 +70,10 @@
         "size-y": 1,
         "has-collision": true,
         "crafting-station": "furnace",
-        "crafting-station-level": 1
+        "crafting-station-level": 1,
+        "item-drops": {
+            "Furnace": [1, 1, 1]
+        }
     },
     {
         "name": "Anvil",
@@ -82,7 +85,10 @@
         "texture-y-origin": 0.75,
         "has-collision": true,
         "crafting-station": "anvil",
-        "crafting-station-level": 1
+        "crafting-station-level": 1,
+        "item-drops": {
+            "Anvil": [1, 1, 1]
+        }
     },
     {
         "name": "Wooden Bench",
@@ -94,7 +100,10 @@
         "texture-y-origin": 0.75,
         "has-collision": true,
         "crafting-station": "bench",
-        "crafting-station-level": 1
+        "crafting-station-level": 1,
+        "item-drops": {
+            "Wooden Bench": [1, 1, 1]
+        }
     },
     {
         "name": "Chest",
@@ -106,7 +115,10 @@
         "texture-x-origin": 0.5,
         "texture-y-origin": 0.5,
         "chest-capacity": 16,
-        "has-collision": true
+        "has-collision": true,
+        "item-drops": {
+            "Chest": [1, 1, 1]
+        }
     },
     {
         "name": "Golden Tree",
