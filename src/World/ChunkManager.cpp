@@ -150,11 +150,91 @@ void ChunkManager::drawChunkWater(sf::RenderTarget& window, float time)
     }
 }
 
+Chunk* ChunkManager::getChunk(ChunkPosition chunk)
+{
+    if (loadedChunks.count(chunk) > 0)
+    {
+        return loadedChunks[chunk].get();
+    }
+    else if (storedChunks.count(chunk) > 0)
+    {
+        return storedChunks[chunk].get();
+    }
+
+    return nullptr;
+}
+
 void ChunkManager::updateChunksObjects(float dt, int worldSize)
 {
     for (auto& chunkPair : loadedChunks)
     {
-        chunkPair.second->updateChunkObjects(dt,worldSize,  *this);
+        chunkPair.second->updateChunkObjects(dt, worldSize, *this);
+    }
+}
+
+TileMap* ChunkManager::getChunkTileMap(ChunkPosition chunk, int tileMap)
+{
+    // Chunk is not generated
+    if (!isChunkGenerated(chunk))
+        return nullptr;
+    
+    // Not in loaded chunks, go to stored chunks
+    if (loadedChunks.count(chunk) <= 0)
+        return storedChunks.at(chunk)->getTileMap(tileMap);
+    
+    return loadedChunks.at(chunk)->getTileMap(tileMap);
+}
+
+void ChunkManager::setChunkTile(ChunkPosition chunk, int tileMap, sf::Vector2i position, int worldSize)
+{
+    if (!isChunkGenerated(chunk))
+        return;
+
+    TileMap* upTiles = getChunkTileMap(ChunkPosition(chunk.x, ((chunk.y - 1) % worldSize + worldSize) % worldSize), tileMap);
+    TileMap* downTiles = getChunkTileMap(ChunkPosition(chunk.x, ((chunk.y + 1) % worldSize + worldSize) % worldSize), tileMap);
+    TileMap* leftTiles = getChunkTileMap(ChunkPosition(((chunk.x - 1) % worldSize + worldSize) % worldSize, chunk.y), tileMap);
+    TileMap* rightTiles = getChunkTileMap(ChunkPosition(((chunk.x + 1) % worldSize + worldSize) % worldSize, chunk.y), tileMap);
+
+    // Update chunk tile
+    getChunk(chunk)->setTile(tileMap, position, upTiles, downTiles, leftTiles, rightTiles);
+
+    updateAdjacentChunkTiles(chunk, tileMap, worldSize);
+}
+
+void ChunkManager::updateAdjacentChunkTiles(ChunkPosition chunk, int tileMap, int worldSize)
+{
+    // Update surrounding chunks tilemaps
+    for (int y = chunk.y - 1; y <= chunk.y + 1; y++)
+    {
+        for (int x = chunk.x - 1; x <= chunk.x + 1; x++)
+        {
+            if (chunk == ChunkPosition(x, y))
+                continue;
+            
+            // Skip corners
+            if (y == -1 && (x == -1 || x == 1))
+                continue;
+            
+            if (y == 1 && (x == -1 || x == 1))
+                continue;
+            
+            ChunkPosition wrappedChunk;
+            wrappedChunk.x = (x % worldSize + worldSize) % worldSize;
+            wrappedChunk.y = (y % worldSize + worldSize) % worldSize;
+
+            // FIX: Land place at edge of chunks completely fucking up tiles
+
+            Chunk* chunkPtr = getChunk(wrappedChunk);
+            if (chunkPtr == nullptr)
+                continue;
+
+            TileMap* upTiles = getChunkTileMap(ChunkPosition(x, ((y - 1) % worldSize + worldSize) % worldSize), tileMap);
+            TileMap* downTiles = getChunkTileMap(ChunkPosition(x, ((y + 1) % worldSize + worldSize) % worldSize), tileMap);
+            TileMap* leftTiles = getChunkTileMap(ChunkPosition(((x - 1) % worldSize + worldSize) % worldSize, y), tileMap);
+            TileMap* rightTiles = getChunkTileMap(ChunkPosition(((x + 1) % worldSize + worldSize) % worldSize, y), tileMap);
+
+           chunkPtr->updateTileMap(tileMap, upTiles, downTiles, leftTiles, rightTiles);
+        }
     }
 }
 
@@ -605,19 +685,23 @@ void ChunkManager::generateChunk(const ChunkPosition& chunkPosition, const FastN
         chunkWorldPos.y = chunkPosition.y * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
     }
 
-    // Set chunk position
-    chunk->setWorldPosition(chunkWorldPos, *this);
-
-    // Generate
-    chunk->generateChunk(noise, worldSize, *this);
-
+    Chunk* chunkPtr = nullptr;
     if (putInLoaded)
     {
         loadedChunks.emplace(chunkPosition, std::move(chunk));
-        return;
+        chunkPtr = loadedChunks[chunkPosition].get();
     }
-    
-    storedChunks.emplace(chunkPosition, std::move(chunk));
+    else
+    {
+        storedChunks.emplace(chunkPosition, std::move(chunk));
+        chunkPtr = storedChunks[chunkPosition].get();
+    }
+
+    // Set chunk position
+    chunkPtr->setWorldPosition(chunkWorldPos, *this);
+
+    // Generate
+    chunkPtr->generateChunk(noise, worldSize, *this);
 }
 
 // Static method

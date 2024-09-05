@@ -5,6 +5,7 @@
 #include <array>
 #include <vector>
 #include <unordered_map>
+#include <map>
 #include <memory>
 #include <optional>
 #include <iostream>
@@ -19,6 +20,7 @@
 #include "Object/ObjectReference.hpp"
 #include "Entity/Entity.hpp"
 #include "World/ChunkManager.hpp"
+#include "World/TileMap.hpp"
 #include "Data/ObjectDataLoader.hpp"
 #include "Types/TileType.hpp"
 
@@ -41,6 +43,20 @@ public:
 
     static TileType getTileTypeFromNoiseHeight(float noiseValue);
 
+    // ALWAYS CALL THROUGH CHUNK MANAGER WHEN PLACING SINGLE TILE
+    // to ensure adjacent chunk tilemaps are updated accordingly
+    void setTile(int tileMap, sf::Vector2i position,
+        TileMap* upTiles = nullptr, TileMap* downTiles = nullptr, TileMap* leftTiles = nullptr, TileMap* rightTiles = nullptr,
+        bool graphicsUpdate = true);
+    void setTile(int tileMap, sf::Vector2i position, Chunk* upChunk, Chunk* downChunk, Chunk* leftChunk, Chunk* rightChunk, bool graphicsUpdate = true);
+
+    void updateTileMap(int tileMap, TileMap* upTiles, TileMap* downTiles, TileMap* leftTiles, TileMap* rightTiles);
+
+    // Get (terrain) tile at position in chunk
+    TileType getTileType(sf::Vector2i position) const;
+
+    TileMap* getTileMap(int tileMap);
+
 
     // Drawing
     void drawChunkTerrain(sf::RenderTarget& window, float time);
@@ -50,9 +66,6 @@ public:
     // Get vector of chunk object/entities for drawing
     std::vector<WorldObject*> getObjects();
     std::vector<WorldObject*> getEntities();
-
-    // Get (terrain) tile at position in chunk
-    TileType getTileType(sf::Vector2i position) const;
 
 
     // -- Object handling -- //
@@ -120,7 +133,8 @@ public:
 
 private:
     std::array<std::array<TileType, 8>, 8> groundTileGrid;
-    sf::VertexArray groundVertexArray;
+    // sf::VertexArray groundVertexArray;
+    std::map<int, TileMap> tileMaps;
 
     // Stores visual tile types, e.g. cliffs
     std::array<std::array<TileType, 8>, 8> visualTileGrid;

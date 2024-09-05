@@ -22,7 +22,7 @@ target_link_libraries(spacebuild PRIVATE sfml-graphics)
 target_link_libraries(spacebuild PRIVATE sfml-audio)
 target_link_libraries(spacebuild PRIVATE steam_api64)
 target_link_options(spacebuild PRIVATE -static)
-target_compile_features(spacebuild PRIVATE cxx_std_17)
+target_compile_features(spacebuild PRIVATE cxx_std_20)
 target_sources(spacebuild PRIVATE "icon/icon-data.rc")
 
 add_custom_target(copy_assets

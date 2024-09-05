@@ -3,7 +3,18 @@
 Chunk::Chunk(ChunkPosition chunkPosition)
 {
     this->chunkPosition = chunkPosition;
-    groundVertexArray = sf::VertexArray(sf::Quads, 8 * 8 * 4);
+    // groundVertexArray = sf::VertexArray(sf::Quads, 8 * 8 * 4);
+
+    // Create tilemaps
+    tileMaps[0] = TileMap();
+    tileMaps[0].setTilesetOffset(sf::Vector2i(32, 64));
+    tileMaps[0].setTilesetVariation(2);
+    tileMaps[1] = TileMap();
+    tileMaps[1].setTilesetOffset(sf::Vector2i(32, 128));
+    tileMaps[1].setTilesetVariation(3);
+    tileMaps[2] = TileMap();
+    tileMaps[2].setTilesetOffset(sf::Vector2i(32, 192));
+    tileMaps[2].setTilesetVariation(2);
 }
 
 void Chunk::generateChunk(const FastNoise& noise, int worldSize, ChunkManager& chunkManager)
@@ -19,6 +30,12 @@ void Chunk::generateChunk(const FastNoise& noise, int worldSize, ChunkManager& c
 
     containsWater = false;
 
+    // Get adjacent chunk tiles
+    Chunk* upChunk = chunkManager.getChunk(ChunkPosition(chunkPosition.x, ((chunkPosition.y - 1) % worldSize + worldSize) % worldSize));
+    Chunk* downChunk = chunkManager.getChunk(ChunkPosition(chunkPosition.x, ((chunkPosition.y + 1) % worldSize + worldSize) % worldSize));
+    Chunk* leftChunk = chunkManager.getChunk(ChunkPosition(((chunkPosition.x - 1) % worldSize + worldSize) % worldSize, chunkPosition.y));
+    Chunk* rightChunk = chunkManager.getChunk(ChunkPosition(((chunkPosition.x + 1) % worldSize + worldSize) % worldSize, chunkPosition.y));
+
     for (int y = 0; y < CHUNK_TILE_SIZE; y++)
     {
         for (int x = 0; x < CHUNK_TILE_SIZE; x++)
@@ -33,19 +50,19 @@ void Chunk::generateChunk(const FastNoise& noise, int worldSize, ChunkManager& c
 
             groundTileGrid[y][x] = tileType;
 
-            int vertexArrayIndex = (x + y * CHUNK_TILE_SIZE) * 4;
-            groundVertexArray[vertexArrayIndex].position = sf::Vector2f(x * TILE_SIZE_PIXELS_UNSCALED, y * TILE_SIZE_PIXELS_UNSCALED);
-            groundVertexArray[vertexArrayIndex + 1].position = sf::Vector2f(x * TILE_SIZE_PIXELS_UNSCALED + TILE_SIZE_PIXELS_UNSCALED, y * TILE_SIZE_PIXELS_UNSCALED);
-            groundVertexArray[vertexArrayIndex + 3].position = sf::Vector2f(x * TILE_SIZE_PIXELS_UNSCALED, y * TILE_SIZE_PIXELS_UNSCALED + TILE_SIZE_PIXELS_UNSCALED);
-            groundVertexArray[vertexArrayIndex + 2].position = sf::Vector2f(x * TILE_SIZE_PIXELS_UNSCALED + TILE_SIZE_PIXELS_UNSCALED, y * TILE_SIZE_PIXELS_UNSCALED + TILE_SIZE_PIXELS_UNSCALED);
+            // int vertexArrayIndex = (x + y * CHUNK_TILE_SIZE) * 4;
+            // groundVertexArray[vertexArrayIndex].position = sf::Vector2f(x * TILE_SIZE_PIXELS_UNSCALED, y * TILE_SIZE_PIXELS_UNSCALED);
+            // groundVertexArray[vertexArrayIndex + 1].position = sf::Vector2f(x * TILE_SIZE_PIXELS_UNSCALED + TILE_SIZE_PIXELS_UNSCALED, y * TILE_SIZE_PIXELS_UNSCALED);
+            // groundVertexArray[vertexArrayIndex + 3].position = sf::Vector2f(x * TILE_SIZE_PIXELS_UNSCALED, y * TILE_SIZE_PIXELS_UNSCALED + TILE_SIZE_PIXELS_UNSCALED);
+            // groundVertexArray[vertexArrayIndex + 2].position = sf::Vector2f(x * TILE_SIZE_PIXELS_UNSCALED + TILE_SIZE_PIXELS_UNSCALED, y * TILE_SIZE_PIXELS_UNSCALED + TILE_SIZE_PIXELS_UNSCALED);
 
             if (tileType == TileType::Water)
             {
                 containsWater = true;
-                groundVertexArray[vertexArrayIndex].color = sf::Color(0, 0, 0, 0);
-                groundVertexArray[vertexArrayIndex + 1].color = sf::Color(0, 0, 0, 0);
-                groundVertexArray[vertexArrayIndex + 3].color = sf::Color(0, 0, 0, 0);
-                groundVertexArray[vertexArrayIndex + 2].color = sf::Color(0, 0, 0, 0);
+                // groundVertexArray[vertexArrayIndex].color = sf::Color(0, 0, 0, 0);
+                // groundVertexArray[vertexArrayIndex + 1].color = sf::Color(0, 0, 0, 0);
+                // groundVertexArray[vertexArrayIndex + 3].color = sf::Color(0, 0, 0, 0);
+                // groundVertexArray[vertexArrayIndex + 2].color = sf::Color(0, 0, 0, 0);
                 continue;
             }
 
@@ -54,25 +71,31 @@ void Chunk::generateChunk(const FastNoise& noise, int worldSize, ChunkManager& c
             switch (tileType)
             {
                 case TileType::DarkGrass:
-                    textureVariation = rand() % 3;
-                    groundVertexArray[vertexArrayIndex].texCoords = {1 * 16, 0 + textureVariation * 16.0f};
-                    groundVertexArray[vertexArrayIndex + 1].texCoords = {1 * 16 + 16, 0 + textureVariation * 16.0f};
-                    groundVertexArray[vertexArrayIndex + 3].texCoords = {1 * 16, 16 + textureVariation * 16.0f};
-                    groundVertexArray[vertexArrayIndex + 2].texCoords = {1 * 16 + 16, 16 + textureVariation * 16.0f};
+                    // textureVariation = rand() % 3;
+                    // groundVertexArray[vertexArrayIndex].texCoords = {1 * 16, 0 + textureVariation * 16.0f};
+                    // groundVertexArray[vertexArrayIndex + 1].texCoords = {1 * 16 + 16, 0 + textureVariation * 16.0f};
+                    // groundVertexArray[vertexArrayIndex + 3].texCoords = {1 * 16, 16 + textureVariation * 16.0f};
+                    // groundVertexArray[vertexArrayIndex + 2].texCoords = {1 * 16 + 16, 16 + textureVariation * 16.0f};
+                    setTile(2, sf::Vector2i(x, y), upChunk, downChunk, leftChunk, rightChunk, false);
+                    setTile(1, sf::Vector2i(x, y), upChunk, downChunk, leftChunk, rightChunk, false);
+                    setTile(0, sf::Vector2i(x, y), upChunk, downChunk, leftChunk, rightChunk, false);
                     break;
                 case TileType::Sand:
-                    textureVariation = rand() % 3;
-                    groundVertexArray[vertexArrayIndex].texCoords = {2 * 16, 0 + textureVariation * 16.0f};
-                    groundVertexArray[vertexArrayIndex + 1].texCoords = {2 * 16 + 16, 0 + textureVariation * 16.0f};
-                    groundVertexArray[vertexArrayIndex + 3].texCoords = {2 * 16, 16 + textureVariation * 16.0f};
-                    groundVertexArray[vertexArrayIndex + 2].texCoords = {2 * 16 + 16, 16 + textureVariation * 16.0f};
+                    // textureVariation = rand() % 3;
+                    // groundVertexArray[vertexArrayIndex].texCoords = {2 * 16, 0 + textureVariation * 16.0f};
+                    // groundVertexArray[vertexArrayIndex + 1].texCoords = {2 * 16 + 16, 0 + textureVariation * 16.0f};
+                    // groundVertexArray[vertexArrayIndex + 3].texCoords = {2 * 16, 16 + textureVariation * 16.0f};
+                    // groundVertexArray[vertexArrayIndex + 2].texCoords = {2 * 16 + 16, 16 + textureVariation * 16.0f};
+                    setTile(0, sf::Vector2i(x, y), upChunk, downChunk, leftChunk, rightChunk, false);
                     break;
                 case TileType::Grass:
-                    textureVariation = rand() % 4;
-                    groundVertexArray[vertexArrayIndex].texCoords = {0 * 16, 0 + textureVariation * 16.0f};
-                    groundVertexArray[vertexArrayIndex + 1].texCoords = {0 * 16 + 16, 0 + textureVariation * 16.0f};
-                    groundVertexArray[vertexArrayIndex + 3].texCoords = {0 * 16, 16 + textureVariation * 16.0f};
-                    groundVertexArray[vertexArrayIndex + 2].texCoords = {0 * 16 + 16, 16 + textureVariation * 16.0f};
+                    // textureVariation = rand() % 4;
+                    // groundVertexArray[vertexArrayIndex].texCoords = {0 * 16, 0 + textureVariation * 16.0f};
+                    // groundVertexArray[vertexArrayIndex + 1].texCoords = {0 * 16 + 16, 0 + textureVariation * 16.0f};
+                    // groundVertexArray[vertexArrayIndex + 3].texCoords = {0 * 16, 16 + textureVariation * 16.0f};
+                    // groundVertexArray[vertexArrayIndex + 2].texCoords = {0 * 16 + 16, 16 + textureVariation * 16.0f};
+                    setTile(1, sf::Vector2i(x, y), upChunk, downChunk, leftChunk, rightChunk, false);
+                    setTile(0, sf::Vector2i(x, y), upChunk, downChunk, leftChunk, rightChunk, false);
                     break;
             }
 
@@ -107,6 +130,16 @@ void Chunk::generateChunk(const FastNoise& noise, int worldSize, ChunkManager& c
             }
         }
     }
+
+    // Rebuild tilemap vertex arrays
+    tileMaps[2].buildVertexArray();
+    tileMaps[1].buildVertexArray();
+    tileMaps[0].buildVertexArray();
+
+    // Update adjacent chunks tilemaps
+    chunkManager.updateAdjacentChunkTiles(chunkPosition, 2, worldSize);
+    chunkManager.updateAdjacentChunkTiles(chunkPosition, 1, worldSize);
+    chunkManager.updateAdjacentChunkTiles(chunkPosition, 0, worldSize);
 
     // Spawn entities
     int spawnEnemyChance = rand() % 10;
@@ -230,23 +263,91 @@ TileType Chunk::getTileTypeFromNoiseHeight(float noiseValue)
     return TileType::Grass;
 }
 
+void Chunk::setTile(int tileMap, sf::Vector2i position, TileMap* upTiles, TileMap* downTiles, TileMap* leftTiles, TileMap* rightTiles, bool graphicsUpdate)
+{
+    if (tileMaps.count(tileMap) < 0)
+        return;
+
+    // Set tile for tilemap
+    if (graphicsUpdate)
+    {
+        tileMaps[tileMap].setTile(position.x, position.y, upTiles, downTiles, leftTiles, rightTiles);
+    }
+    else
+    {
+        tileMaps[tileMap].setTileWithoutGraphicsUpdate(position.x, position.y, upTiles, downTiles, leftTiles, rightTiles);
+    }
+}
+
+void Chunk::setTile(int tileMap, sf::Vector2i position, Chunk* upChunk, Chunk* downChunk, Chunk* leftChunk, Chunk* rightChunk, bool graphicsUpdate)
+{
+    if (tileMaps.count(tileMap) < 0)
+        return;
+    
+    TileMap* upTiles = nullptr;
+    if (upChunk != nullptr)
+        upTiles = upChunk->getTileMap(tileMap);
+
+    TileMap* downTiles = nullptr;
+    if (downChunk != nullptr)
+        downTiles = downChunk->getTileMap(tileMap);
+
+    TileMap* leftTiles = nullptr;
+    if (leftChunk != nullptr)
+        leftTiles = leftChunk->getTileMap(tileMap);
+
+    TileMap* rightTiles = nullptr;
+    if (rightChunk != nullptr)
+        rightTiles = rightChunk->getTileMap(tileMap);
+
+    if (graphicsUpdate)
+    {
+        tileMaps[tileMap].setTile(position.x, position.y, upTiles, downTiles, leftTiles, rightTiles);
+    }
+    else
+    {
+        tileMaps[tileMap].setTileWithoutGraphicsUpdate(position.x, position.y, upTiles, downTiles, leftTiles, rightTiles);
+    }
+}
+
+void Chunk::updateTileMap(int tileMap, TileMap* upTiles, TileMap* downTiles, TileMap* leftTiles, TileMap* rightTiles)
+{
+    if (tileMaps.count(tileMap) < 0)
+        return;
+
+    tileMaps[tileMap].updateAllTiles(upTiles, downTiles, leftTiles, rightTiles);
+}
+
+TileMap* Chunk::getTileMap(int tileMap)
+{
+    if (tileMaps.count(tileMap) < 0)
+        return nullptr;
+    
+    return &(tileMaps[tileMap]);
+}
+
 void Chunk::drawChunkTerrain(sf::RenderTarget& window, float time)
 {
     // Get tile size and scale
     float scale = ResolutionHandler::getScale();
-    float tileSize = ResolutionHandler::getTileSize();
+    // float tileSize = ResolutionHandler::getTileSize();
 
     // sf::Vector2f worldPosition = static_cast<sf::Vector2f>(chunkPosition) * 8.0f * tileSize;
     
     // Draw terrain tiles
-    sf::Transform transform;
-    transform.translate(Camera::worldToScreenTransform(worldPosition));
-    transform.scale(scale, scale);
+    // sf::Transform transform;
+    // transform.translate(Camera::worldToScreenTransform(worldPosition));
+    // transform.scale(scale, scale);
 
-    sf::RenderStates state;
-    state.texture = TextureManager::getTexture(TextureType::GroundTiles);
-    state.transform = transform;
-    window.draw(groundVertexArray, state);
+    // sf::RenderStates state;
+    // state.texture = TextureManager::getTexture(TextureType::GroundTiles);
+    // state.transform = transform;
+    // window.draw(groundVertexArray, state);
+
+    for (auto iter = tileMaps.begin(); iter != tileMaps.end(); ++iter)
+    {
+        iter->second.draw(window, Camera::worldToScreenTransform(worldPosition), sf::Vector2f(scale, scale));
+    }
 
 
     // DEBUG
@@ -876,18 +977,20 @@ void Chunk::placeLand(sf::Vector2i tile, int worldSize, const FastNoise& noise, 
     // TODO: Make setting tiles modular / standardised
 
     // Set vertex array
-    int vertexArrayIndex = (tile.x + tile.y * CHUNK_TILE_SIZE) * 4;
+    // int vertexArrayIndex = (tile.x + tile.y * CHUNK_TILE_SIZE) * 4;
 
-    int textureVariation = rand() % 3;
-    groundVertexArray[vertexArrayIndex].texCoords = {2 * 16, 0 + textureVariation * 16.0f};
-    groundVertexArray[vertexArrayIndex + 1].texCoords = {2 * 16 + 16, 0 + textureVariation * 16.0f};
-    groundVertexArray[vertexArrayIndex + 3].texCoords = {2 * 16, 16 + textureVariation * 16.0f};
-    groundVertexArray[vertexArrayIndex + 2].texCoords = {2 * 16 + 16, 16 + textureVariation * 16.0f};
+    // int textureVariation = rand() % 3;
+    // groundVertexArray[vertexArrayIndex].texCoords = {2 * 16, 0 + textureVariation * 16.0f};
+    // groundVertexArray[vertexArrayIndex + 1].texCoords = {2 * 16 + 16, 0 + textureVariation * 16.0f};
+    // groundVertexArray[vertexArrayIndex + 3].texCoords = {2 * 16, 16 + textureVariation * 16.0f};
+    // groundVertexArray[vertexArrayIndex + 2].texCoords = {2 * 16 + 16, 16 + textureVariation * 16.0f};
 
-    groundVertexArray[vertexArrayIndex].color = sf::Color(255, 255, 255, 255);
-    groundVertexArray[vertexArrayIndex + 1].color = sf::Color(255, 255, 255, 255);
-    groundVertexArray[vertexArrayIndex + 3].color = sf::Color(255, 255, 255, 255);
-    groundVertexArray[vertexArrayIndex + 2].color = sf::Color(255, 255, 255, 255);
+    // groundVertexArray[vertexArrayIndex].color = sf::Color(255, 255, 255, 255);
+    // groundVertexArray[vertexArrayIndex + 1].color = sf::Color(255, 255, 255, 255);
+    // groundVertexArray[vertexArrayIndex + 3].color = sf::Color(255, 255, 255, 255);
+    // groundVertexArray[vertexArrayIndex + 2].color = sf::Color(255, 255, 255, 255);
+
+    chunkManager.setChunkTile(chunkPosition, 0, tile, worldSize);
 
     // Update visual tiles
     generateVisualEffectTiles(noise, worldSize, chunkManager);

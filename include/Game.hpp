@@ -145,8 +145,4 @@ private:
 
 
     Tween<float> floatTween;
-
-
-    // Testing
-    TileMap tileMap;
 };

@@ -4,9 +4,8 @@
 // FIX: Cliffs are broken again? (cliff on grass field) - maybe fixed????
 
 // PRIORITY: HIGH
-// TODO: Better item info box (as well as showing recipe info for recipes in this box)
-// TODO: Different types of tools? (fishing rod etc)
 // TODO: Biomes (desert/oasis, rock etc)
+// TODO: Different types of tools? (fishing rod etc)
 
 // PRIORITY: LOW
 // TODO: Recipe next line / button to hide
@@ -70,10 +69,8 @@ bool Game::initialise()
 
     // Initialise values
     gameTime = 0;
-    gameState = GameState::Menu;
+    gameState = GameState::OnPlanet;
     worldMenuState = WorldMenuState::Main;
-    tileMap.setTilesetOffset(sf::Vector2i(32, 192));
-    tileMap.setTilesetVariation(2);
 
     openedChestID = 0xFFFF;
 
@@ -124,7 +121,7 @@ void Game::toggleFullScreen()
     window.setIcon(256, 256, icon.getPixelsPtr());
     window.setFramerateLimit(165);
     window.setVerticalSyncEnabled(true);
-    // window.setMouseCursorVisible(false);
+    window.setMouseCursorVisible(false);
 
     handleWindowResize(sf::Vector2u(videoMode.width, videoMode.height));
 }
@@ -294,22 +291,7 @@ void Game::runMenu(float dt)
         }
     }
 
-    if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left))
-    {
-        // Add tile
-        sf::Vector2i mousePos = sf::Mouse::getPosition(window);
-        tileMap.setTile(std::floor(mousePos.x / (TILE_SIZE_PIXELS_UNSCALED * 3)), std::floor(mousePos.y / (TILE_SIZE_PIXELS_UNSCALED * 3)));
-    }
-    if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Right))
-    {
-        // Add tile
-        sf::Vector2i mousePos = sf::Mouse::getPosition(window);
-        tileMap.removeTile(std::floor(mousePos.x / (TILE_SIZE_PIXELS_UNSCALED * 3)), std::floor(mousePos.y / (TILE_SIZE_PIXELS_UNSCALED * 3)));
-    }
-
     window.clear();
-
-    tileMap.draw(window, {0, 0}, {3, 3});
 
     window.display();
 }

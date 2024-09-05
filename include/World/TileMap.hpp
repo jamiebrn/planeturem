@@ -18,28 +18,34 @@ public:
     void setTile(int x, int y, TileMap* upTiles = nullptr, TileMap* downTiles = nullptr, TileMap* leftTiles = nullptr, TileMap* rightTiles = nullptr);
     void removeTile(int x, int y, TileMap* upTiles = nullptr, TileMap* downTiles = nullptr, TileMap* leftTiles = nullptr, TileMap* rightTiles = nullptr);
 
+    // Ensure buildVertexArray is called at the end of tile modification
+    void setTileWithoutGraphicsUpdate(int x, int y, TileMap* upTiles = nullptr, TileMap* downTiles = nullptr, TileMap* leftTiles = nullptr, TileMap* rightTiles = nullptr);
+
     void draw(sf::RenderTarget& window, sf::Vector2f position, sf::Vector2f scale);
 
+    void updateAllTiles(TileMap* upTiles, TileMap* downTiles, TileMap* leftTiles, TileMap* rightTiles);
+
+    void buildVertexArray();
+
 private:
-    void updateTiles(int xModified, int yModified);
-    void updateTileFromAdjacent(int x, int y);
+    void updateTiles(int xModified, int yModified, TileMap* upTiles, TileMap* downTiles, TileMap* leftTiles, TileMap* rightTiles, bool rebuildVertices = true);
+    void updateTileFromAdjacent(int x, int y, TileMap* upTiles, TileMap* downTiles, TileMap* leftTiles, TileMap* rightTiles);
 
     sf::Vector2i getTextureOffsetForTile(int x, int y);
 
+    bool isTilePresent(int x, int y);
     bool isTilePresent(uint8_t tileValue);
-    
-    void buildVertexArray();
 
 private:
     sf::VertexArray tileVertexArray;
 
     sf::Vector2i tilesetOffset;
 
-    int variation = 1;
+    int variation;
 
     // y, x
     // MSB stores whether tile is present, 4 LSB stores tile type/neighbours
     // Bits between store random variation in chosen tileset (up to 8 variations)
-    std::array<std::array<uint8_t, 40>, 22> tiles;
+    std::array<std::array<uint8_t, static_cast<int>(CHUNK_TILE_SIZE)>, static_cast<int>(CHUNK_TILE_SIZE)> tiles;
 
 };

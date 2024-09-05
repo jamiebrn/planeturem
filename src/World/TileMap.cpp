@@ -6,6 +6,9 @@ TileMap::TileMap()
     {
         tiles[i].fill(0);
     }
+
+    tilesetOffset = sf::Vector2i(0, 0);
+    variation = 1;
 }
 
 void TileMap::setTilesetOffset(sf::Vector2i offset)
@@ -21,39 +24,80 @@ void TileMap::setTilesetVariation(int variation)
 void TileMap::setTile(int x, int y, TileMap* upTiles, TileMap* downTiles, TileMap* leftTiles, TileMap* rightTiles)
 {
     tiles[y][x] = 0b1 << 7;
-    updateTiles(x, y);
+
+    // Randomise variation
+    uint8_t tileVariation = (rand() % variation) & 0b111;
+    tiles[y][x] |= tileVariation << 4;
+
+    updateTiles(x, y, upTiles, downTiles, leftTiles, rightTiles);
 }
 
 void TileMap::removeTile(int x, int y, TileMap* upTiles, TileMap* downTiles, TileMap* leftTiles, TileMap* rightTiles)
 {
     tiles[y][x] = 0;
-    updateTiles(x, y);
+    updateTiles(x, y, upTiles, downTiles, leftTiles, rightTiles);
+}
+
+void TileMap::setTileWithoutGraphicsUpdate(int x, int y, TileMap* upTiles, TileMap* downTiles, TileMap* leftTiles, TileMap* rightTiles)
+{
+    tiles[y][x] = 0b1 << 7;
+
+    // Randomise variation
+    uint8_t tileVariation = (rand() % variation) & 0b111;
+    tiles[y][x] |= tileVariation << 4;
+
+    updateTiles(x, y, upTiles, downTiles, leftTiles, rightTiles, false);
 }
 
 void TileMap::draw(sf::RenderTarget& window, sf::Vector2f position, sf::Vector2f scale)
 {
+    if (tileVertexArray.getVertexCount() <= 0)
+        return;
+
     sf::RenderStates renderState;
-    renderState.transform.scale(scale);
     renderState.transform.translate(position);
+    renderState.transform.scale(scale);
     renderState.texture = TextureManager::getTexture(TextureType::GroundTiles);
 
     window.draw(&(tileVertexArray[0]), tileVertexArray.getVertexCount(), sf::Quads, renderState);
 }
 
-void TileMap::updateTiles(int xModified, int yModified)
+void TileMap::updateTiles(int xModified, int yModified, TileMap* upTiles, TileMap* downTiles, TileMap* leftTiles, TileMap* rightTiles, bool rebuildVertices)
 {
-    for (int y = std::max(yModified - 1, 0); y <= std::min(yModified + 1, static_cast<int>(tiles.size()) - 1); y++)
+    for (int y = yModified - 1; y <= yModified + 1; y++)
     {
-        for (int x = std::max(xModified - 1, 0); x <= std::min(xModified + 1, static_cast<int>(tiles[0].size()) - 1); x++)
+        if (y < 0 || y >= CHUNK_TILE_SIZE)
+            continue;
+        
+        for (int x = xModified - 1; x <= xModified + 1; x++)
         {
-            updateTileFromAdjacent(x, y);
+            if (x < 0 || x >= CHUNK_TILE_SIZE)
+                continue;
+            
+            updateTileFromAdjacent(x, y, upTiles, downTiles, leftTiles, rightTiles);
+        }
+    }
+
+    if (!rebuildVertices)
+        return;
+
+    buildVertexArray();
+}
+
+void TileMap::updateAllTiles(TileMap* upTiles, TileMap* downTiles, TileMap* leftTiles, TileMap* rightTiles)
+{
+    for (int y = 0; y < tiles.size(); y++)
+    {
+        for (int x = 0; x < tiles[0].size(); x++)
+        {
+            updateTileFromAdjacent(x, y, upTiles, downTiles, leftTiles, rightTiles);
         }
     }
 
     buildVertexArray();
 }
 
-void TileMap::updateTileFromAdjacent(int x, int y)
+void TileMap::updateTileFromAdjacent(int x, int y, TileMap* upTiles, TileMap* downTiles, TileMap* leftTiles, TileMap* rightTiles)
 {
     uint8_t& tile = tiles[y][x];
     if (!isTilePresent(tile))
@@ -62,30 +106,44 @@ void TileMap::updateTileFromAdjacent(int x, int y)
         return;
     }
 
-    // Reset tile adjacent values and variation
-    tile &= 0b10000000;
+    // Reset tile adjacent values
+    tile &= 0b11110000;
 
     if (x > 0)
     {
         tile |= (isTilePresent(tiles[y][x - 1]) << 2);
     }
+    else if (leftTiles != nullptr)
+    {
+        tile |= (leftTiles->isTilePresent(CHUNK_TILE_SIZE - 1, y) << 2);
+    }
+
     if (x < tiles[0].size() - 1)
     {
         tile |= (isTilePresent(tiles[y][x + 1]) << 1);
+    }
+    else if (rightTiles != nullptr)
+    {
+        tile |= (rightTiles->isTilePresent(0, y) << 1);
     }
 
     if (y > 0)
     {
         tile |= (isTilePresent(tiles[y - 1][x]) << 3);
     }
+    else if (upTiles != nullptr)
+    {
+        tile |= (upTiles->isTilePresent(x, CHUNK_TILE_SIZE - 1) << 3);
+    }
+
     if (y < tiles.size() - 1)
     {
         tile |= (isTilePresent(tiles[y + 1][x]));
     }
-
-    // Randomise variation
-    uint8_t tileVariation = (rand() % variation) & 0b111;
-    tile |= tileVariation << 4;
+    else if (downTiles != nullptr)
+    {
+        tile |= (downTiles->isTilePresent(x, 0));
+    }
 }
 
 sf::Vector2i TileMap::getTextureOffsetForTile(int x, int y)
@@ -112,6 +170,13 @@ sf::Vector2i TileMap::getTextureOffsetForTile(int x, int y)
         case 14: return sf::Vector2i(16, 32) + variationOffset;
         case 15: return sf::Vector2i(16, 16) + variationOffset;
     }
+
+    return sf::Vector2i(0, 0);
+}
+
+bool TileMap::isTilePresent(int x, int y)
+{
+    return isTilePresent(tiles[y][x]);
 }
 
 bool TileMap::isTilePresent(uint8_t tileValue)

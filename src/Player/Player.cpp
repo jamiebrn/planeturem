@@ -209,7 +209,7 @@ void Player::drawLightMask(sf::RenderTarget& lightTexture)
     sf::IntRect lightMaskRect(0, 0, 256, 256);
 
     TextureManager::drawSubTexture(lightTexture, {
-        TextureType::LightMask, Camera::worldToScreenTransform(position), 0, scale, {0.5, 0.5}, .colour=lightColor
+        TextureType::LightMask, Camera::worldToScreenTransform(position), 0, scale, {0.5, 0.5}, lightColor
         }, lightMaskRect, sf::BlendAdd);
 }
 

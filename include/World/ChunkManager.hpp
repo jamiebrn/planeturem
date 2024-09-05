@@ -14,6 +14,7 @@
 #include "Core/SpriteBatch.hpp"
 #include "World/Chunk.hpp"
 #include "World/ChunkPosition.hpp"
+#include "World/TileMap.hpp"
 #include "Entity/Entity.hpp"
 #include "Types/TileType.hpp"
 
@@ -37,6 +38,15 @@ public:
     // Drawing functions for chunk terrain
     void drawChunkTerrain(sf::RenderTarget& window, SpriteBatch& spriteBatch, float time);
     void drawChunkWater(sf::RenderTarget& window, float time);
+
+    Chunk* getChunk(ChunkPosition chunk);
+
+    // -- Tilemap -- //
+    TileMap* getChunkTileMap(ChunkPosition chunk, int tileMap);
+
+    void setChunkTile(ChunkPosition chunk, int tileMap, sf::Vector2i position, int worldSize);
+
+    void updateAdjacentChunkTiles(ChunkPosition chunk, int tileMap, int worldSize);
 
 
     // -- Objects -- //
