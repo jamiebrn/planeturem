@@ -204,34 +204,32 @@ void ChunkManager::setChunkTile(ChunkPosition chunk, int tileMap, sf::Vector2i p
 void ChunkManager::updateAdjacentChunkTiles(ChunkPosition chunk, int tileMap, int worldSize)
 {
     // Update surrounding chunks tilemaps
-    for (int y = chunk.y - 1; y <= chunk.y + 1; y++)
+    for (int y = -1; y <= 1; y++)
     {
-        for (int x = chunk.x - 1; x <= chunk.x + 1; x++)
+        for (int x = -1; x <= 1; x++)
         {
-            if (chunk == ChunkPosition(x, y))
-                continue;
-            
             // Skip corners
-            if (y == -1 && (x == -1 || x == 1))
+            if ((y == -1 || y == 1) && (x == -1 || x == 1))
                 continue;
-            
-            if (y == 1 && (x == -1 || x == 1))
+
+            int chunkX = chunk.x + x;
+            int chunkY = chunk.y + y;
+
+            if (chunk == ChunkPosition(chunkX, chunkY))
                 continue;
             
             ChunkPosition wrappedChunk;
-            wrappedChunk.x = (x % worldSize + worldSize) % worldSize;
-            wrappedChunk.y = (y % worldSize + worldSize) % worldSize;
-
-            // FIX: Land place at edge of chunks completely fucking up tiles
+            wrappedChunk.x = (chunkX % worldSize + worldSize) % worldSize;
+            wrappedChunk.y = (chunkY % worldSize + worldSize) % worldSize;
 
             Chunk* chunkPtr = getChunk(wrappedChunk);
             if (chunkPtr == nullptr)
                 continue;
 
-            TileMap* upTiles = getChunkTileMap(ChunkPosition(x, ((y - 1) % worldSize + worldSize) % worldSize), tileMap);
-            TileMap* downTiles = getChunkTileMap(ChunkPosition(x, ((y + 1) % worldSize + worldSize) % worldSize), tileMap);
-            TileMap* leftTiles = getChunkTileMap(ChunkPosition(((x - 1) % worldSize + worldSize) % worldSize, y), tileMap);
-            TileMap* rightTiles = getChunkTileMap(ChunkPosition(((x + 1) % worldSize + worldSize) % worldSize, y), tileMap);
+            TileMap* upTiles = getChunkTileMap(ChunkPosition(wrappedChunk.x, ((chunkY - 1) % worldSize + worldSize) % worldSize), tileMap);
+            TileMap* downTiles = getChunkTileMap(ChunkPosition(wrappedChunk.x, ((chunkY + 1) % worldSize + worldSize) % worldSize), tileMap);
+            TileMap* leftTiles = getChunkTileMap(ChunkPosition(((chunkX - 1) % worldSize + worldSize) % worldSize, wrappedChunk.y), tileMap);
+            TileMap* rightTiles = getChunkTileMap(ChunkPosition(((chunkX + 1) % worldSize + worldSize) % worldSize, wrappedChunk.y), tileMap);
 
            chunkPtr->updateTileMap(tileMap, upTiles, downTiles, leftTiles, rightTiles);
         }

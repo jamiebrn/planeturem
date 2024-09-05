@@ -44,7 +44,7 @@ template <typename T>
 class Tween
 {
 public:
-    inline Tween<T>() = default;
+    inline Tween() = default;
 
     inline TweenID startTween(T* value, T start, T end, float duration, TweenTransition transitionType, TweenEasing easingType)
     {

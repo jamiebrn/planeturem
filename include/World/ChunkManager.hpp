@@ -39,6 +39,8 @@ public:
     void drawChunkTerrain(sf::RenderTarget& window, SpriteBatch& spriteBatch, float time);
     void drawChunkWater(sf::RenderTarget& window, float time);
 
+    // Returns a pointer to the chunk with ChunkPosition key
+    // Chunk can be in loaded chunks or stored chunks
     Chunk* getChunk(ChunkPosition chunk);
 
     // -- Tilemap -- //

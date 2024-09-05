@@ -74,6 +74,10 @@ void TileMap::updateTiles(int xModified, int yModified, TileMap* upTiles, TileMa
             if (x < 0 || x >= CHUNK_TILE_SIZE)
                 continue;
             
+            // Skip corners
+            if ((y == yModified - 1 || y == yModified + 1) && (x == xModified - 1 || x == xModified + 1))
+                continue;
+            
             updateTileFromAdjacent(x, y, upTiles, downTiles, leftTiles, rightTiles);
         }
     }
@@ -111,38 +115,38 @@ void TileMap::updateTileFromAdjacent(int x, int y, TileMap* upTiles, TileMap* do
 
     if (x > 0)
     {
-        tile |= (isTilePresent(tiles[y][x - 1]) << 2);
+        tile |= (static_cast<int>(isTilePresent(tiles[y][x - 1])) << 2);
     }
     else if (leftTiles != nullptr)
     {
-        tile |= (leftTiles->isTilePresent(CHUNK_TILE_SIZE - 1, y) << 2);
+        tile |= (static_cast<int>(leftTiles->isTilePresent(CHUNK_TILE_SIZE - 1, y)) << 2);
     }
 
     if (x < tiles[0].size() - 1)
     {
-        tile |= (isTilePresent(tiles[y][x + 1]) << 1);
+        tile |= (static_cast<int>(isTilePresent(tiles[y][x + 1])) << 1);
     }
     else if (rightTiles != nullptr)
     {
-        tile |= (rightTiles->isTilePresent(0, y) << 1);
+        tile |= (static_cast<int>(rightTiles->isTilePresent(0, y)) << 1);
     }
 
     if (y > 0)
     {
-        tile |= (isTilePresent(tiles[y - 1][x]) << 3);
+        tile |= (static_cast<int>(isTilePresent(tiles[y - 1][x])) << 3);
     }
     else if (upTiles != nullptr)
     {
-        tile |= (upTiles->isTilePresent(x, CHUNK_TILE_SIZE - 1) << 3);
+        tile |= (static_cast<int>(upTiles->isTilePresent(x, CHUNK_TILE_SIZE - 1)) << 3);
     }
 
     if (y < tiles.size() - 1)
     {
-        tile |= (isTilePresent(tiles[y + 1][x]));
+        tile |= (static_cast<int>(isTilePresent(tiles[y + 1][x])));
     }
     else if (downTiles != nullptr)
     {
-        tile |= (downTiles->isTilePresent(x, 0));
+        tile |= (static_cast<int>(downTiles->isTilePresent(x, 0)));
     }
 }
 

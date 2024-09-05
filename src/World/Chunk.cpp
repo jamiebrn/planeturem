@@ -5,13 +5,15 @@ Chunk::Chunk(ChunkPosition chunkPosition)
     this->chunkPosition = chunkPosition;
     // groundVertexArray = sf::VertexArray(sf::Quads, 8 * 8 * 4);
 
+    containsWater = false;
+
     // Create tilemaps
     tileMaps[0] = TileMap();
     tileMaps[0].setTilesetOffset(sf::Vector2i(32, 64));
     tileMaps[0].setTilesetVariation(2);
     tileMaps[1] = TileMap();
-    tileMaps[1].setTilesetOffset(sf::Vector2i(32, 128));
-    tileMaps[1].setTilesetVariation(3);
+    tileMaps[1].setTilesetOffset(sf::Vector2i(256, 192));
+    tileMaps[1].setTilesetVariation(4);
     tileMaps[2] = TileMap();
     tileMaps[2].setTilesetOffset(sf::Vector2i(32, 192));
     tileMaps[2].setTilesetVariation(2);
@@ -27,8 +29,6 @@ void Chunk::generateChunk(const FastNoise& noise, int worldSize, ChunkManager& c
     float noiseSize = CHUNK_TILE_SIZE * worldSize;
 
     // std::array<std::array<sf::Uint8, 8 * 4>, 8> heightMapData;
-
-    containsWater = false;
 
     // Get adjacent chunk tiles
     Chunk* upChunk = chunkManager.getChunk(ChunkPosition(chunkPosition.x, ((chunkPosition.y - 1) % worldSize + worldSize) % worldSize));
@@ -78,7 +78,7 @@ void Chunk::generateChunk(const FastNoise& noise, int worldSize, ChunkManager& c
                     // groundVertexArray[vertexArrayIndex + 2].texCoords = {1 * 16 + 16, 16 + textureVariation * 16.0f};
                     setTile(2, sf::Vector2i(x, y), upChunk, downChunk, leftChunk, rightChunk, false);
                     setTile(1, sf::Vector2i(x, y), upChunk, downChunk, leftChunk, rightChunk, false);
-                    setTile(0, sf::Vector2i(x, y), upChunk, downChunk, leftChunk, rightChunk, false);
+                    // setTile(0, sf::Vector2i(x, y), upChunk, downChunk, leftChunk, rightChunk, false);
                     break;
                 case TileType::Sand:
                     // textureVariation = rand() % 3;
