@@ -2,7 +2,6 @@
 
 // FIX: Horse in the water? - also saw horse teleporting on collision with water (may be related)
 // FIX: Cliffs are broken again? (cliff on grass field) - maybe fixed????
-// FIX: Hovering over entities with land held causes selection box to be big
 
 // PRIORITY: HIGH
 // TODO: Biomes (desert/oasis, rock etc)
@@ -461,7 +460,7 @@ void Game::runOnPlanet(float dt)
     if (InventoryGUI::getHeldToolType() < 0)
     {
         if (InventoryGUI::heldItemPlacesLand() || InventoryGUI::hotbarItemPlacesLand(inventory))
-            Cursor::setCursorPlacingLand();
+            Cursor::setCursorPlacingLand(window);
     }
 
     // Enable / disable cursor drawing depending on player reach

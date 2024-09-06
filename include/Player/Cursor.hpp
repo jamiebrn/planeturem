@@ -63,7 +63,7 @@ public:
 
     static void setCursorHidden(bool canReach);
 
-    static void setCursorPlacingLand();
+    static void setCursorPlacingLand(sf::RenderWindow& window);
 
     static void handleWorldWrap(sf::Vector2f positionDelta);
 

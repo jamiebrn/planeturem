@@ -225,9 +225,28 @@ void Cursor::setCursorHidden(bool hidden)
         drawState = CursorDrawState::Hidden;
 }
 
-void Cursor::setCursorPlacingLand()
+void Cursor::setCursorPlacingLand(sf::RenderWindow& window)
 {
     drawState = CursorDrawState::Tile;
+
+    sf::Vector2f mouseWorldPos = getMouseWorldPos(window);
+
+    // Get selected tile position from mouse position
+    selectPosTile.x = std::floor(mouseWorldPos.x / TILE_SIZE_PIXELS_UNSCALED);
+    selectPosTile.y = std::floor(mouseWorldPos.y / TILE_SIZE_PIXELS_UNSCALED);
+
+    selectPos = static_cast<sf::Vector2f>(selectPosTile) * TILE_SIZE_PIXELS_UNSCALED;
+
+    // Default tile cursor size is 1, 1
+    selectSize = sf::Vector2i(1, 1);
+
+    // Set tile cursor corner tile positions
+    cursorCornerPositions[0].worldPositionDestination = static_cast<sf::Vector2f>(selectPosTile) * TILE_SIZE_PIXELS_UNSCALED;
+    cursorCornerPositions[1].worldPositionDestination = static_cast<sf::Vector2f>(selectPosTile + sf::Vector2i(selectSize.x - 1, 0)) * TILE_SIZE_PIXELS_UNSCALED;
+    cursorCornerPositions[2].worldPositionDestination = static_cast<sf::Vector2f>(selectPosTile + sf::Vector2i(0, selectSize.y - 1)) * TILE_SIZE_PIXELS_UNSCALED;
+    cursorCornerPositions[3].worldPositionDestination = static_cast<sf::Vector2f>(selectPosTile + sf::Vector2i(selectSize.x - 1, selectSize.y - 1)) * TILE_SIZE_PIXELS_UNSCALED;
+
+    setCursorCornersToDestination();
 
     // Set cursor animation to freeze at index 0
     for (int cursorCornerIdx = 0; cursorCornerIdx < cursorAnimatedTextures.size(); cursorCornerIdx++)
