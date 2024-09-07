@@ -62,10 +62,13 @@ bool Game::initialise()
     // Randomise
     srand(time(NULL));
 
+    chunkManager.setSeed(rand());
+    chunkManager.setWorldSize(240);
+
     // Create noise
-    noise.SetNoiseType(FastNoise::NoiseType::SimplexFractal);
-    noise.SetSeed(rand());
-    noise.SetFrequency(0.1);
+    // noise.SetNoiseType(FastNoise::NoiseType::SimplexFractal);
+    // noise.SetSeed(rand());
+    // noise.SetFrequency(0.1);
 
     // Initialise values
     gameTime = 0;
@@ -94,7 +97,7 @@ bool Game::initialise()
     generateWaterNoiseTexture();
 
     // Find valid player spawn
-    sf::Vector2f spawnPos = chunkManager.findValidSpawnPosition(2, noise, worldSize);
+    sf::Vector2f spawnPos = chunkManager.findValidSpawnPosition(2);
     player.setPosition(spawnPos);
 
     // Initialise inventory
@@ -483,12 +486,12 @@ void Game::runOnPlanet(float dt)
     }
 
     // Update (loaded) chunks
-    chunkManager.updateChunks(noise, worldSize);
-    chunkManager.updateChunksObjects(dt, worldSize);
-    chunkManager.updateChunksEntities(dt, worldSize);
+    chunkManager.updateChunks();
+    chunkManager.updateChunksObjects(dt);
+    chunkManager.updateChunksEntities(dt);
     
     // Get nearby crafting stations
-    nearbyCraftingStationLevels = chunkManager.getNearbyCraftingStationLevels(player.getChunkInside(worldSize), player.getChunkTileInside(worldSize), 4, worldSize);
+    nearbyCraftingStationLevels = chunkManager.getNearbyCraftingStationLevels(player.getChunkInside(worldSize), player.getChunkTileInside(worldSize), 4);
 
     // Close chest if out of range
     checkChestOpenInRange();
@@ -687,7 +690,6 @@ void Game::attemptUseTool()
     {
         bool canDestroyObject = chunkManager.canDestroyObject(Cursor::getSelectedChunk(worldSize),
                                                         Cursor::getSelectedChunkTile(),
-                                                        worldSize,
                                                         player.getCollisionRect());
 
         if (!canDestroyObject)
@@ -811,7 +813,6 @@ void Game::attemptBuildObject()
     bool canPlace = chunkManager.canPlaceObject(Cursor::getSelectedChunk(worldSize),
                                                 Cursor::getSelectedChunkTile(),
                                                 objectType,
-                                                worldSize,
                                                 player.getCollisionRect());
 
     bool inRange = player.canReachPosition(Cursor::getMouseWorldPos(window));
@@ -836,7 +837,7 @@ void Game::attemptBuildObject()
         Sounds::playSound(buildSound, 60.0f);
 
         // Build object
-        chunkManager.setObject(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile(), objectType, worldSize);
+        chunkManager.setObject(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile(), objectType);
     }
 }
 
@@ -867,7 +868,7 @@ void Game::attemptPlaceLand()
         return;
     
     // Place land
-    chunkManager.placeLand(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile(), noise, worldSize);
+    chunkManager.placeLand(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile());
 
     // Play build sound
     int soundChance = rand() % 2;
@@ -893,7 +894,6 @@ void Game::drawGhostPlaceObjectAtCursor(ObjectType object)
     bool canPlace = chunkManager.canPlaceObject(Cursor::getSelectedChunk(worldSize),
                                                 Cursor::getSelectedChunkTile(),
                                                 object,
-                                                worldSize,
                                                 player.getCollisionRect());
 
     bool inRange = player.canReachPosition(Cursor::getMouseWorldPos(window));

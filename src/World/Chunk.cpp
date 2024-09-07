@@ -137,9 +137,9 @@ void Chunk::generateChunk(const FastNoise& noise, int worldSize, ChunkManager& c
     tileMaps[0].buildVertexArray();
 
     // Update adjacent chunks tilemaps
-    chunkManager.updateAdjacentChunkTiles(chunkPosition, 2, worldSize);
-    chunkManager.updateAdjacentChunkTiles(chunkPosition, 1, worldSize);
-    chunkManager.updateAdjacentChunkTiles(chunkPosition, 0, worldSize);
+    chunkManager.updateAdjacentChunkTiles(chunkPosition, 2);
+    chunkManager.updateAdjacentChunkTiles(chunkPosition, 1);
+    chunkManager.updateAdjacentChunkTiles(chunkPosition, 0);
 
     // Spawn entities
     int spawnEnemyChance = rand() % 10;
@@ -990,7 +990,7 @@ void Chunk::placeLand(sf::Vector2i tile, int worldSize, const FastNoise& noise, 
     // groundVertexArray[vertexArrayIndex + 3].color = sf::Color(255, 255, 255, 255);
     // groundVertexArray[vertexArrayIndex + 2].color = sf::Color(255, 255, 255, 255);
 
-    chunkManager.setChunkTile(chunkPosition, 0, tile, worldSize);
+    chunkManager.setChunkTile(chunkPosition, 0, tile);
 
     // Update visual tiles
     generateVisualEffectTiles(noise, worldSize, chunkManager);

@@ -91,7 +91,7 @@ void Cursor::updateTileCursor(sf::RenderWindow& window,
         if (selectedObjectOptional.has_value())
         {
             // Test if can destroy selected object - don't draw cursor if cannot destroy
-            if (!chunkManager.canDestroyObject(getSelectedChunk(worldSize), getSelectedChunkTile(), worldSize, playerCollisionRect))
+            if (!chunkManager.canDestroyObject(getSelectedChunk(worldSize), getSelectedChunkTile(), playerCollisionRect))
             {
                 drawState = CursorDrawState::Hidden;
                 return;

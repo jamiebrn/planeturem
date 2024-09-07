@@ -3,7 +3,23 @@
 // std::unordered_map<ChunkPosition, std::unique_ptr<Chunk>> ChunkManager::storedChunks;
 // std::unordered_map<ChunkPosition, std::unique_ptr<Chunk>> ChunkManager::loadedChunks;
 
-void ChunkManager::updateChunks(const FastNoise& noise, int worldSize)
+void ChunkManager::setSeed(int seed)
+{
+    heightNoise.SetNoiseType(FastNoise::NoiseType::SimplexFractal);
+    biomeNoise.SetNoiseType(FastNoise::NoiseType::SimplexFractal);
+    heightNoise.SetFrequency(0.1);
+    biomeNoise.SetFrequency(0.1);
+
+    heightNoise.SetSeed(seed);
+    biomeNoise.SetSeed(seed + 1);
+}
+
+void ChunkManager::setWorldSize(int size)
+{
+    worldSize = size;
+}
+
+void ChunkManager::updateChunks()
 {
     // Chunk load/unload
 
@@ -59,7 +75,7 @@ void ChunkManager::updateChunks(const FastNoise& noise, int worldSize)
             }
 
             // Generate new chunk if does not exist
-            generateChunk(ChunkPosition(wrappedX, wrappedY), noise, worldSize, true, chunkWorldPos);
+            generateChunk(ChunkPosition(wrappedX, wrappedY), true, chunkWorldPos);
         }
     }
 
@@ -164,7 +180,7 @@ Chunk* ChunkManager::getChunk(ChunkPosition chunk)
     return nullptr;
 }
 
-void ChunkManager::updateChunksObjects(float dt, int worldSize)
+void ChunkManager::updateChunksObjects(float dt)
 {
     for (auto& chunkPair : loadedChunks)
     {
@@ -185,7 +201,7 @@ TileMap* ChunkManager::getChunkTileMap(ChunkPosition chunk, int tileMap)
     return loadedChunks.at(chunk)->getTileMap(tileMap);
 }
 
-void ChunkManager::setChunkTile(ChunkPosition chunk, int tileMap, sf::Vector2i position, int worldSize)
+void ChunkManager::setChunkTile(ChunkPosition chunk, int tileMap, sf::Vector2i position)
 {
     if (!isChunkGenerated(chunk))
         return;
@@ -198,10 +214,10 @@ void ChunkManager::setChunkTile(ChunkPosition chunk, int tileMap, sf::Vector2i p
     // Update chunk tile
     getChunk(chunk)->setTile(tileMap, position, upTiles, downTiles, leftTiles, rightTiles);
 
-    updateAdjacentChunkTiles(chunk, tileMap, worldSize);
+    updateAdjacentChunkTiles(chunk, tileMap);
 }
 
-void ChunkManager::updateAdjacentChunkTiles(ChunkPosition chunk, int tileMap, int worldSize)
+void ChunkManager::updateAdjacentChunkTiles(ChunkPosition chunk, int tileMap)
 {
     // Update surrounding chunks tilemaps
     for (int y = -1; y <= 1; y++)
@@ -289,7 +305,7 @@ bool ChunkManager::isChunkGenerated(ChunkPosition chunk) const
     return (loadedChunks.count(chunk) + storedChunks.count(chunk)) > 0;
 }
 
-void ChunkManager::setObject(ChunkPosition chunk, sf::Vector2i tile, ObjectType objectType, int worldSize)
+void ChunkManager::setObject(ChunkPosition chunk, sf::Vector2i tile, ObjectType objectType)
 {
     // Chunk does not exist
     if (loadedChunks.count(chunk) <= 0)
@@ -317,7 +333,7 @@ void ChunkManager::setObjectReference(const ChunkPosition& chunk, const ObjectRe
     loadedChunks[chunk]->setObjectReference(objectReference, tile, *this);
 }
 
-bool ChunkManager::canPlaceObject(ChunkPosition chunk, sf::Vector2i tile, ObjectType objectType, int worldSize, const CollisionRect& playerCollisionRect)
+bool ChunkManager::canPlaceObject(ChunkPosition chunk, sf::Vector2i tile, ObjectType objectType, const CollisionRect& playerCollisionRect)
 {
     // Chunk does not exist
     if (loadedChunks.count(chunk) <= 0)
@@ -364,7 +380,7 @@ bool ChunkManager::canPlaceObject(ChunkPosition chunk, sf::Vector2i tile, Object
     return loadedChunks[chunk]->canPlaceObject(tile, objectType, worldSize, *this);
 }
 
-bool ChunkManager::canDestroyObject(ChunkPosition chunk, sf::Vector2i tile, int worldSize, const CollisionRect& playerCollisionRect)
+bool ChunkManager::canDestroyObject(ChunkPosition chunk, sf::Vector2i tile, const CollisionRect& playerCollisionRect)
 {
     // Chunk does not exist
     if (loadedChunks.count(chunk) <= 0)
@@ -431,7 +447,7 @@ std::vector<WorldObject*> ChunkManager::getChunkObjects()
     return objects;
 }
 
-void ChunkManager::updateChunksEntities(float dt, int worldSize)
+void ChunkManager::updateChunksEntities(float dt)
 {
     for (auto& chunkPair : loadedChunks)
     {
@@ -529,7 +545,7 @@ bool ChunkManager::canPlaceLand(ChunkPosition chunk, sf::Vector2i tile)
     return loadedChunks[chunk]->canPlaceLand(tile);
 }
 
-void ChunkManager::placeLand(ChunkPosition chunk, sf::Vector2i tile, const FastNoise& noise, int worldSize)
+void ChunkManager::placeLand(ChunkPosition chunk, sf::Vector2i tile)
 {
     // Chunk not loaded
     if (loadedChunks.count(chunk) <= 0)
@@ -540,7 +556,7 @@ void ChunkManager::placeLand(ChunkPosition chunk, sf::Vector2i tile, const FastN
         return;
     
     // Place land and update visual tiles for chunk
-    loadedChunks[chunk]->placeLand(tile, worldSize, noise, *this);
+    loadedChunks[chunk]->placeLand(tile, worldSize, heightNoise, *this);
 
     // Update visual tiles for adjacent chunks
     for (int x = chunk.x - 1; x <= chunk.x + 1; x++)
@@ -555,12 +571,12 @@ void ChunkManager::placeLand(ChunkPosition chunk, sf::Vector2i tile, const FastN
             int wrappedX = (x % worldSize + worldSize) % worldSize;
             int wrappedY = (y % worldSize + worldSize) % worldSize;
 
-            loadedChunks[ChunkPosition(wrappedX, wrappedY)]->generateVisualEffectTiles(noise, worldSize, *this);
+            loadedChunks[ChunkPosition(wrappedX, wrappedY)]->generateVisualEffectTiles(heightNoise, worldSize, *this);
         }
     }
 }
 
-sf::Vector2f ChunkManager::findValidSpawnPosition(int waterlessAreaSize, const FastNoise& noise, int worldSize)
+sf::Vector2f ChunkManager::findValidSpawnPosition(int waterlessAreaSize)
 {
     // Move all loaded chunks (if any) into stored chunks temporarily
     // Makes testing area simpler as only have to check stored chunk map
@@ -585,7 +601,7 @@ sf::Vector2f ChunkManager::findValidSpawnPosition(int waterlessAreaSize, const F
 
                     // If not generated, generate
                     if (storedChunks.count(ChunkPosition(wrappedX, wrappedY)) <= 0)
-                        generateChunk(ChunkPosition(wrappedX, wrappedY), noise, worldSize, false);
+                        generateChunk(ChunkPosition(wrappedX, wrappedY), false);
                     
                     // If chunk does not contain water, continue to check other chunks
                     if (!storedChunks[ChunkPosition(wrappedX, wrappedY)]->getContainsWater())
@@ -614,13 +630,13 @@ sf::Vector2f ChunkManager::findValidSpawnPosition(int waterlessAreaSize, const F
 
     // Recursive call to find smaller valid area
     if (waterlessAreaSize > 0)
-        return findValidSpawnPosition(waterlessAreaSize - 1, noise, worldSize);
+        return findValidSpawnPosition(waterlessAreaSize - 1);
     
     // Can't find valid spawn, so default return
     return sf::Vector2f(0, 0);
 }
 
-std::unordered_map<std::string, int> ChunkManager::getNearbyCraftingStationLevels(ChunkPosition playerChunk, sf::Vector2i playerTile, int searchArea, int worldSize)
+std::unordered_map<std::string, int> ChunkManager::getNearbyCraftingStationLevels(ChunkPosition playerChunk, sf::Vector2i playerTile, int searchArea)
 {
     std::unordered_map<std::string, int> craftingStationLevels;
 
@@ -667,7 +683,7 @@ std::unordered_map<std::string, int> ChunkManager::getNearbyCraftingStationLevel
     return craftingStationLevels;
 }
 
-void ChunkManager::generateChunk(const ChunkPosition& chunkPosition, const FastNoise& noise, int worldSize, bool putInLoaded, std::optional<sf::Vector2f> positionOverride)
+void ChunkManager::generateChunk(const ChunkPosition& chunkPosition, bool putInLoaded, std::optional<sf::Vector2f> positionOverride)
 {
     std::unique_ptr<Chunk> chunk = std::make_unique<Chunk>(chunkPosition);
 
@@ -699,7 +715,7 @@ void ChunkManager::generateChunk(const ChunkPosition& chunkPosition, const FastN
     chunkPtr->setWorldPosition(chunkWorldPos, *this);
 
     // Generate
-    chunkPtr->generateChunk(noise, worldSize, *this);
+    chunkPtr->generateChunk(heightNoise, worldSize, *this);
 }
 
 // Static method

@@ -122,7 +122,7 @@ private:
     float musicGapTimer;
     float musicGap;
 
-    FastNoise noise;
+    // FastNoise noise;
 
     Player player;
     InventoryData inventory;

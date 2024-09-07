@@ -29,8 +29,11 @@ class ChunkManager
 public:
     ChunkManager() = default;
 
+    void setSeed(int seed);
+    void setWorldSize(int size);
+
     // Load/unload chunks every frame
-    void updateChunks(const FastNoise& noise, int worldSize);
+    void updateChunks();
 
     // Forces a reload of chunks, used when wrapping around world
     void reloadChunks();
@@ -46,14 +49,14 @@ public:
     // -- Tilemap -- //
     TileMap* getChunkTileMap(ChunkPosition chunk, int tileMap);
 
-    void setChunkTile(ChunkPosition chunk, int tileMap, sf::Vector2i position, int worldSize);
+    void setChunkTile(ChunkPosition chunk, int tileMap, sf::Vector2i position);
 
-    void updateAdjacentChunkTiles(ChunkPosition chunk, int tileMap, int worldSize);
+    void updateAdjacentChunkTiles(ChunkPosition chunk, int tileMap);
 
 
     // -- Objects -- //
     // Update objects in all chunks
-    void updateChunksObjects(float dt, int worldSize);
+    void updateChunksObjects(float dt);
 
     // Get object at certain world position
     // Returns actual object if object reference is at position requested
@@ -70,7 +73,7 @@ public:
 
     // Sets object in chunk at tile
     // Places object references if required
-    void setObject(ChunkPosition chunk, sf::Vector2i tile, ObjectType objectType, int worldSize);
+    void setObject(ChunkPosition chunk, sf::Vector2i tile, ObjectType objectType);
 
     // Deletes object in chunk at tile
     // Deletes object references if required
@@ -80,10 +83,10 @@ public:
     void setObjectReference(const ChunkPosition& chunk, const ObjectReference& objectReference, sf::Vector2i tile);
 
     // Tests whether an object can be placed in chunk at tile, taking into account object size etc
-    bool canPlaceObject(ChunkPosition chunk, sf::Vector2i tile, ObjectType objectType, int worldSize, const CollisionRect& playerCollisionRect);
+    bool canPlaceObject(ChunkPosition chunk, sf::Vector2i tile, ObjectType objectType, const CollisionRect& playerCollisionRect);
 
     // Tests whether an object can be destroyed, e.g. can't destroy bridge object if player or entity is on it
-    bool canDestroyObject(ChunkPosition chunk, sf::Vector2i tile, int worldSize, const CollisionRect& playerCollisionRect);
+    bool canDestroyObject(ChunkPosition chunk, sf::Vector2i tile, const CollisionRect& playerCollisionRect);
 
     // Get all objects in loaded chunks (used for drawing)
     std::vector<WorldObject*> getChunkObjects();
@@ -91,7 +94,7 @@ public:
 
     // -- Entities -- //
     // Update all entities in loaded chunks
-    void updateChunksEntities(float dt, int worldSize);
+    void updateChunksEntities(float dt);
 
     // Handle moving of entity from one chunk to another chunk
     void moveEntityToChunkFromChunk(std::unique_ptr<Entity> entity, ChunkPosition newChunk);
@@ -120,7 +123,7 @@ public:
     bool canPlaceLand(ChunkPosition chunk, sf::Vector2i tile);
 
     // Place land at position
-    void placeLand(ChunkPosition chunk, sf::Vector2i tile, const FastNoise& noise, int worldSize);
+    void placeLand(ChunkPosition chunk, sf::Vector2i tile);
 
     
 
@@ -131,15 +134,14 @@ public:
     // Finds valid spawn position for player i.e. no water
     // Waterless area size checks for chunks +- waterlessAreaSize
     // e.g. size 1 will check 3x3 area, size 2 will check 5x5 etc
-    sf::Vector2f findValidSpawnPosition(int waterlessAreaSize, const FastNoise& noise, int worldSize);
+    sf::Vector2f findValidSpawnPosition(int waterlessAreaSize);
 
     // Gets levels of nearby crafting stations
     // Search area grows with one extra tile in each direction per 1 increase
     // E.g. 0 search area searches only player tile, 1 searches 3x3 area around player, 2 searches 5x5 etc
     std::unordered_map<std::string, int> getNearbyCraftingStationLevels(ChunkPosition playerChunk,
                                                                         sf::Vector2i playerTile,
-                                                                        int searchArea,
-                                                                        int worldSize);
+                                                                        int searchArea);
 
     // Used to calculate chunk and tile positions from an offset value, from another chunk and tile
     // Correct for offsets < worldSize * CHUNK_TILE_SIZE
@@ -147,13 +149,16 @@ public:
 
 private:
     void generateChunk(const ChunkPosition& chunkPosition,
-                       const FastNoise& noise,
-                       int worldSize,
                        bool putInLoaded = true,
                        std::optional<sf::Vector2f> positionOverride = std::nullopt);
 
 private:
     std::unordered_map<ChunkPosition, std::unique_ptr<Chunk>> storedChunks;
     std::unordered_map<ChunkPosition, std::unique_ptr<Chunk>> loadedChunks;
+
+    FastNoise heightNoise;
+    FastNoise biomeNoise;
+
+    int worldSize = 1;
 
 };
