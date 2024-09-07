@@ -107,10 +107,33 @@ void Entity::drawLightMask(sf::RenderTarget& lightTexture)
         }, lightMaskRect, sf::BlendAdd);
 }
 
-void Entity::damage(int amount)
+void Entity::damage(int amount, InventoryData& inventory)
 {
     flash_amount = 1.0f;
     health -= amount;
+
+    SoundType hitSound = SoundType::HitObject;
+    int soundChance = rand() % 3;
+    if (soundChance == 1) hitSound = SoundType::HitObject2;
+    else if (soundChance == 2) hitSound = SoundType::HitObject3;
+
+    Sounds::playSound(hitSound, 60.0f);
+
+    if (!isAlive())
+    {
+        // Give item drops
+        const EntityData& entityData = EntityDataLoader::getEntityData(entityType);
+        float dropChance = (rand() % 1000) / 1000.0f;
+        for (const ItemDrop& itemDrop : entityData.itemDrops)
+        {
+            if (dropChance < itemDrop.chance)
+            {
+                // Give items
+                unsigned int itemAmount = rand() % std::max(itemDrop.maxAmount - itemDrop.minAmount + 1, 1U) + itemDrop.minAmount;
+                inventory.addItem(itemDrop.item, itemAmount);
+            }
+        }
+    }
 }
 
 void Entity::interact()

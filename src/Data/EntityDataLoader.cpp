@@ -63,7 +63,13 @@ bool EntityDataLoader::loadData(std::string objectDataPath)
             auto itemDrops = jsonEntityData.at("item-drops");
             for (nlohmann::json::iterator itemDropsIter = itemDrops.begin(); itemDropsIter != itemDrops.end(); ++itemDropsIter)
             {
-                entityData.itemDrops[std::stoi(itemDropsIter.key())] = itemDropsIter.value();
+                ItemDrop itemDrop;
+                itemDrop.item = ItemDataLoader::getItemTypeFromName(itemDropsIter.key());
+                itemDrop.minAmount = itemDropsIter.value()[0];
+                itemDrop.maxAmount = itemDropsIter.value()[1];
+                itemDrop.chance = itemDropsIter.value()[2];
+
+                entityData.itemDrops.push_back(itemDrop);
             }
         }
 

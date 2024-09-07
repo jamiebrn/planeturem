@@ -13,6 +13,8 @@
 #include "World/ChunkManager.hpp"
 #include "Data/EntityData.hpp"
 #include "Data/EntityDataLoader.hpp"
+#include "Data/ItemData.hpp"
+#include "Player/InventoryData.hpp"
 
 class ChunkManager;
 
@@ -26,7 +28,7 @@ public:
     void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime, int worldSize, const sf::Color& color) override;
     void drawLightMask(sf::RenderTarget& lightTexture);
 
-    void damage(int amount);
+    void damage(int amount, InventoryData& inventory);
     void interact();
 
     bool isSelectedWithCursor(sf::Vector2f cursorWorldPos);

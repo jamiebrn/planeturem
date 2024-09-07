@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "Data/typedefs.hpp"
-#include "Data/ItemData.hpp"
+#include "Data/ItemDrop.hpp"
 
 struct EntityData
 {
@@ -25,5 +25,5 @@ struct EntityData
     // e.g. (1, 1) size means screen size is (tileSize * scale, tileSize * scale)
     sf::Vector2f size;
 
-    std::unordered_map<ItemType, unsigned int> itemDrops;
+    std::vector<ItemDrop> itemDrops;
 };

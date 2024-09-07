@@ -6,6 +6,9 @@
 
 #include "Core/json.hpp"
 #include "Data/EntityData.hpp"
+#include "Data/ItemData.hpp"
+#include "Data/ItemDataLoader.hpp"
+#include "Data/ItemDrop.hpp"
 
 class EntityDataLoader
 {

@@ -681,7 +681,7 @@ void Game::attemptUseTool()
     Entity* selectedEntity = chunkManager.getSelectedEntity(Cursor::getSelectedChunk(worldSize), mouseWorldPos);
     if (selectedEntity != nullptr)
     {
-        selectedEntity->damage(toolData.damage);
+        selectedEntity->damage(toolData.damage, inventory);
     }
     else
     {
