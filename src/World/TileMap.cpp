@@ -2,13 +2,18 @@
 
 TileMap::TileMap()
 {
+    TileMap(sf::Vector2i(0, 0), 1);
+}
+
+TileMap::TileMap(sf::Vector2i offset, int variation)
+{
     for (int i = 0; i < tiles.size(); i++)
     {
         tiles[i].fill(0);
     }
 
-    tilesetOffset = sf::Vector2i(0, 0);
-    variation = 1;
+    tilesetOffset = offset;
+    this->variation = variation;
 }
 
 void TileMap::setTilesetOffset(sf::Vector2i offset)

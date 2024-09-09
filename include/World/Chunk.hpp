@@ -37,11 +37,13 @@ public:
     Chunk(ChunkPosition worldPosition);
 
     // Initialisation / generation
-    void generateChunk(const FastNoise& noise, int worldSize, ChunkManager& chunkManager);
+    void generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNoise, int worldSize, ChunkManager& chunkManager);
 
-    void generateVisualEffectTiles(const FastNoise& noise, int worldSize, ChunkManager& chunkManager);
+    void generateVisualEffectTiles(const FastNoise& heightNoise, const FastNoise& biomeNoise, int worldSize, ChunkManager& chunkManager);
 
-    static TileType getTileTypeFromNoiseHeight(float noiseValue);
+    static int getBiomeFromNoise(float biomeNoiseValue);
+    static int getTileTypeFromNoise(float noiseValue, int biome);
+    static int getTileTypeGenerationAtPosition(int x, int y, const FastNoise& heightNoise, const FastNoise& biomeNoise, int worldSize);
 
     // ALWAYS CALL THROUGH CHUNK MANAGER WHEN PLACING SINGLE TILE
     // to ensure adjacent chunk tilemaps are updated accordingly
@@ -53,7 +55,7 @@ public:
     void updateTileMap(int tileMap, TileMap* upTiles, TileMap* downTiles, TileMap* leftTiles, TileMap* rightTiles);
 
     // Get (terrain) tile at position in chunk
-    TileType getTileType(sf::Vector2i position) const;
+    int getTileType(sf::Vector2i position) const;
 
     TileMap* getTileMap(int tileMap);
 
@@ -118,7 +120,7 @@ public:
     // Place land and update visual tiles for chunk
     // Requires worldSize, noise, and chunk manager as regenerates visual tiles and collision rects
     // ONLY CALL IF CHECKED WHETHER CAN PLACE FIRST, DOES NOT RECHECK
-    void placeLand(sf::Vector2i tile, int worldSize, const FastNoise& noise, ChunkManager& chunkManager);
+    void placeLand(sf::Vector2i tile, int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise, ChunkManager& chunkManager);
 
 
     // Misc
@@ -132,7 +134,8 @@ public:
     // inline std::array<std::array<std::optional<BuildableObject>, 8>, 8>& getObjectGrid() {return objectGrid;}
 
 private:
-    std::array<std::array<TileType, 8>, 8> groundTileGrid;
+    // 0 reserved for water / no tile
+    std::array<std::array<uint16_t, 8>, 8> groundTileGrid;
     // sf::VertexArray groundVertexArray;
     std::map<int, TileMap> tileMaps;
 

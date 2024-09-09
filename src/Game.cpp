@@ -2,6 +2,7 @@
 
 // FIX: Horse in the water? - also saw horse teleporting on collision with water (may be related)
 // FIX: Cliffs are broken again? (cliff on grass field) - maybe fixed????
+// FIX: unknown divide by zero error
 
 // PRIORITY: HIGH
 // TODO: Biomes (desert/oasis, rock etc)

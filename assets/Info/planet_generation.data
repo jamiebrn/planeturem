@@ -1,0 +1,49 @@
+{
+    "tilemaps": {
+        "Grass": [258, 192, 4],
+        "Dark Grass": [32, 192, 2],
+        "Sand": [32, 64, 2],
+        "Rock": [32, 272, 1]
+    },
+    "planets": {
+        "Earthlike": {
+            "biomes": [
+                {
+                    "name": "Grassland",
+                    "tiles": [
+                        ["Sand", 0.5, 0.53, false],
+                        ["Grass", 0.53, 0.7],
+                        ["Dark Grass", 0.7, 1]
+                    ],
+                    "objects": [
+                        ["Tree", 0.067],
+                        ["Bush", 0.016],
+                        ["Rock", 0.016],
+                        ["Iron Rock", 0.005],
+                        ["Gold Rock", 0.005],
+                        ["Coal Rock", 0.005]
+                    ],
+                    "entities": [
+                        ["Horse", 1, 2, 0.3],
+                        ["Pig", 1, 2, 0.5]
+                    ],
+                    "noise-range": [0, 0.5]
+                },
+                {
+                    "name": "Rocky",
+                    "tiles": [
+                        ["Rock", 0.5, 1]
+                    ],
+                    "objects": [
+                        ["Rock", 0.025],
+                        ["Iron Rock", 0.008],
+                        ["Gold Rock", 0.008],
+                        ["Coal Rock", 0.008]
+                    ],
+                    "noise-range": [0.5, 1]
+                }
+            ],
+            "water-colour": [77, 155, 230]
+        }
+    }
+}

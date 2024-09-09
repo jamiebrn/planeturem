@@ -11,6 +11,7 @@ class TileMap
 {
 public:
     TileMap();
+    TileMap(sf::Vector2i offset, int variation = 1);
 
     void setTilesetOffset(sf::Vector2i offset);
     void setTilesetVariation(int variation);

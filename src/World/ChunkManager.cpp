@@ -278,20 +278,20 @@ std::optional<BuildableObject>& ChunkManager::getChunkObject(ChunkPosition chunk
     return selectedObject;
 }
 
-TileType ChunkManager::getLoadedChunkTileType(ChunkPosition chunk, sf::Vector2i tile) const
+int ChunkManager::getLoadedChunkTileType(ChunkPosition chunk, sf::Vector2i tile) const
 {
     // Chunk does not exist
     if (loadedChunks.count(chunk) <= 0)
-        return TileType::Water;
+        return 0;
     
     return loadedChunks.at(chunk)->getTileType(tile);
 }
 
-TileType ChunkManager::getChunkTileType(ChunkPosition chunk, sf::Vector2i tile) const
+int ChunkManager::getChunkTileType(ChunkPosition chunk, sf::Vector2i tile) const
 {
     // Chunk is not generated
     if (!isChunkGenerated(chunk))
-        return TileType::Water;
+        return 0;
     
     // Not in loaded chunks, go to stored chunks
     if (loadedChunks.count(chunk) <= 0)
@@ -556,7 +556,7 @@ void ChunkManager::placeLand(ChunkPosition chunk, sf::Vector2i tile)
         return;
     
     // Place land and update visual tiles for chunk
-    loadedChunks[chunk]->placeLand(tile, worldSize, heightNoise, *this);
+    loadedChunks[chunk]->placeLand(tile, worldSize, heightNoise, biomeNoise, *this);
 
     // Update visual tiles for adjacent chunks
     for (int x = chunk.x - 1; x <= chunk.x + 1; x++)
@@ -571,7 +571,7 @@ void ChunkManager::placeLand(ChunkPosition chunk, sf::Vector2i tile)
             int wrappedX = (x % worldSize + worldSize) % worldSize;
             int wrappedY = (y % worldSize + worldSize) % worldSize;
 
-            loadedChunks[ChunkPosition(wrappedX, wrappedY)]->generateVisualEffectTiles(heightNoise, worldSize, *this);
+            loadedChunks[ChunkPosition(wrappedX, wrappedY)]->generateVisualEffectTiles(heightNoise, biomeNoise, worldSize, *this);
         }
     }
 }
@@ -715,7 +715,7 @@ void ChunkManager::generateChunk(const ChunkPosition& chunkPosition, bool putInL
     chunkPtr->setWorldPosition(chunkWorldPos, *this);
 
     // Generate
-    chunkPtr->generateChunk(heightNoise, worldSize, *this);
+    chunkPtr->generateChunk(heightNoise, biomeNoise, worldSize, *this);
 }
 
 // Static method

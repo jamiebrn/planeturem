@@ -63,10 +63,10 @@ public:
     std::optional<BuildableObject>& getChunkObject(ChunkPosition chunk, sf::Vector2i tile);
 
     // Get tile type from loaded chunks (used in object placement/collisions)
-    TileType getLoadedChunkTileType(ChunkPosition chunk, sf::Vector2i tile) const;
+    int getLoadedChunkTileType(ChunkPosition chunk, sf::Vector2i tile) const;
 
     // Get tile type from all generated chunks (used in chunk visual detail generation)
-    TileType getChunkTileType(ChunkPosition chunk, sf::Vector2i tile) const;
+    int getChunkTileType(ChunkPosition chunk, sf::Vector2i tile) const;
 
     // Whether chunk has been generated: stored or loaded
     bool isChunkGenerated(ChunkPosition chunk) const;
