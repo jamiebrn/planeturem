@@ -7,6 +7,8 @@ bool EntityDataLoader::loadData(std::string objectDataPath)
     std::ifstream file(objectDataPath);
     nlohmann::json data = nlohmann::json::parse(file);
 
+    int entityIdx = 0;
+
     // Load data
     for (nlohmann::json::iterator iter = data.begin(); iter != data.end(); ++iter)
     {
@@ -74,6 +76,10 @@ bool EntityDataLoader::loadData(std::string objectDataPath)
         }
 
         loaded_entityData.push_back(entityData);
+
+        entityNameToTypeMap[entityData.name] = entityIdx;
+
+        entityIdx++;
     }
 
     return true;
@@ -82,4 +88,9 @@ bool EntityDataLoader::loadData(std::string objectDataPath)
 const EntityData& EntityDataLoader::getEntityData(EntityType entity)
 {    
     return loaded_entityData[entity];
+}
+
+EntityType EntityDataLoader::getEntityTypeFromName(const std::string& entityName)
+{
+    return entityNameToTypeMap[entityName];
 }

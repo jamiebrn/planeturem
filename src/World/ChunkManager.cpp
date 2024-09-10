@@ -19,6 +19,11 @@ void ChunkManager::setWorldSize(int size)
     worldSize = size;
 }
 
+void ChunkManager::setPlanetType(PlanetType planetType)
+{
+    this->planetType = planetType;
+}
+
 void ChunkManager::updateChunks()
 {
     // Chunk load/unload

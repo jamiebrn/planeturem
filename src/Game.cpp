@@ -49,7 +49,7 @@ bool Game::initialise()
     if(!ToolDataLoader::loadData("Data/Info/tool_data.data")) return false;
     if(!EntityDataLoader::loadData("Data/Info/entity_data.data")) return false;
     if(!RecipeDataLoader::loadData("Data/Info/item_recipes.data")) return false;
-    // if(!BuildRecipeLoader::loadData("Data/Info/build_recipes.data")) return false;
+    if(!PlanetGenDataLoader::loadData("Data/Info/planet_generation.data")) return false;
 
     // Load icon
     if(!icon.loadFromFile("Data/Textures/icon.png")) return false;

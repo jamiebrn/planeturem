@@ -24,6 +24,10 @@
 #include "Data/ObjectDataLoader.hpp"
 #include "Types/TileType.hpp"
 
+#include "Data/typedefs.hpp"
+#include "Data/PlanetGenData.hpp"
+#include "Data/PlanetGenDataLoader.hpp"
+
 #include "GameConstants.hpp"
 
 // Forward declaration

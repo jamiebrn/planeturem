@@ -3,6 +3,7 @@
 #include <SFML/Graphics.hpp>
 #include <fstream>
 #include <vector>
+#include <unordered_map>
 
 #include "Core/json.hpp"
 #include "Data/EntityData.hpp"
@@ -19,7 +20,11 @@ public:
 
     static const EntityData& getEntityData(EntityType entity);
 
+    static EntityType getEntityTypeFromName(const std::string& entityName);
+
 private:
     static std::vector<EntityData> loaded_entityData;
+
+    static std::unordered_map<std::string, EntityType> entityNameToTypeMap;
 
 };

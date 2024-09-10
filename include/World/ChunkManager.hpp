@@ -18,6 +18,10 @@
 #include "Entity/Entity.hpp"
 #include "Types/TileType.hpp"
 
+#include "Data/typedefs.hpp"
+#include "Data/PlanetGenData.hpp"
+#include "Data/PlanetGenDataLoader.hpp"
+
 // Forward declaration of chunk
 class Chunk;
 class Entity;
@@ -31,6 +35,7 @@ public:
 
     void setSeed(int seed);
     void setWorldSize(int size);
+    void setPlanetType(PlanetType planetType);
 
     // Load/unload chunks every frame
     void updateChunks();
@@ -160,5 +165,6 @@ private:
     FastNoise biomeNoise;
 
     int worldSize = 1;
+    PlanetType planetType = 0;
 
 };
