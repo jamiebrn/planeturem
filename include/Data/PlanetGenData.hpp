@@ -2,8 +2,10 @@
 
 #include <string>
 #include <map>
+#include <vector>
 
 #include <SFML/System/Vector2.hpp>
+#include <SFML/Graphics/Color.hpp>
 
 #include "Data/typedefs.hpp"
 
@@ -13,7 +15,7 @@ struct TilemapData
     int variation;
 };
 
-struct TileGenerationData
+struct TileGenData
 {
     TilemapData tileMap;
     float chanceRangeMin;
@@ -21,13 +23,13 @@ struct TileGenerationData
     bool objectsCanSpawn;
 };
 
-struct ObjectGenerationData
+struct ObjectGenData
 {
     ObjectType object;
     float spawnChance;
 };
 
-struct EntityGenerationData
+struct EntityGenData
 {
     EntityType entity;
     int spawnCountLow;
@@ -35,14 +37,23 @@ struct EntityGenerationData
     float spawnChance;
 };
 
-struct BiomeGenerationData
+struct BiomeGenData
 {
     std::string name;
 
-    // std::map
+    std::vector<TileGenData> tileGenDatas;
+    std::vector<ObjectGenData> objectGenDatas;
+    std::vector<EntityGenData> entityGenDatas;
+
+    float noiseRangeMin;
+    float noiseRangeMax;
 };
 
-struct PlanetGenerationData
+struct PlanetGenData
 {
+    std::string name;
 
+    std::vector<BiomeGenData> biomeGenDatas;
+
+    sf::Color waterColour;
 };

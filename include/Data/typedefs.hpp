@@ -6,3 +6,5 @@ typedef int EntityType;
 typedef int ToolType;
 
 typedef std::pair<ItemType, unsigned int> ItemCount;
+
+typedef int PlanetType;
