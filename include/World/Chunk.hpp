@@ -41,13 +41,13 @@ public:
     Chunk(ChunkPosition worldPosition);
 
     // Initialisation / generation
-    void generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNoise, int worldSize, ChunkManager& chunkManager);
+    void generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, int worldSize, ChunkManager& chunkManager);
 
-    void generateVisualEffectTiles(const FastNoise& heightNoise, const FastNoise& biomeNoise, int worldSize, ChunkManager& chunkManager);
+    void generateVisualEffectTiles(const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, int worldSize, ChunkManager& chunkManager);
 
     static int getBiomeFromNoise(float biomeNoiseValue);
     static int getTileTypeFromNoise(float noiseValue, int biome);
-    static int getTileTypeGenerationAtPosition(int x, int y, const FastNoise& heightNoise, const FastNoise& biomeNoise, int worldSize);
+    static int getTileTypeGenerationAtPosition(int x, int y, const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, int worldSize);
 
     // ALWAYS CALL THROUGH CHUNK MANAGER WHEN PLACING SINGLE TILE
     // to ensure adjacent chunk tilemaps are updated accordingly
@@ -124,7 +124,7 @@ public:
     // Place land and update visual tiles for chunk
     // Requires worldSize, noise, and chunk manager as regenerates visual tiles and collision rects
     // ONLY CALL IF CHECKED WHETHER CAN PLACE FIRST, DOES NOT RECHECK
-    void placeLand(sf::Vector2i tile, int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise, ChunkManager& chunkManager);
+    void placeLand(sf::Vector2i tile, int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, ChunkManager& chunkManager);
 
 
     // Misc

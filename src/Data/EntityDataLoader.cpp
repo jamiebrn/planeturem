@@ -1,6 +1,7 @@
 #include "Data/EntityDataLoader.hpp"
 
 std::vector<EntityData> EntityDataLoader::loaded_entityData;
+std::unordered_map<std::string, EntityType> EntityDataLoader::entityNameToTypeMap;
 
 bool EntityDataLoader::loadData(std::string objectDataPath)
 {

@@ -1,5 +1,9 @@
 #include "Data/PlanetGenDataLoader.hpp"
 
+std::vector<PlanetGenData> PlanetGenDataLoader::loaded_planetGenData;
+
+std::unordered_map<std::string, PlanetType> PlanetGenDataLoader::planetStringToTypeMap;
+
 bool PlanetGenDataLoader::loadData(std::string planetGenDataPath)
 {
     std::ifstream file(planetGenDataPath);
@@ -15,7 +19,7 @@ bool PlanetGenDataLoader::loadData(std::string planetGenDataPath)
             return false;
     }
 
-    return true;   
+    return true;
 }
 
 bool PlanetGenDataLoader::loadPlanet(nlohmann::ordered_json::iterator planetData, const nlohmann::ordered_json& allPlanetGenData)

@@ -14,7 +14,7 @@ Chunk::Chunk(ChunkPosition chunkPosition)
     tileMaps[5] = TileMap(sf::Vector2i(32, 192), 2);
 }
 
-void Chunk::generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNoise, int worldSize, ChunkManager& chunkManager)
+void Chunk::generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, int worldSize, ChunkManager& chunkManager)
 {
     // Get tile size
     // float tileSize = ResolutionHandler::getTileSize();
@@ -158,12 +158,12 @@ void Chunk::generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNo
         }
     }
 
-    generateVisualEffectTiles(heightNoise, biomeNoise, worldSize, chunkManager);
+    generateVisualEffectTiles(heightNoise, biomeNoise, planetType, worldSize, chunkManager);
 
     recalculateCollisionRects(chunkManager);
 }
 
-void Chunk::generateVisualEffectTiles(const FastNoise& heightNoise, const FastNoise& biomeNoise, int worldSize, ChunkManager& chunkManager)
+void Chunk::generateVisualEffectTiles(const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, int worldSize, ChunkManager& chunkManager)
 {
     // Get visual tile from 3x3 area, where centre is tile testing for
     // Assumes centre tile is water
@@ -196,7 +196,8 @@ void Chunk::generateVisualEffectTiles(const FastNoise& heightNoise, const FastNo
     };
 
     auto getTileTypeAt = [this](ChunkPosition chunk, sf::Vector2i tile, int xOffset, int yOffset,
-                                ChunkManager& chunkManager, const FastNoise& heightNoise, const FastNoise& biomeNoise, int worldSize)
+                                ChunkManager& chunkManager, const FastNoise& heightNoise, const FastNoise& biomeNoise,
+                                PlanetType planetType, int worldSize)
     {
         std::pair<ChunkPosition, sf::Vector2i> wrappedChunkTile = ChunkManager::getChunkTileFromOffset(chunk, tile, xOffset, yOffset, worldSize);
         
@@ -213,7 +214,7 @@ void Chunk::generateVisualEffectTiles(const FastNoise& heightNoise, const FastNo
                 return getTileTypeGenerationAtPosition(
                     static_cast<float>(wrappedChunkTile.first.x) * CHUNK_TILE_SIZE + wrappedChunkTile.second.x,
                     static_cast<float>(wrappedChunkTile.first.y) * CHUNK_TILE_SIZE + wrappedChunkTile.second.y,
-                    heightNoise, biomeNoise, worldSize);
+                    heightNoise, biomeNoise, planetType, worldSize);
             }
         }
         else
@@ -238,14 +239,14 @@ void Chunk::generateVisualEffectTiles(const FastNoise& heightNoise, const FastNo
                 continue;
 
             visualTileGrid[y][x] = getVisualTileType(
-                getTileTypeAt(chunkPosition, {x, y}, -1, -1, chunkManager, heightNoise, biomeNoise, worldSize),
-                getTileTypeAt(chunkPosition, {x, y}, 0, -1, chunkManager, heightNoise, biomeNoise, worldSize),
-                getTileTypeAt(chunkPosition, {x, y}, 1, -1, chunkManager, heightNoise, biomeNoise, worldSize),
-                getTileTypeAt(chunkPosition, {x, y}, -1, 0, chunkManager, heightNoise, biomeNoise, worldSize),
-                getTileTypeAt(chunkPosition, {x, y}, 1, 0, chunkManager, heightNoise, biomeNoise, worldSize),
-                getTileTypeAt(chunkPosition, {x, y}, -1, 1, chunkManager, heightNoise, biomeNoise, worldSize),
-                getTileTypeAt(chunkPosition, {x, y}, 0, 1, chunkManager, heightNoise, biomeNoise, worldSize),
-                getTileTypeAt(chunkPosition, {x, y}, 1, 1, chunkManager, heightNoise, biomeNoise, worldSize)
+                getTileTypeAt(chunkPosition, {x, y}, -1, -1, chunkManager, heightNoise, biomeNoise, planetType, worldSize),
+                getTileTypeAt(chunkPosition, {x, y}, 0, -1, chunkManager, heightNoise, biomeNoise, planetType, worldSize),
+                getTileTypeAt(chunkPosition, {x, y}, 1, -1, chunkManager, heightNoise, biomeNoise, planetType, worldSize),
+                getTileTypeAt(chunkPosition, {x, y}, -1, 0, chunkManager, heightNoise, biomeNoise, planetType, worldSize),
+                getTileTypeAt(chunkPosition, {x, y}, 1, 0, chunkManager, heightNoise, biomeNoise, planetType, worldSize),
+                getTileTypeAt(chunkPosition, {x, y}, -1, 1, chunkManager, heightNoise, biomeNoise, planetType, worldSize),
+                getTileTypeAt(chunkPosition, {x, y}, 0, 1, chunkManager, heightNoise, biomeNoise, planetType, worldSize),
+                getTileTypeAt(chunkPosition, {x, y}, 1, 1, chunkManager, heightNoise, biomeNoise, planetType, worldSize)
             );
         }
     }
@@ -275,7 +276,8 @@ int Chunk::getTileTypeFromNoise(float noiseValue, int biome)
     return 0;
 }
 
-int Chunk::getTileTypeGenerationAtPosition(int x, int y, const FastNoise& heightNoise, const FastNoise& biomeNoise, int worldSize)
+int Chunk::getTileTypeGenerationAtPosition(int x, int y, const FastNoise& heightNoise, const FastNoise& biomeNoise,
+    PlanetType planetType, int worldSize)
 {
     float noiseSize = CHUNK_TILE_SIZE * worldSize;
 
@@ -996,7 +998,8 @@ bool Chunk::canPlaceLand(sf::Vector2i tile)
     return true;
 }
 
-void Chunk::placeLand(sf::Vector2i tile, int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise, ChunkManager& chunkManager)
+void Chunk::placeLand(sf::Vector2i tile, int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise,
+    PlanetType planetType, ChunkManager& chunkManager)
 {
     // Set tile
     groundTileGrid[tile.y][tile.x] = TileType::Sand;

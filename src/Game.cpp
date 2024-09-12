@@ -65,6 +65,7 @@ bool Game::initialise()
 
     chunkManager.setSeed(rand());
     chunkManager.setWorldSize(240);
+    chunkManager.setPlanetType(PlanetGenDataLoader::getPlanetTypeFromName("Earthlike"));
 
     // Create noise
     // noise.SetNoiseType(FastNoise::NoiseType::SimplexFractal);
