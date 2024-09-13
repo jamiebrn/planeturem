@@ -1,5 +1,6 @@
 #pragma once
 
+#include <SFML/Graphics.hpp>
 #include <vector>
 #include <fstream>
 #include <string>
@@ -23,7 +24,7 @@ public:
     static PlanetType getPlanetTypeFromName(const std::string& planetName);
 
 private:
-    static bool loadPlanet(nlohmann::ordered_json::iterator planetData, const nlohmann::ordered_json& allPlanetGenData);
+    static bool loadPlanet(nlohmann::ordered_json::iterator& planetData, const nlohmann::ordered_json& allPlanetGenData);
 
 private:
     static std::vector<PlanetGenData> loaded_planetGenData;

@@ -36,7 +36,7 @@ void Chunk::generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNo
         for (int x = 0; x < CHUNK_TILE_SIZE; x++)
         {
             int tileType = getTileTypeGenerationAtPosition(
-                worldNoisePosition.x + x, worldNoisePosition.y + y, heightNoise, biomeNoise, worldSize
+                worldNoisePosition.x + x, worldNoisePosition.y + y, heightNoise, biomeNoise, planetType, worldSize
                 );
 
             // float height = heightNoise.GetNoiseSeamless2D(worldNoisePosition.x + x, worldNoisePosition.y + y, noiseSize, noiseSize);
@@ -488,7 +488,7 @@ void Chunk::updateChunkObjects(float dt, int worldSize, ChunkManager& chunkManag
                     continue;
                 
                 // Determine whether on water
-                bool onWater = (getTileType(object->getChunkTileInside(worldSize)) == TileType::Water);
+                bool onWater = (getTileType(object->getChunkTileInside(worldSize)) == 0);
                 
                 object->update(dt, onWater);
                 if (!object->isAlive())
@@ -698,10 +698,10 @@ bool Chunk::canPlaceObject(sf::Vector2i position, unsigned int objectType, int w
             // Test tile
             if (objectData.placeOnWater)
             {
-                return getTileType(sf::Vector2i(x, y)) == TileType::Water;
+                return getTileType(sf::Vector2i(x, y)) == 0;
             }
 
-            if (getTileType(sf::Vector2i(x, y)) == TileType::Water)
+            if (getTileType(sf::Vector2i(x, y)) == 0)
                 return false;
         }
     }
@@ -727,10 +727,10 @@ bool Chunk::canPlaceObject(sf::Vector2i position, unsigned int objectType, int w
             // Test tile
             if (objectData.placeOnWater)
             {
-                return (chunkManager.getLoadedChunkTileType(ChunkPosition(chunkNextPosX, chunkPosition.y), sf::Vector2i(x, y)) == TileType::Water);
+                return (chunkManager.getLoadedChunkTileType(ChunkPosition(chunkNextPosX, chunkPosition.y), sf::Vector2i(x, y)) == 0);
             }
             
-            if (chunkManager.getLoadedChunkTileType(ChunkPosition(chunkNextPosX, chunkPosition.y), sf::Vector2i(x, y)) == TileType::Water)
+            if (chunkManager.getLoadedChunkTileType(ChunkPosition(chunkNextPosX, chunkPosition.y), sf::Vector2i(x, y)) == 0)
                 return false;
         }
     }
@@ -748,10 +748,10 @@ bool Chunk::canPlaceObject(sf::Vector2i position, unsigned int objectType, int w
             // Test tile
             if (objectData.placeOnWater)
             {
-                return (chunkManager.getLoadedChunkTileType(ChunkPosition(chunkPosition.x, chunkNextPosY), sf::Vector2i(x, y)) == TileType::Water);
+                return (chunkManager.getLoadedChunkTileType(ChunkPosition(chunkPosition.x, chunkNextPosY), sf::Vector2i(x, y)) == 0);
             }
 
-            if (chunkManager.getLoadedChunkTileType(ChunkPosition(chunkPosition.x, chunkNextPosY), sf::Vector2i(x, y)) == TileType::Water)
+            if (chunkManager.getLoadedChunkTileType(ChunkPosition(chunkPosition.x, chunkNextPosY), sf::Vector2i(x, y)) == 0)
                 return false;
         }
     }
@@ -769,10 +769,10 @@ bool Chunk::canPlaceObject(sf::Vector2i position, unsigned int objectType, int w
             // Test tile
             if (objectData.placeOnWater)
             {
-                return (chunkManager.getLoadedChunkTileType(ChunkPosition(chunkNextPosX, chunkNextPosY), sf::Vector2i(x, y)) == TileType::Water);
+                return (chunkManager.getLoadedChunkTileType(ChunkPosition(chunkNextPosX, chunkNextPosY), sf::Vector2i(x, y)) == 0);
             }
 
-            if (chunkManager.getLoadedChunkTileType(ChunkPosition(chunkNextPosX, chunkNextPosY), sf::Vector2i(x, y)) == TileType::Water)
+            if (chunkManager.getLoadedChunkTileType(ChunkPosition(chunkNextPosX, chunkNextPosY), sf::Vector2i(x, y)) == 0)
                 return false;
         }
     }
@@ -793,7 +793,7 @@ void Chunk::updateChunkEntities(float dt, int worldSize, ChunkManager& chunkMana
         std::unique_ptr<Entity>& entity = *entityIter;
 
         // Determine whether on water
-        bool onWater = (getTileType(entity->getChunkTileInside(worldSize)) == TileType::Water);
+        bool onWater = (getTileType(entity->getChunkTileInside(worldSize)) == 0);
 
         entity->update(dt, chunkManager, onWater);
 
@@ -992,7 +992,7 @@ bool Chunk::canPlaceLand(sf::Vector2i tile)
     if (objectGrid[tile.y][tile.x].has_value())
         return false;
     
-    if (getTileType(tile) != TileType::Water)
+    if (getTileType(tile) != 0)
         return false;
     
     return true;
@@ -1023,7 +1023,7 @@ void Chunk::placeLand(sf::Vector2i tile, int worldSize, const FastNoise& heightN
     chunkManager.setChunkTile(chunkPosition, 0, tile);
 
     // Update visual tiles
-    generateVisualEffectTiles(heightNoise, biomeNoise, worldSize, chunkManager);
+    generateVisualEffectTiles(heightNoise, biomeNoise, planetType, worldSize, chunkManager);
 
     // Recalculate collision rects
     recalculateCollisionRects(chunkManager);

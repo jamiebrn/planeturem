@@ -22,7 +22,7 @@ bool PlanetGenDataLoader::loadData(std::string planetGenDataPath)
     return true;
 }
 
-bool PlanetGenDataLoader::loadPlanet(nlohmann::ordered_json::iterator planetData, const nlohmann::ordered_json& allPlanetGenData)
+bool PlanetGenDataLoader::loadPlanet(nlohmann::ordered_json::iterator& planetData, const nlohmann::ordered_json& allPlanetGenData)
 {
     PlanetGenData planetGenData;
 
@@ -71,16 +71,29 @@ bool PlanetGenDataLoader::loadPlanet(nlohmann::ordered_json::iterator planetData
             TileGenData tileGenData;
 
             // Get tilemap data
-            if (!tileMaps.contains(tileIter[0]))
+            if (!tileMaps.contains(tileIter.value()[0]))
                 return false;
             
-            tileGenData.tileMap.textureOffset.x = tileMaps.at(tileIter[0])[0];
-            tileGenData.tileMap.textureOffset.y = tileMaps.at(tileIter[0])[1];
-            tileGenData.tileMap.variation = tileMaps.at(tileIter[0])[2];
+            if (tileIter->is_array())
+            {
+                const std::string& tileMapName = tileIter.value()[0];
+                tileGenData.tileMap.textureOffset.x = tileMaps.at(tileMapName)[0];
+                tileGenData.tileMap.textureOffset.y = tileMaps.at(tileMapName)[1];
+                tileGenData.tileMap.variation = tileMaps.at(tileMapName)[2];
+            }
+            else
+            {
+                return false;
+            }
 
-            tileGenData.chanceRangeMin = tileIter[1];
-            tileGenData.chanceRangeMax = tileIter[2];
-            tileGenData.objectsCanSpawn = tileIter[3];
+            tileGenData.chanceRangeMin = tileIter.value()[1];
+            tileGenData.chanceRangeMax = tileIter.value()[2];
+
+            tileGenData.objectsCanSpawn = false;
+            if (tileIter.value().size() > 3)
+            {
+               tileGenData.objectsCanSpawn = tileIter.value()[3];
+            }
 
             biomeGenData.tileGenDatas.push_back(tileGenData);
         }
@@ -93,8 +106,8 @@ bool PlanetGenDataLoader::loadPlanet(nlohmann::ordered_json::iterator planetData
             {
                 ObjectGenData objectGenData;
 
-                objectGenData.object = ObjectDataLoader::getObjectTypeFromName(objectIter[0]);
-                objectGenData.spawnChance = objectIter[1];
+                objectGenData.object = ObjectDataLoader::getObjectTypeFromName(objectIter.value()[0]);
+                objectGenData.spawnChance = objectIter.value()[1];
 
                 biomeGenData.objectGenDatas.push_back(objectGenData);
             }
@@ -108,11 +121,11 @@ bool PlanetGenDataLoader::loadPlanet(nlohmann::ordered_json::iterator planetData
             {
                 EntityGenData entityGenData;
 
-                entityGenData.entity = EntityDataLoader::getEntityTypeFromName(entityIter[0]);
+                entityGenData.entity = EntityDataLoader::getEntityTypeFromName(entityIter.value()[0]);
 
-                entityGenData.spawnCountLow = entityIter[1];
-                entityGenData.spawnCountHigh = entityIter[2];
-                entityGenData.spawnChance = entityIter[3];
+                entityGenData.spawnCountLow = entityIter.value()[1];
+                entityGenData.spawnCountHigh = entityIter.value()[2];
+                entityGenData.spawnChance = entityIter.value()[3];
 
                 biomeGenData.entityGenDatas.push_back(entityGenData);
             }

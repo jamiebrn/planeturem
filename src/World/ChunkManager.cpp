@@ -561,7 +561,7 @@ void ChunkManager::placeLand(ChunkPosition chunk, sf::Vector2i tile)
         return;
     
     // Place land and update visual tiles for chunk
-    loadedChunks[chunk]->placeLand(tile, worldSize, heightNoise, biomeNoise, *this);
+    loadedChunks[chunk]->placeLand(tile, worldSize, heightNoise, biomeNoise, planetType, *this);
 
     // Update visual tiles for adjacent chunks
     for (int x = chunk.x - 1; x <= chunk.x + 1; x++)
@@ -576,7 +576,7 @@ void ChunkManager::placeLand(ChunkPosition chunk, sf::Vector2i tile)
             int wrappedX = (x % worldSize + worldSize) % worldSize;
             int wrappedY = (y % worldSize + worldSize) % worldSize;
 
-            loadedChunks[ChunkPosition(wrappedX, wrappedY)]->generateVisualEffectTiles(heightNoise, biomeNoise, worldSize, *this);
+            loadedChunks[ChunkPosition(wrappedX, wrappedY)]->generateVisualEffectTiles(heightNoise, biomeNoise, planetType, worldSize, *this);
         }
     }
 }
@@ -720,7 +720,7 @@ void ChunkManager::generateChunk(const ChunkPosition& chunkPosition, bool putInL
     chunkPtr->setWorldPosition(chunkWorldPos, *this);
 
     // Generate
-    chunkPtr->generateChunk(heightNoise, biomeNoise, worldSize, *this);
+    chunkPtr->generateChunk(heightNoise, biomeNoise, planetType, worldSize, *this);
 }
 
 // Static method
