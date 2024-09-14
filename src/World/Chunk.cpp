@@ -7,11 +7,22 @@ Chunk::Chunk(ChunkPosition chunkPosition)
 
     containsWater = false;
 
+    for (int i = 0; i < groundTileGrid.size(); i++)
+    {
+        groundTileGrid[i].fill(0);
+    }
+
+    for (int i = 0; i < visualTileGrid.size(); i++)
+    {
+        visualTileGrid[i].fill(TileType::Visual_BLANK);
+    }
+
     // Create tilemaps
-    tileMaps[0] = TileMap(sf::Vector2i(32, 64), 2);
-    tileMaps[2] = TileMap(sf::Vector2i(32, 272), 1);
-    tileMaps[4] = TileMap(sf::Vector2i(256, 192), 4);
-    tileMaps[5] = TileMap(sf::Vector2i(32, 192), 2);
+    // tileMaps[0] = TileMap(sf::Vector2i(32, 64), 2);
+    // tileMaps[1] = TileMap(sf::Vector2i(32, 272), 1);
+    // tileMaps[2] = TileMap(sf::Vector2i(32, 272), 1);
+    // tileMaps[4] = TileMap(sf::Vector2i(256, 192), 4);
+    // tileMaps[5] = TileMap(sf::Vector2i(32, 192), 2);
 }
 
 void Chunk::generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, int worldSize, ChunkManager& chunkManager)
@@ -19,7 +30,7 @@ void Chunk::generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNo
     // Get tile size
     // float tileSize = ResolutionHandler::getTileSize();
     
-    sf::Vector2f worldNoisePosition = sf::Vector2f(chunkPosition.x, chunkPosition.y) * CHUNK_TILE_SIZE;
+    sf::Vector2i worldNoisePosition = sf::Vector2i(chunkPosition.x, chunkPosition.y) * static_cast<int>(CHUNK_TILE_SIZE);
 
     // float noiseSize = CHUNK_TILE_SIZE * worldSize;
 
@@ -31,115 +42,59 @@ void Chunk::generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNo
     Chunk* leftChunk = chunkManager.getChunk(ChunkPosition(((chunkPosition.x - 1) % worldSize + worldSize) % worldSize, chunkPosition.y));
     Chunk* rightChunk = chunkManager.getChunk(ChunkPosition(((chunkPosition.x + 1) % worldSize + worldSize) % worldSize, chunkPosition.y));
 
+    std::set<int> tileMapsModified;
+
     for (int y = 0; y < CHUNK_TILE_SIZE; y++)
     {
         for (int x = 0; x < CHUNK_TILE_SIZE; x++)
         {
-            int tileType = getTileTypeGenerationAtPosition(
-                worldNoisePosition.x + x, worldNoisePosition.y + y, heightNoise, biomeNoise, planetType, worldSize
+            const TileGenData* tileGenData = getTileGenAtWorldTile(
+                sf::Vector2i(worldNoisePosition.x + x, worldNoisePosition.y + y), worldSize, heightNoise, biomeNoise, planetType
                 );
-
-            // float height = heightNoise.GetNoiseSeamless2D(worldNoisePosition.x + x, worldNoisePosition.y + y, noiseSize, noiseSize);
-            // height = FastNoise::Normalise(height);
-            // std::cout << height << std::endl;
-            // static const float sqrt2Div2 = 0.70710678119f;
-            // float heightNormalised = (height - sqrt2Div2) / (sqrt2Div2 * 2);
-
-            // TileType tileType = getTileTypeFromNoiseHeight(height);
+            
+            int tileType = 0;
+            if (tileGenData)
+            {
+                // Not nullptr, so set tiletype to gen data tile ID
+                tileType = tileGenData->tileID;
+            }
 
             groundTileGrid[y][x] = tileType;
-
-            // int vertexArrayIndex = (x + y * CHUNK_TILE_SIZE) * 4;
-            // groundVertexArray[vertexArrayIndex].position = sf::Vector2f(x * TILE_SIZE_PIXELS_UNSCALED, y * TILE_SIZE_PIXELS_UNSCALED);
-            // groundVertexArray[vertexArrayIndex + 1].position = sf::Vector2f(x * TILE_SIZE_PIXELS_UNSCALED + TILE_SIZE_PIXELS_UNSCALED, y * TILE_SIZE_PIXELS_UNSCALED);
-            // groundVertexArray[vertexArrayIndex + 3].position = sf::Vector2f(x * TILE_SIZE_PIXELS_UNSCALED, y * TILE_SIZE_PIXELS_UNSCALED + TILE_SIZE_PIXELS_UNSCALED);
-            // groundVertexArray[vertexArrayIndex + 2].position = sf::Vector2f(x * TILE_SIZE_PIXELS_UNSCALED + TILE_SIZE_PIXELS_UNSCALED, y * TILE_SIZE_PIXELS_UNSCALED + TILE_SIZE_PIXELS_UNSCALED);
 
             // Tile is water
             if (tileType == 0)
             {
                 containsWater = true;
-                // groundVertexArray[vertexArrayIndex].color = sf::Color(0, 0, 0, 0);
-                // groundVertexArray[vertexArrayIndex + 1].color = sf::Color(0, 0, 0, 0);
-                // groundVertexArray[vertexArrayIndex + 3].color = sf::Color(0, 0, 0, 0);
-                // groundVertexArray[vertexArrayIndex + 2].color = sf::Color(0, 0, 0, 0);
                 continue;
             }
 
-            // int textureVariation;
-
-            switch (tileType)
+            if (!tileMaps.contains(tileType))
             {
-                case TileType::DarkGrass:
-                    // textureVariation = rand() % 3;
-                    // groundVertexArray[vertexArrayIndex].texCoords = {1 * 16, 0 + textureVariation * 16.0f};
-                    // groundVertexArray[vertexArrayIndex + 1].texCoords = {1 * 16 + 16, 0 + textureVariation * 16.0f};
-                    // groundVertexArray[vertexArrayIndex + 3].texCoords = {1 * 16, 16 + textureVariation * 16.0f};
-                    // groundVertexArray[vertexArrayIndex + 2].texCoords = {1 * 16 + 16, 16 + textureVariation * 16.0f};
-                    setTile(2, sf::Vector2i(x, y), upChunk, downChunk, leftChunk, rightChunk, false);
-                    setTile(1, sf::Vector2i(x, y), upChunk, downChunk, leftChunk, rightChunk, false);
-                    // setTile(0, sf::Vector2i(x, y), upChunk, downChunk, leftChunk, rightChunk, false);
-                    break;
-                case TileType::Sand:
-                    // textureVariation = rand() % 3;
-                    // groundVertexArray[vertexArrayIndex].texCoords = {2 * 16, 0 + textureVariation * 16.0f};
-                    // groundVertexArray[vertexArrayIndex + 1].texCoords = {2 * 16 + 16, 0 + textureVariation * 16.0f};
-                    // groundVertexArray[vertexArrayIndex + 3].texCoords = {2 * 16, 16 + textureVariation * 16.0f};
-                    // groundVertexArray[vertexArrayIndex + 2].texCoords = {2 * 16 + 16, 16 + textureVariation * 16.0f};
-                    setTile(0, sf::Vector2i(x, y), upChunk, downChunk, leftChunk, rightChunk, false);
-                    break;
-                case TileType::Grass:
-                    // textureVariation = rand() % 4;
-                    // groundVertexArray[vertexArrayIndex].texCoords = {0 * 16, 0 + textureVariation * 16.0f};
-                    // groundVertexArray[vertexArrayIndex + 1].texCoords = {0 * 16 + 16, 0 + textureVariation * 16.0f};
-                    // groundVertexArray[vertexArrayIndex + 3].texCoords = {0 * 16, 16 + textureVariation * 16.0f};
-                    // groundVertexArray[vertexArrayIndex + 2].texCoords = {0 * 16 + 16, 16 + textureVariation * 16.0f};
-                    setTile(1, sf::Vector2i(x, y), upChunk, downChunk, leftChunk, rightChunk, false);
-                    setTile(0, sf::Vector2i(x, y), upChunk, downChunk, leftChunk, rightChunk, false);
-                    break;
+                tileMaps[tileType] = TileMap(tileGenData->tileMap.textureOffset, tileGenData->tileMap.variation);
             }
 
-            objectGrid[y][x] = std::nullopt;
+            setTile(tileType, sf::Vector2i(x, y), upChunk, downChunk, leftChunk, rightChunk, false);
+            tileMapsModified.insert(tileType);
 
-            bool canSpawnObject = tileType == TileType::Grass || tileType == TileType::DarkGrass;
-            if (!canSpawnObject)
-                continue;
+            ObjectType objectSpawnType = getRandomObjectToSpawnAtWorldTile(sf::Vector2i(worldNoisePosition.x + x, worldNoisePosition.y + y),
+                worldSize, heightNoise, biomeNoise, planetType);
 
-            int spawn_chance = rand() % 60;
-            sf::Vector2f objectPos = worldPosition + sf::Vector2f(x * TILE_SIZE_PIXELS_UNSCALED + TILE_SIZE_PIXELS_UNSCALED / 2.0f, y * TILE_SIZE_PIXELS_UNSCALED + TILE_SIZE_PIXELS_UNSCALED / 2.0f);
-
-            if (spawn_chance < 4)
+            if (objectSpawnType >= 0)
             {
-                // Make tree
-                objectGrid[y][x] = BuildableObject(objectPos, ObjectDataLoader::getObjectTypeFromName("Tree"));
+                setObject(sf::Vector2i(x, y), objectSpawnType, worldSize, chunkManager);
             }
-            else if (spawn_chance == 4)
+            else
             {
-                // Make bush
-                objectGrid[y][x] = BuildableObject(objectPos, ObjectDataLoader::getObjectTypeFromName("Bush"));
-            }
-            else if (spawn_chance == 5)
-            {
-                // Make rock
-                objectGrid[y][x] = BuildableObject(objectPos, ObjectDataLoader::getObjectTypeFromName("Rock"));
-            }
-            else if (spawn_chance == 6)
-            {
-                // Make ore rock
-                objectGrid[y][x] = BuildableObject(objectPos, ObjectDataLoader::getObjectTypeFromName("Iron Rock") + rand() % 3);
+                objectGrid[y][x] = std::nullopt;
             }
         }
     }
 
-    // Rebuild tilemap vertex arrays
-    tileMaps[2].buildVertexArray();
-    tileMaps[1].buildVertexArray();
-    tileMaps[0].buildVertexArray();
-
-    // Update adjacent chunks tilemaps
-    chunkManager.updateAdjacentChunkTiles(chunkPosition, 2);
-    chunkManager.updateAdjacentChunkTiles(chunkPosition, 1);
-    chunkManager.updateAdjacentChunkTiles(chunkPosition, 0);
+    for (int tileType : tileMapsModified)
+    {
+        tileMaps[tileType].buildVertexArray();
+        chunkManager.updateAdjacentChunkTiles(chunkPosition, tileType);
+    }
 
     // Spawn entities
     int spawnEnemyChance = rand() % 10;
@@ -161,6 +116,69 @@ void Chunk::generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNo
     generateVisualEffectTiles(heightNoise, biomeNoise, planetType, worldSize, chunkManager);
 
     recalculateCollisionRects(chunkManager);
+}
+
+const BiomeGenData* Chunk::getBiomeGenAtWorldTile(sf::Vector2i worldTile, int worldSize, const FastNoise& biomeNoise, PlanetType planetType)
+{
+    const PlanetGenData& planetGenData = PlanetGenDataLoader::genPlanetGenData(planetType);
+
+    float biomeNoiseValue = biomeNoise.GetNoiseSeamless2D(worldTile.x, worldTile.y, worldSize * CHUNK_TILE_SIZE, worldSize * CHUNK_TILE_SIZE);
+    biomeNoiseValue = FastNoise::Normalise(biomeNoiseValue);
+
+    for (const BiomeGenData& biomeGenData : planetGenData.biomeGenDatas)
+    {
+        if (biomeGenData.noiseRangeMin <= biomeNoiseValue && biomeGenData.noiseRangeMax >= biomeNoiseValue)
+        {
+            return &biomeGenData;
+        }
+    }
+
+    return nullptr;
+}
+
+const TileGenData* Chunk::getTileGenAtWorldTile(sf::Vector2i worldTile, int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType)
+{
+    const BiomeGenData* biomeGenData = getBiomeGenAtWorldTile(worldTile, worldSize, biomeNoise, planetType);
+    
+    if (!biomeGenData)
+        return nullptr;
+    
+    float heightNoiseValue = heightNoise.GetNoiseSeamless2D(worldTile.x, worldTile.y, worldSize * CHUNK_TILE_SIZE, worldSize * CHUNK_TILE_SIZE);
+    heightNoiseValue = FastNoise::Normalise(heightNoiseValue);
+    
+    for (const TileGenData& tileGenData : biomeGenData->tileGenDatas)
+    {
+        if (tileGenData.noiseRangeMin <= heightNoiseValue && tileGenData.noiseRangeMax >= heightNoiseValue)
+        {
+            return &tileGenData;
+        }
+    }
+    
+    return nullptr;
+}
+
+ObjectType Chunk::getRandomObjectToSpawnAtWorldTile(sf::Vector2i worldTile, int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType)
+{
+    const TileGenData* tileGenData = getTileGenAtWorldTile(worldTile, worldSize, heightNoise, biomeNoise, planetType);
+
+    if (!tileGenData->objectsCanSpawn)
+        return -1;
+
+    const BiomeGenData* biomeGenData = getBiomeGenAtWorldTile(worldTile, worldSize, biomeNoise, planetType);
+
+    float cumulativeChance = 0;
+    float randomSpawn = static_cast<float>(rand() % 10000) / 10000.0f;
+    for (const ObjectGenData& objectGenData : biomeGenData->objectGenDatas)
+    {
+        cumulativeChance += objectGenData.spawnChance;
+
+        if (randomSpawn <= cumulativeChance)
+        {
+            return objectGenData.object;
+        }
+    }
+
+    return -1;
 }
 
 void Chunk::generateVisualEffectTiles(const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, int worldSize, ChunkManager& chunkManager)
@@ -211,10 +229,17 @@ void Chunk::generateVisualEffectTiles(const FastNoise& heightNoise, const FastNo
             else
             {
                 // Take tile type from noise value as chunk has not been generated yet
-                return getTileTypeGenerationAtPosition(
-                    static_cast<float>(wrappedChunkTile.first.x) * CHUNK_TILE_SIZE + wrappedChunkTile.second.x,
-                    static_cast<float>(wrappedChunkTile.first.y) * CHUNK_TILE_SIZE + wrappedChunkTile.second.y,
-                    heightNoise, biomeNoise, planetType, worldSize);
+                const TileGenData* tileGenData = getTileGenAtWorldTile(
+                    sf::Vector2i(wrappedChunkTile.first.x * CHUNK_TILE_SIZE + wrappedChunkTile.second.x,
+                                 wrappedChunkTile.first.y * CHUNK_TILE_SIZE + wrappedChunkTile.second.y),
+                    worldSize, heightNoise, biomeNoise, planetType);
+                
+                if (!tileGenData)
+                {
+                    return 0; // tile gen data is nullptr, so tile will not be generated there, i.e. water
+                }
+
+                return tileGenData->tileID; // return non-zero value by default (non-water tile)
             }
         }
         else
@@ -250,46 +275,6 @@ void Chunk::generateVisualEffectTiles(const FastNoise& heightNoise, const FastNo
             );
         }
     }
-}
-
-int Chunk::getBiomeFromNoise(float biomeNoiseValue)
-{
-    if (biomeNoiseValue < 0.5) return 0; // grass biome
-    return 1; // rock biome
-}
-
-int Chunk::getTileTypeFromNoise(float noiseValue, int biome)
-{
-    switch (biome)
-    {
-        case 0: // grass biome
-            if (noiseValue < 0.5) return 0; // water
-            if (noiseValue > 0.7) return 5; // dark grass
-            if (noiseValue < 0.53) return 1; // sand
-            return 4; // grass
-        case 1: // rock biome
-            if (noiseValue < 0.5) return 0;
-            if (noiseValue < 0.52) return 1;
-            return 2; // rock
-    }
-
-    return 0;
-}
-
-int Chunk::getTileTypeGenerationAtPosition(int x, int y, const FastNoise& heightNoise, const FastNoise& biomeNoise,
-    PlanetType planetType, int worldSize)
-{
-    float noiseSize = CHUNK_TILE_SIZE * worldSize;
-
-    float heightNoiseValue = heightNoise.GetNoiseSeamless2D(x, y, noiseSize, noiseSize);
-    heightNoiseValue = FastNoise::Normalise(heightNoiseValue);
-
-    float biomeNoiseValue = biomeNoise.GetNoiseSeamless2D(x, y, noiseSize, noiseSize);
-    biomeNoiseValue = FastNoise::Normalise(biomeNoiseValue);
-
-    int biome = getBiomeFromNoise(biomeNoiseValue);
-
-    return getTileTypeFromNoise(heightNoiseValue, biome);
 }
 
 void Chunk::setTile(int tileMap, sf::Vector2i position, TileMap* upTiles, TileMap* downTiles, TileMap* leftTiles, TileMap* rightTiles, bool graphicsUpdate)
@@ -909,26 +894,6 @@ void Chunk::recalculateCollisionRects(ChunkManager& chunkManager)
         {
             if (!objectGrid[y][x].has_value())
                 continue;
-            
-            // Get object data for reference
-            // if (objectGrid[y][x]->isObjectReference())
-            // {
-            //     // Get referenced object
-            //     const ObjectReference& objectReference = objectGrid[y][x]->getObjectReference().value();
-            //     std::optional<BuildableObject>& objectOptional = chunkManager.getChunkObject(objectReference.chunk, objectReference.tile);
-
-            //     // If valid object, add collision from object if required
-            //     if (objectOptional.has_value())
-            //     {
-            //         BuildableObject& object = objectOptional.value();
-
-            //         unsigned int objectType = object.getObjectType();
-            //         const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
-
-            //         if (objectData.hasCollision)
-            //             createCollisionRect(collisionRects, x, y);
-            //     }
-            // }
 
             // Go through chunk manager in case of object reference
             std::optional<BuildableObject>& objectOptional = chunkManager.getChunkObject(chunkPosition, sf::Vector2i(x, y));

@@ -18,9 +18,10 @@ struct TilemapData
 struct TileGenData
 {
     TilemapData tileMap;
-    float chanceRangeMin;
-    float chanceRangeMax;
+    float noiseRangeMin;
+    float noiseRangeMax;
     bool objectsCanSpawn;
+    int tileID;
 };
 
 struct ObjectGenData
@@ -42,6 +43,8 @@ struct BiomeGenData
     std::string name;
 
     std::vector<TileGenData> tileGenDatas;
+    //int tilemapStartID;
+
     std::vector<ObjectGenData> objectGenDatas;
     std::vector<EntityGenData> entityGenDatas;
 

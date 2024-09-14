@@ -86,14 +86,16 @@ bool PlanetGenDataLoader::loadPlanet(nlohmann::ordered_json::iterator& planetDat
                 return false;
             }
 
-            tileGenData.chanceRangeMin = tileIter.value()[1];
-            tileGenData.chanceRangeMax = tileIter.value()[2];
+            tileGenData.noiseRangeMin = tileIter.value()[2];
+            tileGenData.noiseRangeMax = tileIter.value()[3];
 
-            tileGenData.objectsCanSpawn = false;
-            if (tileIter.value().size() > 3)
+            tileGenData.objectsCanSpawn = true;
+            if (tileIter.value().size() > 4)
             {
-               tileGenData.objectsCanSpawn = tileIter.value()[3];
+               tileGenData.objectsCanSpawn = tileIter.value()[4];
             }
+
+            tileGenData.tileID = tileIter.value()[1].get<int>() + 1;
 
             biomeGenData.tileGenDatas.push_back(tileGenData);
         }

@@ -8,6 +8,7 @@
 #include <map>
 #include <memory>
 #include <optional>
+#include <set>
 #include <iostream>
 
 #include "Core/TextureManager.hpp"
@@ -45,9 +46,9 @@ public:
 
     void generateVisualEffectTiles(const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, int worldSize, ChunkManager& chunkManager);
 
-    static int getBiomeFromNoise(float biomeNoiseValue);
-    static int getTileTypeFromNoise(float noiseValue, int biome);
-    static int getTileTypeGenerationAtPosition(int x, int y, const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, int worldSize);
+    // static int getBiomeFromNoise(float biomeNoiseValue);
+    // static int getTileTypeFromNoise(float noiseValue, int biome);
+    // static int getTileTypeGenerationAtPosition(int x, int y, const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, int worldSize);
 
     // ALWAYS CALL THROUGH CHUNK MANAGER WHEN PLACING SINGLE TILE
     // to ensure adjacent chunk tilemaps are updated accordingly
@@ -136,6 +137,14 @@ public:
     // bool isPointInChunk(sf::Vector2f position);
 
     // inline std::array<std::array<std::optional<BuildableObject>, 8>, 8>& getObjectGrid() {return objectGrid;}
+
+private:
+    // May return nullptr
+    const BiomeGenData* getBiomeGenAtWorldTile(sf::Vector2i worldTile, int worldSize, const FastNoise& biomeNoise, PlanetType planetType);
+
+    const TileGenData* getTileGenAtWorldTile(sf::Vector2i worldTile, int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType);
+
+    ObjectType getRandomObjectToSpawnAtWorldTile(sf::Vector2i worldTile, int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType);
 
 private:
     // 0 reserved for water / no tile

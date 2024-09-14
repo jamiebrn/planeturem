@@ -2,10 +2,19 @@
 
 #include <SFML/Graphics.hpp>
 #include <array>
+#include <vector>
 
 #include "Core/TextureManager.hpp"
 
 #include "GameConstants.hpp"
+
+// struct TileMapAdjacents
+// {
+//     std::vector<TileMap>* upTiles = nullptr;
+//     std::vector<TileMap>* downTiles = nullptr;
+//     std::vector<TileMap>* leftTiles = nullptr;
+//     std::vector<TileMap>* rightTiles = nullptr;
+// };
 
 class TileMap
 {
