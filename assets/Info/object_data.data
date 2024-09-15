@@ -193,5 +193,17 @@
         "crafting-station": "devorb",
         "crafting-station-level": 999,
         "mythical-item": true
+    },
+    {
+        "name": "Cactus",
+        "health": 5,
+        "textures": [[63, 106]],
+        "texture-width": 18,
+        "texture-height": 21,
+        "texture-x-origin": 0.5,
+        "texture-y-origin": 1,
+        "item-drops": {
+            "Wood": [2, 4, 1.0]
+        }
     }
 ]

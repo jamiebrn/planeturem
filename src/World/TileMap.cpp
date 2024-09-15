@@ -93,6 +93,62 @@ void TileMap::updateTiles(int xModified, int yModified, TileMap* upTiles, TileMa
     buildVertexArray();
 }
 
+void TileMap::refreshTile(int x, int y, TileMap* upTiles, TileMap* downTiles, TileMap* leftTiles, TileMap* rightTiles)
+{
+    updateTileFromAdjacent(x, y, upTiles, downTiles, leftTiles, rightTiles);
+    refreshVerticiesForTile(x, y);
+}
+
+void TileMap::refreshTopEdge(TileMap* upTiles, TileMap* downTiles, TileMap* leftTiles, TileMap* rightTiles)
+{
+    for (int x = 0; x < tiles[0].size(); x++)
+    {
+        refreshTile(x, 0, upTiles, downTiles, leftTiles, rightTiles);
+    }
+}
+
+void TileMap::refreshBottomEdge(TileMap* upTiles, TileMap* downTiles, TileMap* leftTiles, TileMap* rightTiles)
+{
+    for (int x = 0; x < tiles[0].size(); x++)
+    {
+        refreshTile(x, tiles.size() - 1, upTiles, downTiles, leftTiles, rightTiles);
+    }
+}
+
+void TileMap::refreshLeftEdge(TileMap* upTiles, TileMap* downTiles, TileMap* leftTiles, TileMap* rightTiles)
+{
+    for (int y = 0; y < tiles.size(); y++)
+    {
+        refreshTile(0, y, upTiles, downTiles, leftTiles, rightTiles);
+    }
+}
+
+void TileMap::refreshRightEdge(TileMap* upTiles, TileMap* downTiles, TileMap* leftTiles, TileMap* rightTiles)
+{
+    for (int y = 0; y < tiles.size(); y++)
+    {
+        refreshTile(tiles[0].size() - 1, y, upTiles, downTiles, leftTiles, rightTiles);
+    }
+}
+
+void TileMap::refreshVerticiesForTile(int x, int y)
+{
+    if (!isTilePresent(tiles[y][x]))
+        return;
+            
+    sf::Vector2i textureOffset = getTextureOffsetForTile(x, y);
+
+    int vertexIndex = (y * tiles[0].size() + x) * 4;
+
+    //if (tileVertexArray.getVertexCount() < vertexIndex + 4)
+        //return;
+
+    tileVertexArray[vertexIndex].texCoords = {static_cast<float>(tilesetOffset.x) + textureOffset.x + 0, static_cast<float>(tilesetOffset.y) + textureOffset.y + 0};
+    tileVertexArray[vertexIndex + 1].texCoords = {static_cast<float>(tilesetOffset.x) + textureOffset.x + 16, static_cast<float>(tilesetOffset.y) + textureOffset.y + 0};
+    tileVertexArray[vertexIndex + 3].texCoords = {static_cast<float>(tilesetOffset.x) + textureOffset.x + 0, static_cast<float>(tilesetOffset.y) + textureOffset.y + 16};
+    tileVertexArray[vertexIndex + 2].texCoords = {static_cast<float>(tilesetOffset.x) + textureOffset.x + 16, static_cast<float>(tilesetOffset.y) + textureOffset.y + 16};
+}
+
 void TileMap::updateAllTiles(TileMap* upTiles, TileMap* downTiles, TileMap* leftTiles, TileMap* rightTiles)
 {
     for (int y = 0; y < tiles.size(); y++)
@@ -201,21 +257,30 @@ void TileMap::buildVertexArray()
     {
         for (int x = 0; x < tiles[0].size(); x++)
         {
-            if (!isTilePresent(tiles[y][x]))
-                continue;
-            
-            sf::Vector2i textureOffset = getTextureOffsetForTile(x, y);
-            
             // Add tile to vertex array
             sf::Vertex vertices[4];
             vertices[0].position = sf::Vector2f(x * TILE_SIZE_PIXELS_UNSCALED, y * TILE_SIZE_PIXELS_UNSCALED);
             vertices[1].position = sf::Vector2f(x * TILE_SIZE_PIXELS_UNSCALED + TILE_SIZE_PIXELS_UNSCALED, y * TILE_SIZE_PIXELS_UNSCALED);
             vertices[3].position = sf::Vector2f(x * TILE_SIZE_PIXELS_UNSCALED, y * TILE_SIZE_PIXELS_UNSCALED + TILE_SIZE_PIXELS_UNSCALED);
             vertices[2].position = sf::Vector2f(x * TILE_SIZE_PIXELS_UNSCALED + TILE_SIZE_PIXELS_UNSCALED, y * TILE_SIZE_PIXELS_UNSCALED + TILE_SIZE_PIXELS_UNSCALED);
-            vertices[0].texCoords = {static_cast<float>(tilesetOffset.x) + textureOffset.x + 0, static_cast<float>(tilesetOffset.y) + textureOffset.y + 0};
-            vertices[1].texCoords = {static_cast<float>(tilesetOffset.x) + textureOffset.x + 16, static_cast<float>(tilesetOffset.y) + textureOffset.y + 0};
-            vertices[3].texCoords = {static_cast<float>(tilesetOffset.x) + textureOffset.x + 0, static_cast<float>(tilesetOffset.y) + textureOffset.y + 16};
-            vertices[2].texCoords = {static_cast<float>(tilesetOffset.x) + textureOffset.x + 16, static_cast<float>(tilesetOffset.y) + textureOffset.y + 16};
+
+            if (isTilePresent(tiles[y][x]))
+            {
+                // Set vertex texture coordinates
+                sf::Vector2i textureOffset = getTextureOffsetForTile(x, y);
+                
+                vertices[0].texCoords = {static_cast<float>(tilesetOffset.x) + textureOffset.x + 0, static_cast<float>(tilesetOffset.y) + textureOffset.y + 0};
+                vertices[1].texCoords = {static_cast<float>(tilesetOffset.x) + textureOffset.x + 16, static_cast<float>(tilesetOffset.y) + textureOffset.y + 0};
+                vertices[3].texCoords = {static_cast<float>(tilesetOffset.x) + textureOffset.x + 0, static_cast<float>(tilesetOffset.y) + textureOffset.y + 16};
+                vertices[2].texCoords = {static_cast<float>(tilesetOffset.x) + textureOffset.x + 16, static_cast<float>(tilesetOffset.y) + textureOffset.y + 16};
+            }
+            else
+            {
+                for (int i = 0; i < 4; i++)
+                {
+                    vertices[i].color = sf::Color(0, 0, 0, 0);
+                }
+            }
 
             for (int i = 0; i < 4; i++)
             {

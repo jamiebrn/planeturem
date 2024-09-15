@@ -4,6 +4,8 @@ std::vector<PlanetGenData> PlanetGenDataLoader::loaded_planetGenData;
 
 std::unordered_map<std::string, PlanetType> PlanetGenDataLoader::planetStringToTypeMap;
 
+std::unordered_map<int, TileMap> PlanetGenDataLoader::tileIdToTileMap;
+
 bool PlanetGenDataLoader::loadData(std::string planetGenDataPath)
 {
     std::ifstream file(planetGenDataPath);
@@ -74,6 +76,8 @@ bool PlanetGenDataLoader::loadPlanet(nlohmann::ordered_json::iterator& planetDat
             if (!tileMaps.contains(tileIter.value()[0]))
                 return false;
             
+            tileGenData.tileID = tileIter.value()[1].get<int>() + 1;
+
             if (tileIter->is_array())
             {
                 const std::string& tileMapName = tileIter.value()[0];
@@ -95,7 +99,11 @@ bool PlanetGenDataLoader::loadPlanet(nlohmann::ordered_json::iterator& planetDat
                tileGenData.objectsCanSpawn = tileIter.value()[4];
             }
 
-            tileGenData.tileID = tileIter.value()[1].get<int>() + 1;
+            // Store copy of blank tilemap against tileID in map
+            if (tileIdToTileMap.count(tileGenData.tileID) == 0)
+            {
+                tileIdToTileMap[tileGenData.tileID] = TileMap(tileGenData.tileMap.textureOffset, tileGenData.tileMap.variation);
+            }
 
             biomeGenData.tileGenDatas.push_back(tileGenData);
         }
@@ -154,4 +162,9 @@ const PlanetGenData& PlanetGenDataLoader::genPlanetGenData(PlanetType planetType
 PlanetType PlanetGenDataLoader::getPlanetTypeFromName(const std::string& planetName)
 {
     return planetStringToTypeMap[planetName];
+}
+
+TileMap PlanetGenDataLoader::getTileMapFromID(int tileID)
+{
+    return tileIdToTileMap[tileID];
 }

@@ -33,6 +33,12 @@ public:
 
     void draw(sf::RenderTarget& window, sf::Vector2f position, sf::Vector2f scale);
 
+    void refreshTile(int x, int y, TileMap* upTiles, TileMap* downTiles, TileMap* leftTiles, TileMap* rightTiles);
+    void refreshTopEdge(TileMap* upTiles, TileMap* downTiles, TileMap* leftTiles, TileMap* rightTiles);
+    void refreshBottomEdge(TileMap* upTiles, TileMap* downTiles, TileMap* leftTiles, TileMap* rightTiles);
+    void refreshLeftEdge(TileMap* upTiles, TileMap* downTiles, TileMap* leftTiles, TileMap* rightTiles);
+    void refreshRightEdge(TileMap* upTiles, TileMap* downTiles, TileMap* leftTiles, TileMap* rightTiles);
+
     void updateAllTiles(TileMap* upTiles, TileMap* downTiles, TileMap* leftTiles, TileMap* rightTiles);
 
     void buildVertexArray();
@@ -40,6 +46,8 @@ public:
 private:
     void updateTiles(int xModified, int yModified, TileMap* upTiles, TileMap* downTiles, TileMap* leftTiles, TileMap* rightTiles, bool rebuildVertices = true);
     void updateTileFromAdjacent(int x, int y, TileMap* upTiles, TileMap* downTiles, TileMap* leftTiles, TileMap* rightTiles);
+
+    void refreshVerticiesForTile(int x, int y);
 
     sf::Vector2i getTextureOffsetForTile(int x, int y);
 

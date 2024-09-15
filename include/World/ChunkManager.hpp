@@ -73,6 +73,10 @@ public:
     // Get tile type from all generated chunks (used in chunk visual detail generation)
     int getChunkTileType(ChunkPosition chunk, sf::Vector2i tile) const;
 
+    // Gets tile type from all generated chunks
+    // Falls back to generation prediction if chunk has not yet been generated
+    int getChunkTileTypeOrPredicted(ChunkPosition chunk, sf::Vector2i tile);
+
     // Whether chunk has been generated: stored or loaded
     bool isChunkGenerated(ChunkPosition chunk) const;
 

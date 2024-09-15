@@ -70,7 +70,7 @@ void Chunk::generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNo
 
             if (!tileMaps.contains(tileType))
             {
-                tileMaps[tileType] = TileMap(tileGenData->tileMap.textureOffset, tileGenData->tileMap.variation);
+                tileMaps[tileType] = PlanetGenDataLoader::getTileMapFromID(tileGenData->tileID);
             }
 
             setTile(tileType, sf::Vector2i(x, y), upChunk, downChunk, leftChunk, rightChunk, false);
@@ -218,34 +218,41 @@ void Chunk::generateVisualEffectTiles(const FastNoise& heightNoise, const FastNo
                                 PlanetType planetType, int worldSize)
     {
         std::pair<ChunkPosition, sf::Vector2i> wrappedChunkTile = ChunkManager::getChunkTileFromOffset(chunk, tile, xOffset, yOffset, worldSize);
+
+        if (wrappedChunkTile.first == chunk)
+        {
+            return static_cast<int>(groundTileGrid[wrappedChunkTile.second.y][wrappedChunkTile.second.x]);
+        }
+
+        return chunkManager.getChunkTileTypeOrPredicted(wrappedChunkTile.first, wrappedChunkTile.second);
         
         // If chunk has changed due to offset, check tile in different chunk
-        if (wrappedChunkTile.first != chunk)
-        {
-            if (chunkManager.isChunkGenerated(wrappedChunkTile.first))
-            {
-                return chunkManager.getChunkTileType(wrappedChunkTile.first, wrappedChunkTile.second);
-            }
-            else
-            {
-                // Take tile type from noise value as chunk has not been generated yet
-                const TileGenData* tileGenData = getTileGenAtWorldTile(
-                    sf::Vector2i(wrappedChunkTile.first.x * CHUNK_TILE_SIZE + wrappedChunkTile.second.x,
-                                 wrappedChunkTile.first.y * CHUNK_TILE_SIZE + wrappedChunkTile.second.y),
-                    worldSize, heightNoise, biomeNoise, planetType);
-                
-                if (!tileGenData)
-                {
-                    return 0; // tile gen data is nullptr, so tile will not be generated there, i.e. water
-                }
+        //if (wrappedChunkTile.first != chunk)
+        //{
+        //    if (chunkManager.isChunkGenerated(wrappedChunkTile.first))
+        //    {
+        //        return chunkManager.getChunkTileType(wrappedChunkTile.first, wrappedChunkTile.second);
+        //    }
+        //    else
+        //    {
+        //        // Take tile type from noise value as chunk has not been generated yet
+        //        const TileGenData* tileGenData = getTileGenAtWorldTile(
+        //            sf::Vector2i(wrappedChunkTile.first.x * CHUNK_TILE_SIZE + wrappedChunkTile.second.x,
+        //                         wrappedChunkTile.first.y * CHUNK_TILE_SIZE + wrappedChunkTile.second.y),
+        //            worldSize, heightNoise, biomeNoise, planetType);
+        //        
+        //        if (!tileGenData)
+        //        {
+        //            return 0; // tile gen data is nullptr, so tile will not be generated there, i.e. water
+        //        }
 
-                return tileGenData->tileID; // return non-zero value by default (non-water tile)
-            }
-        }
-        else
-        {
-            return static_cast<int>(this->groundTileGrid[wrappedChunkTile.second.y][wrappedChunkTile.second.x]);
-        }
+        //        return tileGenData->tileID; // return non-zero value by default (non-water tile)
+        //    }
+        //}
+        //else
+        //{
+        //    return static_cast<int>(this->groundTileGrid[wrappedChunkTile.second.y][wrappedChunkTile.second.x]);
+        //}
     };
 
     // Clear previously generated visual tiles
@@ -279,7 +286,7 @@ void Chunk::generateVisualEffectTiles(const FastNoise& heightNoise, const FastNo
 
 void Chunk::setTile(int tileMap, sf::Vector2i position, TileMap* upTiles, TileMap* downTiles, TileMap* leftTiles, TileMap* rightTiles, bool graphicsUpdate)
 {
-    if (tileMaps.count(tileMap) < 0)
+    if (tileMaps.count(tileMap) <= 0)
         return;
 
     // Set tile for tilemap
@@ -295,7 +302,7 @@ void Chunk::setTile(int tileMap, sf::Vector2i position, TileMap* upTiles, TileMa
 
 void Chunk::setTile(int tileMap, sf::Vector2i position, Chunk* upChunk, Chunk* downChunk, Chunk* leftChunk, Chunk* rightChunk, bool graphicsUpdate)
 {
-    if (tileMaps.count(tileMap) < 0)
+    if (tileMaps.count(tileMap) <= 0)
         return;
     
     TileMap* upTiles = nullptr;
@@ -324,17 +331,35 @@ void Chunk::setTile(int tileMap, sf::Vector2i position, Chunk* upChunk, Chunk* d
     }
 }
 
-void Chunk::updateTileMap(int tileMap, TileMap* upTiles, TileMap* downTiles, TileMap* leftTiles, TileMap* rightTiles)
+void Chunk::updateTileMap(int tileMap, int xRel, int yRel, TileMap* upTiles, TileMap* downTiles, TileMap* leftTiles, TileMap* rightTiles)
 {
-    if (tileMaps.count(tileMap) < 0)
+    if (tileMaps.count(tileMap) <= 0)
         return;
+    
+    if (xRel < 0)
+    {
+        tileMaps[tileMap].refreshRightEdge(upTiles, downTiles, leftTiles, rightTiles);
+    }
+    else if (xRel > 0)
+    {
+        tileMaps[tileMap].refreshLeftEdge(upTiles, downTiles, leftTiles, rightTiles);
+    }
 
-    tileMaps[tileMap].updateAllTiles(upTiles, downTiles, leftTiles, rightTiles);
+    if (yRel < 0)
+    {
+        tileMaps[tileMap].refreshBottomEdge(upTiles, downTiles, leftTiles, rightTiles);
+    }
+    else if (yRel > 0)
+    {
+        tileMaps[tileMap].refreshTopEdge(upTiles, downTiles, leftTiles, rightTiles);
+    }
+
+    // tileMaps[tileMap].updateAllTiles(upTiles, downTiles, leftTiles, rightTiles);
 }
 
 TileMap* Chunk::getTileMap(int tileMap)
 {
-    if (tileMaps.count(tileMap) < 0)
+    if (tileMaps.count(tileMap) <= 0)
         return nullptr;
     
     return &(tileMaps[tileMap]);
@@ -966,8 +991,35 @@ bool Chunk::canPlaceLand(sf::Vector2i tile)
 void Chunk::placeLand(sf::Vector2i tile, int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise,
     PlanetType planetType, ChunkManager& chunkManager)
 {
+    Chunk* upChunk = chunkManager.getChunk(ChunkPosition(chunkPosition.x, ((chunkPosition.y - 1) % worldSize + worldSize) % worldSize));
+    Chunk* downChunk = chunkManager.getChunk(ChunkPosition(chunkPosition.x, ((chunkPosition.y + 1) % worldSize + worldSize) % worldSize));
+    Chunk* leftChunk = chunkManager.getChunk(ChunkPosition(((chunkPosition.x - 1) % worldSize + worldSize) % worldSize, chunkPosition.y));
+    Chunk* rightChunk = chunkManager.getChunk(ChunkPosition(((chunkPosition.x + 1) % worldSize + worldSize) % worldSize, chunkPosition.y));
+
+    sf::Vector2i worldNoisePosition = sf::Vector2i(chunkPosition.x, chunkPosition.y) * static_cast<int>(CHUNK_TILE_SIZE);
+
+    const BiomeGenData* biomeGenData = getBiomeGenAtWorldTile(sf::Vector2i(worldNoisePosition.x + tile.x, worldNoisePosition.y + tile.y),
+        worldSize, biomeNoise, planetType);
+    
+    if (!biomeGenData)
+        return;
+    
+    if (biomeGenData->tileGenDatas.size() <= 0)
+        return;
+    
+    const TileGenData& tileGenData = biomeGenData->tileGenDatas[0];
+
+    groundTileGrid[tile.y][tile.x] = tileGenData.tileID;
+
+    if (!tileMaps.contains(tileGenData.tileID))
+    {
+        tileMaps[tileGenData.tileID] = TileMap(tileGenData.tileMap.textureOffset, tileGenData.tileMap.variation);
+    }
+
+    // setTile(tileGenData.tileID, tile, upChunk, downChunk, leftChunk, rightChunk);
+
     // Set tile
-    groundTileGrid[tile.y][tile.x] = TileType::Sand;
+    // groundTileGrid[tile.y][tile.x] = TileType::Sand;
 
     // TODO: Make setting tiles modular / standardised
 
@@ -985,7 +1037,7 @@ void Chunk::placeLand(sf::Vector2i tile, int worldSize, const FastNoise& heightN
     // groundVertexArray[vertexArrayIndex + 3].color = sf::Color(255, 255, 255, 255);
     // groundVertexArray[vertexArrayIndex + 2].color = sf::Color(255, 255, 255, 255);
 
-    chunkManager.setChunkTile(chunkPosition, 0, tile);
+    chunkManager.setChunkTile(chunkPosition, tileGenData.tileID, tile);
 
     // Update visual tiles
     generateVisualEffectTiles(heightNoise, biomeNoise, planetType, worldSize, chunkManager);

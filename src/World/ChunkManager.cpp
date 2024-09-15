@@ -244,7 +244,7 @@ void ChunkManager::updateAdjacentChunkTiles(ChunkPosition chunk, int tileMap)
             wrappedChunk.y = (chunkY % worldSize + worldSize) % worldSize;
 
             Chunk* chunkPtr = getChunk(wrappedChunk);
-            if (chunkPtr == nullptr)
+            if (!chunkPtr)
                 continue;
 
             TileMap* upTiles = getChunkTileMap(ChunkPosition(wrappedChunk.x, ((chunkY - 1) % worldSize + worldSize) % worldSize), tileMap);
@@ -252,14 +252,14 @@ void ChunkManager::updateAdjacentChunkTiles(ChunkPosition chunk, int tileMap)
             TileMap* leftTiles = getChunkTileMap(ChunkPosition(((chunkX - 1) % worldSize + worldSize) % worldSize, wrappedChunk.y), tileMap);
             TileMap* rightTiles = getChunkTileMap(ChunkPosition(((chunkX + 1) % worldSize + worldSize) % worldSize, wrappedChunk.y), tileMap);
 
-           chunkPtr->updateTileMap(tileMap, upTiles, downTiles, leftTiles, rightTiles);
+            chunkPtr->updateTileMap(tileMap, x, y, upTiles, downTiles, leftTiles, rightTiles);
         }
     }
 }
 
 std::optional<BuildableObject>& ChunkManager::getChunkObject(ChunkPosition chunk, sf::Vector2i tile)
 {
-    // Empty object to return if chunk does not exist
+    // Empty object to return if chunk / object does not exist
     static std::optional<BuildableObject> null = std::nullopt;
 
     // Chunk does not exist
@@ -303,6 +303,30 @@ int ChunkManager::getChunkTileType(ChunkPosition chunk, sf::Vector2i tile) const
         return storedChunks.at(chunk)->getTileType(tile);
     
     return loadedChunks.at(chunk)->getTileType(tile);
+}
+
+int ChunkManager::getChunkTileTypeOrPredicted(ChunkPosition chunk, sf::Vector2i tile)
+{
+    Chunk* chunkPtr = getChunk(chunk);
+
+    if (chunkPtr)
+    {
+        // Chunk has been generated, so get tile from chunk
+        return chunkPtr->getTileType(tile);
+    }
+
+    // Chunk has not been generated, so predict tile from proc gen
+    sf::Vector2i worldTile;
+    worldTile.x = chunk.x * CHUNK_TILE_SIZE + tile.x;
+    worldTile.y = chunk.y * CHUNK_TILE_SIZE + tile.y;
+
+    const TileGenData* tileGenData = Chunk::getTileGenAtWorldTile(worldTile, worldSize, heightNoise, biomeNoise, planetType);
+    if (!tileGenData)
+    {
+        return 0;
+    }
+
+    return tileGenData->tileID;
 }
 
 bool ChunkManager::isChunkGenerated(ChunkPosition chunk) const

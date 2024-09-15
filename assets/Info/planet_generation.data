@@ -3,11 +3,22 @@
         "Grass": [256, 192, 4],
         "Dark Grass": [32, 192, 2],
         "Sand": [32, 64, 2],
-        "Rock": [32, 272, 1]
+        "Rock": [32, 272, 1],
+        "Gold": [96, 272, 1]
     },
     "planets": {
         "Earthlike": {
             "biomes": [
+                {
+                    "name": "Oasis",
+                    "tiles": [
+                        ["Sand", 0, 0.5, 1]
+                    ],
+                    "objects": [
+                        ["Cactus", 0.025]
+                    ],
+                    "noise-range": [0, 0.3]
+                },
                 {
                     "name": "Grassland",
                     "tiles": [
@@ -24,7 +35,7 @@
                         ["Horse", 1, 2, 0.3],
                         ["Pig", 1, 2, 0.5]
                     ],
-                    "noise-range": [0, 0.7]
+                    "noise-range": [0.3, 0.6]
                 },
                 {
                     "name": "Rocky",
@@ -37,7 +48,7 @@
                         ["Gold Rock", 0.008],
                         ["Coal Rock", 0.015]
                     ],
-                    "noise-range": [0.7, 1]
+                    "noise-range": [0.6, 1]
                 }
             ],
             "water-colour": [77, 155, 230]

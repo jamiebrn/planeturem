@@ -57,7 +57,9 @@ public:
         bool graphicsUpdate = true);
     void setTile(int tileMap, sf::Vector2i position, Chunk* upChunk, Chunk* downChunk, Chunk* leftChunk, Chunk* rightChunk, bool graphicsUpdate = true);
 
-    void updateTileMap(int tileMap, TileMap* upTiles, TileMap* downTiles, TileMap* leftTiles, TileMap* rightTiles);
+    // Update / refresh tilemap due to changes in another chunk
+    // Pass in chunk position difference relative to modified chunk to update correct edge of tile map
+    void updateTileMap(int tileMap, int xRel, int yRel, TileMap* upTiles, TileMap* downTiles, TileMap* leftTiles, TileMap* rightTiles);
 
     // Get (terrain) tile at position in chunk
     int getTileType(sf::Vector2i position) const;
@@ -138,13 +140,12 @@ public:
 
     // inline std::array<std::array<std::optional<BuildableObject>, 8>, 8>& getObjectGrid() {return objectGrid;}
 
-private:
     // May return nullptr
-    const BiomeGenData* getBiomeGenAtWorldTile(sf::Vector2i worldTile, int worldSize, const FastNoise& biomeNoise, PlanetType planetType);
+    static const BiomeGenData* getBiomeGenAtWorldTile(sf::Vector2i worldTile, int worldSize, const FastNoise& biomeNoise, PlanetType planetType);
 
-    const TileGenData* getTileGenAtWorldTile(sf::Vector2i worldTile, int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType);
+    static const TileGenData* getTileGenAtWorldTile(sf::Vector2i worldTile, int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType);
 
-    ObjectType getRandomObjectToSpawnAtWorldTile(sf::Vector2i worldTile, int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType);
+    static ObjectType getRandomObjectToSpawnAtWorldTile(sf::Vector2i worldTile, int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType);
 
 private:
     // 0 reserved for water / no tile
