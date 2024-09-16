@@ -55,6 +55,9 @@ bool Game::initialise()
     if(!icon.loadFromFile("Data/Textures/icon.png")) return false;
     window.setIcon(256, 256, icon.getPixelsPtr());
 
+    // Init ImGui
+    if (!ImGui::SFML::Init(window)) return false;
+
     // Load Steam API
     steamInitialised = SteamAPI_Init();
     if (steamInitialised)
@@ -84,9 +87,6 @@ bool Game::initialise()
     musicGap = 0.0f;
 
     inventory = InventoryData(32);
-
-    // Set world size
-    worldSize = 240;
 
     // Initialise day/night cycle
     dayNightToggleTimer = 0.0f;
@@ -263,6 +263,7 @@ void Game::run()
         gameTime += dt;
 
         SteamAPI_RunCallbacks();
+        ImGui::SFML::Update(window, sf::seconds(dt));
 
         window.setView(view);
 
@@ -278,6 +279,19 @@ void Game::run()
                 runOnPlanet(dt);
                 break;
         }
+
+        if (ImGui::GetIO().WantCaptureMouse)
+        {
+            ImGui::SetMouseCursor(ImGuiMouseCursor_Arrow);
+        }
+        else
+        {
+            ImGui::SetMouseCursor(ImGuiMouseCursor_None);
+        }
+
+        ImGui::SFML::Render(window);
+
+        window.display();
     }
 }
 
@@ -297,8 +311,6 @@ void Game::runMenu(float dt)
     }
 
     window.clear();
-
-    window.display();
 }
 
 void Game::runInShip(float dt)
@@ -325,8 +337,6 @@ void Game::runInShip(float dt)
     TextDraw::drawText(window, {
         "In the ship", textPos, {255, 255, 255}, static_cast<unsigned int>(48 * ResolutionHandler::getResolutionIntegerScale()), {0, 0, 0}, 0, true, false
         });
-
-    window.display();
 }
 
 void Game::runOnPlanet(float dt)
@@ -368,7 +378,7 @@ void Game::runOnPlanet(float dt)
             }
         }
 
-        if (event.type == sf::Event::MouseButtonPressed)
+        if (event.type == sf::Event::MouseButtonPressed && !ImGui::GetIO().WantCaptureMouse)
         {
             if (event.mouseButton.button == sf::Mouse::Left)
             {
@@ -451,6 +461,8 @@ void Game::runOnPlanet(float dt)
     floatTween.update(dt);
 
     // updateDayNightCycle(dt);
+
+    int worldSize = chunkManager.getWorldSize();
 
     // Update camera
     Camera::update(player.getPosition(), mouseScreenPos, dt);
@@ -599,7 +611,16 @@ void Game::runOnPlanet(float dt)
 
     drawMouseCursor();
 
-    window.display();
+    // DEBUG
+    ImGui::Begin("Options");
+    ImGui::Text("Visible Tiles");
+
+    for (int i = 0; i < PlanetGenDataLoader::tileIdVisible.size(); i++)
+    {
+        ImGui::Checkbox(std::to_string(i).c_str(), &(PlanetGenDataLoader::tileIdVisible[i]));
+    }
+
+    ImGui::End();
 
     // window.setTitle("spacebuild - " + std::to_string((int)(1.0f / dt)) + "FPS");
 }
@@ -639,6 +660,7 @@ void Game::handleEventsWindow(sf::Event& event)
 {
     if (event.type == sf::Event::Closed)
     {
+        ImGui::SFML::Shutdown();
         window.close();
         return;
     }
@@ -657,6 +679,9 @@ void Game::handleEventsWindow(sf::Event& event)
             return;
         }
     }
+
+    // ImGui
+    ImGui::SFML::ProcessEvent(window, event);
 }
 
 void Game::attemptUseTool()
@@ -683,21 +708,23 @@ void Game::attemptUseTool()
 
     const ToolData& toolData = ToolDataLoader::getToolData(currentTool);
 
-    Entity* selectedEntity = chunkManager.getSelectedEntity(Cursor::getSelectedChunk(worldSize), mouseWorldPos);
+    Entity* selectedEntity = chunkManager.getSelectedEntity(Cursor::getSelectedChunk(chunkManager.getWorldSize()), mouseWorldPos);
     if (selectedEntity != nullptr)
     {
         selectedEntity->damage(toolData.damage, inventory);
     }
     else
     {
-        bool canDestroyObject = chunkManager.canDestroyObject(Cursor::getSelectedChunk(worldSize),
+        bool canDestroyObject = chunkManager.canDestroyObject(Cursor::getSelectedChunk(chunkManager.getWorldSize()),
                                                         Cursor::getSelectedChunkTile(),
                                                         player.getCollisionRect());
 
         if (!canDestroyObject)
             return;
 
-        std::optional<BuildableObject>& selectedObjectOptional = chunkManager.getChunkObject(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile());
+        std::optional<BuildableObject>& selectedObjectOptional = chunkManager.getChunkObject(Cursor::getSelectedChunk(
+            chunkManager.getWorldSize()), Cursor::getSelectedChunkTile());
+
         if (selectedObjectOptional.has_value())
         {
             BuildableObject& selectedObject = selectedObjectOptional.value();
@@ -746,7 +773,9 @@ void Game::attemptObjectInteract()
     if (!player.canReachPosition(mouseWorldPos))
         return;
     
-    std::optional<BuildableObject>& selectedObjectOptional = chunkManager.getChunkObject(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile());
+    std::optional<BuildableObject>& selectedObjectOptional = chunkManager.getChunkObject(
+        Cursor::getSelectedChunk(chunkManager.getWorldSize()), Cursor::getSelectedChunkTile());
+    
     if (selectedObjectOptional.has_value())
     {
         BuildableObject& selectedObject = selectedObjectOptional.value();
@@ -775,8 +804,8 @@ void Game::attemptObjectInteract()
                 }
 
                 openedChestID = selectedObject.getChestID();
-                openedChest.chunk = selectedObject.getChunkInside(worldSize);
-                openedChest.tile = selectedObject.getChunkTileInside(worldSize);
+                openedChest.chunk = selectedObject.getChunkInside(chunkManager.getWorldSize());
+                openedChest.tile = selectedObject.getChunkTileInside(chunkManager.getWorldSize());
                 openedChestPos = selectedObject.getPosition();
 
                 // Reset chest UI animations as opened new chest
@@ -812,7 +841,7 @@ void Game::attemptBuildObject()
         return;
 
     // bool canAfford = Inventory::canBuildObject(objectType);
-    bool canPlace = chunkManager.canPlaceObject(Cursor::getSelectedChunk(worldSize),
+    bool canPlace = chunkManager.canPlaceObject(Cursor::getSelectedChunk(chunkManager.getWorldSize()),
                                                 Cursor::getSelectedChunkTile(),
                                                 objectType,
                                                 player.getCollisionRect());
@@ -839,7 +868,7 @@ void Game::attemptBuildObject()
         Sounds::playSound(buildSound, 60.0f);
 
         // Build object
-        chunkManager.setObject(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile(), objectType);
+        chunkManager.setObject(Cursor::getSelectedChunk(chunkManager.getWorldSize()), Cursor::getSelectedChunkTile(), objectType);
     }
 }
 
@@ -863,14 +892,14 @@ void Game::attemptPlaceLand()
         }
     }
     
-    if (!chunkManager.canPlaceLand(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile()))
+    if (!chunkManager.canPlaceLand(Cursor::getSelectedChunk(chunkManager.getWorldSize()), Cursor::getSelectedChunkTile()))
         return;
     
     if (!player.canReachPosition(Cursor::getMouseWorldPos(window)))
         return;
     
     // Place land
-    chunkManager.placeLand(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile());
+    chunkManager.placeLand(Cursor::getSelectedChunk(chunkManager.getWorldSize()), Cursor::getSelectedChunkTile());
 
     // Play build sound
     int soundChance = rand() % 2;
@@ -893,7 +922,7 @@ void Game::attemptPlaceLand()
 void Game::drawGhostPlaceObjectAtCursor(ObjectType object)
 {
     // Draw object to be placed if held
-    bool canPlace = chunkManager.canPlaceObject(Cursor::getSelectedChunk(worldSize),
+    bool canPlace = chunkManager.canPlaceObject(Cursor::getSelectedChunk(chunkManager.getWorldSize()),
                                                 Cursor::getSelectedChunkTile(),
                                                 object,
                                                 player.getCollisionRect());
@@ -906,7 +935,7 @@ void Game::drawGhostPlaceObjectAtCursor(ObjectType object)
     
     BuildableObject objectGhost(Cursor::getLerpedSelectPos() + sf::Vector2f(TILE_SIZE_PIXELS_UNSCALED / 2.0f, TILE_SIZE_PIXELS_UNSCALED / 2.0f), object);
 
-    objectGhost.draw(window, spriteBatch, 0.0f, 0, worldSize, drawColor);
+    objectGhost.draw(window, spriteBatch, 0.0f, 0, chunkManager.getWorldSize(), drawColor);
 
     spriteBatch.endDrawing(window);
 }
@@ -917,7 +946,7 @@ void Game::drawGhostPlaceLandAtCursor()
 
     // Change color depending on whether can place land or not
     sf::Color landGhostColor(255, 0, 0, 180);
-    if (chunkManager.canPlaceLand(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile()))
+    if (chunkManager.canPlaceLand(Cursor::getSelectedChunk(chunkManager.getWorldSize()), Cursor::getSelectedChunkTile()))
     {
         landGhostColor = sf::Color(0, 255, 0, 180);
     }
@@ -960,7 +989,7 @@ void Game::drawWorld(float dt, std::vector<WorldObject*>& worldObjects, std::vec
     // Draw objects
     for (WorldObject* worldObject : worldObjects)
     {
-        worldObject->draw(worldTexture, spriteBatch, dt, gameTime, worldSize, {255, 255, 255, 255});
+        worldObject->draw(worldTexture, spriteBatch, dt, gameTime, chunkManager.getWorldSize(), {255, 255, 255, 255});
     }
 
     spriteBatch.endDrawing(worldTexture);

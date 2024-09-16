@@ -144,6 +144,7 @@ public:
     // Misc
     inline int getLoadedChunkCount() {return loadedChunks.size();}
     inline int getGeneratedChunkCount() {return loadedChunks.size() + storedChunks.size();}
+    inline int getWorldSize() {return worldSize;}
 
     // Finds valid spawn position for player i.e. no water
     // Waterless area size checks for chunks +- waterlessAreaSize

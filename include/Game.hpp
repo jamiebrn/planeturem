@@ -1,6 +1,8 @@
 #pragma once
 
 #include <SFML/Graphics.hpp>
+#include <imgui.h>
+#include <imgui-SFML.h>
 #include <steam_api.h>
 
 #include <World/FastNoise.h>
@@ -113,8 +115,6 @@ private:
 
     sf::Clock clock;
     float gameTime;
-
-    int worldSize;
 
     float dayNightToggleTimer;
     float worldDarkness;

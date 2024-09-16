@@ -395,6 +395,9 @@ void Chunk::drawChunkTerrain(sf::RenderTarget& window, float time)
 
     for (auto iter = tileMaps.begin(); iter != tileMaps.end(); ++iter)
     {
+        if (!PlanetGenDataLoader::tileIdVisible[iter->first])
+            continue;
+
         iter->second.draw(window, Camera::worldToScreenTransform(worldPosition), sf::Vector2f(scale, scale));
     }
 
