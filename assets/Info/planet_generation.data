@@ -1,7 +1,7 @@
 {
     "tilemaps": {
         "Grass": [256, 192, 4],
-        "Dark Grass": [32, 192, 2],
+        "Dark Grass": [256, 256, 3],
         "Sand": [32, 64, 2],
         "Rock": [32, 272, 1],
         "Gold": [96, 272, 1]
@@ -23,8 +23,8 @@
                     "name": "Grassland",
                     "tiles": [
                         ["Sand", 0, 0.5, 0.53, false],
-                        ["Grass", 1, 0.53, 0.7],
-                        ["Dark Grass", 2, 0.7, 1]
+                        ["Grass", 3, 0.53, 0.7],
+                        ["Dark Grass", 4, 0.7, 1]
                     ],
                     "objects": [
                         ["Tree", 0.04],
@@ -40,7 +40,7 @@
                 {
                     "name": "Rocky",
                     "tiles": [
-                        ["Rock", 3, 0.5, 1]
+                        ["Rock", 1, 0.5, 1]
                     ],
                     "objects": [
                         ["Rock", 0.05],

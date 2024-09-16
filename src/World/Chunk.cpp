@@ -42,8 +42,9 @@ void Chunk::generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNo
     Chunk* leftChunk = chunkManager.getChunk(ChunkPosition(((chunkPosition.x - 1) % worldSize + worldSize) % worldSize, chunkPosition.y));
     Chunk* rightChunk = chunkManager.getChunk(ChunkPosition(((chunkPosition.x + 1) % worldSize + worldSize) % worldSize, chunkPosition.y));
 
-    std::set<int> tileMapsModified;
+    //std::set<int> tileMapsModified;
 
+    // Store tile types in tile array
     for (int y = 0; y < CHUNK_TILE_SIZE; y++)
     {
         for (int x = 0; x < CHUNK_TILE_SIZE; x++)
@@ -60,6 +61,15 @@ void Chunk::generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNo
             }
 
             groundTileGrid[y][x] = tileType;
+        }
+    }
+
+    // Set tile maps / spawn objects
+    for (int y = 0; y < CHUNK_TILE_SIZE; y++)
+    {
+        for (int x = 0; x < CHUNK_TILE_SIZE; x++)
+        {
+            int tileType = groundTileGrid[y][x];
 
             // Tile is water
             if (tileType == 0)
@@ -68,13 +78,9 @@ void Chunk::generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNo
                 continue;
             }
 
-            if (!tileMaps.contains(tileType))
-            {
-                tileMaps[tileType] = PlanetGenDataLoader::getTileMapFromID(tileGenData->tileID);
-            }
-
-            setTile(tileType, sf::Vector2i(x, y), upChunk, downChunk, leftChunk, rightChunk, false);
-            tileMapsModified.insert(tileType);
+            //setTile(tileType, sf::Vector2i(x, y), upChunk, downChunk, leftChunk, rightChunk, false);
+            chunkManager.setChunkTile(chunkPosition, tileType, sf::Vector2i(x, y));
+            //tileMapsModified.insert(tileType);
 
             ObjectType objectSpawnType = getRandomObjectToSpawnAtWorldTile(sf::Vector2i(worldNoisePosition.x + x, worldNoisePosition.y + y),
                 worldSize, heightNoise, biomeNoise, planetType);
@@ -90,11 +96,11 @@ void Chunk::generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNo
         }
     }
 
-    for (int tileType : tileMapsModified)
-    {
-        tileMaps[tileType].buildVertexArray();
-        chunkManager.updateAdjacentChunkTiles(chunkPosition, tileType);
-    }
+    //for (int tileType : tileMapsModified)
+    //{
+    //    //tileMaps[tileType].buildVertexArray();
+    //    //chunkManager.updateAdjacentChunkTiles(chunkPosition, tileType);
+    //}
 
     // Spawn entities
     int spawnEnemyChance = rand() % 10;
@@ -286,8 +292,10 @@ void Chunk::generateVisualEffectTiles(const FastNoise& heightNoise, const FastNo
 
 void Chunk::setTile(int tileMap, sf::Vector2i position, TileMap* upTiles, TileMap* downTiles, TileMap* leftTiles, TileMap* rightTiles, bool graphicsUpdate)
 {
-    if (tileMaps.count(tileMap) <= 0)
-        return;
+    if (!tileMaps.contains(tileMap))
+    {
+        tileMaps[tileMap] = PlanetGenDataLoader::getTileMapFromID(tileMap);
+    }
 
     // Set tile for tilemap
     if (graphicsUpdate)
@@ -302,8 +310,10 @@ void Chunk::setTile(int tileMap, sf::Vector2i position, TileMap* upTiles, TileMa
 
 void Chunk::setTile(int tileMap, sf::Vector2i position, Chunk* upChunk, Chunk* downChunk, Chunk* leftChunk, Chunk* rightChunk, bool graphicsUpdate)
 {
-    if (tileMaps.count(tileMap) <= 0)
-        return;
+    if (!tileMaps.contains(tileMap))
+    {
+        tileMaps[tileMap] = PlanetGenDataLoader::getTileMapFromID(tileMap);
+    }
     
     TileMap* upTiles = nullptr;
     if (upChunk != nullptr)
@@ -402,10 +412,14 @@ void Chunk::drawChunkTerrain(sf::RenderTarget& window, float time)
 
     // DEBUG CHUNK OUTLINE DRAW
     sf::VertexArray lines(sf::Lines, 8);
-    lines[0].position = Camera::worldToScreenTransform(worldPosition); lines[1].position = Camera::worldToScreenTransform(worldPosition) + sf::Vector2f(tileSize * 8, 0);
-    lines[2].position = Camera::worldToScreenTransform(worldPosition); lines[3].position = Camera::worldToScreenTransform(worldPosition) + sf::Vector2f(0, tileSize * 8);
-    lines[4].position = Camera::worldToScreenTransform(worldPosition) + sf::Vector2f(tileSize * 8, 0); lines[5].position = Camera::worldToScreenTransform(worldPosition) + sf::Vector2f(tileSize * 8, tileSize * 8);
-    lines[6].position = Camera::worldToScreenTransform(worldPosition) + sf::Vector2f(0, tileSize * 8); lines[7].position = Camera::worldToScreenTransform(worldPosition) + sf::Vector2f(tileSize * 8, tileSize * 8);
+    lines[0].position = Camera::worldToScreenTransform(worldPosition);
+    lines[1].position = Camera::worldToScreenTransform(worldPosition + sf::Vector2f(CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED, 0));
+    lines[2].position = Camera::worldToScreenTransform(worldPosition);
+    lines[3].position = Camera::worldToScreenTransform(worldPosition + sf::Vector2f(0, CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED));
+    lines[4].position = Camera::worldToScreenTransform(worldPosition + sf::Vector2f(CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED, 0));
+    lines[5].position = Camera::worldToScreenTransform(worldPosition + sf::Vector2f(CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED, CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED));
+    lines[6].position = Camera::worldToScreenTransform(worldPosition + sf::Vector2f(0, CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED));
+    lines[7].position = Camera::worldToScreenTransform(worldPosition + sf::Vector2f(CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED, CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED));
 
     window.draw(lines);
 

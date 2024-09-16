@@ -14,6 +14,8 @@ TileMap::TileMap(sf::Vector2i offset, int variation)
 
     tilesetOffset = offset;
     this->variation = variation;
+
+    buildVertexArray();
 }
 
 void TileMap::setTilesetOffset(sf::Vector2i offset)
@@ -84,13 +86,18 @@ void TileMap::updateTiles(int xModified, int yModified, TileMap* upTiles, TileMa
                 continue;
             
             updateTileFromAdjacent(x, y, upTiles, downTiles, leftTiles, rightTiles);
+
+            if (rebuildVertices)
+            {
+                refreshVerticiesForTile(x, y);
+            }
         }
     }
 
-    if (!rebuildVertices)
+    /*if (!rebuildVertices)
         return;
 
-    buildVertexArray();
+    buildVertexArray();*/
 }
 
 void TileMap::refreshTile(int x, int y, TileMap* upTiles, TileMap* downTiles, TileMap* leftTiles, TileMap* rightTiles)
@@ -147,6 +154,11 @@ void TileMap::refreshVerticiesForTile(int x, int y)
     tileVertexArray[vertexIndex + 1].texCoords = {static_cast<float>(tilesetOffset.x) + textureOffset.x + 16, static_cast<float>(tilesetOffset.y) + textureOffset.y + 0};
     tileVertexArray[vertexIndex + 3].texCoords = {static_cast<float>(tilesetOffset.x) + textureOffset.x + 0, static_cast<float>(tilesetOffset.y) + textureOffset.y + 16};
     tileVertexArray[vertexIndex + 2].texCoords = {static_cast<float>(tilesetOffset.x) + textureOffset.x + 16, static_cast<float>(tilesetOffset.y) + textureOffset.y + 16};
+
+    for (int i = 0; i < 4; i++)
+    {
+        tileVertexArray[vertexIndex + i].color = sf::Color(255, 255, 255, 255);
+    }
 }
 
 void TileMap::updateAllTiles(TileMap* upTiles, TileMap* downTiles, TileMap* leftTiles, TileMap* rightTiles)

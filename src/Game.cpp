@@ -26,8 +26,8 @@ bool Game::initialise()
     window.create(sf::VideoMode(videoMode.width, videoMode.height), "spacebuild", sf::Style::None);
 
     // Enable VSync and frame limit
-    //window.setFramerateLimit(165);
-    //window.setVerticalSyncEnabled(true);
+    window.setFramerateLimit(165);
+    window.setVerticalSyncEnabled(true);
 
     // Hide mouse cursor
     window.setMouseCursorVisible(false);

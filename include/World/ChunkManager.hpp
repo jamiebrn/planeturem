@@ -51,21 +51,20 @@ public:
     // Chunk can be in loaded chunks or stored chunks
     Chunk* getChunk(ChunkPosition chunk);
 
+    // Whether chunk has been generated: stored or loaded
+    bool isChunkGenerated(ChunkPosition chunk) const;
+
+
     // -- Tilemap -- //
     TileMap* getChunkTileMap(ChunkPosition chunk, int tileMap);
 
     void setChunkTile(ChunkPosition chunk, int tileMap, sf::Vector2i position);
 
+    // Sets tilemap tiles for the current tile for background, depending on adjacent tiles
+    // Also sets adjacent tilemap tiles to have backing for the current tile
+    void setBackgroundAdjacentTilesForTile(ChunkPosition chunk, int tileMap, sf::Vector2i position);
+
     void updateAdjacentChunkTiles(ChunkPosition chunk, int tileMap);
-
-
-    // -- Objects -- //
-    // Update objects in all chunks
-    void updateChunksObjects(float dt);
-
-    // Get object at certain world position
-    // Returns actual object if object reference is at position requested
-    std::optional<BuildableObject>& getChunkObject(ChunkPosition chunk, sf::Vector2i tile);
 
     // Get tile type from loaded chunks (used in object placement/collisions)
     int getLoadedChunkTileType(ChunkPosition chunk, sf::Vector2i tile) const;
@@ -77,8 +76,14 @@ public:
     // Falls back to generation prediction if chunk has not yet been generated
     int getChunkTileTypeOrPredicted(ChunkPosition chunk, sf::Vector2i tile);
 
-    // Whether chunk has been generated: stored or loaded
-    bool isChunkGenerated(ChunkPosition chunk) const;
+
+    // -- Objects -- //
+    // Update objects in all chunks
+    void updateChunksObjects(float dt);
+
+    // Get object at certain world position
+    // Returns actual object if object reference is at position requested
+    std::optional<BuildableObject>& getChunkObject(ChunkPosition chunk, sf::Vector2i tile);
 
     // Sets object in chunk at tile
     // Places object references if required
