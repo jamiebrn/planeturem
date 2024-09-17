@@ -122,14 +122,16 @@ void Sounds::playMusic(MusicType type, float volume)
         return;
     
     // Stop all music tracks
-    for (auto& music : musicMap)
+    if (currentlyPlayingMusic.has_value())
     {
-        music.second->stop();
+        musicMap[currentlyPlayingMusic.value()]->stop();
     }
 
     sf::Music* music = musicMap.at(type).get();
 
-    music->setVolume(volume);
+    currentlyPlayingMusic = type;
+
+    music->setVolume(volume * musicVolume / 100.0f);
     
     // Play music track from map
     music->play();
@@ -144,6 +146,8 @@ void Sounds::stopMusic(MusicType type)
     
     // Stop music track from map
     musicMap.at(type)->stop();
+
+    currentlyPlayingMusic = std::nullopt;
 }
 
 bool Sounds::isMusicFinished(MusicType type)
@@ -154,4 +158,19 @@ bool Sounds::isMusicFinished(MusicType type)
     sf::Music* music = musicMap.at(type).get();
 
     return (music->getStatus() == sf::Sound::Stopped);
+}
+
+int Sounds::getMusicVolume()
+{
+    return musicVolume;
+}
+
+void Sounds::setMusicVolume(int volume)
+{
+    musicVolume = volume;
+
+    if (currentlyPlayingMusic.has_value())
+    {
+        musicMap[currentlyPlayingMusic.value()]->setVolume(musicVolume);
+    }
 }

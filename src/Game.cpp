@@ -224,7 +224,7 @@ void Game::generateWaterNoiseTexture()
     waterShader->setUniform("noiseTwo", waterNoiseTextures[1]);
 
     // Set water color (blue)
-    waterShader->setUniform("waterColor", sf::Glsl::Vec4(77 / 255.0f, 155 / 255.0f, 230 / 255.0f, 1.0f));
+    // waterShader->setUniform("waterColor", sf::Glsl::Vec4(77 / 255.0f, 155 / 255.0f, 230 / 255.0f, 1.0f));
 }
 
 void Game::giveStartingInventory()
@@ -616,6 +616,12 @@ void Game::runOnPlanet(float dt)
     {
         ImGui::Begin("Debug Options", &DebugOptions::debugOptionsMenuOpen);
 
+        int musicVolume = Sounds::getMusicVolume();
+        if (ImGui::SliderInt("Music Volume", &musicVolume, 0, 100))
+        {
+            Sounds::setMusicVolume(musicVolume);
+        }
+
         ImGui::Checkbox("Show Collision Boxes", &DebugOptions::drawCollisionRects);
         ImGui::Checkbox("Show Chunk Boundaries", &DebugOptions::drawChunkBoundaries);
         ImGui::Checkbox("Show Entity Chunk Parents", &DebugOptions::drawEntityChunkParents);
@@ -668,8 +674,8 @@ void Game::handleEventsWindow(sf::Event& event)
 {
     if (event.type == sf::Event::Closed)
     {
-        ImGui::SFML::Shutdown();
         window.close();
+        ImGui::SFML::Shutdown();
         return;
     }
 

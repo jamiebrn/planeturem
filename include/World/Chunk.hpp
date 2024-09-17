@@ -148,6 +148,8 @@ public:
 
     static ObjectType getRandomObjectToSpawnAtWorldTile(sf::Vector2i worldTile, int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType);
 
+    static EntityType getRandomEntityToSpawnAtWorldTile(sf::Vector2i worldTile, int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType);
+
 private:
     // 0 reserved for water / no tile
     std::array<std::array<uint16_t, 8>, 8> groundTileGrid;

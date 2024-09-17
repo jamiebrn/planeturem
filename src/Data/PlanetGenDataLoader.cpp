@@ -133,10 +133,7 @@ bool PlanetGenDataLoader::loadPlanet(nlohmann::ordered_json::iterator& planetDat
                 EntityGenData entityGenData;
 
                 entityGenData.entity = EntityDataLoader::getEntityTypeFromName(entityIter.value()[0]);
-
-                entityGenData.spawnCountLow = entityIter.value()[1];
-                entityGenData.spawnCountHigh = entityIter.value()[2];
-                entityGenData.spawnChance = entityIter.value()[3];
+                entityGenData.spawnChance = entityIter.value()[1];
 
                 biomeGenData.entityGenDatas.push_back(entityGenData);
             }

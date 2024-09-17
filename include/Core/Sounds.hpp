@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <string>
 #include <memory>
+#include <optional>
 
 // Enum containing all sound effects
 enum class SoundType
@@ -47,10 +48,16 @@ public:
 
     static bool isMusicFinished(MusicType type);
 
+    static int getMusicVolume();
+    static void setMusicVolume(int volume);
+
 // Private member variables
 private:
     // Variable keeping track of whether sounds are loaded into memory
     inline static bool loadedSounds = false;
+
+    inline static int musicVolume = 100.0f;
+    inline static std::optional<MusicType> currentlyPlayingMusic = std::nullopt;
 
     // Map storing buffers, which store sound effect data
     inline static std::unordered_map<SoundType, sf::SoundBuffer> soundBufferMap;

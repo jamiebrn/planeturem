@@ -33,8 +33,6 @@ struct ObjectGenData
 struct EntityGenData
 {
     EntityType entity;
-    int spawnCountLow;
-    int spawnCountHigh;
     float spawnChance;
 };
 

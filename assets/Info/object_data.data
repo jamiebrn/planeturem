@@ -197,7 +197,7 @@
     {
         "name": "Cactus",
         "health": 5,
-        "textures": [[63, 106]],
+        "textures": [[63, 96]],
         "texture-width": 18,
         "texture-height": 21,
         "texture-x-origin": 0.5,

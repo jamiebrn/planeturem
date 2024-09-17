@@ -22,6 +22,12 @@ void ChunkManager::setWorldSize(int size)
 void ChunkManager::setPlanetType(PlanetType planetType)
 {
     this->planetType = planetType;
+
+    const PlanetGenData& planetGenData = PlanetGenDataLoader::genPlanetGenData(planetType);
+
+    // Set water colour
+    sf::Shader* waterShader = Shaders::getShader(ShaderType::Water);
+    waterShader->setUniform("waterColor", sf::Glsl::Vec4(planetGenData.waterColour));
 }
 
 void ChunkManager::updateChunks()
