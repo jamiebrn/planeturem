@@ -42,7 +42,7 @@ void Chunk::generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNo
     Chunk* leftChunk = chunkManager.getChunk(ChunkPosition(((chunkPosition.x - 1) % worldSize + worldSize) % worldSize, chunkPosition.y));
     Chunk* rightChunk = chunkManager.getChunk(ChunkPosition(((chunkPosition.x + 1) % worldSize + worldSize) % worldSize, chunkPosition.y));
 
-    //std::set<int> tileMapsModified;
+    std::set<int> tileMapsModified;
 
     // Store tile types in tile array
     for (int y = 0; y < CHUNK_TILE_SIZE; y++)
@@ -78,9 +78,9 @@ void Chunk::generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNo
                 continue;
             }
 
-            //setTile(tileType, sf::Vector2i(x, y), upChunk, downChunk, leftChunk, rightChunk, false);
-            chunkManager.setChunkTile(chunkPosition, tileType, sf::Vector2i(x, y));
-            //tileMapsModified.insert(tileType);
+            // Set tile without graphics update
+            std::set<int> additional_tileMapsModified = chunkManager.setChunkTile(chunkPosition, tileType, sf::Vector2i(x, y), false);
+            tileMapsModified.insert(additional_tileMapsModified.begin(), additional_tileMapsModified.end());
 
             ObjectType objectSpawnType = getRandomObjectToSpawnAtWorldTile(sf::Vector2i(worldNoisePosition.x + x, worldNoisePosition.y + y),
                 worldSize, heightNoise, biomeNoise, planetType);
@@ -96,11 +96,10 @@ void Chunk::generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNo
         }
     }
 
-    //for (int tileType : tileMapsModified)
-    //{
-    //    //tileMaps[tileType].buildVertexArray();
-    //    //chunkManager.updateAdjacentChunkTiles(chunkPosition, tileType);
-    //}
+    for (int tileType : tileMapsModified)
+    {
+       chunkManager.performChunkSetTileUpdate(chunkPosition, tileMapsModified);
+    }
 
     // Spawn entities
     int spawnEnemyChance = rand() % 10;

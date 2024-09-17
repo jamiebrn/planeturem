@@ -4,6 +4,7 @@
 #include <memory>
 #include <vector>
 #include <optional>
+#include <set>
 
 #include <World/FastNoise.h>
 
@@ -58,13 +59,27 @@ public:
     // -- Tilemap -- //
     TileMap* getChunkTileMap(ChunkPosition chunk, int tileMap);
 
-    void setChunkTile(ChunkPosition chunk, int tileMap, sf::Vector2i position);
+    // Returns tilemaps which have been modified
+    // IF GRAPHIC UPDATE IS DISABLED, ENSURE TO CALL performChunkSetTileUpdate AFTER
+    std::set<int> setChunkTile(ChunkPosition chunk, int tileMap, sf::Vector2i position, bool tileGraphicUpdate = true);
 
     // Sets tilemap tiles for the current tile for background, depending on adjacent tiles
     // Also sets adjacent tilemap tiles to have backing for the current tile
-    void setBackgroundAdjacentTilesForTile(ChunkPosition chunk, int tileMap, sf::Vector2i position);
+    // Returns set of tilemaps modified
+    std::set<int> setBackgroundAdjacentTilesForTile(ChunkPosition chunk, int tileMap, sf::Vector2i position);
 
+    // Updates chunks edge tiles, adjacent to a chunk
     void updateAdjacentChunkTiles(ChunkPosition chunk, int tileMap);
+
+    // Updates chunk edge tiles adjacent to chunk, for each 4 adjacent chunks to a centre chunk
+    // Does not update centre chunk
+    // DO NOT CONFUSE WITH updateAdjacentChunkTiles
+    void updateAdjacentChunkAdjacentChunkTiles(ChunkPosition centreChunk, int tileMap);
+
+    // Called after setting a tile
+    // Must be called if graphic update is disabled when setting tiles
+    // Useful when placing many tiles, e.g. generating a chunk
+    void performChunkSetTileUpdate(ChunkPosition chunk, std::set<int> tileMapsModified);
 
     // Get tile type from loaded chunks (used in object placement/collisions)
     int getLoadedChunkTileType(ChunkPosition chunk, sf::Vector2i tile) const;

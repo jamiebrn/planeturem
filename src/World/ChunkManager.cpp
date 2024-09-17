@@ -206,10 +206,10 @@ TileMap* ChunkManager::getChunkTileMap(ChunkPosition chunk, int tileMap)
     return loadedChunks.at(chunk)->getTileMap(tileMap);
 }
 
-void ChunkManager::setChunkTile(ChunkPosition chunk, int tileMap, sf::Vector2i position)
+std::set<int> ChunkManager::setChunkTile(ChunkPosition chunk, int tileMap, sf::Vector2i position, bool tileGraphicUpdate)
 {
     if (!isChunkGenerated(chunk))
-        return;
+        return {};
 
     TileMap* upTiles = getChunkTileMap(ChunkPosition(chunk.x, ((chunk.y - 1) % worldSize + worldSize) % worldSize), tileMap);
     TileMap* downTiles = getChunkTileMap(ChunkPosition(chunk.x, ((chunk.y + 1) % worldSize + worldSize) % worldSize), tileMap);
@@ -219,12 +219,17 @@ void ChunkManager::setChunkTile(ChunkPosition chunk, int tileMap, sf::Vector2i p
     // Update chunk tile
     getChunk(chunk)->setTile(tileMap, position, upTiles, downTiles, leftTiles, rightTiles);
 
-    setBackgroundAdjacentTilesForTile(chunk, tileMap, position);
+    std::set<int> tileMapsModified = setBackgroundAdjacentTilesForTile(chunk, tileMap, position);
 
-    updateAdjacentChunkTiles(chunk, tileMap);
+    if (tileGraphicUpdate)
+    {
+        performChunkSetTileUpdate(chunk, tileMapsModified);   
+    }
+    
+    return tileMapsModified;
 }
 
-void ChunkManager::setBackgroundAdjacentTilesForTile(ChunkPosition chunk, int tileMap, sf::Vector2i position)
+std::set<int> ChunkManager::setBackgroundAdjacentTilesForTile(ChunkPosition chunk, int tileMap, sf::Vector2i position)
 {
     // Update surrounding tiles for "underneath" tile placements
     std::pair<ChunkPosition, sf::Vector2i> chunkTileOffsets[4] = {
@@ -238,6 +243,8 @@ void ChunkManager::setBackgroundAdjacentTilesForTile(ChunkPosition chunk, int ti
     TileMap* downTiles = getChunkTileMap(ChunkPosition(chunk.x, ((chunk.y + 1) % worldSize + worldSize) % worldSize), tileMap);
     TileMap* leftTiles = getChunkTileMap(ChunkPosition(((chunk.x - 1) % worldSize + worldSize) % worldSize, chunk.y), tileMap);
     TileMap* rightTiles = getChunkTileMap(ChunkPosition(((chunk.x + 1) % worldSize + worldSize) % worldSize, chunk.y), tileMap);
+
+    std::set<int> tileMapsModified = {tileMap};
 
     for (int i = 0; i < 4; i++)
     {
@@ -256,7 +263,7 @@ void ChunkManager::setBackgroundAdjacentTilesForTile(ChunkPosition chunk, int ti
         TileMap* leftTilesAdjacent = getChunkTileMap(ChunkPosition(((chunkTileOffsets[i].first.x - 1) % worldSize + worldSize) % worldSize, chunkTileOffsets[i].first.y), tileMap);
         TileMap* rightTilesAdjacent = getChunkTileMap(ChunkPosition(((chunkTileOffsets[i].first.x + 1) % worldSize + worldSize) % worldSize, chunkTileOffsets[i].first.y), tileMap);
 
-        // If adjacent tile type is higher / greater than tile updating for, tile must be set underneath adjacent tile
+        // If adjacent tile type is higher / greater than tile updating for, tile must be set underneath adjacent tilewdasd
         if (adjacentTileType > tileMap)
         {
             getChunk(chunkTileOffsets[i].first)->setTile(tileMap, chunkTileOffsets[i].second, upTilesAdjacent, downTilesAdjacent, leftTilesAdjacent, rightTilesAdjacent);
@@ -264,15 +271,12 @@ void ChunkManager::setBackgroundAdjacentTilesForTile(ChunkPosition chunk, int ti
         else if (adjacentTileType < tileMap)
         {
             // Adjacent tile is lower / smaller than tile updating for, so must be set underneath the original tile
-            getChunk(chunk)->setTile(tileMap, position, upTiles, downTiles, leftTiles, rightTiles);
-        }
-
-        // Update chunk adjacent tilemaps if tile has been placed and chunk is not centre chunk
-        if (adjacentTileType != tileMap && chunkTileOffsets[i].first != chunk)
-        {
-            updateAdjacentChunkTiles(chunkTileOffsets[i].first, tileMap);
+            getChunk(chunk)->setTile(adjacentTileType, position, upTiles, downTiles, leftTiles, rightTiles);
+            tileMapsModified.insert(adjacentTileType);
         }
     }
+
+    return tileMapsModified;
 }
 
 void ChunkManager::updateAdjacentChunkTiles(ChunkPosition chunk, int tileMap)
@@ -306,35 +310,45 @@ void ChunkManager::updateAdjacentChunkTiles(ChunkPosition chunk, int tileMap)
             TileMap* rightTiles = getChunkTileMap(ChunkPosition(((chunkX + 1) % worldSize + worldSize) % worldSize, wrappedChunk.y), tileMap);
 
             chunkPtr->updateTileMap(tileMap, x, y, upTiles, downTiles, leftTiles, rightTiles);
-
-            /*if (x != 0)
-            {
-                int xCheck = 0;
-                if (x < 0)
-                {
-                    xCheck = CHUNK_TILE_SIZE - 1;
-                }
-
-                for (int yScan = 0; yScan < CHUNK_TILE_SIZE; yScan++)
-                {
-                    setBackgroundAdjacentTilesForTile(wrappedChunk, tileMap, sf::Vector2i(xCheck, yScan));
-                }
-            }
-
-            if (y != 0)
-            {
-                int yCheck = 0;
-                if (y < 0)
-                {
-                    yCheck = CHUNK_TILE_SIZE - 1;
-                }
-
-                for (int xScan = 0; xScan < CHUNK_TILE_SIZE; xScan++)
-                {
-                    setBackgroundAdjacentTilesForTile(wrappedChunk, tileMap, sf::Vector2i(xScan, yCheck));
-                }
-            }*/
         }
+    }
+}
+
+void ChunkManager::updateAdjacentChunkAdjacentChunkTiles(ChunkPosition centreChunk, int tileMap)
+{
+    // Update adjacent chunk's adjacent chunks tilemaps
+    for (int y = -1; y <= 1; y++)
+    {
+        for (int x = -1; x <= 1; x++)
+        {
+            // Skip corner chunks
+            if ((y == -1 || y == 1) && (x == -1 || x == 1))
+                continue;
+
+            int chunkX = centreChunk.x + x;
+            int chunkY = centreChunk.y + y;
+
+            if (centreChunk == ChunkPosition(chunkX, chunkY))
+                continue;
+            
+            ChunkPosition wrappedChunk;
+            wrappedChunk.x = (chunkX % worldSize + worldSize) % worldSize;
+            wrappedChunk.y = (chunkY % worldSize + worldSize) % worldSize;
+
+            if (!isChunkGenerated(wrappedChunk))
+                continue;
+            
+            updateAdjacentChunkTiles(wrappedChunk, tileMap);
+        }
+    }
+}
+
+void ChunkManager::performChunkSetTileUpdate(ChunkPosition chunk, std::set<int> tileMapsModified)
+{
+    for (int tileMapModified : tileMapsModified)
+    {
+        updateAdjacentChunkTiles(chunk, tileMapModified);
+        updateAdjacentChunkAdjacentChunkTiles(chunk, tileMapModified);
     }
 }
 
