@@ -30,6 +30,7 @@
 #include "Data/PlanetGenDataLoader.hpp"
 
 #include "GameConstants.hpp"
+#include "DebugOptions.hpp"
 
 // Forward declaration
 class ChunkManager;

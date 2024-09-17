@@ -612,15 +612,23 @@ void Game::runOnPlanet(float dt)
     drawMouseCursor();
 
     // DEBUG
-    ImGui::Begin("Options");
-    ImGui::Text("Visible Tiles");
-
-    for (int i = 0; i < PlanetGenDataLoader::tileIdVisible.size(); i++)
+    if (DebugOptions::debugOptionsMenuOpen)
     {
-        ImGui::Checkbox(std::to_string(i).c_str(), &(PlanetGenDataLoader::tileIdVisible[i]));
-    }
+        ImGui::Begin("Debug Options", &DebugOptions::debugOptionsMenuOpen);
 
-    ImGui::End();
+        ImGui::Checkbox("Show Collision Boxes", &DebugOptions::drawCollisionRects);
+        ImGui::Checkbox("Show Chunk Boundaries", &DebugOptions::drawChunkBoundaries);
+        ImGui::Checkbox("Show Entity Chunk Parents", &DebugOptions::drawEntityChunkParents);
+
+        ImGui::Text("Visible Tiles");
+
+        for (auto iter = DebugOptions::tileMapsVisible.begin(); iter != DebugOptions::tileMapsVisible.end(); iter++)
+        {
+            ImGui::Checkbox(std::to_string(iter->first).c_str(), &(DebugOptions::tileMapsVisible[iter->first]));
+        }
+
+        ImGui::End();
+    }
 
     // window.setTitle("spacebuild - " + std::to_string((int)(1.0f / dt)) + "FPS");
 }
@@ -676,6 +684,12 @@ void Game::handleEventsWindow(sf::Event& event)
         if (event.key.code == sf::Keyboard::F11)
         {
             toggleFullScreen();
+            return;
+        }
+
+        if (event.key.code == sf::Keyboard::F1)
+        {
+            DebugOptions::debugOptionsMenuOpen = !DebugOptions::debugOptionsMenuOpen;
             return;
         }
     }

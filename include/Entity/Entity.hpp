@@ -16,6 +16,8 @@
 #include "Data/ItemData.hpp"
 #include "Player/InventoryData.hpp"
 
+#include "DebugOptions.hpp"
+
 class ChunkManager;
 
 class Entity : public WorldObject

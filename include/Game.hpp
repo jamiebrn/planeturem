@@ -52,6 +52,8 @@
 #include "GUI/InventoryGUI.hpp"
 #include "GUI/FurnaceGUI.hpp"
 
+#include "DebugOptions.hpp"
+
 class Game
 {
 public:

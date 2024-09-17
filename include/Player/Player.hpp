@@ -19,6 +19,7 @@
 #include "Data/ToolDataLoader.hpp"
 
 #include "GameConstants.hpp"
+#include "DebugOptions.hpp"
 
 class Player : public WorldObject
 {

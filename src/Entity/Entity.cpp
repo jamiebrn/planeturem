@@ -88,9 +88,10 @@ void Entity::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, 
         scale, entityData.textureOrigin, color}, textureRect, shader);
 
     // DEBUG
-    #if DEBUG_DRAW
-    collisionRect.debugDraw(window);
-    #endif
+    if (DebugOptions::drawCollisionRects)
+    {
+        collisionRect.debugDraw(window);
+    }
 }
 
 void Entity::drawLightMask(sf::RenderTarget& lightTexture)

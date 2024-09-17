@@ -394,43 +394,49 @@ void Chunk::drawChunkTerrain(sf::RenderTarget& window, float time)
 
     for (auto iter = tileMaps.begin(); iter != tileMaps.end(); ++iter)
     {
-        if (!PlanetGenDataLoader::tileIdVisible[iter->first])
+        if (!DebugOptions::tileMapsVisible[iter->first])
             continue;
 
         iter->second.draw(window, Camera::worldToScreenTransform(worldPosition), sf::Vector2f(scale, scale));
     }
 
 
-    // DEBUG
-    #if DEBUG_DRAW
     // DEBUG DRAW LINE TO ENTITIES
-    for (auto& entity : entities)
+    if (DebugOptions::drawEntityChunkParents)
     {
-        sf::VertexArray lines(sf::Lines, 2);
-        lines[0].position = Camera::worldToScreenTransform(worldPosition);
-        lines[1].position = Camera::worldToScreenTransform(entity->getPosition());
-        window.draw(lines);
+        for (auto& entity : entities)
+        {
+            sf::VertexArray lines(sf::Lines, 2);
+            lines[0].position = Camera::worldToScreenTransform(worldPosition);
+            lines[1].position = Camera::worldToScreenTransform(entity->getPosition());
+            window.draw(lines);
+        }
     }
 
     // DEBUG CHUNK OUTLINE DRAW
-    sf::VertexArray lines(sf::Lines, 8);
-    lines[0].position = Camera::worldToScreenTransform(worldPosition);
-    lines[1].position = Camera::worldToScreenTransform(worldPosition + sf::Vector2f(CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED, 0));
-    lines[2].position = Camera::worldToScreenTransform(worldPosition);
-    lines[3].position = Camera::worldToScreenTransform(worldPosition + sf::Vector2f(0, CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED));
-    lines[4].position = Camera::worldToScreenTransform(worldPosition + sf::Vector2f(CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED, 0));
-    lines[5].position = Camera::worldToScreenTransform(worldPosition + sf::Vector2f(CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED, CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED));
-    lines[6].position = Camera::worldToScreenTransform(worldPosition + sf::Vector2f(0, CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED));
-    lines[7].position = Camera::worldToScreenTransform(worldPosition + sf::Vector2f(CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED, CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED));
-
-    window.draw(lines);
+    if (DebugOptions::drawChunkBoundaries)
+    {
+        sf::VertexArray lines(sf::Lines, 8);
+        lines[0].position = Camera::worldToScreenTransform(worldPosition);
+        lines[1].position = Camera::worldToScreenTransform(worldPosition + sf::Vector2f(CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED, 0));
+        lines[2].position = Camera::worldToScreenTransform(worldPosition);
+        lines[3].position = Camera::worldToScreenTransform(worldPosition + sf::Vector2f(0, CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED));
+        lines[4].position = Camera::worldToScreenTransform(worldPosition + sf::Vector2f(CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED, 0));
+        lines[5].position = Camera::worldToScreenTransform(worldPosition + sf::Vector2f(CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED, CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED));
+        lines[6].position = Camera::worldToScreenTransform(worldPosition + sf::Vector2f(0, CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED));
+        lines[7].position = Camera::worldToScreenTransform(worldPosition + sf::Vector2f(CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED, CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED));
+        
+        window.draw(lines);
+    }
 
     // DRAW COLLISIONS
-    for (auto& collisionRect : collisionRects)
+    if (DebugOptions::drawCollisionRects)
     {
-        collisionRect->debugDraw(window);
+        for (auto& collisionRect : collisionRects)
+        {
+            collisionRect->debugDraw(window);
+        }
     }
-    #endif
 }
 
 void Chunk::drawChunkTerrainVisual(sf::RenderTarget& window, SpriteBatch& spriteBatch, float time)

@@ -6,8 +6,6 @@ std::unordered_map<std::string, PlanetType> PlanetGenDataLoader::planetStringToT
 
 std::unordered_map<int, TileMap> PlanetGenDataLoader::tileIdToTileMap;
 
-std::unordered_map<int, bool> PlanetGenDataLoader::tileIdVisible;
-
 bool PlanetGenDataLoader::loadData(std::string planetGenDataPath)
 {
     std::ifstream file(planetGenDataPath);
@@ -105,7 +103,7 @@ bool PlanetGenDataLoader::loadPlanet(nlohmann::ordered_json::iterator& planetDat
             if (tileIdToTileMap.count(tileGenData.tileID) == 0)
             {
                 tileIdToTileMap[tileGenData.tileID] = TileMap(tileGenData.tileMap.textureOffset, tileGenData.tileMap.variation);
-                tileIdVisible[tileGenData.tileID] = true;
+                DebugOptions::tileMapsVisible[tileGenData.tileID] = true;
             }
 
             biomeGenData.tileGenDatas.push_back(tileGenData);

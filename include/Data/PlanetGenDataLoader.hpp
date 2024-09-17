@@ -13,6 +13,8 @@
 #include "Data/EntityDataLoader.hpp"
 #include "World/TileMap.hpp"
 
+#include "DebugOptions.hpp"
+
 class PlanetGenDataLoader
 {
     PlanetGenDataLoader() = delete;
@@ -25,8 +27,6 @@ public:
     static PlanetType getPlanetTypeFromName(const std::string& planetName);
 
     static TileMap getTileMapFromID(int tileID);
-    
-    static std::unordered_map<int, bool> tileIdVisible;
 
 private:
     static bool loadPlanet(nlohmann::ordered_json::iterator& planetData, const nlohmann::ordered_json& allPlanetGenData);
