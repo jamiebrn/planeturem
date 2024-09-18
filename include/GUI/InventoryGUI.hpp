@@ -41,6 +41,12 @@ struct ItemInfoString
     std::optional<ItemCount> itemCount = std::nullopt;
 };
 
+struct ItemPopup
+{
+    ItemCount itemCount;
+    float timeAlive = 0;
+};
+
 class InventoryGUI
 {
     InventoryGUI() = delete;
@@ -84,7 +90,7 @@ public:
 
     static bool heldItemPlacesLand();
 
-    static void draw(sf::RenderWindow& window, float gameTime, sf::Vector2f mouseScreenPos, InventoryData& inventory, InventoryData* chestData = nullptr);
+    static void draw(sf::RenderTarget& window, float gameTime, sf::Vector2f mouseScreenPos, InventoryData& inventory, InventoryData* chestData = nullptr);
 
     static inline const std::vector<int>& getAvailableRecipes() {return availableRecipes;}
 
@@ -103,11 +109,18 @@ public:
     static void placeHotbarObject(InventoryData& inventory);
 
     // Hotbar drawn when not in inventory
-    static void drawHotbar(sf::RenderWindow& window, sf::Vector2f mouseScreenPos, InventoryData& inventory);
+    static void drawHotbar(sf::RenderTarget& window, sf::Vector2f mouseScreenPos, InventoryData& inventory);
 
     // -- Chest -- //
     static void chestOpened(InventoryData* chestData);
     static void chestClosed();
+
+    // -- Popups -- //
+    static void updateItemPopups(float dt);
+
+    static void pushItemPopup(const ItemCount& itemCount);
+
+    static void drawItemPopups(sf::RenderTarget& window);
 
     // -- Misc -- //
     static bool canQuickTransfer(sf::Vector2f mouseScreenPos, bool shiftMode, InventoryData& inventory, InventoryData* chestData);
@@ -135,11 +148,11 @@ private:
     // Attempt to craft recipe selected
     static void craftSelectedRecipe(InventoryData& inventory);
 
-    static void drawItemInfoBox(sf::RenderWindow& window, float gameTime, int itemIndex, InventoryData& inventory, sf::Vector2f mouseScreenPos);
-    static void drawItemInfoBoxRecipe(sf::RenderWindow& window, float gameTime, int recipeIdx, sf::Vector2f mouseScreenPos);
+    static void drawItemInfoBox(sf::RenderTarget& window, float gameTime, int itemIndex, InventoryData& inventory, sf::Vector2f mouseScreenPos);
+    static void drawItemInfoBoxRecipe(sf::RenderTarget& window, float gameTime, int recipeIdx, sf::Vector2f mouseScreenPos);
 
     // Returns size of drawn info box
-    static sf::Vector2f drawInfoBox(sf::RenderWindow& window, sf::Vector2f position, const std::vector<ItemInfoString>& infoStrings);
+    static sf::Vector2f drawInfoBox(sf::RenderTarget& window, sf::Vector2f position, const std::vector<ItemInfoString>& infoStrings, int alpha = 255);
 
     // Position refers to top left of item box
     // static void drawItemBox(sf::RenderWindow& window,
@@ -186,6 +199,12 @@ private:
 
     // Chest 
     static constexpr int CHEST_BOX_PER_ROW = 6;
+
+    // Item pop-up
+    static std::vector<ItemPopup> itemPopups;
+    static constexpr float POPUP_LIFETIME = 7.0f;
+    static constexpr float POPUP_FADE_TIME = 0.8f;
+    static constexpr int POPUP_MAX_COUNT = 5;
 
     // Animation
     static AnimatedTexture binAnimation;

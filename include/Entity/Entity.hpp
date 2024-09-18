@@ -16,6 +16,8 @@
 #include "Data/ItemData.hpp"
 #include "Player/InventoryData.hpp"
 
+#include "GUI/InventoryGUI.hpp"
+
 #include "DebugOptions.hpp"
 
 class ChunkManager;

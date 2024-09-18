@@ -5,7 +5,6 @@
 // FIX: unknown divide by zero error
 
 // PRIORITY: HIGH
-// TODO: Biomes (desert/oasis, rock etc)
 // TODO: Different types of tools? (fishing rod etc)
 
 // PRIORITY: LOW
@@ -510,6 +509,9 @@ void Game::runOnPlanet(float dt)
     // Close chest if out of range
     checkChestOpenInRange();
 
+    // Inventory GUI updating
+    InventoryGUI::updateItemPopups(dt);
+
     if (worldMenuState == WorldMenuState::Main)
     {
         InventoryGUI::updateHotbar(dt, mouseScreenPos);
@@ -565,48 +567,12 @@ void Game::runOnPlanet(float dt)
     {
         case WorldMenuState::Main:
             InventoryGUI::drawHotbar(window, mouseScreenPos, inventory);
+            InventoryGUI::drawItemPopups(window);
             break;
         
         case WorldMenuState::Inventory:
             InventoryGUI::draw(window, gameTime, mouseScreenPos, inventory, chestDataPool.getChestDataPtr(openedChestID));
             break;
-    }
-
-    // Debug info
-    {
-        float intScale = static_cast<float>(ResolutionHandler::getResolutionIntegerScale());
-
-        std::vector<std::string> debugStrings = {
-            GAME_VERSION,
-            std::to_string(static_cast<int>(1.0f / dt)) + "FPS",
-            std::to_string(chunkManager.getLoadedChunkCount()) + " Chunks loaded",
-            std::to_string(chunkManager.getGeneratedChunkCount()) + " Chunks generated",
-            "Player pos: " + std::to_string(static_cast<int>(player.getPosition().x)) + ", " + std::to_string(static_cast<int>(player.getPosition().y))
-        };
-
-/*
-        for (const auto& craftingStationLevel : nearbyCraftingStationLevels)
-        {
-            debugStrings.push_back(craftingStationLevel.first + " level " + std::to_string(craftingStationLevel.second));
-        }
-
-        for (int recipeIdx : InventoryGUI::getAvailableRecipes())
-        {
-            ItemType itemType = RecipeDataLoader::getRecipeData()[recipeIdx].product;
-            const std::string& itemName = ItemDataLoader::getItemData(itemType).name;
-
-            debugStrings.push_back("can craft " + itemName);
-        }
-*/
-
-        int yPos = ResolutionHandler::getResolution().y - debugStrings.size() * 20 * intScale - 10 * intScale;
-        int yIncrement = 20 * intScale;
-
-        for (const std::string& string : debugStrings)
-        {
-            TextDraw::drawText(window, {string, sf::Vector2f(10 * intScale, yPos), sf::Color(255, 255, 255), static_cast<unsigned int>(20 * intScale)});
-            yPos += yIncrement;
-        }
     }
 
     drawMouseCursor();
@@ -615,6 +581,24 @@ void Game::runOnPlanet(float dt)
     if (DebugOptions::debugOptionsMenuOpen)
     {
         ImGui::Begin("Debug Options", &DebugOptions::debugOptionsMenuOpen);
+
+        // Debug info
+        {
+            std::vector<std::string> debugStrings = {
+                GAME_VERSION,
+                std::to_string(static_cast<int>(1.0f / dt)) + "FPS",
+                std::to_string(chunkManager.getLoadedChunkCount()) + " Chunks loaded",
+                std::to_string(chunkManager.getGeneratedChunkCount()) + " Chunks generated",
+                "Player pos: " + std::to_string(static_cast<int>(player.getPosition().x)) + ", " + std::to_string(static_cast<int>(player.getPosition().y))
+            };
+
+            for (const std::string& string : debugStrings)
+            {
+                ImGui::Text(string.c_str());
+            }
+        }
+
+        ImGui::Spacing();
 
         int musicVolume = Sounds::getMusicVolume();
         if (ImGui::SliderInt("Music Volume", &musicVolume, 0, 100))
@@ -625,6 +609,8 @@ void Game::runOnPlanet(float dt)
         ImGui::Checkbox("Show Collision Boxes", &DebugOptions::drawCollisionRects);
         ImGui::Checkbox("Show Chunk Boundaries", &DebugOptions::drawChunkBoundaries);
         ImGui::Checkbox("Show Entity Chunk Parents", &DebugOptions::drawEntityChunkParents);
+
+        ImGui::Spacing();
 
         ImGui::Text("Visible Tiles");
 

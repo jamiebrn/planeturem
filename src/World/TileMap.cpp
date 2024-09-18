@@ -30,6 +30,9 @@ void TileMap::setTilesetVariation(int variation)
 
 void TileMap::setTile(int x, int y, TileMap* upTiles, TileMap* downTiles, TileMap* leftTiles, TileMap* rightTiles)
 {
+    if (isTilePresent(x, y))
+        return;
+
     tiles[y][x] = 0b1 << 7;
 
     // Randomise variation

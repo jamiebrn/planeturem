@@ -31,13 +31,13 @@ public:
 
     void overrideItemScaleMult(float scale);
 
-    void draw(sf::RenderWindow& window,
+    void draw(sf::RenderTarget& window,
               std::optional<ItemType> itemType = std::nullopt,
               std::optional<int> itemAmount = std::nullopt,
               bool hiddenBackground = false,
               bool selectHighlight = false);
     
-    static void drawItem(sf::RenderWindow& window, ItemType itemType, sf::Vector2f position, float scaleMult = 1.0f, bool centred = true);
+    static void drawItem(sf::RenderTarget& window, ItemType itemType, sf::Vector2f position, float scaleMult = 1.0f, bool centred = true, int alpha = 255);
 
 private:
     sf::Vector2f position;

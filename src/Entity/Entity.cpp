@@ -132,6 +132,9 @@ void Entity::damage(int amount, InventoryData& inventory)
                 // Give items
                 unsigned int itemAmount = rand() % std::max(itemDrop.maxAmount - itemDrop.minAmount + 1, 1U) + itemDrop.minAmount;
                 inventory.addItem(itemDrop.item, itemAmount);
+
+                // Create item popup
+                InventoryGUI::pushItemPopup(ItemCount(itemDrop.item, itemAmount));
             }
         }
     }

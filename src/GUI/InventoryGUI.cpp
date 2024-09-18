@@ -21,6 +21,8 @@ int InventoryGUI::selectedRecipe = 0;
 
 int InventoryGUI::selectedHotbarIndex = 0;
 
+std::vector<ItemPopup> InventoryGUI::itemPopups;
+
 AnimatedTexture InventoryGUI::binAnimation;
 float InventoryGUI::binScale = 1.0f;
 
@@ -656,7 +658,7 @@ bool InventoryGUI::heldItemPlacesLand()
     return itemData.placesLand;
 }
 
-void InventoryGUI::draw(sf::RenderWindow& window, float gameTime, sf::Vector2f mouseScreenPos, InventoryData& inventory, InventoryData* chestData)
+void InventoryGUI::draw(sf::RenderTarget& window, float gameTime, sf::Vector2f mouseScreenPos, InventoryData& inventory, InventoryData* chestData)
 {
     // Get intscale
     float intScale = ResolutionHandler::getResolutionIntegerScale();
@@ -818,7 +820,7 @@ void InventoryGUI::draw(sf::RenderWindow& window, float gameTime, sf::Vector2f m
     }
 }
 
-void InventoryGUI::drawItemInfoBox(sf::RenderWindow& window, float gameTime, int itemIndex, InventoryData& inventory, sf::Vector2f mouseScreenPos)
+void InventoryGUI::drawItemInfoBox(sf::RenderTarget& window, float gameTime, int itemIndex, InventoryData& inventory, sf::Vector2f mouseScreenPos)
 {
     const std::optional<ItemCount>& itemSlot = inventory.getItemSlotData(itemIndex);
 
@@ -865,7 +867,7 @@ void InventoryGUI::drawItemInfoBox(sf::RenderWindow& window, float gameTime, int
     drawInfoBox(window, mouseScreenPos + sf::Vector2f(8, 8) * 3.0f * intScale, infoStrings);
 }
 
-void InventoryGUI::drawItemInfoBoxRecipe(sf::RenderWindow& window, float gameTime, int recipeIdx, sf::Vector2f mouseScreenPos)
+void InventoryGUI::drawItemInfoBoxRecipe(sf::RenderTarget& window, float gameTime, int recipeIdx, sf::Vector2f mouseScreenPos)
 {
     const RecipeData& recipeData = RecipeDataLoader::getRecipeData()[recipeIdx];
 
@@ -931,7 +933,7 @@ void InventoryGUI::drawItemInfoBoxRecipe(sf::RenderWindow& window, float gameTim
     drawInfoBox(window, mouseScreenPos + sf::Vector2f(8, 8 + 6) * 3.0f * intScale + sf::Vector2f(0, itemInfoBoxSize.y), infoStrings);
 }
 
-sf::Vector2f InventoryGUI::drawInfoBox(sf::RenderWindow& window, sf::Vector2f position, const std::vector<ItemInfoString>& infoStrings)
+sf::Vector2f InventoryGUI::drawInfoBox(sf::RenderTarget& window, sf::Vector2f position, const std::vector<ItemInfoString>& infoStrings, int alpha)
 {
     static const std::array<sf::IntRect, 4> sides = {
         sf::IntRect(20, 80, 1, 3), // top
@@ -981,27 +983,29 @@ sf::Vector2f InventoryGUI::drawInfoBox(sf::RenderWindow& window, sf::Vector2f po
 
     sf::Vector2f scale(3 * intScale, 3 * intScale);
 
+    sf::Color colour(255, 255, 255, alpha);
+
     // Draw corners
-    spriteBatch.draw(window, {TextureType::UI, position, 0, scale}, corners[0]);
-    spriteBatch.draw(window, {TextureType::UI, position + sf::Vector2f(width + sides[1].width * scale.y, 0), 0, scale}, corners[1]);
+    spriteBatch.draw(window, {TextureType::UI, position, 0, scale, {0, 0}, colour}, corners[0]);
+    spriteBatch.draw(window, {TextureType::UI, position + sf::Vector2f(width + sides[1].width * scale.y, 0), 0, scale, {0, 0}, colour}, corners[1]);
     spriteBatch.draw(window, {TextureType::UI,
-        position + sf::Vector2f(width + sides[1].width * scale.x, height + sides[0].height * scale.y), 0, scale}, corners[2]);
-    spriteBatch.draw(window, {TextureType::UI, position + sf::Vector2f(0, height + sides[0].height * scale.y), 0, scale}, corners[3]);
+        position + sf::Vector2f(width + sides[1].width * scale.x, height + sides[0].height * scale.y), 0, scale, {0, 0}, colour}, corners[2]);
+    spriteBatch.draw(window, {TextureType::UI, position + sf::Vector2f(0, height + sides[0].height * scale.y), 0, scale, {0, 0}, colour}, corners[3]);
 
     // Draw sides
     spriteBatch.draw(window, {TextureType::UI,
-        position + sf::Vector2f(sides[3].width * scale.x, 0), 0, sf::Vector2f(width, scale.y)}, sides[0]);
+        position + sf::Vector2f(sides[3].width * scale.x, 0), 0, sf::Vector2f(width, scale.y), {0, 0}, colour}, sides[0]);
     spriteBatch.draw(window, {TextureType::UI,
-        position + sf::Vector2f(sides[3].width * scale.x + width, sides[0].height * scale.y), 0, sf::Vector2f(scale.x, height)}, sides[1]);
+        position + sf::Vector2f(sides[3].width * scale.x + width, sides[0].height * scale.y), 0, sf::Vector2f(scale.x, height), {0, 0}, colour}, sides[1]);
     spriteBatch.draw(window, {TextureType::UI,
-        position + sf::Vector2f(sides[3].width * scale.x, sides[0].height * scale.y + height), 0, sf::Vector2f(width, scale.y)}, sides[2]);
+        position + sf::Vector2f(sides[3].width * scale.x, sides[0].height * scale.y + height), 0, sf::Vector2f(width, scale.y), {0, 0}, colour}, sides[2]);
     spriteBatch.draw(window, {TextureType::UI,
-        position + sf::Vector2f(0, sides[0].height * scale.x), 0, sf::Vector2f(scale.x, height)}, sides[3]);
+        position + sf::Vector2f(0, sides[0].height * scale.x), 0, sf::Vector2f(scale.x, height), {0, 0}, colour}, sides[3]);
 
     // Draw centre
     spriteBatch.draw(window, {TextureType::UI,
         position + sf::Vector2f(sides[3].width * scale.x, sides[0].height * scale.y), 0,
-        sf::Vector2f(width,  height)}, centre);
+        sf::Vector2f(width,  height), {0, 0}, colour}, centre);
 
     spriteBatch.endDrawing(window);
 
@@ -1017,7 +1021,7 @@ sf::Vector2f InventoryGUI::drawInfoBox(sf::RenderWindow& window, sf::Vector2f po
             .text = infoString.string,
             .position = position + sf::Vector2f(sides[3].width * 3 * intScale + textXPadding * intScale,
                 sides[0].height * 3 * intScale + textYOffset - textYShift * intScale),
-            .colour = infoString.color,
+            .colour = sf::Color(infoString.color.r, infoString.color.g, infoString.color.b, alpha),
             .size = infoString.size * static_cast<unsigned int>(intScale)
         };
 
@@ -1030,13 +1034,13 @@ sf::Vector2f InventoryGUI::drawInfoBox(sf::RenderWindow& window, sf::Vector2f po
             // itemSlot.draw(window, itemCount.first, itemCount.second, true);
             // Offset text draw data position downwards
             textDrawData.position.y += textYPadding * intScale;
-            ItemSlot::drawItem(window, itemCount.first, textDrawData.position + sf::Vector2f(itemSize, itemSize) * 0.5f * static_cast<float>(intScale), 1.0f, true);
+            ItemSlot::drawItem(window, itemCount.first, textDrawData.position + sf::Vector2f(itemSize, itemSize) * 0.5f * static_cast<float>(intScale), 1.0f, true, alpha);
 
             // Draw item amount
             TextDrawData itemAmountText = {
                 .text = std::to_string(itemCount.second),
                 .position = textDrawData.position + sf::Vector2f(itemSize, itemSize) * 0.85f * static_cast<float>(intScale),
-                .colour = textDrawData.colour,
+                .colour = sf::Color(textDrawData.colour.r, textDrawData.colour.g, textDrawData.colour.b, alpha),
                 .size = textDrawData.size,
                 .centeredX = true,
                 .centeredY = true
@@ -1169,7 +1173,7 @@ void InventoryGUI::handleHotbarItemChange()
     hotbarItemStringTimer = HOTBAR_ITEM_STRING_OPAQUE_TIME + HOTBAR_ITEM_STRING_FADE_TIME;
 }
 
-void InventoryGUI::drawHotbar(sf::RenderWindow& window, sf::Vector2f mouseScreenPos, InventoryData& inventory)
+void InventoryGUI::drawHotbar(sf::RenderTarget& window, sf::Vector2f mouseScreenPos, InventoryData& inventory)
 {
     // Get resolution
     const sf::Vector2u& resolution = ResolutionHandler::getResolution();
@@ -1292,6 +1296,91 @@ void InventoryGUI::inventoryChestItemQuickTransfer(sf::Vector2f mouseScreenPos, 
 
     // Subtract amount from source inventory
     hoveredInventory->takeItemAtIndex(itemHovered, amountTransfered);
+}
+
+
+// -- Popups -- //
+void InventoryGUI::updateItemPopups(float dt)
+{
+    for (auto popupIter = itemPopups.begin(); popupIter != itemPopups.end();)
+    {
+        popupIter->timeAlive += dt;
+
+        if (popupIter->timeAlive >= POPUP_LIFETIME)
+        {
+            popupIter = itemPopups.erase(popupIter);
+            continue;
+        }
+
+        popupIter++;
+    }
+}
+
+void InventoryGUI::pushItemPopup(const ItemCount& itemCount)
+{
+    if (itemPopups.size() > 0)
+    {
+        ItemCount& frontItemCount = itemPopups.back().itemCount;
+
+        // Add to item popup if same item is at front of popups
+        if (itemCount.first == frontItemCount.first)
+        {
+            // Reset time and add item count
+            itemPopups.back().timeAlive = 0;
+
+            frontItemCount.second += itemCount.second;
+
+            return;
+        }
+    }
+
+    // Item type popup is not the same as front, so add new popup
+    ItemPopup itemPopup;
+    itemPopup.itemCount = itemCount;
+
+    itemPopups.push_back(itemPopup);
+
+    if (itemPopups.size() > POPUP_MAX_COUNT)
+    {
+        itemPopups.erase(itemPopups.begin());
+    }
+}
+
+void InventoryGUI::drawItemPopups(sf::RenderTarget& window)
+{
+    if (itemPopups.size() <= 0)
+        return;
+
+    sf::RenderTexture popupTexture;
+    popupTexture.create(window.getSize().x, window.getSize().y);
+    popupTexture.clear(sf::Color(0, 0, 0, 0));
+
+    int intScale = ResolutionHandler::getResolutionIntegerScale();
+
+    sf::Vector2f popupPos(itemBoxPadding * intScale, itemBoxPadding * intScale);
+
+    for (const ItemPopup& itemPopup : itemPopups)
+    {
+        const ItemData& itemData = ItemDataLoader::getItemData(itemPopup.itemCount.first);
+
+        ItemInfoString infoString;
+        infoString.itemCount = itemPopup.itemCount;
+        infoString.string = itemData.name;
+        infoString.size = 20;
+
+        // Calculate alpha
+        int alpha = std::max(std::min((POPUP_LIFETIME - itemPopup.timeAlive) / POPUP_FADE_TIME, 1.0f), 0.0f) * 255;
+
+        sf::Vector2f boxSize = drawInfoBox(popupTexture, popupPos, {infoString}, alpha);
+        popupPos.y += boxSize.y + (itemBoxSpacing + 6) * intScale;
+    }
+
+    popupTexture.display();
+
+    sf::Sprite popupTextureSprite(popupTexture.getTexture());
+    popupTextureSprite.setPosition(sf::Vector2f(0, window.getSize().y - popupPos.y - 9 * intScale));
+
+    window.draw(popupTextureSprite);
 }
 
 

@@ -51,7 +51,7 @@ void ItemSlot::overrideItemScaleMult(float scale)
     itemScaleMult = scale;
 }
 
-void ItemSlot::draw(sf::RenderWindow& window,
+void ItemSlot::draw(sf::RenderTarget& window,
                     std::optional<ItemType> itemType,
                     std::optional<int> itemAmount,
                     bool hiddenBackground,
@@ -108,7 +108,7 @@ void ItemSlot::draw(sf::RenderWindow& window,
     }
 }
 
-void ItemSlot::drawItem(sf::RenderWindow& window, ItemType itemType, sf::Vector2f position, float scaleMult, bool centred)
+void ItemSlot::drawItem(sf::RenderTarget& window, ItemType itemType, sf::Vector2f position, float scaleMult, bool centred, int alpha)
 {
     float intScale = ResolutionHandler::getResolutionIntegerScale();
 
@@ -119,6 +119,8 @@ void ItemSlot::drawItem(sf::RenderWindow& window, ItemType itemType, sf::Vector2
     {
         origin = sf::Vector2f(0.5, 0.5);
     }
+
+    sf::Color colour(255, 255, 255, alpha);
 
     // Draw object if item places object
     if (itemData.placesObjectType >= 0)
@@ -133,7 +135,8 @@ void ItemSlot::drawItem(sf::RenderWindow& window, ItemType itemType, sf::Vector2
             position,
             0,
             {objectScale * intScale, objectScale * intScale},
-            origin
+            origin,
+            colour
         }, objectData.textureRects[0]);
     }
     else if (itemData.toolType >= 0)
@@ -148,7 +151,8 @@ void ItemSlot::drawItem(sf::RenderWindow& window, ItemType itemType, sf::Vector2
             position,
             0,
             {objectScale * intScale, objectScale * intScale},
-            origin
+            origin,
+            colour
         }, toolData.textureRect);
     }
     else
@@ -159,7 +163,8 @@ void ItemSlot::drawItem(sf::RenderWindow& window, ItemType itemType, sf::Vector2
             position,
             0,
             {3 * scaleMult * intScale, 3 * scaleMult * intScale},
-            origin
+            origin,
+            colour
         }, itemData.textureRect);
     }
 }
