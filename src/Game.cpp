@@ -5,6 +5,7 @@
 // FIX: unknown divide by zero error
 
 // PRIORITY: HIGH
+// TODO: Enterable structures (for getting rocket parts, maybe other uses in future)
 // TODO: Different types of tools? (fishing rod etc)
 
 // PRIORITY: LOW
@@ -43,10 +44,10 @@ bool Game::initialise()
     if(!TextDraw::loadFont("Data/Fonts/upheavtt.ttf")) return false;
     if(!Sounds::loadSounds()) return false;
 
-    if(!ItemDataLoader::loadData("Data/Info/item_data.data")) return false;
-    if(!ObjectDataLoader::loadData("Data/Info/object_data.data")) return false;
-    if(!ToolDataLoader::loadData("Data/Info/tool_data.data")) return false;
-    if(!EntityDataLoader::loadData("Data/Info/entity_data.data")) return false;
+    if(!ItemDataLoader::loadData("Data/Info/items.data")) return false;
+    if(!ObjectDataLoader::loadData("Data/Info/objects.data")) return false;
+    if(!ToolDataLoader::loadData("Data/Info/tools.data")) return false;
+    if(!EntityDataLoader::loadData("Data/Info/entities.data")) return false;
     if(!RecipeDataLoader::loadData("Data/Info/item_recipes.data")) return false;
     if(!PlanetGenDataLoader::loadData("Data/Info/planet_generation.data")) return false;
 

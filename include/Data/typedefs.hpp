@@ -7,4 +7,5 @@ typedef int ToolType;
 
 typedef std::pair<ItemType, unsigned int> ItemCount;
 
+typedef int StructureType;
 typedef int PlanetType;

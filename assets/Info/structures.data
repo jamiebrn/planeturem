@@ -1,0 +1,9 @@
+[
+    {
+        "name": "Stone Dungeon",
+        "size-x": 3,
+        "size-y": 3,
+        "texture": [0, 464, 48, 48],
+        "collision-bitmask": [0, 0]
+    }
+]
