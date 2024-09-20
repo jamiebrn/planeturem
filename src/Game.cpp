@@ -44,11 +44,13 @@ bool Game::initialise()
     if(!TextDraw::loadFont("Data/Fonts/upheavtt.ttf")) return false;
     if(!Sounds::loadSounds()) return false;
 
+    // Load data
     if(!ItemDataLoader::loadData("Data/Info/items.data")) return false;
     if(!ObjectDataLoader::loadData("Data/Info/objects.data")) return false;
     if(!ToolDataLoader::loadData("Data/Info/tools.data")) return false;
     if(!EntityDataLoader::loadData("Data/Info/entities.data")) return false;
     if(!RecipeDataLoader::loadData("Data/Info/item_recipes.data")) return false;
+    if(!StructureDataLoader::loadData("Data/Info/structures.data")) return false;
     if(!PlanetGenDataLoader::loadData("Data/Info/planet_generation.data")) return false;
 
     // Load icon
@@ -1091,8 +1093,7 @@ void Game::closeChest()
     std::optional<BuildableObject>& chestObject = chunkManager.getChunkObject(openedChest.chunk, openedChest.tile);
     if (chestObject.has_value())
     {
-        BuildableObject& chest = chestObject.value();
-        chest.closeChest();
+        chestObject->closeChest();
     }
 
     openedChestID = 0xFFFF;

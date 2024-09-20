@@ -523,6 +523,9 @@ bool ChunkManager::canDestroyObject(ChunkPosition chunk, sf::Vector2i tile, cons
     
     BuildableObject& object = objectOptional.value();
 
+    if (object.getObjectType() < 0)
+        return false;
+
     const ObjectData& objectData = ObjectDataLoader::getObjectData(object.getObjectType());
 
     // Object is a water object, so may support player / entities over water
@@ -792,6 +795,9 @@ std::unordered_map<std::string, int> ChunkManager::getNearbyCraftingStationLevel
 
             // Get object data
             ObjectType objectType = object->getObjectType();
+            if (objectType < 0)
+                continue;
+
             const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
 
             // If not a crafting station, do not add to hashmap

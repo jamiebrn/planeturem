@@ -10,6 +10,7 @@ struct StructureData
     sf::Vector2i size;
 
     sf::IntRect textureRect;
+    sf::Vector2f textureOrigin;
 
     sf::Vector2i collisionBitmaskOffset;
 };

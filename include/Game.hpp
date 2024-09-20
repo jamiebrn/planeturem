@@ -45,6 +45,8 @@
 #include "Data/EntityDataLoader.hpp"
 #include "Data/ToolDataLoader.hpp"
 #include "Data/PlanetGenDataLoader.hpp"
+#include "Data/StructureData.hpp"
+#include "Data/StructureDataLoader.hpp"
 
 #include "Types/GameState.hpp"
 #include "Types/WorldMenuState.hpp"

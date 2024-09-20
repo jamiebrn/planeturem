@@ -22,6 +22,7 @@ const std::unordered_map<TextureType, std::string> TextureManager::texturePaths 
     {TextureType::Shadow, "Data/Textures/shadow.png"},
     {TextureType::LightMask, "Data/Textures/light_mask.png"},
     {TextureType::UI, "Data/Textures/UI.png"},
+    {TextureType::CollisionBitmask, "Data/Textures/collision_bitmasks.png"}
 };
 
 // Loads all textures from paths specified into texture map

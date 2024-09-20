@@ -2,6 +2,8 @@
 
 std::vector<StructureData> StructureDataLoader::loaded_structureData;
 
+std::unordered_map<std::string, StructureType> StructureDataLoader::structureNameToTypeMap;
+
 bool StructureDataLoader::loadData(std::string structureDataPath)
 {
     std::ifstream file(structureDataPath);
@@ -23,8 +25,16 @@ bool StructureDataLoader::loadData(std::string structureDataPath)
         structureData.textureRect.width = textureRect[2];
         structureData.textureRect.height = textureRect[3];
 
+        auto textureOrigin = jsonStructureData.at("texture-origin");
+        structureData.textureOrigin.x = textureOrigin[0];
+        structureData.textureOrigin.y = textureOrigin[1];
+
         structureData.size.x = jsonStructureData.at("size-x");
         structureData.size.y = jsonStructureData.at("size-y");
+
+        auto collisionBitmask = jsonStructureData.at("collision-bitmask");
+        structureData.collisionBitmaskOffset.x = collisionBitmask[0];
+        structureData.collisionBitmaskOffset.y = collisionBitmask[1];
 
         loaded_structureData.push_back(structureData);
 

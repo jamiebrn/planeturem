@@ -76,7 +76,7 @@ public:
 
 private:
     ObjectType objectType = 0;
-    int health = 0;
+    int health = 1;
     float flash_amount;
 
     int8_t animationDirection = 1;

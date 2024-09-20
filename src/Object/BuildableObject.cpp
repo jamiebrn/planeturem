@@ -5,6 +5,9 @@ BuildableObject::BuildableObject(sf::Vector2f position, ObjectType objectType)
 {
     this->objectType = objectType;
 
+    if (objectType == -10)
+        return;
+
     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
 
     health = objectData.health;
@@ -27,6 +30,9 @@ BuildableObject::BuildableObject(ObjectReference _objectReference)
 
 void BuildableObject::update(float dt, bool onWater)
 {
+    if (objectType < 0)
+        return;
+
     flash_amount = std::max(flash_amount - dt * 3, 0.0f);
 
     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
@@ -44,6 +50,9 @@ void BuildableObject::update(float dt, bool onWater)
 
 void BuildableObject::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime, int worldSize, const sf::Color& color)
 {
+    if (objectType < 0)
+        return;
+
     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
 
     float scaleMult = 0.4f * std::sin(3.14 / 2.0f * std::max(1.0f - flash_amount, 0.5f)) + 0.6f;
@@ -75,6 +84,9 @@ void BuildableObject::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, f
 
 void BuildableObject::drawGUI(sf::RenderTarget& window, float dt, const sf::Color& color)
 {
+    if (objectType < 0)
+        return;
+
     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
 
     TextureManager::drawSubTexture(window, {
@@ -84,6 +96,9 @@ void BuildableObject::drawGUI(sf::RenderTarget& window, float dt, const sf::Colo
 
 bool BuildableObject::damage(int amount, InventoryData& inventory)
 {
+    if (objectType < 0)
+        return false;
+
     flash_amount = 1.0f;
     health -= amount;
 
@@ -123,6 +138,9 @@ ObjectInteractionEventData BuildableObject::interact()
 {
     ObjectInteractionEventData interactionData;
     interactionData.interactionType = ObjectInteraction::NoAction;
+ 
+    if (objectType < 0)
+        return interactionData;
 
     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
 
@@ -144,6 +162,9 @@ void BuildableObject::setWorldPosition(sf::Vector2f position)
 // Chest functionality
 int BuildableObject::getChestCapactity()
 {
+    if (objectType < 0)
+        return 0;
+
     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
 
     return objectData.chestCapacity;

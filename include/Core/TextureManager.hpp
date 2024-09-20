@@ -15,7 +15,7 @@ struct TextureDrawData
     // Draw position on screen
     sf::Vector2f position;
     // Rotation
-    float rotation;
+    float rotation = 0.0f;
     // Scale
     sf::Vector2f scale;
     // Whether texture should be drawn centred about its position

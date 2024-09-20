@@ -19,6 +19,7 @@
 #include "Object/WorldObject.hpp"
 #include "Object/BuildableObject.hpp"
 #include "Object/ObjectReference.hpp"
+#include "Object/StructureObject.hpp"
 #include "Entity/Entity.hpp"
 #include "World/ChunkManager.hpp"
 #include "World/TileMap.hpp"
@@ -28,6 +29,8 @@
 #include "Data/typedefs.hpp"
 #include "Data/PlanetGenData.hpp"
 #include "Data/PlanetGenDataLoader.hpp"
+#include "Data/StructureData.hpp"
+#include "Data/StructureDataLoader.hpp"
 
 #include "GameConstants.hpp"
 #include "DebugOptions.hpp"
@@ -86,7 +89,7 @@ public:
     std::optional<BuildableObject>& getObject(sf::Vector2i position);
 
     // Sets object (and object references if size > (1, 1), across chunks)
-    void setObject(sf::Vector2i position, unsigned int objectType, int worldSize, ChunkManager& chunkManager);
+    void setObject(sf::Vector2i position, ObjectType objectType, int worldSize, ChunkManager& chunkManager);
 
     // Deletes object (including object references if size > (1, 1), across chunks)
     void deleteObject(sf::Vector2i position, ChunkManager& chunkManager);
@@ -95,7 +98,7 @@ public:
     void setObjectReference(const ObjectReference& objectReference, sf::Vector2i tile, ChunkManager& chunkManager);
 
     // Tests whether object can be placed, taking into account size and attributes (e.g. water placeable) at position
-    bool canPlaceObject(sf::Vector2i position, unsigned int objectType, int worldSize, ChunkManager& chunkManager);
+    bool canPlaceObject(sf::Vector2i position, ObjectType objectType, int worldSize, ChunkManager& chunkManager);
 
 
     // -- Entity handling -- //
@@ -151,6 +154,9 @@ public:
     static EntityType getRandomEntityToSpawnAtWorldTile(sf::Vector2i worldTile, int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType);
 
 private:
+    void generateRandomStructure();
+
+private:
     // 0 reserved for water / no tile
     std::array<std::array<uint16_t, 8>, 8> groundTileGrid;
     // sf::VertexArray groundVertexArray;
@@ -170,6 +176,9 @@ private:
     
     // Stores ACTUAL position in world, which may differ from grid position if repeating chunks
     sf::Vector2f worldPosition;
+
+    // Structure data, if structure is in chunk
+    std::optional<StructureObject> structureObject = std::nullopt;
 
     bool containsWater;
 
