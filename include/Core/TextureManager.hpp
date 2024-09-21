@@ -49,6 +49,8 @@ public:
 
     inline static sf::Texture* getTexture(TextureType type) {return &textureMap[type];}
 
+    inline static const sf::Image& getBitmask(BitmaskType type) {return bitmasks[type];}
+
 // Private functions
 private:
     // Apply draw data before drawing a texture
@@ -67,5 +69,9 @@ private:
 
     // Stores file path to each texture, so each texture can be loaded
     static const std::unordered_map<TextureType, std::string> texturePaths;
+
+    static std::unordered_map<BitmaskType, sf::Image> bitmasks;
+
+    static const std::unordered_map<BitmaskType, std::string> bitmaskPaths;
 
 };

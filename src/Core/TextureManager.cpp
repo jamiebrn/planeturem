@@ -9,6 +9,8 @@ std::unordered_map<TextureType, sf::Texture> TextureManager::textureMap;
 // Stores sprites
 std::unordered_map<TextureType, sf::Sprite> TextureManager::spriteMap;
 
+std::unordered_map<BitmaskType, sf::Image> TextureManager::bitmasks;
+
 // All file paths for textures are listed here
 const std::unordered_map<TextureType, std::string> TextureManager::texturePaths = {
     {TextureType::Player, "Data/Textures/monkeyplayer.png"},
@@ -21,8 +23,11 @@ const std::unordered_map<TextureType, std::string> TextureManager::texturePaths 
     {TextureType::Tools, "Data/Textures/tools.png"},
     {TextureType::Shadow, "Data/Textures/shadow.png"},
     {TextureType::LightMask, "Data/Textures/light_mask.png"},
-    {TextureType::UI, "Data/Textures/UI.png"},
-    {TextureType::CollisionBitmask, "Data/Textures/collision_bitmasks.png"}
+    {TextureType::UI, "Data/Textures/UI.png"}
+};
+
+const std::unordered_map<BitmaskType, std::string> TextureManager::bitmaskPaths = {
+    {BitmaskType::Structures, "Data/Textures/collision_bitmasks.png"}
 };
 
 // Loads all textures from paths specified into texture map
@@ -72,6 +77,25 @@ bool TextureManager::loadTextures(sf::RenderWindow& window)
 
         // Store sprite in sprite map
         spriteMap[textureType] = sprite;
+
+        // Increment texture loaded count
+        texturesLoaded++;
+    }
+
+    // Load bitmasks
+    for (std::pair<BitmaskType, std::string> bitmaskPair : bitmaskPaths)
+    {
+        sf::Image bitmaskImage;
+
+        if (!bitmaskImage.loadFromFile(bitmaskPair.second))
+        {
+            // If failed, set loaded textures to false
+            loadedTextures = false;
+            // Stop loading textures
+            break;
+        }
+
+        bitmasks[bitmaskPair.first] = bitmaskImage;
 
         // Increment texture loaded count
         texturesLoaded++;

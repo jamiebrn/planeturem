@@ -12,6 +12,10 @@ enum class TextureType
     Tools,
     Shadow,
     LightMask,
-    UI,
-    CollisionBitmask
+    UI
+};
+
+enum BitmaskType
+{
+    Structures
 };

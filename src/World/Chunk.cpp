@@ -119,22 +119,22 @@ void Chunk::generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNo
 
 void Chunk::generateRandomStructure()
 {
-    int chance = rand() % 20;
+    int chance = Helper::randInt(0, 30);
 
     if (chance > 10)
         return;
     
     // Generate structure
-    const StructureData& structureData = StructureDataLoader::getStructureData(0);
 
     // Read collision bitmask and create dummy objects in required positions
-    sf::RenderTexture bitmaskTexture;
-    bitmaskTexture.create(structureData.size.x, structureData.size.y);
-    bitmaskTexture.clear();
-    TextureManager::drawSubTexture(bitmaskTexture, {.type = TextureType::CollisionBitmask}, sf::IntRect(structureData.collisionBitmaskOffset, structureData.size));
-    bitmaskTexture.display();
+    const sf::Image& bitmaskImage = TextureManager::getBitmask(BitmaskType::Structures);
 
-    sf::Image bitmaskImage = bitmaskTexture.getTexture().copyToImage();
+    const StructureData& structureData = StructureDataLoader::getStructureData(0);
+
+    // Randomise spawn position in chunk
+    sf::Vector2i spawnTile;
+    spawnTile.x = Helper::randInt(0, CHUNK_TILE_SIZE - 1 - structureData.size.x);
+    spawnTile.y = Helper::randInt(0, CHUNK_TILE_SIZE - 1 - structureData.size.y);
 
     bool spawnedStructureObject = false;
 
@@ -143,11 +143,14 @@ void Chunk::generateRandomStructure()
         // Iterate over y backwards to place structure object in bottom left of dummy objects
         for (int y = structureData.size.y - 1; y >= 0; y--)
         {
-            sf::Color bitmaskColor = bitmaskImage.getPixel(x, y);
+            sf::Color bitmaskColor = bitmaskImage.getPixel(structureData.collisionBitmaskOffset.x + x, structureData.collisionBitmaskOffset.y + y);
+
+            int tileX = x + spawnTile.x;
+            int tileY = y + spawnTile.y;
 
             sf::Vector2f tileWorldPos;
-            tileWorldPos.x = worldPosition.x + (x + 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
-            tileWorldPos.y = worldPosition.y + (y + 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
+            tileWorldPos.x = worldPosition.x + (tileX + 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
+            tileWorldPos.y = worldPosition.y + (tileY + 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
 
             // Create actual structure object
             if (!spawnedStructureObject && bitmaskColor != sf::Color(0, 0, 0, 0))
@@ -160,7 +163,7 @@ void Chunk::generateRandomStructure()
             // Collision
             if (bitmaskColor == sf::Color(255, 0, 0))
             {
-                objectGrid[y][x] = BuildableObject(tileWorldPos, -10);
+                objectGrid[tileY][tileX] = BuildableObject(tileWorldPos, -10);
             }
         }
     }

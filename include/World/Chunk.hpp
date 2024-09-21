@@ -16,6 +16,8 @@
 #include "Core/ResolutionHandler.hpp"
 #include "Core/CollisionRect.hpp"
 #include "Core/SpriteBatch.hpp"
+#include "Core/Helper.hpp"
+
 #include "Object/WorldObject.hpp"
 #include "Object/BuildableObject.hpp"
 #include "Object/ObjectReference.hpp"
