@@ -509,6 +509,11 @@ void Game::runOnPlanet(float dt)
     // Get nearby crafting stations
     nearbyCraftingStationLevels = chunkManager.getNearbyCraftingStationLevels(player.getChunkInside(worldSize), player.getChunkTileInside(worldSize), 4);
 
+    if (chunkManager.isPlayerInStructureEntrance(player.getPosition()))
+    {
+        std::cout << "Enter structure\n";
+    }
+
     // Close chest if out of range
     checkChestOpenInRange();
 

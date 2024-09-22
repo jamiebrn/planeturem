@@ -709,6 +709,19 @@ void ChunkManager::placeLand(ChunkPosition chunk, sf::Vector2i tile)
     }
 }
 
+bool ChunkManager::isPlayerInStructureEntrance(sf::Vector2f playerPos)
+{
+    for (auto chunkIter = loadedChunks.begin(); chunkIter != loadedChunks.end(); chunkIter++)
+    {
+        if (chunkIter->second->isPlayerInStructureEntrance(playerPos))
+        {
+            return true;
+        }
+    }
+
+    return false;   
+}
+
 sf::Vector2f ChunkManager::findValidSpawnPosition(int waterlessAreaSize)
 {
     // Move all loaded chunks (if any) into stored chunks temporarily

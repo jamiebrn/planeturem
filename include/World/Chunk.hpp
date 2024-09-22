@@ -91,7 +91,7 @@ public:
     std::optional<BuildableObject>& getObject(sf::Vector2i position);
 
     // Sets object (and object references if size > (1, 1), across chunks)
-    void setObject(sf::Vector2i position, ObjectType objectType, int worldSize, ChunkManager& chunkManager);
+    void setObject(sf::Vector2i position, ObjectType objectType, int worldSize, ChunkManager& chunkManager, bool recalculateCollision = true);
 
     // Deletes object (including object references if size > (1, 1), across chunks)
     void deleteObject(sf::Vector2i position, ChunkManager& chunkManager);
@@ -134,6 +134,10 @@ public:
     // Requires worldSize, noise, and chunk manager as regenerates visual tiles and collision rects
     // ONLY CALL IF CHECKED WHETHER CAN PLACE FIRST, DOES NOT RECHECK
     void placeLand(sf::Vector2i tile, int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, ChunkManager& chunkManager);
+
+
+    // -- Structures -- //
+    bool isPlayerInStructureEntrance(sf::Vector2f playerPos);
 
 
     // Misc

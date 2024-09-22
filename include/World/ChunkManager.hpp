@@ -154,6 +154,10 @@ public:
     // Place land at position
     void placeLand(ChunkPosition chunk, sf::Vector2i tile);
 
+
+    // -- Structures -- //
+    bool isPlayerInStructureEntrance(sf::Vector2f playerPos);
+
     
 
     // Misc

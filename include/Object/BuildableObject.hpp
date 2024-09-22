@@ -34,6 +34,9 @@ struct ObjectInteractionEventData
     uint16_t chestID;
 };
 
+constexpr int DUMMY_OBJECT_COLLISION = -10;
+constexpr int DUMMY_OBJECT_NO_COLLISION = -11;
+
 class BuildableObject : public WorldObject
 {
 public:
@@ -55,14 +58,6 @@ public:
 
     inline bool isAlive() {return health > 0;}
 
-    // -- Object reference (blank / filler object) -- //
-
-    BuildableObject(ObjectReference _objectReference);
-
-    inline bool isObjectReference() const {return objectReference.has_value();}
-
-    inline const std::optional<ObjectReference>& getObjectReference() const {return objectReference;}
-
     // -- Chest -- //
 
     inline void setChestID(uint16_t chestID) {this->chestID = chestID;}
@@ -73,6 +68,20 @@ public:
     void openChest();
     void closeChest();
 
+
+    // -- Object reference (blank / filler object) -- //
+
+    BuildableObject(ObjectReference _objectReference);
+
+    inline bool isObjectReference() const {return objectReference.has_value();}
+
+    inline const std::optional<ObjectReference>& getObjectReference() const {return objectReference;}
+
+    // -- Dummy object -- //
+    
+    bool isDummyObject();
+
+    bool dummyHasCollision();
 
 private:
     ObjectType objectType = 0;

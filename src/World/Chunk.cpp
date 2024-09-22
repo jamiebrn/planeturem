@@ -87,7 +87,7 @@ void Chunk::generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNo
 
             if (objectSpawnType >= 0)
             {
-                setObject(sf::Vector2i(x, y), objectSpawnType, worldSize, chunkManager);
+                setObject(sf::Vector2i(x, y), objectSpawnType, worldSize, chunkManager, false);
             }
             else
             {
@@ -163,7 +163,15 @@ void Chunk::generateRandomStructure()
             // Collision
             if (bitmaskColor == sf::Color(255, 0, 0))
             {
-                objectGrid[tileY][tileX] = BuildableObject(tileWorldPos, -10);
+                objectGrid[tileY][tileX] = BuildableObject(tileWorldPos, DUMMY_OBJECT_COLLISION);
+            }
+
+            // Dummy object with no collision (for warp / structure entrance)
+            if (bitmaskColor == sf::Color(0, 255, 0))
+            {
+                objectGrid[tileY][tileX] = BuildableObject(tileWorldPos, DUMMY_OBJECT_NO_COLLISION);
+
+                structureObject->createWarpRect(tileWorldPos - sf::Vector2f(0.5, 0.5) * TILE_SIZE_PIXELS_UNSCALED);
             }
         }
     }
@@ -645,7 +653,7 @@ int Chunk::getTileType(sf::Vector2i position) const
     return groundTileGrid[position.y][position.x];
 }
 
-void Chunk::setObject(sf::Vector2i position, ObjectType objectType, int worldSize, ChunkManager& chunkManager)
+void Chunk::setObject(sf::Vector2i position, ObjectType objectType, int worldSize, ChunkManager& chunkManager, bool recalculateCollision)
 {
     // Get tile size
     // float tileSize = ResolutionHandler::getTileSize();
@@ -723,7 +731,10 @@ void Chunk::setObject(sf::Vector2i position, ObjectType objectType, int worldSiz
         }
     }
 
-    recalculateCollisionRects(chunkManager);
+    if (recalculateCollision)
+    {
+        recalculateCollisionRects(chunkManager);
+    }
 }
 
 void Chunk::deleteObject(sf::Vector2i position, ChunkManager& chunkManager)
@@ -1038,9 +1049,13 @@ void Chunk::recalculateCollisionRects(ChunkManager& chunkManager)
             if (!objectOptional.has_value())
                 continue;
             
-            if (objectOptional->getObjectType() == -10)
+            // Dummy object
+            if (objectOptional->isDummyObject())
             {
-                createCollisionRect(collisionRects, x, y);
+                if (objectOptional->dummyHasCollision())
+                {
+                    createCollisionRect(collisionRects, x, y);
+                }
                 continue;
             }
 
@@ -1164,6 +1179,14 @@ void Chunk::placeLand(sf::Vector2i tile, int worldSize, const FastNoise& heightN
     recalculateCollisionRects(chunkManager);
 }
 
+bool Chunk::isPlayerInStructureEntrance(sf::Vector2f playerPos)
+{
+    if (!structureObject.has_value())
+        return false;
+    
+    return (structureObject->isPlayerInEntrance(playerPos));
+}
+
 void Chunk::setWorldPosition(sf::Vector2f position, ChunkManager& chunkManager)
 {
     // Update all entity positions
@@ -1179,7 +1202,7 @@ void Chunk::setWorldPosition(sf::Vector2f position, ChunkManager& chunkManager)
     if (structureObject.has_value())
     {
         sf::Vector2f relativePosition = structureObject->getPosition() - worldPosition;
-        structureObject->setPosition(position + relativePosition);
+        structureObject->setWorldPosition(position + relativePosition);
     }
 
     worldPosition = position;

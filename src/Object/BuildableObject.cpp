@@ -5,7 +5,7 @@ BuildableObject::BuildableObject(sf::Vector2f position, ObjectType objectType)
 {
     this->objectType = objectType;
 
-    if (objectType == -10)
+    if (isDummyObject())
         return;
 
     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
@@ -180,4 +180,15 @@ void BuildableObject::closeChest()
 {
     // Rewind open chest animation
     animationDirection = -1;
+}
+
+// Dummy object
+bool BuildableObject::isDummyObject()
+{
+    return (objectType == DUMMY_OBJECT_COLLISION || objectType == DUMMY_OBJECT_NO_COLLISION);
+}
+
+bool BuildableObject::dummyHasCollision()
+{
+    return (objectType == DUMMY_OBJECT_COLLISION);
 }
