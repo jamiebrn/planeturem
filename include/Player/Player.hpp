@@ -27,6 +27,8 @@ public:
     Player(sf::Vector2f position);
 
     void update(float dt, sf::Vector2f mouseWorldPos, ChunkManager& chunkManager, int worldSize, bool& wrappedAroundWorld, sf::Vector2f& wrapPositionDelta);
+    void updateInStructure(float dt, sf::Vector2f mouseWorldPos);
+
     void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime, int worldSize, const sf::Color& color) override;
     void drawLightMask(sf::RenderTarget& lightTexture);
 
@@ -38,11 +40,15 @@ public:
 
     bool canReachPosition(sf::Vector2f worldPos);
 
+    void enterStructure();
+
     void setPosition(sf::Vector2f worldPos);
 
     const CollisionRect& getCollisionRect();
 
-    void createPrompt(std::string text);
+private:
+    void updateDirection(sf::Vector2f mouseWorldPos);
+    void updateAnimation(float dt);
 
 private:
     CollisionRect collisionRect;
@@ -55,6 +61,7 @@ private:
     static const sf::Vector2f toolOffset;
 
     int tileReach = 4;
+    float speed = 120.0f;
 
     ToolType equippedTool;
 
@@ -66,10 +73,5 @@ private:
     bool usingTool;
 
     static constexpr std::array<float, 5> runningShadowScale = {1.0f, 0.8f, 0.7f, 0.8f, 0.9f};
-
-    // Prompts
-    // String - prompt text
-    // Float - prompt current lifetime
-    std::vector<std::pair<std::string, float>> prompts;
     
 };

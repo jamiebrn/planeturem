@@ -17,6 +17,16 @@
 
 #include "GameConstants.hpp"
 
+struct StructureEnterEvent
+{
+    StructureType enteredStructureType;
+
+    uint32_t structureID;
+
+    // Top-left of warp collision / entrance
+    sf::Vector2f entrancePosition;
+};
+
 class StructureObject : public WorldObject
 {
 public:
@@ -24,7 +34,7 @@ public:
 
     void createWarpRect(sf::Vector2f rectPosition);
 
-    bool isPlayerInEntrance(sf::Vector2f playerPos);
+    bool isPlayerInEntrance(sf::Vector2f playerPos, StructureEnterEvent& enterEvent);
 
     void setWorldPosition(sf::Vector2f newPosition);
 
@@ -35,7 +45,7 @@ private:
 
     std::optional<CollisionRect> warpEntranceRect = std::nullopt;
 
-    // 0xFFFFFFFF used for uninitialised room
-    uint32_t roomID = 0xFFFFFFFF;
+    // 0xFFFFFFFF used for uninitialised structure / room
+    uint32_t structureID = 0xFFFFFFFF;
 
 };

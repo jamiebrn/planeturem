@@ -156,7 +156,7 @@ public:
 
 
     // -- Structures -- //
-    bool isPlayerInStructureEntrance(sf::Vector2f playerPos);
+    bool isPlayerInStructureEntrance(sf::Vector2f playerPos, StructureEnterEvent& enterEvent);
 
     
 

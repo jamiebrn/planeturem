@@ -32,6 +32,10 @@
 #include "Player/InventoryData.hpp"
 // #include "Player/FurnaceJob.hpp"
 
+#include "Object/WorldObject.hpp"
+#include "Object/BuildableObject.hpp"
+#include "Object/StructureObject.hpp"
+
 #include "Data/typedefs.hpp"
 #include "Data/ItemData.hpp"
 #include "Data/ObjectData.hpp"
@@ -66,9 +70,13 @@ public:
     void run();
 
 private:
-    void runMenu(float dt);
-    void runInShip(float dt);
     void runOnPlanet(float dt);
+
+    void updateOnPlanet(float dt);
+    void drawOnPlanet(float dt);
+
+    void updateInStructure(float dt);
+    void drawInStructure(float dt);
 
     void attemptUseTool();
     void changePlayerTool();
@@ -88,10 +96,15 @@ private:
     void handleOpenChestPositionWorldWrap(sf::Vector2f positionDelta);
     void closeChest();
 
+    void testEnterStructure();
+    void testExitStructure();
+
     void updateDayNightCycle(float dt);
 
     void drawWorld(float dt, std::vector<WorldObject*>& worldObjects, std::vector<WorldObject*>& entities);
     void drawLighting(float dt, std::vector<WorldObject*>& worldObjects, std::vector<WorldObject*>& entities);
+
+    void changeState(GameState newState);
 
     void generateWaterNoiseTexture();
 
@@ -105,6 +118,8 @@ private:
 
     void toggleFullScreen();
     void handleWindowResize(sf::Vector2u newSize);
+
+    void drawDebugMenu(float dt);
 
 private:
     sf::RenderWindow window;
@@ -150,6 +165,8 @@ private:
     sf::Vector2f openedChestPos;
     ChestDataPool chestDataPool;
 
+    // Structure
+    sf::Vector2f structureEnteredPos;
 
     Tween<float> floatTween;
 };

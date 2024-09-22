@@ -1179,12 +1179,12 @@ void Chunk::placeLand(sf::Vector2i tile, int worldSize, const FastNoise& heightN
     recalculateCollisionRects(chunkManager);
 }
 
-bool Chunk::isPlayerInStructureEntrance(sf::Vector2f playerPos)
+bool Chunk::isPlayerInStructureEntrance(sf::Vector2f playerPos, StructureEnterEvent& enterEvent)
 {
     if (!structureObject.has_value())
         return false;
     
-    return (structureObject->isPlayerInEntrance(playerPos));
+    return (structureObject->isPlayerInEntrance(playerPos, enterEvent));
 }
 
 void Chunk::setWorldPosition(sf::Vector2f position, ChunkManager& chunkManager)

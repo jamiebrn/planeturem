@@ -2,7 +2,6 @@
 
 enum GameState
 {
-    Menu,
-    InShip,
-    OnPlanet
+    OnPlanet,
+    InStructure
 };

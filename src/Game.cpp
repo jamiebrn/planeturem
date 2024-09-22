@@ -9,8 +9,6 @@
 // TODO: Different types of tools? (fishing rod etc)
 
 // PRIORITY: LOW
-// TODO: Recipe next line / button to hide
-// TODO: Inventory item added notifications (maybe taking items?). Add in player class
 // TODO: Prevent chests from being destroyed when containing items
 
 Game::Game()
@@ -271,16 +269,13 @@ void Game::run()
 
         switch (gameState)
         {
-            case GameState::Menu:
-                runMenu(dt);
-                break;
-            case GameState::InShip:
-                runInShip(dt);
-                break;
+            case GameState::InStructure:
             case GameState::OnPlanet:
                 runOnPlanet(dt);
                 break;
         }
+
+        drawDebugMenu(dt);
 
         if (ImGui::GetIO().WantCaptureMouse)
         {
@@ -297,48 +292,49 @@ void Game::run()
     }
 }
 
-void Game::runMenu(float dt)
+void Game::drawDebugMenu(float dt)
 {
-    for (auto event = sf::Event{}; window.pollEvent(event);)
-    {
-        handleEventsWindow(event);
+    if (!DebugOptions::debugOptionsMenuOpen)
+        return;
 
-        if (event.type == sf::Event::KeyPressed)
-        {
-            if (event.key.code == sf::Keyboard::Enter)
-            {
-                gameState = GameState::InShip;
-            }
-        }
+    ImGui::Begin("Debug Options", &DebugOptions::debugOptionsMenuOpen);
+
+    // Debug info
+    std::vector<std::string> debugStrings = {
+        GAME_VERSION,
+        std::to_string(static_cast<int>(1.0f / dt)) + "FPS",
+        std::to_string(chunkManager.getLoadedChunkCount()) + " Chunks loaded",
+        std::to_string(chunkManager.getGeneratedChunkCount()) + " Chunks generated",
+        "Player pos: " + std::to_string(static_cast<int>(player.getPosition().x)) + ", " + std::to_string(static_cast<int>(player.getPosition().y))
+    };
+
+    for (const std::string& string : debugStrings)
+    {
+        ImGui::Text(string.c_str());
     }
 
-    window.clear();
-}
+    ImGui::Spacing();
 
-void Game::runInShip(float dt)
-{
-    for (auto event = sf::Event{}; window.pollEvent(event);)
+    int musicVolume = Sounds::getMusicVolume();
+    if (ImGui::SliderInt("Music Volume", &musicVolume, 0, 100))
     {
-        handleEventsWindow(event);
-
-        if (event.type == sf::Event::KeyPressed)
-        {
-            if (event.key.code == sf::Keyboard::Enter)
-            {
-                gameState = GameState::OnPlanet;
-            }
-        }
+        Sounds::setMusicVolume(musicVolume);
     }
 
-    window.clear();
+    ImGui::Checkbox("Show Collision Boxes", &DebugOptions::drawCollisionRects);
+    ImGui::Checkbox("Show Chunk Boundaries", &DebugOptions::drawChunkBoundaries);
+    ImGui::Checkbox("Show Entity Chunk Parents", &DebugOptions::drawEntityChunkParents);
 
-    sf::Vector2f textPos;
-    textPos.x = ResolutionHandler::getResolution().x / 2.0f;
-    textPos.y = ResolutionHandler::getResolution().y / 2.0f;
+    ImGui::Spacing();
 
-    TextDraw::drawText(window, {
-        "In the ship", textPos, {255, 255, 255}, static_cast<unsigned int>(48 * ResolutionHandler::getResolutionIntegerScale()), {0, 0, 0}, 0, true, false
-        });
+    ImGui::Text("Visible Tiles");
+
+    for (auto iter = DebugOptions::tileMapsVisible.begin(); iter != DebugOptions::tileMapsVisible.end(); iter++)
+    {
+        ImGui::Checkbox(std::to_string(iter->first).c_str(), &(DebugOptions::tileMapsVisible[iter->first]));
+    }
+
+    ImGui::End();   
 }
 
 void Game::runOnPlanet(float dt)
@@ -462,6 +458,68 @@ void Game::runOnPlanet(float dt)
     // Update tweens
     floatTween.update(dt);
 
+    // Update depending on game state
+    switch (gameState)
+    {
+        case GameState::OnPlanet:
+            updateOnPlanet(dt);
+            break;
+        case GameState::InStructure:
+            updateInStructure(dt);
+            break;
+    }
+
+    // Inventory GUI updating
+    InventoryGUI::updateItemPopups(dt);
+
+    if (worldMenuState == WorldMenuState::Main)
+    {
+        InventoryGUI::updateHotbar(dt, mouseScreenPos);
+    }
+    else if (worldMenuState == WorldMenuState::Inventory)
+    {
+        // Update inventory GUI available recipes if required, and animations
+        InventoryGUI::updateAvailableRecipes(inventory, nearbyCraftingStationLevels);
+        InventoryGUI::updateInventory(mouseScreenPos, dt, chestDataPool.getChestDataPtr(openedChestID));
+    }
+
+
+    //
+    // -- DRAWING --
+    //
+
+    window.clear();
+
+    // Draw depending on game state
+    switch (gameState)
+    {
+        case GameState::OnPlanet:
+            drawOnPlanet(dt);
+            break;
+        case GameState::InStructure:
+            drawInStructure(dt);
+            break;
+    }
+
+    switch (worldMenuState)
+    {
+        case WorldMenuState::Main:
+            InventoryGUI::drawHotbar(window, mouseScreenPos, inventory);
+            InventoryGUI::drawItemPopups(window);
+            break;
+        
+        case WorldMenuState::Inventory:
+            InventoryGUI::draw(window, gameTime, mouseScreenPos, inventory, chestDataPool.getChestDataPtr(openedChestID));
+            break;
+    }
+
+    drawMouseCursor();
+}
+
+void Game::updateOnPlanet(float dt)
+{
+    sf::Vector2f mouseScreenPos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
+
     // updateDayNightCycle(dt);
 
     int worldSize = chunkManager.getWorldSize();
@@ -509,35 +567,14 @@ void Game::runOnPlanet(float dt)
     // Get nearby crafting stations
     nearbyCraftingStationLevels = chunkManager.getNearbyCraftingStationLevels(player.getChunkInside(worldSize), player.getChunkTileInside(worldSize), 4);
 
-    if (chunkManager.isPlayerInStructureEntrance(player.getPosition()))
-    {
-        std::cout << "Enter structure\n";
-    }
+    testEnterStructure();
 
     // Close chest if out of range
     checkChestOpenInRange();
+}
 
-    // Inventory GUI updating
-    InventoryGUI::updateItemPopups(dt);
-
-    if (worldMenuState == WorldMenuState::Main)
-    {
-        InventoryGUI::updateHotbar(dt, mouseScreenPos);
-    }
-    else if (worldMenuState == WorldMenuState::Inventory)
-    {
-        // Update inventory GUI available recipes if required, and animations
-        InventoryGUI::updateAvailableRecipes(inventory, nearbyCraftingStationLevels);
-        InventoryGUI::updateInventory(mouseScreenPos, dt, chestDataPool.getChestDataPtr(openedChestID));
-    }
-
-
-    //
-    // -- DRAWING --
-    //
-
-    window.clear({80, 80, 80});
-
+void Game::drawOnPlanet(float dt)
+{
     // Get world objects
     std::vector<WorldObject*> worldObjects = chunkManager.getChunkObjects();
     std::vector<WorldObject*> entities = chunkManager.getChunkEntities();
@@ -545,7 +582,7 @@ void Game::runOnPlanet(float dt)
     worldObjects.push_back(&player);
 
     drawWorld(dt, worldObjects, entities);
-    drawLighting(dt, worldObjects, entities);  
+    drawLighting(dt, worldObjects, entities);
 
 
     // UI
@@ -570,67 +607,18 @@ void Game::runOnPlanet(float dt)
             drawGhostPlaceLandAtCursor();
         }
     }
+}
 
-    switch (worldMenuState)
-    {
-        case WorldMenuState::Main:
-            InventoryGUI::drawHotbar(window, mouseScreenPos, inventory);
-            InventoryGUI::drawItemPopups(window);
-            break;
-        
-        case WorldMenuState::Inventory:
-            InventoryGUI::draw(window, gameTime, mouseScreenPos, inventory, chestDataPool.getChestDataPtr(openedChestID));
-            break;
-    }
+void Game::updateInStructure(float dt)
+{
+    player.updateInStructure(dt, Cursor::getMouseWorldPos(window));
 
-    drawMouseCursor();
+    testExitStructure();
+}
 
-    // DEBUG
-    if (DebugOptions::debugOptionsMenuOpen)
-    {
-        ImGui::Begin("Debug Options", &DebugOptions::debugOptionsMenuOpen);
-
-        // Debug info
-        {
-            std::vector<std::string> debugStrings = {
-                GAME_VERSION,
-                std::to_string(static_cast<int>(1.0f / dt)) + "FPS",
-                std::to_string(chunkManager.getLoadedChunkCount()) + " Chunks loaded",
-                std::to_string(chunkManager.getGeneratedChunkCount()) + " Chunks generated",
-                "Player pos: " + std::to_string(static_cast<int>(player.getPosition().x)) + ", " + std::to_string(static_cast<int>(player.getPosition().y))
-            };
-
-            for (const std::string& string : debugStrings)
-            {
-                ImGui::Text(string.c_str());
-            }
-        }
-
-        ImGui::Spacing();
-
-        int musicVolume = Sounds::getMusicVolume();
-        if (ImGui::SliderInt("Music Volume", &musicVolume, 0, 100))
-        {
-            Sounds::setMusicVolume(musicVolume);
-        }
-
-        ImGui::Checkbox("Show Collision Boxes", &DebugOptions::drawCollisionRects);
-        ImGui::Checkbox("Show Chunk Boundaries", &DebugOptions::drawChunkBoundaries);
-        ImGui::Checkbox("Show Entity Chunk Parents", &DebugOptions::drawEntityChunkParents);
-
-        ImGui::Spacing();
-
-        ImGui::Text("Visible Tiles");
-
-        for (auto iter = DebugOptions::tileMapsVisible.begin(); iter != DebugOptions::tileMapsVisible.end(); iter++)
-        {
-            ImGui::Checkbox(std::to_string(iter->first).c_str(), &(DebugOptions::tileMapsVisible[iter->first]));
-        }
-
-        ImGui::End();
-    }
-
-    // window.setTitle("spacebuild - " + std::to_string((int)(1.0f / dt)) + "FPS");
+void Game::drawInStructure(float dt)
+{
+    player.draw(window, spriteBatch, dt, gameTime, chunkManager.getWorldSize(), sf::Color(255, 255, 255));
 }
 
 void Game::updateMusic(float dt)
@@ -714,6 +702,9 @@ void Game::attemptUseTool()
 
     player.useTool();
 
+    if (gameState != GameState::OnPlanet)
+        return;
+
     if (!player.canReachPosition(mouseWorldPos))
         return;
     
@@ -780,7 +771,10 @@ void Game::changePlayerTool()
 }
 
 void Game::attemptObjectInteract()
-{    
+{
+    if (gameState != GameState::OnPlanet)
+        return;
+
     // Get mouse position in screen space and world space
     sf::Vector2f mouseWorldPos = Cursor::getMouseWorldPos(window);
 
@@ -837,6 +831,9 @@ void Game::attemptObjectInteract()
 
 void Game::attemptBuildObject()
 {
+    if (gameState != GameState::OnPlanet)
+        return;
+
     ObjectType objectType = InventoryGUI::getHeldObjectType();
     bool placeFromHotbar = false;
 
@@ -888,6 +885,9 @@ void Game::attemptBuildObject()
 
 void Game::attemptPlaceLand()
 {
+    if (gameState != GameState::OnPlanet)
+        return;
+
     // Do not build if holding tool in inventory (not in hotbar)
     if (InventoryGUI::getHeldToolType() >= 0)
         return;
@@ -1105,6 +1105,50 @@ void Game::closeChest()
     openedChest.chunk = ChunkPosition(0, 0);
     openedChest.tile = sf::Vector2i(0, 0);
     openedChestPos = sf::Vector2f(0, 0);
+}
+
+void Game::testEnterStructure()
+{
+    StructureEnterEvent enterEvent;
+    if (!chunkManager.isPlayerInStructureEntrance(player.getPosition(), enterEvent))
+        return;
+    
+    // Structure has been entered
+    structureEnteredPos.x = (std::floor(enterEvent.entrancePosition.x / TILE_SIZE_PIXELS_UNSCALED) + 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
+    structureEnteredPos.y = (std::floor(enterEvent.entrancePosition.y / TILE_SIZE_PIXELS_UNSCALED) + 1.5f) * TILE_SIZE_PIXELS_UNSCALED;
+
+    player.setPosition(static_cast<sf::Vector2f>(window.getSize()) / 2.0f);
+    Camera::instantUpdate(player.getPosition());
+
+    player.enterStructure();
+
+    changeState(GameState::InStructure);
+}
+
+void Game::testExitStructure()
+{
+    if (player.getPosition().y < 700)
+        return;
+    
+    // Exit structure
+    player.setPosition(structureEnteredPos);
+    Camera::instantUpdate(player.getPosition());
+
+    changeState(GameState::OnPlanet);
+}
+
+void Game::changeState(GameState newState)
+{
+    switch (newState)
+    {
+        case GameState::InStructure:
+            closeChest();
+            break;
+        case GameState::OnPlanet:
+            break;
+    }
+
+    gameState = newState;
 }
 
 void Game::updateDayNightCycle(float dt)

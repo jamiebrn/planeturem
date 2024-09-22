@@ -25,24 +25,8 @@ Player::Player(sf::Vector2f position)
 
 void Player::update(float dt, sf::Vector2f mouseWorldPos, ChunkManager& chunkManager, int worldSize, bool& wrappedAroundWorld, sf::Vector2f& wrapPositionDelta)
 {
-    // Face towards mouse cursor (overridden if moving)
-    flippedTexture = (position.x - mouseWorldPos.x) > 0;
-
-    // Handle movement input
-    direction.x = sf::Keyboard::isKeyPressed(sf::Keyboard::D) - sf::Keyboard::isKeyPressed(sf::Keyboard::A);
-    direction.y = sf::Keyboard::isKeyPressed(sf::Keyboard::S) - sf::Keyboard::isKeyPressed(sf::Keyboard::W);
-
-    float length = std::sqrt(direction.x * direction.x + direction.y * direction.y);
-    if (length > 0)
-    {
-        direction /= length;
-
-        if (direction.x != 0)
-            flippedTexture = direction.x < 0;
-    }
-
-    float speed = 120.0f;
-
+    updateDirection(mouseWorldPos);
+    updateAnimation(dt);
 
     // Handle collision with world (tiles, object)
 
@@ -85,7 +69,43 @@ void Player::update(float dt, sf::Vector2f mouseWorldPos, ChunkManager& chunkMan
     position.x = collisionRect.x + collisionRect.width / 2.0f;
     position.y = collisionRect.y + collisionRect.height / 2.0f;
 
+    // Update on water
+    onWater = (chunkManager.getLoadedChunkTileType(getChunkInside(worldSize), getChunkTileInside(worldSize)) == 0);
+}
 
+void Player::updateInStructure(float dt, sf::Vector2f mouseWorldPos)
+{
+    updateDirection(mouseWorldPos);
+    updateAnimation(dt);
+
+    collisionRect.x += direction.x * speed * dt;
+    collisionRect.y += direction.y * speed * dt;
+
+    position.x = collisionRect.x + collisionRect.width / 2.0f;
+    position.y = collisionRect.y + collisionRect.height / 2.0f;
+}
+
+void Player::updateDirection(sf::Vector2f mouseWorldPos)
+{
+    // Face towards mouse cursor (overridden if moving)
+    flippedTexture = (position.x - mouseWorldPos.x) > 0;
+
+    // Handle movement input
+    direction.x = sf::Keyboard::isKeyPressed(sf::Keyboard::D) - sf::Keyboard::isKeyPressed(sf::Keyboard::A);
+    direction.y = sf::Keyboard::isKeyPressed(sf::Keyboard::S) - sf::Keyboard::isKeyPressed(sf::Keyboard::W);
+
+    float length = std::sqrt(direction.x * direction.x + direction.y * direction.y);
+    if (length > 0)
+    {
+        direction /= length;
+
+        if (direction.x != 0)
+            flippedTexture = direction.x < 0;
+    }
+}
+
+void Player::updateAnimation(float dt)
+{
     // Update animation
     idleAnimation.update(dt);
     runAnimation.update(dt);
@@ -104,23 +124,6 @@ void Player::update(float dt, sf::Vector2f mouseWorldPos, ChunkManager& chunkMan
     {
         if (toolTweener.isTweenFinished(rotationTweenID)) usingTool = false;
     }
-
-    // Update on water
-    onWater = (chunkManager.getLoadedChunkTileType(getChunkInside(worldSize), getChunkTileInside(worldSize)) == 0);
-
-    // Update prompts
-    for (auto prompt = prompts.begin(); prompt != prompts.end();)
-    {
-        prompt->second -= dt;
-        if (prompt->second <= 0)
-        {
-            prompt = prompts.erase(prompt);
-            continue;
-        }
-        prompt++;
-    }
-
-    // std::cout << position.x << ", " << position.y << std::endl;
 }
 
 void Player::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime, int worldSize, const sf::Color& color)
@@ -171,25 +174,6 @@ void Player::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, 
         TextureManager::drawSubTexture(window, {
             TextureType::Tools, toolPos, correctedToolRotation, playerScale, {toolData.pivot.x, toolData.pivot.y + pivotYOffset
             }}, toolData.textureRect);
-    }
-
-    float scale = ResolutionHandler::getScale();
-
-    // Draw prompts
-    for (int i = prompts.size() - 1; i >= 0; i--)
-    {
-        auto& prompt = prompts[i];
-        int yOffset = (prompts.size() - 1 - i) * 12.0f * scale;
-        TextDraw::drawText(window, {
-            prompt.first,
-            Camera::worldToScreenTransform(position) + sf::Vector2f(0, -10.0f * scale - yOffset),
-            sf::Color(255, 255, 255),
-            static_cast<unsigned int>(8.0f * scale),
-            sf::Color(0, 0, 0),
-            0,
-            true,
-            true
-            });
     }
 
     // DEBUG
@@ -246,6 +230,11 @@ bool Player::canReachPosition(sf::Vector2f worldPos)
     return tileDistance <= tileReach;
 }
 
+void Player::enterStructure()
+{
+    onWater = false;
+}
+
 void Player::setPosition(sf::Vector2f worldPos)
 {
     collisionRect.x = worldPos.x - collisionRect.width / 2.0f;
@@ -258,9 +247,4 @@ void Player::setPosition(sf::Vector2f worldPos)
 const CollisionRect& Player::getCollisionRect()
 {
     return collisionRect;
-}
-
-void Player::createPrompt(std::string text)
-{
-    prompts.push_back({text, 5.0f});
 }
