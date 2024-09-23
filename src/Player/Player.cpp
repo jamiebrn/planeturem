@@ -73,13 +73,16 @@ void Player::update(float dt, sf::Vector2f mouseWorldPos, ChunkManager& chunkMan
     onWater = (chunkManager.getLoadedChunkTileType(getChunkInside(worldSize), getChunkTileInside(worldSize)) == 0);
 }
 
-void Player::updateInStructure(float dt, sf::Vector2f mouseWorldPos)
+void Player::updateInStructure(float dt, sf::Vector2f mouseWorldPos, const Room& structureRoom)
 {
     updateDirection(mouseWorldPos);
     updateAnimation(dt);
 
     collisionRect.x += direction.x * speed * dt;
+    structureRoom.handleStaticCollisionX(collisionRect, direction.x);
+
     collisionRect.y += direction.y * speed * dt;
+    structureRoom.handleStaticCollisionY(collisionRect, direction.y);
 
     position.x = collisionRect.x + collisionRect.width / 2.0f;
     position.y = collisionRect.y + collisionRect.height / 2.0f;

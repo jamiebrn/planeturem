@@ -14,6 +14,7 @@
 #include "Core/SpriteBatch.hpp"
 #include "Object/WorldObject.hpp"
 #include "World/ChunkManager.hpp"
+#include "World/Room.hpp"
 #include "Data/typedefs.hpp"
 #include "Data/ToolData.hpp"
 #include "Data/ToolDataLoader.hpp"
@@ -27,7 +28,7 @@ public:
     Player(sf::Vector2f position);
 
     void update(float dt, sf::Vector2f mouseWorldPos, ChunkManager& chunkManager, int worldSize, bool& wrappedAroundWorld, sf::Vector2f& wrapPositionDelta);
-    void updateInStructure(float dt, sf::Vector2f mouseWorldPos);
+    void updateInStructure(float dt, sf::Vector2f mouseWorldPos, const Room& structureRoom);
 
     void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime, int worldSize, const sf::Color& color) override;
     void drawLightMask(sf::RenderTarget& lightTexture);

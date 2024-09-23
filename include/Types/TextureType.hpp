@@ -12,7 +12,8 @@ enum class TextureType
     Tools,
     Shadow,
     LightMask,
-    UI
+    UI,
+    Rooms
 };
 
 enum BitmaskType

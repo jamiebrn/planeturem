@@ -611,13 +611,22 @@ void Game::drawOnPlanet(float dt)
 
 void Game::updateInStructure(float dt)
 {
-    player.updateInStructure(dt, Cursor::getMouseWorldPos(window));
+    sf::Vector2f mouseScreenPos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
+
+    const Room& structureRoom = structureRoomPool.getRoom(structureEnteredID);
+
+    player.updateInStructure(dt, Cursor::getMouseWorldPos(window), structureRoom);
+
+    Camera::update(player.getPosition(), mouseScreenPos, dt);
 
     testExitStructure();
 }
 
 void Game::drawInStructure(float dt)
 {
+    const Room& structureRoom = structureRoomPool.getRoom(structureEnteredID);
+    structureRoom.draw(window);
+
     player.draw(window, spriteBatch, dt, gameTime, chunkManager.getWorldSize(), sf::Color(255, 255, 255));
 }
 
@@ -1114,10 +1123,25 @@ void Game::testEnterStructure()
         return;
     
     // Structure has been entered
+
+    // Create room data
+    if (enterEvent.enteredStructure->getStructureID() == 0xFFFFFFFF)
+    {
+        structureEnteredID = structureRoomPool.createRoom(enterEvent.enteredStructure->getStructureType());
+        enterEvent.enteredStructure->setStructureID(structureEnteredID);
+    }
+    else
+    {
+        // Get ID from structure as room has previously been initialised
+        structureEnteredID = enterEvent.enteredStructure->getStructureID();
+    }
+
     structureEnteredPos.x = (std::floor(enterEvent.entrancePosition.x / TILE_SIZE_PIXELS_UNSCALED) + 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
     structureEnteredPos.y = (std::floor(enterEvent.entrancePosition.y / TILE_SIZE_PIXELS_UNSCALED) + 1.5f) * TILE_SIZE_PIXELS_UNSCALED;
 
-    player.setPosition(static_cast<sf::Vector2f>(window.getSize()) / 2.0f);
+    sf::Vector2f roomEntrancePos = structureRoomPool.getRoom(structureEnteredID).getEntrancePosition();
+
+    player.setPosition(roomEntrancePos);
     Camera::instantUpdate(player.getPosition());
 
     player.enterStructure();
@@ -1127,10 +1151,14 @@ void Game::testEnterStructure()
 
 void Game::testExitStructure()
 {
-    if (player.getPosition().y < 700)
+    const Room& structureRoom = structureRoomPool.getRoom(structureEnteredID);
+    
+    if (!structureRoom.isPlayerInExit(player.getPosition()))
         return;
     
     // Exit structure
+    structureEnteredID = 0xFFFFFFFF;
+
     player.setPosition(structureEnteredPos);
     Camera::instantUpdate(player.getPosition());
 
@@ -1143,6 +1171,7 @@ void Game::changeState(GameState newState)
     {
         case GameState::InStructure:
             closeChest();
+            nearbyCraftingStationLevels.clear();
             break;
         case GameState::OnPlanet:
             break;

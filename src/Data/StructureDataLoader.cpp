@@ -9,10 +9,36 @@ bool StructureDataLoader::loadData(std::string structureDataPath)
     std::ifstream file(structureDataPath);
     nlohmann::ordered_json data = nlohmann::ordered_json::parse(file);
 
+    // Load rooms
+    std::unordered_map<std::string, RoomData> roomNameToDataMap;
+
+    auto rooms = data.at("rooms");
+    for (nlohmann::ordered_json::iterator iter = rooms.begin(); iter != rooms.end(); ++iter)
+    {
+        RoomData roomData;
+
+        auto tileSize = iter->at("tile-size");
+        roomData.tileSize.x = tileSize[0];
+        roomData.tileSize.y = tileSize[1];
+
+        auto textureOffset = iter->at("texture");
+        roomData.textureRect.left = textureOffset[0];
+        roomData.textureRect.top = textureOffset[1];
+        roomData.textureRect.width = roomData.tileSize.x * TILE_SIZE_PIXELS_UNSCALED;
+        roomData.textureRect.height = roomData.tileSize.y * TILE_SIZE_PIXELS_UNSCALED;
+
+        auto collisionBitmask = iter->at("collision-bitmask");
+        roomData.collisionBitmaskOffset.x = collisionBitmask[0];
+        roomData.collisionBitmaskOffset.y = collisionBitmask[1];
+
+        roomNameToDataMap[iter.key()] = roomData;
+    }
+
     int structureIdx = 0;
 
     // Load data
-    for (nlohmann::ordered_json::iterator iter = data.begin(); iter != data.end(); ++iter)
+    auto structures = data.at("structures");
+    for (nlohmann::ordered_json::iterator iter = structures.begin(); iter != structures.end(); ++iter)
     {
         StructureData structureData;
         auto jsonStructureData = iter.value();
@@ -35,6 +61,8 @@ bool StructureDataLoader::loadData(std::string structureDataPath)
         auto collisionBitmask = jsonStructureData.at("collision-bitmask");
         structureData.collisionBitmaskOffset.x = collisionBitmask[0];
         structureData.collisionBitmaskOffset.y = collisionBitmask[1];
+
+        structureData.roomData = roomNameToDataMap[jsonStructureData.at("room")];
 
         loaded_structureData.push_back(structureData);
 

@@ -25,8 +25,7 @@ bool StructureObject::isPlayerInEntrance(sf::Vector2f playerPos, StructureEnterE
 
     if (warpEntranceRect->isPointInRect(playerPos.x, playerPos.y))
     {
-        enterEvent.enteredStructureType = structureType;
-        enterEvent.structureID = structureID;
+        enterEvent.enteredStructure = this;
         enterEvent.entrancePosition = sf::Vector2f(warpEntranceRect->x, warpEntranceRect->y);
 
         return true;

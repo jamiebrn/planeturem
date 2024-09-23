@@ -1,10 +1,20 @@
-[
-    {
-        "name": "Stone Dungeon",
-        "size-x": 3,
-        "size-y": 3,
-        "texture": [0, 464, 48, 48],
-        "texture-origin": [0.167, 0.833],
-        "collision-bitmask": [0, 0]
-    }
-]
+{ 
+    "rooms": {
+        "Stone": {
+            "texture": [0, 0],
+            "tile-size": [9, 10],
+            "collision-bitmask": [0, 3]
+        }
+    },
+    "structures": [
+        {
+            "name": "Stone Dungeon",
+            "size-x": 3,
+            "size-y": 3,
+            "texture": [0, 464, 48, 48],
+            "texture-origin": [0.167, 0.833],
+            "collision-bitmask": [0, 0],
+            "room": "Stone"
+        }
+    ]
+}

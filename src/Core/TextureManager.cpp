@@ -23,7 +23,8 @@ const std::unordered_map<TextureType, std::string> TextureManager::texturePaths 
     {TextureType::Tools, "Data/Textures/tools.png"},
     {TextureType::Shadow, "Data/Textures/shadow.png"},
     {TextureType::LightMask, "Data/Textures/light_mask.png"},
-    {TextureType::UI, "Data/Textures/UI.png"}
+    {TextureType::UI, "Data/Textures/UI.png"},
+    {TextureType::Rooms, "Data/Textures/rooms.png"}
 };
 
 const std::unordered_map<BitmaskType, std::string> TextureManager::bitmaskPaths = {

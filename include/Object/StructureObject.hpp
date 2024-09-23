@@ -17,11 +17,15 @@
 
 #include "GameConstants.hpp"
 
+// Forward declare
+class StructureObject;
+
 struct StructureEnterEvent
 {
-    StructureType enteredStructureType;
+    StructureObject* enteredStructure;
+    // StructureType enteredStructureType;
 
-    uint32_t structureID;
+    // uint32_t structureID;
 
     // Top-left of warp collision / entrance
     sf::Vector2f entrancePosition;
@@ -37,6 +41,12 @@ public:
     bool isPlayerInEntrance(sf::Vector2f playerPos, StructureEnterEvent& enterEvent);
 
     void setWorldPosition(sf::Vector2f newPosition);
+
+    inline StructureType getStructureType() {return structureType;}
+
+    inline uint32_t getStructureID() {return structureID;}
+
+    inline void setStructureID(uint32_t id) {structureID = id;}
 
     void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime, int worldSize, const sf::Color& color) override;
 

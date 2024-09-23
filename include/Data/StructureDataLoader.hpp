@@ -9,6 +9,8 @@
 #include "Data/StructureData.hpp"
 #include "Data/typedefs.hpp"
 
+#include "GameConstants.hpp"
+
 class StructureDataLoader
 {
     StructureDataLoader() = delete;

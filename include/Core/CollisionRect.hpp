@@ -9,8 +9,8 @@
 
 struct CollisionRect
 {
-    float x, y;
-    float width, height;
+    float x = 0, y = 0;
+    float width = 0, height = 0;
 
     CollisionRect() = default;
     CollisionRect(float x, float y, float width, float height);

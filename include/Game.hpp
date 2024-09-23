@@ -27,6 +27,9 @@
 #include "World/ChestDataPool.hpp"
 #include "World/TileMap.hpp"
 
+#include "World/Room.hpp"
+#include "World/RoomPool.hpp"
+
 #include "Player/Player.hpp"
 #include "Player/Cursor.hpp"
 #include "Player/InventoryData.hpp"
@@ -166,7 +169,9 @@ private:
     ChestDataPool chestDataPool;
 
     // Structure
+    uint32_t structureEnteredID;
     sf::Vector2f structureEnteredPos;
+    RoomPool structureRoomPool;
 
     Tween<float> floatTween;
 };
