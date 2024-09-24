@@ -1,11 +1,8 @@
 #include "Game.hpp"
 
-// FIX: Horse in the water? - also saw horse teleporting on collision with water (may be related)
-// FIX: Cliffs are broken again? (cliff on grass field) - maybe fixed????
-// FIX: unknown divide by zero error
-
 // PRIORITY: HIGH
-// TODO: Enterable structures (for getting rocket parts, maybe other uses in future)
+// TODO: Structure functionality (item spawns, crafting stations etc)
+// TODO: Different types of structures
 // TODO: Different types of tools? (fishing rod etc)
 
 // PRIORITY: LOW
@@ -78,6 +75,8 @@ bool Game::initialise()
     // Initialise values
     gameTime = 0;
     gameState = GameState::OnPlanet;
+    destinationGameState = gameState;
+    transitionGameStateTimer = 0.0f;
     worldMenuState = WorldMenuState::Main;
 
     openedChestID = 0xFFFF;
@@ -275,6 +274,12 @@ void Game::run()
                 break;
         }
 
+        if (isStateTransitioning())
+        {
+            updateStateTransition(dt);
+            drawStateTransition();
+        }
+
         drawDebugMenu(dt);
 
         if (ImGui::GetIO().WantCaptureMouse)
@@ -347,6 +352,9 @@ void Game::runOnPlanet(float dt)
     for (auto event = sf::Event{}; window.pollEvent(event);)
     {
         handleEventsWindow(event);
+
+        if (isStateTransitioning())
+            continue;
 
         if (event.type == sf::Event::KeyPressed)
         {
@@ -548,7 +556,9 @@ void Game::updateOnPlanet(float dt)
     // Update player
     bool wrappedAroundWorld = false;
     sf::Vector2f wrapPositionDelta;
-    player.update(dt, Cursor::getMouseWorldPos(window), chunkManager, worldSize, wrappedAroundWorld, wrapPositionDelta);
+
+    if (!isStateTransitioning())
+        player.update(dt, Cursor::getMouseWorldPos(window), chunkManager, worldSize, wrappedAroundWorld, wrapPositionDelta);
 
     // Handle world wrapping for camera and cursor, if player wrapped around
     if (wrappedAroundWorld)
@@ -567,7 +577,8 @@ void Game::updateOnPlanet(float dt)
     // Get nearby crafting stations
     nearbyCraftingStationLevels = chunkManager.getNearbyCraftingStationLevels(player.getChunkInside(worldSize), player.getChunkTileInside(worldSize), 4);
 
-    testEnterStructure();
+    if (!isStateTransitioning())
+        testEnterStructure();
 
     // Close chest if out of range
     checkChestOpenInRange();
@@ -615,11 +626,17 @@ void Game::updateInStructure(float dt)
 
     const Room& structureRoom = structureRoomPool.getRoom(structureEnteredID);
 
-    player.updateInStructure(dt, Cursor::getMouseWorldPos(window), structureRoom);
+    if (!isStateTransitioning())
+        player.updateInStructure(dt, Cursor::getMouseWorldPos(window), structureRoom);
 
     Camera::update(player.getPosition(), mouseScreenPos, dt);
 
-    testExitStructure();
+    // Continue to update objects and entities in world
+    chunkManager.updateChunksObjects(dt);
+    chunkManager.updateChunksEntities(dt);
+
+    if (!isStateTransitioning())
+        testExitStructure();
 }
 
 void Game::drawInStructure(float dt)
@@ -1139,14 +1156,8 @@ void Game::testEnterStructure()
     structureEnteredPos.x = (std::floor(enterEvent.entrancePosition.x / TILE_SIZE_PIXELS_UNSCALED) + 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
     structureEnteredPos.y = (std::floor(enterEvent.entrancePosition.y / TILE_SIZE_PIXELS_UNSCALED) + 1.5f) * TILE_SIZE_PIXELS_UNSCALED;
 
-    sf::Vector2f roomEntrancePos = structureRoomPool.getRoom(structureEnteredID).getEntrancePosition();
-
-    player.setPosition(roomEntrancePos);
-    Camera::instantUpdate(player.getPosition());
-
-    player.enterStructure();
-
-    changeState(GameState::InStructure);
+    // changeState(GameState::InStructure);
+    startChangeStateTransition(GameState::InStructure);
 }
 
 void Game::testExitStructure()
@@ -1155,14 +1166,44 @@ void Game::testExitStructure()
     
     if (!structureRoom.isPlayerInExit(player.getPosition()))
         return;
-    
-    // Exit structure
-    structureEnteredID = 0xFFFFFFFF;
 
-    player.setPosition(structureEnteredPos);
-    Camera::instantUpdate(player.getPosition());
+    // changeState(GameState::OnPlanet);
+    startChangeStateTransition(GameState::OnPlanet);
+}
 
-    changeState(GameState::OnPlanet);
+void Game::updateStateTransition(float dt)
+{
+    transitionGameStateTimer -= dt;
+    if (transitionGameStateTimer <= 0)
+    {
+        transitionGameStateTimer = 0;
+
+        // Change state
+        changeState(destinationGameState);
+    }
+}
+
+void Game::drawStateTransition()
+{
+    sf::RectangleShape fadeRectangle(static_cast<sf::Vector2f>(window.getSize()));
+
+    // Calculate alpha
+    float alpha = 1.0f - transitionGameStateTimer / TRANSITION_STATE_FADE_TIME;
+    fadeRectangle.setFillColor(sf::Color(0, 0, 0, 255 * alpha));
+
+    window.draw(fadeRectangle);
+}
+
+bool Game::isStateTransitioning()
+{
+    return (gameState != destinationGameState);
+}
+
+void Game::startChangeStateTransition(GameState newState)
+{
+    destinationGameState = newState;
+
+    transitionGameStateTimer = TRANSITION_STATE_FADE_TIME;
 }
 
 void Game::changeState(GameState newState)
@@ -1170,11 +1211,27 @@ void Game::changeState(GameState newState)
     switch (newState)
     {
         case GameState::InStructure:
+        {
             closeChest();
             nearbyCraftingStationLevels.clear();
+            
+            sf::Vector2f roomEntrancePos = structureRoomPool.getRoom(structureEnteredID).getEntrancePosition();
+
+            player.setPosition(roomEntrancePos);
+            Camera::instantUpdate(player.getPosition());
+
+            player.enterStructure();
             break;
+        }
         case GameState::OnPlanet:
+        {
+            // Exit structure
+            structureEnteredID = 0xFFFFFFFF;
+
+            player.setPosition(structureEnteredPos);
+            Camera::instantUpdate(player.getPosition());
             break;
+        }
     }
 
     gameState = newState;

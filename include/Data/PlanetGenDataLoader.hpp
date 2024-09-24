@@ -11,6 +11,7 @@
 #include "Data/typedefs.hpp"
 #include "Data/ObjectDataLoader.hpp"
 #include "Data/EntityDataLoader.hpp"
+#include "Data/StructureDataLoader.hpp"
 #include "World/TileMap.hpp"
 
 #include "DebugOptions.hpp"

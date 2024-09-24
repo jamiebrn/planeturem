@@ -57,8 +57,7 @@ void Chunk::generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNo
     // Create structure if required
     if (!containsWater)
     {
-        // FIX: This shit
-        generateRandomStructure();
+        generateRandomStructure(worldSize, biomeNoise, planetType);
     }
 
     // Set tile maps / spawn objects
@@ -117,11 +116,31 @@ void Chunk::generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNo
     recalculateCollisionRects(chunkManager);
 }
 
-void Chunk::generateRandomStructure()
+void Chunk::generateRandomStructure(int worldSize, const FastNoise& biomeNoise, PlanetType planetType)
 {
-    int chance = Helper::randInt(0, 30);
+    // Get biome gen data
+    const BiomeGenData* biomeGenData = getBiomeGenAtWorldTile(sf::Vector2i(chunkPosition.x, chunkPosition.y), worldSize, biomeNoise, planetType);
+    if (!biomeGenData)
+        return;
+    
+    // Get random structure type
+    StructureType structureType = -1;
 
-    if (chance > 10)
+    float cumulativeChance = 0;
+    float randomSpawn = Helper::randInt(0, 10000) / 10000.0f;
+    for (const StructureGenData& structureGenData : biomeGenData->structureGenDatas)
+    {
+        cumulativeChance += structureGenData.spawnChance;
+
+        if (randomSpawn <= cumulativeChance)
+        {
+            structureType = structureGenData.structure;
+            break;
+        }
+    }
+
+    // No structure chosen
+    if (structureType < 0)
         return;
     
     // Generate structure
@@ -129,7 +148,7 @@ void Chunk::generateRandomStructure()
     // Read collision bitmask and create dummy objects in required positions
     const sf::Image& bitmaskImage = TextureManager::getBitmask(BitmaskType::Structures);
 
-    const StructureData& structureData = StructureDataLoader::getStructureData(0);
+    const StructureData& structureData = StructureDataLoader::getStructureData(structureType);
 
     // Randomise spawn position in chunk
     sf::Vector2i spawnTile;
@@ -155,7 +174,7 @@ void Chunk::generateRandomStructure()
             // Create actual structure object
             if (!spawnedStructureObject && bitmaskColor != sf::Color(0, 0, 0, 0))
             {
-                structureObject = StructureObject(tileWorldPos, 0);
+                structureObject = StructureObject(tileWorldPos, structureType);
 
                 spawnedStructureObject = true;
             }
@@ -308,34 +327,6 @@ void Chunk::generateVisualEffectTiles(const FastNoise& heightNoise, const FastNo
         }
 
         return chunkManager.getChunkTileTypeOrPredicted(wrappedChunkTile.first, wrappedChunkTile.second);
-        
-        // If chunk has changed due to offset, check tile in different chunk
-        //if (wrappedChunkTile.first != chunk)
-        //{
-        //    if (chunkManager.isChunkGenerated(wrappedChunkTile.first))
-        //    {
-        //        return chunkManager.getChunkTileType(wrappedChunkTile.first, wrappedChunkTile.second);
-        //    }
-        //    else
-        //    {
-        //        // Take tile type from noise value as chunk has not been generated yet
-        //        const TileGenData* tileGenData = getTileGenAtWorldTile(
-        //            sf::Vector2i(wrappedChunkTile.first.x * CHUNK_TILE_SIZE + wrappedChunkTile.second.x,
-        //                         wrappedChunkTile.first.y * CHUNK_TILE_SIZE + wrappedChunkTile.second.y),
-        //            worldSize, heightNoise, biomeNoise, planetType);
-        //        
-        //        if (!tileGenData)
-        //        {
-        //            return 0; // tile gen data is nullptr, so tile will not be generated there, i.e. water
-        //        }
-
-        //        return tileGenData->tileID; // return non-zero value by default (non-water tile)
-        //    }
-        //}
-        //else
-        //{
-        //    return static_cast<int>(this->groundTileGrid[wrappedChunkTile.second.y][wrappedChunkTile.second.x]);
-        //}
     };
 
     // Clear previously generated visual tiles
@@ -458,19 +449,6 @@ void Chunk::drawChunkTerrain(sf::RenderTarget& window, float time)
 {
     // Get tile size and scale
     float scale = ResolutionHandler::getScale();
-    // float tileSize = ResolutionHandler::getTileSize();
-
-    // sf::Vector2f worldPosition = static_cast<sf::Vector2f>(chunkPosition) * 8.0f * tileSize;
-    
-    // Draw terrain tiles
-    // sf::Transform transform;
-    // transform.translate(Camera::worldToScreenTransform(worldPosition));
-    // transform.scale(scale, scale);
-
-    // sf::RenderStates state;
-    // state.texture = TextureManager::getTexture(TextureType::GroundTiles);
-    // state.transform = transform;
-    // window.draw(groundVertexArray, state);
 
     for (auto iter = tileMaps.begin(); iter != tileMaps.end(); ++iter)
     {
@@ -913,11 +891,6 @@ bool Chunk::canPlaceObject(sf::Vector2i position, ObjectType objectType, int wor
 
 void Chunk::updateChunkEntities(float dt, int worldSize, ChunkManager& chunkManager)
 {
-    // float tileSize = ResolutionHandler::getTileSize();
-
-    // Get world collision rects
-    // std::vector<CollisionRect*> worldCollisionRects = chunkManager.getChunkCollisionRects();
-
     for (std::vector<std::unique_ptr<Entity>>::iterator entityIter = entities.begin(); entityIter != entities.end();)
     {
         std::unique_ptr<Entity>& entity = *entityIter;
@@ -991,11 +964,6 @@ void Chunk::recalculateCollisionRects(ChunkManager& chunkManager)
 {
     // Clear previously calculated collision rects
     collisionRects.clear();
-
-    // Get tile size
-    // float tileSize = ResolutionHandler::getTileSize();
-
-    // sf::Vector2f worldPosition = static_cast<sf::Vector2f>(chunkPosition) * 8.0f * tileSize;
 
     auto createCollisionRect = [this](std::vector<std::unique_ptr<CollisionRect>>& rects, int x, int y) -> void
     {
@@ -1148,27 +1116,6 @@ void Chunk::placeLand(sf::Vector2i tile, int worldSize, const FastNoise& heightN
     {
         tileMaps[tileGenData.tileID] = TileMap(tileGenData.tileMap.textureOffset, tileGenData.tileMap.variation);
     }
-
-    // setTile(tileGenData.tileID, tile, upChunk, downChunk, leftChunk, rightChunk);
-
-    // Set tile
-    // groundTileGrid[tile.y][tile.x] = TileType::Sand;
-
-    // TODO: Make setting tiles modular / standardised
-
-    // Set vertex array
-    // int vertexArrayIndex = (tile.x + tile.y * CHUNK_TILE_SIZE) * 4;
-
-    // int textureVariation = rand() % 3;
-    // groundVertexArray[vertexArrayIndex].texCoords = {2 * 16, 0 + textureVariation * 16.0f};
-    // groundVertexArray[vertexArrayIndex + 1].texCoords = {2 * 16 + 16, 0 + textureVariation * 16.0f};
-    // groundVertexArray[vertexArrayIndex + 3].texCoords = {2 * 16, 16 + textureVariation * 16.0f};
-    // groundVertexArray[vertexArrayIndex + 2].texCoords = {2 * 16 + 16, 16 + textureVariation * 16.0f};
-
-    // groundVertexArray[vertexArrayIndex].color = sf::Color(255, 255, 255, 255);
-    // groundVertexArray[vertexArrayIndex + 1].color = sf::Color(255, 255, 255, 255);
-    // groundVertexArray[vertexArrayIndex + 3].color = sf::Color(255, 255, 255, 255);
-    // groundVertexArray[vertexArrayIndex + 2].color = sf::Color(255, 255, 255, 255);
 
     chunkManager.setChunkTile(chunkPosition, tileGenData.tileID, tile);
 

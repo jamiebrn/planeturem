@@ -107,6 +107,10 @@ private:
     void drawWorld(float dt, std::vector<WorldObject*>& worldObjects, std::vector<WorldObject*>& entities);
     void drawLighting(float dt, std::vector<WorldObject*>& worldObjects, std::vector<WorldObject*>& entities);
 
+    void updateStateTransition(float dt);
+    void drawStateTransition();
+    bool isStateTransitioning();
+    void startChangeStateTransition(GameState newState);
     void changeState(GameState newState);
 
     void generateWaterNoiseTexture();
@@ -147,8 +151,6 @@ private:
     float musicGapTimer;
     float musicGap;
 
-    // FastNoise noise;
-
     Player player;
     InventoryData inventory;
 
@@ -157,6 +159,9 @@ private:
     std::array<sf::Texture, 2> waterNoiseTextures;
 
     GameState gameState;
+    GameState destinationGameState;
+    static constexpr float TRANSITION_STATE_FADE_TIME = 0.3f;
+    float transitionGameStateTimer;
 
     WorldMenuState worldMenuState;
 

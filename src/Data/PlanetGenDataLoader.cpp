@@ -139,6 +139,21 @@ bool PlanetGenDataLoader::loadPlanet(nlohmann::ordered_json::iterator& planetDat
             }
         }
 
+        // Load biome structures
+        if (biomeIter->contains("structures"))
+        {
+            auto structures = biomeIter->at("structures");
+            for (nlohmann::ordered_json::iterator structureIter = structures.begin(); structureIter != structures.end(); ++structureIter)
+            {
+                StructureGenData structureGenData;
+
+                structureGenData.structure = StructureDataLoader::getStructureTypeFromName(structureIter.value()[0]);
+                structureGenData.spawnChance = structureIter.value()[1];
+
+                biomeGenData.structureGenDatas.push_back(structureGenData);
+            }
+        }
+
         planetGenData.biomeGenDatas.push_back(biomeGenData);
     }
 

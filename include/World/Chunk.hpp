@@ -160,7 +160,7 @@ public:
     static EntityType getRandomEntityToSpawnAtWorldTile(sf::Vector2i worldTile, int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType);
 
 private:
-    void generateRandomStructure();
+    void generateRandomStructure(int worldSize, const FastNoise& biomeNoise, PlanetType planetType);
 
 private:
     // 0 reserved for water / no tile

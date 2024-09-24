@@ -36,6 +36,12 @@ struct EntityGenData
     float spawnChance;
 };
 
+struct StructureGenData
+{
+    StructureType structure;
+    float spawnChance;
+};
+
 struct BiomeGenData
 {
     std::string name;
@@ -45,6 +51,7 @@ struct BiomeGenData
 
     std::vector<ObjectGenData> objectGenDatas;
     std::vector<EntityGenData> entityGenDatas;
+    std::vector<StructureGenData> structureGenDatas;
 
     float noiseRangeMin;
     float noiseRangeMax;

@@ -2,7 +2,6 @@
 
 int main()
 {
-
     Game game;
     if (!game.initialise())
         return -1;
@@ -10,5 +9,4 @@ int main()
     game.run();
 
     return 1;
-
 }
