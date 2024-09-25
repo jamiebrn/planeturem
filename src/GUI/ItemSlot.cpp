@@ -144,7 +144,7 @@ void ItemSlot::drawItem(sf::RenderTarget& window, ItemType itemType, sf::Vector2
         // Draw tool
         const ToolData& toolData = ToolDataLoader::getToolData(itemData.toolType);
 
-        float objectScale = std::max(4 - std::max(toolData.textureRect.width / 16.0f, toolData.textureRect.height / 16.0f), 1.0f) * scaleMult;
+        float objectScale = std::max(4 - std::max(toolData.textureRects[0].width / 16.0f, toolData.textureRects[0].height / 16.0f), 1.0f) * scaleMult;
 
         TextureManager::drawSubTexture(window, {
             TextureType::Tools,
@@ -153,7 +153,7 @@ void ItemSlot::drawItem(sf::RenderTarget& window, ItemType itemType, sf::Vector2
             {objectScale * intScale, objectScale * intScale},
             origin,
             colour
-        }, toolData.textureRect);
+        }, toolData.textureRects[0]);
     }
     else
     {

@@ -539,7 +539,7 @@ void Game::updateOnPlanet(float dt)
     ObjectType objectType = InventoryGUI::getHeldObjectType();
     if (objectType <= 0) objectType = InventoryGUI::getHotbarSelectedObject(inventory);
 
-    Cursor::updateTileCursor(window, dt, worldSize, chunkManager, player.getCollisionRect(), objectType);
+    Cursor::updateTileCursor(window, dt, worldSize, chunkManager, player.getCollisionRect(), objectType, player.getTool());
 
     // Cursor enable / disable
     if (InventoryGUI::getHeldToolType() < 0)

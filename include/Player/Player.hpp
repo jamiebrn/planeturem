@@ -59,8 +59,6 @@ private:
     AnimatedTexture idleAnimation;
     AnimatedTexture runAnimation;
 
-    static const sf::Vector2f toolOffset;
-
     int tileReach = 4;
     float speed = 120.0f;
 

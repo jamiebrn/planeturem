@@ -47,7 +47,8 @@ public:
                                  int worldSize,
                                  ChunkManager& chunkManager,
                                  const CollisionRect& playerCollisionRect,
-                                 ObjectType placeObjectType);
+                                 ObjectType placeObjectType,
+                                 ToolType toolType);
 
     static ChunkPosition getSelectedChunk(int worldSize);
     static sf::Vector2i getSelectedChunkTile();
@@ -68,6 +69,8 @@ public:
     static void handleWorldWrap(sf::Vector2f positionDelta);
 
 private:
+    // static void updateTileCursorPlaceObject
+
     static void drawTileCursor(sf::RenderWindow& window);
 
     // Used for drawing cursor when not full tile size, e.g. when selected entity

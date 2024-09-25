@@ -18,15 +18,34 @@ bool ToolDataLoader::loadData(std::string toolDataPath)
 
         toolData.name = jsonToolData.at("name");
 
-        if (jsonToolData.contains("texture-x")) toolData.textureRect.left = jsonToolData.at("texture-x");
-        if (jsonToolData.contains("texture-y")) toolData.textureRect.top = jsonToolData.at("texture-y");
-        if (jsonToolData.contains("texture-width")) toolData.textureRect.width = jsonToolData.at("texture-width");
-        if (jsonToolData.contains("texture-height")) toolData.textureRect.height = jsonToolData.at("texture-height");
+        toolData.toolBehaviourType = getToolBehaviourTypeFromStr(jsonToolData.at("behaviour-type"));
+
+        int textureWidth = jsonToolData.at("texture-width");
+        int textureHeight = jsonToolData.at("texture-height");
+
+        auto textures = jsonToolData.at("textures");
+        for (nlohmann::json::iterator texturePositionIter = textures.begin(); texturePositionIter != textures.end(); ++texturePositionIter)
+        {
+            sf::IntRect textureRect;
+            textureRect.left = texturePositionIter.value()[0];
+            textureRect.top = texturePositionIter.value()[1];
+            textureRect.width = textureWidth;
+            textureRect.height = textureHeight;
+
+            toolData.textureRects.push_back(textureRect);
+        }
 
         if (jsonToolData.contains("pivot-x")) toolData.pivot.x = jsonToolData.at("pivot-x");
         if (jsonToolData.contains("pivot-y")) toolData.pivot.y = jsonToolData.at("pivot-y");
 
         if (jsonToolData.contains("damage")) toolData.damage = jsonToolData.at("damage");
+
+        if (jsonToolData.contains("hold-offset"))
+        {
+            auto holdOffset = jsonToolData.at("hold-offset");
+            toolData.holdOffset.x = holdOffset[0];
+            toolData.holdOffset.y = holdOffset[1];
+        }
 
         loaded_toolData.push_back(toolData);
 
@@ -49,4 +68,15 @@ const ToolData& ToolDataLoader::getToolData(ToolType tool)
 ToolType ToolDataLoader::getToolTypeFromName(const std::string& toolName)
 {
     return toolNameToTypeMap[toolName];
+}
+
+ToolBehaviourType ToolDataLoader::getToolBehaviourTypeFromStr(const std::string& toolBehaviourStr)
+{
+    if (toolBehaviourStrTypeMap.contains(toolBehaviourStr))
+    {
+        return toolBehaviourStrTypeMap.at(toolBehaviourStr);
+    }
+
+    // Default case - tool behaviour type string not found
+    return ToolBehaviourType::Pickaxe;
 }

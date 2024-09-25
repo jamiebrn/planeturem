@@ -1,7 +1,5 @@
 #include "Player/Player.hpp"
 
-const sf::Vector2f Player::toolOffset = {-2, -3};
-
 Player::Player(sf::Vector2f position)
     : WorldObject(position)
 {
@@ -166,7 +164,7 @@ void Player::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, 
         const ToolData& toolData = ToolDataLoader::getToolData(equippedTool);
 
         sf::Vector2f toolPos = (Camera::worldToScreenTransform(position + sf::Vector2f(0, waterYOffset)) +
-            sf::Vector2f(playerScale.x * toolOffset.x, playerScale.y * toolOffset.y));
+            sf::Vector2f(playerScale.x * toolData.holdOffset.x, playerScale.y * toolData.holdOffset.y));
 
         float pivotYOffset = (toolRotation / 90.0f) * 0.4;
 
@@ -176,7 +174,7 @@ void Player::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, 
 
         TextureManager::drawSubTexture(window, {
             TextureType::Tools, toolPos, correctedToolRotation, playerScale, {toolData.pivot.x, toolData.pivot.y + pivotYOffset
-            }}, toolData.textureRect);
+            }}, toolData.textureRects[0]);
     }
 
     // DEBUG

@@ -124,5 +124,11 @@
         },
         "crafting-station": "anvil",
         "crafting-station-level": 1
+    },
+    {
+        "product": "Wooden Fishing Rod",
+        "item-requirements": {
+            "Wood": 1
+        }
     }
 ]

@@ -1,13 +1,30 @@
 #pragma once
 
 #include <SFML/Graphics.hpp>
+#include <unordered_map>
+#include <string>
+#include <vector>
+
+enum ToolBehaviourType
+{
+    Pickaxe,
+    FishingRod
+};
+
+static const std::unordered_map<std::string, ToolBehaviourType> toolBehaviourStrTypeMap = {
+    {"Pickaxe", ToolBehaviourType::Pickaxe},
+    {"Fishing Rod", ToolBehaviourType::FishingRod}
+};
 
 struct ToolData
 {
     std::string name;
 
-    sf::IntRect textureRect;
+    ToolBehaviourType toolBehaviourType;
+
+    std::vector<sf::IntRect> textureRects;
     sf::Vector2f pivot;
+    sf::Vector2i holdOffset;
 
     int damage = 1;
 };

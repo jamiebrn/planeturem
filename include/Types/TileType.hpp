@@ -2,11 +2,6 @@
 
 enum TileType
 {
-    Grass,
-    DarkGrass,
-    Sand,
-    Water,
-
     Visual_BLANK,
     Visual_Cliff,
     Visual_LCliff,

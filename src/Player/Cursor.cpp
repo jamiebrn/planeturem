@@ -17,7 +17,8 @@ void Cursor::updateTileCursor(sf::RenderWindow& window,
                               int worldSize,
                               ChunkManager& chunkManager,
                               const CollisionRect& playerCollisionRect,
-                              ObjectType placeObjectType)
+                              ObjectType placeObjectType,
+                              ToolType toolType)
 {
     // Get mouse position in screen space and world space
     sf::Vector2f mouseWorldPos = getMouseWorldPos(window);
@@ -35,7 +36,7 @@ void Cursor::updateTileCursor(sf::RenderWindow& window,
     drawState = CursorDrawState::Hidden;
 
     // Get current tool data
-    // const ToolData& toolData = ToolDataLoader::getToolData(toolType);
+    const ToolData& toolData = ToolDataLoader::getToolData(toolType);
 
     // Override cursor size if object is being placed
     if (placeObjectType >= 0 && InventoryGUI::getHeldToolType() < 0)
