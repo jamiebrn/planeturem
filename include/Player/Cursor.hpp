@@ -20,7 +20,7 @@
 #include "Data/ToolDataLoader.hpp"
 #include "GameConstants.hpp"
 
-#include "GUI/InventoryGUI.hpp"
+// #include "GUI/InventoryGUI.hpp"
 
 enum CursorDrawState
 {
@@ -44,14 +44,14 @@ class Cursor
 public:
     static void updateTileCursor(sf::RenderWindow& window,
                                  float dt,
-                                 int worldSize,
                                  ChunkManager& chunkManager,
                                  const CollisionRect& playerCollisionRect,
-                                 ObjectType placeObjectType,
+                                 ItemType heldItemType,
                                  ToolType toolType);
 
     static ChunkPosition getSelectedChunk(int worldSize);
     static sf::Vector2i getSelectedChunkTile();
+    static sf::Vector2i getSelectedWorldTile(int worldSize);
 
     static sf::Vector2f getMouseWorldPos(sf::RenderWindow& window);
 
@@ -64,13 +64,16 @@ public:
 
     static void setCursorHidden(bool canReach);
 
-    static void setCursorPlacingLand(sf::RenderWindow& window);
-
     static void handleWorldWrap(sf::Vector2f positionDelta);
 
 private:
-    // static void updateTileCursorPlaceObject
+    static void updateTileCursorPlaceObject(ObjectType objectType);
+    static void updateTileCursorPlaceLand(sf::RenderWindow& window);
+    static void updateTileCursorToolPickaxe(sf::RenderWindow& window, float dt, ChunkManager& chunkManager, const CollisionRect& playerCollisionRect);
+    static void updateTileCursorNoItem(float dt, ChunkManager& chunkManager);
 
+    static void updateTileCursorAnimation(float dt);
+    
     static void drawTileCursor(sf::RenderWindow& window);
 
     // Used for drawing cursor when not full tile size, e.g. when selected entity

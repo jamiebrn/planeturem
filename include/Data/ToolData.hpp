@@ -26,5 +26,5 @@ struct ToolData
     sf::Vector2f pivot;
     sf::Vector2i holdOffset;
 
-    int damage = 1;
+    int damage = 0;
 };

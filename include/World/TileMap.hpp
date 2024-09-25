@@ -8,14 +8,6 @@
 
 #include "GameConstants.hpp"
 
-// struct TileMapAdjacents
-// {
-//     std::vector<TileMap>* upTiles = nullptr;
-//     std::vector<TileMap>* downTiles = nullptr;
-//     std::vector<TileMap>* leftTiles = nullptr;
-//     std::vector<TileMap>* rightTiles = nullptr;
-// };
-
 class TileMap
 {
 public:
@@ -42,6 +34,8 @@ public:
     void updateAllTiles(TileMap* upTiles, TileMap* downTiles, TileMap* leftTiles, TileMap* rightTiles);
 
     void buildVertexArray();
+
+    sf::Vector2i getTextureOffset();
 
 private:
     void updateTiles(int xModified, int yModified, TileMap* upTiles, TileMap* downTiles, TileMap* leftTiles, TileMap* rightTiles, bool rebuildVertices = true);

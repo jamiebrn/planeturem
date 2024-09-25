@@ -536,22 +536,15 @@ void Game::updateOnPlanet(float dt)
     Camera::update(player.getPosition(), mouseScreenPos, dt);
 
     // Update cursor
-    ObjectType objectType = InventoryGUI::getHeldObjectType();
-    if (objectType <= 0) objectType = InventoryGUI::getHotbarSelectedObject(inventory);
-
-    Cursor::updateTileCursor(window, dt, worldSize, chunkManager, player.getCollisionRect(), objectType, player.getTool());
+    Cursor::updateTileCursor(window, dt, chunkManager, player.getCollisionRect(), InventoryGUI::getHeldItemType(inventory), player.getTool());
 
     // Cursor enable / disable
-    if (InventoryGUI::getHeldToolType() < 0)
-    {
-        if (InventoryGUI::heldItemPlacesLand() || InventoryGUI::hotbarItemPlacesLand(inventory))
-            Cursor::setCursorPlacingLand(window);
-    }
-
+    // if (InventoryGUI::heldItemPlacesLand(inventory))
+    //     Cursor::setCursorPlacingLand(window);
+    
     // Enable / disable cursor drawing depending on player reach
     // if (player.getTool() >= 0)
     Cursor::setCursorHidden(!player.canReachPosition(Cursor::getMouseWorldPos(window)));
-    
 
     // Update player
     bool wrappedAroundWorld = false;
@@ -595,17 +588,12 @@ void Game::drawOnPlanet(float dt)
     drawWorld(dt, worldObjects, entities);
     drawLighting(dt, worldObjects, entities);
 
-
     // UI
     Cursor::drawCursor(window);
 
-    if (InventoryGUI::getHeldToolType() < 0)
+    if (player.getTool() < 0)
     {
-        ObjectType placeObject = InventoryGUI::getHeldObjectType();
-        if (placeObject < 0)
-        {
-            placeObject = InventoryGUI::getHotbarSelectedObject(inventory);
-        }
+        ObjectType placeObject = InventoryGUI::getHeldObjectType(inventory);
 
         if (placeObject >= 0)
         {
@@ -613,7 +601,7 @@ void Game::drawOnPlanet(float dt)
         }
 
         // Draw land to place if held
-        if ((InventoryGUI::heldItemPlacesLand() || InventoryGUI::hotbarItemPlacesLand(inventory)))
+        if ((InventoryGUI::heldItemPlacesLand(inventory)))
         {
             drawGhostPlaceLandAtCursor();
         }
@@ -720,8 +708,8 @@ void Game::attemptUseTool()
     if (player.isUsingTool())
         return;
     
-    if (InventoryGUI::getHeldObjectType() >= 0 || InventoryGUI::heldItemPlacesLand())
-        return;
+    // if (InventoryGUI::getHeldObjectType(inventory) >= 0 || InventoryGUI::heldItemPlacesLand(inventory))
+    //     return;
 
     // Get mouse position in screen space and world space
     sf::Vector2f mouseWorldPos = Cursor::getMouseWorldPos(window);
@@ -775,20 +763,14 @@ void Game::attemptUseTool()
 void Game::changePlayerTool()
 {
     // Get currently selected tool in inventory and hotbar
-    ToolType hotbarTool = InventoryGUI::getHotbarSelectedTool(inventory);
-    ToolType inventoryTool = InventoryGUI::getHeldToolType();
+    ToolType heldTool = InventoryGUI::getHeldToolType(inventory);
 
     // Get tool currently held by player
 
     // If inventory tool is selected, override hotbar tool
-    if (inventoryTool >= 0)
+    if (heldTool >= 0)
     {
-        player.setTool(inventoryTool);
-    }
-    else if (hotbarTool >= 0)
-    {
-        // Set tool from hotbar, as not selected from inventory
-        player.setTool(hotbarTool);
+        player.setTool(heldTool);
     }
     else
     {
@@ -860,22 +842,23 @@ void Game::attemptBuildObject()
     if (gameState != GameState::OnPlanet)
         return;
 
-    ObjectType objectType = InventoryGUI::getHeldObjectType();
-    bool placeFromHotbar = false;
-
-    // Do not build if holding tool in inventory (not in hotbar)
-    if (InventoryGUI::getHeldToolType() >= 0)
-        return;
-
-    // If object not picked up from inventory, check hotbar
-    if (objectType <= 0)
-    {
-        objectType = InventoryGUI::getHotbarSelectedObject(inventory);
-        placeFromHotbar = true;
-    }
+    ObjectType objectType = InventoryGUI::getHeldObjectType(inventory);
+    // bool placeFromHotbar = false;
 
     if (objectType < 0)
         return;
+
+    // Do not build if holding tool in inventory
+    if (player.getTool() >= 0)
+        return;
+
+    // If object not picked up from inventory, check hotbar
+    // if (objectType <= 0)
+    // {
+    //     objectType = InventoryGUI::getHotbarSelectedObject(inventory);
+    //     placeFromHotbar = true;
+    // }
+
 
     // bool canAfford = Inventory::canBuildObject(objectType);
     bool canPlace = chunkManager.canPlaceObject(Cursor::getSelectedChunk(chunkManager.getWorldSize()),
@@ -888,14 +871,14 @@ void Game::attemptBuildObject()
     if (canPlace && inRange)
     {
         // Remove object from being held
-        if (placeFromHotbar)
-        {
-            InventoryGUI::placeHotbarObject(inventory);
-        }
-        else
-        {
-            InventoryGUI::placeHeldObject();
-        }
+        // if (placeFromHotbar)
+        // {
+        //     InventoryGUI::placeHotbarObject(inventory);
+        // }
+        // else
+        // {
+        InventoryGUI::placeHeldObject(inventory);
+        // }
 
         // Play build sound
         int soundChance = rand() % 2;
@@ -913,24 +896,27 @@ void Game::attemptPlaceLand()
 {
     if (gameState != GameState::OnPlanet)
         return;
-
-    // Do not build if holding tool in inventory (not in hotbar)
-    if (InventoryGUI::getHeldToolType() >= 0)
+    
+    if (!InventoryGUI::heldItemPlacesLand(inventory))
         return;
 
-    bool placeFromHotbar = false;
+    // Do not build if holding tool in inventory
+    if (player.getTool() >= 0)
+        return;
 
-    if (!InventoryGUI::heldItemPlacesLand())
-    {
-        if (InventoryGUI::hotbarItemPlacesLand(inventory))
-        {
-            placeFromHotbar = true;
-        }
-        else
-        {
-            return;
-        }
-    }
+    // bool placeFromHotbar = false;
+
+    // if (!InventoryGUI::heldItemPlacesLand(inventory))
+    // {
+    //     if (InventoryGUI::hotbarItemPlacesLand(inventory))
+    //     {
+    //         placeFromHotbar = true;
+    //     }
+    //     else
+    //     {
+    //         return;
+    //     }
+    // }
     
     if (!chunkManager.canPlaceLand(Cursor::getSelectedChunk(chunkManager.getWorldSize()), Cursor::getSelectedChunkTile()))
         return;
@@ -949,14 +935,14 @@ void Game::attemptPlaceLand()
     Sounds::playSound(buildSound, 60.0f);
 
     // Subtract from land held
-    if (placeFromHotbar)
-    {
-        InventoryGUI::placeHotbarObject(inventory);
-    }
-    else
-    {
-        InventoryGUI::placeHeldObject();
-    }
+    // if (placeFromHotbar)
+    // {
+    //     InventoryGUI::placeHotbarObject(inventory);
+    // }
+    // else
+    // {
+    InventoryGUI::placeHeldObject(inventory);
+    // }
 }
 
 void Game::drawGhostPlaceObjectAtCursor(ObjectType object)
@@ -983,18 +969,31 @@ void Game::drawGhostPlaceObjectAtCursor(ObjectType object)
 void Game::drawGhostPlaceLandAtCursor()
 {
     sf::Vector2f tileWorldPosition = Cursor::getLerpedSelectPos();
+    int worldSize = chunkManager.getWorldSize();
 
     // Change color depending on whether can place land or not
     sf::Color landGhostColor(255, 0, 0, 180);
-    if (chunkManager.canPlaceLand(Cursor::getSelectedChunk(chunkManager.getWorldSize()), Cursor::getSelectedChunkTile()))
+    if (chunkManager.canPlaceLand(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile()))
     {
         landGhostColor = sf::Color(0, 255, 0, 180);
     }
 
     float scale = ResolutionHandler::getScale();
 
-    // TODO: In future, change texture rect used depending on world
-    sf::IntRect textureRect(32, 0, 16, 16);
+    // Sample noise to select correct tile to draw
+    const BiomeGenData* biomeGenData = Chunk::getBiomeGenAtWorldTile(
+        Cursor::getSelectedWorldTile(worldSize), worldSize, chunkManager.getBiomeNoise(), chunkManager.getPlanetType()
+        );
+    
+    // Check for nullptr (shouldn't happen)
+    if (!biomeGenData)
+        return;
+    
+    // Get texture offset for tilemap
+    sf::Vector2i tileMapTextureOffset = biomeGenData->tileGenDatas[0].tileMap.textureOffset;
+
+    // Create texture rect of centre tile from tilemap
+    sf::IntRect textureRect(tileMapTextureOffset.x + 16, tileMapTextureOffset.y + 16, 16, 16);
 
     // Draw tile at screen position
     TextureManager::drawSubTexture(window, {

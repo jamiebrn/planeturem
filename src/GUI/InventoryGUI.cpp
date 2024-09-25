@@ -613,49 +613,77 @@ void InventoryGUI::updateAvailableRecipes(InventoryData& inventory, std::unorder
     }
 }
 
-ObjectType InventoryGUI::getHeldObjectType()
+ItemType InventoryGUI::getHeldItemType(InventoryData& inventory)
 {
-    if (!isItemPickedUp)
-        return -1;
-    
-    ObjectType placeObjectType = ItemDataLoader::getItemData(pickedUpItem).placesObjectType;
-
-    return placeObjectType;
-}
-
-ToolType InventoryGUI::getHeldToolType()
-{
-    if (!isItemPickedUp)
-        return -1;
-    
-    ToolType toolType = ItemDataLoader::getItemData(pickedUpItem).toolType;
-
-    return toolType;
-}
-
-void InventoryGUI::placeHeldObject()
-{
-    if (!isItemPickedUp)
-        return;
-    
-    pickedUpItemCount--;
-
-    if (pickedUpItemCount <= 0)
+    if (isItemPickedUp)
     {
-        isItemPickedUp = false;
-        pickedUpItem = -1;
-        pickedUpItemCount = 0;
+        return pickedUpItem;
     }
+
+    std::optional<ItemCount>& selectedItemSlot = inventory.getItemSlotData(selectedHotbarIndex);
+
+    if (selectedItemSlot.has_value())
+    {
+        return selectedItemSlot->first;
+    }
+
+    // Default case
+    return -1;
 }
 
-bool InventoryGUI::heldItemPlacesLand()
+ObjectType InventoryGUI::getHeldObjectType(InventoryData& inventory)
 {
-    if (!isItemPickedUp)
-        return false;
-    
-    const ItemData& itemData = ItemDataLoader::getItemData(pickedUpItem);
+    if (isItemPickedUp)
+    {
+        ObjectType placeObjectType = ItemDataLoader::getItemData(pickedUpItem).placesObjectType;
+        return placeObjectType;
+    }
 
-    return itemData.placesLand;
+    // Get from hotbar as no item is picked up
+    return getHotbarSelectedObject(inventory);
+}
+
+ToolType InventoryGUI::getHeldToolType(InventoryData& inventory)
+{
+    if (isItemPickedUp)
+    {
+        ToolType toolType = ItemDataLoader::getItemData(pickedUpItem).toolType;
+        return toolType;
+    }
+    
+    // Get from hotbar as no item is picked up
+    return getHotbarSelectedTool(inventory);
+}
+
+void InventoryGUI::placeHeldObject(InventoryData& inventory)
+{
+    if (isItemPickedUp)
+    {
+        pickedUpItemCount--;
+
+        if (pickedUpItemCount <= 0)
+        {
+            isItemPickedUp = false;
+            pickedUpItem = -1;
+            pickedUpItemCount = 0;
+        }
+        return;
+    }
+    
+    // Take from hotbar
+    placeHotbarObject(inventory);
+}
+
+bool InventoryGUI::heldItemPlacesLand(InventoryData& inventory)
+{
+    if (isItemPickedUp)
+    {
+        const ItemData& itemData = ItemDataLoader::getItemData(pickedUpItem);
+        return itemData.placesLand;
+    }
+
+    // Get from hotbar
+    return hotbarItemPlacesLand(inventory);
 }
 
 void InventoryGUI::draw(sf::RenderTarget& window, float gameTime, sf::Vector2f mouseScreenPos, InventoryData& inventory, InventoryData* chestData)
@@ -820,18 +848,21 @@ void InventoryGUI::draw(sf::RenderTarget& window, float gameTime, sf::Vector2f m
     }
 }
 
-void InventoryGUI::drawItemInfoBox(sf::RenderTarget& window, float gameTime, int itemIndex, InventoryData& inventory, sf::Vector2f mouseScreenPos)
+sf::Vector2f InventoryGUI::drawItemInfoBox(sf::RenderTarget& window, float gameTime, int itemIndex, InventoryData& inventory, sf::Vector2f mouseScreenPos)
 {
     const std::optional<ItemCount>& itemSlot = inventory.getItemSlotData(itemIndex);
 
     // If no item in slot, do not draw box
     if (!itemSlot.has_value())
-        return;
+        return sf::Vector2f(0, 0);
     
-    // Get item data
     ItemType itemType = itemSlot.value().first;
-    unsigned int itemAmount = itemSlot.value().second;
 
+    return drawItemInfoBox(window, gameTime, itemType, mouseScreenPos);
+}
+
+sf::Vector2f InventoryGUI::drawItemInfoBox(sf::RenderTarget& window, float gameTime, ItemType itemType, sf::Vector2f mouseScreenPos)
+{
     const ItemData& itemData = ItemDataLoader::getItemData(itemType);
 
     float intScale = ResolutionHandler::getResolutionIntegerScale();
@@ -856,7 +887,10 @@ void InventoryGUI::drawItemInfoBox(sf::RenderTarget& window, float gameTime, int
     {
         const ToolData& toolData = ToolDataLoader::getToolData(itemData.toolType);
 
-        infoStrings.push_back({std::to_string(toolData.damage) + " damage", 20});
+        if (toolData.damage > 0)
+        {
+            infoStrings.push_back({std::to_string(toolData.damage) + " damage", 20});
+        }
     }
 
     if (itemData.isMaterial)
@@ -864,48 +898,18 @@ void InventoryGUI::drawItemInfoBox(sf::RenderTarget& window, float gameTime, int
         infoStrings.push_back({"Material", 20});
     }
 
-    drawInfoBox(window, mouseScreenPos + sf::Vector2f(8, 8) * 3.0f * intScale, infoStrings);
+    return drawInfoBox(window, mouseScreenPos + sf::Vector2f(8, 8) * 3.0f * intScale, infoStrings);
 }
 
 void InventoryGUI::drawItemInfoBoxRecipe(sf::RenderTarget& window, float gameTime, int recipeIdx, sf::Vector2f mouseScreenPos)
 {
-    const RecipeData& recipeData = RecipeDataLoader::getRecipeData()[recipeIdx];
-
-    const ItemData& itemData = ItemDataLoader::getItemData(recipeData.product);
-
     float intScale = ResolutionHandler::getResolutionIntegerScale();
 
+    const RecipeData& recipeData = RecipeDataLoader::getRecipeData()[recipeIdx];
+
+    sf::Vector2f itemInfoBoxSize = drawItemInfoBox(window, gameTime, recipeData.product, mouseScreenPos);
+
     std::vector<ItemInfoString> infoStrings;
-
-    sf::Color itemNameColor = itemData.nameColor;
-    if (itemData.nameColor == sf::Color(0, 0, 0))
-    {
-        itemNameColor.r = 255.0f * (std::sin(gameTime * 2.0f) + 1) / 2.0f;
-        itemNameColor.g = 255.0f * (std::cos(gameTime * 2.0f) + 1) / 2.0f;
-        itemNameColor.b = 255.0f * (std::sin(gameTime * 2.0f + 3 * 3.14 / 2) + 1) / 2.0f;
-    }
-
-    infoStrings.push_back({itemData.name, 24, itemNameColor});
-
-    if (itemData.placesObjectType >= 0 || itemData.placesLand)
-    {
-        infoStrings.push_back({"Can be placed", 20});
-    }
-    else if (itemData.toolType >= 0)
-    {
-        const ToolData& toolData = ToolDataLoader::getToolData(itemData.toolType);
-
-        infoStrings.push_back({std::to_string(toolData.damage) + " damage", 20});
-    }
-
-    if (itemData.isMaterial)
-    {
-        infoStrings.push_back({"Material", 20});
-    }
-
-    sf::Vector2f itemInfoBoxSize = drawInfoBox(window, mouseScreenPos + sf::Vector2f(8, 8) * 3.0f * intScale, infoStrings);
-
-    infoStrings.clear();
 
     infoStrings.push_back({"Requires", 20});
 

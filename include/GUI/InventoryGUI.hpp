@@ -79,16 +79,21 @@ public:
 
     static void updateAvailableRecipes(InventoryData& inventory, std::unordered_map<std::string, int> nearbyCraftingStationLevels);
 
-    // Gets type of object that will be placed from item currently picked up
-    static ObjectType getHeldObjectType();
+    static ItemType getHeldItemType(InventoryData& inventory);
+
+    // Gets type of object that will be placed from item currently picked up / selected in hotbar
+    // INCLUDES HOTBAR AND ITEM PICKED UP
+    static ObjectType getHeldObjectType(InventoryData& inventory);
 
     // Get type of tool currently picked up from inventory
-    static ToolType getHeldToolType();
+    // INCLUDES HOTBAR AND ITEM PICKED UP
+    static ToolType getHeldToolType(InventoryData& inventory);
 
     // Subtracts from currently held item, called when object is placed
-    static void placeHeldObject();
+    // Places from item picked up, if not will attempt to place from hotbar
+    static void placeHeldObject(InventoryData& inventory);
 
-    static bool heldItemPlacesLand();
+    static bool heldItemPlacesLand(InventoryData& inventory);
 
     static void draw(sf::RenderTarget& window, float gameTime, sf::Vector2f mouseScreenPos, InventoryData& inventory, InventoryData* chestData = nullptr);
 
@@ -148,20 +153,12 @@ private:
     // Attempt to craft recipe selected
     static void craftSelectedRecipe(InventoryData& inventory);
 
-    static void drawItemInfoBox(sf::RenderTarget& window, float gameTime, int itemIndex, InventoryData& inventory, sf::Vector2f mouseScreenPos);
+    static sf::Vector2f drawItemInfoBox(sf::RenderTarget& window, float gameTime, int itemIndex, InventoryData& inventory, sf::Vector2f mouseScreenPos);
+    static sf::Vector2f drawItemInfoBox(sf::RenderTarget& window, float gameTime, ItemType itemType, sf::Vector2f mouseScreenPos);
     static void drawItemInfoBoxRecipe(sf::RenderTarget& window, float gameTime, int recipeIdx, sf::Vector2f mouseScreenPos);
 
     // Returns size of drawn info box
     static sf::Vector2f drawInfoBox(sf::RenderTarget& window, sf::Vector2f position, const std::vector<ItemInfoString>& infoStrings, int alpha = 255);
-
-    // Position refers to top left of item box
-    // static void drawItemBox(sf::RenderWindow& window,
-    //                         sf::Vector2f position,
-    //                         std::optional<ItemType> itemType = std::nullopt,
-    //                         std::optional<int> itemAmount = std::nullopt,
-    //                         bool hiddenBackground = false,
-    //                         bool selectHighlight = false,
-    //                         float itemScaleMult = 1.0f);
 
     // -- Hotbar --
     static void handleHotbarItemChange();
@@ -211,13 +208,6 @@ private:
     static float binScale;
     static constexpr float BIN_HOVERED_SCALE = 1.2f;
     static constexpr float BIN_HOVERED_SCALE_LERP_WEIGHT = 15.0f;
-
-    // static std::array<float, MAX_INVENTORY_SIZE> inventoryItemScales;
-
-    // static std::vector<float> chestItemScales;
-
-    // static std::array<float, ITEM_BOX_PER_ROW> hotbarItemScales;
-    // static constexpr float HOTBAR_SELECTED_SCALE = 1.3f;
 
     static float hotbarItemStringTimer;
     static constexpr float HOTBAR_ITEM_STRING_OPAQUE_TIME = 2.5f;

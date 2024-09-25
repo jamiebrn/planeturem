@@ -159,6 +159,13 @@ void BuildableObject::setWorldPosition(sf::Vector2f position)
     this->position = position;
 }
 
+bool BuildableObject::isInteractable()
+{
+    const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
+
+    return (objectData.chestCapacity > 0);
+}
+
 // Chest functionality
 int BuildableObject::getChestCapactity()
 {

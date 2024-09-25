@@ -58,6 +58,8 @@ public:
 
     inline bool isAlive() {return health > 0;}
 
+    bool isInteractable();
+
     // -- Chest -- //
 
     inline void setChestID(uint16_t chestID) {this->chestID = chestID;}

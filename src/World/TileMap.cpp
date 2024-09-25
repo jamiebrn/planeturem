@@ -304,3 +304,8 @@ void TileMap::buildVertexArray()
         }
     }
 }
+
+sf::Vector2i TileMap::getTextureOffset()
+{
+    return tilesetOffset;
+}

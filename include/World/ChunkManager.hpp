@@ -164,6 +164,9 @@ public:
     inline int getLoadedChunkCount() {return loadedChunks.size();}
     inline int getGeneratedChunkCount() {return loadedChunks.size() + storedChunks.size();}
     inline int getWorldSize() {return worldSize;}
+    inline const FastNoise& getBiomeNoise() {return biomeNoise;}
+    inline const FastNoise& getHeightNoise() {return heightNoise;}
+    inline PlanetType getPlanetType() {return planetType;}
 
     // Finds valid spawn position for player i.e. no water
     // Waterless area size checks for chunks +- waterlessAreaSize
