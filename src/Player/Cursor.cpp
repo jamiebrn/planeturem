@@ -59,6 +59,7 @@ void Cursor::updateTileCursor(sf::RenderWindow& window,
                     updateTileCursorToolPickaxe(window, dt, chunkManager, playerCollisionRect);
                     break;
                 case ToolBehaviourType::FishingRod:
+                    updateTileCursorToolFishingRod(window, dt, chunkManager);
                     break;
             }
         }
@@ -181,6 +182,29 @@ void Cursor::updateTileCursorToolPickaxe(sf::RenderWindow& window, float dt, Chu
     }
 
     // Neither enemy nor object is selected, so hide cursor
+    drawState = CursorDrawState::Hidden;
+}
+
+void Cursor::updateTileCursorToolFishingRod(sf::RenderWindow& window, float dt, ChunkManager& chunkManager)
+{
+    ChunkPosition selectedChunk = getSelectedChunk(chunkManager.getWorldSize());
+    sf::Vector2i selectedTile = getSelectedChunkTile();
+
+    // Test whether can fish on selected tile
+    // Must have no object + be water
+    const std::optional<BuildableObject>& selectedObject = chunkManager.getChunkObject(selectedChunk, selectedTile);
+    int tileType = chunkManager.getChunkTileType(selectedChunk, selectedTile);
+
+    if (!selectedObject.has_value() && tileType == 0)
+    {
+        drawState = CursorDrawState::Tile;
+
+        updateTileCursorAnimation(dt);
+
+        return;
+    }
+
+    // Default case - tile cannot be fished on
     drawState = CursorDrawState::Hidden;
 }
 

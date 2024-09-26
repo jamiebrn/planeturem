@@ -19,6 +19,8 @@ Player::Player(sf::Vector2f position)
     equippedTool = -1;
     toolRotation = 0;
     usingTool = false;
+
+    fishingRodCasted = false;
 }
 
 void Player::update(float dt, sf::Vector2f mouseWorldPos, ChunkManager& chunkManager, int worldSize, bool& wrappedAroundWorld, sf::Vector2f& wrapPositionDelta)
@@ -88,8 +90,16 @@ void Player::updateInStructure(float dt, sf::Vector2f mouseWorldPos, const Room&
 
 void Player::updateDirection(sf::Vector2f mouseWorldPos)
 {
-    // Face towards mouse cursor (overridden if moving)
-    flippedTexture = (position.x - mouseWorldPos.x) > 0;
+    if (fishingRodCasted)
+    {
+        // Face towards bob
+        flippedTexture = (position.x - fishingRodBobWorldPos.x) > 0;
+    }
+    else
+    {
+        // Face towards mouse cursor (overridden if moving)
+        flippedTexture = (position.x - mouseWorldPos.x) > 0;
+    }
 
     // Handle movement input
     direction.x = sf::Keyboard::isKeyPressed(sf::Keyboard::D) - sf::Keyboard::isKeyPressed(sf::Keyboard::A);
@@ -99,6 +109,9 @@ void Player::updateDirection(sf::Vector2f mouseWorldPos)
     if (length > 0)
     {
         direction /= length;
+
+        // Reel in fishing rod if moved
+        fishingRodCasted = false;
 
         if (direction.x != 0)
             flippedTexture = direction.x < 0;
@@ -113,15 +126,15 @@ void Player::updateAnimation(float dt)
 
     toolTweener.update(dt);
 
-    if (swingingTool)
-    {
-        if (toolTweener.isTweenFinished(rotationTweenID))
-        {
-            rotationTweenID = toolTweener.startTween(&toolRotation, 90.0f, 0.0f, 0.15, TweenTransition::Expo, TweenEasing::EaseOut);
-            swingingTool = false;
-        }
-    }
-    else if (usingTool)
+    // if (swingingTool)
+    // {
+    //     if (toolTweener.isTweenFinished(rotationTweenID))
+    //     {
+    //         rotationTweenID = toolTweener.startTween(&toolRotation, toolRotation, 0.0f, 0.15, TweenTransition::Expo, TweenEasing::EaseOut);
+    //         swingingTool = false;
+    //     }
+    // }
+    if (usingTool)
     {
         if (toolTweener.isTweenFinished(rotationTweenID)) usingTool = false;
     }
@@ -166,15 +179,36 @@ void Player::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, 
         sf::Vector2f toolPos = (Camera::worldToScreenTransform(position + sf::Vector2f(0, waterYOffset)) +
             sf::Vector2f(playerScale.x * toolData.holdOffset.x, playerScale.y * toolData.holdOffset.y));
 
-        float pivotYOffset = (toolRotation / 90.0f) * 0.4;
+        float pivotYOffset = 0.0f;
+        
+        // Add pickaxe swing pivot
+        if (toolData.toolBehaviourType == ToolBehaviourType::Pickaxe)
+        {
+            pivotYOffset = (toolRotation / 90.0f) * 0.4;
+        }
 
         float correctedToolRotation = toolRotation;
         if (flippedTexture)
             correctedToolRotation = -toolRotation;
+        
+        int textureRectIndex = 0;
+        if (toolData.toolBehaviourType == ToolBehaviourType::FishingRod)
+        {
+            if (fishingRodCasted)
+            {
+                textureRectIndex = 1;
+            }
+        }
 
         TextureManager::drawSubTexture(window, {
             TextureType::Tools, toolPos, correctedToolRotation, playerScale, {toolData.pivot.x, toolData.pivot.y + pivotYOffset
-            }}, toolData.textureRects[0]);
+            }}, toolData.textureRects[textureRectIndex]);
+    }
+
+    // Draw fishing line if casted rod
+    if (fishingRodCasted)
+    {
+        drawFishingRodCast(window);
     }
 
     // DEBUG
@@ -198,9 +232,45 @@ void Player::drawLightMask(sf::RenderTarget& lightTexture)
         }, lightMaskRect, sf::BlendAdd);
 }
 
+void Player::drawFishingRodCast(sf::RenderTarget& window)
+{
+    // Draw bob
+    TextureDrawData bobDrawData;
+    bobDrawData.position = Camera::worldToScreenTransform(fishingRodBobWorldPos);
+    bobDrawData.type = TextureType::Tools;
+    bobDrawData.scale = sf::Vector2f(ResolutionHandler::getScale(), ResolutionHandler::getScale());
+    bobDrawData.centerRatio = sf::Vector2f(0.5, 0.5);
+
+    TextureManager::drawSubTexture(window, bobDrawData, sf::IntRect(0, 112, 16, 16));
+
+    // Draw line
+    sf::VertexArray line;
+    line.setPrimitiveType(sf::Lines);
+
+    // Calculate line origin position
+    const ToolData& toolData = ToolDataLoader::getToolData(equippedTool);
+
+    sf::Vector2f lineOrigin;
+    int lineOffsetXMult = 1;
+    if (flippedTexture)
+    {
+        lineOffsetXMult = -1;
+    }
+
+    lineOrigin.x = position.x + toolData.holdOffset.x + std::cos(2 * M_PI * toolRotation / 180.0f) * toolData.fishingRodLineOffset.x * lineOffsetXMult;
+    lineOrigin.y = position.y + toolData.holdOffset.y - std::sin(2 * M_PI * toolRotation / 180.0f) * toolData.fishingRodLineOffset.y;
+
+    line.append(sf::Vertex(Camera::worldToScreenTransform(lineOrigin), sf::Color(255, 255, 255)));
+    line.append(sf::Vertex(Camera::worldToScreenTransform(fishingRodBobWorldPos), sf::Color(255, 255, 255)));
+
+    window.draw(line);
+}
+
 void Player::setTool(ToolType toolType)
 {
     equippedTool = toolType;
+
+    fishingRodCasted = false;
 }
 
 ToolType Player::getTool()
@@ -211,13 +281,38 @@ ToolType Player::getTool()
 void Player::useTool()
 {
     usingTool = true;
-    swingingTool = true;
-    rotationTweenID = toolTweener.startTween(&toolRotation, toolRotation, 90.0f, 0.1, TweenTransition::Circ, TweenEasing::EaseInOut);
+    // swingingTool = true;
+
+    const ToolData& toolData = ToolDataLoader::getToolData(equippedTool);
+
+    // Different tween values based on tool behaviour
+    float destRotation = 0.0f;
+    float tweenTime = 0.0f;
+    switch (toolData.toolBehaviourType)
+    {
+        case ToolBehaviourType::Pickaxe:
+            destRotation = 90.0f;
+            tweenTime = 0.1f;
+            break;
+        case ToolBehaviourType::FishingRod:
+            destRotation = -80.0f;
+            tweenTime = 0.1f;
+            break;
+    }
+
+    rotationTweenID = toolTweener.startTween(&toolRotation, toolRotation, destRotation, tweenTime, TweenTransition::Circ, TweenEasing::EaseInOut);
+    toolTweener.addTweenToQueue(rotationTweenID, &toolRotation, destRotation, 0.0f, 0.15, TweenTransition::Expo, TweenEasing::EaseOut);
 }
 
 bool Player::isUsingTool()
 {
     return usingTool;
+}
+
+void Player::castFishingRod(sf::Vector2f mouseWorldPos)
+{
+    fishingRodCasted = true;
+    fishingRodBobWorldPos = mouseWorldPos;
 }
 
 bool Player::canReachPosition(sf::Vector2f worldPos)

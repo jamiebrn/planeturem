@@ -69,7 +69,10 @@ public:
 private:
     static void updateTileCursorPlaceObject(ObjectType objectType);
     static void updateTileCursorPlaceLand(sf::RenderWindow& window);
+    
     static void updateTileCursorToolPickaxe(sf::RenderWindow& window, float dt, ChunkManager& chunkManager, const CollisionRect& playerCollisionRect);
+    static void updateTileCursorToolFishingRod(sf::RenderWindow& window, float dt, ChunkManager& chunkManager);
+
     static void updateTileCursorNoItem(float dt, ChunkManager& chunkManager);
 
     static void updateTileCursorAnimation(float dt);

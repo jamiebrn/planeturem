@@ -29,6 +29,7 @@
         "texture-height": 16,
         "pivot-x": 0.25,
         "pivot-y": 0.75,
-        "hold-offset": [3, -2]
+        "hold-offset": [3, -2],
+        "fishing-rod-line-offset": [8, -8]
     }
 ]

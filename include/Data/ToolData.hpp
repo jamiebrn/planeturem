@@ -26,5 +26,8 @@ struct ToolData
     sf::Vector2f pivot;
     sf::Vector2i holdOffset;
 
+    // Relative to pivot, pixel offset (can be float) to line origin
+    sf::Vector2f fishingRodLineOffset;
+
     int damage = 0;
 };

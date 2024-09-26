@@ -39,6 +39,9 @@ public:
     void useTool();
     bool isUsingTool();
 
+    // Fishing rod specific
+    void castFishingRod(sf::Vector2f mouseWorldPos);
+
     bool canReachPosition(sf::Vector2f worldPos);
 
     void enterStructure();
@@ -50,6 +53,8 @@ public:
 private:
     void updateDirection(sf::Vector2f mouseWorldPos);
     void updateAnimation(float dt);
+
+    void drawFishingRodCast(sf::RenderTarget& window);
 
 private:
     CollisionRect collisionRect;
@@ -68,8 +73,12 @@ private:
     float toolRotation;
     Tween<float> toolTweener;
     TweenID rotationTweenID;
-    bool swingingTool;
+    // bool swingingTool;
     bool usingTool;
+
+    // Fishing rod
+    bool fishingRodCasted;
+    sf::Vector2f fishingRodBobWorldPos;
 
     static constexpr std::array<float, 5> runningShadowScale = {1.0f, 0.8f, 0.7f, 0.8f, 0.9f};
     

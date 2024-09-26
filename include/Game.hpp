@@ -81,8 +81,10 @@ private:
     void updateInStructure(float dt);
     void drawInStructure(float dt);
 
-    void attemptUseTool();
     void changePlayerTool();
+    void attemptUseTool();
+    void attemptUseToolPickaxe();
+    void attemptUseToolFishingRod();
 
     void attemptObjectInteract();
     void attemptBuildObject();

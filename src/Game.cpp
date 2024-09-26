@@ -1,5 +1,8 @@
 #include "Game.hpp"
 
+// FIX: Structures still generating in biomes not supposed to, e.g. oasis
+// FIX: Fishing rod line rotation
+
 // PRIORITY: HIGH
 // TODO: Structure functionality (item spawns, crafting stations etc)
 // TODO: Different types of structures
@@ -707,21 +710,34 @@ void Game::attemptUseTool()
 
     if (player.isUsingTool())
         return;
+
+    // if (gameState != GameState::OnPlanet)
+        // return;
     
-    // if (InventoryGUI::getHeldObjectType(inventory) >= 0 || InventoryGUI::heldItemPlacesLand(inventory))
-    //     return;
+    // Get tool data for tool behaviour, to choose which tool use function
+    const ToolData& toolData = ToolDataLoader::getToolData(player.getTool());
 
-    // Get mouse position in screen space and world space
-    sf::Vector2f mouseWorldPos = Cursor::getMouseWorldPos(window);
+    switch(toolData.toolBehaviourType)
+    {
+        case ToolBehaviourType::Pickaxe:
+            attemptUseToolPickaxe();
+            break;
+        case ToolBehaviourType::FishingRod:
+            attemptUseToolFishingRod();
+            break;
+    }
+}
 
+void Game::attemptUseToolPickaxe()
+{
+    // Swing pickaxe
     player.useTool();
-
-    if (gameState != GameState::OnPlanet)
-        return;
+    
+    sf::Vector2f mouseWorldPos = Cursor::getMouseWorldPos(window);
 
     if (!player.canReachPosition(mouseWorldPos))
         return;
-    
+
     // Get current tool damage amount
     ToolType currentTool = player.getTool();
 
@@ -758,6 +774,31 @@ void Game::attemptUseTool()
             }
         }
     }
+}
+
+void Game::attemptUseToolFishingRod()
+{
+    sf::Vector2f mouseWorldPos = Cursor::getMouseWorldPos(window);
+
+    if (!player.canReachPosition(mouseWorldPos))
+        return;
+    
+    // Determine whether can fish at selected tile
+    ChunkPosition selectedChunk = Cursor::getSelectedChunk(chunkManager.getWorldSize());
+    sf::Vector2i selectedTile = Cursor::getSelectedChunkTile();
+
+    // Test whether can fish on selected tile
+    // Must have no object + be water
+    const std::optional<BuildableObject>& selectedObject = chunkManager.getChunkObject(selectedChunk, selectedTile);
+    int tileType = chunkManager.getChunkTileType(selectedChunk, selectedTile);
+
+    if (selectedObject.has_value() || tileType > 0)
+        return;
+    
+    // Swing fishing rod
+    player.useTool();
+
+    player.castFishingRod(mouseWorldPos);
 }
 
 void Game::changePlayerTool()

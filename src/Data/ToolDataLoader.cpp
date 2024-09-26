@@ -47,6 +47,13 @@ bool ToolDataLoader::loadData(std::string toolDataPath)
             toolData.holdOffset.y = holdOffset[1];
         }
 
+        if (jsonToolData.contains("fishing-rod-line-offset"))
+        {
+            auto lineOffset = jsonToolData.at("fishing-rod-line-offset");
+            toolData.fishingRodLineOffset.x = lineOffset[0];
+            toolData.fishingRodLineOffset.y = lineOffset[1];
+        }
+
         loaded_toolData.push_back(toolData);
 
         toolNameToTypeMap[toolData.name] = toolIdx;

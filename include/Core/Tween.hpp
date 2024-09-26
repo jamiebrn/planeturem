@@ -1,7 +1,7 @@
 #pragma once
 
 #include <unordered_map>
-#include <chrono>
+#include <queue>
 #include <cmath>
 #include <cassert>
 
@@ -48,7 +48,9 @@ public:
 
     inline TweenID startTween(T* value, T start, T end, float duration, TweenTransition transitionType, TweenEasing easingType)
     {
-        TweenID id = std::chrono::system_clock::now().time_since_epoch() / std::chrono::milliseconds(1);
+        TweenID id = topTweenID;
+
+        topTweenID++;
 
         assert(activeTweens.count(id) <= 0 && "Tween ID duplicate");
 
@@ -61,16 +63,34 @@ public:
         data.transitionType = transitionType;
         data.easingType = easingType;
 
-        activeTweens[id] = data;
+        activeTweens[id] = std::queue<TweenData<T>>();
+        activeTweens[id].push(data);
 
         return id;
+    }
+
+    inline void addTweenToQueue(TweenID tweenQueueID, T* value, T start, T end, float duration, TweenTransition transitionType, TweenEasing easingType)
+    {
+        if (!activeTweens.contains(tweenQueueID))
+            return;
+        
+        TweenData<T> data;
+        data.value = value;
+        data.start = start;
+        data.end = end;
+        data.duration = duration;
+        data.progress = 0.0f;
+        data.transitionType = transitionType;
+        data.easingType = easingType;
+
+        activeTweens[tweenQueueID].push(data);
     }
 
     inline T getTweenValue(TweenID tween)
     {
         assert(activeTweens.count(tween) > 0 && "Tween ID does not exist (get value)");
         
-        TweenData<T>& tweenData = activeTweens[tween];
+        TweenData<T>& tweenData = activeTweens[tween].front();
 
         float progress = std::min(tweenData.progress / tweenData.duration, 1.0f);
 
@@ -82,9 +102,9 @@ public:
         if (activeTweens.count(tween) <= 0)
             return true;
         
-        TweenData<T>& tweenData = activeTweens[tween];
+        std::queue<TweenData<T>>& tweenQueue = activeTweens[tween];
         
-        if (tweenData.progress >= tweenData.duration)
+        if (tweenQueue.empty())
             return true;
         
         return false;
@@ -95,16 +115,20 @@ public:
         for (auto tweenIter = activeTweens.begin(); tweenIter != activeTweens.end();)
         {
             TweenID tweenID = tweenIter->first;
-            TweenData<T>& tweenData = tweenIter->second;
+            std::queue<TweenData<T>>& tweenData = tweenIter->second;
 
-            tweenData.progress += dt;
+            tweenData.front().progress += dt;
 
-            *tweenData.value = getTweenValue(tweenID);
+            *tweenData.front().value = getTweenValue(tweenID);
 
-            if (isTweenFinished(tweenID))
+            if (tweenData.front().progress >= tweenData.front().duration)
             {
-                tweenIter = activeTweens.erase(tweenIter);
-                continue;
+                activeTweens[tweenID].pop();
+                if (activeTweens[tweenID].empty())
+                {
+                    tweenIter = activeTweens.erase(tweenIter);
+                    continue;
+                }
             }
 
             tweenIter++;
@@ -240,6 +264,8 @@ private:
     }
 
 private:
-    std::unordered_map<TweenID, TweenData<T>> activeTweens;
+    std::unordered_map<TweenID, std::queue<TweenData<T>>> activeTweens;
+
+    TweenID topTweenID = 0;
 
 };
