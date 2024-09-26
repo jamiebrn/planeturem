@@ -76,6 +76,13 @@
         "texture-width": 16,
         "texture-height": 16
     },
+    {
+        "name": "Fish",
+        "texture-x": 0,
+        "texture-y": 112,
+        "texture-width": 16,
+        "texture-height": 16
+    },
 
     {
         "name": "Land",

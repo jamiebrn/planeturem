@@ -40,7 +40,9 @@ public:
     bool isUsingTool();
 
     // Fishing rod specific
-    void castFishingRod(sf::Vector2f mouseWorldPos);
+    void swingFishingRod(sf::Vector2f mouseWorldPos);
+    void reelInFishingRod();
+    bool isFishBitingLine();
 
     bool canReachPosition(sf::Vector2f worldPos);
 
@@ -53,6 +55,9 @@ public:
 private:
     void updateDirection(sf::Vector2f mouseWorldPos);
     void updateAnimation(float dt);
+
+    void updateFishingRodCatch(float dt);
+    void castFishingRod();
 
     void drawFishingRodCast(sf::RenderTarget& window, float gameTime, int worldSize, float waterYOffset);
 
@@ -79,6 +84,8 @@ private:
     // Fishing rod
     bool fishingRodCasted;
     bool swingingFishingRod;
+    float fishingRodCastedTime;
+    bool fishBitingLine;
     sf::Vector2f fishingRodBobWorldPos;
 
     static constexpr std::array<float, 5> runningShadowScale = {1.0f, 0.8f, 0.7f, 0.8f, 0.9f};

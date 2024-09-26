@@ -22,6 +22,7 @@ Player::Player(sf::Vector2f position)
 
     fishingRodCasted = false;
     swingingFishingRod = false;
+    fishBitingLine = false;
 }
 
 void Player::update(float dt, sf::Vector2f mouseWorldPos, ChunkManager& chunkManager, int worldSize, bool& wrappedAroundWorld, sf::Vector2f& wrapPositionDelta)
@@ -69,6 +70,12 @@ void Player::update(float dt, sf::Vector2f mouseWorldPos, ChunkManager& chunkMan
     // Update position using collision rect after collision has been handled
     position.x = collisionRect.x + collisionRect.width / 2.0f;
     position.y = collisionRect.y + collisionRect.height / 2.0f;
+
+    // Update fishing rod if required
+    if (fishingRodCasted)
+    {
+        updateFishingRodCatch(dt);
+    }
 
     // Update on water
     onWater = (chunkManager.getLoadedChunkTileType(getChunkInside(worldSize), getChunkTileInside(worldSize)) == 0);
@@ -144,9 +151,25 @@ void Player::updateAnimation(float dt)
 
             if (swingingFishingRod)
             {
-                swingingFishingRod = false;
-                fishingRodCasted = true;
+                castFishingRod();
             }
+        }
+    }
+}
+
+void Player::updateFishingRodCatch(float dt)
+{
+    fishingRodCastedTime += dt;
+    if (fishingRodCastedTime >= 1)
+    {
+        fishingRodCastedTime = 0;
+        fishBitingLine = false;
+
+        // Chance for fish to bite line
+        int fishBiteChance = Helper::randInt(0, 5);
+        if (fishBiteChance == 0)
+        {
+            fishBitingLine = true;
         }
     }
 }
@@ -248,13 +271,23 @@ void Player::drawFishingRodCast(sf::RenderTarget& window, float gameTime, int wo
     // Draw bob
     sf::Vector2f bobPosition = fishingRodBobWorldPos + sf::Vector2f(0, WorldObject::getWaterBobYOffset(fishingRodBobWorldPos, worldSize, gameTime));
 
-    TextureDrawData bobDrawData;
-    bobDrawData.position = Camera::worldToScreenTransform(bobPosition);
-    bobDrawData.type = TextureType::Tools;
-    bobDrawData.scale = sf::Vector2f(ResolutionHandler::getScale(), ResolutionHandler::getScale());
-    bobDrawData.centerRatio = sf::Vector2f(0.5, 0.5);
+    // If fish is biting line, shake bob
+    if (fishBitingLine)
+    {
+        bobPosition.x += (Helper::randInt(0, 2000) - 1000) / 1000.0f;
+        bobPosition.y += (Helper::randInt(0, 2000) - 1000) / 1000.0f;
+    }
+    else
+    {
+        // Only draw bob if fish not on line
+        TextureDrawData bobDrawData;
+        bobDrawData.position = Camera::worldToScreenTransform(bobPosition);
+        bobDrawData.type = TextureType::Tools;
+        bobDrawData.scale = sf::Vector2f(ResolutionHandler::getScale(), ResolutionHandler::getScale());
+        bobDrawData.centerRatio = sf::Vector2f(0.5, 0.5);
 
-    TextureManager::drawSubTexture(window, bobDrawData, sf::IntRect(0, 112, 16, 16));
+        TextureManager::drawSubTexture(window, bobDrawData, sf::IntRect(0, 112, 16, 16));
+    }
 
     // Draw line
     sf::VertexArray line;
@@ -324,13 +357,33 @@ bool Player::isUsingTool()
     return usingTool;
 }
 
-void Player::castFishingRod(sf::Vector2f mouseWorldPos)
+void Player::swingFishingRod(sf::Vector2f mouseWorldPos)
 {
     swingingFishingRod = true;
     fishingRodCasted = false;
 
     fishingRodBobWorldPos.x = (std::floor(mouseWorldPos.x / TILE_SIZE_PIXELS_UNSCALED) + 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
     fishingRodBobWorldPos.y = (std::floor(mouseWorldPos.y / TILE_SIZE_PIXELS_UNSCALED) + 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
+}
+
+void Player::reelInFishingRod()
+{
+    fishingRodCasted = false;
+    fishBitingLine = false;
+}
+
+bool Player::isFishBitingLine()
+{
+    return fishBitingLine;
+}
+
+void Player::castFishingRod()
+{
+    swingingFishingRod = false;
+    fishingRodCasted = true;
+
+    fishBitingLine = false;
+    fishingRodCastedTime = 0;
 }
 
 bool Player::canReachPosition(sf::Vector2f worldPos)

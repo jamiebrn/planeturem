@@ -181,8 +181,7 @@ void Cursor::updateTileCursorToolPickaxe(sf::RenderWindow& window, float dt, Chu
         return;
     }
 
-    // Neither enemy nor object is selected, so hide cursor
-    drawState = CursorDrawState::Hidden;
+    updateTileCursorNoItem(dt, chunkManager);
 }
 
 void Cursor::updateTileCursorToolFishingRod(sf::RenderWindow& window, float dt, ChunkManager& chunkManager)
@@ -204,8 +203,7 @@ void Cursor::updateTileCursorToolFishingRod(sf::RenderWindow& window, float dt, 
         return;
     }
 
-    // Default case - tile cannot be fished on
-    drawState = CursorDrawState::Hidden;
+    updateTileCursorNoItem(dt, chunkManager);
 }
 
 void Cursor::updateTileCursorNoItem(float dt, ChunkManager& chunkManager)
@@ -219,6 +217,11 @@ void Cursor::updateTileCursorNoItem(float dt, ChunkManager& chunkManager)
     {
         // Get object selected
         BuildableObject& selectedObject = selectedObjectOptional.value();
+
+        if (selectedObjectOptional->getObjectType() < 0)
+        {
+            return;
+        }
 
         if (selectedObject.isInteractable())
         {

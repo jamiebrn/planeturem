@@ -788,10 +788,21 @@ void Game::attemptUseToolPickaxe()
 
 void Game::attemptUseToolFishingRod()
 {
+    // Check if fish is biting line first - if so, reel in fishing rod and catch fish
+    if (player.isFishBitingLine())
+    {
+        player.reelInFishingRod();
+        catchRandomFish();
+        return;
+    }
+
     sf::Vector2f mouseWorldPos = Cursor::getMouseWorldPos(window);
 
     if (!player.canReachPosition(mouseWorldPos))
+    {
+        player.reelInFishingRod();
         return;
+    }
     
     // Determine whether can fish at selected tile
     ChunkPosition selectedChunk = Cursor::getSelectedChunk(chunkManager.getWorldSize());
@@ -803,12 +814,22 @@ void Game::attemptUseToolFishingRod()
     int tileType = chunkManager.getChunkTileType(selectedChunk, selectedTile);
 
     if (selectedObject.has_value() || tileType > 0)
+    {
+        player.reelInFishingRod();
         return;
+    }
     
     // Swing fishing rod
     player.useTool();
 
-    player.castFishingRod(mouseWorldPos);
+    player.swingFishingRod(mouseWorldPos);
+}
+
+void Game::catchRandomFish()
+{
+    ItemType fishItem = ItemDataLoader::getItemTypeFromName("Fish");
+    inventory.addItem(fishItem, 1);
+    InventoryGUI::pushItemPopup(ItemCount(fishItem, 1));
 }
 
 void Game::changePlayerTool()

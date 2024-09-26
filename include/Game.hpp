@@ -86,6 +86,8 @@ private:
     void attemptUseToolPickaxe();
     void attemptUseToolFishingRod();
 
+    void catchRandomFish();
+
     void attemptObjectInteract();
     void attemptBuildObject();
     void attemptPlaceLand();
