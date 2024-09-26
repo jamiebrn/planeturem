@@ -1,6 +1,5 @@
 #include "Game.hpp"
 
-// FIX: Structures still generating in biomes not supposed to, e.g. oasis
 // FIX: Fishing rod line rotation
 
 // PRIORITY: HIGH
@@ -409,15 +408,26 @@ void Game::runOnPlanet(float dt)
                         break;
                     }
                     case WorldMenuState::Inventory:
-                        if (!InventoryGUI::isMouseOverUI(mouseScreenPos))
+                    {
+                        ItemType itemHeldBefore = InventoryGUI::getHeldItemType(inventory);
+                        
+                        if (InventoryGUI::isMouseOverUI(mouseScreenPos))
+                        {
+                            InventoryGUI::handleLeftClick(mouseScreenPos, shiftMode, inventory, chestDataPool.getChestDataPtr(openedChestID));
+                        }
+                        else
                         {
                             attemptUseTool();
                             attemptBuildObject();
                             attemptPlaceLand();
                         }
-                        InventoryGUI::handleLeftClick(mouseScreenPos, shiftMode, inventory, chestDataPool.getChestDataPtr(openedChestID));
-                        changePlayerTool();
+
+                        if (itemHeldBefore != InventoryGUI::getHeldItemType(inventory))
+                        {
+                            changePlayerTool();
+                        }
                         break;
+                    }
                 }
             }
             else if (event.mouseButton.button == sf::Mouse::Right)

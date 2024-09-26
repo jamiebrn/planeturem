@@ -5,6 +5,7 @@
 
 #include "Core/SpriteBatch.hpp"
 #include "World/ChunkPosition.hpp"
+#include "GameConstants.hpp"
 
 class WorldObject
 {
@@ -13,51 +14,22 @@ public:
 
     // General world object functionality
 
-    inline sf::Vector2f getPosition() const {return position;}
-    inline void setPosition(sf::Vector2f pos) {position = pos;}
+    sf::Vector2f getPosition() const;
+    void setPosition(sf::Vector2f pos);
 
-    inline ChunkPosition getChunkInside(int worldSize) const
-    {
-        ChunkPosition chunk;
-        chunk.x = ((static_cast<int>(std::floor(position.x / (CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED))) % worldSize) + worldSize) % worldSize;
-        chunk.y = ((static_cast<int>(std::floor(position.y / (CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED))) % worldSize) + worldSize) % worldSize;
-        return chunk;
-    }
+    static ChunkPosition getChunkInside(sf::Vector2f position, int worldSize);
+    ChunkPosition getChunkInside(int worldSize) const;
 
-    inline sf::Vector2i getChunkTileInside(int worldSize) const
-    {
-        int worldTotalSize = worldSize * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
+    static sf::Vector2i getChunkTileInside(sf::Vector2f position, int worldSize);
 
-        sf::Vector2f wrappedPosition;
-        wrappedPosition.x = (static_cast<int>(position.x) % worldTotalSize + worldTotalSize) % worldTotalSize;
-        wrappedPosition.y = (static_cast<int>(position.y) % worldTotalSize + worldTotalSize) % worldTotalSize;
+    sf::Vector2i getChunkTileInside(int worldSize) const;
 
-        sf::Vector2i chunkTile;
-        chunkTile.x = static_cast<int>((static_cast<int>(wrappedPosition.x / TILE_SIZE_PIXELS_UNSCALED) % static_cast<int>(CHUNK_TILE_SIZE)) + CHUNK_TILE_SIZE) % static_cast<int>(CHUNK_TILE_SIZE);
-        chunkTile.y = static_cast<int>((static_cast<int>(wrappedPosition.y / TILE_SIZE_PIXELS_UNSCALED) % static_cast<int>(CHUNK_TILE_SIZE)) + CHUNK_TILE_SIZE) % static_cast<int>(CHUNK_TILE_SIZE);
-        return chunkTile;
-    }
+    // Assumes on water
+    static float getWaterBobYOffset(sf::Vector2f position, int worldSize, float gameTime);
 
-    inline float getWaterBobYOffset(int worldSize, float gameTime) const
-    {
-        if (!onWater)
-            return 0.0f;
-        
-        ChunkPosition chunk = getChunkInside(worldSize);
-        sf::Vector2i tile = getChunkTileInside(worldSize);
+    float getWaterBobYOffset(int worldSize, float gameTime) const;
 
-        static constexpr float xWavelength = 0.9f;
-        static constexpr float yWavelength = 0.7f;
-        static constexpr float frequency = 3.0f;
-
-        int xPos = chunk.x * CHUNK_TILE_SIZE + tile.x;
-        int yPos = chunk.y * CHUNK_TILE_SIZE + tile.y;
-
-        // return -std::pow(std::sin(xPos * xWavelength + yPos * yWavelength + gameTime * frequency), 2.0f);
-        return std::sin(xPos * xWavelength + yPos * yWavelength + gameTime * frequency) - 1.0f;
-    }
-
-    inline int getDrawLayer() const {return drawLayer;}
+    int getDrawLayer() const;
 
     // Overriden by inherited classes (specific)
     virtual void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime, int worldSize, const sf::Color& color) = 0;

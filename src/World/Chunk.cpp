@@ -119,7 +119,8 @@ void Chunk::generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNo
 void Chunk::generateRandomStructure(int worldSize, const FastNoise& biomeNoise, PlanetType planetType)
 {
     // Get biome gen data
-    const BiomeGenData* biomeGenData = getBiomeGenAtWorldTile(sf::Vector2i(chunkPosition.x, chunkPosition.y), worldSize, biomeNoise, planetType);
+    const BiomeGenData* biomeGenData = getBiomeGenAtWorldTile(sf::Vector2i(chunkPosition.x * CHUNK_TILE_SIZE, chunkPosition.y * CHUNK_TILE_SIZE),
+        worldSize, biomeNoise, planetType);
     if (!biomeGenData)
         return;
     

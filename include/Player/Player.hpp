@@ -54,7 +54,7 @@ private:
     void updateDirection(sf::Vector2f mouseWorldPos);
     void updateAnimation(float dt);
 
-    void drawFishingRodCast(sf::RenderTarget& window);
+    void drawFishingRodCast(sf::RenderTarget& window, float gameTime, int worldSize, float waterYOffset);
 
 private:
     CollisionRect collisionRect;
@@ -78,6 +78,7 @@ private:
 
     // Fishing rod
     bool fishingRodCasted;
+    bool swingingFishingRod;
     sf::Vector2f fishingRodBobWorldPos;
 
     static constexpr std::array<float, 5> runningShadowScale = {1.0f, 0.8f, 0.7f, 0.8f, 0.9f};

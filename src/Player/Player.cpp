@@ -21,6 +21,7 @@ Player::Player(sf::Vector2f position)
     usingTool = false;
 
     fishingRodCasted = false;
+    swingingFishingRod = false;
 }
 
 void Player::update(float dt, sf::Vector2f mouseWorldPos, ChunkManager& chunkManager, int worldSize, bool& wrappedAroundWorld, sf::Vector2f& wrapPositionDelta)
@@ -111,6 +112,7 @@ void Player::updateDirection(sf::Vector2f mouseWorldPos)
         direction /= length;
 
         // Reel in fishing rod if moved
+        swingingFishingRod = false;
         fishingRodCasted = false;
 
         if (direction.x != 0)
@@ -136,7 +138,16 @@ void Player::updateAnimation(float dt)
     // }
     if (usingTool)
     {
-        if (toolTweener.isTweenFinished(rotationTweenID)) usingTool = false;
+        if (toolTweener.isTweenFinished(rotationTweenID))
+        {
+            usingTool = false;
+
+            if (swingingFishingRod)
+            {
+                swingingFishingRod = false;
+                fishingRodCasted = true;
+            }
+        }
     }
 }
 
@@ -208,7 +219,7 @@ void Player::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, 
     // Draw fishing line if casted rod
     if (fishingRodCasted)
     {
-        drawFishingRodCast(window);
+        drawFishingRodCast(window, gameTime, worldSize, waterYOffset);
     }
 
     // DEBUG
@@ -232,11 +243,13 @@ void Player::drawLightMask(sf::RenderTarget& lightTexture)
         }, lightMaskRect, sf::BlendAdd);
 }
 
-void Player::drawFishingRodCast(sf::RenderTarget& window)
+void Player::drawFishingRodCast(sf::RenderTarget& window, float gameTime, int worldSize, float waterYOffset)
 {
     // Draw bob
+    sf::Vector2f bobPosition = fishingRodBobWorldPos + sf::Vector2f(0, WorldObject::getWaterBobYOffset(fishingRodBobWorldPos, worldSize, gameTime));
+
     TextureDrawData bobDrawData;
-    bobDrawData.position = Camera::worldToScreenTransform(fishingRodBobWorldPos);
+    bobDrawData.position = Camera::worldToScreenTransform(bobPosition);
     bobDrawData.type = TextureType::Tools;
     bobDrawData.scale = sf::Vector2f(ResolutionHandler::getScale(), ResolutionHandler::getScale());
     bobDrawData.centerRatio = sf::Vector2f(0.5, 0.5);
@@ -257,11 +270,13 @@ void Player::drawFishingRodCast(sf::RenderTarget& window)
         lineOffsetXMult = -1;
     }
 
-    lineOrigin.x = position.x + toolData.holdOffset.x + std::cos(2 * M_PI * toolRotation / 180.0f) * toolData.fishingRodLineOffset.x * lineOffsetXMult;
-    lineOrigin.y = position.y + toolData.holdOffset.y - std::sin(2 * M_PI * toolRotation / 180.0f) * toolData.fishingRodLineOffset.y;
+    sf::Vector2f rotatedLineOffset = Helper::rotateVector(toolData.fishingRodLineOffset, M_PI * toolRotation / 180.0f);
+
+    lineOrigin.x = position.x + (toolData.holdOffset.x + rotatedLineOffset.x) * lineOffsetXMult;
+    lineOrigin.y = position.y + waterYOffset + toolData.holdOffset.y + rotatedLineOffset.y;
 
     line.append(sf::Vertex(Camera::worldToScreenTransform(lineOrigin), sf::Color(255, 255, 255)));
-    line.append(sf::Vertex(Camera::worldToScreenTransform(fishingRodBobWorldPos), sf::Color(255, 255, 255)));
+    line.append(sf::Vertex(Camera::worldToScreenTransform(bobPosition), sf::Color(255, 255, 255)));
 
     window.draw(line);
 }
@@ -311,8 +326,11 @@ bool Player::isUsingTool()
 
 void Player::castFishingRod(sf::Vector2f mouseWorldPos)
 {
-    fishingRodCasted = true;
-    fishingRodBobWorldPos = mouseWorldPos;
+    swingingFishingRod = true;
+    fishingRodCasted = false;
+
+    fishingRodBobWorldPos.x = (std::floor(mouseWorldPos.x / TILE_SIZE_PIXELS_UNSCALED) + 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
+    fishingRodBobWorldPos.y = (std::floor(mouseWorldPos.y / TILE_SIZE_PIXELS_UNSCALED) + 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
 }
 
 bool Player::canReachPosition(sf::Vector2f worldPos)
