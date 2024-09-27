@@ -42,11 +42,11 @@ void Cursor::updateTileCursor(sf::RenderWindow& window,
         // Override cursor size if object is being placed
         if (itemData.placesObjectType >= 0)
         {
-            updateTileCursorPlaceObject(itemData.placesObjectType);
+            updateTileCursorOnPlanetPlaceObject(itemData.placesObjectType);
         }
         else if (itemData.placesLand)
         {
-            updateTileCursorPlaceLand(window);
+            updateTileCursorOnPlanetPlaceLand(window);
         }
         else if (toolType >= 0)
         {
@@ -56,21 +56,21 @@ void Cursor::updateTileCursor(sf::RenderWindow& window,
             switch (toolData.toolBehaviourType)
             {
                 case ToolBehaviourType::Pickaxe:
-                    updateTileCursorToolPickaxe(window, dt, chunkManager, playerCollisionRect);
+                    updateTileCursorOnPlanetToolPickaxe(window, dt, chunkManager, playerCollisionRect);
                     break;
                 case ToolBehaviourType::FishingRod:
-                    updateTileCursorToolFishingRod(window, dt, chunkManager);
+                    updateTileCursorOnPlanetToolFishingRod(window, dt, chunkManager);
                     break;
             }
         }
         else
         {
-            updateTileCursorNoItem(dt, chunkManager);
+            updateTileCursorOnPlanetNoItem(dt, chunkManager);
         }
     }
     else
     {
-        updateTileCursorNoItem(dt, chunkManager);
+        updateTileCursorOnPlanetNoItem(dt, chunkManager);
     }
 
     // Set tile cursor corner tile positions
@@ -85,7 +85,7 @@ void Cursor::updateTileCursor(sf::RenderWindow& window,
     setCursorCornersToDestination();
 }
 
-void Cursor::updateTileCursorPlaceObject(ObjectType objectType)
+void Cursor::updateTileCursorOnPlanetPlaceObject(ObjectType objectType)
 {
     selectSize = ObjectDataLoader::getObjectData(objectType).size;
 
@@ -98,7 +98,7 @@ void Cursor::updateTileCursorPlaceObject(ObjectType objectType)
     drawState = CursorDrawState::Tile;
 }
 
-void Cursor::updateTileCursorPlaceLand(sf::RenderWindow& window)
+void Cursor::updateTileCursorOnPlanetPlaceLand(sf::RenderWindow& window)
 {
     // Set cursor animation to freeze at index 0
     for (int cursorCornerIdx = 0; cursorCornerIdx < cursorAnimatedTextures.size(); cursorCornerIdx++)
@@ -109,7 +109,7 @@ void Cursor::updateTileCursorPlaceLand(sf::RenderWindow& window)
     drawState = CursorDrawState::Tile;
 }
 
-void Cursor::updateTileCursorToolPickaxe(sf::RenderWindow& window, float dt, ChunkManager& chunkManager, const CollisionRect& playerCollisionRect)
+void Cursor::updateTileCursorOnPlanetToolPickaxe(sf::RenderWindow& window, float dt, ChunkManager& chunkManager, const CollisionRect& playerCollisionRect)
 {
     int worldSize = chunkManager.getWorldSize();
     sf::Vector2f mouseWorldPos = getMouseWorldPos(window);
@@ -181,10 +181,10 @@ void Cursor::updateTileCursorToolPickaxe(sf::RenderWindow& window, float dt, Chu
         return;
     }
 
-    updateTileCursorNoItem(dt, chunkManager);
+    updateTileCursorOnPlanetNoItem(dt, chunkManager);
 }
 
-void Cursor::updateTileCursorToolFishingRod(sf::RenderWindow& window, float dt, ChunkManager& chunkManager)
+void Cursor::updateTileCursorOnPlanetToolFishingRod(sf::RenderWindow& window, float dt, ChunkManager& chunkManager)
 {
     ChunkPosition selectedChunk = getSelectedChunk(chunkManager.getWorldSize());
     sf::Vector2i selectedTile = getSelectedChunkTile();
@@ -203,20 +203,25 @@ void Cursor::updateTileCursorToolFishingRod(sf::RenderWindow& window, float dt, 
         return;
     }
 
-    updateTileCursorNoItem(dt, chunkManager);
+    updateTileCursorOnPlanetNoItem(dt, chunkManager);
 }
 
-void Cursor::updateTileCursorNoItem(float dt, ChunkManager& chunkManager)
+void Cursor::updateTileCursorOnPlanetNoItem(float dt, ChunkManager& chunkManager)
 {
     int worldSize = chunkManager.getWorldSize();
 
     std::optional<BuildableObject>& selectedObjectOptional = chunkManager.getChunkObject(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile());
 
+    updateTileCursorNoItem(dt, selectedObjectOptional);
+}
+
+void Cursor::updateTileCursorNoItem(float dt, const std::optional<BuildableObject>& selectedObjectOptional)
+{
     // If an object in world is selected, override tile cursor size and position
     if (selectedObjectOptional.has_value())
     {
         // Get object selected
-        BuildableObject& selectedObject = selectedObjectOptional.value();
+        const BuildableObject& selectedObject = selectedObjectOptional.value();
 
         if (selectedObjectOptional->getObjectType() < 0)
         {
@@ -247,6 +252,50 @@ void Cursor::updateTileCursorNoItem(float dt, ChunkManager& chunkManager)
 
     // No object selected
     drawState = CursorDrawState::Hidden;
+}
+
+void Cursor::updateTileCursorInRoom(sf::RenderWindow& window,
+                            float dt,
+                            const std::vector<std::vector<std::optional<BuildableObject>>>& objectGrid,
+                            ItemType heldItemType,
+                            ToolType toolType)
+{
+    // Get mouse position in screen space and world space
+    sf::Vector2f mouseWorldPos = getMouseWorldPos(window);
+
+    // Get selected tile position from mouse position
+    selectPosTile.x = std::floor(mouseWorldPos.x / TILE_SIZE_PIXELS_UNSCALED);
+    selectPosTile.y = std::floor(mouseWorldPos.y / TILE_SIZE_PIXELS_UNSCALED);
+
+    selectPos = static_cast<sf::Vector2f>(selectPosTile) * TILE_SIZE_PIXELS_UNSCALED;
+
+    // Default tile cursor size is 1, 1
+    selectSize = sf::Vector2i(1, 1);
+
+    // Set drawing to hidden by default
+    drawState = CursorDrawState::Hidden;
+
+    // Check bounds
+    if (selectPosTile.x < 0 || selectPosTile.x >= objectGrid[0].size())
+        return;
+    
+    if (selectPosTile.y < 0 || selectPosTile.y >= objectGrid.size())
+        return;
+
+    const std::optional<BuildableObject>& selectedObjectOptional = objectGrid[selectPosTile.y][selectPosTile.x];
+
+    updateTileCursorNoItem(dt, selectedObjectOptional);
+
+    // Set tile cursor corner tile positions
+    if (drawState == CursorDrawState::Tile)
+    {
+        cursorCornerPositions[0].worldPositionDestination = static_cast<sf::Vector2f>(selectPosTile) * TILE_SIZE_PIXELS_UNSCALED;
+        cursorCornerPositions[1].worldPositionDestination = static_cast<sf::Vector2f>(selectPosTile + sf::Vector2i(selectSize.x - 1, 0)) * TILE_SIZE_PIXELS_UNSCALED;
+        cursorCornerPositions[2].worldPositionDestination = static_cast<sf::Vector2f>(selectPosTile + sf::Vector2i(0, selectSize.y - 1)) * TILE_SIZE_PIXELS_UNSCALED;
+        cursorCornerPositions[3].worldPositionDestination = static_cast<sf::Vector2f>(selectPosTile + sf::Vector2i(selectSize.x - 1, selectSize.y - 1)) * TILE_SIZE_PIXELS_UNSCALED;
+    }
+
+    setCursorCornersToDestination();
 }
 
 void Cursor::updateTileCursorAnimation(float dt)

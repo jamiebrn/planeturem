@@ -58,7 +58,7 @@ public:
 
     inline bool isAlive() {return health > 0;}
 
-    bool isInteractable();
+    bool isInteractable() const;
 
     // -- Chest -- //
 

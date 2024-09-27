@@ -10,6 +10,12 @@ Room::Room(const RoomData& roomData)
         objectGrid.push_back(std::vector<std::optional<BuildableObject>>());
         for (int x = 0; x < roomData.tileSize.x; x++)
         {
+            if (Helper::randInt(0, 4) == 0)
+            {
+                objectGrid.back().push_back(BuildableObject(sf::Vector2f((x + 0.5f) * TILE_SIZE_PIXELS_UNSCALED, (y + 0.5f) * TILE_SIZE_PIXELS_UNSCALED), ObjectDataLoader::getObjectTypeFromName("Chest")));
+                continue;
+            }
+
             objectGrid.back().push_back(std::nullopt);
         }
     }
@@ -101,6 +107,46 @@ sf::Vector2f Room::getEntrancePosition() const
     entrancePos.y = warpExitRect.y - 0.5f * TILE_SIZE_PIXELS_UNSCALED;
 
     return entrancePos;
+}
+
+void Room::updateObjects(float dt)
+{
+    for (int y = 0; y < objectGrid.size(); y++)
+    {
+        for (int x = 0; x < objectGrid[y].size(); x++)
+        {
+            std::optional<BuildableObject>& objectOptional = objectGrid[y][x];
+
+            if (!objectOptional.has_value())
+                continue;
+
+            objectOptional->update(dt, false);
+        }
+    }
+}
+
+BuildableObject* Room::getObject(sf::Vector2f mouseWorldPos)
+{
+    sf::Vector2i selectedTile;
+    selectedTile.x = std::floor(mouseWorldPos.x / TILE_SIZE_PIXELS_UNSCALED);
+    selectedTile.y = std::floor(mouseWorldPos.y / TILE_SIZE_PIXELS_UNSCALED);
+
+    // Bounds checking
+    if (selectedTile.x < 0 || selectedTile.x >= objectGrid[0].size())
+        return nullptr;
+    
+    if (selectedTile.y < 0 || selectedTile.y >= objectGrid.size())
+        return nullptr;
+    
+    std::optional<BuildableObject>& objectOptional = objectGrid[selectedTile.y][selectedTile.x];
+
+    if (objectOptional.has_value())
+    {
+        return &objectOptional.value();
+    }
+
+    // Default case
+    return nullptr;
 }
 
 std::vector<const WorldObject*> Room::getObjects() const

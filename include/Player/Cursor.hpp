@@ -2,6 +2,8 @@
 
 #include <SFML/Graphics.hpp>
 #include <array>
+#include <vector>
+#include <optional>
 
 #include "Core/TextureManager.hpp"
 #include "Core/ResolutionHandler.hpp"
@@ -49,6 +51,12 @@ public:
                                  ItemType heldItemType,
                                  ToolType toolType);
 
+    static void updateTileCursorInRoom(sf::RenderWindow& window,
+                                       float dt,
+                                       const std::vector<std::vector<std::optional<BuildableObject>>>& objectGrid,
+                                       ItemType heldItemType,
+                                       ToolType toolType);
+
     static ChunkPosition getSelectedChunk(int worldSize);
     static sf::Vector2i getSelectedChunkTile();
     static sf::Vector2i getSelectedWorldTile(int worldSize);
@@ -67,13 +75,14 @@ public:
     static void handleWorldWrap(sf::Vector2f positionDelta);
 
 private:
-    static void updateTileCursorPlaceObject(ObjectType objectType);
-    static void updateTileCursorPlaceLand(sf::RenderWindow& window);
+    static void updateTileCursorOnPlanetPlaceObject(ObjectType objectType);
+    static void updateTileCursorOnPlanetPlaceLand(sf::RenderWindow& window);
     
-    static void updateTileCursorToolPickaxe(sf::RenderWindow& window, float dt, ChunkManager& chunkManager, const CollisionRect& playerCollisionRect);
-    static void updateTileCursorToolFishingRod(sf::RenderWindow& window, float dt, ChunkManager& chunkManager);
+    static void updateTileCursorOnPlanetToolPickaxe(sf::RenderWindow& window, float dt, ChunkManager& chunkManager, const CollisionRect& playerCollisionRect);
+    static void updateTileCursorOnPlanetToolFishingRod(sf::RenderWindow& window, float dt, ChunkManager& chunkManager);
 
-    static void updateTileCursorNoItem(float dt, ChunkManager& chunkManager);
+    static void updateTileCursorOnPlanetNoItem(float dt, ChunkManager& chunkManager);
+    static void updateTileCursorNoItem(float dt, const std::optional<BuildableObject>& selectedObjectOptional);
 
     static void updateTileCursorAnimation(float dt);
     

@@ -17,7 +17,7 @@ uint32_t RoomPool::createRoom(StructureType structureType)
     return rooms->size() - 1;
 }
 
-const Room& RoomPool::getRoom(uint32_t structureID)
+Room& RoomPool::getRoom(uint32_t structureID)
 {
     return *(rooms->at(structureID).get());
 }

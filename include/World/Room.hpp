@@ -33,6 +33,12 @@ public:
 
     std::vector<const WorldObject*> getObjects() const;
 
+    const std::vector<std::vector<std::optional<BuildableObject>>>& getObjectGrid() const {return objectGrid;}
+
+    void updateObjects(float dt);
+
+    BuildableObject* getObject(sf::Vector2f mouseWorldPos);
+
     void draw(sf::RenderTarget& window) const;
 
 private:

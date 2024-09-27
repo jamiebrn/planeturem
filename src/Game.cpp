@@ -1,5 +1,7 @@
 #include "Game.hpp"
 
+// FIX: Chests not closing in rooms
+
 // PRIORITY: HIGH
 // TODO: Structure functionality (item spawns, crafting stations etc)
 // TODO: Different types of structures
@@ -624,12 +626,19 @@ void Game::updateInStructure(float dt)
 {
     sf::Vector2f mouseScreenPos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
 
-    const Room& structureRoom = structureRoomPool.getRoom(structureEnteredID);
+    Room& structureRoom = structureRoomPool.getRoom(structureEnteredID);
+
+    Camera::update(player.getPosition(), mouseScreenPos, dt);
+
+    Cursor::updateTileCursorInRoom(window, dt, structureRoom.getObjectGrid(), InventoryGUI::getHeldItemType(inventory), player.getTool());
+
+    Cursor::setCursorHidden(!player.canReachPosition(Cursor::getMouseWorldPos(window)));
 
     if (!isStateTransitioning())
         player.updateInStructure(dt, Cursor::getMouseWorldPos(window), structureRoom);
 
-    Camera::update(player.getPosition(), mouseScreenPos, dt);
+    // Update room objects
+    structureRoom.updateObjects(dt);
 
     // Continue to update objects and entities in world
     chunkManager.updateChunksObjects(dt);
@@ -660,6 +669,8 @@ void Game::drawInStructure(float dt)
     }
 
     spriteBatch.endDrawing(window);
+
+    Cursor::drawCursor(window);
 }
 
 void Game::updateMusic(float dt)
@@ -866,34 +877,46 @@ void Game::changePlayerTool()
 
 void Game::attemptObjectInteract()
 {
-    if (gameState != GameState::OnPlanet)
-        return;
-
     // Get mouse position in screen space and world space
     sf::Vector2f mouseWorldPos = Cursor::getMouseWorldPos(window);
 
     if (!player.canReachPosition(mouseWorldPos))
         return;
     
-    std::optional<BuildableObject>& selectedObjectOptional = chunkManager.getChunkObject(
-        Cursor::getSelectedChunk(chunkManager.getWorldSize()), Cursor::getSelectedChunkTile());
-    
-    if (selectedObjectOptional.has_value())
-    {
-        BuildableObject& selectedObject = selectedObjectOptional.value();
+    BuildableObject* selectedObject = nullptr;
 
-        ObjectInteractionEventData interactionEvent = selectedObject.interact();
+    if (gameState == GameState::OnPlanet)
+    {
+        std::optional<BuildableObject>& selectedObjectOptional = chunkManager.getChunkObject(
+            Cursor::getSelectedChunk(chunkManager.getWorldSize()), Cursor::getSelectedChunkTile());
+        
+        if (selectedObjectOptional.has_value())
+        {
+            selectedObject = &selectedObjectOptional.value();
+        }
+    }
+    else if (gameState == GameState::InStructure)
+    {
+        Room& structureRoom = structureRoomPool.getRoom(structureEnteredID);
+
+        selectedObject = structureRoom.getObject(mouseWorldPos);
+    }
+    
+    if (selectedObject)
+    {
+        ObjectInteractionEventData interactionEvent = selectedObject->interact();
+
         if (interactionEvent.interactionType == ObjectInteraction::Chest)
         {
             // If chest has ID 0xFFFF, then has not been initialised
             // Therefore must initialise chest
-            if (selectedObject.getChestID() == 0xFFFF)
+            if (selectedObject->getChestID() == 0xFFFF)
             {
-                initChestInData(selectedObject);
+                initChestInData(*selectedObject);
             }
 
             // Close chest if currently open is selected
-            if (selectedObject.getChestID() == openedChestID)
+            if (selectedObject->getChestID() == openedChestID)
             {
                 closeChest();
             }
@@ -905,16 +928,16 @@ void Game::attemptObjectInteract()
                     closeChest();
                 }
 
-                openedChestID = selectedObject.getChestID();
-                openedChest.chunk = selectedObject.getChunkInside(chunkManager.getWorldSize());
-                openedChest.tile = selectedObject.getChunkTileInside(chunkManager.getWorldSize());
-                openedChestPos = selectedObject.getPosition();
+                openedChestID = selectedObject->getChestID();
+                openedChest.chunk = selectedObject->getChunkInside(chunkManager.getWorldSize());
+                openedChest.tile = selectedObject->getChunkTileInside(chunkManager.getWorldSize());
+                openedChestPos = selectedObject->getPosition();
 
                 // Reset chest UI animations as opened new chest
                 InventoryGUI::chestOpened(chestDataPool.getChestDataPtr(openedChestID));
 
                 // Tell chest object it has been opened
-                selectedObject.openChest();
+                selectedObject->openChest();
 
                 // Open inventory to see chest
                 worldMenuState = WorldMenuState::Inventory;

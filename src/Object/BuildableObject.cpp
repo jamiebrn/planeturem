@@ -159,7 +159,7 @@ void BuildableObject::setWorldPosition(sf::Vector2f position)
     this->position = position;
 }
 
-bool BuildableObject::isInteractable()
+bool BuildableObject::isInteractable() const
 {
     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
 

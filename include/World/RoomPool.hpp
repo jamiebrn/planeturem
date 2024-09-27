@@ -17,7 +17,7 @@ public:
 
     uint32_t createRoom(StructureType structureType);
 
-    const Room& getRoom(uint32_t structureID);
+    Room& getRoom(uint32_t structureID);
 
 private:
     // 0xFFFFFFFF reserved for uninitialised room
