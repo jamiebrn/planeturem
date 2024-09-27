@@ -44,7 +44,7 @@ public:
 
     void update(float dt, bool onWater);
 
-    void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime, int worldSize, const sf::Color& color) override;
+    void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime, int worldSize, const sf::Color& color) const override;
     void drawGUI(sf::RenderTarget& window, float dt, const sf::Color& color);
 
     // Returns true if destroyed

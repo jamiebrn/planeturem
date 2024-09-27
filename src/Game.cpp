@@ -1,7 +1,5 @@
 #include "Game.hpp"
 
-// FIX: Fishing rod line rotation
-
 // PRIORITY: HIGH
 // TODO: Structure functionality (item spawns, crafting stations etc)
 // TODO: Different types of structures
@@ -9,6 +7,7 @@
 
 // PRIORITY: LOW
 // TODO: Prevent chests from being destroyed when containing items
+// TODO: Fishing rod draw order (split into separate objects?)
 
 Game::Game()
     : player(sf::Vector2f(0, 0)), window()
@@ -370,18 +369,18 @@ void Game::runOnPlanet(float dt)
             }
             else
             {
-                if (event.key.code == sf::Keyboard::E && worldMenuState == WorldMenuState::Inventory)
+                if ((event.key.code == sf::Keyboard::E || event.key.code == sf::Keyboard::Escape) && worldMenuState == WorldMenuState::Inventory)
                 {
-                    InventoryGUI::handleClose(inventory, chestDataPool.getChestDataPtr(openedChestID));
-                    worldMenuState = WorldMenuState::Main;
-                    closeChest();
-                }
+                    ItemType itemHeldBefore = InventoryGUI::getHeldItemType(inventory);
 
-                if (event.key.code == sf::Keyboard::Escape)
-                {
                     InventoryGUI::handleClose(inventory, chestDataPool.getChestDataPtr(openedChestID));
                     worldMenuState = WorldMenuState::Main;
                     closeChest();
+
+                    if (itemHeldBefore != InventoryGUI::getHeldItemType(inventory))
+                    {
+                        changePlayerTool();
+                    }
                 }
             }
         }
@@ -645,7 +644,22 @@ void Game::drawInStructure(float dt)
     const Room& structureRoom = structureRoomPool.getRoom(structureEnteredID);
     structureRoom.draw(window);
 
-    player.draw(window, spriteBatch, dt, gameTime, chunkManager.getWorldSize(), sf::Color(255, 255, 255));
+    std::vector<const WorldObject*> worldObjects = structureRoom.getObjects();
+    worldObjects.push_back(&player);
+
+    std::sort(worldObjects.begin(), worldObjects.end(), [](const WorldObject* a, const WorldObject* b)
+    {
+        if (a->getDrawLayer() != b->getDrawLayer()) return a->getDrawLayer() > b->getDrawLayer();
+        if (a->getPosition().y == b->getPosition().y) return a->getPosition().x < b->getPosition().x;
+        return a->getPosition().y < b->getPosition().y;
+    });
+
+    for (const WorldObject* object : worldObjects)
+    {
+        object->draw(window, spriteBatch, dt, gameTime, chunkManager.getWorldSize(), sf::Color(255, 255, 255));
+    }
+
+    spriteBatch.endDrawing(window);
 }
 
 void Game::updateMusic(float dt)

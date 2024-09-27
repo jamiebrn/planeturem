@@ -14,7 +14,7 @@ void SpriteBatch::draw(sf::RenderTarget& window, TextureDrawData drawData, sf::I
 {
     if (batchTextureType.has_value())
     {
-        if (batchTextureType != drawData.type)
+        if (batchTextureType.value() != drawData.type)
         {
             // End current batch and start new
             endDrawing(window);

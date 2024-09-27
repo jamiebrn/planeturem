@@ -47,7 +47,7 @@ void AnimatedTexture::update(float dt, int direction)
     }
 }
 
-sf::IntRect AnimatedTexture::getTextureRect()
+sf::IntRect AnimatedTexture::getTextureRect() const
 {
     sf::IntRect textureRect;
     textureRect.left = xStart + frame * frameWidth;

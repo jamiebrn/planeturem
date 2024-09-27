@@ -12,10 +12,10 @@ public:
     
     void update(float dt, int direction = 1);
 
-    sf::IntRect getTextureRect();
+    sf::IntRect getTextureRect() const;
 
     inline void setFrame(int frame) {this->frame = frame;}
-    inline int getFrame() {return frame;}
+    inline int getFrame() const {return frame;}
 
 private:
     int xStart;
@@ -43,7 +43,7 @@ public:
     void update(float dt, int direction, int frameCount, float maxFrameTick, bool looping = true);
 
     inline void setFrame(int frame) {this->frame = frame;}
-    inline int getFrame() {return frame;}
+    inline int getFrame() const {return frame;}
 
 private:
     int8_t frame = 0;

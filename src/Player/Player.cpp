@@ -174,7 +174,7 @@ void Player::updateFishingRodCatch(float dt)
     }
 }
 
-void Player::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime, int worldSize, const sf::Color& color)
+void Player::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime, int worldSize, const sf::Color& color) const
 {
     spriteBatch.endDrawing(window);
 
@@ -266,7 +266,7 @@ void Player::drawLightMask(sf::RenderTarget& lightTexture)
         }, lightMaskRect, sf::BlendAdd);
 }
 
-void Player::drawFishingRodCast(sf::RenderTarget& window, float gameTime, int worldSize, float waterYOffset)
+void Player::drawFishingRodCast(sf::RenderTarget& window, float gameTime, int worldSize, float waterYOffset) const
 {
     // Draw bob
     sf::Vector2f bobPosition = fishingRodBobWorldPos + sf::Vector2f(0, WorldObject::getWaterBobYOffset(fishingRodBobWorldPos, worldSize, gameTime));
@@ -303,7 +303,7 @@ void Player::drawFishingRodCast(sf::RenderTarget& window, float gameTime, int wo
         lineOffsetXMult = -1;
     }
 
-    sf::Vector2f rotatedLineOffset = Helper::rotateVector(toolData.fishingRodLineOffset, M_PI * toolRotation / 180.0f);
+    sf::Vector2f rotatedLineOffset = Helper::rotateVector(toolData.fishingRodLineOffset, 3.14159 * toolRotation / 180.0f);
 
     lineOrigin.x = position.x + (toolData.holdOffset.x + rotatedLineOffset.x) * lineOffsetXMult;
     lineOrigin.y = position.y + waterYOffset + toolData.holdOffset.y + rotatedLineOffset.y;

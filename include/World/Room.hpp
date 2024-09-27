@@ -4,11 +4,15 @@
 
 #include <vector>
 #include <array>
+#include <optional>
 
 #include "Core/CollisionRect.hpp"
 #include "Core/TextureManager.hpp"
 #include "Core/Camera.hpp"
 #include "Core/ResolutionHandler.hpp"
+
+#include "Object/WorldObject.hpp"
+#include "Object/BuildableObject.hpp"
 
 #include "Data/StructureData.hpp"
 
@@ -27,6 +31,8 @@ public:
 
     sf::Vector2f getEntrancePosition() const;
 
+    std::vector<const WorldObject*> getObjects() const;
+
     void draw(sf::RenderTarget& window) const;
 
 private:
@@ -37,5 +43,8 @@ private:
 
     std::vector<CollisionRect> collisionRects;
     CollisionRect warpExitRect;
+
+    // Objects in room
+    std::vector<std::vector<std::optional<BuildableObject>>> objectGrid;
 
 };

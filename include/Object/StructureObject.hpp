@@ -48,7 +48,7 @@ public:
 
     inline void setStructureID(uint32_t id) {structureID = id;}
 
-    void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime, int worldSize, const sf::Color& color) override;
+    void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime, int worldSize, const sf::Color& color) const override;
 
 private:
     StructureType structureType;

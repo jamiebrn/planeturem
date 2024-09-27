@@ -44,7 +44,7 @@ void StructureObject::setWorldPosition(sf::Vector2f newPosition)
     position = newPosition;
 }
 
-void StructureObject::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime, int worldSize, const sf::Color& color)
+void StructureObject::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime, int worldSize, const sf::Color& color) const
 {
     const StructureData& structureData = StructureDataLoader::getStructureData(structureType);
 

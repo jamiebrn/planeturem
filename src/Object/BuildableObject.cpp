@@ -48,7 +48,7 @@ void BuildableObject::update(float dt, bool onWater)
     this->onWater = onWater;
 }
 
-void BuildableObject::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime, int worldSize, const sf::Color& color)
+void BuildableObject::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime, int worldSize, const sf::Color& color) const
 {
     if (objectType < 0)
         return;

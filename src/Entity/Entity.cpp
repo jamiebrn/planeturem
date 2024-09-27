@@ -55,7 +55,7 @@ void Entity::update(float dt, ChunkManager& chunkManager, bool onWater)
     this->onWater = onWater;
 }
 
-void Entity::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime, int worldSize, const sf::Color& color)
+void Entity::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime, int worldSize, const sf::Color& color) const
 {
     spriteBatch.endDrawing(window);
 

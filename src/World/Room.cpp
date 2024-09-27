@@ -4,6 +4,16 @@ Room::Room(const RoomData& roomData)
 {
     this->roomData = roomData;
 
+    // Initialise object grid
+    for (int y = 0; y < roomData.tileSize.y; y++)
+    {
+        objectGrid.push_back(std::vector<std::optional<BuildableObject>>());
+        for (int x = 0; x < roomData.tileSize.x; x++)
+        {
+            objectGrid.back().push_back(std::nullopt);
+        }
+    }
+
     createCollisionRects();
 }
 
@@ -37,20 +47,35 @@ void Room::createCollisionRects()
     {
         for (int y = 0; y < roomData.tileSize.y; y++)
         {
-            // Sample bitmask
-            sf::Color bitmaskColor = bitmaskImage.getPixel(roomData.collisionBitmaskOffset.x + x, roomData.collisionBitmaskOffset.y + y);
-
-            if (bitmaskColor == sf::Color(0, 0, 0, 0))
-                continue;
-
             CollisionRect collisionRect;
             collisionRect.x = x * TILE_SIZE_PIXELS_UNSCALED;
             collisionRect.y = y * TILE_SIZE_PIXELS_UNSCALED;
             collisionRect.height = TILE_SIZE_PIXELS_UNSCALED;
             collisionRect.width = TILE_SIZE_PIXELS_UNSCALED;
 
+            bool collisionCreated = false;
+
+            // Check object first
+            if (objectGrid[y][x].has_value())
+            {
+                BuildableObject& object = objectGrid[y][x].value();
+                
+                const ObjectData& objectData = ObjectDataLoader::getObjectData(object.getObjectType());
+                if (objectData.hasCollision)
+                {
+                    collisionRects.push_back(collisionRect);
+                    collisionCreated = true;
+                }
+            }
+
+            // Sample bitmask
+            sf::Color bitmaskColor = bitmaskImage.getPixel(roomData.collisionBitmaskOffset.x + x, roomData.collisionBitmaskOffset.y + y);
+
+            if (bitmaskColor == sf::Color(0, 0, 0, 0))
+                continue;
+
             // Collision
-            if (bitmaskColor == sf::Color(255, 0, 0))
+            if (bitmaskColor == sf::Color(255, 0, 0) && !collisionCreated)
             {
                 collisionRects.push_back(collisionRect);
             }
@@ -78,16 +103,26 @@ sf::Vector2f Room::getEntrancePosition() const
     return entrancePos;
 }
 
-void Room::draw(sf::RenderTarget& window) const
+std::vector<const WorldObject*> Room::getObjects() const
 {
-    if (DebugOptions::drawCollisionRects)
+    std::vector<const WorldObject*> objects;
+    for (int y = 0; y < roomData.tileSize.y; y++)
     {
-        for (const CollisionRect& rect : collisionRects)
+        for (int x = 0; x < roomData.tileSize.x; x++)
         {
-            rect.debugDraw(window);
+            if (!objectGrid[y][x].has_value())
+                continue;
+
+            // Add object to vector
+            objects.push_back(&objectGrid[y][x].value());
         }
     }
 
+    return objects;
+}
+
+void Room::draw(sf::RenderTarget& window) const
+{
     float scale = ResolutionHandler::getScale();
 
     TextureDrawData drawData;
@@ -96,4 +131,12 @@ void Room::draw(sf::RenderTarget& window) const
     drawData.type = TextureType::Rooms;
 
     TextureManager::drawSubTexture(window, drawData, roomData.textureRect);
+    
+    if (DebugOptions::drawCollisionRects)
+    {
+        for (const CollisionRect& rect : collisionRects)
+        {
+            rect.debugDraw(window);
+        }
+    }
 }
