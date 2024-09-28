@@ -4,21 +4,7 @@ Room::Room(const RoomData& roomData)
 {
     this->roomData = roomData;
 
-    // Initialise object grid
-    for (int y = 0; y < roomData.tileSize.y; y++)
-    {
-        objectGrid.push_back(std::vector<std::optional<BuildableObject>>());
-        for (int x = 0; x < roomData.tileSize.x; x++)
-        {
-            if (Helper::randInt(0, 4) == 0)
-            {
-                objectGrid.back().push_back(BuildableObject(sf::Vector2f((x + 0.5f) * TILE_SIZE_PIXELS_UNSCALED, (y + 0.5f) * TILE_SIZE_PIXELS_UNSCALED), ObjectDataLoader::getObjectTypeFromName("Chest")));
-                continue;
-            }
-
-            objectGrid.back().push_back(std::nullopt);
-        }
-    }
+    createObjects();
 
     createCollisionRects();
 }
@@ -43,6 +29,33 @@ bool Room::handleStaticCollisionY(CollisionRect& collisionRect, float dy) const
             collision = true;
     }
     return collision;
+}
+
+void Room::createObjects()
+{
+    const sf::Image& bitmaskImage = TextureManager::getBitmask(BitmaskType::Structures);
+
+    for (int y = 0; y < roomData.tileSize.y; y++)
+    {
+        objectGrid.push_back(std::vector<std::optional<BuildableObject>>());
+        for (int x = 0; x < roomData.tileSize.x; x++)
+        {
+            std::optional<BuildableObject> object = std::nullopt;
+
+            // Sample bitmask
+            sf::Color bitmaskColor = bitmaskImage.getPixel(roomData.collisionBitmaskOffset.x + x, roomData.collisionBitmaskOffset.y + y);
+
+            // Create object
+            if (roomData.objectsInRoom.contains(bitmaskColor.b))
+            {
+                ObjectType objectTypeToSpawn = roomData.objectsInRoom.at(bitmaskColor.b);
+                object = BuildableObject(sf::Vector2f((x + 0.5f) * TILE_SIZE_PIXELS_UNSCALED, (y + 0.5f) * TILE_SIZE_PIXELS_UNSCALED), objectTypeToSpawn);
+            }
+
+            // Add to array
+            objectGrid.back().push_back(object);
+        }
+    }
 }
 
 void Room::createCollisionRects()
@@ -127,18 +140,21 @@ void Room::updateObjects(float dt)
 
 BuildableObject* Room::getObject(sf::Vector2f mouseWorldPos)
 {
-    sf::Vector2i selectedTile;
-    selectedTile.x = std::floor(mouseWorldPos.x / TILE_SIZE_PIXELS_UNSCALED);
-    selectedTile.y = std::floor(mouseWorldPos.y / TILE_SIZE_PIXELS_UNSCALED);
+    sf::Vector2i selectedTile = getSelectedTile(mouseWorldPos);
 
+    return getObject(selectedTile);
+}
+
+BuildableObject* Room::getObject(sf::Vector2i tile)
+{
     // Bounds checking
-    if (selectedTile.x < 0 || selectedTile.x >= objectGrid[0].size())
+    if (tile.x < 0 || tile.x >= objectGrid[0].size())
         return nullptr;
     
-    if (selectedTile.y < 0 || selectedTile.y >= objectGrid.size())
+    if (tile.y < 0 || tile.y >= objectGrid.size())
         return nullptr;
     
-    std::optional<BuildableObject>& objectOptional = objectGrid[selectedTile.y][selectedTile.x];
+    std::optional<BuildableObject>& objectOptional = objectGrid[tile.y][tile.x];
 
     if (objectOptional.has_value())
     {
@@ -147,6 +163,14 @@ BuildableObject* Room::getObject(sf::Vector2f mouseWorldPos)
 
     // Default case
     return nullptr;
+}
+
+sf::Vector2i Room::getSelectedTile(sf::Vector2f mouseWorldPos)
+{
+    sf::Vector2i selectedTile;
+    selectedTile.x = std::floor(mouseWorldPos.x / TILE_SIZE_PIXELS_UNSCALED);
+    selectedTile.y = std::floor(mouseWorldPos.y / TILE_SIZE_PIXELS_UNSCALED);
+    return selectedTile;
 }
 
 std::vector<const WorldObject*> Room::getObjects() const

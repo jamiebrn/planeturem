@@ -3,7 +3,11 @@
         "Stone": {
             "texture": [0, 0],
             "tile-size": [9, 10],
-            "collision-bitmask": [0, 3]
+            "collision-bitmask": [0, 3],
+            "objects": [
+                ["Chest", 1],
+                ["Anvil", 2]
+            ]
         }
     },
     "structures": [

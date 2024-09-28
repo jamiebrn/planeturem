@@ -31,6 +31,15 @@ bool StructureDataLoader::loadData(std::string structureDataPath)
         roomData.collisionBitmaskOffset.x = collisionBitmask[0];
         roomData.collisionBitmaskOffset.y = collisionBitmask[1];
 
+        if (iter->contains("objects"))
+        {
+            auto objects = iter->at("objects");
+            for (nlohmann::ordered_json::iterator objectIter = objects.begin(); objectIter != objects.end(); ++objectIter)
+            {
+                roomData.objectsInRoom[objectIter.value()[1]] = ObjectDataLoader::getObjectTypeFromName(objectIter.value()[0]);
+            }
+        }
+
         roomNameToDataMap[iter.key()] = roomData;
     }
 

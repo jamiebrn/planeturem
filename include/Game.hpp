@@ -103,6 +103,14 @@ private:
     void handleOpenChestPositionWorldWrap(sf::Vector2f positionDelta);
     void closeChest();
 
+    // Returns pointer (may be null) to selected / hovered object
+    // Depending on game state, will check chunks / room
+    BuildableObject* getSelectedObjectFromChunkOrRoom();
+
+    // For chunks, will use chunk and tile from object reference
+    // For rooms, will use tile from object reference
+    BuildableObject* getObjectFromChunkOrRoom(ObjectReference objectReference);
+
     void testEnterStructure();
     void testExitStructure();
 

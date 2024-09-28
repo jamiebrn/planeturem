@@ -480,6 +480,8 @@ void Game::runOnPlanet(float dt)
     // Update tweens
     floatTween.update(dt);
 
+    Camera::update(player.getPosition(), mouseScreenPos, dt);
+
     // Update depending on game state
     switch (gameState)
     {
@@ -490,6 +492,11 @@ void Game::runOnPlanet(float dt)
             updateInStructure(dt);
             break;
     }
+
+    Cursor::setCursorHidden(!player.canReachPosition(Cursor::getMouseWorldPos(window)));
+
+    // Close chest if out of range
+    checkChestOpenInRange();
 
     // Inventory GUI updating
     InventoryGUI::updateItemPopups(dt);
@@ -546,19 +553,8 @@ void Game::updateOnPlanet(float dt)
 
     int worldSize = chunkManager.getWorldSize();
 
-    // Update camera
-    Camera::update(player.getPosition(), mouseScreenPos, dt);
-
     // Update cursor
     Cursor::updateTileCursor(window, dt, chunkManager, player.getCollisionRect(), InventoryGUI::getHeldItemType(inventory), player.getTool());
-
-    // Cursor enable / disable
-    // if (InventoryGUI::heldItemPlacesLand(inventory))
-    //     Cursor::setCursorPlacingLand(window);
-    
-    // Enable / disable cursor drawing depending on player reach
-    // if (player.getTool() >= 0)
-    Cursor::setCursorHidden(!player.canReachPosition(Cursor::getMouseWorldPos(window)));
 
     // Update player
     bool wrappedAroundWorld = false;
@@ -586,9 +582,6 @@ void Game::updateOnPlanet(float dt)
 
     if (!isStateTransitioning())
         testEnterStructure();
-
-    // Close chest if out of range
-    checkChestOpenInRange();
 }
 
 void Game::drawOnPlanet(float dt)
@@ -628,11 +621,7 @@ void Game::updateInStructure(float dt)
 
     Room& structureRoom = structureRoomPool.getRoom(structureEnteredID);
 
-    Camera::update(player.getPosition(), mouseScreenPos, dt);
-
     Cursor::updateTileCursorInRoom(window, dt, structureRoom.getObjectGrid(), InventoryGUI::getHeldItemType(inventory), player.getTool());
-
-    Cursor::setCursorHidden(!player.canReachPosition(Cursor::getMouseWorldPos(window)));
 
     if (!isStateTransitioning())
         player.updateInStructure(dt, Cursor::getMouseWorldPos(window), structureRoom);
@@ -883,24 +872,7 @@ void Game::attemptObjectInteract()
     if (!player.canReachPosition(mouseWorldPos))
         return;
     
-    BuildableObject* selectedObject = nullptr;
-
-    if (gameState == GameState::OnPlanet)
-    {
-        std::optional<BuildableObject>& selectedObjectOptional = chunkManager.getChunkObject(
-            Cursor::getSelectedChunk(chunkManager.getWorldSize()), Cursor::getSelectedChunkTile());
-        
-        if (selectedObjectOptional.has_value())
-        {
-            selectedObject = &selectedObjectOptional.value();
-        }
-    }
-    else if (gameState == GameState::InStructure)
-    {
-        Room& structureRoom = structureRoomPool.getRoom(structureEnteredID);
-
-        selectedObject = structureRoom.getObject(mouseWorldPos);
-    }
+    BuildableObject* selectedObject = getSelectedObjectFromChunkOrRoom();
     
     if (selectedObject)
     {
@@ -929,8 +901,17 @@ void Game::attemptObjectInteract()
                 }
 
                 openedChestID = selectedObject->getChestID();
-                openedChest.chunk = selectedObject->getChunkInside(chunkManager.getWorldSize());
-                openedChest.tile = selectedObject->getChunkTileInside(chunkManager.getWorldSize());
+
+                // Get tile depending on game state
+                if (gameState == GameState::OnPlanet)
+                {
+                    openedChest.chunk = selectedObject->getChunkInside(chunkManager.getWorldSize());
+                    openedChest.tile = selectedObject->getChunkTileInside(chunkManager.getWorldSize());
+                }
+                else if (gameState == GameState::InStructure)
+                {
+                    openedChest.tile = selectedObject->getTileInside();
+                }
                 openedChestPos = selectedObject->getPosition();
 
                 // Reset chest UI animations as opened new chest
@@ -1204,10 +1185,10 @@ void Game::checkChestOpenInRange()
 {
     if (openedChestID == 0xFFFF)
         return;
-    
-    std::optional<BuildableObject>& chestObject = chunkManager.getChunkObject(openedChest.chunk, openedChest.tile);
 
-    if (!chestObject.has_value())
+    BuildableObject* chestObjectPtr = getObjectFromChunkOrRoom(openedChest);
+
+    if (!chestObjectPtr)
     {
         closeChest();
         return;
@@ -1229,16 +1210,65 @@ void Game::closeChest()
     InventoryGUI::chestClosed();
     
     // Tell chest object it has been closed
-    std::optional<BuildableObject>& chestObject = chunkManager.getChunkObject(openedChest.chunk, openedChest.tile);
-    if (chestObject.has_value())
+    // std::optional<BuildableObject>& chestObject = chunkManager.getChunkObject(openedChest.chunk, openedChest.tile);
+    BuildableObject* chestObjectPtr = getObjectFromChunkOrRoom(openedChest);
+
+    if (chestObjectPtr)
     {
-        chestObject->closeChest();
+        chestObjectPtr->closeChest();
     }
 
     openedChestID = 0xFFFF;
     openedChest.chunk = ChunkPosition(0, 0);
     openedChest.tile = sf::Vector2i(0, 0);
     openedChestPos = sf::Vector2f(0, 0);
+}
+
+BuildableObject* Game::getSelectedObjectFromChunkOrRoom()
+{
+    sf::Vector2f mouseWorldPos = Cursor::getMouseWorldPos(window);
+
+    BuildableObject* selectedObject = nullptr;
+
+    if (gameState == GameState::OnPlanet)
+    {
+        std::optional<BuildableObject>& selectedObjectOptional = chunkManager.getChunkObject(
+            Cursor::getSelectedChunk(chunkManager.getWorldSize()), Cursor::getSelectedChunkTile());
+        
+        if (selectedObjectOptional.has_value())
+        {
+            selectedObject = &selectedObjectOptional.value();
+        }
+    }
+    else if (gameState == GameState::InStructure)
+    {
+        Room& structureRoom = structureRoomPool.getRoom(structureEnteredID);
+
+        selectedObject = structureRoom.getObject(mouseWorldPos);
+    }
+
+    return selectedObject;
+}
+
+BuildableObject* Game::getObjectFromChunkOrRoom(ObjectReference objectReference)
+{
+    BuildableObject* objectPtr = nullptr;
+
+    if (gameState == GameState::OnPlanet)
+    {
+        std::optional<BuildableObject>& object = chunkManager.getChunkObject(objectReference.chunk, objectReference.tile);
+        if (object.has_value())
+        {
+            objectPtr = &object.value();
+        }
+    }
+    else if (gameState == GameState::InStructure)
+    {
+        Room& structureRoom = structureRoomPool.getRoom(structureEnteredID);
+        objectPtr = structureRoom.getObject(objectReference.tile);
+    }
+
+    return objectPtr;
 }
 
 void Game::testEnterStructure()

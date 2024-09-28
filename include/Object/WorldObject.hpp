@@ -24,6 +24,9 @@ public:
 
     sf::Vector2i getChunkTileInside(int worldSize) const;
 
+    static sf::Vector2i getTileInside(sf::Vector2f position);
+    sf::Vector2i getTileInside();
+
     // Assumes on water
     static float getWaterBobYOffset(sf::Vector2f position, int worldSize, float gameTime);
 

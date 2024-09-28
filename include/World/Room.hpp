@@ -38,10 +38,15 @@ public:
     void updateObjects(float dt);
 
     BuildableObject* getObject(sf::Vector2f mouseWorldPos);
+    BuildableObject* getObject(sf::Vector2i tile);
+
+    sf::Vector2i getSelectedTile(sf::Vector2f mouseWorldPos);
 
     void draw(sf::RenderTarget& window) const;
 
 private:
+    void createObjects();
+
     void createCollisionRects();
 
 private:

@@ -8,6 +8,8 @@
 #include "Core/json.hpp"
 #include "Data/StructureData.hpp"
 #include "Data/typedefs.hpp"
+#include "Data/ObjectData.hpp"
+#include "Data/ObjectDataLoader.hpp"
 
 #include "GameConstants.hpp"
 
