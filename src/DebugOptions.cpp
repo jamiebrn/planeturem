@@ -7,3 +7,6 @@ std::map<int, bool> DebugOptions::tileMapsVisible;
 bool DebugOptions::drawCollisionRects = false;
 bool DebugOptions::drawChunkBoundaries = false;
 bool DebugOptions::drawEntityChunkParents = false;
+bool DebugOptions::godMode = false;
+float DebugOptions::godSpeedMultiplier = 1.0f;
+bool DebugOptions::limitlessZoom = false;

@@ -32,13 +32,25 @@ void Player::update(float dt, sf::Vector2f mouseWorldPos, ChunkManager& chunkMan
 
     // Handle collision with world (tiles, object)
 
+    float speedMult = 1.0f;
+    if (DebugOptions::godMode)
+    {
+        speedMult = DebugOptions::godSpeedMultiplier;
+    }
+
     // Test collision after x movement
-    collisionRect.x += direction.x * speed * dt;
-    chunkManager.collisionRectChunkStaticCollisionX(collisionRect, direction.x);
+    collisionRect.x += direction.x * speed * dt * speedMult;
+    if (!DebugOptions::godMode)
+    {
+        chunkManager.collisionRectChunkStaticCollisionX(collisionRect, direction.x);
+    }
 
     // Test collision after y movement
-    collisionRect.y += direction.y * speed * dt;
-    chunkManager.collisionRectChunkStaticCollisionY(collisionRect, direction.y);
+    collisionRect.y += direction.y * speed * dt * speedMult;
+    if (!DebugOptions::godMode)
+    {
+        chunkManager.collisionRectChunkStaticCollisionY(collisionRect, direction.y);
+    }
 
     // Wrap position around world
     float worldPixelSize = worldSize * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;

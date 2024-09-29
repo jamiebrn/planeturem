@@ -21,7 +21,15 @@ void ResolutionHandler::changeScale(int amount)
 
 void ResolutionHandler::changeZoom(int amount)
 {
-    currentZoom = std::min(std::max(currentZoom + amount, 0), 5);
+    int lowLimit = 0;
+    int highLimit = 5;
+    if (DebugOptions::limitlessZoom)
+    {
+        lowLimit = -2;
+        highLimit = 100000;
+    }
+
+    currentZoom = std::min(std::max(currentZoom + amount, lowLimit), highLimit);
 }
 
 int ResolutionHandler::getResolutionIntegerScale()

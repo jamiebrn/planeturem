@@ -12,5 +12,8 @@ extern std::map<int, bool> tileMapsVisible;
 extern bool drawCollisionRects;
 extern bool drawChunkBoundaries;
 extern bool drawEntityChunkParents;
+extern bool godMode;
+extern float godSpeedMultiplier;
+extern bool limitlessZoom;
 
 }

@@ -25,6 +25,8 @@ public:
     static StructureType getStructureTypeFromName(const std::string& structureName);
 
 private:
+    static void createChestInventory(RoomObjectData& roomObjectData, nlohmann::ordered_json::iterator objectIter);
+
     static std::vector<StructureData> loaded_structureData;
 
     static std::unordered_map<std::string, StructureType> structureNameToTypeMap;

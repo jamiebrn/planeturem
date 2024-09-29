@@ -36,7 +36,18 @@ bool StructureDataLoader::loadData(std::string structureDataPath)
             auto objects = iter->at("objects");
             for (nlohmann::ordered_json::iterator objectIter = objects.begin(); objectIter != objects.end(); ++objectIter)
             {
-                roomData.objectsInRoom[objectIter.value()[1]] = ObjectDataLoader::getObjectTypeFromName(objectIter.value()[0]);
+                RoomObjectData roomObjectData;
+                roomObjectData.objectType = ObjectDataLoader::getObjectTypeFromName(objectIter.value()[0]);
+
+                const ObjectData& objectData = ObjectDataLoader::getObjectData(roomObjectData.objectType);
+
+                if (objectData.chestCapacity > 0)
+                {
+                    // Create inventory
+                    createChestInventory(roomObjectData, objectIter);
+                }
+
+                roomData.objectsInRoom[objectIter.value()[1]] = roomObjectData;
             }
         }
 
@@ -81,6 +92,21 @@ bool StructureDataLoader::loadData(std::string structureDataPath)
     }
 
     return true;
+}
+
+void StructureDataLoader::createChestInventory(RoomObjectData& roomObjectData, nlohmann::ordered_json::iterator objectIter)
+{
+    auto chestContents = objectIter.value()[2];
+
+    const ObjectData& objectData = ObjectDataLoader::getObjectData(roomObjectData.objectType);
+
+    roomObjectData.chestContents = InventoryData(objectData.chestCapacity);
+
+    for (nlohmann::ordered_json::iterator itemSlotIter = chestContents.begin(); itemSlotIter != chestContents.end(); ++itemSlotIter)
+    {
+        ItemType itemType = ItemDataLoader::getItemTypeFromName(itemSlotIter.value()[1]);
+        roomObjectData.chestContents->addItemAtIndex(itemSlotIter.value()[0], itemType, itemSlotIter.value()[2]);
+    }    
 }
 
 const StructureData& StructureDataLoader::getStructureData(StructureType type_index)

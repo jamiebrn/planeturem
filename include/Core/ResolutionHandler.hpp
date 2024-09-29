@@ -3,6 +3,7 @@
 #include <SFML/Graphics.hpp>
 
 #include "GameConstants.hpp"
+#include "DebugOptions.hpp"
 
 class ResolutionHandler
 {

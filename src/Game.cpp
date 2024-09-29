@@ -342,6 +342,20 @@ void Game::drawDebugMenu(float dt)
         ImGui::Checkbox(std::to_string(iter->first).c_str(), &(DebugOptions::tileMapsVisible[iter->first]));
     }
 
+    ImGui::Spacing();
+
+    if (ImGui::Checkbox("God Mode", &DebugOptions::godMode))
+    {
+        DebugOptions::godSpeedMultiplier = 1.0f;
+        DebugOptions::limitlessZoom = false;
+    }
+
+    if (DebugOptions::godMode)
+    {
+        ImGui::SliderFloat("God Speed Multiplier", &DebugOptions::godSpeedMultiplier, 0.0f, 100.0f);
+        ImGui::Checkbox("Limitless Zoom", &DebugOptions::limitlessZoom);
+    }
+
     ImGui::End();   
 }
 
@@ -1282,7 +1296,7 @@ void Game::testEnterStructure()
     // Create room data
     if (enterEvent.enteredStructure->getStructureID() == 0xFFFFFFFF)
     {
-        structureEnteredID = structureRoomPool.createRoom(enterEvent.enteredStructure->getStructureType());
+        structureEnteredID = structureRoomPool.createRoom(enterEvent.enteredStructure->getStructureType(), chestDataPool);
         enterEvent.enteredStructure->setStructureID(structureEnteredID);
     }
     else

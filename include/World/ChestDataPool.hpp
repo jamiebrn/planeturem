@@ -18,6 +18,7 @@ public:
     ChestDataPool();
 
     // ID 0xFFFF returned means chest was not initialised, as data is full
+    uint16_t createChest(InventoryData chestContents);
     uint16_t createChest(int capacity);
 
     void destroyChest(uint16_t id);

@@ -1,10 +1,10 @@
 #include "World/Room.hpp"
 
-Room::Room(const RoomData& roomData)
+Room::Room(const RoomData& roomData, ChestDataPool& chestDataPool)
 {
     this->roomData = roomData;
 
-    createObjects();
+    createObjects(chestDataPool);
 
     createCollisionRects();
 }
@@ -31,7 +31,7 @@ bool Room::handleStaticCollisionY(CollisionRect& collisionRect, float dy) const
     return collision;
 }
 
-void Room::createObjects()
+void Room::createObjects(ChestDataPool& chestDataPool)
 {
     const sf::Image& bitmaskImage = TextureManager::getBitmask(BitmaskType::Structures);
 
@@ -48,8 +48,17 @@ void Room::createObjects()
             // Create object
             if (roomData.objectsInRoom.contains(bitmaskColor.b))
             {
-                ObjectType objectTypeToSpawn = roomData.objectsInRoom.at(bitmaskColor.b);
+                const RoomObjectData& roomObjectData = roomData.objectsInRoom.at(bitmaskColor.b);
+
+                ObjectType objectTypeToSpawn = roomObjectData.objectType;
                 object = BuildableObject(sf::Vector2f((x + 0.5f) * TILE_SIZE_PIXELS_UNSCALED, (y + 0.5f) * TILE_SIZE_PIXELS_UNSCALED), objectTypeToSpawn);
+
+                // Fill chest if required
+                if (roomObjectData.chestContents.has_value())
+                {
+                    uint16_t chestID = chestDataPool.createChest(roomObjectData.chestContents.value());
+                    object->setChestID(chestID);
+                }
             }
 
             // Add to array

@@ -14,6 +14,9 @@
 #include "Object/WorldObject.hpp"
 #include "Object/BuildableObject.hpp"
 
+#include "Player/InventoryData.hpp"
+#include "World/ChestDataPool.hpp"
+
 #include "Data/StructureData.hpp"
 
 #include "GameConstants.hpp"
@@ -22,7 +25,7 @@
 class Room
 {
 public:
-    Room(const RoomData& roomData);
+    Room(const RoomData& roomData, ChestDataPool& chestDataPool);
 
     bool handleStaticCollisionX(CollisionRect& collisionRect, float dx) const;
     bool handleStaticCollisionY(CollisionRect& collisionRect, float dy) const;
@@ -45,7 +48,7 @@ public:
     void draw(sf::RenderTarget& window) const;
 
 private:
-    void createObjects();
+    void createObjects(ChestDataPool& chestDataPool);
 
     void createCollisionRects();
 
