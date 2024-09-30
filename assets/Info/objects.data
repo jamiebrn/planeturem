@@ -205,5 +205,21 @@
         "item-drops": {
             "Wood": [2, 4, 1.0]
         }
+    },
+
+    {
+        "name": "Rocket Launch Pad",
+        "health": 5,
+        "textures": [[0, 352]],
+        "texture-width": 32,
+        "texture-height": 32,
+        "texture-x-origin": 0.25,
+        "texture-y-origin": 0.25,
+        "size-x": 2,
+        "size-y": 2,
+        "has-collision": true,
+        "item-drops": {
+            "Rocket Launch Pad": [1, 1, 1.0]
+        }
     }
 ]

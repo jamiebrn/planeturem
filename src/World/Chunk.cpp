@@ -725,7 +725,7 @@ void Chunk::deleteObject(sf::Vector2i position, ChunkManager& chunkManager)
     if (objectType >= 0)
     {
         const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
-        sf::Vector2i objectSize = objectData.size;
+        objectSize = objectData.size;
     }
 
     // Object is single tile
