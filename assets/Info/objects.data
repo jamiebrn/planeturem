@@ -218,6 +218,11 @@
         "size-x": 2,
         "size-y": 2,
         "has-collision": true,
+        "rocket-info": {
+            "texture": [32, 343, 16, 41],
+            "texture-origin": [0.5, 1],
+            "launch-position": [16, 14]
+        },
         "item-drops": {
             "Rocket Launch Pad": [1, 1, 1.0]
         }

@@ -1,7 +1,5 @@
 #include "Game.hpp"
 
-// FIX: Chests not closing in rooms
-
 // PRIORITY: HIGH
 // TODO: Structure functionality (item spawns, crafting stations etc)
 // TODO: Different types of structures
@@ -496,6 +494,8 @@ void Game::runOnPlanet(float dt)
 
     Camera::update(player.getPosition(), mouseScreenPos, dt);
 
+    updateDayNightCycle(dt);
+
     // Update depending on game state
     switch (gameState)
     {
@@ -562,8 +562,6 @@ void Game::runOnPlanet(float dt)
 void Game::updateOnPlanet(float dt)
 {
     sf::Vector2f mouseScreenPos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
-
-    // updateDayNightCycle(dt);
 
     int worldSize = chunkManager.getWorldSize();
 
@@ -816,6 +814,9 @@ void Game::attemptUseToolPickaxe()
 
 void Game::attemptUseToolFishingRod()
 {
+    if (gameState != GameState::OnPlanet)
+        return;
+
     // Check if fish is biting line first - if so, reel in fishing rod and catch fish
     if (player.isFishBitingLine())
     {

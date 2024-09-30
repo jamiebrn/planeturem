@@ -86,6 +86,9 @@ public:
     bool dummyHasCollision();
 
 private:
+    void drawRocket(sf::RenderTarget& window, SpriteBatch& spriteBatch, const sf::Color& color) const;
+
+private:
     ObjectType objectType = 0;
     int health = 1;
     float flash_amount;

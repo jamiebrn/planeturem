@@ -80,6 +80,12 @@ void BuildableObject::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, f
 
         TextureManager::drawSubTexture(window, drawData, textureRect, shader);
     }
+
+    // Draw rocket if required
+    if (objectData.rocketObjectData.has_value())
+    {
+        drawRocket(window, spriteBatch, color);
+    }
 }
 
 void BuildableObject::drawGUI(sf::RenderTarget& window, float dt, const sf::Color& color)
@@ -92,6 +98,24 @@ void BuildableObject::drawGUI(sf::RenderTarget& window, float dt, const sf::Colo
     TextureManager::drawSubTexture(window, {
         TextureType::Objects, position, 0, {2, 2}, {0.5, 0.5}, color
         }, objectData.textureRects[0]);
+}
+
+void BuildableObject::drawRocket(sf::RenderTarget& window, SpriteBatch& spriteBatch, const sf::Color& color) const
+{
+    const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
+
+    sf::Vector2f scale(ResolutionHandler::getScale(), ResolutionHandler::getScale());
+
+    TextureDrawData drawData;
+    drawData.type = TextureType::Objects;
+
+    sf::Vector2f rocketPosOffset = objectData.rocketObjectData->launchPosition - sf::Vector2f(TILE_SIZE_PIXELS_UNSCALED, TILE_SIZE_PIXELS_UNSCALED) * 0.5f;
+    drawData.position = Camera::worldToScreenTransform(position + rocketPosOffset);
+    drawData.scale = scale;
+    drawData.centerRatio = objectData.rocketObjectData->textureOrigin;
+    drawData.colour = color;
+
+    spriteBatch.draw(window, drawData, objectData.rocketObjectData->textureRect);
 }
 
 bool BuildableObject::damage(int amount, InventoryData& inventory)

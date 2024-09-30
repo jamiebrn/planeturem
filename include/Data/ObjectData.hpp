@@ -4,9 +4,17 @@
 #include <string>
 // #include <unordered_map>
 #include <vector>
+#include <optional>
 
 #include "Data/typedefs.hpp"
 #include "Data/ItemDrop.hpp"
+
+struct RocketObjectData
+{
+    sf::IntRect textureRect;
+    sf::Vector2f textureOrigin;
+    sf::Vector2f launchPosition;
+};
 
 struct ObjectData
 {
@@ -32,6 +40,9 @@ struct ObjectData
 
     // std::unordered_map<ItemType, > itemDrops;
     std::vector<ItemDrop> itemDrops;
+
+    // If is rocket / launch pad
+    std::optional<RocketObjectData> rocketObjectData = std::nullopt;
 
     bool mythicalItem = false;
 };

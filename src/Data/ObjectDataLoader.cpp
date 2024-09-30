@@ -72,6 +72,19 @@ bool ObjectDataLoader::loadData(std::string objectDataPath)
             }
         }
 
+        if (jsonObjectData.contains("rocket-info"))
+        {
+            auto rocketInfo = jsonObjectData.at("rocket-info");
+            objectData.rocketObjectData = RocketObjectData();
+            
+            auto textureRect = rocketInfo.at("texture");
+            auto textureOrigin = rocketInfo.at("texture-origin");
+            auto launchPosition = rocketInfo.at("launch-position");
+            objectData.rocketObjectData->textureRect = sf::IntRect(textureRect[0], textureRect[1], textureRect[2], textureRect[3]);
+            objectData.rocketObjectData->textureOrigin = sf::Vector2f(textureOrigin[0], textureOrigin[1]);
+            objectData.rocketObjectData->launchPosition = sf::Vector2f(launchPosition[0], launchPosition[1]);
+        }
+
         loaded_objectData.push_back(objectData);
 
         objectNameToTypeMap[objectData.name] = objectIdx;
