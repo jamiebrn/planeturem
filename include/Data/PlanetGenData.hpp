@@ -42,6 +42,13 @@ struct StructureGenData
     float spawnChance;
 };
 
+struct FishCatchData
+{
+    ItemType itemCatch;
+    int count;
+    float chance;
+};
+
 struct BiomeGenData
 {
     std::string name;
@@ -52,6 +59,7 @@ struct BiomeGenData
     std::vector<ObjectGenData> objectGenDatas;
     std::vector<EntityGenData> entityGenDatas;
     std::vector<StructureGenData> structureGenDatas;
+    std::vector<FishCatchData> fishCatchDatas;
 
     float noiseRangeMin;
     float noiseRangeMax;

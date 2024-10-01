@@ -86,7 +86,7 @@ private:
     void attemptUseToolPickaxe();
     void attemptUseToolFishingRod();
 
-    void catchRandomFish();
+    void catchRandomFish(sf::Vector2i fishedTile);
 
     void attemptObjectInteract();
     void attemptBuildObject();

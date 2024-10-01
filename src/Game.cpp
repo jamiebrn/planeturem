@@ -1,5 +1,7 @@
 #include "Game.hpp"
 
+// FIX: Weird 0 meat / entity drop bug?
+
 // PRIORITY: HIGH
 // TODO: Structure functionality (item spawns, crafting stations etc)
 // TODO: Different types of structures
@@ -494,7 +496,7 @@ void Game::runOnPlanet(float dt)
 
     Camera::update(player.getPosition(), mouseScreenPos, dt);
 
-    updateDayNightCycle(dt);
+    // updateDayNightCycle(dt);
 
     // Update depending on game state
     switch (gameState)
@@ -820,8 +822,8 @@ void Game::attemptUseToolFishingRod()
     // Check if fish is biting line first - if so, reel in fishing rod and catch fish
     if (player.isFishBitingLine())
     {
-        player.reelInFishingRod();
-        catchRandomFish();
+        sf::Vector2i fishedTile = player.reelInFishingRod();
+        catchRandomFish(fishedTile);
         return;
     }
 
@@ -851,14 +853,32 @@ void Game::attemptUseToolFishingRod()
     // Swing fishing rod
     player.useTool();
 
-    player.swingFishingRod(mouseWorldPos);
+    player.swingFishingRod(mouseWorldPos, Cursor::getSelectedWorldTile(chunkManager.getWorldSize()));
 }
 
-void Game::catchRandomFish()
+void Game::catchRandomFish(sf::Vector2i fishedTile)
 {
-    ItemType fishItem = ItemDataLoader::getItemTypeFromName("Fish");
-    inventory.addItem(fishItem, 1);
-    InventoryGUI::pushItemPopup(ItemCount(fishItem, 1));
+    const BiomeGenData* biomeGenData = Chunk::getBiomeGenAtWorldTile(fishedTile, chunkManager.getWorldSize(), chunkManager.getBiomeNoise(), chunkManager.getPlanetType());
+
+    // Check for nullptr
+    if (!biomeGenData)
+        return;
+    
+    // Randomise catch
+    float randomChance = Helper::randInt(0, 10000) / 10000.0f;
+    float cumulativeChance = 0.0f;
+    for (const FishCatchData& fishCatchData : biomeGenData->fishCatchDatas)
+    {
+        cumulativeChance += fishCatchData.chance;
+        
+        if (cumulativeChance >= randomChance)
+        {
+            // Add fish / catch
+            inventory.addItem(fishCatchData.itemCatch, fishCatchData.count);
+            InventoryGUI::pushItemPopup(ItemCount(fishCatchData.itemCatch, fishCatchData.count));
+            break;
+        }
+    }
 }
 
 void Game::changePlayerTool()

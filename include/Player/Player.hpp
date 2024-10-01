@@ -40,8 +40,8 @@ public:
     bool isUsingTool();
 
     // Fishing rod specific
-    void swingFishingRod(sf::Vector2f mouseWorldPos);
-    void reelInFishingRod();
+    void swingFishingRod(sf::Vector2f mouseWorldPos, sf::Vector2i selectedWorldTile);
+    sf::Vector2i reelInFishingRod();
     bool isFishBitingLine();
 
     bool canReachPosition(sf::Vector2f worldPos);
@@ -87,6 +87,7 @@ private:
     float fishingRodCastedTime;
     bool fishBitingLine;
     sf::Vector2f fishingRodBobWorldPos;
+    sf::Vector2i fishingRodBobWorldTile;
 
     static constexpr std::array<float, 5> runningShadowScale = {1.0f, 0.8f, 0.7f, 0.8f, 0.9f};
     

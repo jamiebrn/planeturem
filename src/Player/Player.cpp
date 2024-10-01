@@ -369,19 +369,23 @@ bool Player::isUsingTool()
     return usingTool;
 }
 
-void Player::swingFishingRod(sf::Vector2f mouseWorldPos)
+void Player::swingFishingRod(sf::Vector2f mouseWorldPos, sf::Vector2i selectedWorldTile)
 {
     swingingFishingRod = true;
     fishingRodCasted = false;
 
     fishingRodBobWorldPos.x = (std::floor(mouseWorldPos.x / TILE_SIZE_PIXELS_UNSCALED) + 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
     fishingRodBobWorldPos.y = (std::floor(mouseWorldPos.y / TILE_SIZE_PIXELS_UNSCALED) + 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
+
+    fishingRodBobWorldTile = selectedWorldTile;
 }
 
-void Player::reelInFishingRod()
+sf::Vector2i Player::reelInFishingRod()
 {
     fishingRodCasted = false;
     fishBitingLine = false;
+
+    return fishingRodBobWorldTile;
 }
 
 bool Player::isFishBitingLine()

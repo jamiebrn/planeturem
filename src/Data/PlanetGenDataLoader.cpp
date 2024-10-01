@@ -154,6 +154,21 @@ bool PlanetGenDataLoader::loadPlanet(nlohmann::ordered_json::iterator& planetDat
             }
         }
 
+        if (biomeIter->contains("fish-catches"))
+        {
+            auto fishCatches = biomeIter->at("fish-catches");
+            for (nlohmann::ordered_json::iterator fishCatchIter = fishCatches.begin(); fishCatchIter != fishCatches.end(); ++fishCatchIter)
+            {
+                FishCatchData fishCatchData;
+
+                fishCatchData.itemCatch = ItemDataLoader::getItemTypeFromName(fishCatchIter.value()[0]);
+                fishCatchData.count = fishCatchIter.value()[1];
+                fishCatchData.chance = fishCatchIter.value()[2];
+
+                biomeGenData.fishCatchDatas.push_back(fishCatchData);
+            }
+        }
+
         planetGenData.biomeGenDatas.push_back(biomeGenData);
     }
 

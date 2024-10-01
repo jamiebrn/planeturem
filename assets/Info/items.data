@@ -83,6 +83,20 @@
         "texture-width": 16,
         "texture-height": 16
     },
+    {
+        "name": "Rockfish",
+        "texture-x": 16,
+        "texture-y": 96,
+        "texture-width": 16,
+        "texture-height": 16
+    },
+    {
+        "name": "Sandfish",
+        "texture-x": 16,
+        "texture-y": 112,
+        "texture-width": 16,
+        "texture-height": 16
+    },
 
     {
         "name": "Land",
