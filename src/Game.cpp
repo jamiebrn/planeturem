@@ -399,6 +399,11 @@ void Game::runOnPlanet(float dt)
                     }
                 }
             }
+
+            if (event.key.code == sf::Keyboard::Escape && player.isInRocket())
+            {
+                exitRocket();
+            }
         }
 
         if (event.type == sf::Event::MouseButtonPressed && !ImGui::GetIO().WantCaptureMouse)
@@ -748,6 +753,9 @@ void Game::attemptUseTool()
 
     if (player.isUsingTool())
         return;
+    
+    if (player.isInRocket())
+        return;
 
     // if (gameState != GameState::OnPlanet)
         // return;
@@ -913,51 +921,58 @@ void Game::attemptObjectInteract()
     {
         ObjectInteractionEventData interactionEvent = selectedObject->interact();
 
-        if (interactionEvent.interactionType == ObjectInteraction::Chest)
+        switch (interactionEvent.interactionType)
         {
-            // If chest has ID 0xFFFF, then has not been initialised
-            // Therefore must initialise chest
-            if (selectedObject->getChestID() == 0xFFFF)
+            case ObjectInteraction::Chest:
             {
-                initChestInData(*selectedObject);
-            }
+                // If chest has ID 0xFFFF, then has not been initialised
+                // Therefore must initialise chest
+                if (selectedObject->getChestID() == 0xFFFF)
+                {
+                    initChestInData(*selectedObject);
+                }
 
-            // Close chest if currently open is selected
-            if (selectedObject->getChestID() == openedChestID)
-            {
-                closeChest();
-            }
-            else
-            {
-                // If a chest is currently open, close it
-                if (openedChestID != 0xFFFF)
+                // Close chest if currently open is selected
+                if (selectedObject->getChestID() == openedChestID)
                 {
                     closeChest();
                 }
-
-                openedChestID = selectedObject->getChestID();
-
-                // Get tile depending on game state
-                if (gameState == GameState::OnPlanet)
+                else
                 {
-                    openedChest.chunk = selectedObject->getChunkInside(chunkManager.getWorldSize());
-                    openedChest.tile = selectedObject->getChunkTileInside(chunkManager.getWorldSize());
+                    // If a chest is currently open, close it
+                    if (openedChestID != 0xFFFF)
+                    {
+                        closeChest();
+                    }
+
+                    openedChestID = selectedObject->getChestID();
+
+                    // Get tile depending on game state
+                    if (gameState == GameState::OnPlanet)
+                    {
+                        openedChest.chunk = selectedObject->getChunkInside(chunkManager.getWorldSize());
+                        openedChest.tile = selectedObject->getChunkTileInside(chunkManager.getWorldSize());
+                    }
+                    else if (gameState == GameState::InStructure)
+                    {
+                        openedChest.tile = selectedObject->getTileInside();
+                    }
+                    openedChestPos = selectedObject->getPosition();
+
+                    // Reset chest UI animations as opened new chest
+                    InventoryGUI::chestOpened(chestDataPool.getChestDataPtr(openedChestID));
+
+                    // Tell chest object it has been opened
+                    selectedObject->openChest();
+
+                    // Open inventory to see chest
+                    worldMenuState = WorldMenuState::Inventory;
                 }
-                else if (gameState == GameState::InStructure)
-                {
-                    openedChest.tile = selectedObject->getTileInside();
-                }
-                openedChestPos = selectedObject->getPosition();
-
-                // Reset chest UI animations as opened new chest
-                InventoryGUI::chestOpened(chestDataPool.getChestDataPtr(openedChestID));
-
-                // Tell chest object it has been opened
-                selectedObject->openChest();
-
-                // Open inventory to see chest
-                worldMenuState = WorldMenuState::Inventory;
+                break;
             }
+            case ObjectInteraction::Rocket:
+                enterRocket(*selectedObject);
+                break;
         }
     }
 }
@@ -965,6 +980,9 @@ void Game::attemptObjectInteract()
 void Game::attemptBuildObject()
 {
     if (gameState != GameState::OnPlanet)
+        return;
+    
+    if (player.isInRocket())
         return;
 
     ObjectType objectType = InventoryGUI::getHeldObjectType(inventory);
@@ -1020,6 +1038,9 @@ void Game::attemptBuildObject()
 void Game::attemptPlaceLand()
 {
     if (gameState != GameState::OnPlanet)
+        return;
+    
+    if (player.isInRocket())
         return;
     
     if (!InventoryGUI::heldItemPlacesLand(inventory))
@@ -1342,6 +1363,16 @@ void Game::testExitStructure()
 
     // changeState(GameState::OnPlanet);
     startChangeStateTransition(GameState::OnPlanet);
+}
+
+void Game::enterRocket(BuildableObject& rocket)
+{
+    player.enterRocket(rocket.getRocketPosition());
+}
+
+void Game::exitRocket()
+{
+    player.exitRocket();
 }
 
 void Game::updateStateTransition(float dt)

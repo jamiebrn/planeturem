@@ -25,7 +25,8 @@
 enum ObjectInteraction
 {
     NoAction,
-    Chest
+    Chest,
+    Rocket
 };
 
 struct ObjectInteractionEventData
@@ -69,6 +70,10 @@ public:
 
     void openChest();
     void closeChest();
+
+
+    // -- Rocket -- //
+    sf::Vector2f getRocketPosition();
 
 
     // -- Object reference (blank / filler object) -- //

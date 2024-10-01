@@ -44,9 +44,15 @@ public:
     sf::Vector2i reelInFishingRod();
     bool isFishBitingLine();
 
-    bool canReachPosition(sf::Vector2f worldPos);
-
+    // Structure specific
     void enterStructure();
+
+    // Rocket state specific
+    void enterRocket(sf::Vector2f positionOverride);
+    void exitRocket();
+    bool isInRocket();
+
+    bool canReachPosition(sf::Vector2f worldPos);
 
     void setPosition(sf::Vector2f worldPos);
 
@@ -55,6 +61,8 @@ public:
 private:
     void updateDirection(sf::Vector2f mouseWorldPos);
     void updateAnimation(float dt);
+
+    bool testWorldWrap(int worldSize, sf::Vector2f& wrapPositionDelta);
 
     void updateFishingRodCatch(float dt);
     void castFishingRod();
@@ -88,6 +96,10 @@ private:
     bool fishBitingLine;
     sf::Vector2f fishingRodBobWorldPos;
     sf::Vector2i fishingRodBobWorldTile;
+
+    // In rocket state
+    bool inRocket;
+    sf::Vector2f rocketExitPos;
 
     static constexpr std::array<float, 5> runningShadowScale = {1.0f, 0.8f, 0.7f, 0.8f, 0.9f};
     

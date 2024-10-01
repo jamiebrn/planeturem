@@ -111,8 +111,13 @@ private:
     // For rooms, will use tile from object reference
     BuildableObject* getObjectFromChunkOrRoom(ObjectReference objectReference);
 
+    // Structure
     void testEnterStructure();
     void testExitStructure();
+
+    // Rocket
+    void enterRocket(BuildableObject& rocket);
+    void exitRocket();
 
     void updateDayNightCycle(float dt);
 
@@ -189,6 +194,10 @@ private:
     uint32_t structureEnteredID;
     sf::Vector2f structureEnteredPos;
     RoomPool structureRoomPool;
+
+    // Rocket
+    bool flyingRocket;
+    PlanetType destinationPlanet;
 
     Tween<float> floatTween;
 };

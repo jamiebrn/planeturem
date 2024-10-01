@@ -175,6 +175,12 @@ ObjectInteractionEventData BuildableObject::interact()
         interactionData.interactionType = ObjectInteraction::Chest;
     }
 
+    if (objectData.rocketObjectData.has_value())
+    {
+        // Object is rocket
+        interactionData.interactionType = ObjectInteraction::Rocket;
+    }
+
     return interactionData;
 }
 
@@ -187,7 +193,7 @@ bool BuildableObject::isInteractable() const
 {
     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
 
-    return (objectData.chestCapacity > 0);
+    return (objectData.chestCapacity > 0 || objectData.rocketObjectData.has_value());
 }
 
 // Chest functionality
@@ -211,6 +217,24 @@ void BuildableObject::closeChest()
 {
     // Rewind open chest animation
     animationDirection = -1;
+}
+
+// Rocket
+sf::Vector2f BuildableObject::getRocketPosition()
+{
+    const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
+    
+    if (!objectData.rocketObjectData.has_value())
+        return position;
+    
+    sf::Vector2f rocketPos;
+    rocketPos.x = position.x + objectData.rocketObjectData->launchPosition.x - TILE_SIZE_PIXELS_UNSCALED * 0.5f;
+    rocketPos.y = position.y + objectData.rocketObjectData->launchPosition.y - TILE_SIZE_PIXELS_UNSCALED * 0.5f;
+
+    // Rocket height
+    rocketPos.y -= objectData.rocketObjectData->textureRect.height * 0.5f;
+
+    return rocketPos;
 }
 
 // Dummy object

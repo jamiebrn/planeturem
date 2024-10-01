@@ -23,10 +23,17 @@ Player::Player(sf::Vector2f position)
     fishingRodCasted = false;
     swingingFishingRod = false;
     fishBitingLine = false;
+
+    inRocket = false;
 }
 
 void Player::update(float dt, sf::Vector2f mouseWorldPos, ChunkManager& chunkManager, int worldSize, bool& wrappedAroundWorld, sf::Vector2f& wrapPositionDelta)
 {
+    wrappedAroundWorld = testWorldWrap(worldSize, wrapPositionDelta);
+
+    if (inRocket)
+        return;
+
     updateDirection(mouseWorldPos);
     updateAnimation(dt);
 
@@ -50,33 +57,6 @@ void Player::update(float dt, sf::Vector2f mouseWorldPos, ChunkManager& chunkMan
     if (!DebugOptions::godMode)
     {
         chunkManager.collisionRectChunkStaticCollisionY(collisionRect, direction.y);
-    }
-
-    // Wrap position around world
-    float worldPixelSize = worldSize * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
-    if (collisionRect.x >= worldPixelSize) 
-    {
-        collisionRect.x -= worldPixelSize;
-        wrapPositionDelta.x = -worldPixelSize;
-        wrappedAroundWorld = true;
-    }
-    else if (collisionRect.x < 0)
-    {
-        collisionRect.x += worldPixelSize;
-        wrapPositionDelta.x = worldPixelSize;
-        wrappedAroundWorld = true;
-    }
-    if (collisionRect.y >= worldPixelSize)
-    {
-        collisionRect.y -= worldPixelSize;
-        wrapPositionDelta.y = -worldPixelSize;
-        wrappedAroundWorld = true;
-    }
-    else if (collisionRect.y < 0)
-    {
-        collisionRect.y += worldPixelSize;
-        wrapPositionDelta.y = worldPixelSize;
-        wrappedAroundWorld = true;
     }
     
     // Update position using collision rect after collision has been handled
@@ -169,6 +149,40 @@ void Player::updateAnimation(float dt)
     }
 }
 
+bool Player::testWorldWrap(int worldSize, sf::Vector2f& wrapPositionDelta)
+{
+    bool wrapped = false;
+
+    // Wrap position around world
+    float worldPixelSize = worldSize * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
+    if (collisionRect.x >= worldPixelSize) 
+    {
+        collisionRect.x -= worldPixelSize;
+        wrapPositionDelta.x = -worldPixelSize;
+        wrapped = true;
+    }
+    else if (collisionRect.x < 0)
+    {
+        collisionRect.x += worldPixelSize;
+        wrapPositionDelta.x = worldPixelSize;
+        wrapped = true;
+    }
+    if (collisionRect.y >= worldPixelSize)
+    {
+        collisionRect.y -= worldPixelSize;
+        wrapPositionDelta.y = -worldPixelSize;
+        wrapped = true;
+    }
+    else if (collisionRect.y < 0)
+    {
+        collisionRect.y += worldPixelSize;
+        wrapPositionDelta.y = worldPixelSize;
+        wrapped = true;
+    }
+
+    return wrapped;
+}
+
 void Player::updateFishingRodCatch(float dt)
 {
     fishingRodCastedTime += dt;
@@ -188,6 +202,9 @@ void Player::updateFishingRodCatch(float dt)
 
 void Player::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime, int worldSize, const sf::Color& color) const
 {
+    if (inRocket)
+        return;
+
     spriteBatch.endDrawing(window);
 
     sf::Vector2f playerScale((float)ResolutionHandler::getScale(), (float)ResolutionHandler::getScale());
@@ -266,6 +283,9 @@ void Player::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, 
 
 void Player::drawLightMask(sf::RenderTarget& lightTexture)
 {
+    if (inRocket)
+        return;
+
     static constexpr float lightScale = 0.7f;
     static const sf::Color lightColor(255, 220, 140);
 
@@ -410,12 +430,39 @@ bool Player::canReachPosition(sf::Vector2f worldPos)
 
     float distance = std::sqrt(std::pow(worldPos.x - position.x, 2.0) + std::pow(worldPos.y - position.y, 2.0));
     float tileDistance = distance / TILE_SIZE_PIXELS_UNSCALED;
-    return tileDistance <= tileReach;
+    return (tileDistance <= tileReach);
 }
 
 void Player::enterStructure()
 {
     onWater = false;
+}
+
+void Player::enterRocket(sf::Vector2f positionOverride)
+{
+    if (inRocket)
+        return;
+
+    inRocket = true;
+    rocketExitPos = position;
+    position = positionOverride;
+
+    // Stop actions if required
+    reelInFishingRod();
+}
+
+void Player::exitRocket()
+{
+    if (!inRocket)
+        return;
+    
+    inRocket = false;
+    position = rocketExitPos;
+}
+
+bool Player::isInRocket()
+{
+    return inRocket;
 }
 
 void Player::setPosition(sf::Vector2f worldPos)
