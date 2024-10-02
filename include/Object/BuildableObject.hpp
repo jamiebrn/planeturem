@@ -19,7 +19,6 @@
 #include "Data/ObjectData.hpp"
 #include "Data/ObjectDataLoader.hpp"
 
-#include "GUI/FurnaceGUI.hpp"
 #include "GUI/InventoryGUI.hpp"
 
 enum ObjectInteraction

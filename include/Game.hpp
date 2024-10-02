@@ -33,7 +33,6 @@
 #include "Player/Player.hpp"
 #include "Player/Cursor.hpp"
 #include "Player/InventoryData.hpp"
-// #include "Player/FurnaceJob.hpp"
 
 #include "Object/WorldObject.hpp"
 #include "Object/BuildableObject.hpp"
@@ -59,7 +58,7 @@
 #include "Types/WorldMenuState.hpp"
 
 #include "GUI/InventoryGUI.hpp"
-#include "GUI/FurnaceGUI.hpp"
+#include "GUI/Base/GUIContext.hpp"
 
 #include "DebugOptions.hpp"
 
@@ -73,6 +72,8 @@ public:
     void run();
 
 private:
+    void runMainMenu(float dt);
+
     void runOnPlanet(float dt);
 
     void updateOnPlanet(float dt);
@@ -150,6 +151,9 @@ private:
     sf::View view;
     sf::Image icon;
     bool fullScreen = true;
+
+    GUIContext guiContext;
+    float dummyValue = 10.0f;
 
     SpriteBatch spriteBatch;
     sf::RenderTexture worldTexture;

@@ -2,6 +2,7 @@
 
 enum GameState
 {
+    MainMenu,
     OnPlanet,
     InStructure
 };

@@ -77,7 +77,7 @@ bool Game::initialise()
 
     // Initialise values
     gameTime = 0;
-    gameState = GameState::OnPlanet;
+    gameState = GameState::MainMenu;
     destinationGameState = gameState;
     transitionGameStateTimer = 0.0f;
     worldMenuState = WorldMenuState::Main;
@@ -128,7 +128,7 @@ void Game::toggleFullScreen()
     window.setIcon(256, 256, icon.getPixelsPtr());
     window.setFramerateLimit(165);
     window.setVerticalSyncEnabled(true);
-    window.setMouseCursorVisible(false);
+    // window.setMouseCursorVisible(false);
 
     handleWindowResize(sf::Vector2u(videoMode.width, videoMode.height));
 }
@@ -271,6 +271,10 @@ void Game::run()
 
         switch (gameState)
         {
+            case GameState::MainMenu:
+                runMainMenu(dt);
+                break;
+            
             case GameState::InStructure:
             case GameState::OnPlanet:
                 runOnPlanet(dt);
@@ -285,14 +289,14 @@ void Game::run()
 
         drawDebugMenu(dt);
 
-        if (ImGui::GetIO().WantCaptureMouse)
-        {
-            ImGui::SetMouseCursor(ImGuiMouseCursor_Arrow);
-        }
-        else
-        {
-            ImGui::SetMouseCursor(ImGuiMouseCursor_None);
-        }
+        // if (ImGui::GetIO().WantCaptureMouse)
+        // {
+            // ImGui::SetMouseCursor(ImGuiMouseCursor_Arrow);
+        // }
+        // else
+        // {
+        //     ImGui::SetMouseCursor(ImGuiMouseCursor_None);
+        // }
 
         ImGui::SFML::Render(window);
 
@@ -357,6 +361,36 @@ void Game::drawDebugMenu(float dt)
     }
 
     ImGui::End();   
+}
+
+void Game::runMainMenu(float dt)
+{
+    guiContext.beginGUI();
+
+    for (auto event = sf::Event{}; window.pollEvent(event);)
+    {
+        handleEventsWindow(event);
+
+        guiContext.processEvent(event);
+    }
+
+    // Drawing
+    window.clear();
+
+    for (int i = 0; i < 8; i++)
+    {
+        if (guiContext.createButton(200, 100 + 100 * i, 190, 75, "Test button " + std::to_string(i)))
+        {
+            std::cout << "button " + std::to_string(i) + " clicked\n";
+        }
+    }
+
+    if (guiContext.createSlider(700, 400, 450, 60, 25.0f, 112.0f, &dummyValue))
+    {
+        std::cout << "slider held\n";
+    }
+
+    guiContext.draw(window);
 }
 
 void Game::runOnPlanet(float dt)

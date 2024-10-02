@@ -4,7 +4,9 @@
         "Dark Grass": [256, 256, 3],
         "Sand": [32, 64, 2],
         "Rock": [32, 272, 1],
-        "Gold": [96, 272, 1]
+        "Gold": [96, 272, 1],
+        "MoonRock": [32, 336, 1],
+        "MoonRockLow": [96, 336, 1]
     },
     "planets": {
         "Earthlike": {
@@ -74,6 +76,22 @@
                 }
             ],
             "water-colour": [77, 155, 230]
+        },
+        "Moon": {
+            "biomes": [
+                {
+                    "name": "Main",
+                    "tiles": [
+                        ["MoonRockLow", 5, 0.4, 0.55],
+                        ["MoonRock", 6, 0.55, 1]
+                    ],
+                    "objects": [
+                        ["Rock", 0.05]
+                    ],
+                    "noise-range": [0, 1]
+                }
+            ],
+            "water-colour": [40, 40, 40]
         }
     }
 }
