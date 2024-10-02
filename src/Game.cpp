@@ -70,17 +70,15 @@ bool Game::initialise()
     chunkManager.setWorldSize(240);
     chunkManager.setPlanetType(PlanetGenDataLoader::getPlanetTypeFromName("Earthlike"));
 
-    // Create noise
-    // noise.SetNoiseType(FastNoise::NoiseType::SimplexFractal);
-    // noise.SetSeed(rand());
-    // noise.SetFrequency(0.1);
-
     // Initialise values
     gameTime = 0;
     gameState = GameState::MainMenu;
     destinationGameState = gameState;
     transitionGameStateTimer = 0.0f;
     worldMenuState = WorldMenuState::Main;
+
+    menuScreenshotIndex = 0;
+    menuScreenshotTimer = 0.0f;
 
     openedChestID = 0xFFFF;
 
@@ -128,7 +126,7 @@ void Game::toggleFullScreen()
     window.setIcon(256, 256, icon.getPixelsPtr());
     window.setFramerateLimit(165);
     window.setVerticalSyncEnabled(true);
-    // window.setMouseCursorVisible(false);
+    window.setMouseCursorVisible(false);
 
     handleWindowResize(sf::Vector2u(videoMode.width, videoMode.height));
 }
@@ -287,16 +285,11 @@ void Game::run()
             drawStateTransition();
         }
 
+        drawMouseCursor();
+
         drawDebugMenu(dt);
 
-        // if (ImGui::GetIO().WantCaptureMouse)
-        // {
-            // ImGui::SetMouseCursor(ImGuiMouseCursor_Arrow);
-        // }
-        // else
-        // {
-        //     ImGui::SetMouseCursor(ImGuiMouseCursor_None);
-        // }
+        ImGui::SetMouseCursor(ImGui::GetIO().WantCaptureMouse ? ImGuiMouseCursor_Arrow : ImGuiMouseCursor_None);
 
         ImGui::SFML::Render(window);
 
@@ -377,17 +370,50 @@ void Game::runMainMenu(float dt)
     // Drawing
     window.clear();
 
-    for (int i = 0; i < 8; i++)
+    float intScale = ResolutionHandler::getResolutionIntegerScale();
+
+    // Draw background
+    static constexpr std::array<TextureType, 3> menuScreenshots = {TextureType::MenuScreenshot0, TextureType::MenuScreenshot1, TextureType::MenuScreenshot2};
+
+    float menuScreenshotAlpha = 255.0f;
+
+    menuScreenshotTimer += dt;
+    if (menuScreenshotTimer >= 10.0f)
     {
-        if (guiContext.createButton(200, 100 + 100 * i, 190, 75, "Test button " + std::to_string(i)))
+        // Draw next screen shot behind and decrease alpha
+        TextureManager::drawTexture(window, {.type = menuScreenshots[(menuScreenshotIndex + 1) % menuScreenshots.size()], .scale = sf::Vector2f(intScale, intScale)});
+
+        menuScreenshotAlpha *= (2.0f - (menuScreenshotTimer - 10.0f)) / 2.0f;
+
+        if (menuScreenshotTimer >= 12.0f)
         {
-            std::cout << "button " + std::to_string(i) + " clicked\n";
+            menuScreenshotTimer = 0.0f;
+            menuScreenshotIndex = (menuScreenshotIndex + 1) % menuScreenshots.size();
         }
     }
 
-    if (guiContext.createSlider(700, 400, 450, 60, 25.0f, 112.0f, &dummyValue))
+    TextureManager::drawTexture(window, {.type = menuScreenshots[menuScreenshotIndex], .scale = sf::Vector2f(intScale, intScale),
+        .colour = sf::Color(255, 255, 255, menuScreenshotAlpha)});
+
+
+    // Draw title
+    TextDrawData titleTextDrawData;
+    titleTextDrawData.position = sf::Vector2f(window.getSize().x / 2.0f, 300 * intScale);
+    titleTextDrawData.size = 54;
+    titleTextDrawData.text = "spacebuild";
+    titleTextDrawData.colour = sf::Color(255, 255, 255);
+    titleTextDrawData.centeredX = true;
+    titleTextDrawData.centeredY = true;
+
+    TextDraw::drawText(window, titleTextDrawData);
+
+    // Buttons / UI
+    if (guiContext.createButton(window.getSize().x / 2.0f - 100 * intScale, window.getSize().y / 2.0f, 200 * intScale, 75 * intScale, "Start"))
     {
-        std::cout << "slider held\n";
+        if (!isStateTransitioning())
+        {
+            startChangeStateTransition(GameState::OnPlanet);
+        }
     }
 
     guiContext.draw(window);
@@ -588,7 +614,7 @@ void Game::runOnPlanet(float dt)
     switch (worldMenuState)
     {
         case WorldMenuState::Main:
-            InventoryGUI::drawHotbar(window, mouseScreenPos, inventory);
+            // InventoryGUI::drawHotbar(window, mouseScreenPos, inventory);
             InventoryGUI::drawItemPopups(window);
             break;
         
@@ -596,8 +622,6 @@ void Game::runOnPlanet(float dt)
             InventoryGUI::draw(window, gameTime, mouseScreenPos, inventory, chestDataPool.getChestDataPtr(openedChestID));
             break;
     }
-
-    drawMouseCursor();
 }
 
 void Game::updateOnPlanet(float dt)
@@ -1463,11 +1487,14 @@ void Game::changeState(GameState newState)
         }
         case GameState::OnPlanet:
         {
-            // Exit structure
-            structureEnteredID = 0xFFFFFFFF;
+            if (gameState == GameState::InStructure)
+            {
+                // Exit structure
+                structureEnteredID = 0xFFFFFFFF;
 
-            player.setPosition(structureEnteredPos);
-            Camera::instantUpdate(player.getPosition());
+                player.setPosition(structureEnteredPos);
+                Camera::instantUpdate(player.getPosition());
+            }
             break;
         }
     }

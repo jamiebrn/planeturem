@@ -153,7 +153,10 @@ private:
     bool fullScreen = true;
 
     GUIContext guiContext;
-    float dummyValue = 10.0f;
+    
+    // Menu
+    int menuScreenshotIndex;
+    float menuScreenshotTimer;
 
     SpriteBatch spriteBatch;
     sf::RenderTexture worldTexture;

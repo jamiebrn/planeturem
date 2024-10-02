@@ -13,7 +13,11 @@ enum class TextureType
     Shadow,
     LightMask,
     UI,
-    Rooms
+    Rooms,
+
+    MenuScreenshot0,
+    MenuScreenshot1,
+    MenuScreenshot2
 };
 
 enum BitmaskType
