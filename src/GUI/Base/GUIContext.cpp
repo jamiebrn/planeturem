@@ -64,6 +64,22 @@ bool GUIContext::createButton(int x, int y, int width, int height, const std::st
     return clicked;
 }
 
+bool GUIContext::createCheckbox(int x, int y, int width, int height, const std::string& label, bool* value)
+{
+    std::unique_ptr<Checkbox> checkbox = std::make_unique<Checkbox>(inputState, elements.size(), x, y, width, height, label, value);
+
+    bool clicked = checkbox->isClicked();
+
+    if (checkbox->isHeld())
+    {
+        inputState.activeElement = elements.size();
+    }
+
+    elements.push_back(std::move(checkbox));
+
+    return clicked;
+}
+
 bool GUIContext::createSlider(int x, int y, int width, int height, float minValue, float maxValue, float* value)
 {
     std::unique_ptr<Slider> slider = std::make_unique<Slider>(inputState, elements.size(), x, y, width, height, minValue, maxValue, value);

@@ -157,6 +157,8 @@ private:
     // Menu
     int menuScreenshotIndex;
     float menuScreenshotTimer;
+    bool dummyBool[3] = {false, false, false};
+    float dummyFloat[3] = {0, 0, 0};
 
     SpriteBatch spriteBatch;
     sf::RenderTexture worldTexture;

@@ -20,7 +20,7 @@ public:
 
     void draw(sf::RenderTarget& window) override;
 
-private:
+protected:
     bool clicked;
     bool held;
     bool hovered;

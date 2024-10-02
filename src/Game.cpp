@@ -416,6 +416,16 @@ void Game::runMainMenu(float dt)
         }
     }
 
+    for (int i = 0; i < 3; i++)
+    {
+        guiContext.createCheckbox(200, 600 + 150 * i, 30, 30, "Checkbox " + std::to_string(i + 1), &dummyBool[i]);
+
+        if (dummyBool[i])
+        {
+            guiContext.createSlider(600, 600 + 150 * i, 150, 30, 0.0f, 100.0f, &dummyFloat[i]);
+        }
+    }
+
     guiContext.draw(window);
 }
 
