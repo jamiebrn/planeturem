@@ -130,5 +130,12 @@
         "item-requirements": {
             "Wood": 1
         }
+    },
+    {
+        "product": "Rocket Launch Pad",
+        "item-requirements": {
+            "Stone": 10,
+            "Coal": 2
+        }
     }
 ]

@@ -5,6 +5,7 @@ Chunk::Chunk(ChunkPosition chunkPosition)
     this->chunkPosition = chunkPosition;
 
     containsWater = false;
+    modified = false;
 
     for (int i = 0; i < groundTileGrid.size(); i++)
     {
@@ -28,6 +29,10 @@ void Chunk::generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNo
     Chunk* rightChunk = chunkManager.getChunk(ChunkPosition(((chunkPosition.x + 1) % worldSize + worldSize) % worldSize, chunkPosition.y));
 
     std::set<int> tileMapsModified;
+
+    // Create random generator for chunk
+    unsigned long int randSeed = std::hash<int>()(chunkManager.getSeed()) ^ std::hash<ChunkPosition>()(chunkPosition);
+    RandInt randGen(randSeed);
 
     // Store tile types in tile array
     for (int y = 0; y < CHUNK_TILE_SIZE; y++)
@@ -57,7 +62,7 @@ void Chunk::generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNo
     // Create structure if required
     if (!containsWater)
     {
-        generateRandomStructure(worldSize, biomeNoise, planetType);
+        generateRandomStructure(worldSize, biomeNoise, randGen, planetType);
     }
 
     // Set tile maps / spawn objects
@@ -82,11 +87,11 @@ void Chunk::generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNo
 
             // Create random object
             ObjectType objectSpawnType = getRandomObjectToSpawnAtWorldTile(sf::Vector2i(worldNoisePosition.x + x, worldNoisePosition.y + y),
-                worldSize, heightNoise, biomeNoise, planetType);
+                worldSize, heightNoise, biomeNoise, randGen, planetType);
 
             if (objectSpawnType >= 0)
             {
-                setObject(sf::Vector2i(x, y), objectSpawnType, worldSize, chunkManager, false);
+                setObject(sf::Vector2i(x, y), objectSpawnType, worldSize, chunkManager, false, true);
             }
             else
             {
@@ -95,7 +100,7 @@ void Chunk::generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNo
 
             // Create random entity
             EntityType entitySpawnType = getRandomEntityToSpawnAtWorldTile(sf::Vector2i(worldNoisePosition.x + x, worldNoisePosition.y + y),
-                worldSize, heightNoise, biomeNoise, planetType);
+                worldSize, heightNoise, biomeNoise, randGen, planetType);
             
             if (entitySpawnType >= 0)
             {
@@ -116,7 +121,7 @@ void Chunk::generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNo
     recalculateCollisionRects(chunkManager);
 }
 
-void Chunk::generateRandomStructure(int worldSize, const FastNoise& biomeNoise, PlanetType planetType)
+void Chunk::generateRandomStructure(int worldSize, const FastNoise& biomeNoise, RandInt& randGen, PlanetType planetType)
 {
     // Get biome gen data
     const BiomeGenData* biomeGenData = getBiomeGenAtWorldTile(sf::Vector2i(chunkPosition.x * CHUNK_TILE_SIZE, chunkPosition.y * CHUNK_TILE_SIZE),
@@ -128,7 +133,7 @@ void Chunk::generateRandomStructure(int worldSize, const FastNoise& biomeNoise, 
     StructureType structureType = -1;
 
     float cumulativeChance = 0;
-    float randomSpawn = Helper::randInt(0, 10000) / 10000.0f;
+    float randomSpawn = randGen.generate(0, 10000) / 10000.0f;
     for (const StructureGenData& structureGenData : biomeGenData->structureGenDatas)
     {
         cumulativeChance += structureGenData.spawnChance;
@@ -153,8 +158,8 @@ void Chunk::generateRandomStructure(int worldSize, const FastNoise& biomeNoise, 
 
     // Randomise spawn position in chunk
     sf::Vector2i spawnTile;
-    spawnTile.x = Helper::randInt(0, CHUNK_TILE_SIZE - 1 - structureData.size.x);
-    spawnTile.y = Helper::randInt(0, CHUNK_TILE_SIZE - 1 - structureData.size.y);
+    spawnTile.x = randGen.generate(0, CHUNK_TILE_SIZE - 1 - structureData.size.x);
+    spawnTile.y = randGen.generate(0, CHUNK_TILE_SIZE - 1 - structureData.size.y);
 
     bool spawnedStructureObject = false;
 
@@ -236,7 +241,8 @@ const TileGenData* Chunk::getTileGenAtWorldTile(sf::Vector2i worldTile, int worl
     return nullptr;
 }
 
-ObjectType Chunk::getRandomObjectToSpawnAtWorldTile(sf::Vector2i worldTile, int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType)
+ObjectType Chunk::getRandomObjectToSpawnAtWorldTile(sf::Vector2i worldTile, int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise,
+    RandInt& randGen, PlanetType planetType)
 {
     const TileGenData* tileGenData = getTileGenAtWorldTile(worldTile, worldSize, heightNoise, biomeNoise, planetType);
 
@@ -246,7 +252,7 @@ ObjectType Chunk::getRandomObjectToSpawnAtWorldTile(sf::Vector2i worldTile, int 
     const BiomeGenData* biomeGenData = getBiomeGenAtWorldTile(worldTile, worldSize, biomeNoise, planetType);
 
     float cumulativeChance = 0;
-    float randomSpawn = static_cast<float>(rand() % 10000) / 10000.0f;
+    float randomSpawn = static_cast<float>(randGen.generate(0, 10000)) / 10000.0f;
     for (const ObjectGenData& objectGenData : biomeGenData->objectGenDatas)
     {
         cumulativeChance += objectGenData.spawnChance;
@@ -260,7 +266,8 @@ ObjectType Chunk::getRandomObjectToSpawnAtWorldTile(sf::Vector2i worldTile, int 
     return -1;
 }
 
-EntityType Chunk::getRandomEntityToSpawnAtWorldTile(sf::Vector2i worldTile, int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType)
+EntityType Chunk::getRandomEntityToSpawnAtWorldTile(sf::Vector2i worldTile, int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise,
+    RandInt& randGen, PlanetType planetType)
 {
     const TileGenData* tileGenData = getTileGenAtWorldTile(worldTile, worldSize, heightNoise, biomeNoise, planetType);
 
@@ -270,7 +277,7 @@ EntityType Chunk::getRandomEntityToSpawnAtWorldTile(sf::Vector2i worldTile, int 
     const BiomeGenData* biomeGenData = getBiomeGenAtWorldTile(worldTile, worldSize, biomeNoise, planetType);
 
     float cumulativeChance = 0;
-    float randomSpawn = static_cast<float>(rand() % 10000) / 10000.0f;
+    float randomSpawn = static_cast<float>(randGen.generate(0, 10000)) / 10000.0f;
     for (const EntityGenData& entityGenData : biomeGenData->entityGenDatas)
     {
         cumulativeChance += entityGenData.spawnChance;
@@ -632,10 +639,15 @@ int Chunk::getTileType(sf::Vector2i position) const
     return groundTileGrid[position.y][position.x];
 }
 
-void Chunk::setObject(sf::Vector2i position, ObjectType objectType, int worldSize, ChunkManager& chunkManager, bool recalculateCollision)
+void Chunk::setObject(sf::Vector2i position, ObjectType objectType, int worldSize, ChunkManager& chunkManager, bool recalculateCollision, bool calledWhileGenerating)
 {
     // Get tile size
     // float tileSize = ResolutionHandler::getTileSize();
+
+    if (!calledWhileGenerating)
+    {
+        modified = true;
+    }
 
     // sf::Vector2f worldPosition = static_cast<sf::Vector2f>(chunkPosition) * 8.0f * tileSize;
     sf::Vector2f objectPos;
@@ -718,6 +730,8 @@ void Chunk::setObject(sf::Vector2i position, ObjectType objectType, int worldSiz
 
 void Chunk::deleteObject(sf::Vector2i position, ChunkManager& chunkManager)
 {
+    modified = true;
+
     // Get size of object to handle different deletion cases
     ObjectType objectType = objectGrid[position.y][position.x]->getObjectType();
 
@@ -783,6 +797,8 @@ void Chunk::deleteObject(sf::Vector2i position, ChunkManager& chunkManager)
 
 void Chunk::setObjectReference(const ObjectReference& objectReference, sf::Vector2i tile, ChunkManager& chunkManager)
 {
+    modified = true;
+
     objectGrid[tile.y][tile.x] = BuildableObject(objectReference);
 
     recalculateCollisionRects(chunkManager);
@@ -1093,6 +1109,8 @@ bool Chunk::canPlaceLand(sf::Vector2i tile)
 void Chunk::placeLand(sf::Vector2i tile, int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise,
     PlanetType planetType, ChunkManager& chunkManager)
 {
+    modified = true;
+
     Chunk* upChunk = chunkManager.getChunk(ChunkPosition(chunkPosition.x, ((chunkPosition.y - 1) % worldSize + worldSize) % worldSize));
     Chunk* downChunk = chunkManager.getChunk(ChunkPosition(chunkPosition.x, ((chunkPosition.y + 1) % worldSize + worldSize) % worldSize));
     Chunk* leftChunk = chunkManager.getChunk(ChunkPosition(((chunkPosition.x - 1) % worldSize + worldSize) % worldSize, chunkPosition.y));
@@ -1131,8 +1149,17 @@ bool Chunk::isPlayerInStructureEntrance(sf::Vector2f playerPos, StructureEnterEv
 {
     if (!structureObject.has_value())
         return false;
-    
-    return (structureObject->isPlayerInEntrance(playerPos, enterEvent));
+   
+    bool inEntrance = structureObject->isPlayerInEntrance(playerPos, enterEvent);
+
+    if (inEntrance)
+    {
+        // Set chunk modified to true if entered structure as player has then interacted with structure
+        // e.g. taken items etc
+        modified = true;
+    }
+
+    return inEntrance;
 }
 
 void Chunk::setWorldPosition(sf::Vector2f position, ChunkManager& chunkManager)
@@ -1184,6 +1211,11 @@ sf::Vector2f Chunk::getWorldPosition()
 bool Chunk::getContainsWater()
 {
     return containsWater;
+}
+
+bool Chunk::hasBeenModified()
+{
+    return modified;
 }
 
 std::vector<WorldObject*> Chunk::getEntities()

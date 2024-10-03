@@ -35,6 +35,8 @@ public:
     ChunkManager() = default;
 
     void setSeed(int seed);
+    int getSeed();
+
     void setWorldSize(int size);
     void setPlanetType(PlanetType planetType);
 
@@ -201,5 +203,7 @@ private:
 
     int worldSize = 1;
     PlanetType planetType = 0;
+
+    int seed = 0;
 
 };

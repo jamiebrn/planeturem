@@ -74,6 +74,9 @@ public:
     // -- Rocket -- //
     sf::Vector2f getRocketPosition();
 
+    void setRocketYOffset(float offset);
+    float getRocketYOffset();
+
 
     // -- Object reference (blank / filler object) -- //
 
@@ -101,6 +104,8 @@ private:
     AnimatedTextureMinimal animatedTexture;
 
     uint16_t chestID = 0xFFFF;
+
+    float rocketYOffset = 0.0f;
 
     // If reference to a buildable object
     std::optional<ObjectReference> objectReference = std::nullopt;

@@ -5,6 +5,8 @@
 
 void ChunkManager::setSeed(int seed)
 {
+    this->seed = seed;
+
     heightNoise.SetNoiseType(FastNoise::NoiseType::SimplexFractal);
     biomeNoise.SetNoiseType(FastNoise::NoiseType::SimplexFractal);
     heightNoise.SetFrequency(0.1);
@@ -12,6 +14,11 @@ void ChunkManager::setSeed(int seed)
 
     heightNoise.SetSeed(seed);
     biomeNoise.SetSeed(seed + 1);
+}
+
+int ChunkManager::getSeed()
+{
+    return seed;
 }
 
 void ChunkManager::setWorldSize(int size)
@@ -124,9 +131,13 @@ void ChunkManager::updateChunks()
         // If chunk is not visible, unload chunk
         if (!chunkVisible)
         {
-            // Store chunk in chunk memory
-            storedChunks[chunkPos] = std::move(iter->second);
-            // Unload chunk
+            // If chunk has been modified, store it
+            if (iter->second->hasBeenModified())
+            {
+                // Store chunk in chunk memory
+                storedChunks[chunkPos] = std::move(iter->second);
+            }
+            // Unload / delete chunk
             iter = loadedChunks.erase(iter);
             continue;
         }

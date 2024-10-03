@@ -17,6 +17,7 @@
 #include "Core/CollisionRect.hpp"
 #include "Core/SpriteBatch.hpp"
 #include "Core/Helper.hpp"
+#include "Core/Random.hpp"
 
 #include "Object/WorldObject.hpp"
 #include "Object/BuildableObject.hpp"
@@ -91,7 +92,7 @@ public:
     std::optional<BuildableObject>& getObject(sf::Vector2i position);
 
     // Sets object (and object references if size > (1, 1), across chunks)
-    void setObject(sf::Vector2i position, ObjectType objectType, int worldSize, ChunkManager& chunkManager, bool recalculateCollision = true);
+    void setObject(sf::Vector2i position, ObjectType objectType, int worldSize, ChunkManager& chunkManager, bool recalculateCollision = true, bool calledWhileGenerating = false);
 
     // Deletes object (including object references if size > (1, 1), across chunks)
     void deleteObject(sf::Vector2i position, ChunkManager& chunkManager);
@@ -145,6 +146,7 @@ public:
     sf::Vector2f getWorldPosition();
 
     bool getContainsWater();
+    bool hasBeenModified();
 
     // bool isPointInChunk(sf::Vector2f position);
 
@@ -155,12 +157,14 @@ public:
 
     static const TileGenData* getTileGenAtWorldTile(sf::Vector2i worldTile, int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType);
 
-    static ObjectType getRandomObjectToSpawnAtWorldTile(sf::Vector2i worldTile, int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType);
+    static ObjectType getRandomObjectToSpawnAtWorldTile(sf::Vector2i worldTile, int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise,
+        RandInt& randGen, PlanetType planetType);
 
-    static EntityType getRandomEntityToSpawnAtWorldTile(sf::Vector2i worldTile, int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType);
+    static EntityType getRandomEntityToSpawnAtWorldTile(sf::Vector2i worldTile, int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise,
+        RandInt& randGen, PlanetType planetType);
 
 private:
-    void generateRandomStructure(int worldSize, const FastNoise& biomeNoise, PlanetType planetType);
+    void generateRandomStructure(int worldSize, const FastNoise& biomeNoise, RandInt& randGen, PlanetType planetType);
 
 private:
     // 0 reserved for water / no tile
@@ -187,5 +191,7 @@ private:
     std::optional<StructureObject> structureObject = std::nullopt;
 
     bool containsWater;
+
+    bool modified;
 
 };

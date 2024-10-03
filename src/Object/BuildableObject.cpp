@@ -237,6 +237,16 @@ sf::Vector2f BuildableObject::getRocketPosition()
     return rocketPos;
 }
 
+void BuildableObject::setRocketYOffset(float offset)
+{
+    rocketYOffset = offset;
+}
+
+float BuildableObject::getRocketYOffset()
+{
+    return rocketYOffset;
+}
+
 // Dummy object
 bool BuildableObject::isDummyObject()
 {
