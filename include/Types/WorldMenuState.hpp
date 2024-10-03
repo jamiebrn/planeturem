@@ -3,5 +3,6 @@
 enum WorldMenuState
 {
     Main,
-    Inventory
+    Inventory,
+    TravelSelect
 };

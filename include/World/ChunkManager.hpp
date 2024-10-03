@@ -38,6 +38,9 @@ public:
     void setWorldSize(int size);
     void setPlanetType(PlanetType planetType);
 
+    // Delete all chunks (used when switching planets)
+    void deleteAllChunks();
+
     // Load/unload chunks every frame
     void updateChunks();
 

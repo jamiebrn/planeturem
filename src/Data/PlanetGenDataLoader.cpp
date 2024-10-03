@@ -21,6 +21,9 @@ bool PlanetGenDataLoader::loadData(std::string planetGenDataPath)
             return false;
     }
 
+    // Load rocket object destinations, as planets have now loaded
+    ObjectDataLoader::loadRocketPlanetDestinations(planetStringToTypeMap);
+
     return true;
 }
 
@@ -182,7 +185,7 @@ bool PlanetGenDataLoader::loadPlanet(nlohmann::ordered_json::iterator& planetDat
     return true;
 }
 
-const PlanetGenData& PlanetGenDataLoader::genPlanetGenData(PlanetType planetType)
+const PlanetGenData& PlanetGenDataLoader::getPlanetGenData(PlanetType planetType)
 {
     return loaded_planetGenData[planetType];
 }

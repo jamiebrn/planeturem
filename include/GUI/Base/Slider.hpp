@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <optional>
 
 #include <SFML/Graphics.hpp>
 
@@ -13,7 +14,8 @@
 class Slider : public GUIElement
 {
 public:
-    Slider(const GUIInputState& inputState, ElementID id, int x, int y, int width, int height, float minValue, float maxValue, float* value);
+    Slider(const GUIInputState& inputState, ElementID id, int x, int y, int width, int height, float minValue, float maxValue,
+        float* value, std::optional<std::string> label = std::nullopt);
 
     bool isHeld();
 
@@ -26,5 +28,6 @@ private:
     int x, y, width, height;
     float minValue, maxValue;
     float* value;
+    std::optional<std::string> label;
 
 };

@@ -199,7 +199,7 @@ void Chunk::generateRandomStructure(int worldSize, const FastNoise& biomeNoise, 
 
 const BiomeGenData* Chunk::getBiomeGenAtWorldTile(sf::Vector2i worldTile, int worldSize, const FastNoise& biomeNoise, PlanetType planetType)
 {
-    const PlanetGenData& planetGenData = PlanetGenDataLoader::genPlanetGenData(planetType);
+    const PlanetGenData& planetGenData = PlanetGenDataLoader::getPlanetGenData(planetType);
 
     float biomeNoiseValue = biomeNoise.GetNoiseSeamless2D(worldTile.x, worldTile.y, worldSize * CHUNK_TILE_SIZE, worldSize * CHUNK_TILE_SIZE);
     biomeNoiseValue = FastNoise::Normalise(biomeNoiseValue);

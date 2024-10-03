@@ -221,7 +221,8 @@
         "rocket-info": {
             "texture": [32, 343, 16, 41],
             "texture-origin": [0.5, 1],
-            "launch-position": [16, 14]
+            "launch-position": [16, 14],
+            "available-destinations": ["Earthlike", "Moon"]
         },
         "item-drops": {
             "Rocket Launch Pad": [1, 1, 1.0]

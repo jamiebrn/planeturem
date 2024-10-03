@@ -34,7 +34,7 @@ void GUIContext::resetActiveElement()
     inputState.activeElement = std::numeric_limits<uint64_t>::max();
 }
 
-void GUIContext::beginGUI()
+void GUIContext::endGUI()
 {
     inputState.leftMouseJustDown = false;
     inputState.leftMouseJustUp = false;
@@ -80,9 +80,9 @@ bool GUIContext::createCheckbox(int x, int y, int width, int height, const std::
     return clicked;
 }
 
-bool GUIContext::createSlider(int x, int y, int width, int height, float minValue, float maxValue, float* value)
+bool GUIContext::createSlider(int x, int y, int width, int height, float minValue, float maxValue, float* value, std::optional<std::string> label)
 {
-    std::unique_ptr<Slider> slider = std::make_unique<Slider>(inputState, elements.size(), x, y, width, height, minValue, maxValue, value);
+    std::unique_ptr<Slider> slider = std::make_unique<Slider>(inputState, elements.size(), x, y, width, height, minValue, maxValue, value, label);
 
     bool held = slider->isHeld();
 

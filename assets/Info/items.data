@@ -97,6 +97,13 @@
         "texture-width": 16,
         "texture-height": 16
     },
+    {
+        "name": "Moonrock",
+        "texture-x": 64,
+        "texture-y": 0,
+        "texture-width": 16,
+        "texture-height": 16
+    },
 
     {
         "name": "Land",

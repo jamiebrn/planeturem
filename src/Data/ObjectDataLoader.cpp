@@ -80,9 +80,15 @@ bool ObjectDataLoader::loadData(std::string objectDataPath)
             auto textureRect = rocketInfo.at("texture");
             auto textureOrigin = rocketInfo.at("texture-origin");
             auto launchPosition = rocketInfo.at("launch-position");
+            auto availableDestinations = rocketInfo.at("available-destinations");
             objectData.rocketObjectData->textureRect = sf::IntRect(textureRect[0], textureRect[1], textureRect[2], textureRect[3]);
             objectData.rocketObjectData->textureOrigin = sf::Vector2f(textureOrigin[0], textureOrigin[1]);
             objectData.rocketObjectData->launchPosition = sf::Vector2f(launchPosition[0], launchPosition[1]);
+
+            for (nlohmann::ordered_json::iterator destinationIter = availableDestinations.begin(); destinationIter != availableDestinations.end(); ++destinationIter)
+            {
+                objectData.rocketObjectData->avaiableDestinationStrings.push_back(destinationIter.value());
+            }
         }
 
         loaded_objectData.push_back(objectData);
@@ -108,6 +114,32 @@ bool ObjectDataLoader::loadData(std::string objectDataPath)
 
             loaded_objectData[objectType].itemDrops.push_back(itemDrop);
         }
+    }
+
+    return true;
+}
+
+bool ObjectDataLoader::loadRocketPlanetDestinations(const std::unordered_map<std::string, PlanetType>& planetStringToTypeMap)
+{
+    // Load rocket destinations for all rocket objects
+    for (ObjectData& objectData : loaded_objectData)
+    {
+        // If not rocket, do not load data
+        if (!objectData.rocketObjectData.has_value())
+            continue;
+        
+        // Load planet destinations from strings
+        for (const std::string& planetStr : objectData.rocketObjectData->avaiableDestinationStrings)
+        {
+            if (!planetStringToTypeMap.contains(planetStr))
+                return false;
+
+            PlanetType planetType = planetStringToTypeMap.at(planetStr);
+            objectData.rocketObjectData->availableDestinations.push_back(planetType);
+        }
+
+        // Free planet string destinations, as only used temporarily for loading
+        objectData.rocketObjectData->avaiableDestinationStrings.clear();
     }
 
     return true;

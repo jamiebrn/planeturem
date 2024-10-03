@@ -1,7 +1,5 @@
 #include "Game.hpp"
 
-// FIX: Weird 0 meat / entity drop bug?
-
 // PRIORITY: HIGH
 // TODO: Structure functionality (item spawns, crafting stations etc)
 // TODO: Different types of structures
@@ -358,8 +356,6 @@ void Game::drawDebugMenu(float dt)
 
 void Game::runMainMenu(float dt)
 {
-    guiContext.beginGUI();
-
     for (auto event = sf::Event{}; window.pollEvent(event);)
     {
         handleEventsWindow(event);
@@ -416,17 +412,16 @@ void Game::runMainMenu(float dt)
         }
     }
 
-    for (int i = 0; i < 3; i++)
+    float musicVolume = Sounds::getMusicVolume();
+    if (guiContext.createSlider(window.getSize().x / 2.0f - 200 * intScale, window.getSize().y / 2.0f + 200 * intScale, 400 * intScale, 15 * intScale,
+        0.0f, 100.0f, &musicVolume, "Music Volume"))
     {
-        guiContext.createCheckbox(200, 600 + 150 * i, 30, 30, "Checkbox " + std::to_string(i + 1), &dummyBool[i]);
-
-        if (dummyBool[i])
-        {
-            guiContext.createSlider(600, 600 + 150 * i, 150, 30, 0.0f, 100.0f, &dummyFloat[i]);
-        }
+        Sounds::setMusicVolume(musicVolume);
     }
 
     guiContext.draw(window);
+
+    guiContext.endGUI();
 }
 
 void Game::runOnPlanet(float dt)
@@ -442,31 +437,41 @@ void Game::runOnPlanet(float dt)
 
         if (isStateTransitioning())
             continue;
+        
+        if (worldMenuState == WorldMenuState::TravelSelect)
+        {
+            TravelSelectGUI::processEventGUI(event);
+        }
 
         if (event.type == sf::Event::KeyPressed)
         {
-            if (worldMenuState == WorldMenuState::Main)
+            switch (worldMenuState)
             {
-                if (event.key.code == sf::Keyboard::E)
+                case WorldMenuState::Main:
                 {
-                    worldMenuState = WorldMenuState::Inventory;
-                    closeChest();
-                }
-            }
-            else
-            {
-                if ((event.key.code == sf::Keyboard::E || event.key.code == sf::Keyboard::Escape) && worldMenuState == WorldMenuState::Inventory)
-                {
-                    ItemType itemHeldBefore = InventoryGUI::getHeldItemType(inventory);
-
-                    InventoryGUI::handleClose(inventory, chestDataPool.getChestDataPtr(openedChestID));
-                    worldMenuState = WorldMenuState::Main;
-                    closeChest();
-
-                    if (itemHeldBefore != InventoryGUI::getHeldItemType(inventory))
+                    if (event.key.code == sf::Keyboard::E)
                     {
-                        changePlayerTool();
+                        worldMenuState = WorldMenuState::Inventory;
+                        closeChest();
                     }
+                    break;
+                }
+                case WorldMenuState::Inventory:
+                {
+                    if ((event.key.code == sf::Keyboard::E || event.key.code == sf::Keyboard::Escape) && worldMenuState == WorldMenuState::Inventory)
+                    {
+                        ItemType itemHeldBefore = InventoryGUI::getHeldItemType(inventory);
+
+                        InventoryGUI::handleClose(inventory, chestDataPool.getChestDataPtr(openedChestID));
+                        worldMenuState = WorldMenuState::Main;
+                        closeChest();
+
+                        if (itemHeldBefore != InventoryGUI::getHeldItemType(inventory))
+                        {
+                            changePlayerTool();
+                        }
+                    }
+                    break;
                 }
             }
 
@@ -592,15 +597,30 @@ void Game::runOnPlanet(float dt)
     // Inventory GUI updating
     InventoryGUI::updateItemPopups(dt);
 
-    if (worldMenuState == WorldMenuState::Main)
+    switch (worldMenuState)
     {
-        InventoryGUI::updateHotbar(dt, mouseScreenPos);
-    }
-    else if (worldMenuState == WorldMenuState::Inventory)
-    {
-        // Update inventory GUI available recipes if required, and animations
-        InventoryGUI::updateAvailableRecipes(inventory, nearbyCraftingStationLevels);
-        InventoryGUI::updateInventory(mouseScreenPos, dt, chestDataPool.getChestDataPtr(openedChestID));
+        case WorldMenuState::Main:
+        {
+            InventoryGUI::updateHotbar(dt, mouseScreenPos);
+            break;
+        }
+        case WorldMenuState::Inventory:
+        {
+            // Update inventory GUI available recipes if required, and animations
+            InventoryGUI::updateAvailableRecipes(inventory, nearbyCraftingStationLevels);
+            InventoryGUI::updateInventory(mouseScreenPos, dt, chestDataPool.getChestDataPtr(openedChestID));
+            break;
+        }
+        case WorldMenuState::TravelSelect:
+        {
+            std::vector<PlanetType> availableDestinations = getRocketAvailableDestinations();
+            PlanetType selectedDestination;
+
+            if (TravelSelectGUI::createGUI(window, availableDestinations, selectedDestination))
+            {
+                travelToPlanet(selectedDestination);
+            }
+        }
     }
 
 
@@ -624,12 +644,16 @@ void Game::runOnPlanet(float dt)
     switch (worldMenuState)
     {
         case WorldMenuState::Main:
-            // InventoryGUI::drawHotbar(window, mouseScreenPos, inventory);
+            InventoryGUI::drawHotbar(window, mouseScreenPos, inventory);
             InventoryGUI::drawItemPopups(window);
             break;
         
         case WorldMenuState::Inventory:
             InventoryGUI::draw(window, gameTime, mouseScreenPos, inventory, chestDataPool.getChestDataPtr(openedChestID));
+            break;
+        
+        case WorldMenuState::TravelSelect:
+            TravelSelectGUI::drawGUI(window);
             break;
     }
 }
@@ -984,7 +1008,7 @@ void Game::attemptObjectInteract()
         return;
     
     BuildableObject* selectedObject = getSelectedObjectFromChunkOrRoom();
-    
+
     if (selectedObject)
     {
         ObjectInteractionEventData interactionEvent = selectedObject->interact();
@@ -1039,8 +1063,14 @@ void Game::attemptObjectInteract()
                 break;
             }
             case ObjectInteraction::Rocket:
-                enterRocket(*selectedObject);
+            {
+                ObjectReference rocketObjectReference;
+                rocketObjectReference.chunk = selectedObject->getChunkInside(chunkManager.getWorldSize());
+                rocketObjectReference.tile = selectedObject->getChunkTileInside(chunkManager.getWorldSize());
+
+                enterRocket(rocketObjectReference, *selectedObject);
                 break;
+            }
         }
     }
 }
@@ -1433,14 +1463,68 @@ void Game::testExitStructure()
     startChangeStateTransition(GameState::OnPlanet);
 }
 
-void Game::enterRocket(BuildableObject& rocket)
+void Game::enterRocket(ObjectReference rocketObjectReference, BuildableObject& rocket)
 {
+    worldMenuState = WorldMenuState::TravelSelect;
+
+    rocketObject = rocketObjectReference;
+
     player.enterRocket(rocket.getRocketPosition());
 }
 
 void Game::exitRocket()
 {
+    worldMenuState = WorldMenuState::Main;
+
     player.exitRocket();
+}
+
+std::vector<PlanetType> Game::getRocketAvailableDestinations()
+{
+    std::vector<PlanetType> availableDestinations;
+
+    // Get object
+    std::optional<BuildableObject>& rocketObjectOptional = chunkManager.getChunkObject(rocketObject.chunk, rocketObject.tile);
+    if (!rocketObjectOptional.has_value())
+    {
+        exitRocket();
+        return availableDestinations;
+    }
+
+    const ObjectData& objectData = ObjectDataLoader::getObjectData(rocketObjectOptional->getObjectType());
+    if (!objectData.rocketObjectData.has_value())
+    {
+        exitRocket();
+        return availableDestinations;
+    }
+
+    for (PlanetType destination : objectData.rocketObjectData->availableDestinations)
+    {
+        if (destination == chunkManager.getPlanetType())
+            continue;
+        
+        availableDestinations.push_back(destination);
+    }
+
+    return availableDestinations;
+}
+
+void Game::travelToPlanet(PlanetType planetType)
+{
+    chunkManager.deleteAllChunks();
+
+    chunkManager.setPlanetType(planetType);
+    chunkManager.setSeed(rand());
+
+    exitRocket();
+
+    sf::Vector2f playerSpawnPos = chunkManager.findValidSpawnPosition(2);
+    player.setPosition(playerSpawnPos);
+
+    Camera::instantUpdate(player.getPosition());
+
+    // Generate chunks in view to prevent 1-frame flicker
+    chunkManager.updateChunks();
 }
 
 void Game::updateStateTransition(float dt)

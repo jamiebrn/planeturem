@@ -4,6 +4,7 @@
 #include <vector>
 #include <memory>
 #include <string>
+#include <optional>
 
 #include <SFML/Graphics.hpp>
 
@@ -20,13 +21,13 @@ public:
 
     void processEvent(const sf::Event& event);
 
-    void beginGUI();
+    void endGUI();
 
     bool createButton(int x, int y, int width, int height, const std::string& text);
 
     bool createCheckbox(int x, int y, int width, int height, const std::string& label, bool* value);
 
-    bool createSlider(int x, int y, int width, int height, float minValue, float maxValue, float* value);
+    bool createSlider(int x, int y, int width, int height, float minValue, float maxValue, float* value, std::optional<std::string> label = std::nullopt);
 
     void draw(sf::RenderTarget& window);
 
@@ -38,6 +39,6 @@ private:
     
     GUIInputState inputState;
 
-    bool activeElementRequiresReset = true;
+    bool activeElementRequiresReset = false;
 
 };

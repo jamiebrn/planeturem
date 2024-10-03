@@ -23,7 +23,7 @@ class PlanetGenDataLoader
 public:
     static bool loadData(std::string planetGenDataPath);
 
-    static const PlanetGenData& genPlanetGenData(PlanetType planetType);
+    static const PlanetGenData& getPlanetGenData(PlanetType planetType);
 
     static PlanetType getPlanetTypeFromName(const std::string& planetName);
 

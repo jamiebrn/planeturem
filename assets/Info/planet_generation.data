@@ -88,6 +88,12 @@
                     "objects": [
                         ["Rock", 0.05]
                     ],
+                    "fish-catches": [
+                        ["Moonrock", 1, 0.3],
+                        ["Stone", 1, 0.4],
+                        ["Stone", 2, 0.1],
+                        ["Rockfish", 1, 0.2]
+                    ],
                     "noise-range": [0, 1]
                 }
             ],

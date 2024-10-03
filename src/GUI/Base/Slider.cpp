@@ -1,6 +1,7 @@
 #include "GUI/Base/Slider.hpp"
 
-Slider::Slider(const GUIInputState& inputState, ElementID id, int x, int y, int width, int height, float minValue, float maxValue, float* value)
+Slider::Slider(const GUIInputState& inputState, ElementID id, int x, int y, int width, int height, float minValue, float maxValue,
+    float* value, std::optional<std::string> label)
 {
     this->x = x;
     this->y = y;
@@ -9,6 +10,7 @@ Slider::Slider(const GUIInputState& inputState, ElementID id, int x, int y, int 
     this->minValue = minValue;
     this->maxValue = maxValue;
     this->value = value;
+    this->label = label;
 
     held = false;
     hovered = false;
@@ -23,8 +25,11 @@ Slider::Slider(const GUIInputState& inputState, ElementID id, int x, int y, int 
         *value = sliderProgress * (maxValue - minValue) + minValue;
     }
 
+    int sliderXPos = ((*value - minValue) / (maxValue - minValue)) * width + x;
+
     CollisionRect sliderRect(x, y, width, height);
-    if (sliderRect.isPointInRect(inputState.mouseX, inputState.mouseY))
+    CollisionRect sliderValueRect(sliderXPos - 20.0f, y + height / 2.0f - 20, 40, 40);
+    if (sliderRect.isPointInRect(inputState.mouseX, inputState.mouseY) || sliderValueRect.isPointInRect(inputState.mouseX, inputState.mouseY))
     {
         hovered = true;
         if (inputState.leftMouseJustDown)
@@ -78,4 +83,15 @@ void Slider::draw(sf::RenderTarget& window)
     textDrawData.centeredY = true;
     
     TextDraw::drawText(window, textDrawData);
+
+    if (label.has_value())
+    {
+        textDrawData.text = label.value();
+        textDrawData.position = sf::Vector2f(x, y) + sf::Vector2f(width + 20.0f, height / 2.0f);
+        textDrawData.size = 20;
+        textDrawData.centeredX = false;
+        textDrawData.centeredY = true;
+        
+        TextDraw::drawText(window, textDrawData);
+    }
 }

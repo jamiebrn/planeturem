@@ -57,8 +57,9 @@
 #include "Types/GameState.hpp"
 #include "Types/WorldMenuState.hpp"
 
-#include "GUI/InventoryGUI.hpp"
 #include "GUI/Base/GUIContext.hpp"
+#include "GUI/InventoryGUI.hpp"
+#include "GUI/TravelSelectGUI.hpp"
 
 #include "DebugOptions.hpp"
 
@@ -117,8 +118,12 @@ private:
     void testExitStructure();
 
     // Rocket
-    void enterRocket(BuildableObject& rocket);
+    void enterRocket(ObjectReference rocketObjectReference, BuildableObject& rocket);
     void exitRocket();
+
+    std::vector<PlanetType> getRocketAvailableDestinations();
+
+    void travelToPlanet(PlanetType planetType);
 
     void updateDayNightCycle(float dt);
 
@@ -157,8 +162,6 @@ private:
     // Menu
     int menuScreenshotIndex;
     float menuScreenshotTimer;
-    bool dummyBool[3] = {false, false, false};
-    float dummyFloat[3] = {0, 0, 0};
 
     SpriteBatch spriteBatch;
     sf::RenderTexture worldTexture;
@@ -206,6 +209,7 @@ private:
 
     // Rocket
     bool flyingRocket;
+    ObjectReference rocketObject;
     PlanetType destinationPlanet;
 
     Tween<float> floatTween;
