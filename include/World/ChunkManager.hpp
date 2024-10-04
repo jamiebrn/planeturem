@@ -194,6 +194,8 @@ private:
                        bool putInLoaded = true,
                        std::optional<sf::Vector2f> positionOverride = std::nullopt);
 
+    void clearUnmodifiedStoredChunks();
+
 private:
     std::unordered_map<ChunkPosition, std::unique_ptr<Chunk>> storedChunks;
     std::unordered_map<ChunkPosition, std::unique_ptr<Chunk>> loadedChunks;

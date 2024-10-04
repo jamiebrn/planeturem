@@ -18,7 +18,7 @@ void GUIContext::processEvent(const sf::Event& event)
             inputState.leftMouseJustUp = true;
             inputState.leftMousePressed = false;
 
-            activeElementRequiresReset = true;
+            // activeElementRequiresReset = true;
         }
     }
 
@@ -59,11 +59,11 @@ void GUIContext::endGUI()
     inputState.charEnterBuffer.clear();
     inputState.backspaceJustPressed = false;
 
-    if (activeElementRequiresReset)
-    {
-        resetActiveElement();
-    }
-    activeElementRequiresReset = false;
+    // if (activeElementRequiresReset)
+    // {
+    //     resetActiveElement();
+    // }
+    // activeElementRequiresReset = false;
 
     elements.clear();
 }
@@ -74,7 +74,11 @@ bool GUIContext::createButton(int x, int y, int width, int height, const std::st
 
     bool clicked = button->isClicked();
 
-    if (button->isHeld())
+    if (clicked)
+    {
+        resetActiveElement();
+    }
+    else if (button->isHeld())
     {
         inputState.activeElement = elements.size();
     }
@@ -90,7 +94,11 @@ bool GUIContext::createCheckbox(int x, int y, int width, int height, const std::
 
     bool clicked = checkbox->isClicked();
 
-    if (checkbox->isHeld())
+    if (clicked)
+    {
+        resetActiveElement();
+    }
+    else if (checkbox->isHeld())
     {
         inputState.activeElement = elements.size();
     }
@@ -106,7 +114,11 @@ bool GUIContext::createSlider(int x, int y, int width, int height, float minValu
 
     bool held = slider->isHeld();
 
-    if (held)
+    if (slider->hasReleased())
+    {
+        resetActiveElement();
+    }
+    else if (held)
     {
         inputState.activeElement = elements.size();
     }
@@ -120,17 +132,13 @@ bool GUIContext::createTextEnter(int x, int y, int width, int height, const std:
 {
     std::unique_ptr<TextEnter> textEnter = std::make_unique<TextEnter>(inputState, elements.size(), x, y, width, height, text, textPtr);
 
-    if (textEnter->isClicked())
+    if (textEnter->hasClickedAway())
+    {
+        resetActiveElement();
+    }
+    else if (textEnter->isActive())
     {
         inputState.activeElement = elements.size();
-    }
-
-    if (textEnter->isActive())
-    {
-        if (inputState.leftMouseJustDown && !textEnter->isClicked())
-        {
-            resetActiveElement();
-        }
     }
 
     elements.push_back(std::move(textEnter));

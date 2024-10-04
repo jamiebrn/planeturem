@@ -14,9 +14,16 @@ Slider::Slider(const GUIInputState& inputState, ElementID id, int x, int y, int 
 
     held = false;
     hovered = false;
+    released = false;
 
     if (inputState.activeElement == id)
     {
+        if (inputState.leftMouseJustUp)
+        {
+            released = true;
+            return;
+        }
+
         held = true;
 
         // Move slider value as is held
@@ -42,6 +49,11 @@ Slider::Slider(const GUIInputState& inputState, ElementID id, int x, int y, int 
 bool Slider::isHeld()
 {
     return held;
+}
+
+bool Slider::hasReleased()
+{
+    return released;
 }
 
 void Slider::draw(sf::RenderTarget& window)

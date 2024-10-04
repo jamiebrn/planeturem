@@ -17,6 +17,7 @@ public:
 
     bool isClicked();
     bool isHeld();
+    bool hasJustReleased();
 
     void draw(sf::RenderTarget& window) override;
 
@@ -24,6 +25,7 @@ protected:
     bool clicked;
     bool held;
     bool hovered;
+    bool justReleased;
 
     int x, y, width, height;
     std::string text;

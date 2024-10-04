@@ -42,6 +42,6 @@ private:
     
     GUIInputState inputState;
 
-    bool activeElementRequiresReset = false;
+    // bool activeElementRequiresReset = false;
 
 };

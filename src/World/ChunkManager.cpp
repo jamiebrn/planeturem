@@ -787,6 +787,8 @@ sf::Vector2f ChunkManager::findValidSpawnPosition(int waterlessAreaSize)
             spawnPosition.x = x * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED + 0.5f * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
             spawnPosition.y = y * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED + 0.5f * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
 
+            clearUnmodifiedStoredChunks();
+
             return spawnPosition;
         }
     }
@@ -794,6 +796,8 @@ sf::Vector2f ChunkManager::findValidSpawnPosition(int waterlessAreaSize)
     // Recursive call to find smaller valid area
     if (waterlessAreaSize > 0)
         return findValidSpawnPosition(waterlessAreaSize - 1);
+
+    clearUnmodifiedStoredChunks();
     
     // Can't find valid spawn, so default return
     return sf::Vector2f(0, 0);
@@ -882,6 +886,19 @@ void ChunkManager::generateChunk(const ChunkPosition& chunkPosition, bool putInL
 
     // Generate
     chunkPtr->generateChunk(heightNoise, biomeNoise, planetType, worldSize, *this);
+}
+
+void ChunkManager::clearUnmodifiedStoredChunks()
+{
+    for (auto iter = storedChunks.begin(); iter != storedChunks.end();)
+    {
+        if (!iter->second->hasBeenModified())
+        {
+            iter = storedChunks.erase(iter);
+            continue;
+        }
+        iter++;
+    }
 }
 
 // Static method

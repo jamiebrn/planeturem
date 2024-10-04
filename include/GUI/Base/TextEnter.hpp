@@ -15,13 +15,13 @@ public:
     TextEnter(const GUIInputState& inputState, ElementID id, int x, int y, int width, int height, const std::string& text, std::string* textPtr);
 
     bool isActive();
-    bool isClicked();
+    bool hasClickedAway();
 
     void draw(sf::RenderTarget& window) override;
 
 private:
     bool active;
-    bool clicked;
+    bool clickedAway;
 
     int x, y, width, height;
     std::string text;

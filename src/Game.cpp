@@ -64,9 +64,9 @@ bool Game::initialise()
     // Randomise
     srand(time(NULL));
 
-    chunkManager.setSeed(20);
     chunkManager.setWorldSize(240);
-    chunkManager.setPlanetType(PlanetGenDataLoader::getPlanetTypeFromName("Earthlike"));
+    // chunkManager.setSeed(20);
+    // chunkManager.setPlanetType(PlanetGenDataLoader::getPlanetTypeFromName("Earthlike"));
 
     // Initialise values
     gameTime = 0;
@@ -97,8 +97,8 @@ bool Game::initialise()
     generateWaterNoiseTexture();
 
     // Find valid player spawn
-    sf::Vector2f spawnPos = chunkManager.findValidSpawnPosition(2);
-    player.setPosition(spawnPos);
+    // sf::Vector2f spawnPos = chunkManager.findValidSpawnPosition(2);
+    // player.setPosition(spawnPos);
 
     // Initialise inventory
     giveStartingInventory();
@@ -308,6 +308,7 @@ void Game::drawDebugMenu(float dt)
         std::to_string(static_cast<int>(1.0f / dt)) + "FPS",
         std::to_string(chunkManager.getLoadedChunkCount()) + " Chunks loaded",
         std::to_string(chunkManager.getGeneratedChunkCount()) + " Chunks generated",
+        "Seed: " + std::to_string(chunkManager.getSeed()),
         "Player pos: " + std::to_string(static_cast<int>(player.getPosition().x)) + ", " + std::to_string(static_cast<int>(player.getPosition().y))
     };
 
@@ -420,6 +421,11 @@ void Game::runMainMenu(float dt)
     }
 
     guiContext.createTextEnter(window.getSize().x / 2.0f - 200 * intScale, window.getSize().y / 2.0f + 400 * intScale, 400 * intScale, 40 * intScale, "Seed", &worldSeed);
+
+    for (int i = 0; i < 3; i++)
+    {
+        guiContext.createCheckbox(50, 50 + 100 * i, 60, 60, "Checkbox " + std::to_string(i), &dummyBool[i]);
+    }
 
     guiContext.draw(window);
 
@@ -1516,7 +1522,25 @@ void Game::travelToPlanet(PlanetType planetType)
     chunkManager.deleteAllChunks();
 
     chunkManager.setPlanetType(planetType);
-    chunkManager.setSeed(rand());
+
+    // Get seed from input
+    int seed = 0;
+    if (worldSeed.empty())
+    {
+        seed = Helper::randInt(0, 1000000);
+    }
+    else
+    {
+        // Compute simple hash of seed
+        seed = 0x55555555;
+        for (char c : worldSeed)
+        {
+            seed ^= c;
+            seed = seed << 5;
+        }
+    }
+
+    chunkManager.setSeed(seed);
 
     exitRocket();
 
@@ -1583,7 +1607,11 @@ void Game::changeState(GameState newState)
         }
         case GameState::OnPlanet:
         {
-            if (gameState == GameState::InStructure)
+            if (gameState == GameState::MainMenu)
+            {
+                travelToPlanet(PlanetGenDataLoader::getPlanetTypeFromName("Earthlike"));
+            }
+            else if (gameState == GameState::InStructure)
             {
                 // Exit structure
                 structureEnteredID = 0xFFFFFFFF;

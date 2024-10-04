@@ -1,5 +1,8 @@
 #pragma once
 
+#include <memory>
+#include <cstdint>
+
 struct ChunkPosition
 {
     int16_t x, y;
@@ -22,8 +25,8 @@ struct ChunkPosition
         return x < other.x;
     }
 
-    static constexpr int xPrime = 5209;
-    static constexpr int yPrime = 6719;
+    static constexpr int xPrime = 2;
+    static constexpr int yPrime = 10007;
 
     inline int hash()
     {

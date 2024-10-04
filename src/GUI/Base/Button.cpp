@@ -11,6 +11,7 @@ Button::Button(const GUIInputState& inputState, ElementID id, int x, int y, int 
     clicked = false;
     held = false;
     hovered = false;
+    justReleased = false;
 
     if (inputState.activeElement == id)
     {
@@ -42,6 +43,11 @@ bool Button::isClicked()
 bool Button::isHeld()
 {
     return held;
+}
+
+bool Button::hasJustReleased()
+{
+    return justReleased;
 }
 
 void Button::draw(sf::RenderTarget& window)

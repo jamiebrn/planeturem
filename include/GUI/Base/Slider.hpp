@@ -18,12 +18,14 @@ public:
         float* value, std::optional<std::string> label = std::nullopt);
 
     bool isHeld();
+    bool hasReleased();
 
     void draw(sf::RenderTarget& window) override;
 
 private:
     bool held;
     bool hovered;
+    bool released;
 
     int x, y, width, height;
     float minValue, maxValue;

@@ -10,7 +10,7 @@ TextEnter::TextEnter(const GUIInputState& inputState, ElementID id, int x, int y
     this->textPtr = textPtr;
     
     active = false;
-    clicked = false;
+    clickedAway = false;
 
     if (inputState.activeElement == id)
     {
@@ -18,9 +18,16 @@ TextEnter::TextEnter(const GUIInputState& inputState, ElementID id, int x, int y
     }
 
     CollisionRect rect(x, y, width, height);
-    if (rect.isPointInRect(inputState.mouseX, inputState.mouseY) && inputState.leftMouseJustDown)
+    if (inputState.leftMouseJustDown)
     {
-        clicked = true;
+        if (rect.isPointInRect(inputState.mouseX, inputState.mouseY))
+        {
+            active = true;
+        }
+        else if (active)
+        {
+            clickedAway = true;
+        }
     }
 
     if (active)
@@ -42,9 +49,9 @@ bool TextEnter::isActive()
     return active;
 }
 
-bool TextEnter::isClicked()
+bool TextEnter::hasClickedAway()
 {
-    return clicked;
+    return clickedAway;
 }
 
 void TextEnter::draw(sf::RenderTarget& window)
