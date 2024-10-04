@@ -3,6 +3,7 @@
 InventoryData::InventoryData(int size)
 {
     inventoryData = std::vector<std::optional<ItemCount>>(size, std::nullopt);
+    inventorySize = size;
 }
 
 int InventoryData::addItem(ItemType item, int amount)
@@ -180,4 +181,18 @@ std::optional<ItemCount>& InventoryData::getItemSlotData(int index)
     std::optional<ItemCount>& itemSlotData = inventoryData.at(index);
 
     return itemSlotData;
+}
+
+void InventoryData::writeToBinaryFile(std::fstream& out)
+{
+    out.write((char*)&inventorySize, sizeof(int));
+    out.write((char*)inventoryData.data(), sizeof(std::optional<ItemCount>) * inventoryData.size());
+}
+
+void InventoryData::readFromBinaryFile(std::fstream& in)
+{
+    in.read((char*)&inventorySize, sizeof(int));
+
+    inventoryData = std::vector<std::optional<ItemCount>>(inventorySize);
+    in.read((char*)inventoryData.data(), sizeof(std::optional<ItemCount>) * inventorySize);
 }

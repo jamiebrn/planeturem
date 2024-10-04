@@ -340,6 +340,20 @@ void Game::drawDebugMenu(float dt)
 
     ImGui::Spacing();
 
+    ImGui::Text("Save / Load");
+
+    if (ImGui::Button("Save"))
+    {
+        saveGame();
+    }
+
+    if (ImGui::Button("Load"))
+    {
+        loadGame();
+    }
+
+    ImGui::Spacing();
+
     if (ImGui::Checkbox("God Mode", &DebugOptions::godMode))
     {
         DebugOptions::godSpeedMultiplier = 1.0f;
@@ -1638,4 +1652,41 @@ void Game::updateDayNightCycle(float dt)
         else floatTween.startTween(&worldDarkness, 0.95f, 0.0f, 7, TweenTransition::Sine, TweenEasing::EaseInOut);
         isDay = !isDay;
     }
+}
+
+// Save / load
+bool Game::saveGame()
+{
+    GameSaveIO io("save.dat");
+
+    io.beginWrite();
+
+    io.writeSeed(chunkManager.getSeed());
+    io.writePosition(player.getPosition());
+    io.writeInventory(inventory);
+
+    io.end();
+
+    return true;
+}
+
+bool Game::loadGame()
+{
+    GameSaveIO io("save.dat");
+
+    io.beginLoad();
+
+    chunkManager.deleteAllChunks();
+
+    chunkManager.setSeed(io.loadSeed());
+    player.setPosition(io.loadPosition());
+    inventory = io.loadInventory();
+
+    Camera::instantUpdate(player.getPosition());
+
+    chunkManager.updateChunks();
+
+    io.end();
+
+    return true;
 }

@@ -61,6 +61,8 @@
 #include "GUI/InventoryGUI.hpp"
 #include "GUI/TravelSelectGUI.hpp"
 
+#include "IO/GameSaveIO.hpp"
+
 #include "DebugOptions.hpp"
 
 class Game
@@ -141,6 +143,10 @@ private:
     void updateMusic(float dt);
 
     void drawMouseCursor();
+
+    // Save / load
+    bool saveGame();
+    bool loadGame();
 
     void handleZoom(int zoomChange);
 

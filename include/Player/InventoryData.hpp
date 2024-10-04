@@ -4,6 +4,7 @@
 #include <array>
 #include <optional>
 #include <unordered_map>
+#include <fstream>
 
 #include "Data/typedefs.hpp"
 #include "Data/ItemDataLoader.hpp"
@@ -33,6 +34,9 @@ public:
     inline int getSize() {return inventoryData.size();}
 
     inline const std::vector<std::optional<ItemCount>>& getData() {return inventoryData;}
+
+    void writeToBinaryFile(std::fstream& out);
+    void readFromBinaryFile(std::fstream& in);
 
 private:
     std::vector<std::optional<ItemCount>> inventoryData;

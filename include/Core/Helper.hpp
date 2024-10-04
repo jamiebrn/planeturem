@@ -2,8 +2,6 @@
 
 #include <algorithm>
 #include <cmath>
-#include <random>
-
 #include <SFML/System/Vector2.hpp>
 
 namespace Helper
@@ -15,17 +13,9 @@ inline float lerp(float start, float dest, float weight)
 }
 
 // High is inclusive
-inline int randInt(int low, int high, long unsigned int seed = 0)
+inline int randInt(int low, int high)
 {
-    if (seed == 0)
-    {
-        seed = time(NULL);
-    }
-
-    std::default_random_engine gen(seed);
-    std::uniform_int_distribution<int> dist(low, high);
-
-    return dist(gen);
+    return rand() % (high + 1 - low) + low;
 }
 
 // Angle in radians
