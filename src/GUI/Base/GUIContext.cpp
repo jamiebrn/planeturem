@@ -27,6 +27,23 @@ void GUIContext::processEvent(const sf::Event& event)
         inputState.mouseX = event.mouseMove.x;
         inputState.mouseY = event.mouseMove.y;
     }
+
+    if (event.type == sf::Event::TextEntered)
+    {
+        bool isChar = (event.key.code >= sf::Keyboard::A && event.key.code <= sf::Keyboard::Z) || event.key.code == sf::Keyboard::Space;
+        if (isChar)
+        {
+        }
+        inputState.charEnterBuffer.push_back(event.text.unicode);
+    }
+
+    if (event.type == sf::Event::KeyPressed)
+    {
+        if (event.key.code == sf::Keyboard::Backspace)
+        {
+            inputState.backspaceJustPressed = true;
+        }
+    }
 }
 
 void GUIContext::resetActiveElement()
@@ -38,6 +55,9 @@ void GUIContext::endGUI()
 {
     inputState.leftMouseJustDown = false;
     inputState.leftMouseJustUp = false;
+
+    inputState.charEnterBuffer.clear();
+    inputState.backspaceJustPressed = false;
 
     if (activeElementRequiresReset)
     {
@@ -94,6 +114,28 @@ bool GUIContext::createSlider(int x, int y, int width, int height, float minValu
     elements.push_back(std::move(slider));
 
     return held;
+}
+
+bool GUIContext::createTextEnter(int x, int y, int width, int height, const std::string& text, std::string* textPtr)
+{
+    std::unique_ptr<TextEnter> textEnter = std::make_unique<TextEnter>(inputState, elements.size(), x, y, width, height, text, textPtr);
+
+    if (textEnter->isClicked())
+    {
+        inputState.activeElement = elements.size();
+    }
+
+    if (textEnter->isActive())
+    {
+        if (inputState.leftMouseJustDown && !textEnter->isClicked())
+        {
+            resetActiveElement();
+        }
+    }
+
+    elements.push_back(std::move(textEnter));
+
+    return (inputState.activeElement == elements.size() - 1);
 }
 
 void GUIContext::draw(sf::RenderTarget& window)

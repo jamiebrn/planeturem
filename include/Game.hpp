@@ -158,6 +158,7 @@ private:
     bool fullScreen = true;
 
     GUIContext guiContext;
+    std::string worldSeed;
     
     // Menu
     int menuScreenshotIndex;

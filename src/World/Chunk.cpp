@@ -31,7 +31,7 @@ void Chunk::generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNo
     std::set<int> tileMapsModified;
 
     // Create random generator for chunk
-    unsigned long int randSeed = std::hash<int>()(chunkManager.getSeed()) ^ std::hash<ChunkPosition>()(chunkPosition);
+    unsigned long int randSeed = chunkManager.getSeed() ^ chunkPosition.hash();
     RandInt randGen(randSeed);
 
     // Store tile types in tile array

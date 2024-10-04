@@ -13,6 +13,7 @@
 #include "Button.hpp"
 #include "Checkbox.hpp"
 #include "Slider.hpp"
+#include "TextEnter.hpp"
 
 class GUIContext
 {
@@ -28,6 +29,8 @@ public:
     bool createCheckbox(int x, int y, int width, int height, const std::string& label, bool* value);
 
     bool createSlider(int x, int y, int width, int height, float minValue, float maxValue, float* value, std::optional<std::string> label = std::nullopt);
+
+    bool createTextEnter(int x, int y, int width, int height, const std::string& text, std::string* textPtr);
 
     void draw(sf::RenderTarget& window);
 

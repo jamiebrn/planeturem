@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <limits>
+#include <vector>
 
 typedef uint64_t ElementID;
 
@@ -16,4 +17,7 @@ struct GUIInputState
 
     int mouseX = 0;
     int mouseY = 0;
+
+    std::vector<unsigned int> charEnterBuffer;
+    bool backspaceJustPressed = false;
 };

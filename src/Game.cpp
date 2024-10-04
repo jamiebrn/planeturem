@@ -64,7 +64,7 @@ bool Game::initialise()
     // Randomise
     srand(time(NULL));
 
-    chunkManager.setSeed(rand());
+    chunkManager.setSeed(20);
     chunkManager.setWorldSize(240);
     chunkManager.setPlanetType(PlanetGenDataLoader::getPlanetTypeFromName("Earthlike"));
 
@@ -418,6 +418,8 @@ void Game::runMainMenu(float dt)
     {
         Sounds::setMusicVolume(musicVolume);
     }
+
+    guiContext.createTextEnter(window.getSize().x / 2.0f - 200 * intScale, window.getSize().y / 2.0f + 400 * intScale, 400 * intScale, 40 * intScale, "Seed", &worldSeed);
 
     guiContext.draw(window);
 

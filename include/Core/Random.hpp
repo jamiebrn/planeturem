@@ -1,7 +1,5 @@
 #pragma once
 
-#include <random>
-
 class RandInt
 {
 public:
@@ -10,6 +8,6 @@ public:
     int generate(int low, int high);
 
 private:
-    std::default_random_engine gen;
+    unsigned long int next = 1;
 
 };
