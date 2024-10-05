@@ -3,7 +3,7 @@
 #include <SFML/Graphics.hpp>
 #include <imgui.h>
 #include <imgui-SFML.h>
-#include <steam_api.h>
+#include <extlib/steam/steam_api.h>
 
 #include <World/FastNoise.h>
 #include <Core/json.hpp>

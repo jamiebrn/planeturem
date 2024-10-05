@@ -15,6 +15,8 @@
 #include "Data/StructureData.hpp"
 #include "Data/StructureDataLoader.hpp"
 
+#include "Object/StructureObjectPOD.hpp"
+
 #include "GameConstants.hpp"
 
 // Forward declare
@@ -49,6 +51,9 @@ public:
     inline void setStructureID(uint32_t id) {structureID = id;}
 
     void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime, int worldSize, const sf::Color& color) const override;
+
+    StructureObjectPOD getPOD(sf::Vector2f chunkPosition);
+    void loadFromPOD(const StructureObjectPOD& pod, sf::Vector2f chunkPosition);
 
 private:
     StructureType structureType;

@@ -19,6 +19,8 @@
 #include "Entity/Entity.hpp"
 #include "Types/TileType.hpp"
 
+#include "World/ChunkPOD.hpp"
+
 #include "Data/typedefs.hpp"
 #include "Data/PlanetGenData.hpp"
 #include "Data/PlanetGenDataLoader.hpp"
@@ -163,6 +165,10 @@ public:
     // -- Structures -- //
     bool isPlayerInStructureEntrance(sf::Vector2f playerPos, StructureEnterEvent& enterEvent);
 
+
+    // Save / load
+    std::vector<ChunkPOD> getChunkPODs();
+    void loadFromChunkPODs(const std::vector<ChunkPOD>& pods);
     
 
     // Misc

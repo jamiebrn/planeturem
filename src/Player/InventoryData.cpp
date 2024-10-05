@@ -182,17 +182,3 @@ std::optional<ItemCount>& InventoryData::getItemSlotData(int index)
 
     return itemSlotData;
 }
-
-void InventoryData::writeToBinaryFile(std::fstream& out)
-{
-    out.write((char*)&inventorySize, sizeof(int));
-    out.write((char*)inventoryData.data(), sizeof(std::optional<ItemCount>) * inventoryData.size());
-}
-
-void InventoryData::readFromBinaryFile(std::fstream& in)
-{
-    in.read((char*)&inventorySize, sizeof(int));
-
-    inventoryData = std::vector<std::optional<ItemCount>>(inventorySize);
-    in.read((char*)inventoryData.data(), sizeof(std::optional<ItemCount>) * inventorySize);
-}

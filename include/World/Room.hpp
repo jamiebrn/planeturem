@@ -6,6 +6,12 @@
 #include <array>
 #include <optional>
 
+#include <extlib/cereal/archives/binary.hpp>
+#include <extlib/cereal/types/memory.hpp>
+#include <extlib/cereal/types/array.hpp>
+#include <extlib/cereal/types/vector.hpp>
+#include <extlib/cereal/types/optional.hpp>
+
 #include "Core/CollisionRect.hpp"
 #include "Core/TextureManager.hpp"
 #include "Core/Camera.hpp"
@@ -46,6 +52,13 @@ public:
     sf::Vector2i getSelectedTile(sf::Vector2f mouseWorldPos);
 
     void draw(sf::RenderTarget& window) const;
+
+
+    template <class Archive>
+    void serialize(Archive& ar)
+    {
+        ar(tileSize.x, tileSize.y, textureRect.left, textureRect.top, textureRect.width, textureRect.height, collisionBitmaskOffset.x, collisionBitmaskOffset.y, objectsInRoom);
+    }
 
 private:
     void createObjects(ChestDataPool& chestDataPool);

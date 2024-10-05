@@ -4,37 +4,46 @@
 #include <string>
 #include <unordered_map>
 #include <iostream>
+#include <vector>
 
+#include <extlib/cereal/archives/binary.hpp>
+#include <extlib/cereal/types/vector.hpp>
 #include <SFML/System/Vector2.hpp>
 
-#include "World/ChunkPosition.hpp"
-#include "World/Chunk.hpp"
+#include "World/ChunkPOD.hpp"
+#include "World/ChestDataPool.hpp"
 #include "Player/InventoryData.hpp"
+
+#include "Data/typedefs.hpp"
+
+struct GameSave
+{
+    int seed;
+    sf::Vector2f playerPos;
+    InventoryData inventory;
+
+    std::vector<ChunkPOD> chunks;
+
+    PlanetType planetType;
+
+    ChestDataPool chestDataPool;
+
+    template <class Archive>
+    void serialize(Archive& ar)
+    {
+        ar(seed, planetType, playerPos.x, playerPos.y, inventory, chunks, chestDataPool);
+    }
+};
 
 class GameSaveIO
 {
 public:
     GameSaveIO(std::string fileName);
-
-    void beginWrite();
-    void beginLoad();
-
-    void end();
-
-    int loadSeed();
-    void writeSeed(int seed);
-
-    sf::Vector2f loadPosition();
-    void writePosition(sf::Vector2f position);
-
-    InventoryData loadInventory();
-    void writeInventory(InventoryData inventory);
-
-    std::unordered_map<ChunkPosition, Chunk> loadChunks();
-    void writeChunks(const std::unordered_map<ChunkPosition, Chunk>& chunks);
+    
+    GameSave load();
+    void write(GameSave gameSave);
 
 private:
     std::string fileName;
 
-    std::fstream io;
 };

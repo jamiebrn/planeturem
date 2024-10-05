@@ -6,6 +6,11 @@
 #include <unordered_map>
 #include <fstream>
 
+#include <extlib/cereal/archives/binary.hpp>
+#include <extlib/cereal/types/vector.hpp>
+#include <extlib/cereal/types/utility.hpp>
+#include <extlib/cereal/types/optional.hpp>
+
 #include "Data/typedefs.hpp"
 #include "Data/ItemDataLoader.hpp"
 #include "Data/ObjectDataLoader.hpp"
@@ -35,8 +40,11 @@ public:
 
     inline const std::vector<std::optional<ItemCount>>& getData() {return inventoryData;}
 
-    void writeToBinaryFile(std::fstream& out);
-    void readFromBinaryFile(std::fstream& in);
+    template <class Archive>
+    void serialize(Archive & ar)
+    {
+        ar(inventoryData);
+    }
 
 private:
     std::vector<std::optional<ItemCount>> inventoryData;

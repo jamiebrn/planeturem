@@ -28,8 +28,6 @@ void Chunk::generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNo
     Chunk* leftChunk = chunkManager.getChunk(ChunkPosition(((chunkPosition.x - 1) % worldSize + worldSize) % worldSize, chunkPosition.y));
     Chunk* rightChunk = chunkManager.getChunk(ChunkPosition(((chunkPosition.x + 1) % worldSize + worldSize) % worldSize, chunkPosition.y));
 
-    std::set<int> tileMapsModified;
-
     // Create random generator for chunk
     unsigned long int randSeed = chunkManager.getSeed() ^ chunkPosition.hash();
     RandInt randGen(randSeed);
@@ -78,10 +76,6 @@ void Chunk::generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNo
                 continue;
             }
 
-            // Set tile without graphics update
-            std::set<int> additional_tileMapsModified = chunkManager.setChunkTile(chunkPosition, tileType, sf::Vector2i(x, y), false);
-            tileMapsModified.insert(additional_tileMapsModified.begin(), additional_tileMapsModified.end());
-
             if (objectGrid[y][x].has_value())
                 continue;
 
@@ -114,11 +108,43 @@ void Chunk::generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNo
         }
     }
 
+    generateTilemapsAndInit(heightNoise, biomeNoise, planetType, worldSize, chunkManager);
+}
+
+void Chunk::generateTilemapsAndInit(const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, int worldSize, ChunkManager& chunkManager)
+{
+    Chunk* upChunk = chunkManager.getChunk(ChunkPosition(chunkPosition.x, ((chunkPosition.y - 1) % worldSize + worldSize) % worldSize));
+    Chunk* downChunk = chunkManager.getChunk(ChunkPosition(chunkPosition.x, ((chunkPosition.y + 1) % worldSize + worldSize) % worldSize));
+    Chunk* leftChunk = chunkManager.getChunk(ChunkPosition(((chunkPosition.x - 1) % worldSize + worldSize) % worldSize, chunkPosition.y));
+    Chunk* rightChunk = chunkManager.getChunk(ChunkPosition(((chunkPosition.x + 1) % worldSize + worldSize) % worldSize, chunkPosition.y));
+
+    std::set<int> tileMapsModified;
+
+    for (int y = 0; y < CHUNK_TILE_SIZE; y++)
+    {
+        for (int x = 0; x < CHUNK_TILE_SIZE; x++)
+        {
+            int tileType = groundTileGrid[y][x];
+
+            // Tile is water
+            if (tileType == 0)
+            {
+                continue;
+            }
+
+            // Set tile without graphics update
+            std::set<int> additional_tileMapsModified = chunkManager.setChunkTile(chunkPosition, tileType, sf::Vector2i(x, y), false);
+            tileMapsModified.insert(additional_tileMapsModified.begin(), additional_tileMapsModified.end());
+        }
+    }
+
     chunkManager.performChunkSetTileUpdate(chunkPosition, tileMapsModified);
 
     generateVisualEffectTiles(heightNoise, biomeNoise, planetType, worldSize, chunkManager);
 
     recalculateCollisionRects(chunkManager);
+
+    generatedFromPOD = false;
 }
 
 void Chunk::generateRandomStructure(int worldSize, const FastNoise& biomeNoise, RandInt& randGen, PlanetType planetType)
@@ -1160,6 +1186,93 @@ bool Chunk::isPlayerInStructureEntrance(sf::Vector2f playerPos, StructureEnterEv
     }
 
     return inEntrance;
+}
+
+ChunkPOD Chunk::getChunkPOD()
+{
+    ChunkPOD pod;
+    pod.chunkPosition = chunkPosition;
+    pod.groundTileGrid = groundTileGrid;
+    pod.modified = modified;
+
+    for (int y = 0; y < 8; y++)
+    {
+        for (int x = 0; x < 8; x++)
+        {
+            if (objectGrid[y][x].has_value())
+            {
+                pod.objectGrid[y][x] = objectGrid[y][x]->getPOD();
+            }
+            else
+            {
+                pod.objectGrid[y][x] = std::nullopt;
+            }
+        }
+    }
+
+    for (auto& entity : entities)
+    {
+        pod.entities.push_back(entity->getPOD(worldPosition));
+    }
+
+    if (structureObject.has_value())
+    {
+        pod.structureObject = structureObject->getPOD(worldPosition);
+    }
+    else
+    {
+        pod.structureObject = std::nullopt;
+    }
+
+    return pod;
+}
+
+void Chunk::loadFromChunkPOD(const ChunkPOD& pod)
+{
+    generatedFromPOD = true;
+    modified = pod.modified;
+
+    groundTileGrid = pod.groundTileGrid;
+    worldPosition = sf::Vector2f(chunkPosition.x * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED, chunkPosition.y * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED);
+
+    for (int y = 0; y < 8; y++)
+    {
+        for (int x = 0; x < 8; x++)
+        {
+            const std::optional<BuildableObjectPOD>& objectPOD = pod.objectGrid[y][x];
+            if (objectPOD.has_value())
+            {
+                BuildableObject object(sf::Vector2f(worldPosition.x + (x + 0.5f) * CHUNK_TILE_SIZE, worldPosition.y + (y + 0.5f) * CHUNK_TILE_SIZE), objectPOD->objectType);
+
+                object.loadFromPOD(objectPOD.value());
+
+                objectGrid[y][x] = object;
+            }
+            else
+            {
+                objectGrid[y][x] = std::nullopt;
+            }
+        }
+    }
+
+    for (const EntityPOD& entityPOD : pod.entities)
+    {
+        std::unique_ptr<Entity> entity = std::make_unique<Entity>(sf::Vector2f(0, 0), 0);
+        entity->loadFromPOD(entityPOD, worldPosition);
+        entities.push_back(std::move(entity));
+    }
+
+    if (pod.structureObject.has_value())
+    {
+        StructureObject structure(sf::Vector2f(0, 0), 0);
+        structure.loadFromPOD(pod.structureObject.value(), worldPosition);
+        structureObject = structure;
+    }
+}
+
+bool Chunk::wasGeneratedFromPOD()
+{
+    return generatedFromPOD;
 }
 
 void Chunk::setWorldPosition(sf::Vector2f position, ChunkManager& chunkManager)

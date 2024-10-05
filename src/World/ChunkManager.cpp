@@ -92,8 +92,17 @@ void ChunkManager::updateChunks()
                 loadedChunks[ChunkPosition(wrappedX, wrappedY)] = std::move(storedChunks[ChunkPosition(wrappedX, wrappedY)]);
                 storedChunks.erase(ChunkPosition(wrappedX, wrappedY));
 
+                auto& chunk = loadedChunks[ChunkPosition(wrappedX, wrappedY)];
+
                 // Update chunk position
-                loadedChunks[ChunkPosition(wrappedX, wrappedY)]->setWorldPosition(chunkWorldPos, *this);
+                chunk->setWorldPosition(chunkWorldPos, *this);
+
+                // If chunk was loaded through POD / save file, has not yet been initialised (tilemaps, collision etc)
+                // Therefore must initialise
+                if (chunk->wasGeneratedFromPOD())
+                {
+                    chunk->generateTilemapsAndInit(heightNoise, biomeNoise, planetType, worldSize, *this);
+                }
 
                 continue;
             }
@@ -737,6 +746,38 @@ bool ChunkManager::isPlayerInStructureEntrance(sf::Vector2f playerPos, Structure
     }
 
     return false;   
+}
+
+std::vector<ChunkPOD> ChunkManager::getChunkPODs()
+{
+    std::vector<ChunkPOD> pods;
+
+    clearUnmodifiedStoredChunks();
+
+    for (auto iter = storedChunks.begin(); iter != storedChunks.end(); ++iter)
+    {
+        pods.push_back(iter->second->getChunkPOD());
+    }
+
+    for (auto iter = loadedChunks.begin(); iter != loadedChunks.end(); ++iter)
+    {
+        pods.push_back(iter->second->getChunkPOD());
+    }
+
+    return pods;
+}
+
+void ChunkManager::loadFromChunkPODs(const std::vector<ChunkPOD>& pods)
+{
+    deleteAllChunks();
+
+    for (const ChunkPOD& pod : pods)
+    {
+        std::unique_ptr<Chunk> chunk = std::make_unique<Chunk>(pod.chunkPosition);
+        chunk->loadFromChunkPOD(pod);
+
+        storedChunks[pod.chunkPosition] = std::move(chunk);
+    }
 }
 
 sf::Vector2f ChunkManager::findValidSpawnPosition(int waterlessAreaSize)

@@ -9,6 +9,18 @@ ChestDataPool::ChestDataPool()
     topDataSlot = 0;
 }
 
+ChestDataPool::ChestDataPool(const ChestDataPool& pool)
+{
+    chestData.reset(new std::array<std::optional<InventoryData>, 0xFFFF - 1>(*pool.chestData));
+    openDataSlots = pool.openDataSlots;
+    topDataSlot = pool.topDataSlot;
+}
+
+ChestDataPool &ChestDataPool::operator=(const ChestDataPool& pool)
+{
+    *this = pool;
+}
+
 // ID 0xFFFF returned means chest was not initialised, as data is full
 uint16_t ChestDataPool::createChest(InventoryData chestContents)
 {

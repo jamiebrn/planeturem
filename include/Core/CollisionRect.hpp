@@ -4,6 +4,8 @@
 #include <cmath>
 #include <algorithm>
 
+#include <extlib/cereal/archives/binary.hpp>
+
 #include "Core/ResolutionHandler.hpp"
 #include "Core/Camera.hpp"
 
@@ -23,4 +25,10 @@ struct CollisionRect
     bool isPointInRect(float x, float y) const;
 
     void debugDraw(sf::RenderTarget& window, sf::Color color = {255, 0, 0, 120}) const;
+
+    template <class Archive>
+    void serialize(Archive& ar)
+    {
+        ar(x, y, width, height);
+    }
 };

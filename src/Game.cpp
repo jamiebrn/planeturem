@@ -1659,13 +1659,15 @@ bool Game::saveGame()
 {
     GameSaveIO io("save.dat");
 
-    io.beginWrite();
+    GameSave gameSave;
+    gameSave.seed = chunkManager.getSeed();
+    gameSave.planetType = chunkManager.getPlanetType();
+    gameSave.playerPos = player.getPosition();
+    gameSave.inventory = inventory;
+    gameSave.chunks = chunkManager.getChunkPODs();
+    gameSave.chestDataPool = chestDataPool;
 
-    io.writeSeed(chunkManager.getSeed());
-    io.writePosition(player.getPosition());
-    io.writeInventory(inventory);
-
-    io.end();
+    io.write(gameSave);
 
     return true;
 }
@@ -1674,19 +1676,20 @@ bool Game::loadGame()
 {
     GameSaveIO io("save.dat");
 
-    io.beginLoad();
-
     chunkManager.deleteAllChunks();
+    closeChest();
 
-    chunkManager.setSeed(io.loadSeed());
-    player.setPosition(io.loadPosition());
-    inventory = io.loadInventory();
+    GameSave gameSave = io.load();
+    chunkManager.setSeed(gameSave.seed);
+    chunkManager.setPlanetType(gameSave.planetType);
+    player.setPosition(gameSave.playerPos);
+    inventory = gameSave.inventory;
+    chunkManager.loadFromChunkPODs(gameSave.chunks);
+    chestDataPool = gameSave.chestDataPool;
 
     Camera::instantUpdate(player.getPosition());
 
     chunkManager.updateChunks();
-
-    io.end();
 
     return true;
 }

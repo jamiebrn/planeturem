@@ -1,6 +1,6 @@
 #include "Entity/Entity.hpp"
 
-Entity::Entity(sf::Vector2f position, unsigned int entityType)
+Entity::Entity(sf::Vector2f position, EntityType entityType)
     : WorldObject(position)
 {
     this->entityType = entityType;
@@ -159,7 +159,7 @@ void Entity::setWorldPosition(sf::Vector2f newPosition)
     collisionRect.y = newPosition.y - collisionRect.height / 2.0f;
 }
 
-unsigned int Entity::getEntityType()
+EntityType Entity::getEntityType()
 {
     return entityType;
 }
@@ -172,4 +172,20 @@ sf::Vector2f Entity::getSize()
 const CollisionRect& Entity::getCollisionRect()
 {
     return collisionRect;
+}
+
+EntityPOD Entity::getPOD(sf::Vector2f chunkPosition)
+{
+    EntityPOD pod;
+    pod.entityType = entityType;
+    pod.chunkRelativePosition = position - chunkPosition;
+    pod.velocity = velocity;
+    return pod;
+}
+
+void Entity::loadFromPOD(const EntityPOD& pod, sf::Vector2f chunkPosition)
+{
+    entityType = pod.entityType;
+    position = pod.chunkRelativePosition + chunkPosition;
+    velocity = pod.velocity;
 }

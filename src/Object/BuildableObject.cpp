@@ -257,3 +257,21 @@ bool BuildableObject::dummyHasCollision()
 {
     return (objectType == DUMMY_OBJECT_COLLISION);
 }
+
+
+// Save / load
+BuildableObjectPOD BuildableObject::getPOD()
+{
+    BuildableObjectPOD pod;
+    pod.objectType = objectType;
+    pod.chestID = chestID;
+    pod.objectReference = objectReference;
+    return pod;
+}
+
+void BuildableObject::loadFromPOD(const BuildableObjectPOD& pod)
+{
+    objectType = pod.objectType;
+    chestID = pod.chestID;
+    objectReference = pod.objectReference;
+}

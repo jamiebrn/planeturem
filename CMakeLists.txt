@@ -28,13 +28,14 @@ option(IMGUI_SFML_IMGUI_DEMO "Build imgui_demo.cpp" OFF)
 FetchContent_MakeAvailable(imgui-sfml)
 
 include_directories(include/)
-include_directories(steam/)
+include_directories(include/steam/)
+include_directories(include/extlib/)
 include_directories(${imgui_SOURCE_DIR})
 
 file(GLOB_RECURSE SRC_FILES src/*.cpp)
 file(GLOB IMGUI_FILES ${imgui_SOURCE_DIR}/*.cpp)
 
-link_directories(steam/lib/win64)
+link_directories(include/extlib/steam/lib/win64)
 
 add_executable(spacebuild ${SRC_FILES} ${IMGUI_FILES})
 target_link_libraries(spacebuild PRIVATE sfml-graphics)

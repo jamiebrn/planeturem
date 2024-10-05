@@ -56,3 +56,31 @@ void StructureObject::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, f
     
     spriteBatch.draw(window, textureDrawData, structureData.textureRect);
 }
+
+StructureObjectPOD StructureObject::getPOD(sf::Vector2f chunkPosition)
+{
+    StructureObjectPOD pod;
+    pod.structureType = structureType;
+    pod.structureID = structureID;
+    pod.relativePos = position - chunkPosition;
+    pod.warpEntranceRectRelative = warpEntranceRect;
+    if (warpEntranceRect.has_value())
+    {
+        pod.warpEntranceRectRelative->x -= chunkPosition.x;
+        pod.warpEntranceRectRelative->y -= chunkPosition.y;
+    }
+    return pod;
+}
+
+void StructureObject::loadFromPOD(const StructureObjectPOD& pod, sf::Vector2f chunkPosition)
+{
+    structureType = pod.structureType;
+    structureID = pod.structureID;
+    position = chunkPosition + pod.relativePos;
+    warpEntranceRect = pod.warpEntranceRectRelative;
+    if (warpEntranceRect.has_value())
+    {
+        warpEntranceRect->x += chunkPosition.x;
+        warpEntranceRect->y += chunkPosition.y;
+    }
+}

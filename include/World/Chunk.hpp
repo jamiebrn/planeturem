@@ -35,6 +35,8 @@
 #include "Data/StructureData.hpp"
 #include "Data/StructureDataLoader.hpp"
 
+#include "World/ChunkPOD.hpp"
+
 #include "GameConstants.hpp"
 #include "DebugOptions.hpp"
 
@@ -50,6 +52,11 @@ public:
 
     // Initialisation / generation
     void generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, int worldSize, ChunkManager& chunkManager);
+
+    // Generates tilemaps and calls functions to generate visual tiles and calculate collision rects
+    // Called during chunk generation
+    // Also used to initialise a chunk when loaded into view after being loaded through POD / save file
+    void generateTilemapsAndInit(const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, int worldSize, ChunkManager& chunkManager);
 
     void generateVisualEffectTiles(const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, int worldSize, ChunkManager& chunkManager);
 
@@ -141,6 +148,12 @@ public:
     bool isPlayerInStructureEntrance(sf::Vector2f playerPos, StructureEnterEvent& enterEvent);
 
 
+    // Save / load
+    ChunkPOD getChunkPOD();
+    void loadFromChunkPOD(const ChunkPOD& pod);
+    bool wasGeneratedFromPOD();
+    
+
     // Misc
     void setWorldPosition(sf::Vector2f position, ChunkManager& chunkManager);
     sf::Vector2f getWorldPosition();
@@ -193,5 +206,9 @@ private:
     bool containsWater;
 
     bool modified;
+
+    // Is true if this chunk was loaded from POD / save file
+    // Used to determine whether to generate tilemaps for the chunk when loaded
+    bool generatedFromPOD = false;
 
 };

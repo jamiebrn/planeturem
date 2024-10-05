@@ -16,6 +16,8 @@
 #include "Data/ItemData.hpp"
 #include "Player/InventoryData.hpp"
 
+#include "Entity/EntityPOD.hpp"
+
 #include "GUI/InventoryGUI.hpp"
 
 #include "DebugOptions.hpp"
@@ -25,7 +27,8 @@ class ChunkManager;
 class Entity : public WorldObject
 {
 public:
-    Entity(sf::Vector2f position, unsigned int entityType);
+    Entity(sf::Vector2f position, EntityType entityType);
+    Entity();
 
     void update(float dt, ChunkManager& chunkManager, bool onWater);
 
@@ -39,7 +42,7 @@ public:
 
     void setWorldPosition(sf::Vector2f newPosition);
 
-    unsigned int getEntityType();
+    EntityType getEntityType();
 
     sf::Vector2f getSize();
 
@@ -47,8 +50,11 @@ public:
 
     inline bool isAlive() {return health > 0;}
 
+    EntityPOD getPOD(sf::Vector2f chunkPosition);
+    void loadFromPOD(const EntityPOD& pod, sf::Vector2f chunkPosition);
+
 private:
-    unsigned int entityType;
+    EntityType entityType;
     int health;
     float flash_amount;
 

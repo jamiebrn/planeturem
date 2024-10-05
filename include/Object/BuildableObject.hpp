@@ -1,8 +1,6 @@
 #pragma once
 
 #include <SFML/Graphics.hpp>
-#include <steam_api.h>
-#include <isteamuserstats.h>
 #include <optional>
 #include <iostream>
 
@@ -15,11 +13,13 @@
 #include "Core/SpriteBatch.hpp"
 #include "Object/WorldObject.hpp"
 #include "Object/ObjectReference.hpp"
+#include "Object/BuildableObjectPOD.hpp"
 #include "Player/InventoryData.hpp"
 #include "Data/ObjectData.hpp"
 #include "Data/ObjectDataLoader.hpp"
 
 #include "GUI/InventoryGUI.hpp"
+
 
 enum ObjectInteraction
 {
@@ -91,6 +91,11 @@ public:
     bool isDummyObject();
 
     bool dummyHasCollision();
+
+    // Save / load
+
+    BuildableObjectPOD getPOD();
+    void loadFromPOD(const BuildableObjectPOD& pod);
 
 private:
     void drawRocket(sf::RenderTarget& window, SpriteBatch& spriteBatch, const sf::Color& color) const;
