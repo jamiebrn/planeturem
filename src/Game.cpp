@@ -70,6 +70,7 @@ bool Game::initialise()
 
     // Initialise values
     gameTime = 0;
+    mainMenuState = MainMenuState::Main;
     gameState = GameState::MainMenu;
     destinationGameState = gameState;
     transitionGameStateTimer = 0.0f;
@@ -419,26 +420,100 @@ void Game::runMainMenu(float dt)
     TextDraw::drawText(window, titleTextDrawData);
 
     // Buttons / UI
-    if (guiContext.createButton(window.getSize().x / 2.0f - 100 * intScale, window.getSize().y / 2.0f, 200 * intScale, 75 * intScale, "Start"))
+    switch (mainMenuState)
     {
-        if (!isStateTransitioning())
+        case MainMenuState::Main:
         {
-            startChangeStateTransition(GameState::OnPlanet);
+            if (guiContext.createButton(window.getSize().x / 2.0f - 100 * intScale, window.getSize().y / 2.0f - 200.0f * intScale, 200 * intScale, 75 * intScale, "New"))
+            {
+                currentSaveName = "";
+                worldSeed = "";
+                mainMenuState = MainMenuState::StartingNew;
+            }
+
+            if (guiContext.createButton(window.getSize().x / 2.0f - 100 * intScale, window.getSize().y / 2.0f - 50 * intScale, 200 * intScale, 75 * intScale, "Load"))
+            {
+                currentSaveName = "";
+                worldSeed = "";
+                mainMenuState = MainMenuState::SelectingLoad;
+            }
+
+            if (guiContext.createButton(window.getSize().x / 2.0f - 100 * intScale, window.getSize().y / 2.0f + 100 * intScale, 200 * intScale, 75 * intScale, "Options"))
+            {
+                mainMenuState = MainMenuState::Options;
+            }
+
+            if (guiContext.createButton(window.getSize().x / 2.0f - 100 * intScale, window.getSize().y / 2.0f + 250 * intScale, 200 * intScale, 75 * intScale, "Exit"))
+            {
+                window.close();
+                ImGui::SFML::Shutdown();
+            }
+            break;
         }
-    }
+        case MainMenuState::StartingNew:
+        {
+            guiContext.createTextEnter(window.getSize().x / 2.0f - 200 * intScale, window.getSize().y / 2.0f - 100.0f * intScale,
+                400 * intScale, 40 * intScale, "Name", &currentSaveName);
 
-    float musicVolume = Sounds::getMusicVolume();
-    if (guiContext.createSlider(window.getSize().x / 2.0f - 200 * intScale, window.getSize().y / 2.0f + 200 * intScale, 400 * intScale, 15 * intScale,
-        0.0f, 100.0f, &musicVolume, "Music Volume"))
-    {
-        Sounds::setMusicVolume(musicVolume);
-    }
+            guiContext.createTextEnter(window.getSize().x / 2.0f - 200 * intScale, window.getSize().y / 2.0f + 150 * intScale,
+            400 * intScale, 40 * intScale, "Seed", &worldSeed);
 
-    guiContext.createTextEnter(window.getSize().x / 2.0f - 200 * intScale, window.getSize().y / 2.0f + 400 * intScale, 400 * intScale, 40 * intScale, "Seed", &worldSeed);
+            if (guiContext.createButton(window.getSize().x / 2.0f - 100 * intScale, window.getSize().y / 2.0f + 300 * intScale, 200 * intScale, 75 * intScale, "Start"))
+            {
+                if (!isStateTransitioning())
+                {
+                    travelToPlanet(PlanetGenDataLoader::getPlanetTypeFromName("Earthlike"));
+                    startChangeStateTransition(GameState::OnPlanet);
+                }
+            }
+            
+            if (guiContext.createButton(window.getSize().x / 2.0f - 100 * intScale, window.getSize().y - 150 * intScale, 200 * intScale, 75 * intScale, "Back"))
+            {
+                mainMenuState = MainMenuState::Main;
+            }
+            break;
+        }
+        case MainMenuState::SelectingLoad:
+        {
+            guiContext.createTextEnter(window.getSize().x / 2.0f - 200 * intScale, window.getSize().y / 2.0f - 100.0f * intScale,
+                400 * intScale, 40 * intScale, "Save Name", &currentSaveName);
+            
+            if (guiContext.createButton(window.getSize().x / 2.0f - 100 * intScale, window.getSize().y / 2.0f + 200 * intScale, 200 * intScale, 75 * intScale, "Load"))
+            {
+                if (!isStateTransitioning())
+                {
+                    if (loadGame())
+                    {
+                        startChangeStateTransition(GameState::OnPlanet);
+                    }
+                    else
+                    {
+                        std::cout << "Failed to load game\n";
+                    }
+                }
+            }
 
-    for (int i = 0; i < 3; i++)
-    {
-        guiContext.createCheckbox(50, 50 + 100 * i, 60, 60, "Checkbox " + std::to_string(i), &dummyBool[i]);
+            if (guiContext.createButton(window.getSize().x / 2.0f - 100 * intScale, window.getSize().y - 150 * intScale, 200 * intScale, 75 * intScale, "Back"))
+            {
+                mainMenuState = MainMenuState::Main;
+            }
+            break;
+        }
+        case MainMenuState::Options:
+        {
+            float musicVolume = Sounds::getMusicVolume();
+            if (guiContext.createSlider(window.getSize().x / 2.0f - 200 * intScale, window.getSize().y / 2.0f, 400 * intScale, 15 * intScale,
+                0.0f, 100.0f, &musicVolume, "Music Volume"))
+            {
+                Sounds::setMusicVolume(musicVolume);
+            }
+
+            if (guiContext.createButton(window.getSize().x / 2.0f - 100 * intScale, window.getSize().y - 150 * intScale, 200 * intScale, 75 * intScale, "Back"))
+            {
+                mainMenuState = MainMenuState::Main;
+            }
+            break;
+        }
     }
 
     guiContext.draw(window);
@@ -1225,7 +1300,7 @@ void Game::drawGhostPlaceObjectAtCursor(ObjectType object)
     if (canPlace && inRange)
         drawColor = sf::Color(0, 255, 0, 180);
     
-    BuildableObject objectGhost(Cursor::getLerpedSelectPos() + sf::Vector2f(TILE_SIZE_PIXELS_UNSCALED / 2.0f, TILE_SIZE_PIXELS_UNSCALED / 2.0f), object);
+    BuildableObject objectGhost(Cursor::getLerpedSelectPos() + sf::Vector2f(TILE_SIZE_PIXELS_UNSCALED / 2.0f, TILE_SIZE_PIXELS_UNSCALED / 2.0f), object, false);
 
     objectGhost.draw(window, spriteBatch, 0.0f, 0, chunkManager.getWorldSize(), drawColor);
 
@@ -1621,11 +1696,7 @@ void Game::changeState(GameState newState)
         }
         case GameState::OnPlanet:
         {
-            if (gameState == GameState::MainMenu)
-            {
-                travelToPlanet(PlanetGenDataLoader::getPlanetTypeFromName("Earthlike"));
-            }
-            else if (gameState == GameState::InStructure)
+            if (gameState == GameState::InStructure)
             {
                 // Exit structure
                 structureEnteredID = 0xFFFFFFFF;
@@ -1657,7 +1728,7 @@ void Game::updateDayNightCycle(float dt)
 // Save / load
 bool Game::saveGame()
 {
-    GameSaveIO io("save.dat");
+    GameSaveIO io(currentSaveName);
 
     GameSave gameSave;
     gameSave.seed = chunkManager.getSeed();
@@ -1666,6 +1737,7 @@ bool Game::saveGame()
     gameSave.inventory = inventory;
     gameSave.chunks = chunkManager.getChunkPODs();
     gameSave.chestDataPool = chestDataPool;
+    gameSave.structureRoomPool = structureRoomPool;
 
     io.write(gameSave);
 
@@ -1674,18 +1746,23 @@ bool Game::saveGame()
 
 bool Game::loadGame()
 {
-    GameSaveIO io("save.dat");
+    GameSaveIO io(currentSaveName);
 
-    chunkManager.deleteAllChunks();
+    GameSave gameSave;
+    if (!io.load(gameSave))
+    {
+        return false;
+    }
+
     closeChest();
-
-    GameSave gameSave = io.load();
+    
     chunkManager.setSeed(gameSave.seed);
     chunkManager.setPlanetType(gameSave.planetType);
     player.setPosition(gameSave.playerPos);
     inventory = gameSave.inventory;
     chunkManager.loadFromChunkPODs(gameSave.chunks);
     chestDataPool = gameSave.chestDataPool;
+    structureRoomPool = gameSave.structureRoomPool;
 
     Camera::instantUpdate(player.getPosition());
 

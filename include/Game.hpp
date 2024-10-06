@@ -165,11 +165,13 @@ private:
 
     GUIContext guiContext;
     std::string worldSeed;
+    std::string currentSaveName;
+    std::string menuErrorMessage;
     
     // Menu
+    MainMenuState mainMenuState;
     int menuScreenshotIndex;
     float menuScreenshotTimer;
-    bool dummyBool[3] = {false, false, false};
 
     SpriteBatch spriteBatch;
     sf::RenderTexture worldTexture;

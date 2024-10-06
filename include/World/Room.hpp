@@ -7,8 +7,6 @@
 #include <optional>
 
 #include <extlib/cereal/archives/binary.hpp>
-#include <extlib/cereal/types/memory.hpp>
-#include <extlib/cereal/types/array.hpp>
 #include <extlib/cereal/types/vector.hpp>
 #include <extlib/cereal/types/optional.hpp>
 
@@ -19,6 +17,7 @@
 
 #include "Object/WorldObject.hpp"
 #include "Object/BuildableObject.hpp"
+#include "Object/BuildableObjectPOD.hpp"
 
 #include "Player/InventoryData.hpp"
 #include "World/ChestDataPool.hpp"
@@ -31,6 +30,7 @@
 class Room
 {
 public:
+    Room();
     Room(const RoomData& roomData, ChestDataPool& chestDataPool);
 
     bool handleStaticCollisionX(CollisionRect& collisionRect, float dx) const;
@@ -54,16 +54,31 @@ public:
     void draw(sf::RenderTarget& window) const;
 
 
-    // template <class Archive>
-    // void serialize(Archive& ar)
-    // {
-    //     ar(tileSize.x, tileSize.y, textureRect.left, textureRect.top, textureRect.width, textureRect.height, collisionBitmaskOffset.x, collisionBitmaskOffset.y, objectsInRoom);
-    // }
+    // Save / load
+    template<class Archive>
+    void save(Archive& archive) const
+    {
+        std::vector<std::vector<std::optional<BuildableObjectPOD>>> pods = getObjectPODs();
+        archive(roomData, pods);
+    }
+
+    template<class Archive>
+    void load(Archive& archive)
+    {
+        std::vector<std::vector<std::optional<BuildableObjectPOD>>> pods;
+        
+        archive(roomData, pods);
+
+        loadObjectPODs(pods);
+    }
 
 private:
     void createObjects(ChestDataPool& chestDataPool);
 
     void createCollisionRects();
+    
+    std::vector<std::vector<std::optional<BuildableObjectPOD>>> getObjectPODs() const;
+    void loadObjectPODs(const std::vector<std::vector<std::optional<BuildableObjectPOD>>>& pods);
 
 private:
     RoomData roomData;

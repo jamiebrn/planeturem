@@ -40,7 +40,7 @@ constexpr int DUMMY_OBJECT_NO_COLLISION = -11;
 class BuildableObject : public WorldObject
 {
 public:
-    BuildableObject(sf::Vector2f position, ObjectType objectType);
+    BuildableObject(sf::Vector2f position, ObjectType objectType, bool randomiseAnimation = true);
 
     void update(float dt, bool onWater);
 
@@ -94,7 +94,7 @@ public:
 
     // Save / load
 
-    BuildableObjectPOD getPOD();
+    BuildableObjectPOD getPOD() const;
     void loadFromPOD(const BuildableObjectPOD& pod);
 
 private:

@@ -5,105 +5,47 @@ GameSaveIO::GameSaveIO(std::string fileName)
     this->fileName = fileName;
 }
 
-GameSave GameSaveIO::load()
+bool GameSaveIO::load(GameSave& gameSave)
 {
-    std::fstream in(fileName, std::ios::in | std::ios::binary);
+    std::filesystem::path dir("Saves/" + fileName + ".dat");
+
+    if (!std::filesystem::exists(dir))
+    {
+        return false;
+    }
+
+    std::fstream in("Saves/" + fileName + ".dat", std::ios::in | std::ios::binary);
+
+    if (!in)
+    {
+        return false;
+    }
+
     cereal::BinaryInputArchive archive(in);
 
-    GameSave gameSave;
     archive(gameSave);
 
-    return gameSave;
+    return true;
 }
 
-void GameSaveIO::write(GameSave gameSave)
+bool GameSaveIO::write(const GameSave& gameSave)
 {
-    std::fstream out(fileName, std::ios::out | std::ios::binary);
+    std::filesystem::path dir("Saves");
+    if (!std::filesystem::exists(dir))
+    {
+        std::filesystem::create_directory(dir);
+    }
+
+    std::fstream out("Saves/" + fileName + ".dat", std::ios::out | std::ios::binary);
+
+    if (!out)
+    {
+        return false;
+    }
+
     cereal::BinaryOutputArchive archive(out);
 
     archive(gameSave);
+
+    return true;
 }
-
-// void GameSaveIO::beginWrite()
-// {
-//     io = std::fstream(fileName, std::ios::out | std::ios::binary);
-// }
-
-// void GameSaveIO::beginLoad()
-// {
-//     io = std::fstream(fileName, std::ios::in | std::ios::binary);
-// }
-
-// void GameSaveIO::end()
-// {
-//     io.close();
-// }
-
-// int GameSaveIO::loadSeed()
-// {
-//     if (io)
-//     {
-//         int seed = 0;
-//         io.read((char*)&seed, sizeof(seed));
-
-//         return seed;
-//     }
-//     else
-//     {
-//         std::cout << "Error loading\n";
-//     }
-
-//     return 0;
-// }
-
-// void GameSaveIO::writeSeed(int seed)
-// {
-//     if (io)
-//     {
-//         io.write((char*)&seed, sizeof(seed));
-//     }
-//     else
-//     {
-//         std::cout << "Error saving\n";
-//     }
-// }
-
-// sf::Vector2f GameSaveIO::loadPosition()
-// {
-//     sf::Vector2f pos;
-
-//     io.read((char*)&pos, sizeof(pos));
-
-//     return pos;
-// }
-
-// void GameSaveIO::writePosition(sf::Vector2f position)
-// {
-//     io.write((char*)&position, sizeof(position));
-// }
-
-// InventoryData GameSaveIO::loadInventory()
-// {
-//     InventoryData inventory;
-
-//     inventory.readFromBinaryFile(io);
-
-//     return inventory;
-// }
-
-// void GameSaveIO::writeInventory(InventoryData inventory)
-// {
-//     inventory.writeToBinaryFile(io);
-// }
-
-// std::unordered_map<ChunkPosition, Chunk> GameSaveIO::loadChunks()
-// {
-//     return {};
-// }
-
-// void GameSaveIO::writeChunks(const std::unordered_map<ChunkPosition, Chunk>& chunks)
-// {
-//     std::ofstream fout(fileName, std::ios::binary);
-
-
-// }

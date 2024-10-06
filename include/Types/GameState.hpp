@@ -6,3 +6,11 @@ enum GameState
     OnPlanet,
     InStructure
 };
+
+enum class MainMenuState
+{
+    Main,
+    StartingNew,
+    SelectingLoad,
+    Options
+};

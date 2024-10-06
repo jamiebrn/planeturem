@@ -49,6 +49,4 @@ public:
 private:
     std::vector<std::optional<ItemCount>> inventoryData;
 
-    int inventorySize;
-
 };

@@ -1,5 +1,10 @@
 #include "World/Room.hpp"
 
+Room::Room()
+{
+    
+}
+
 Room::Room(const RoomData& roomData, ChestDataPool& chestDataPool)
 {
     this->roomData = roomData;
@@ -69,6 +74,8 @@ void Room::createObjects(ChestDataPool& chestDataPool)
 
 void Room::createCollisionRects()
 {
+    collisionRects.clear();
+
     const sf::Image& bitmaskImage = TextureManager::getBitmask(BitmaskType::Structures);
 
     for (int x = 0; x < roomData.tileSize.x; x++)
@@ -185,9 +192,9 @@ sf::Vector2i Room::getSelectedTile(sf::Vector2f mouseWorldPos)
 std::vector<const WorldObject*> Room::getObjects() const
 {
     std::vector<const WorldObject*> objects;
-    for (int y = 0; y < roomData.tileSize.y; y++)
+    for (int y = 0; y < objectGrid.size(); y++)
     {
-        for (int x = 0; x < roomData.tileSize.x; x++)
+        for (int x = 0; x < objectGrid[y].size(); x++)
         {
             if (!objectGrid[y][x].has_value())
                 continue;
@@ -218,4 +225,59 @@ void Room::draw(sf::RenderTarget& window) const
             rect.debugDraw(window);
         }
     }
+}
+
+
+std::vector<std::vector<std::optional<BuildableObjectPOD>>> Room::getObjectPODs() const
+{
+    std::vector<std::vector<std::optional<BuildableObjectPOD>>> pods(objectGrid.size());
+    for (int y = 0; y < objectGrid.size(); y++)
+    {
+        pods[y].reserve(objectGrid[y].size());
+
+        for (int x = 0; x < objectGrid[y].size(); x++)
+        {
+            pods[y].emplace_back();
+
+            if (!objectGrid[y][x].has_value())
+            {
+                pods[y][x] = std::nullopt;
+                continue;
+            }
+
+            // Create POD for object
+            pods[y][x] = objectGrid[y][x]->getPOD();
+        }
+    }
+
+    return pods;
+}
+
+void Room::loadObjectPODs(const std::vector<std::vector<std::optional<BuildableObjectPOD>>>& pods)
+{
+    objectGrid.clear();
+
+    for (int y = 0; y < pods.size(); y++)
+    {
+        objectGrid.emplace_back(pods[y].size());
+
+        for (int x = 0; x < pods[y].size(); x++)
+        {
+            objectGrid[y].emplace_back();
+
+            if (!pods[y][x].has_value())
+            {
+                objectGrid[y][x] = std::nullopt;
+                continue;
+            }
+
+            // Object from POD
+            BuildableObject object(sf::Vector2f((x + 0.5f) * TILE_SIZE_PIXELS_UNSCALED, (y + 0.5f) * TILE_SIZE_PIXELS_UNSCALED), pods[y][x]->objectType);
+            object.loadFromPOD(pods[y][x].value());
+
+            objectGrid[y][x] = object;
+        }
+    }
+
+    createCollisionRects();
 }

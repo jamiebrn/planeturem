@@ -1,13 +1,9 @@
 #pragma once
 
-#include <memory>
-#include <array>
 #include <vector>
 #include <optional>
 
 #include <extlib/cereal/archives/binary.hpp>
-#include <extlib/cereal/types/memory.hpp>
-#include <extlib/cereal/types/array.hpp>
 #include <extlib/cereal/types/vector.hpp>
 #include <extlib/cereal/types/optional.hpp>
 
@@ -22,8 +18,6 @@ class ChestDataPool
 {
 public:
     ChestDataPool();
-    ChestDataPool(const ChestDataPool& pool);
-    ChestDataPool& operator=(const ChestDataPool& pool);
 
     // ID 0xFFFF returned means chest was not initialised, as data is full
     uint16_t createChest(InventoryData chestContents);
@@ -38,12 +32,12 @@ public:
     template <class Archive>
     void serialize(Archive& ar)
     {
-        ar(chestData, openDataSlots, topDataSlot);
+        ar(chestData, openDataSlots);
     }
 
 private:
     // 0xFFFF reserved for uninitialised chest / null
-    std::unique_ptr<std::array<std::optional<InventoryData>, 0xFFFF - 1>> chestData;
+    std::vector<std::optional<InventoryData>> chestData;
 
     std::vector<uint16_t> openDataSlots;
 

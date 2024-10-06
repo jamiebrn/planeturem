@@ -5,6 +5,7 @@
 #include <memory>
 #include <string>
 #include <optional>
+#include <iostream>
 
 #include <SFML/Graphics.hpp>
 

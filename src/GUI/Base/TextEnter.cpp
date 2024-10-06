@@ -34,9 +34,12 @@ TextEnter::TextEnter(const GUIInputState& inputState, ElementID id, int x, int y
     {
         if (inputState.backspaceJustPressed && textPtr->size() > 0)
         {
-            textPtr->pop_back();
+            textPtr->pop_back(); 
+            while (!textPtr->empty() && textPtr->back() == '\0') {
+                textPtr->pop_back();
+            }
         }
-
+        
         for (unsigned int character : inputState.charEnterBuffer)
         {
             *textPtr += character;

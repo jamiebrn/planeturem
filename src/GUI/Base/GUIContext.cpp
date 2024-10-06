@@ -30,7 +30,8 @@ void GUIContext::processEvent(const sf::Event& event)
 
     if (event.type == sf::Event::TextEntered)
     {
-        bool isChar = (event.key.code >= sf::Keyboard::A && event.key.code <= sf::Keyboard::Z) || event.key.code == sf::Keyboard::Space;
+        bool isChar = ((event.key.scancode >= sf::Keyboard::Scancode::A && event.key.scancode <= sf::Keyboard::Scancode::Num0)
+            || event.key.scancode == sf::Keyboard::Scancode::Space);
         if (isChar)
         {
         }

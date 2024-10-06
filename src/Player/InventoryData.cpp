@@ -3,7 +3,6 @@
 InventoryData::InventoryData(int size)
 {
     inventoryData = std::vector<std::optional<ItemCount>>(size, std::nullopt);
-    inventorySize = size;
 }
 
 int InventoryData::addItem(ItemType item, int amount)

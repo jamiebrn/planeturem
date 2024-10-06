@@ -1,6 +1,6 @@
 #include "Object/BuildableObject.hpp"
 
-BuildableObject::BuildableObject(sf::Vector2f position, ObjectType objectType)
+BuildableObject::BuildableObject(sf::Vector2f position, ObjectType objectType, bool randomiseAnimation)
     : WorldObject(position)
 {
     this->objectType = objectType;
@@ -19,6 +19,13 @@ BuildableObject::BuildableObject(sf::Vector2f position, ObjectType objectType)
     if (objectData.chestCapacity > 0)
     {
         animationDirection = -1;
+        randomiseAnimation = false;
+    }
+
+    // Randomise animation start frame
+    if (randomiseAnimation)
+    {
+        animatedTexture.setFrame(rand() % objectData.textureRects.size());
     }
 }
 
@@ -260,7 +267,7 @@ bool BuildableObject::dummyHasCollision()
 
 
 // Save / load
-BuildableObjectPOD BuildableObject::getPOD()
+BuildableObjectPOD BuildableObject::getPOD() const
 {
     BuildableObjectPOD pod;
     pod.objectType = objectType;
