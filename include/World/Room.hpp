@@ -54,11 +54,11 @@ public:
     void draw(sf::RenderTarget& window) const;
 
 
-    template <class Archive>
-    void serialize(Archive& ar)
-    {
-        ar(tileSize.x, tileSize.y, textureRect.left, textureRect.top, textureRect.width, textureRect.height, collisionBitmaskOffset.x, collisionBitmaskOffset.y, objectsInRoom);
-    }
+    // template <class Archive>
+    // void serialize(Archive& ar)
+    // {
+    //     ar(tileSize.x, tileSize.y, textureRect.left, textureRect.top, textureRect.width, textureRect.height, collisionBitmaskOffset.x, collisionBitmaskOffset.y, objectsInRoom);
+    // }
 
 private:
     void createObjects(ChestDataPool& chestDataPool);

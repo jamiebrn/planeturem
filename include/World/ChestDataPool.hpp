@@ -22,8 +22,8 @@ class ChestDataPool
 {
 public:
     ChestDataPool();
-    ChestDataPool::ChestDataPool(const ChestDataPool& pool);
-    ChestDataPool &ChestDataPool::operator=(const ChestDataPool& pool);
+    ChestDataPool(const ChestDataPool& pool);
+    ChestDataPool& operator=(const ChestDataPool& pool);
 
     // ID 0xFFFF returned means chest was not initialised, as data is full
     uint16_t createChest(InventoryData chestContents);

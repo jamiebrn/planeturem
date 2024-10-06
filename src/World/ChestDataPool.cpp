@@ -11,14 +11,15 @@ ChestDataPool::ChestDataPool()
 
 ChestDataPool::ChestDataPool(const ChestDataPool& pool)
 {
+    *this = pool;
+}
+
+ChestDataPool& ChestDataPool::operator=(const ChestDataPool& pool)
+{
     chestData.reset(new std::array<std::optional<InventoryData>, 0xFFFF - 1>(*pool.chestData));
     openDataSlots = pool.openDataSlots;
     topDataSlot = pool.topDataSlot;
-}
-
-ChestDataPool &ChestDataPool::operator=(const ChestDataPool& pool)
-{
-    *this = pool;
+    return *this;
 }
 
 // ID 0xFFFF returned means chest was not initialised, as data is full
