@@ -35,6 +35,8 @@ public:
     void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime, int worldSize, const sf::Color& color) const override;
     void drawLightMask(sf::RenderTarget& lightTexture);
 
+    sf::Vector2f getPositionDrawOffset() const;
+
     void damage(int amount, InventoryData& inventory);
     void interact();
 

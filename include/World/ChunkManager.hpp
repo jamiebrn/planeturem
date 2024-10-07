@@ -115,6 +115,10 @@ public:
     // Deletes object references if required
     void deleteObject(ChunkPosition chunk, sf::Vector2i tile);
 
+    // Deletes single object (does not delete object references)
+    // Used in deleteObject function
+    void deleteSingleObject(ChunkPosition chunk, sf::Vector2i tile);
+
     // Creates an object reference object in chunk at tile, with given data
     void setObjectReference(const ChunkPosition& chunk, const ObjectReference& objectReference, sf::Vector2i tile);
 

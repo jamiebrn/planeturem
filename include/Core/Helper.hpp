@@ -18,6 +18,12 @@ inline int randInt(int low, int high)
     return rand() % (high + 1 - low) + low;
 }
 
+inline float randFloat(float low, float high)
+{
+    float t = randInt(0, 10000) / 10000.0f;
+    return (high - low) * t + low;
+}
+
 // Angle in radians
 inline sf::Vector2f rotateVector(sf::Vector2f vector, float angle)
 {

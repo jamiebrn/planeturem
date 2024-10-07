@@ -572,7 +572,7 @@ void Game::runOnPlanet(float dt)
                 }
             }
 
-            if (event.key.code == sf::Keyboard::Escape && player.isInRocket())
+            if (event.key.code == sf::Keyboard::Escape && worldMenuState == WorldMenuState::TravelSelect)
             {
                 exitRocket();
             }
@@ -671,6 +671,9 @@ void Game::runOnPlanet(float dt)
     // Update tweens
     floatTween.update(dt);
 
+    // Update particles
+    particleSystem.update(dt);
+
     Camera::update(player.getPosition(), mouseScreenPos, dt);
 
     // updateDayNightCycle(dt);
@@ -715,7 +718,8 @@ void Game::runOnPlanet(float dt)
 
             if (TravelSelectGUI::createGUI(window, availableDestinations, selectedDestination))
             {
-                travelToPlanet(selectedDestination);
+                startFlyingRocket(selectedDestination);
+                // travelToPlanet(selectedDestination);
             }
         }
     }
@@ -789,7 +793,14 @@ void Game::updateOnPlanet(float dt)
     nearbyCraftingStationLevels = chunkManager.getNearbyCraftingStationLevels(player.getChunkInside(worldSize), player.getChunkTileInside(worldSize), 4);
 
     if (!isStateTransitioning())
+    {
         testEnterStructure();
+    }
+    
+    if (worldMenuState == WorldMenuState::FlyingRocket)
+    {
+        updateFlyingRocket(dt);
+    }
 }
 
 void Game::drawOnPlanet(float dt)
@@ -797,7 +808,9 @@ void Game::drawOnPlanet(float dt)
     // Get world objects
     std::vector<WorldObject*> worldObjects = chunkManager.getChunkObjects();
     std::vector<WorldObject*> entities = chunkManager.getChunkEntities();
+    std::vector<WorldObject*> particles = particleSystem.getParticles();
     worldObjects.insert(worldObjects.end(), entities.begin(), entities.end());
+    worldObjects.insert(worldObjects.end(), particles.begin(), particles.end());
     worldObjects.push_back(&player);
 
     drawWorld(dt, worldObjects, entities);
@@ -1186,16 +1199,9 @@ void Game::attemptBuildObject()
     if (objectType < 0)
         return;
 
-    // Do not build if holding tool in inventory
-    if (player.getTool() >= 0)
-        return;
-
-    // If object not picked up from inventory, check hotbar
-    // if (objectType <= 0)
-    // {
-    //     objectType = InventoryGUI::getHotbarSelectedObject(inventory);
-    //     placeFromHotbar = true;
-    // }
+    // // Do not build if holding tool in inventory
+    // if (player.getTool() >= 0)
+    //     return;
 
 
     // bool canAfford = Inventory::canBuildObject(objectType);
@@ -1356,9 +1362,11 @@ void Game::drawWorld(float dt, std::vector<WorldObject*>& worldObjects, std::vec
 
     std::sort(worldObjects.begin(), worldObjects.end(), [](WorldObject* a, WorldObject* b)
     {
+        sf::Vector2f aDrawOffset = a->getPositionDrawOffset();
+        sf::Vector2f bDrawOffset = b->getPositionDrawOffset();
         if (a->getDrawLayer() != b->getDrawLayer()) return a->getDrawLayer() > b->getDrawLayer();
-        if (a->getPosition().y == b->getPosition().y) return a->getPosition().x < b->getPosition().x;
-        return a->getPosition().y < b->getPosition().y;
+        if ((a->getPosition().y + aDrawOffset.y) == (b->getPosition().y + bDrawOffset.y)) return (a->getPosition().x + aDrawOffset.x) < (b->getPosition().x + bDrawOffset.x);
+        return (a->getPosition().y + aDrawOffset.y) < (b->getPosition().y + bDrawOffset.y);
     });
 
     spriteBatch.beginDrawing();
@@ -1574,6 +1582,48 @@ void Game::exitRocket()
     worldMenuState = WorldMenuState::Main;
 
     player.exitRocket();
+}
+
+void Game::startFlyingRocket(PlanetType destination)
+{
+    worldMenuState = WorldMenuState::FlyingRocket;
+    rocketFlyingTweenID = floatTween.startTween(&rocketYOffset, 0.0f, TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE * -5, 3.0f,
+        TweenTransition::Quint, TweenEasing::EaseInOut);
+    destinationPlanet = destination;
+}
+
+void Game::updateFlyingRocket(float dt)
+{
+    BuildableObject* rocket = getObjectFromChunkOrRoom(rocketObject);
+    if (!rocket)
+    {
+        exitRocket();
+        return;
+    }
+
+    const ObjectData& objectData = ObjectDataLoader::getObjectData(rocket->getObjectType());
+    if (!objectData.rocketObjectData.has_value())
+    {
+        exitRocket();
+        return;
+    }
+
+    // Player is in rocket, so update
+    rocket->setRocketYOffset(rocketYOffset);
+
+    // Create particles
+    rocketParticleCooldown += dt;
+    if (rocketParticleCooldown >= 0.07f)
+    {
+        rocketParticleCooldown = 0.0f;
+        rocket->createRocketParticles(particleSystem);
+    }
+
+    // If tween over, go to destination planet
+    if (floatTween.isTweenFinished(rocketFlyingTweenID))
+    {
+        travelToPlanet(destinationPlanet);
+    }
 }
 
 std::vector<PlanetType> Game::getRocketAvailableDestinations()

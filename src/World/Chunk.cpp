@@ -771,53 +771,25 @@ void Chunk::deleteObject(sf::Vector2i position, ChunkManager& chunkManager)
     // Object is single tile
     if (objectSize == sf::Vector2i(1, 1))
     {
-        objectGrid[position.y][position.x].reset();
-        recalculateCollisionRects(chunkManager);
+        deleteSingleObject(position, chunkManager);
         return;
     }
 
-    // Object is multiple tiles in size
+    int worldSize = chunkManager.getWorldSize();
 
-    // Delete reference tiles in current chunk
-    for (int y = position.y; y < std::min(position.y + objectSize.y, (int)objectGrid.size()); y++)
+    for (int y = 0; y < objectSize.y; y++)
     {
-        for (int x = position.x; x < std::min(position.x + objectSize.x, (int)objectGrid[0].size()); x++)
+        for (int x = 0; x < objectSize.x; x++)
         {
-            objectGrid[y][x].reset();
+            auto chunkTile = ChunkManager::getChunkTileFromOffset(chunkPosition, position, x, y, worldSize);
+            chunkManager.deleteSingleObject(chunkTile.first, chunkTile.second);
         }
     }
+}
 
-    // Calculate remaining tiles to delete, if placed across multiple chunks
-    int x_remaining = objectSize.x - ((int)objectGrid[0].size() - 1 - position.x) - 1;
-    int y_remaining = objectSize.y - ((int)objectGrid.size() - 1 - position.y) - 1;
-
-    // Delete tiles to right (direction) chunk if required
-    for (int y = position.y; y < std::min(position.y + objectSize.y, (int)objectGrid.size()); y++)
-    {
-        for (int x = 0; x < x_remaining; x++)
-        {
-            chunkManager.deleteObject(ChunkPosition(chunkPosition.x + 1, chunkPosition.y), sf::Vector2i(x, y));
-        }
-    }
-
-    // Delete tiles to down (direction) chunk if required
-    for (int y = 0; y < y_remaining; y++)
-    {
-        for (int x = position.x; x < std::min(position.x + objectSize.x, (int)objectGrid[0].size()); x++)
-        {
-            chunkManager.deleteObject(ChunkPosition(chunkPosition.x, chunkPosition.y + 1), sf::Vector2i(x, y));
-        }
-    }
-
-    // Delete tiles to down-right (direction) chunk if required
-    for (int y = 0; y < y_remaining; y++)
-    {
-        for (int x = 0; x < x_remaining; x++)
-        {
-            chunkManager.deleteObject(ChunkPosition(chunkPosition.x + 1, chunkPosition.y + 1), sf::Vector2i(x, y));
-        }
-    }
-
+void Chunk::deleteSingleObject(sf::Vector2i position, ChunkManager& chunkManager)
+{
+    objectGrid[position.y][position.x].reset();
     recalculateCollisionRects(chunkManager);
 }
 

@@ -480,6 +480,14 @@ void ChunkManager::deleteObject(ChunkPosition chunk, sf::Vector2i tile)
     loadedChunks[chunk]->deleteObject(tile, *this);
 }
 
+void ChunkManager::deleteSingleObject(ChunkPosition chunk, sf::Vector2i tile)
+{
+    if (loadedChunks.count(chunk) <= 0)
+        return;
+    
+    loadedChunks[chunk]->deleteSingleObject(tile, *this);
+}
+
 void ChunkManager::setObjectReference(const ChunkPosition& chunk, const ObjectReference& objectReference, sf::Vector2i tile)
 {
     // Chunk does not exist

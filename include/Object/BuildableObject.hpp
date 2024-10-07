@@ -14,6 +14,7 @@
 #include "Object/WorldObject.hpp"
 #include "Object/ObjectReference.hpp"
 #include "Object/BuildableObjectPOD.hpp"
+#include "Object/ParticleSystem.hpp"
 #include "Player/InventoryData.hpp"
 #include "Data/ObjectData.hpp"
 #include "Data/ObjectDataLoader.hpp"
@@ -60,6 +61,8 @@ public:
 
     bool isInteractable() const;
 
+    sf::Vector2f getPositionDrawOffset() const override;
+
     // -- Chest -- //
 
     inline void setChestID(uint16_t chestID) {this->chestID = chestID;}
@@ -72,11 +75,14 @@ public:
 
 
     // -- Rocket -- //
+    // Does not account for rocket flying upwards
     sf::Vector2f getRocketPosition();
+    sf::Vector2f getRocketBottomPosition();
 
     void setRocketYOffset(float offset);
     float getRocketYOffset();
 
+    void createRocketParticles(ParticleSystem& particleSystem);
 
     // -- Object reference (blank / filler object) -- //
 

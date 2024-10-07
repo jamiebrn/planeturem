@@ -4,5 +4,6 @@ enum WorldMenuState
 {
     Main,
     Inventory,
-    TravelSelect
+    TravelSelect,
+    FlyingRocket
 };

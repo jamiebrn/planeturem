@@ -37,6 +37,7 @@
 #include "Object/WorldObject.hpp"
 #include "Object/BuildableObject.hpp"
 #include "Object/StructureObject.hpp"
+#include "Object/ParticleSystem.hpp"
 
 #include "Data/typedefs.hpp"
 #include "Data/ItemData.hpp"
@@ -122,6 +123,8 @@ private:
     // Rocket
     void enterRocket(ObjectReference rocketObjectReference, BuildableObject& rocket);
     void exitRocket();
+    void startFlyingRocket(PlanetType destination);
+    void updateFlyingRocket(float dt);
 
     std::vector<PlanetType> getRocketAvailableDestinations();
 
@@ -195,6 +198,8 @@ private:
 
     ChunkManager chunkManager;
 
+    ParticleSystem particleSystem;
+
     std::array<sf::Texture, 2> waterNoiseTextures;
 
     GameState gameState;
@@ -218,7 +223,9 @@ private:
     RoomPool structureRoomPool;
 
     // Rocket
-    bool flyingRocket;
+    float rocketYOffset = 0.0f;
+    TweenID rocketFlyingTweenID;
+    float rocketParticleCooldown = 0.0f;
     ObjectReference rocketObject;
     PlanetType destinationPlanet;
 

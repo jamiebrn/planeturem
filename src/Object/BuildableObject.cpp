@@ -117,7 +117,7 @@ void BuildableObject::drawRocket(sf::RenderTarget& window, SpriteBatch& spriteBa
     drawData.type = TextureType::Objects;
 
     sf::Vector2f rocketPosOffset = objectData.rocketObjectData->launchPosition - sf::Vector2f(TILE_SIZE_PIXELS_UNSCALED, TILE_SIZE_PIXELS_UNSCALED) * 0.5f;
-    drawData.position = Camera::worldToScreenTransform(position + rocketPosOffset);
+    drawData.position = Camera::worldToScreenTransform(position + rocketPosOffset + sf::Vector2f(0, rocketYOffset));
     drawData.scale = scale;
     drawData.centerRatio = objectData.rocketObjectData->textureOrigin;
     drawData.colour = color;
@@ -203,6 +203,20 @@ bool BuildableObject::isInteractable() const
     return (objectData.chestCapacity > 0 || objectData.rocketObjectData.has_value());
 }
 
+sf::Vector2f BuildableObject::getPositionDrawOffset() const
+{
+    const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
+    if (objectData.rocketObjectData.has_value())
+    {
+        sf::Vector2f drawOffset;
+        drawOffset.x = position.x - TILE_SIZE_PIXELS_UNSCALED * 0.5f + objectData.rocketObjectData->launchPosition.x;
+        drawOffset.y = position.y - TILE_SIZE_PIXELS_UNSCALED * 0.5f + objectData.rocketObjectData->launchPosition.y;
+        return drawOffset;
+    }
+
+    return sf::Vector2f(0, 0);
+}
+
 // Chest functionality
 int BuildableObject::getChestCapactity()
 {
@@ -244,6 +258,20 @@ sf::Vector2f BuildableObject::getRocketPosition()
     return rocketPos;
 }
 
+sf::Vector2f BuildableObject::getRocketBottomPosition()
+{
+    const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
+    
+    if (!objectData.rocketObjectData.has_value())
+        return position;
+    
+    sf::Vector2f rocketPos;
+    rocketPos.x = position.x + objectData.rocketObjectData->launchPosition.x - TILE_SIZE_PIXELS_UNSCALED * 0.5f;
+    rocketPos.y = position.y + objectData.rocketObjectData->launchPosition.y + rocketYOffset - TILE_SIZE_PIXELS_UNSCALED * 0.5f;
+
+    return rocketPos;
+}
+
 void BuildableObject::setRocketYOffset(float offset)
 {
     rocketYOffset = offset;
@@ -252,6 +280,23 @@ void BuildableObject::setRocketYOffset(float offset)
 float BuildableObject::getRocketYOffset()
 {
     return rocketYOffset;
+}
+
+void BuildableObject::createRocketParticles(ParticleSystem& particleSystem)
+{
+    ParticleStyle style;
+    float size = Helper::randFloat(3, 6);
+    style.size = sf::Vector2f(size, size);
+    style.lifetimeMax = 2.5f;
+    style.lifetimeMin = 1.5f;
+    style.startColour = sf::Color(230, 230, 230);
+    style.endColour = sf::Color(40, 40, 40, 50);
+
+    sf::Vector2f position = getRocketBottomPosition() - style.size / 2.0f;
+    sf::Vector2f velocity(Helper::randFloat(-7.0f, 7.0f), Helper::randFloat(8.0f, 16.0f));
+    sf::Vector2f acceleration(0, -Helper::randFloat(0.3f, 0.8f));
+
+    particleSystem.addParticle(Particle(position, velocity, acceleration, style));
 }
 
 // Dummy object

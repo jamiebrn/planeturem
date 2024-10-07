@@ -104,6 +104,9 @@ public:
     // Deletes object (including object references if size > (1, 1), across chunks)
     void deleteObject(sf::Vector2i position, ChunkManager& chunkManager);
 
+    // Delete single object (not reference)
+    void deleteSingleObject(sf::Vector2i position, ChunkManager& chunkManager);
+
     // Create object reference at position
     void setObjectReference(const ObjectReference& objectReference, sf::Vector2i tile, ChunkManager& chunkManager);
 

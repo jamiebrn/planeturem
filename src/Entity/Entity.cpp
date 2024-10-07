@@ -108,6 +108,11 @@ void Entity::drawLightMask(sf::RenderTarget& lightTexture)
         }, lightMaskRect, sf::BlendAdd);
 }
 
+sf::Vector2f Entity::getPositionDrawOffset() const
+{
+    return sf::Vector2f(0, 0);
+}
+
 void Entity::damage(int amount, InventoryData& inventory)
 {
     flash_amount = 1.0f;
