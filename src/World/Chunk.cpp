@@ -826,7 +826,7 @@ bool Chunk::canPlaceObject(sf::Vector2i position, ObjectType objectType, int wor
             // Test tile
             if (objectData.placeOnWater)
             {
-                return (!tileIsWater);
+                return (tileIsWater);
             }
             
             if (tileIsWater)
