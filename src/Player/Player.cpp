@@ -298,11 +298,6 @@ void Player::drawLightMask(sf::RenderTarget& lightTexture)
         }, lightMaskRect, sf::BlendAdd);
 }
 
-sf::Vector2f Player::getPositionDrawOffset() const
-{
-    return sf::Vector2f(0, 0);
-}
-
 void Player::drawFishingRodCast(sf::RenderTarget& window, float gameTime, int worldSize, float waterYOffset) const
 {
     // Draw bob

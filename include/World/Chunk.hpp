@@ -21,8 +21,13 @@
 
 #include "Object/WorldObject.hpp"
 #include "Object/BuildableObject.hpp"
+#include "Object/BuildableObjectFactory.hpp"
+#include "Object/ChestObject.hpp"
+#include "Object/RocketObject.hpp"
+
 #include "Object/ObjectReference.hpp"
 #include "Object/StructureObject.hpp"
+
 #include "Entity/Entity.hpp"
 #include "World/ChunkManager.hpp"
 #include "World/TileMap.hpp"
@@ -96,7 +101,7 @@ public:
     void updateChunkObjects(float dt, int worldSize, ChunkManager& chunkManager);
     
     // Get object (optional) at position
-    std::optional<BuildableObject>& getObject(sf::Vector2i position);
+    BuildableObject* getObject(sf::Vector2i position);
 
     // Sets object (and object references if size > (1, 1), across chunks)
     void setObject(sf::Vector2i position, ObjectType objectType, int worldSize, ChunkManager& chunkManager, bool recalculateCollision = true, bool calledWhileGenerating = false);
@@ -191,10 +196,12 @@ private:
     // Stores visual tile types, e.g. cliffs
     std::array<std::array<TileType, 8>, 8> visualTileGrid;
 
-    std::array<std::array<std::optional<BuildableObject>, 8>, 8> objectGrid;
+    // std::array<std::array<std::optional<BuildableObject>, 8>, 8> objectGrid;
+    std::array<std::array<std::unique_ptr<BuildableObject>, 8>, 8> objectGrid;
     std::vector<std::unique_ptr<Entity>> entities;
 
     // Stores collision rects for terrain and objects (NOT ENTITIES)
+    // TODO: Stop using uniqueptr
     std::vector<std::unique_ptr<CollisionRect>> collisionRects;
 
     // Stores chunk position in chunkmanager hashmap (NOT actual world position)

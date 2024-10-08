@@ -147,10 +147,10 @@ void Cursor::updateTileCursorOnPlanetToolPickaxe(sf::RenderWindow& window, float
     }
 
     // Get object selected at cursor position (if any)
-    std::optional<BuildableObject>& selectedObjectOptional = chunkManager.getChunkObject(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile());
+    BuildableObject* selectedObject = chunkManager.getChunkObject(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile());
 
     // If an object in world is selected, override tile cursor size and position
-    if (selectedObjectOptional.has_value())
+    if (selectedObject)
     {
         // Test if can destroy selected object - don't draw cursor if cannot destroy
         if (!chunkManager.canDestroyObject(getSelectedChunk(worldSize), getSelectedChunkTile(), playerCollisionRect))
@@ -159,14 +159,11 @@ void Cursor::updateTileCursorOnPlanetToolPickaxe(sf::RenderWindow& window, float
             return;
         }
 
-        // Get object selected
-        BuildableObject& selectedObject = selectedObjectOptional.value();
-
         // Get size of selected object and set size of tile cursor
-        selectSize = ObjectDataLoader::getObjectData(selectedObject.getObjectType()).size;
+        selectSize = ObjectDataLoader::getObjectData(selectedObject->getObjectType()).size;
 
         // Set position of tile cursor to object's position
-        selectPos = selectedObject.getPosition() - sf::Vector2f(TILE_SIZE_PIXELS_UNSCALED / 2.0f, TILE_SIZE_PIXELS_UNSCALED / 2.0f);
+        selectPos = selectedObject->getPosition() - sf::Vector2f(TILE_SIZE_PIXELS_UNSCALED / 2.0f, TILE_SIZE_PIXELS_UNSCALED / 2.0f);
 
         // Set selected tile to new overriden tile cursor position
         selectPosTile.x = std::floor(selectPos.x / TILE_SIZE_PIXELS_UNSCALED);
@@ -191,10 +188,10 @@ void Cursor::updateTileCursorOnPlanetToolFishingRod(sf::RenderWindow& window, fl
 
     // Test whether can fish on selected tile
     // Must have no object + be water
-    const std::optional<BuildableObject>& selectedObject = chunkManager.getChunkObject(selectedChunk, selectedTile);
+    BuildableObject* selectedObject = chunkManager.getChunkObject(selectedChunk, selectedTile);
     int tileType = chunkManager.getChunkTileType(selectedChunk, selectedTile);
 
-    if (!selectedObject.has_value() && tileType == 0)
+    if (!selectedObject && tileType == 0)
     {
         drawState = CursorDrawState::Tile;
 
@@ -210,31 +207,28 @@ void Cursor::updateTileCursorOnPlanetNoItem(float dt, ChunkManager& chunkManager
 {
     int worldSize = chunkManager.getWorldSize();
 
-    std::optional<BuildableObject>& selectedObjectOptional = chunkManager.getChunkObject(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile());
+    BuildableObject* selectedObject = chunkManager.getChunkObject(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile());
 
-    updateTileCursorNoItem(dt, selectedObjectOptional);
+    updateTileCursorNoItem(dt, selectedObject);
 }
 
-void Cursor::updateTileCursorNoItem(float dt, const std::optional<BuildableObject>& selectedObjectOptional)
+void Cursor::updateTileCursorNoItem(float dt, BuildableObject* selectedObject)
 {
     // If an object in world is selected, override tile cursor size and position
-    if (selectedObjectOptional.has_value())
+    if (selectedObject)
     {
-        // Get object selected
-        const BuildableObject& selectedObject = selectedObjectOptional.value();
-
-        if (selectedObjectOptional->getObjectType() < 0)
+        if (selectedObject->getObjectType() < 0)
         {
             return;
         }
 
-        if (selectedObject.isInteractable())
+        if (selectedObject->isInteractable())
         {
             // Get size of selected object and set size of tile cursor
-            selectSize = ObjectDataLoader::getObjectData(selectedObject.getObjectType()).size;
+            selectSize = ObjectDataLoader::getObjectData(selectedObject->getObjectType()).size;
 
             // Set position of tile cursor to object's position
-            selectPos = selectedObject.getPosition() - sf::Vector2f(TILE_SIZE_PIXELS_UNSCALED / 2.0f, TILE_SIZE_PIXELS_UNSCALED / 2.0f);
+            selectPos = selectedObject->getPosition() - sf::Vector2f(TILE_SIZE_PIXELS_UNSCALED / 2.0f, TILE_SIZE_PIXELS_UNSCALED / 2.0f);
 
             // Set selected tile to new overriden tile cursor position
             selectPosTile.x = std::floor(selectPos.x / TILE_SIZE_PIXELS_UNSCALED);
@@ -256,7 +250,7 @@ void Cursor::updateTileCursorNoItem(float dt, const std::optional<BuildableObjec
 
 void Cursor::updateTileCursorInRoom(sf::RenderWindow& window,
                             float dt,
-                            const std::vector<std::vector<std::optional<BuildableObject>>>& objectGrid,
+                            std::vector<std::vector<std::unique_ptr<BuildableObject>>>& objectGrid,
                             ItemType heldItemType,
                             ToolType toolType)
 {
@@ -282,9 +276,12 @@ void Cursor::updateTileCursorInRoom(sf::RenderWindow& window,
     if (selectPosTile.y < 0 || selectPosTile.y >= objectGrid.size())
         return;
 
-    const std::optional<BuildableObject>& selectedObjectOptional = objectGrid[selectPosTile.y][selectPosTile.x];
+    BuildableObject* selectedObject = objectGrid[selectPosTile.y][selectPosTile.x].get();
 
-    updateTileCursorNoItem(dt, selectedObjectOptional);
+    if (selectedObject)
+    {
+        updateTileCursorNoItem(dt, selectedObject);
+    }
 
     // Set tile cursor corner tile positions
     if (drawState == CursorDrawState::Tile)

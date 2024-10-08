@@ -1005,19 +1005,19 @@ void Game::attemptUseToolPickaxe()
         if (!canDestroyObject)
             return;
 
-        std::optional<BuildableObject>& selectedObjectOptional = chunkManager.getChunkObject(Cursor::getSelectedChunk(
+        BuildableObject* selectedObject = chunkManager.getChunkObject(Cursor::getSelectedChunk(
             chunkManager.getWorldSize()), Cursor::getSelectedChunkTile());
 
-        if (selectedObjectOptional.has_value())
+        if (selectedObject)
         {
-            BuildableObject& selectedObject = selectedObjectOptional.value();
-            bool destroyed = selectedObject.damage(toolData.damage, inventory);
+            bool destroyed = selectedObject->damage(toolData.damage, inventory);
 
             if (destroyed)
             {
-                if (selectedObject.getChestCapactity() > 0)
+                if (selectedObject->interact() == ObjectInteractionType::Chest)
                 {
-                    removeChestFromData(selectedObject);
+                    ChestObject* chestObject = static_cast<ChestObject*>(selectedObject);
+                    removeChestFromData(*chestObject);
                 }
             }
         }
@@ -1051,10 +1051,10 @@ void Game::attemptUseToolFishingRod()
 
     // Test whether can fish on selected tile
     // Must have no object + be water
-    const std::optional<BuildableObject>& selectedObject = chunkManager.getChunkObject(selectedChunk, selectedTile);
+    BuildableObject* selectedObject = chunkManager.getChunkObject(selectedChunk, selectedTile);
     int tileType = chunkManager.getChunkTileType(selectedChunk, selectedTile);
 
-    if (selectedObject.has_value() || tileType > 0)
+    if (selectedObject || tileType > 0)
     {
         player.reelInFishingRod();
         return;
@@ -1121,21 +1121,21 @@ void Game::attemptObjectInteract()
 
     if (selectedObject)
     {
-        ObjectInteractionEventData interactionEvent = selectedObject->interact();
-
-        switch (interactionEvent.interactionType)
+        switch (selectedObject->interact())
         {
-            case ObjectInteraction::Chest:
+            case ObjectInteractionType::Chest:
             {
+                ChestObject* chestObject = static_cast<ChestObject*>(selectedObject);
+
                 // If chest has ID 0xFFFF, then has not been initialised
                 // Therefore must initialise chest
-                if (selectedObject->getChestID() == 0xFFFF)
+                if (chestObject->getChestID() == 0xFFFF)
                 {
-                    initChestInData(*selectedObject);
+                    initChestInData(*chestObject);
                 }
 
                 // Close chest if currently open is selected
-                if (selectedObject->getChestID() == openedChestID)
+                if (chestObject->getChestID() == openedChestID)
                 {
                     closeChest();
                 }
@@ -1147,38 +1147,40 @@ void Game::attemptObjectInteract()
                         closeChest();
                     }
 
-                    openedChestID = selectedObject->getChestID();
+                    openedChestID = chestObject->getChestID();
 
                     // Get tile depending on game state
                     if (gameState == GameState::OnPlanet)
                     {
-                        openedChest.chunk = selectedObject->getChunkInside(chunkManager.getWorldSize());
-                        openedChest.tile = selectedObject->getChunkTileInside(chunkManager.getWorldSize());
+                        openedChest.chunk = chestObject->getChunkInside(chunkManager.getWorldSize());
+                        openedChest.tile = chestObject->getChunkTileInside(chunkManager.getWorldSize());
                     }
                     else if (gameState == GameState::InStructure)
                     {
-                        openedChest.tile = selectedObject->getTileInside();
+                        openedChest.tile = chestObject->getTileInside();
                     }
-                    openedChestPos = selectedObject->getPosition();
+                    openedChestPos = chestObject->getPosition();
 
                     // Reset chest UI animations as opened new chest
                     InventoryGUI::chestOpened(chestDataPool.getChestDataPtr(openedChestID));
 
                     // Tell chest object it has been opened
-                    selectedObject->openChest();
+                    chestObject->openChest();
 
                     // Open inventory to see chest
                     worldMenuState = WorldMenuState::Inventory;
                 }
                 break;
             }
-            case ObjectInteraction::Rocket:
+            case ObjectInteractionType::Rocket:
             {
                 ObjectReference rocketObjectReference;
                 rocketObjectReference.chunk = selectedObject->getChunkInside(chunkManager.getWorldSize());
                 rocketObjectReference.tile = selectedObject->getChunkTileInside(chunkManager.getWorldSize());
 
-                enterRocket(rocketObjectReference, *selectedObject);
+                RocketObject* rocket = static_cast<RocketObject*>(selectedObject);
+
+                enterRocket(rocketObjectReference, *rocket);
                 break;
             }
         }
@@ -1362,11 +1364,9 @@ void Game::drawWorld(float dt, std::vector<WorldObject*>& worldObjects, std::vec
 
     std::sort(worldObjects.begin(), worldObjects.end(), [](WorldObject* a, WorldObject* b)
     {
-        sf::Vector2f aDrawOffset = a->getPositionDrawOffset();
-        sf::Vector2f bDrawOffset = b->getPositionDrawOffset();
         if (a->getDrawLayer() != b->getDrawLayer()) return a->getDrawLayer() > b->getDrawLayer();
-        if ((a->getPosition().y + aDrawOffset.y) == (b->getPosition().y + bDrawOffset.y)) return (a->getPosition().x + aDrawOffset.x) < (b->getPosition().x + bDrawOffset.x);
-        return (a->getPosition().y + aDrawOffset.y) < (b->getPosition().y + bDrawOffset.y);
+        if (a->getPosition().y == b->getPosition().y) return a->getPosition().x < b->getPosition().x;
+        return a->getPosition().y < b->getPosition().y;
     });
 
     spriteBatch.beginDrawing();
@@ -1418,7 +1418,7 @@ void Game::drawLighting(float dt, std::vector<WorldObject*>& worldObjects, std::
     window.draw(worldTextureSprite);
 }
 
-void Game::initChestInData(BuildableObject& chest)
+void Game::initChestInData(ChestObject& chest)
 {
     int chestCapacity = chest.getChestCapactity();
 
@@ -1430,7 +1430,7 @@ void Game::initChestInData(BuildableObject& chest)
     chest.setChestID(chestID);
 }
 
-void Game::removeChestFromData(BuildableObject& chest)
+void Game::removeChestFromData(ChestObject& chest)
 {
     chestDataPool.destroyChest(chest.getChestID());
 
@@ -1470,12 +1470,17 @@ void Game::closeChest()
     
     // Tell chest object it has been closed
     // std::optional<BuildableObject>& chestObject = chunkManager.getChunkObject(openedChest.chunk, openedChest.tile);
-    BuildableObject* chestObjectPtr = getObjectFromChunkOrRoom(openedChest);
+    BuildableObject* object = getObjectFromChunkOrRoom(openedChest);
 
-    if (chestObjectPtr)
-    {
-        chestObjectPtr->closeChest();
-    }
+    if (!object)
+        return;
+
+    if (object->interact() != ObjectInteractionType::Chest)
+        return;
+    
+    ChestObject* chestObject = static_cast<ChestObject*>(object);
+
+    chestObject->closeChest();
 
     openedChestID = 0xFFFF;
     openedChest.chunk = ChunkPosition(0, 0);
@@ -1487,26 +1492,21 @@ BuildableObject* Game::getSelectedObjectFromChunkOrRoom()
 {
     sf::Vector2f mouseWorldPos = Cursor::getMouseWorldPos(window);
 
-    BuildableObject* selectedObject = nullptr;
-
     if (gameState == GameState::OnPlanet)
     {
-        std::optional<BuildableObject>& selectedObjectOptional = chunkManager.getChunkObject(
+        BuildableObject* selectedObject = chunkManager.getChunkObject(
             Cursor::getSelectedChunk(chunkManager.getWorldSize()), Cursor::getSelectedChunkTile());
         
-        if (selectedObjectOptional.has_value())
-        {
-            selectedObject = &selectedObjectOptional.value();
-        }
+        return selectedObject;
     }
     else if (gameState == GameState::InStructure)
     {
         Room& structureRoom = structureRoomPool.getRoom(structureEnteredID);
-
-        selectedObject = structureRoom.getObject(mouseWorldPos);
+        
+        return structureRoom.getObject(mouseWorldPos);
     }
 
-    return selectedObject;
+    return nullptr;
 }
 
 BuildableObject* Game::getObjectFromChunkOrRoom(ObjectReference objectReference)
@@ -1515,19 +1515,15 @@ BuildableObject* Game::getObjectFromChunkOrRoom(ObjectReference objectReference)
 
     if (gameState == GameState::OnPlanet)
     {
-        std::optional<BuildableObject>& object = chunkManager.getChunkObject(objectReference.chunk, objectReference.tile);
-        if (object.has_value())
-        {
-            objectPtr = &object.value();
-        }
+        return chunkManager.getChunkObject(objectReference.chunk, objectReference.tile);
     }
     else if (gameState == GameState::InStructure)
     {
         Room& structureRoom = structureRoomPool.getRoom(structureEnteredID);
-        objectPtr = structureRoom.getObject(objectReference.tile);
+        return structureRoom.getObject(objectReference.tile);
     }
 
-    return objectPtr;
+    return nullptr;
 }
 
 void Game::testEnterStructure()
@@ -1568,7 +1564,7 @@ void Game::testExitStructure()
     startChangeStateTransition(GameState::OnPlanet);
 }
 
-void Game::enterRocket(ObjectReference rocketObjectReference, BuildableObject& rocket)
+void Game::enterRocket(ObjectReference rocketObjectReference, RocketObject& rocket)
 {
     worldMenuState = WorldMenuState::TravelSelect;
 
@@ -1594,19 +1590,20 @@ void Game::startFlyingRocket(PlanetType destination)
 
 void Game::updateFlyingRocket(float dt)
 {
-    BuildableObject* rocket = getObjectFromChunkOrRoom(rocketObject);
-    if (!rocket)
+    BuildableObject* object = getObjectFromChunkOrRoom(rocketObject);
+    if (!object)
     {
         exitRocket();
         return;
     }
 
-    const ObjectData& objectData = ObjectDataLoader::getObjectData(rocket->getObjectType());
-    if (!objectData.rocketObjectData.has_value())
+    if (object->interact() != ObjectInteractionType::Rocket)
     {
         exitRocket();
         return;
     }
+
+    RocketObject* rocket = static_cast<RocketObject*>(object);
 
     // Player is in rocket, so update
     rocket->setRocketYOffset(rocketYOffset);
@@ -1631,14 +1628,14 @@ std::vector<PlanetType> Game::getRocketAvailableDestinations()
     std::vector<PlanetType> availableDestinations;
 
     // Get object
-    std::optional<BuildableObject>& rocketObjectOptional = chunkManager.getChunkObject(rocketObject.chunk, rocketObject.tile);
-    if (!rocketObjectOptional.has_value())
+    BuildableObject* rocket = chunkManager.getChunkObject(rocketObject.chunk, rocketObject.tile);
+    if (!rocket)
     {
         exitRocket();
         return availableDestinations;
     }
 
-    const ObjectData& objectData = ObjectDataLoader::getObjectData(rocketObjectOptional->getObjectType());
+    const ObjectData& objectData = ObjectDataLoader::getObjectData(rocket->getObjectType());
     if (!objectData.rocketObjectData.has_value())
     {
         exitRocket();

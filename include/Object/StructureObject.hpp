@@ -44,8 +44,6 @@ public:
 
     void setWorldPosition(sf::Vector2f newPosition);
 
-    sf::Vector2f getPositionDrawOffset() const;
-
     inline StructureType getStructureType() {return structureType;}
 
     inline uint32_t getStructureID() {return structureID;}

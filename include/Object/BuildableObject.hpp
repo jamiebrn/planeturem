@@ -21,18 +21,11 @@
 
 #include "GUI/InventoryGUI.hpp"
 
-
-enum ObjectInteraction
+enum ObjectInteractionType
 {
     NoAction,
     Chest,
     Rocket
-};
-
-struct ObjectInteractionEventData
-{
-    ObjectInteraction interactionType;
-    uint16_t chestID;
 };
 
 constexpr int DUMMY_OBJECT_COLLISION = -10;
@@ -43,48 +36,25 @@ class BuildableObject : public WorldObject
 public:
     BuildableObject(sf::Vector2f position, ObjectType objectType, bool randomiseAnimation = true);
 
-    void update(float dt, bool onWater);
+    virtual BuildableObject* clone();
 
-    void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime, int worldSize, const sf::Color& color) const override;
-    void drawGUI(sf::RenderTarget& window, float dt, const sf::Color& color);
+    virtual void update(float dt, bool onWater, bool loopAnimation = true);
+
+    virtual void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime, int worldSize, const sf::Color& color) const override;
 
     // Returns true if destroyed
     bool damage(int amount, InventoryData& inventory);
     
-    ObjectInteractionEventData interact();
-
     void setWorldPosition(sf::Vector2f position);
 
     inline ObjectType getObjectType() const {return objectType;}
 
     inline bool isAlive() {return health > 0;}
 
+
+    virtual ObjectInteractionType interact() const;
     bool isInteractable() const;
 
-    sf::Vector2f getPositionDrawOffset() const override;
-
-    // -- Chest -- //
-
-    inline void setChestID(uint16_t chestID) {this->chestID = chestID;}
-    inline uint16_t getChestID() {return chestID;}
-
-    int getChestCapactity();
-
-    void openChest();
-    void closeChest();
-
-
-    // -- Rocket -- //
-    // Does not account for rocket flying upwards
-    sf::Vector2f getRocketPosition();
-    sf::Vector2f getRocketBottomPosition();
-
-    void setRocketYOffset(float offset);
-    float getRocketYOffset();
-
-    void createRocketParticles(ParticleSystem& particleSystem);
-
-    // -- Object reference (blank / filler object) -- //
 
     BuildableObject(ObjectReference _objectReference);
 
@@ -100,13 +70,13 @@ public:
 
     // Save / load
 
-    BuildableObjectPOD getPOD() const;
-    void loadFromPOD(const BuildableObjectPOD& pod);
+    virtual BuildableObjectPOD getPOD() const;
+    virtual void loadFromPOD(const BuildableObjectPOD& pod);
 
-private:
-    void drawRocket(sf::RenderTarget& window, SpriteBatch& spriteBatch, const sf::Color& color) const;
+// private:
+//     void drawRocket(sf::RenderTarget& window, SpriteBatch& spriteBatch, const sf::Color& color) const;
 
-private:
+protected:
     ObjectType objectType = 0;
     int health = 1;
     float flash_amount;
@@ -114,9 +84,9 @@ private:
     int8_t animationDirection = 1;
     AnimatedTextureMinimal animatedTexture;
 
-    uint16_t chestID = 0xFFFF;
+    // uint16_t chestID = 0xFFFF;
 
-    float rocketYOffset = 0.0f;
+    // float rocketYOffset = 0.0f;
 
     // If reference to a buildable object
     std::optional<ObjectReference> objectReference = std::nullopt;

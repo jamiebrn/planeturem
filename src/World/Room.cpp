@@ -14,6 +14,40 @@ Room::Room(const RoomData& roomData, ChestDataPool& chestDataPool)
     createCollisionRects();
 }
 
+Room::Room(const Room& room)
+{
+    *this = room;
+}
+
+Room& Room::operator=(const Room& room)
+{
+    roomData = room.roomData;
+    collisionRects = room.collisionRects;
+    warpExitRect = room.warpExitRect;
+
+    // Copy object ptrs
+    for (int y = 0; y < room.objectGrid.size(); y++)
+    {
+        // Create empty vector of ptrs
+        objectGrid.emplace_back();
+
+        for (int x = 0; x < room.objectGrid[y].size(); x++)
+        {
+            // Check for nullptr
+            if (!room.objectGrid[y][x])
+            {
+                objectGrid[y].emplace_back(nullptr);
+                continue;
+            }
+
+            // Deep copy ptr
+            objectGrid[y].emplace_back(room.objectGrid[y][x]->clone());
+        }
+    }
+
+    return *this;
+}
+
 bool Room::handleStaticCollisionX(CollisionRect& collisionRect, float dx) const
 {
     bool collision = false;
@@ -42,10 +76,11 @@ void Room::createObjects(ChestDataPool& chestDataPool)
 
     for (int y = 0; y < roomData.tileSize.y; y++)
     {
-        objectGrid.push_back(std::vector<std::optional<BuildableObject>>());
+        objectGrid.emplace_back();
+
         for (int x = 0; x < roomData.tileSize.x; x++)
         {
-            std::optional<BuildableObject> object = std::nullopt;
+            std::unique_ptr<BuildableObject> object = nullptr;
 
             // Sample bitmask
             sf::Color bitmaskColor = bitmaskImage.getPixel(roomData.collisionBitmaskOffset.x + x, roomData.collisionBitmaskOffset.y + y);
@@ -56,18 +91,27 @@ void Room::createObjects(ChestDataPool& chestDataPool)
                 const RoomObjectData& roomObjectData = roomData.objectsInRoom.at(bitmaskColor.b);
 
                 ObjectType objectTypeToSpawn = roomObjectData.objectType;
-                object = BuildableObject(sf::Vector2f((x + 0.5f) * TILE_SIZE_PIXELS_UNSCALED, (y + 0.5f) * TILE_SIZE_PIXELS_UNSCALED), objectTypeToSpawn);
+
+                sf::Vector2f objectPos((x + 0.5f) * TILE_SIZE_PIXELS_UNSCALED, (y + 0.5f) * TILE_SIZE_PIXELS_UNSCALED);
+                
+                object = BuildableObjectFactory::create(objectPos, objectTypeToSpawn);
 
                 // Fill chest if required
-                if (roomObjectData.chestContents.has_value())
+                if (object->interact() == ObjectInteractionType::Chest)
                 {
-                    uint16_t chestID = chestDataPool.createChest(roomObjectData.chestContents.value());
-                    object->setChestID(chestID);
+                    if (roomObjectData.chestContents.has_value())
+                    {
+                        ChestObject* chestObject = static_cast<ChestObject*>(object.get());
+
+                        uint16_t chestID = chestDataPool.createChest(roomObjectData.chestContents.value());
+
+                        chestObject->setChestID(chestID);
+                    }
                 }
             }
 
             // Add to array
-            objectGrid.back().push_back(object);
+            objectGrid.back().push_back(std::move(object));
         }
     }
 }
@@ -91,11 +135,10 @@ void Room::createCollisionRects()
             bool collisionCreated = false;
 
             // Check object first
-            if (objectGrid[y][x].has_value())
+            BuildableObject* object = objectGrid[y][x].get();
+            if (object)
             {
-                BuildableObject& object = objectGrid[y][x].value();
-                
-                const ObjectData& objectData = ObjectDataLoader::getObjectData(object.getObjectType());
+                const ObjectData& objectData = ObjectDataLoader::getObjectData(object->getObjectType());
                 if (objectData.hasCollision)
                 {
                     collisionRects.push_back(collisionRect);
@@ -144,12 +187,12 @@ void Room::updateObjects(float dt)
     {
         for (int x = 0; x < objectGrid[y].size(); x++)
         {
-            std::optional<BuildableObject>& objectOptional = objectGrid[y][x];
+            BuildableObject* object = objectGrid[y][x].get();
 
-            if (!objectOptional.has_value())
+            if (!object)
                 continue;
 
-            objectOptional->update(dt, false);
+            object->update(dt, false);
         }
     }
 }
@@ -170,15 +213,7 @@ BuildableObject* Room::getObject(sf::Vector2i tile)
     if (tile.y < 0 || tile.y >= objectGrid.size())
         return nullptr;
     
-    std::optional<BuildableObject>& objectOptional = objectGrid[tile.y][tile.x];
-
-    if (objectOptional.has_value())
-    {
-        return &objectOptional.value();
-    }
-
-    // Default case
-    return nullptr;
+    return objectGrid[tile.y][tile.x].get();
 }
 
 sf::Vector2i Room::getSelectedTile(sf::Vector2f mouseWorldPos)
@@ -196,11 +231,11 @@ std::vector<const WorldObject*> Room::getObjects() const
     {
         for (int x = 0; x < objectGrid[y].size(); x++)
         {
-            if (!objectGrid[y][x].has_value())
+            if (!objectGrid[y][x])
                 continue;
 
             // Add object to vector
-            objects.push_back(&objectGrid[y][x].value());
+            objects.push_back(objectGrid[y][x].get());
         }
     }
 
@@ -239,7 +274,7 @@ std::vector<std::vector<std::optional<BuildableObjectPOD>>> Room::getObjectPODs(
         {
             pods[y].emplace_back();
 
-            if (!objectGrid[y][x].has_value())
+            if (!objectGrid[y][x])
             {
                 pods[y][x] = std::nullopt;
                 continue;
@@ -267,15 +302,18 @@ void Room::loadObjectPODs(const std::vector<std::vector<std::optional<BuildableO
 
             if (!pods[y][x].has_value())
             {
-                objectGrid[y][x] = std::nullopt;
+                objectGrid[y][x] = nullptr;
                 continue;
             }
 
             // Object from POD
-            BuildableObject object(sf::Vector2f((x + 0.5f) * TILE_SIZE_PIXELS_UNSCALED, (y + 0.5f) * TILE_SIZE_PIXELS_UNSCALED), pods[y][x]->objectType);
-            object.loadFromPOD(pods[y][x].value());
+            sf::Vector2f objectPos((x + 0.5f) * TILE_SIZE_PIXELS_UNSCALED, (y + 0.5f) * TILE_SIZE_PIXELS_UNSCALED);
 
-            objectGrid[y][x] = object;
+            std::unique_ptr<BuildableObject> object = BuildableObjectFactory::create(objectPos, pods[y][x]->objectType);
+
+            object->loadFromPOD(pods[y][x].value());
+            
+            objectGrid[y][x] = std::move(object);
         }
     }
 

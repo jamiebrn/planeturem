@@ -105,7 +105,7 @@ public:
 
     // Get object at certain world position
     // Returns actual object if object reference is at position requested
-    std::optional<BuildableObject>& getChunkObject(ChunkPosition chunk, sf::Vector2i tile);
+    BuildableObject* getChunkObject(ChunkPosition chunk, sf::Vector2i tile);
 
     // Sets object in chunk at tile
     // Places object references if required

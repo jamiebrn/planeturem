@@ -34,9 +34,6 @@ public:
 
     int getDrawLayer() const;
 
-    // Get offset for sorting
-    virtual sf::Vector2f getPositionDrawOffset() const = 0;
-
     // Overriden by inherited classes (specific)
     virtual void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime, int worldSize, const sf::Color& color) const = 0;
 

@@ -36,6 +36,8 @@
 
 #include "Object/WorldObject.hpp"
 #include "Object/BuildableObject.hpp"
+#include "Object/ChestObject.hpp"
+#include "Object/RocketObject.hpp"
 #include "Object/StructureObject.hpp"
 #include "Object/ParticleSystem.hpp"
 
@@ -102,8 +104,8 @@ private:
 
     void giveStartingInventory();
 
-    void initChestInData(BuildableObject& chest);
-    void removeChestFromData(BuildableObject& chest);
+    void initChestInData(ChestObject& chest);
+    void removeChestFromData(ChestObject& chest);
     void checkChestOpenInRange();
     void handleOpenChestPositionWorldWrap(sf::Vector2f positionDelta);
     void closeChest();
@@ -121,7 +123,7 @@ private:
     void testExitStructure();
 
     // Rocket
-    void enterRocket(ObjectReference rocketObjectReference, BuildableObject& rocket);
+    void enterRocket(ObjectReference rocketObjectReference, RocketObject& rocket);
     void exitRocket();
     void startFlyingRocket(PlanetType destination);
     void updateFlyingRocket(float dt);

@@ -16,11 +16,11 @@ BuildableObject::BuildableObject(sf::Vector2f position, ObjectType objectType, b
     drawLayer = objectData.drawLayer;
 
     // Initialise chest
-    if (objectData.chestCapacity > 0)
-    {
-        animationDirection = -1;
-        randomiseAnimation = false;
-    }
+    // if (objectData.chestCapacity > 0)
+    // {
+    //     animationDirection = -1;
+    //     randomiseAnimation = false;
+    // }
 
     // Randomise animation start frame
     if (randomiseAnimation)
@@ -29,13 +29,18 @@ BuildableObject::BuildableObject(sf::Vector2f position, ObjectType objectType, b
     }
 }
 
+BuildableObject* BuildableObject::clone()
+{
+    return new BuildableObject(*this);
+}
+
 BuildableObject::BuildableObject(ObjectReference _objectReference)
     : WorldObject({0, 0})
 {
     objectReference = _objectReference;
 }
 
-void BuildableObject::update(float dt, bool onWater)
+void BuildableObject::update(float dt, bool onWater, bool loopAnimation)
 {
     if (objectType < 0)
         return;
@@ -44,13 +49,7 @@ void BuildableObject::update(float dt, bool onWater)
 
     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
 
-    bool loopingAnimation = true;
-    if (objectData.chestCapacity > 0)
-    {
-        loopingAnimation = false;
-    }
-
-    animatedTexture.update(dt, animationDirection, objectData.textureRects.size(), objectData.textureFrameDelay, loopingAnimation);
+    animatedTexture.update(dt, animationDirection, objectData.textureRects.size(), objectData.textureFrameDelay, loopAnimation);
 
     this->onWater = onWater;
 }
@@ -87,42 +86,6 @@ void BuildableObject::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, f
 
         TextureManager::drawSubTexture(window, drawData, textureRect, shader);
     }
-
-    // Draw rocket if required
-    if (objectData.rocketObjectData.has_value())
-    {
-        drawRocket(window, spriteBatch, color);
-    }
-}
-
-void BuildableObject::drawGUI(sf::RenderTarget& window, float dt, const sf::Color& color)
-{
-    if (objectType < 0)
-        return;
-
-    const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
-
-    TextureManager::drawSubTexture(window, {
-        TextureType::Objects, position, 0, {2, 2}, {0.5, 0.5}, color
-        }, objectData.textureRects[0]);
-}
-
-void BuildableObject::drawRocket(sf::RenderTarget& window, SpriteBatch& spriteBatch, const sf::Color& color) const
-{
-    const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
-
-    sf::Vector2f scale(ResolutionHandler::getScale(), ResolutionHandler::getScale());
-
-    TextureDrawData drawData;
-    drawData.type = TextureType::Objects;
-
-    sf::Vector2f rocketPosOffset = objectData.rocketObjectData->launchPosition - sf::Vector2f(TILE_SIZE_PIXELS_UNSCALED, TILE_SIZE_PIXELS_UNSCALED) * 0.5f;
-    drawData.position = Camera::worldToScreenTransform(position + rocketPosOffset + sf::Vector2f(0, rocketYOffset));
-    drawData.scale = scale;
-    drawData.centerRatio = objectData.rocketObjectData->textureOrigin;
-    drawData.colour = color;
-
-    spriteBatch.draw(window, drawData, objectData.rocketObjectData->textureRect);
 }
 
 bool BuildableObject::damage(int amount, InventoryData& inventory)
@@ -165,30 +128,9 @@ bool BuildableObject::damage(int amount, InventoryData& inventory)
     return false;
 }
 
-ObjectInteractionEventData BuildableObject::interact()
+ObjectInteractionType BuildableObject::interact() const
 {
-    ObjectInteractionEventData interactionData;
-    interactionData.interactionType = ObjectInteraction::NoAction;
- 
-    if (objectType < 0)
-        return interactionData;
-
-    const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
-
-    if (objectData.chestCapacity > 0)
-    {
-        // Object is chest
-        interactionData.chestID = chestID;
-        interactionData.interactionType = ObjectInteraction::Chest;
-    }
-
-    if (objectData.rocketObjectData.has_value())
-    {
-        // Object is rocket
-        interactionData.interactionType = ObjectInteraction::Rocket;
-    }
-
-    return interactionData;
+    return ObjectInteractionType::NoAction;
 }
 
 void BuildableObject::setWorldPosition(sf::Vector2f position)
@@ -198,105 +140,7 @@ void BuildableObject::setWorldPosition(sf::Vector2f position)
 
 bool BuildableObject::isInteractable() const
 {
-    const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
-
-    return (objectData.chestCapacity > 0 || objectData.rocketObjectData.has_value());
-}
-
-sf::Vector2f BuildableObject::getPositionDrawOffset() const
-{
-    const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
-    if (objectData.rocketObjectData.has_value())
-    {
-        sf::Vector2f drawOffset;
-        drawOffset.x = position.x - TILE_SIZE_PIXELS_UNSCALED * 0.5f + objectData.rocketObjectData->launchPosition.x;
-        drawOffset.y = position.y - TILE_SIZE_PIXELS_UNSCALED * 0.5f + objectData.rocketObjectData->launchPosition.y;
-        return drawOffset;
-    }
-
-    return sf::Vector2f(0, 0);
-}
-
-// Chest functionality
-int BuildableObject::getChestCapactity()
-{
-    if (objectType < 0)
-        return 0;
-
-    const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
-
-    return objectData.chestCapacity;
-}
-
-void BuildableObject::openChest()
-{
-    // Play open chest animation
-    animationDirection = 1;
-}
-
-void BuildableObject::closeChest()
-{
-    // Rewind open chest animation
-    animationDirection = -1;
-}
-
-// Rocket
-sf::Vector2f BuildableObject::getRocketPosition()
-{
-    const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
-    
-    if (!objectData.rocketObjectData.has_value())
-        return position;
-    
-    sf::Vector2f rocketPos;
-    rocketPos.x = position.x + objectData.rocketObjectData->launchPosition.x - TILE_SIZE_PIXELS_UNSCALED * 0.5f;
-    rocketPos.y = position.y + objectData.rocketObjectData->launchPosition.y - TILE_SIZE_PIXELS_UNSCALED * 0.5f;
-
-    // Rocket height
-    rocketPos.y -= objectData.rocketObjectData->textureRect.height * 0.5f;
-
-    return rocketPos;
-}
-
-sf::Vector2f BuildableObject::getRocketBottomPosition()
-{
-    const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
-    
-    if (!objectData.rocketObjectData.has_value())
-        return position;
-    
-    sf::Vector2f rocketPos;
-    rocketPos.x = position.x + objectData.rocketObjectData->launchPosition.x - TILE_SIZE_PIXELS_UNSCALED * 0.5f;
-    rocketPos.y = position.y + objectData.rocketObjectData->launchPosition.y + rocketYOffset - TILE_SIZE_PIXELS_UNSCALED * 0.5f;
-
-    return rocketPos;
-}
-
-void BuildableObject::setRocketYOffset(float offset)
-{
-    rocketYOffset = offset;
-}
-
-float BuildableObject::getRocketYOffset()
-{
-    return rocketYOffset;
-}
-
-void BuildableObject::createRocketParticles(ParticleSystem& particleSystem)
-{
-    ParticleStyle style;
-    float size = Helper::randFloat(3, 6);
-    style.size = sf::Vector2f(size, size);
-    style.lifetimeMax = 2.5f;
-    style.lifetimeMin = 1.5f;
-    style.startColour = sf::Color(230, 230, 230);
-    style.endColour = sf::Color(40, 40, 40, 50);
-
-    sf::Vector2f position = getRocketBottomPosition() - style.size / 2.0f;
-    sf::Vector2f velocity(Helper::randFloat(-7.0f, 7.0f), Helper::randFloat(8.0f, 16.0f));
-    sf::Vector2f acceleration(0, -Helper::randFloat(0.3f, 0.8f));
-
-    particleSystem.addParticle(Particle(position, velocity, acceleration, style));
+    return (interact() != ObjectInteractionType::NoAction);
 }
 
 // Dummy object
@@ -316,7 +160,7 @@ BuildableObjectPOD BuildableObject::getPOD() const
 {
     BuildableObjectPOD pod;
     pod.objectType = objectType;
-    pod.chestID = chestID;
+    // pod.chestID = chestID;
     pod.objectReference = objectReference;
     return pod;
 }
@@ -324,6 +168,6 @@ BuildableObjectPOD BuildableObject::getPOD() const
 void BuildableObject::loadFromPOD(const BuildableObjectPOD& pod)
 {
     objectType = pod.objectType;
-    chestID = pod.chestID;
+    // chestID = pod.chestID;
     objectReference = pod.objectReference;
 }

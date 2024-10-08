@@ -5,6 +5,7 @@
 #include <vector>
 #include <array>
 #include <optional>
+#include <memory>
 
 #include <extlib/cereal/archives/binary.hpp>
 #include <extlib/cereal/types/vector.hpp>
@@ -17,6 +18,9 @@
 
 #include "Object/WorldObject.hpp"
 #include "Object/BuildableObject.hpp"
+#include "Object/BuildableObjectFactory.hpp"
+#include "Object/ChestObject.hpp"
+
 #include "Object/BuildableObjectPOD.hpp"
 
 #include "Player/InventoryData.hpp"
@@ -33,6 +37,10 @@ public:
     Room();
     Room(const RoomData& roomData, ChestDataPool& chestDataPool);
 
+    // Copying
+    Room(const Room& room);
+    Room& operator=(const Room& room);
+
     bool handleStaticCollisionX(CollisionRect& collisionRect, float dx) const;
     bool handleStaticCollisionY(CollisionRect& collisionRect, float dy) const;
 
@@ -42,7 +50,7 @@ public:
 
     std::vector<const WorldObject*> getObjects() const;
 
-    const std::vector<std::vector<std::optional<BuildableObject>>>& getObjectGrid() const {return objectGrid;}
+    std::vector<std::vector<std::unique_ptr<BuildableObject>>>& getObjectGrid() {return objectGrid;}
 
     void updateObjects(float dt);
 
@@ -87,6 +95,6 @@ private:
     CollisionRect warpExitRect;
 
     // Objects in room
-    std::vector<std::vector<std::optional<BuildableObject>>> objectGrid;
+    std::vector<std::vector<std::unique_ptr<BuildableObject>>> objectGrid;
 
 };

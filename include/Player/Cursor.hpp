@@ -4,6 +4,7 @@
 #include <array>
 #include <vector>
 #include <optional>
+#include <memory>
 
 #include "Core/TextureManager.hpp"
 #include "Core/ResolutionHandler.hpp"
@@ -53,7 +54,7 @@ public:
 
     static void updateTileCursorInRoom(sf::RenderWindow& window,
                                        float dt,
-                                       const std::vector<std::vector<std::optional<BuildableObject>>>& objectGrid,
+                                       std::vector<std::vector<std::unique_ptr<BuildableObject>>>& objectGrid,
                                        ItemType heldItemType,
                                        ToolType toolType);
 
@@ -82,7 +83,7 @@ private:
     static void updateTileCursorOnPlanetToolFishingRod(sf::RenderWindow& window, float dt, ChunkManager& chunkManager);
 
     static void updateTileCursorOnPlanetNoItem(float dt, ChunkManager& chunkManager);
-    static void updateTileCursorNoItem(float dt, const std::optional<BuildableObject>& selectedObjectOptional);
+    static void updateTileCursorNoItem(float dt, BuildableObject* selectedObject);
 
     static void updateTileCursorAnimation(float dt);
     

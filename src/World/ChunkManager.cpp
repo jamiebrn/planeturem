@@ -384,20 +384,20 @@ void ChunkManager::performChunkSetTileUpdate(ChunkPosition chunk, std::set<int> 
     }
 }
 
-std::optional<BuildableObject>& ChunkManager::getChunkObject(ChunkPosition chunk, sf::Vector2i tile)
+BuildableObject* ChunkManager::getChunkObject(ChunkPosition chunk, sf::Vector2i tile)
 {
-    // Empty object to return if chunk / object does not exist
-    static std::optional<BuildableObject> null = std::nullopt;
+    // // Empty object to return if chunk / object does not exist
+    // static std::optional<BuildableObject> null = std::nullopt;
 
     // Chunk does not exist
     if (loadedChunks.count(chunk) <= 0)
-        return null;
+        return nullptr;
     
     // Get object from chunk
-    std::optional<BuildableObject>& selectedObject = loadedChunks[chunk]->getObject(sf::Vector2i(tile.x, tile.y));
+    BuildableObject* selectedObject = loadedChunks[chunk]->getObject(sf::Vector2i(tile.x, tile.y));
 
-    if (!selectedObject.has_value())
-        return null;
+    if (!selectedObject)
+        return nullptr;
 
     // Test if object is object reference object, to then get the actual object
     if (selectedObject->isObjectReference())
@@ -550,17 +550,15 @@ bool ChunkManager::canDestroyObject(ChunkPosition chunk, sf::Vector2i tile, cons
     if (loadedChunks.count(chunk) <= 0)
         return false;
     
-    std::optional<BuildableObject>& objectOptional = loadedChunks[chunk]->getObject(tile);
+    BuildableObject* object = loadedChunks[chunk]->getObject(tile);
 
-    if (!objectOptional.has_value())
-        return false;
-    
-    BuildableObject& object = objectOptional.value();
-
-    if (object.getObjectType() < 0)
+    if (!object)
         return false;
 
-    const ObjectData& objectData = ObjectDataLoader::getObjectData(object.getObjectType());
+    if (object->getObjectType() < 0)
+        return false;
+
+    const ObjectData& objectData = ObjectDataLoader::getObjectData(object->getObjectType());
 
     // Object is a water object, so may support player / entities over water
     // Therefore must check against player / entities before destroying
@@ -868,10 +866,10 @@ std::unordered_map<std::string, int> ChunkManager::getNearbyCraftingStationLevel
             if (loadedChunks.count(chunkTile.first) <= 0)
                 continue;
             
-            std::optional<BuildableObject>& object = getChunkObject(chunkTile.first, chunkTile.second);
+            BuildableObject* object = getChunkObject(chunkTile.first, chunkTile.second);
 
             // If no object, do not get data
-            if (!object.has_value())
+            if (!object)
                 continue;
             
             // No need to test if object reference as getChunkObject handles this
