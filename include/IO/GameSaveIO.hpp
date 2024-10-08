@@ -53,10 +53,16 @@ struct PlanetGameSave
 class GameSaveIO
 {
 public:
+    GameSaveIO() = default;
     GameSaveIO(std::string fileName);
     
     bool load(PlayerGameSave& playerGameSave, PlanetGameSave& planetGameSave);
     bool write(const PlayerGameSave& playerGameSave, const PlanetGameSave& planetGameSave);
+
+    std::vector<std::string> getSaveFiles();
+
+private:
+    void createSaveDirectoryIfRequired();
 
 private:
     std::string fileName;

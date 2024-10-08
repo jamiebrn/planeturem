@@ -790,7 +790,7 @@ sf::Vector2f ChunkManager::findValidSpawnPosition(int waterlessAreaSize)
 {
     // Move all loaded chunks (if any) into stored chunks temporarily
     // Makes testing area simpler as only have to check stored chunk map
-    reloadChunks();
+    // reloadChunks();
 
     int searchIncrement = 1 + waterlessAreaSize * 2;
 
@@ -809,13 +809,24 @@ sf::Vector2f ChunkManager::findValidSpawnPosition(int waterlessAreaSize)
                     int wrappedX = (xArea % worldSize + worldSize) % worldSize;
                     int wrappedY = (yArea % worldSize + worldSize) % worldSize;
 
-                    // If not generated, generate
-                    if (storedChunks.count(ChunkPosition(wrappedX, wrappedY)) <= 0)
-                        generateChunk(ChunkPosition(wrappedX, wrappedY), false);
-                    
-                    // If chunk does not contain water, continue to check other chunks
-                    if (!storedChunks[ChunkPosition(wrappedX, wrappedY)]->getContainsWater())
+                    // Generate minimal version of chunk (tile grid and structure) to check against
+                    Chunk chunk(ChunkPosition(wrappedX, wrappedY));
+                    chunk.generateTilesAndStructure(heightNoise, biomeNoise, planetType, worldSize, *this);
+
+                    // Check against chunk
+                    if (!chunk.getContainsWater())
                         continue;
+                    
+                   /* if (!chunk.hasStructure())
+                        continue;*/
+
+                    // If not generated, generate
+                    // if (storedChunks.count(ChunkPosition(wrappedX, wrappedY)) <= 0)
+                    //     generateChunk(ChunkPosition(wrappedX, wrappedY), false);
+                    
+                    // // If chunk does not contain water, continue to check other chunks
+                    // if (!storedChunks[ChunkPosition(wrappedX, wrappedY)]->getContainsWater())
+                    //     continue;
                     
                     // Chunk contains water - move onto checking next area
                     validSpawn = false;
@@ -834,8 +845,6 @@ sf::Vector2f ChunkManager::findValidSpawnPosition(int waterlessAreaSize)
             spawnPosition.x = x * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED + 0.5f * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
             spawnPosition.y = y * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED + 0.5f * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
 
-            clearUnmodifiedStoredChunks();
-
             return spawnPosition;
         }
     }
@@ -843,8 +852,6 @@ sf::Vector2f ChunkManager::findValidSpawnPosition(int waterlessAreaSize)
     // Recursive call to find smaller valid area
     if (waterlessAreaSize > 0)
         return findValidSpawnPosition(waterlessAreaSize - 1);
-
-    clearUnmodifiedStoredChunks();
     
     // Can't find valid spawn, so default return
     return sf::Vector2f(0, 0);

@@ -7,6 +7,8 @@ GameSaveIO::GameSaveIO(std::string fileName)
 
 bool GameSaveIO::load(PlayerGameSave& playerGameSave, PlanetGameSave& planetGameSave)
 {
+    createSaveDirectoryIfRequired();
+
     std::filesystem::path dir("Saves/" + fileName + "/");
 
     if (!std::filesystem::exists(dir))
@@ -59,13 +61,9 @@ bool GameSaveIO::load(PlayerGameSave& playerGameSave, PlanetGameSave& planetGame
 
 bool GameSaveIO::write(const PlayerGameSave& playerGameSave, const PlanetGameSave& planetGameSave)
 {
-    std::filesystem::path dir("Saves");
-    if (!std::filesystem::exists(dir))
-    {
-        std::filesystem::create_directory(dir);
-    }
+    createSaveDirectoryIfRequired();
 
-    dir = std::filesystem::path("Saves/" + fileName + "/");
+    std::filesystem::path dir("Saves/" + fileName + "/");
     if (!std::filesystem::exists(dir))
     {
         std::filesystem::create_directory(dir);
@@ -112,4 +110,30 @@ bool GameSaveIO::write(const PlayerGameSave& playerGameSave, const PlanetGameSav
     }
     
     return false;
+}
+
+std::vector<std::string> GameSaveIO::getSaveFiles()
+{
+    createSaveDirectoryIfRequired();
+
+    std::vector<std::string> saveFiles;
+
+    for (const auto& saveFile : std::filesystem::directory_iterator("Saves"))
+    {
+        if (!saveFile.is_directory())
+            continue;
+        
+        saveFiles.push_back(saveFile.path().filename().generic_string());
+    }
+
+    return saveFiles;
+}
+
+void GameSaveIO::createSaveDirectoryIfRequired()
+{
+    std::filesystem::path dir("Saves");
+    if (!std::filesystem::exists(dir))
+    {
+        std::filesystem::create_directory(dir);
+    }
 }

@@ -20,13 +20,16 @@ Chunk::Chunk(ChunkPosition chunkPosition)
 
 void Chunk::generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, int worldSize, ChunkManager& chunkManager)
 {
-    sf::Vector2i worldNoisePosition = sf::Vector2i(chunkPosition.x, chunkPosition.y) * static_cast<int>(CHUNK_TILE_SIZE);
+    RandInt randGen = generateTilesAndStructure(heightNoise, biomeNoise, planetType, worldSize, chunkManager);
 
-    // Get adjacent chunk tiles
-    Chunk* upChunk = chunkManager.getChunk(ChunkPosition(chunkPosition.x, ((chunkPosition.y - 1) % worldSize + worldSize) % worldSize));
-    Chunk* downChunk = chunkManager.getChunk(ChunkPosition(chunkPosition.x, ((chunkPosition.y + 1) % worldSize + worldSize) % worldSize));
-    Chunk* leftChunk = chunkManager.getChunk(ChunkPosition(((chunkPosition.x - 1) % worldSize + worldSize) % worldSize, chunkPosition.y));
-    Chunk* rightChunk = chunkManager.getChunk(ChunkPosition(((chunkPosition.x + 1) % worldSize + worldSize) % worldSize, chunkPosition.y));
+    generateObjectsAndEntities(heightNoise, biomeNoise, planetType, randGen, worldSize, chunkManager);
+
+    generateTilemapsAndInit(heightNoise, biomeNoise, planetType, worldSize, chunkManager);
+}
+
+RandInt Chunk::generateTilesAndStructure(const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, int worldSize, ChunkManager& chunkManager)
+{
+    sf::Vector2i worldNoisePosition = sf::Vector2i(chunkPosition.x, chunkPosition.y) * static_cast<int>(CHUNK_TILE_SIZE);
 
     // Create random generator for chunk
     unsigned long int randSeed = chunkManager.getSeed() ^ chunkPosition.hash();
@@ -62,6 +65,14 @@ void Chunk::generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNo
     {
         generateRandomStructure(worldSize, biomeNoise, randGen, planetType);
     }
+
+    return randGen;
+}
+
+void Chunk::generateObjectsAndEntities(const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, RandInt& randGen,
+    int worldSize, ChunkManager& chunkManager)
+{
+    sf::Vector2i worldNoisePosition = sf::Vector2i(chunkPosition.x, chunkPosition.y) * static_cast<int>(CHUNK_TILE_SIZE);
 
     // Set tile maps / spawn objects
     for (int y = 0; y < CHUNK_TILE_SIZE; y++)
@@ -107,8 +118,6 @@ void Chunk::generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNo
             }
         }
     }
-
-    generateTilemapsAndInit(heightNoise, biomeNoise, planetType, worldSize, chunkManager);
 }
 
 void Chunk::generateTilemapsAndInit(const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, int worldSize, ChunkManager& chunkManager)
@@ -1053,6 +1062,11 @@ bool Chunk::isPlayerInStructureEntrance(sf::Vector2f playerPos, StructureEnterEv
     }
 
     return inEntrance;
+}
+
+bool Chunk::hasStructure()
+{
+    return (structureObject.has_value());
 }
 
 ChunkPOD Chunk::getChunkPOD()

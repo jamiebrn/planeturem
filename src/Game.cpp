@@ -228,6 +228,9 @@ void Game::runMainMenu(float dt)
                 currentSaveName = "";
                 worldSeed = "";
                 mainMenuState = MainMenuState::SelectingLoad;
+                
+                GameSaveIO io;
+                saveFileNames = io.getSaveFiles();
             }
 
             if (guiContext.createButton(window.getSize().x / 2.0f - 100 * intScale, window.getSize().y / 2.0f + 100 * intScale, 200 * intScale, 75 * intScale, "Options"))
@@ -267,20 +270,28 @@ void Game::runMainMenu(float dt)
         }
         case MainMenuState::SelectingLoad:
         {
-            guiContext.createTextEnter(window.getSize().x / 2.0f - 200 * intScale, window.getSize().y / 2.0f - 100.0f * intScale,
-                400 * intScale, 40 * intScale, "Save Name", &currentSaveName);
-            
-            if (guiContext.createButton(window.getSize().x / 2.0f - 100 * intScale, window.getSize().y / 2.0f + 200 * intScale, 200 * intScale, 75 * intScale, "Load"))
+            // guiContext.createTextEnter(window.getSize().x / 2.0f - 200 * intScale, window.getSize().y / 2.0f - 100.0f * intScale,
+            //     400 * intScale, 40 * intScale, "Save Name", &currentSaveName);
+
+            for (int i = 0; i < saveFileNames.size(); i++)
             {
-                if (!isStateTransitioning())
+                const std::string& saveName = saveFileNames[i];
+
+                if (guiContext.createButton(window.getSize().x / 2.0f - 100 * intScale, window.getSize().y / 2.0f - (150 - i * 100) * intScale, 200 * intScale,
+                    75 * intScale, saveName))
                 {
-                    if (loadGame())
+                    if (!isStateTransitioning())
                     {
-                        startChangeStateTransition(GameState::OnPlanet);
-                    }
-                    else
-                    {
-                        std::cout << "Failed to load game\n";
+                        currentSaveName = saveName;
+                        
+                        if (loadGame())
+                        {
+                            startChangeStateTransition(GameState::OnPlanet);
+                        }
+                        else
+                        {
+                            std::cout << "Failed to load game\n";
+                        }
                     }
                 }
             }

@@ -200,6 +200,7 @@ public:
     static std::pair<ChunkPosition, sf::Vector2i> getChunkTileFromOffset(ChunkPosition chunk, sf::Vector2i tile, int xOffset, int yOffset, int worldSize);
 
 private:
+    // Generates a chunk and stores it
     void generateChunk(const ChunkPosition& chunkPosition,
                        bool putInLoaded = true,
                        std::optional<sf::Vector2f> positionOverride = std::nullopt);

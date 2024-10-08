@@ -58,6 +58,13 @@ public:
     // Initialisation / generation
     void generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, int worldSize, ChunkManager& chunkManager);
 
+    // Tiles meaning tile grid, not tilemaps
+    // Returns random int generator to continue to be used in generation
+    RandInt generateTilesAndStructure(const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, int worldSize, ChunkManager& chunkManager);
+
+    void generateObjectsAndEntities(const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, RandInt& randGen,
+        int worldSize, ChunkManager& chunkManager);
+
     // Generates tilemaps and calls functions to generate visual tiles and calculate collision rects
     // Called during chunk generation
     // Also used to initialise a chunk when loaded into view after being loaded through POD / save file
@@ -154,6 +161,8 @@ public:
 
     // -- Structures -- //
     bool isPlayerInStructureEntrance(sf::Vector2f playerPos, StructureEnterEvent& enterEvent);
+
+    bool hasStructure();
 
 
     // Save / load

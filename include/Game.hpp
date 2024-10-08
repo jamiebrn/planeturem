@@ -206,6 +206,8 @@ private:
     int menuScreenshotIndex;
     float menuScreenshotTimer;
 
+    std::vector<std::string> saveFileNames;
+
     SpriteBatch spriteBatch;
     sf::RenderTexture worldTexture;
 
