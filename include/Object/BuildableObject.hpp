@@ -14,7 +14,6 @@
 #include "Object/WorldObject.hpp"
 #include "Object/ObjectReference.hpp"
 #include "Object/BuildableObjectPOD.hpp"
-#include "Object/ParticleSystem.hpp"
 #include "Player/InventoryData.hpp"
 #include "Data/ObjectData.hpp"
 #include "Data/ObjectDataLoader.hpp"
@@ -55,7 +54,7 @@ public:
     virtual ObjectInteractionType interact() const;
     bool isInteractable() const;
 
-
+    // -- Object reference -- //
     BuildableObject(ObjectReference _objectReference);
 
     inline bool isObjectReference() const {return objectReference.has_value();}
@@ -63,18 +62,13 @@ public:
     inline const std::optional<ObjectReference>& getObjectReference() const {return objectReference;}
 
     // -- Dummy object -- //
-    
     bool isDummyObject();
 
     bool dummyHasCollision();
 
     // Save / load
-
     virtual BuildableObjectPOD getPOD() const;
     virtual void loadFromPOD(const BuildableObjectPOD& pod);
-
-// private:
-//     void drawRocket(sf::RenderTarget& window, SpriteBatch& spriteBatch, const sf::Color& color) const;
 
 protected:
     ObjectType objectType = 0;
@@ -83,10 +77,6 @@ protected:
 
     int8_t animationDirection = 1;
     AnimatedTextureMinimal animatedTexture;
-
-    // uint16_t chestID = 0xFFFF;
-
-    // float rocketYOffset = 0.0f;
 
     // If reference to a buildable object
     std::optional<ObjectReference> objectReference = std::nullopt;

@@ -225,9 +225,6 @@ private:
     RoomPool structureRoomPool;
 
     // Rocket
-    float rocketYOffset = 0.0f;
-    TweenID rocketFlyingTweenID;
-    float rocketParticleCooldown = 0.0f;
     ObjectReference rocketObject;
     PlanetType destinationPlanet;
 

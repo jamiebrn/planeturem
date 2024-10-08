@@ -1,6 +1,10 @@
 #include "Game.hpp"
 
 // PRIORITY: HIGH
+// TODO: Reset chest and structure pools on planet change
+// TODO: Place rocket object when spawned on new planet
+// TODO: Load previous planet save when landed on old planet
+
 // TODO: Structure functionality (item spawns, crafting stations etc)
 // TODO: Different types of structures
 // TODO: Different types of tools? (fishing rod etc)
@@ -808,9 +812,7 @@ void Game::drawOnPlanet(float dt)
     // Get world objects
     std::vector<WorldObject*> worldObjects = chunkManager.getChunkObjects();
     std::vector<WorldObject*> entities = chunkManager.getChunkEntities();
-    std::vector<WorldObject*> particles = particleSystem.getParticles();
     worldObjects.insert(worldObjects.end(), entities.begin(), entities.end());
-    worldObjects.insert(worldObjects.end(), particles.begin(), particles.end());
     worldObjects.push_back(&player);
 
     drawWorld(dt, worldObjects, entities);
@@ -1582,9 +1584,23 @@ void Game::exitRocket()
 
 void Game::startFlyingRocket(PlanetType destination)
 {
+    BuildableObject* object = getObjectFromChunkOrRoom(rocketObject);
+    if (!object)
+    {
+        exitRocket();
+        return;
+    }
+    if (object->interact() != ObjectInteractionType::Rocket)
+    {
+        exitRocket();
+        return;
+    }
+
+    RocketObject* rocket = static_cast<RocketObject*>(object);
+    rocket->startFlying();
+
     worldMenuState = WorldMenuState::FlyingRocket;
-    rocketFlyingTweenID = floatTween.startTween(&rocketYOffset, 0.0f, TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE * -5, 3.0f,
-        TweenTransition::Quint, TweenEasing::EaseInOut);
+
     destinationPlanet = destination;
 }
 
@@ -1605,19 +1621,8 @@ void Game::updateFlyingRocket(float dt)
 
     RocketObject* rocket = static_cast<RocketObject*>(object);
 
-    // Player is in rocket, so update
-    rocket->setRocketYOffset(rocketYOffset);
-
-    // Create particles
-    rocketParticleCooldown += dt;
-    if (rocketParticleCooldown >= 0.07f)
-    {
-        rocketParticleCooldown = 0.0f;
-        rocket->createRocketParticles(particleSystem);
-    }
-
     // If tween over, go to destination planet
-    if (floatTween.isTweenFinished(rocketFlyingTweenID))
+    if (rocket->finishedFlyingUpwards())
     {
         travelToPlanet(destinationPlanet);
     }
@@ -1777,16 +1782,18 @@ bool Game::saveGame()
 {
     GameSaveIO io(currentSaveName);
 
-    GameSave gameSave;
-    gameSave.seed = chunkManager.getSeed();
-    gameSave.planetType = chunkManager.getPlanetType();
-    gameSave.playerPos = player.getPosition();
-    gameSave.inventory = inventory;
-    gameSave.chunks = chunkManager.getChunkPODs();
-    gameSave.chestDataPool = chestDataPool;
-    gameSave.structureRoomPool = structureRoomPool;
+    PlayerGameSave playerGameSave;
+    playerGameSave.seed = chunkManager.getSeed();
+    playerGameSave.planetType = chunkManager.getPlanetType();
+    playerGameSave.playerPos = player.getPosition();
+    playerGameSave.inventory = inventory;
 
-    io.write(gameSave);
+    PlanetGameSave planetGameSave;
+    planetGameSave.chunks = chunkManager.getChunkPODs();
+    planetGameSave.chestDataPool = chestDataPool;
+    planetGameSave.structureRoomPool = structureRoomPool;
+
+    io.write(playerGameSave, planetGameSave);
 
     return true;
 }
@@ -1795,21 +1802,24 @@ bool Game::loadGame()
 {
     GameSaveIO io(currentSaveName);
 
-    GameSave gameSave;
-    if (!io.load(gameSave))
+    PlayerGameSave playerGameSave;
+    PlanetGameSave planetGameSave;
+
+    if (!io.load(playerGameSave, planetGameSave))
     {
         return false;
     }
 
     closeChest();
     
-    chunkManager.setSeed(gameSave.seed);
-    chunkManager.setPlanetType(gameSave.planetType);
-    player.setPosition(gameSave.playerPos);
-    inventory = gameSave.inventory;
-    chunkManager.loadFromChunkPODs(gameSave.chunks);
-    chestDataPool = gameSave.chestDataPool;
-    structureRoomPool = gameSave.structureRoomPool;
+    chunkManager.setSeed(playerGameSave.seed);
+    chunkManager.setPlanetType(playerGameSave.planetType);
+    player.setPosition(playerGameSave.playerPos);
+    inventory = playerGameSave.inventory;
+
+    chunkManager.loadFromChunkPODs(planetGameSave.chunks);
+    chestDataPool = planetGameSave.chestDataPool;
+    structureRoomPool = planetGameSave.structureRoomPool;
 
     Camera::instantUpdate(player.getPosition());
 

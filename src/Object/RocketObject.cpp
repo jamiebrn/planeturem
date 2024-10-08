@@ -14,11 +14,31 @@ BuildableObject* RocketObject::clone()
 void RocketObject::update(float dt, bool onWater, bool loopAnimation)
 {
     BuildableObject::update(dt, onWater);
+
+    if (flying)
+    {
+        floatTween.update(dt);
+
+        particleSystem.update(dt);
+
+        rocketParticleCooldown += dt;
+        if (rocketParticleCooldown >= ROCKET_PARTICLE_MAX_COOLDOWN)
+        {
+            rocketParticleCooldown = 0;
+            createRocketParticles();
+        }
+    }
 }
 
 void RocketObject::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime, int worldSize, const sf::Color& color) const
 {
     BuildableObject::draw(window, spriteBatch, dt, gameTime, worldSize, color);
+
+    // Force spritebatch end to ensure particles draw over launch pad
+    spriteBatch.endDrawing(window);
+
+    // Draw rocket particles
+    particleSystem.draw(window);
 
     drawRocket(window, spriteBatch, color);
 }
@@ -26,6 +46,20 @@ void RocketObject::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, floa
 ObjectInteractionType RocketObject::interact() const
 {
     return ObjectInteractionType::Rocket;
+}
+
+void RocketObject::startFlying()
+{
+    flying = true;
+    rocketFlyingTweenID = floatTween.startTween(&rocketYOffset, 0.0f, TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE * -5, 3.0f,
+        TweenTransition::Quint, TweenEasing::EaseInOut);
+}
+
+bool RocketObject::finishedFlyingUpwards()
+{
+    if (!flying)
+        return false;
+    return floatTween.isTweenFinished(rocketFlyingTweenID);
 }
 
 sf::Vector2f RocketObject::getRocketPosition()
@@ -69,7 +103,7 @@ float RocketObject::getRocketYOffset()
     return rocketYOffset;
 }
 
-void RocketObject::createRocketParticles(ParticleSystem& particleSystem)
+void RocketObject::createRocketParticles()
 {
     ParticleStyle style;
     float size = Helper::randFloat(3, 6);

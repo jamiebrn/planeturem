@@ -5,30 +5,59 @@ GameSaveIO::GameSaveIO(std::string fileName)
     this->fileName = fileName;
 }
 
-bool GameSaveIO::load(GameSave& gameSave)
+bool GameSaveIO::load(PlayerGameSave& playerGameSave, PlanetGameSave& planetGameSave)
 {
-    std::filesystem::path dir("Saves/" + fileName + ".dat");
+    std::filesystem::path dir("Saves/" + fileName + "/");
 
     if (!std::filesystem::exists(dir))
     {
         return false;
     }
 
-    std::fstream in("Saves/" + fileName + ".dat", std::ios::in | std::ios::binary);
-
-    if (!in)
+    try
     {
+        // Load player file
+        {
+            std::fstream in("Saves/" + fileName + "/Player.dat", std::ios::in | std::ios::binary);
+            
+            if (!in)
+            {
+                throw std::invalid_argument("Could not open player file for \"" + fileName + "\"");
+            }
+
+            cereal::BinaryInputArchive archive(in);
+
+            archive(playerGameSave);
+        }
+
+        // Load planet file
+        {
+            const std::string& planetName = PlanetGenDataLoader::getPlanetGenData(playerGameSave.planetType).name;
+
+            std::fstream in("Saves/" + fileName + "/" + planetName + ".dat", std::ios::in | std::ios::binary);
+            
+            if (!in)
+            {
+                throw std::invalid_argument("Could not open planet file for \"" + fileName + "\"");
+            }
+
+            cereal::BinaryInputArchive archive(in);
+
+            archive(planetGameSave);
+        }
+
+        return true;
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
         return false;
     }
 
-    cereal::BinaryInputArchive archive(in);
-
-    archive(gameSave);
-
-    return true;
+    return false;
 }
 
-bool GameSaveIO::write(const GameSave& gameSave)
+bool GameSaveIO::write(const PlayerGameSave& playerGameSave, const PlanetGameSave& planetGameSave)
 {
     std::filesystem::path dir("Saves");
     if (!std::filesystem::exists(dir))
@@ -36,16 +65,51 @@ bool GameSaveIO::write(const GameSave& gameSave)
         std::filesystem::create_directory(dir);
     }
 
-    std::fstream out("Saves/" + fileName + ".dat", std::ios::out | std::ios::binary);
-
-    if (!out)
+    dir = std::filesystem::path("Saves/" + fileName + "/");
+    if (!std::filesystem::exists(dir))
     {
-        return false;
+        std::filesystem::create_directory(dir);
     }
 
-    cereal::BinaryOutputArchive archive(out);
+    try
+    {
+        // Save player file
+        {
+            std::fstream out("Saves/" + fileName + "/Player.dat", std::ios::out | std::ios::binary);
 
-    archive(gameSave);
+            if (!out)
+            {
+                throw std::invalid_argument("Could not open player file for \"" + fileName + "\"");
+            }
 
-    return true;
+            cereal::BinaryOutputArchive archive(out);
+
+            archive(playerGameSave);
+        }
+
+        // Save planet file
+        {
+            const std::string& planetName = PlanetGenDataLoader::getPlanetGenData(playerGameSave.planetType).name;
+
+            std::fstream out("Saves/" + fileName + "/" + planetName + ".dat", std::ios::out | std::ios::binary);
+
+            if (!out)
+            {
+                throw std::invalid_argument("Could not open planet file for \"" + fileName + "\"");
+            }
+
+            cereal::BinaryOutputArchive archive(out);
+
+            archive(planetGameSave);
+        }
+
+        return true;
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+        return false;
+    }
+    
+    return false;
 }

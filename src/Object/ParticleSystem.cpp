@@ -1,8 +1,8 @@
 #include "Object/ParticleSystem.hpp"
 
 Particle::Particle(sf::Vector2f position, sf::Vector2f velocity, sf::Vector2f acceleration, const ParticleStyle& style)
-    : WorldObject(position)
 {
+    this->position = position;
     this->velocity = velocity;
     this->acceleration = acceleration;
 
@@ -22,11 +22,8 @@ void Particle::update(float dt)
     timeAlive += dt;
 }
 
-void Particle::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime, int worldSize, const sf::Color& color) const
+void Particle::draw(sf::RenderTarget& window) const
 {
-    // For now, will use texture for particles in future
-    spriteBatch.endDrawing(window);
-
     float scale = ResolutionHandler::getScale();
 
     sf::RectangleShape rect(size * scale);
@@ -49,11 +46,6 @@ bool Particle::isAlive()
     return (timeAlive < lifetime);
 }
 
-sf::Vector2f Particle::getPositionDrawOffset() const
-{
-    return sf::Vector2f(0, 0);
-}
-
 void ParticleSystem::addParticle(const Particle& particle)
 {
     particles.push_back(particle);
@@ -73,12 +65,10 @@ void ParticleSystem::update(float dt)
     }
 }
 
-std::vector<WorldObject*> ParticleSystem::getParticles()
+void ParticleSystem::draw(sf::RenderTarget& window) const
 {
-    std::vector<WorldObject*> particleObjects;
-    for (int i = 0; i < particles.size(); i++)
+    for (auto iter = particles.begin(); iter != particles.end(); iter++)
     {
-        particleObjects.push_back(&particles[i]);
+        iter->draw(window);
     }
-    return particleObjects;
 }

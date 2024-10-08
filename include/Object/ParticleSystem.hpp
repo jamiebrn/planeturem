@@ -18,20 +18,19 @@ struct ParticleStyle
     float lifetimeMax;
 };
 
-class Particle : public WorldObject
+class Particle
 {
 public:
     Particle(sf::Vector2f position, sf::Vector2f velocity, sf::Vector2f acceleration, const ParticleStyle& style);
 
     void update(float dt);
 
-    void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime, int worldSize, const sf::Color& color) const;
+    void draw(sf::RenderTarget& window) const;
 
     bool isAlive();
 
-    sf::Vector2f getPositionDrawOffset() const;
-
 private:
+    sf::Vector2f position;
     sf::Vector2f velocity;
     sf::Vector2f acceleration;
 
@@ -53,7 +52,7 @@ public:
 
     void update(float dt);
 
-    std::vector<WorldObject*> getParticles();
+    void draw(sf::RenderTarget& window) const;
 
 private:
     std::vector<Particle> particles;

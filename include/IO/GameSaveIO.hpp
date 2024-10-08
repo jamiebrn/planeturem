@@ -6,6 +6,7 @@
 #include <iostream>
 #include <vector>
 #include <filesystem>
+#include <stdexcept>
 
 #include <extlib/cereal/archives/binary.hpp>
 #include <extlib/cereal/types/vector.hpp>
@@ -17,16 +18,27 @@
 #include "Player/InventoryData.hpp"
 
 #include "Data/typedefs.hpp"
+#include "Data/PlanetGenData.hpp"
+#include "Data/PlanetGenDataLoader.hpp"
 
-struct GameSave
+struct PlayerGameSave
 {
     int seed;
+    PlanetType planetType;
+
     sf::Vector2f playerPos;
     InventoryData inventory;
 
-    std::vector<ChunkPOD> chunks;
+    template <class Archive>
+    void serialize(Archive& ar)
+    {
+        ar(seed, planetType, playerPos.x, playerPos.y, inventory);
+    }
+};
 
-    PlanetType planetType;
+struct PlanetGameSave
+{
+    std::vector<ChunkPOD> chunks;
 
     ChestDataPool chestDataPool;
     RoomPool structureRoomPool;
@@ -34,7 +46,7 @@ struct GameSave
     template <class Archive>
     void serialize(Archive& ar)
     {
-        ar(seed, planetType, playerPos.x, playerPos.y, inventory, chunks, chestDataPool, structureRoomPool);
+        ar(chunks, chestDataPool, structureRoomPool);
     }
 };
 
@@ -43,8 +55,8 @@ class GameSaveIO
 public:
     GameSaveIO(std::string fileName);
     
-    bool load(GameSave& gameSave);
-    bool write(const GameSave& gameSave);
+    bool load(PlayerGameSave& playerGameSave, PlanetGameSave& planetGameSave);
+    bool write(const PlayerGameSave& playerGameSave, const PlanetGameSave& planetGameSave);
 
 private:
     std::string fileName;
