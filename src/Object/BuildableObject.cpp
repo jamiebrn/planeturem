@@ -160,7 +160,6 @@ BuildableObjectPOD BuildableObject::getPOD() const
 {
     BuildableObjectPOD pod;
     pod.objectType = objectType;
-    // pod.chestID = chestID;
     pod.objectReference = objectReference;
     return pod;
 }
@@ -168,6 +167,5 @@ BuildableObjectPOD BuildableObject::getPOD() const
 void BuildableObject::loadFromPOD(const BuildableObjectPOD& pod)
 {
     objectType = pod.objectType;
-    // chestID = pod.chestID;
     objectReference = pod.objectReference;
 }

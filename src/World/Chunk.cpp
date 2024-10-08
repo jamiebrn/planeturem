@@ -667,9 +667,6 @@ int Chunk::getTileType(sf::Vector2i position) const
 
 void Chunk::setObject(sf::Vector2i position, ObjectType objectType, int worldSize, ChunkManager& chunkManager, bool recalculateCollision, bool calledWhileGenerating)
 {
-    // Get tile size
-    // float tileSize = ResolutionHandler::getTileSize();
-
     if (!calledWhileGenerating)
     {
         modified = true;
@@ -679,9 +676,6 @@ void Chunk::setObject(sf::Vector2i position, ObjectType objectType, int worldSiz
     sf::Vector2f objectPos;
     objectPos.x = worldPosition.x + position.x * TILE_SIZE_PIXELS_UNSCALED + TILE_SIZE_PIXELS_UNSCALED / 2.0f;
     objectPos.y = worldPosition.y + position.y * TILE_SIZE_PIXELS_UNSCALED + TILE_SIZE_PIXELS_UNSCALED / 2.0f;
-
-    // std::unique_ptr<BuildableObject> object = std::make_unique<BuildableObject>(objectPos, objectType);
-    // BuildableObject object(objectPos, objectType);
 
     sf::Vector2i objectSize(1, 1);
     if (objectType >= 0)
@@ -699,51 +693,18 @@ void Chunk::setObject(sf::Vector2i position, ObjectType objectType, int worldSiz
         objectReference.chunk = ChunkPosition(chunkPosition.x, chunkPosition.y);
         objectReference.tile = position;
 
-        // Iterate over all tiles which object occupies and add object reference
-        for (int y = position.y; y < std::min(position.y + objectSize.y, (int)objectGrid.size()); y++)
+        for (int y = 0; y < objectSize.y; y++)
         {
-            for (int x = position.x; x < std::min(position.x + objectSize.x, (int)objectGrid[0].size()); x++)
+            for (int x = 0; x < objectSize.x; x++)
             {
-                // If tile is actual object tile, don't place object reference
-                if (x == position.x && y == position.y)
+                // Don't place object reference on actual object tile
+                if (x == 0 && y == 0)
+                {
                     continue;
-                
-                objectGrid[y][x] = std::make_unique<BuildableObject>(objectReference);
-            }
-        }
+                }
 
-        // Calculate remaining tiles to place, if placed across multiple chunks
-        int x_remaining = objectSize.x - ((int)objectGrid[0].size() - 1 - position.x) - 1;
-        int y_remaining = objectSize.y - ((int)objectGrid.size() - 1 - position.y) - 1;
-
-        // Calculate next chunk index
-        int chunkNextPosX = (((chunkPosition.x + 1) % worldSize) + worldSize) % worldSize;
-        int chunkNextPosY = (((chunkPosition.y + 1) % worldSize) + worldSize) % worldSize;
-
-        // Add tiles to right (direction) chunk if required
-        for (int y = position.y; y < std::min(position.y + objectSize.y, (int)objectGrid.size()); y++)
-        {
-            for (int x = 0; x < x_remaining; x++)
-            {
-                chunkManager.setObjectReference(ChunkPosition(chunkNextPosX, chunkPosition.y), objectReference, sf::Vector2i(x, y));
-            }
-        }
-
-        // Add tiles to down (direction) chunk if required
-        for (int y = 0; y < y_remaining; y++)
-        {
-            for (int x = position.x; x < std::min(position.x + objectSize.x, (int)objectGrid[0].size()); x++)
-            {
-                chunkManager.setObjectReference(ChunkPosition(chunkPosition.x, chunkNextPosY), objectReference, sf::Vector2i(x, y));
-            }
-        }
-
-        // Add tiles to down-right (direction) chunk if required
-        for (int y = 0; y < y_remaining; y++)
-        {
-            for (int x = 0; x < x_remaining; x++)
-            {
-                chunkManager.setObjectReference(ChunkPosition(chunkNextPosX, chunkNextPosY), objectReference, sf::Vector2i(x, y));
+                auto chunkTile = ChunkManager::getChunkTileFromOffset(chunkPosition, position, x, y, worldSize);
+                chunkManager.setObjectReference(chunkTile.first, objectReference, chunkTile.second);
             }
         }
     }

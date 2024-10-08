@@ -12,7 +12,7 @@
 struct BuildableObjectPOD
 {
     ObjectType objectType;
-    uint16_t chestID;
+    uint16_t chestID = 0xFFFF;
 
     std::optional<ObjectReference> objectReference;
 

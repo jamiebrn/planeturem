@@ -78,15 +78,42 @@ public:
     void run();
 
 private:
+
+    // -- Main Menu -- //
+
     void runMainMenu(float dt);
+
+
+    // -- On Planet -- //
 
     void runOnPlanet(float dt);
 
     void updateOnPlanet(float dt);
     void drawOnPlanet(float dt);
 
+    void drawWorld(float dt, std::vector<WorldObject*>& worldObjects, std::vector<WorldObject*>& entities);
+    void drawLighting(float dt, std::vector<WorldObject*>& worldObjects, std::vector<WorldObject*>& entities);
+
+    void updateDayNightCycle(float dt);
+
+    void testEnterStructure();
+    void testExitStructure();
+
+    // Rocket
+    void enterRocket(ObjectReference rocketObjectReference, RocketObject& rocket);
+    void exitRocket();
+    void startFlyingRocket(PlanetType destination);
+    void updateFlyingRocket(float dt);
+    std::vector<PlanetType> getRocketAvailableDestinations();
+
+
+    // -- In Structure -- //
+
     void updateInStructure(float dt);
     void drawInStructure(float dt);
+
+
+    // -- Tools / interactions -- //
 
     void changePlayerTool();
     void attemptUseTool();
@@ -102,14 +129,6 @@ private:
     void drawGhostPlaceObjectAtCursor(ObjectType object);
     void drawGhostPlaceLandAtCursor();
 
-    void giveStartingInventory();
-
-    void initChestInData(ChestObject& chest);
-    void removeChestFromData(ChestObject& chest);
-    void checkChestOpenInRange();
-    void handleOpenChestPositionWorldWrap(sf::Vector2f positionDelta);
-    void closeChest();
-
     // Returns pointer (may be null) to selected / hovered object
     // Depending on game state, will check chunks / room
     BuildableObject* getSelectedObjectFromChunkOrRoom();
@@ -118,24 +137,24 @@ private:
     // For rooms, will use tile from object reference
     BuildableObject* getObjectFromChunkOrRoom(ObjectReference objectReference);
 
-    // Structure
-    void testEnterStructure();
-    void testExitStructure();
 
-    // Rocket
-    void enterRocket(ObjectReference rocketObjectReference, RocketObject& rocket);
-    void exitRocket();
-    void startFlyingRocket(PlanetType destination);
-    void updateFlyingRocket(float dt);
+    // -- Inventory / Chests -- //
 
-    std::vector<PlanetType> getRocketAvailableDestinations();
+    void giveStartingInventory();
+
+    void initChestInData(ChestObject& chest);
+    void removeChestFromData(ChestObject& chest);
+    void checkChestOpenInRange();
+    void handleOpenChestPositionWorldWrap(sf::Vector2f positionDelta);
+    void closeChest();
+
+
+    // -- Planet travelling -- //
 
     void travelToPlanet(PlanetType planetType);
 
-    void updateDayNightCycle(float dt);
 
-    void drawWorld(float dt, std::vector<WorldObject*>& worldObjects, std::vector<WorldObject*>& entities);
-    void drawLighting(float dt, std::vector<WorldObject*>& worldObjects, std::vector<WorldObject*>& entities);
+    // -- Game State / Transition -- //
 
     void updateStateTransition(float dt);
     void drawStateTransition();
@@ -143,15 +162,14 @@ private:
     void startChangeStateTransition(GameState newState);
     void changeState(GameState newState);
 
-    void generateWaterNoiseTexture();
 
-    void updateMusic(float dt);
+    // -- Save / load -- //
 
-    void drawMouseCursor();
-
-    // Save / load
     bool saveGame();
     bool loadGame();
+
+
+    // -- Window -- //
 
     void handleZoom(int zoomChange);
 
@@ -160,7 +178,17 @@ private:
     void toggleFullScreen();
     void handleWindowResize(sf::Vector2u newSize);
 
+
+    // -- Misc -- //
+
+    void generateWaterNoiseTexture();
+
+    void updateMusic(float dt);
+
+    void drawMouseCursor();
+
     void drawDebugMenu(float dt);
+
 
 private:
     sf::RenderWindow window;
