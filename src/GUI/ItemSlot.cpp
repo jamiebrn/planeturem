@@ -122,49 +122,34 @@ void ItemSlot::drawItem(sf::RenderTarget& window, ItemType itemType, sf::Vector2
 
     sf::Color colour(255, 255, 255, alpha);
 
+    TextureType textureType = TextureType::Items;
+    sf::IntRect textureRect = itemData.textureRect;
+    sf::Vector2f scale(3 * scaleMult * intScale, 3 * scaleMult * intScale);
+
     // Draw object if item places object
     if (itemData.placesObjectType >= 0)
     {
+        textureType = TextureType::Objects;
+
         const ObjectData& objectData = ObjectDataLoader::getObjectData(itemData.placesObjectType);
 
-        float objectScale = std::max(4 - std::max(objectData.textureRects[0].width / 16.0f, objectData.textureRects[0].height / 16.0f), 1.0f) * scaleMult;
+        float objectScale = (16.0f * 3) / std::max(objectData.textureRects[0].width, objectData.textureRects[0].height) * scaleMult;
+        scale = sf::Vector2f(objectScale * intScale, objectScale * intScale);
 
-        // Draw object
-        TextureManager::drawSubTexture(window, {
-            TextureType::Objects,
-            position,
-            0,
-            {objectScale * intScale, objectScale * intScale},
-            origin,
-            colour
-        }, objectData.textureRects[0]);
+        textureRect = objectData.textureRects[0];
     }
     else if (itemData.toolType >= 0)
     {
-        // Draw tool
+        textureType = TextureType::Tools;
+
         const ToolData& toolData = ToolDataLoader::getToolData(itemData.toolType);
 
-        float objectScale = std::max(4 - std::max(toolData.textureRects[0].width / 16.0f, toolData.textureRects[0].height / 16.0f), 1.0f) * scaleMult;
+        float toolScale = std::max(4 - std::max(toolData.textureRects[0].width / 16.0f, toolData.textureRects[0].height / 16.0f), 1.0f) * scaleMult;
+        scale = sf::Vector2f(toolScale * intScale, toolScale * intScale);
 
-        TextureManager::drawSubTexture(window, {
-            TextureType::Tools,
-            position,
-            0,
-            {objectScale * intScale, objectScale * intScale},
-            origin,
-            colour
-        }, toolData.textureRects[0]);
+        textureRect = toolData.textureRects[0];
     }
-    else
-    {
-        // Draw as normal
-        TextureManager::drawSubTexture(window, {
-            TextureType::Items,
-            position,
-            0,
-            {3 * scaleMult * intScale, 3 * scaleMult * intScale},
-            origin,
-            colour
-        }, itemData.textureRect);
-    }
+    
+    // Draw item / tool / object
+    TextureManager::drawSubTexture(window, {textureType, position, 0, scale, origin, colour}, textureRect);
 }

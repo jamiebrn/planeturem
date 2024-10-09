@@ -6,16 +6,13 @@
 #include "Core/Camera.hpp"
 #include "Core/ResolutionHandler.hpp"
 #include "Core/Helper.hpp"
-
-#include "Object/WorldObject.hpp"
+#include "Core/SpriteBatch.hpp"
+#include "Core/TextureManager.hpp"
 
 struct ParticleStyle
 {
-    sf::Vector2f size;
-    sf::Color startColour;
-    sf::Color endColour;
-    float lifetimeMin;
-    float lifetimeMax;
+    std::vector<sf::IntRect> textureRects;
+    float timePerFrame;
 };
 
 class Particle
@@ -25,7 +22,7 @@ public:
 
     void update(float dt);
 
-    void draw(sf::RenderTarget& window) const;
+    void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch) const;
 
     bool isAlive();
 
@@ -34,13 +31,10 @@ private:
     sf::Vector2f velocity;
     sf::Vector2f acceleration;
 
-    float lifetime;
-    float timeAlive;
-
-    sf::Vector2f size;
-
-    sf::Color startColour;
-    sf::Color endColour;
+    std::vector<sf::IntRect> textureRects;
+    int currentFrame;
+    float frameTimer;
+    float timePerFrame;
 };
 
 class ParticleSystem
@@ -52,7 +46,7 @@ public:
 
     void update(float dt);
 
-    void draw(sf::RenderTarget& window) const;
+    void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch) const;
 
 private:
     std::vector<Particle> particles;

@@ -32,7 +32,7 @@ RandInt Chunk::generateTilesAndStructure(const FastNoise& heightNoise, const Fas
     sf::Vector2i worldNoisePosition = sf::Vector2i(chunkPosition.x, chunkPosition.y) * static_cast<int>(CHUNK_TILE_SIZE);
 
     // Create random generator for chunk
-    unsigned long int randSeed = chunkManager.getSeed() ^ chunkPosition.hash();
+    unsigned long int randSeed = (chunkManager.getSeed() + planetType) ^ chunkPosition.hash();
     RandInt randGen(randSeed);
 
     // Store tile types in tile array

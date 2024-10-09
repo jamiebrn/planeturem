@@ -10,12 +10,16 @@
 
 #include <extlib/cereal/archives/binary.hpp>
 #include <extlib/cereal/types/vector.hpp>
+#include <extlib/cereal/types/optional.hpp>
+
 #include <SFML/System/Vector2.hpp>
 
 #include "World/ChunkPOD.hpp"
 #include "World/ChestDataPool.hpp"
 #include "World/RoomPool.hpp"
 #include "Player/InventoryData.hpp"
+
+#include "Object/ObjectReference.hpp"
 
 #include "Data/typedefs.hpp"
 #include "Data/PlanetGenData.hpp"
@@ -26,18 +30,20 @@ struct PlayerGameSave
     int seed;
     PlanetType planetType;
 
-    sf::Vector2f playerPos;
     InventoryData inventory;
 
     template <class Archive>
     void serialize(Archive& ar)
     {
-        ar(seed, planetType, playerPos.x, playerPos.y, inventory);
+        ar(seed, planetType, inventory);
     }
 };
 
 struct PlanetGameSave
 {
+    sf::Vector2f playerLastPos;
+    std::optional<ObjectReference> rocketObjectUsed = std::nullopt;
+
     std::vector<ChunkPOD> chunks;
 
     ChestDataPool chestDataPool;
@@ -46,7 +52,7 @@ struct PlanetGameSave
     template <class Archive>
     void serialize(Archive& ar)
     {
-        ar(chunks, chestDataPool, structureRoomPool);
+        ar(playerLastPos.x, playerLastPos.y, rocketObjectUsed, chunks, chestDataPool, structureRoomPool);
     }
 };
 
@@ -57,6 +63,8 @@ public:
     GameSaveIO(std::string fileName);
     
     bool load(PlayerGameSave& playerGameSave, PlanetGameSave& planetGameSave);
+    bool loadPlanet(PlanetType planetType, PlanetGameSave& planetGameSave);
+
     bool write(const PlayerGameSave& playerGameSave, const PlanetGameSave& planetGameSave);
 
     std::vector<std::string> getSaveFiles();

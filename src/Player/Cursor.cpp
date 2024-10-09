@@ -270,10 +270,10 @@ void Cursor::updateTileCursorInRoom(sf::RenderWindow& window,
     drawState = CursorDrawState::Hidden;
 
     // Check bounds
-    if (selectPosTile.x < 0 || selectPosTile.x >= objectGrid[0].size())
-        return;
-    
     if (selectPosTile.y < 0 || selectPosTile.y >= objectGrid.size())
+        return;
+
+    if (selectPosTile.x < 0 || selectPosTile.x >= objectGrid[selectPosTile.y].size())
         return;
 
     BuildableObject* selectedObject = objectGrid[selectPosTile.y][selectPosTile.x].get();

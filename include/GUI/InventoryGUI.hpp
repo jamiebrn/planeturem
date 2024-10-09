@@ -55,7 +55,7 @@ public:
     // Initialise animations etc
     static void initialise(InventoryData& inventory);
 
-    static void updateInventory(sf::Vector2f mouseScreenPos, float dt, InventoryData* chestData = nullptr);
+    static void updateInventory(sf::Vector2f mouseScreenPos, float dt, InventoryData& inventory, InventoryData* chestData = nullptr);
 
     // May pick up item stack, may put down item stack
     static void handleLeftClick(sf::Vector2f mouseScreenPos, bool shiftMode, InventoryData& inventory, InventoryData* chestData = nullptr);

@@ -1,5 +1,7 @@
 #include "Game.hpp"
 
+// FIX: Rocket auto-place on new planets where spawn chunk contains structure
+
 // PRIORITY: HIGH
 // TODO: Reset chest and structure pools on planet change
 // TODO: Place rocket object when spawned on new planet
@@ -231,6 +233,8 @@ void Game::runMainMenu(float dt)
                 
                 GameSaveIO io;
                 saveFileNames = io.getSaveFiles();
+
+                saveFilePage = 0;
             }
 
             if (guiContext.createButton(window.getSize().x / 2.0f - 100 * intScale, window.getSize().y / 2.0f + 100 * intScale, 200 * intScale, 75 * intScale, "Options"))
@@ -257,8 +261,7 @@ void Game::runMainMenu(float dt)
             {
                 if (!isStateTransitioning())
                 {
-                    travelToPlanet(PlanetGenDataLoader::getPlanetTypeFromName("Earthlike"));
-                    startChangeStateTransition(GameState::OnPlanet);
+                    startNewGame();
                 }
             }
             
@@ -270,35 +273,65 @@ void Game::runMainMenu(float dt)
         }
         case MainMenuState::SelectingLoad:
         {
-            // guiContext.createTextEnter(window.getSize().x / 2.0f - 200 * intScale, window.getSize().y / 2.0f - 100.0f * intScale,
-            //     400 * intScale, 40 * intScale, "Save Name", &currentSaveName);
+            static constexpr int saveFilesPerPage = 5;
 
-            for (int i = 0; i < saveFileNames.size(); i++)
+            for (int i = saveFilesPerPage * saveFilePage; i < std::min(static_cast<int>(saveFileNames.size()), saveFilesPerPage * (saveFilePage + 1)); i++)
             {
                 const std::string& saveName = saveFileNames[i];
 
-                if (guiContext.createButton(window.getSize().x / 2.0f - 100 * intScale, window.getSize().y / 2.0f - (150 - i * 100) * intScale, 200 * intScale,
-                    75 * intScale, saveName))
+                if (guiContext.createButton(window.getSize().x / 2.0f - 100 * intScale, window.getSize().y / 2.0f - (150 - (i % saveFilesPerPage) * 100) * intScale,
+                    200 * intScale, 75 * intScale, saveName))
                 {
                     if (!isStateTransitioning())
+                    {   
+                        loadGame(saveName);
+                    }
+                }
+            }
+
+            // Text if no save files
+            if (saveFileNames.size() <= 0)
+            {
+                TextDrawData textDrawData;
+                textDrawData.text = "No save files found";
+                textDrawData.position = sf::Vector2f(window.getSize().x / 2.0f, window.getSize().y / 2.0f - 150 * intScale);
+                textDrawData.size = 24 * intScale;
+                textDrawData.centeredX = true;
+                textDrawData.centeredY = true;
+
+                TextDraw::drawText(window, textDrawData);
+            }
+
+            // Create page scroll buttons if 
+            if (saveFileNames.size() > saveFilesPerPage)
+            {
+                // Create page back button
+                if (saveFilePage > 0)
+                {
+                    if (guiContext.createButton(window.getSize().x / 2.0f - 300 * intScale, window.getSize().y / 2.0f - 150 * intScale,
+                        50 * intScale, 50 * intScale, "<"))
                     {
-                        currentSaveName = saveName;
-                        
-                        if (loadGame())
-                        {
-                            startChangeStateTransition(GameState::OnPlanet);
-                        }
-                        else
-                        {
-                            std::cout << "Failed to load game\n";
-                        }
+                        saveFilePage--;   
+                    }
+                }
+
+                // Create page forward button
+                if (saveFilePage < std::ceil(saveFileNames.size() / saveFilesPerPage))
+                {
+                    if (guiContext.createButton(window.getSize().x / 2.0f + 250 * intScale, window.getSize().y / 2.0f - 150 * intScale,
+                        50 * intScale, 50 * intScale, ">"))
+                    {
+                        saveFilePage++;   
                     }
                 }
             }
 
             if (guiContext.createButton(window.getSize().x / 2.0f - 100 * intScale, window.getSize().y - 150 * intScale, 200 * intScale, 75 * intScale, "Back"))
             {
-                mainMenuState = MainMenuState::Main;
+                if (!isStateTransitioning())
+                {
+                    mainMenuState = MainMenuState::Main;
+                }
             }
             break;
         }
@@ -514,7 +547,7 @@ void Game::runOnPlanet(float dt)
         {
             // Update inventory GUI available recipes if required, and animations
             InventoryGUI::updateAvailableRecipes(inventory, nearbyCraftingStationLevels);
-            InventoryGUI::updateInventory(mouseScreenPos, dt, chestDataPool.getChestDataPtr(openedChestID));
+            InventoryGUI::updateInventory(mouseScreenPos, dt, inventory, chestDataPool.getChestDataPtr(openedChestID));
             break;
         }
         case WorldMenuState::TravelSelect:
@@ -605,7 +638,7 @@ void Game::updateOnPlanet(float dt)
     
     if (worldMenuState == WorldMenuState::FlyingRocket)
     {
-        updateFlyingRocket(dt);
+        updateFlyingRocket(dt, destinationPlanet == chunkManager.getPlanetType());
     }
 }
 
@@ -761,9 +794,12 @@ void Game::testExitStructure()
 // Rocket
 void Game::enterRocket(ObjectReference rocketObjectReference, RocketObject& rocket)
 {
-    worldMenuState = WorldMenuState::TravelSelect;
-
     rocketObject = rocketObjectReference;
+
+    // Save just before enter
+    saveGame(true);
+
+    worldMenuState = WorldMenuState::TravelSelect;
 
     player.enterRocket(rocket.getRocketPosition());
 }
@@ -775,7 +811,7 @@ void Game::exitRocket()
     player.exitRocket();
 }
 
-void Game::startFlyingRocket(PlanetType destination)
+void Game::startFlyingRocket(PlanetType destination, bool flyingDownwards)
 {
     BuildableObject* object = getObjectFromChunkOrRoom(rocketObject);
     if (!object)
@@ -790,14 +826,23 @@ void Game::startFlyingRocket(PlanetType destination)
     }
 
     RocketObject* rocket = static_cast<RocketObject*>(object);
-    rocket->startFlying();
+
+    if (flyingDownwards)
+    {
+        rocket->startFlyingDownwards();   
+    }
+    else
+    {
+        rocket->startFlyingUpwards();
+    }
 
     worldMenuState = WorldMenuState::FlyingRocket;
 
     destinationPlanet = destination;
 }
 
-void Game::updateFlyingRocket(float dt)
+// TODO: Refactor this into some sort of interaction handler system with objects
+void Game::updateFlyingRocket(float dt, bool flyingDownwards)
 {
     BuildableObject* object = getObjectFromChunkOrRoom(rocketObject);
     if (!object)
@@ -815,9 +860,16 @@ void Game::updateFlyingRocket(float dt)
     RocketObject* rocket = static_cast<RocketObject*>(object);
 
     // If tween over, go to destination planet
-    if (rocket->finishedFlyingUpwards())
+    if (rocket->finishedFlying())
     {
-        travelToPlanet(destinationPlanet);
+        if (flyingDownwards)
+        {
+            exitRocket();
+        }
+        else
+        {
+            travelToPlanet(destinationPlanet);
+        }
     }
 }
 
@@ -1432,38 +1484,60 @@ void Game::closeChest()
 
 void Game::travelToPlanet(PlanetType planetType)
 {
-    chunkManager.deleteAllChunks();
+    //exitRocket();
 
-    chunkManager.setPlanetType(planetType);
+    resetChestDataPool();
+    resetStructureRoomPool();
 
-    // Get seed from input
-    int seed = 0;
-    if (worldSeed.empty())
+    if (!loadPlanet(planetType))
     {
-        seed = Helper::randInt(0, 1000000);
+        initialiseNewPlanet(planetType, true);
     }
-    else
-    {
-        // Compute simple hash of seed
-        seed = 0x55555555;
-        for (char c : worldSeed)
-        {
-            seed ^= c;
-            seed = seed << 5;
-        }
-    }
-
-    chunkManager.setSeed(seed);
-
-    exitRocket();
-
-    sf::Vector2f playerSpawnPos = chunkManager.findValidSpawnPosition(2);
-    player.setPosition(playerSpawnPos);
 
     Camera::instantUpdate(player.getPosition());
 
-    // Generate chunks in view to prevent 1-frame flicker
     chunkManager.updateChunks();
+
+    RocketObject* rocket = static_cast<RocketObject*>(chunkManager.getChunkObject(rocketObject.chunk, rocketObject.tile));
+
+    player.enterRocket(rocket->getRocketPosition());
+    startFlyingRocket(chunkManager.getPlanetType(), true);
+
+    Camera::instantUpdate(player.getPosition());
+}
+
+void Game::initialiseNewPlanet(PlanetType planetType, bool placeRocket)
+{
+    chunkManager.setPlanetType(planetType);
+
+    ChunkPosition playerSpawnChunk = chunkManager.findValidSpawnChunk(2);
+
+    sf::Vector2f playerSpawnPos;
+    playerSpawnPos.x = playerSpawnChunk.x * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED + 0.5f * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
+    playerSpawnPos.y = playerSpawnChunk.y * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED + 0.5f * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
+    player.setPosition(playerSpawnPos);
+    
+    // Place rocket
+    if (placeRocket)
+    {
+        Camera::instantUpdate(player.getPosition());
+
+        chunkManager.updateChunks();
+
+        chunkManager.setObject(playerSpawnChunk, sf::Vector2i(0, 0), ObjectDataLoader::getObjectTypeFromName("Rocket Launch Pad"));
+        rocketObject.chunk = playerSpawnChunk;
+        rocketObject.tile = sf::Vector2i(0, 0);
+    }
+}
+
+void Game::resetChestDataPool()
+{
+    chestDataPool = ChestDataPool();
+}
+
+void Game::resetStructureRoomPool()
+{
+    structureRoomPool = RoomPool();
 }
 
 
@@ -1538,38 +1612,79 @@ void Game::changeState(GameState newState)
     gameState = newState;
 }
 
+void Game::setWorldSeedFromInput()
+{
+    // Get seed from input
+    int seed = 0;
+    if (worldSeed.empty())
+    {
+        seed = rand();
+    }
+    else
+    {
+        // Compute simple hash of seed
+        seed = 0x55555555;
+        for (char c : worldSeed)
+        {
+            seed ^= c;
+            seed = seed << 5;
+        }
+    }
+
+    chunkManager.setSeed(seed);
+}
 
 // -- Save / load -- //
 
-bool Game::saveGame()
+void Game::startNewGame()
+{
+    setWorldSeedFromInput();
+
+    initialiseNewPlanet(PlanetGenDataLoader::getPlanetTypeFromName("Earthlike"));
+
+    Camera::instantUpdate(player.getPosition());
+
+    chunkManager.updateChunks();
+
+    startChangeStateTransition(GameState::OnPlanet);
+}
+
+bool Game::saveGame(bool gettingInRocket)
 {
     GameSaveIO io(currentSaveName);
 
     PlayerGameSave playerGameSave;
     playerGameSave.seed = chunkManager.getSeed();
     playerGameSave.planetType = chunkManager.getPlanetType();
-    playerGameSave.playerPos = player.getPosition();
+    // playerGameSave.playerPos = player.getPosition();
     playerGameSave.inventory = inventory;
 
     PlanetGameSave planetGameSave;
+    planetGameSave.playerLastPos = player.getPosition();
     planetGameSave.chunks = chunkManager.getChunkPODs();
     planetGameSave.chestDataPool = chestDataPool;
     planetGameSave.structureRoomPool = structureRoomPool;
+    
+    if (gettingInRocket)
+    {
+        planetGameSave.rocketObjectUsed = rocketObject;
+    }
 
     io.write(playerGameSave, planetGameSave);
 
     return true;
 }
 
-bool Game::loadGame()
+bool Game::loadGame(const std::string& saveName)
 {
-    GameSaveIO io(currentSaveName);
+    GameSaveIO io(saveName);
 
     PlayerGameSave playerGameSave;
     PlanetGameSave planetGameSave;
 
     if (!io.load(playerGameSave, planetGameSave))
     {
+        std::cout << "Failed to load game\n";
         return false;
     }
 
@@ -1577,8 +1692,8 @@ bool Game::loadGame()
     
     chunkManager.setSeed(playerGameSave.seed);
     chunkManager.setPlanetType(playerGameSave.planetType);
-    player.setPosition(playerGameSave.playerPos);
     inventory = playerGameSave.inventory;
+    player.setPosition(planetGameSave.playerLastPos);
 
     chunkManager.loadFromChunkPODs(planetGameSave.chunks);
     chestDataPool = planetGameSave.chestDataPool;
@@ -1588,8 +1703,38 @@ bool Game::loadGame()
 
     chunkManager.updateChunks();
 
+    // Load successful, set save name as current save and start state transition
+    currentSaveName = saveName;
+    startChangeStateTransition(GameState::OnPlanet);
+
     return true;
 }
+
+bool Game::loadPlanet(PlanetType planetType)
+{
+    GameSaveIO io(currentSaveName);
+
+    PlanetGameSave planetGameSave;
+
+    if (!io.loadPlanet(planetType, planetGameSave))
+    {
+        return false;
+    }
+
+    chunkManager.setPlanetType(planetType);
+
+    player.setPosition(planetGameSave.playerLastPos);
+    chunkManager.loadFromChunkPODs(planetGameSave.chunks);
+    chestDataPool = planetGameSave.chestDataPool;
+    structureRoomPool = planetGameSave.structureRoomPool;
+
+    assert(planetGameSave.rocketObjectUsed.has_value());
+
+    rocketObject = planetGameSave.rocketObjectUsed.value();
+
+    return true;
+}
+
 
 
 // -- Window -- //
@@ -1852,7 +1997,7 @@ void Game::drawDebugMenu(float dt)
 
     if (ImGui::Button("Load"))
     {
-        loadGame();
+        loadGame(currentSaveName);
     }
 
     ImGui::Spacing();

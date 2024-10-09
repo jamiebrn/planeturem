@@ -28,6 +28,8 @@ void ChunkManager::setWorldSize(int size)
 
 void ChunkManager::setPlanetType(PlanetType planetType)
 {
+    deleteAllChunks();
+
     this->planetType = planetType;
 
     const PlanetGenData& planetGenData = PlanetGenDataLoader::getPlanetGenData(planetType);
@@ -786,7 +788,7 @@ void ChunkManager::loadFromChunkPODs(const std::vector<ChunkPOD>& pods)
     }
 }
 
-sf::Vector2f ChunkManager::findValidSpawnPosition(int waterlessAreaSize)
+ChunkPosition ChunkManager::findValidSpawnChunk(int waterlessAreaSize)
 {
     // Move all loaded chunks (if any) into stored chunks temporarily
     // Makes testing area simpler as only have to check stored chunk map
@@ -841,20 +843,20 @@ sf::Vector2f ChunkManager::findValidSpawnPosition(int waterlessAreaSize)
                 continue;
             
             // Is valid spawn - calculate position of centre of chunk and return
-            sf::Vector2f spawnPosition;
-            spawnPosition.x = x * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED + 0.5f * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
-            spawnPosition.y = y * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED + 0.5f * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
+            // sf::Vector2f spawnPosition;
+            // spawnPosition.x = x * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED + 0.5f * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
+            // spawnPosition.y = y * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED + 0.5f * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
 
-            return spawnPosition;
+            return ChunkPosition(x, y);
         }
     }
 
     // Recursive call to find smaller valid area
     if (waterlessAreaSize > 0)
-        return findValidSpawnPosition(waterlessAreaSize - 1);
+        return findValidSpawnChunk(waterlessAreaSize - 1);
     
     // Can't find valid spawn, so default return
-    return sf::Vector2f(0, 0);
+    return ChunkPosition(0, 0);
 }
 
 std::unordered_map<std::string, int> ChunkManager::getNearbyCraftingStationLevels(ChunkPosition playerChunk, sf::Vector2i playerTile, int searchArea)

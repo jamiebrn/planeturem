@@ -186,7 +186,7 @@ public:
     // Finds valid spawn position for player i.e. no water
     // Waterless area size checks for chunks +- waterlessAreaSize
     // e.g. size 1 will check 3x3 area, size 2 will check 5x5 etc
-    sf::Vector2f findValidSpawnPosition(int waterlessAreaSize);
+    ChunkPosition findValidSpawnChunk(int waterlessAreaSize);
 
     // Gets levels of nearby crafting stations
     // Search area grows with one extra tile in each direction per 1 increase

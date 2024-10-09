@@ -33,19 +33,9 @@ bool GameSaveIO::load(PlayerGameSave& playerGameSave, PlanetGameSave& planetGame
         }
 
         // Load planet file
+        if (!loadPlanet(playerGameSave.planetType, planetGameSave))
         {
-            const std::string& planetName = PlanetGenDataLoader::getPlanetGenData(playerGameSave.planetType).name;
-
-            std::fstream in("Saves/" + fileName + "/" + planetName + ".dat", std::ios::in | std::ios::binary);
-            
-            if (!in)
-            {
-                throw std::invalid_argument("Could not open planet file for \"" + fileName + "\"");
-            }
-
-            cereal::BinaryInputArchive archive(in);
-
-            archive(planetGameSave);
+            throw std::invalid_argument("Could not open planet file for \"" + fileName + "\"");
         }
 
         return true;
@@ -57,6 +47,24 @@ bool GameSaveIO::load(PlayerGameSave& playerGameSave, PlanetGameSave& planetGame
     }
 
     return false;
+}
+
+bool GameSaveIO::loadPlanet(PlanetType planetType, PlanetGameSave& planetGameSave)
+{
+    const std::string& planetName = PlanetGenDataLoader::getPlanetGenData(planetType).name;
+
+    std::fstream in("Saves/" + fileName + "/" + planetName + ".dat", std::ios::in | std::ios::binary);
+    
+    if (!in)
+    {
+        return false;
+    }
+
+    cereal::BinaryInputArchive archive(in);
+
+    archive(planetGameSave);
+
+    return true;
 }
 
 bool GameSaveIO::write(const PlayerGameSave& playerGameSave, const PlanetGameSave& planetGameSave)
@@ -116,14 +124,39 @@ std::vector<std::string> GameSaveIO::getSaveFiles()
 {
     createSaveDirectoryIfRequired();
 
-    std::vector<std::string> saveFiles;
+    struct SaveFileWithDate
+    {
+        std::string name;
+        std::filesystem::file_time_type lastModified;
+    };
+
+    std::vector<SaveFileWithDate> saveFilesWithDate;
 
     for (const auto& saveFile : std::filesystem::directory_iterator("Saves"))
     {
         if (!saveFile.is_directory())
             continue;
         
-        saveFiles.push_back(saveFile.path().filename().generic_string());
+        SaveFileWithDate saveFileWithDate;
+
+        saveFileWithDate.name = saveFile.path().filename().generic_string();
+
+        saveFileWithDate.lastModified =  saveFile.last_write_time();
+
+        saveFilesWithDate.push_back(saveFileWithDate);
+    }
+    
+    std::vector<std::string> saveFiles;
+
+    // Sort save files by date
+    std::sort(saveFilesWithDate.begin(), saveFilesWithDate.end(), [](const SaveFileWithDate& saveA, const SaveFileWithDate& saveB)
+    {
+        return (saveA.lastModified > saveB.lastModified);
+    });
+
+    for (const SaveFileWithDate& saveFileWithDate : saveFilesWithDate)
+    {
+        saveFiles.push_back(saveFileWithDate.name);
     }
 
     return saveFiles;

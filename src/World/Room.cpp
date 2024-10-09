@@ -25,6 +25,8 @@ Room& Room::operator=(const Room& room)
     collisionRects = room.collisionRects;
     warpExitRect = room.warpExitRect;
 
+    objectGrid.clear();
+
     // Copy object ptrs
     for (int y = 0; y < room.objectGrid.size(); y++)
     {

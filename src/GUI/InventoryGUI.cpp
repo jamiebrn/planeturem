@@ -110,7 +110,7 @@ void InventoryGUI::createRecipeItemSlots(InventoryData& inventory)
     }
 }
 
-void InventoryGUI::updateInventory(sf::Vector2f mouseScreenPos, float dt, InventoryData* chestData)
+void InventoryGUI::updateInventory(sf::Vector2f mouseScreenPos, float dt, InventoryData& inventory, InventoryData* chestData)
 {
     // Update bin animation
     int binAnimationUpdateDirection = 0;
@@ -128,9 +128,14 @@ void InventoryGUI::updateInventory(sf::Vector2f mouseScreenPos, float dt, Invent
     binAnimation.update(dt, binAnimationUpdateDirection);
 
     // Update inventory item slots
-    for (ItemSlot& itemSlot : inventoryItemSlots)
+    for (int i = 0; i < std::min(inventory.getSize(), static_cast<int>(inventoryItemSlots.size())); i++)
     {
-        itemSlot.update(mouseScreenPos, dt);
+        inventoryItemSlots[i].update(mouseScreenPos, dt);
+        
+        if (!inventory.getItemSlotData(i).has_value())
+        {
+            inventoryItemSlots[i].overrideItemScaleMult(1.0f);
+        }
     }
 
     // Update recipe item slots
@@ -144,9 +149,17 @@ void InventoryGUI::updateInventory(sf::Vector2f mouseScreenPos, float dt, Invent
     }
 
     // Update chest item slots
-    for (ItemSlot& itemSlot : chestItemSlots)
+    if (chestData)
     {
-        itemSlot.update(mouseScreenPos, dt);
+        for (int i = 0; i < std::min(chestData->getSize(), static_cast<int>(chestItemSlots.size())); i++)
+        {
+            chestItemSlots[i].update(mouseScreenPos, dt);
+            
+            if (!chestData->getItemSlotData(i).has_value())
+            {
+                chestItemSlots[i].overrideItemScaleMult(1.0f);
+            }
+        }
     }
 }
 

@@ -6,12 +6,10 @@ Particle::Particle(sf::Vector2f position, sf::Vector2f velocity, sf::Vector2f ac
     this->velocity = velocity;
     this->acceleration = acceleration;
 
-    lifetime = Helper::randFloat(style.lifetimeMin, style.lifetimeMax);
-    timeAlive = 0.0f;
-
-    size = style.size;
-    startColour = style.startColour;
-    endColour = style.endColour;
+    textureRects = style.textureRects;
+    currentFrame = 0;
+    frameTimer = 0.0f;
+    timePerFrame = style.timePerFrame;
 }
 
 void Particle::update(float dt)
@@ -19,31 +17,30 @@ void Particle::update(float dt)
     velocity += acceleration * dt;
     position += velocity * dt;
 
-    timeAlive += dt;
+    frameTimer += dt;
+    if (frameTimer >= timePerFrame)
+    {
+        frameTimer = 0.0f;
+        currentFrame++;
+    }
 }
 
-void Particle::draw(sf::RenderTarget& window) const
+void Particle::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch) const
 {
     float scale = ResolutionHandler::getScale();
 
-    sf::RectangleShape rect(size * scale);
-    rect.setPosition(Camera::worldToScreenTransform(position));
-    
-    float progress = timeAlive / lifetime;
-    sf::Color drawColour;
-    drawColour.r = (endColour.r - startColour.r) * progress + startColour.r;
-    drawColour.g = (endColour.g - startColour.g) * progress + startColour.g;
-    drawColour.b = (endColour.b - startColour.b) * progress + startColour.b;
-    drawColour.a = (endColour.a - startColour.a) * progress + startColour.a;
+    TextureDrawData drawData;
+    drawData.position = Camera::worldToScreenTransform(position);
+    drawData.type = TextureType::Objects;
+    drawData.scale = sf::Vector2f(scale, scale);
+    drawData.centerRatio = sf::Vector2f(0.5, 0.5);
 
-    rect.setFillColor(drawColour);
-
-    window.draw(rect);
+    spriteBatch.draw(window, drawData, textureRects[std::min(currentFrame, static_cast<int>(textureRects.size()) - 1)]);
 }
 
 bool Particle::isAlive()
 {
-    return (timeAlive < lifetime);
+    return (currentFrame < textureRects.size());
 }
 
 void ParticleSystem::addParticle(const Particle& particle)
@@ -65,10 +62,10 @@ void ParticleSystem::update(float dt)
     }
 }
 
-void ParticleSystem::draw(sf::RenderTarget& window) const
+void ParticleSystem::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch) const
 {
     for (auto iter = particles.begin(); iter != particles.end(); iter++)
     {
-        iter->draw(window);
+        iter->draw(window, spriteBatch);
     }
 }

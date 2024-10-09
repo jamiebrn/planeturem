@@ -15,12 +15,17 @@ void RocketObject::update(float dt, bool onWater, bool loopAnimation)
 {
     BuildableObject::update(dt, onWater);
 
+    particleSystem.update(dt);
+    
     if (flying)
     {
         floatTween.update(dt);
 
-        particleSystem.update(dt);
-
+        if (floatTween.isTweenFinished(rocketFlyingTweenID))
+        {
+            flying = false;
+        }
+        
         rocketParticleCooldown += dt;
         if (rocketParticleCooldown >= ROCKET_PARTICLE_MAX_COOLDOWN)
         {
@@ -35,10 +40,10 @@ void RocketObject::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, floa
     BuildableObject::draw(window, spriteBatch, dt, gameTime, worldSize, color);
 
     // Force spritebatch end to ensure particles draw over launch pad
-    spriteBatch.endDrawing(window);
+    // spriteBatch.endDrawing(window);
 
     // Draw rocket particles
-    particleSystem.draw(window);
+    particleSystem.draw(window, spriteBatch);
 
     drawRocket(window, spriteBatch, color);
 }
@@ -48,17 +53,24 @@ ObjectInteractionType RocketObject::interact() const
     return ObjectInteractionType::Rocket;
 }
 
-void RocketObject::startFlying()
+void RocketObject::startFlyingUpwards()
 {
     flying = true;
-    rocketFlyingTweenID = floatTween.startTween(&rocketYOffset, 0.0f, TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE * -5, 3.0f,
+    rocketFlyingTweenID = floatTween.startTween(&rocketYOffset, 0.0f, TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE * -4, 3.0f,
         TweenTransition::Quint, TweenEasing::EaseInOut);
 }
 
-bool RocketObject::finishedFlyingUpwards()
+void RocketObject::startFlyingDownwards()
+{
+    flying = true;
+    rocketFlyingTweenID = floatTween.startTween(&rocketYOffset, TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE * -4, 0.0f, 3.0f,
+        TweenTransition::Quint, TweenEasing::EaseInOut);
+}
+
+bool RocketObject::finishedFlying()
 {
     if (!flying)
-        return false;
+        return true;
     return floatTween.isTweenFinished(rocketFlyingTweenID);
 }
 
@@ -106,16 +118,23 @@ float RocketObject::getRocketYOffset()
 void RocketObject::createRocketParticles()
 {
     ParticleStyle style;
-    float size = Helper::randFloat(3, 6);
-    style.size = sf::Vector2f(size, size);
-    style.lifetimeMax = 2.5f;
-    style.lifetimeMin = 1.5f;
-    style.startColour = sf::Color(230, 230, 230);
-    style.endColour = sf::Color(40, 40, 40, 50);
+    style.timePerFrame = Helper::randFloat(0.05f, 0.4f);
+    
+    int particleType = Helper::randInt(0, 2);
 
-    sf::Vector2f position = getRocketBottomPosition() - style.size / 2.0f;
-    sf::Vector2f velocity(Helper::randFloat(-7.0f, 7.0f), Helper::randFloat(8.0f, 16.0f));
-    sf::Vector2f acceleration(0, -Helper::randFloat(0.3f, 0.8f));
+    for (int i = 0; i < 4; i++)
+    {
+        sf::IntRect textureRect;
+        textureRect.left = i * 16;
+        textureRect.top = 384 + particleType * 16;
+        textureRect.height = 16;
+        textureRect.width = 16;
+        style.textureRects.push_back(textureRect);
+    }
+
+    sf::Vector2f position = getRocketBottomPosition() + sf::Vector2f(Helper::randInt(-1, 1), Helper::randInt(-1, 1));
+    sf::Vector2f velocity(Helper::randFloat(-30.0f, 30.0f), Helper::randFloat(15.0f, 30.0f));
+    sf::Vector2f acceleration(Helper::randFloat(-0.6, 0.6), -Helper::randFloat(0.4f, 1.0f));
 
     particleSystem.addParticle(Particle(position, velocity, acceleration, style));
 }

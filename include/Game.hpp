@@ -102,8 +102,8 @@ private:
     // Rocket
     void enterRocket(ObjectReference rocketObjectReference, RocketObject& rocket);
     void exitRocket();
-    void startFlyingRocket(PlanetType destination);
-    void updateFlyingRocket(float dt);
+    void startFlyingRocket(PlanetType destination, bool flyingDownwards = false);
+    void updateFlyingRocket(float dt, bool flyingDownwards = false);
     std::vector<PlanetType> getRocketAvailableDestinations();
 
 
@@ -152,6 +152,10 @@ private:
     // -- Planet travelling -- //
 
     void travelToPlanet(PlanetType planetType);
+    void initialiseNewPlanet(PlanetType planetType, bool placeRocket = false);
+
+    void resetChestDataPool();
+    void resetStructureRoomPool();
 
 
     // -- Game State / Transition -- //
@@ -162,11 +166,15 @@ private:
     void startChangeStateTransition(GameState newState);
     void changeState(GameState newState);
 
+    void setWorldSeedFromInput();
+
 
     // -- Save / load -- //
 
-    bool saveGame();
-    bool loadGame();
+    void startNewGame();
+    bool saveGame(bool gettingInRocket = false);
+    bool loadGame(const std::string& saveName);
+    bool loadPlanet(PlanetType planetType);
 
 
     // -- Window -- //
@@ -207,6 +215,7 @@ private:
     float menuScreenshotTimer;
 
     std::vector<std::string> saveFileNames;
+    int saveFilePage;
 
     SpriteBatch spriteBatch;
     sf::RenderTexture worldTexture;

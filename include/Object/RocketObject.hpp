@@ -22,8 +22,9 @@ public:
 
     ObjectInteractionType interact() const override;
 
-    void startFlying();
-    bool finishedFlyingUpwards();
+    void startFlyingUpwards();
+    void startFlyingDownwards();
+    bool finishedFlying();
 
     sf::Vector2f getRocketPosition();
     sf::Vector2f getRocketBottomPosition();
@@ -46,6 +47,6 @@ private:
     
     ParticleSystem particleSystem;
     float rocketParticleCooldown = 0.0f;
-    static constexpr float ROCKET_PARTICLE_MAX_COOLDOWN = 0.07f;
+    static constexpr float ROCKET_PARTICLE_MAX_COOLDOWN = 0.02f;
 
 };
