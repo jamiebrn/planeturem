@@ -25,7 +25,8 @@
 #include "Data/PlanetGenData.hpp"
 #include "Data/PlanetGenDataLoader.hpp"
 
-// Forward declaration of chunk
+// Forward declaration
+class Game;
 class Chunk;
 class Entity;
 
@@ -101,7 +102,7 @@ public:
 
     // -- Objects -- //
     // Update objects in all chunks
-    void updateChunksObjects(float dt);
+    void updateChunksObjects(Game& game, float dt);
 
     // Get object at certain world position
     // Returns actual object if object reference is at position requested

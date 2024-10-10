@@ -1,4 +1,5 @@
 #include "Object/RocketObject.hpp"
+#include "Game.hpp"
 
 RocketObject::RocketObject(sf::Vector2f position, ObjectType objectType)
     : BuildableObject(position, objectType)
@@ -11,21 +12,31 @@ BuildableObject* RocketObject::clone()
     return new RocketObject(*this);
 }
 
-void RocketObject::update(float dt, bool onWater, bool loopAnimation)
+void RocketObject::update(Game& game, float dt, bool onWater, bool loopAnimation)
 {
-    BuildableObject::update(dt, onWater);
+    BuildableObject::update(game, dt, onWater);
 
     particleSystem.update(dt);
     
-    if (flying)
+    
+    if (flyingUp || flyingDown)
     {
         floatTween.update(dt);
-
+        
         if (floatTween.isTweenFinished(rocketFlyingTweenID))
         {
-            flying = false;
+            if (flyingUp)
+            {
+                flyingUp = false;
+                game.rocketFinishedUp(*this);
+            }
+            else if (flyingDown)
+            {
+                flyingDown = false;
+                game.rocketFinishedDown(*this);
+            }
         }
-        
+
         rocketParticleCooldown += dt;
         if (rocketParticleCooldown >= ROCKET_PARTICLE_MAX_COOLDOWN)
         {
@@ -39,39 +50,91 @@ void RocketObject::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, floa
 {
     BuildableObject::draw(window, spriteBatch, dt, gameTime, worldSize, color);
 
-    // Force spritebatch end to ensure particles draw over launch pad
-    // spriteBatch.endDrawing(window);
-
     // Draw rocket particles
     particleSystem.draw(window, spriteBatch);
 
     drawRocket(window, spriteBatch, color);
 }
 
-ObjectInteractionType RocketObject::interact() const
+void RocketObject::interact(Game& game)
 {
-    return ObjectInteractionType::Rocket;
+    // Rocket interaction stuff
+    std::cout << "interacted with rocket\n";
+
+    if (!entered)
+    {
+        game.enterRocket(*this);
+        entered = true;
+    }
+}
+
+bool RocketObject::isInteractable() const
+{
+    return true;
+}
+
+void RocketObject::triggerBehaviour(Game& game, ObjectBehaviourTrigger trigger)
+{
+    switch (trigger)
+    {
+        case ObjectBehaviourTrigger::RocketFlyUp:
+        {
+            startFlyingUpwards();
+            break;
+        }
+        case ObjectBehaviourTrigger::RocketFlyDown:
+        {
+            startFlyingDownwards();
+            game.enterIncomingRocket(*this);
+            break;
+        }
+        case ObjectBehaviourTrigger::RocketExit:
+        {
+            entered = false;
+            break;
+        }
+    }
 }
 
 void RocketObject::startFlyingUpwards()
 {
-    flying = true;
-    rocketFlyingTweenID = floatTween.startTween(&rocketYOffset, 0.0f, TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE * -4, 3.0f,
+    // Just to be sure
+    entered = true;
+
+    flyingUp = true;
+    rocketYOffset = 0.0f;
+
+    rocketFlyingTweenID = floatTween.startTween(&rocketYOffset, rocketYOffset, TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE * -4, 3.0f,
         TweenTransition::Quint, TweenEasing::EaseInOut);
 }
 
 void RocketObject::startFlyingDownwards()
 {
-    flying = true;
-    rocketFlyingTweenID = floatTween.startTween(&rocketYOffset, TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE * -4, 0.0f, 3.0f,
+    // Just to be sure
+    entered = true;
+
+    flyingDown = true;
+    rocketYOffset = TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE * -4;
+
+    rocketFlyingTweenID = floatTween.startTween(&rocketYOffset, rocketYOffset, 0.0f, 3.0f,
         TweenTransition::Quint, TweenEasing::EaseInOut);
 }
 
-bool RocketObject::finishedFlying()
+std::vector<PlanetType> RocketObject::getRocketAvailableDestinations(PlanetType currentPlanetType)
 {
-    if (!flying)
-        return true;
-    return floatTween.isTweenFinished(rocketFlyingTweenID);
+    std::vector<PlanetType> availableDestinations;
+
+    const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
+
+    for (PlanetType destination : objectData.rocketObjectData->availableDestinations)
+    {
+        if (destination == currentPlanetType)
+            continue;
+        
+        availableDestinations.push_back(destination);
+    }
+
+    return availableDestinations;
 }
 
 sf::Vector2f RocketObject::getRocketPosition()

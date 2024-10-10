@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 #include <SFML/Graphics.hpp>
 
 #include "Core/Tween.hpp"
@@ -9,6 +11,10 @@
 #include "Object/BuildableObjectPOD.hpp"
 #include "Object/ParticleSystem.hpp"
 
+#include "Data/typedefs.hpp"
+
+class Game;
+
 class RocketObject : public BuildableObject
 {
 public:
@@ -16,15 +22,19 @@ public:
 
     BuildableObject* clone() override;
 
-    void update(float dt, bool onWater, bool loopAnimation = true) override;
+    void update(Game& game, float dt, bool onWater, bool loopAnimation = true) override;
 
     void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime, int worldSize, const sf::Color& color) const override;
 
-    ObjectInteractionType interact() const override;
+    void interact(Game& game) override;
+    bool isInteractable() const override;
+
+    void triggerBehaviour(Game& game, ObjectBehaviourTrigger trigger) override;
 
     void startFlyingUpwards();
     void startFlyingDownwards();
-    bool finishedFlying();
+
+    std::vector<PlanetType> getRocketAvailableDestinations(PlanetType currentPlanetType);
 
     sf::Vector2f getRocketPosition();
     sf::Vector2f getRocketBottomPosition();
@@ -38,7 +48,9 @@ private:
     void drawRocket(sf::RenderTarget& window, SpriteBatch& spriteBatch, const sf::Color& color) const;
 
 private:
-    bool flying = false;
+    bool flyingUp = false;
+    bool flyingDown = false;
+    bool entered = false;
 
     float rocketYOffset = 0.0f;
 

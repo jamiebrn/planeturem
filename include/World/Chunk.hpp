@@ -46,6 +46,7 @@
 #include "DebugOptions.hpp"
 
 // Forward declaration
+class Game;
 class ChunkManager;
 class Entity;
 
@@ -105,7 +106,7 @@ public:
 
     // -- Object handling -- //
     // Update all objects
-    void updateChunkObjects(float dt, int worldSize, ChunkManager& chunkManager);
+    void updateChunkObjects(Game& game, float dt, int worldSize, ChunkManager& chunkManager);
     
     // Get object (optional) at position
     BuildableObject* getObject(sf::Vector2i position);

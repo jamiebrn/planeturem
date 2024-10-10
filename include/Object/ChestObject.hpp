@@ -6,6 +6,9 @@
 
 #include "Object/WorldObject.hpp"
 #include "Object/BuildableObject.hpp"
+#include "World/ChestDataPool.hpp"
+
+class Game;
 
 class ChestObject : public BuildableObject
 {
@@ -14,14 +17,17 @@ public:
 
     BuildableObject* clone() override;
 
-    void update(float dt, bool onWater, bool loopAnimation) override;
+    void update(Game& game, float dt, bool onWater, bool loopAnimation) override;
 
-    ObjectInteractionType interact() const override;
+    void interact(Game& game) override;
+    bool isInteractable() const override;
+
+    void triggerBehaviour(Game& game, ObjectBehaviourTrigger trigger) override;
 
     inline void setChestID(uint16_t chestID) {this->chestID = chestID;}
     inline uint16_t getChestID() {return chestID;}
 
-    int getChestCapactity();
+    // int getChestCapactity();
 
     void openChest();
     void closeChest();
@@ -29,6 +35,9 @@ public:
     // Save / load
     BuildableObjectPOD getPOD() const override;
     void loadFromPOD(const BuildableObjectPOD& pod) override;
+
+private:
+    void removeChestFromPool(Game& game);
 
 private:
     uint16_t chestID = 0xFFFF;

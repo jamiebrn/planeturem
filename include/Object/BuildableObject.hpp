@@ -20,11 +20,19 @@
 
 #include "GUI/InventoryGUI.hpp"
 
-enum ObjectInteractionType
+class Game;
+
+// enum ObjectInteractionType
+// {
+//     NoAction,
+//     Chest,
+//     Rocket
+// };
+
+enum ObjectBehaviourTrigger
 {
-    NoAction,
-    Chest,
-    Rocket
+    RocketFlyUp, RocketFlyDown,
+    RocketExit
 };
 
 constexpr int DUMMY_OBJECT_COLLISION = -10;
@@ -37,7 +45,7 @@ public:
 
     virtual BuildableObject* clone();
 
-    virtual void update(float dt, bool onWater, bool loopAnimation = true);
+    virtual void update(Game& game, float dt, bool onWater, bool loopAnimation = true);
 
     virtual void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime, int worldSize, const sf::Color& color) const override;
 
@@ -50,9 +58,10 @@ public:
 
     inline bool isAlive() {return health > 0;}
 
+    virtual void interact(Game& game);
+    virtual bool isInteractable() const;
 
-    virtual ObjectInteractionType interact() const;
-    bool isInteractable() const;
+    virtual void triggerBehaviour(Game& game, ObjectBehaviourTrigger trigger);
 
     // -- Object reference -- //
     BuildableObject(ObjectReference _objectReference);

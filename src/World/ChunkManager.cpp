@@ -219,11 +219,11 @@ Chunk* ChunkManager::getChunk(ChunkPosition chunk)
     return nullptr;
 }
 
-void ChunkManager::updateChunksObjects(float dt)
+void ChunkManager::updateChunksObjects(Game& game, float dt)
 {
     for (auto& chunkPair : loadedChunks)
     {
-        chunkPair.second->updateChunkObjects(dt, worldSize, *this);
+        chunkPair.second->updateChunkObjects(game, dt, worldSize, *this);
     }
 }
 

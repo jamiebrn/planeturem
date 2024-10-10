@@ -1,13 +1,19 @@
 #include "GUI/TravelSelectGUI.hpp"
 
 GUIContext TravelSelectGUI::guiContext;
+std::vector<PlanetType> TravelSelectGUI::availableDestinations;
 
 void TravelSelectGUI::processEventGUI(const sf::Event& event)
 {
     guiContext.processEvent(event);
 }
 
-bool TravelSelectGUI::createGUI(sf::RenderWindow& window, const std::vector<PlanetType>& availableDestinations, PlanetType& selectedPlanetType)
+void TravelSelectGUI::setAvailableDestinations(const std::vector<PlanetType>& availableDestinations)
+{
+    TravelSelectGUI::availableDestinations = availableDestinations;
+}
+
+bool TravelSelectGUI::createGUI(sf::RenderWindow& window, PlanetType& selectedPlanetType)
 {
     bool clicked = false;
 

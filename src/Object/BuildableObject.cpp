@@ -40,7 +40,7 @@ BuildableObject::BuildableObject(ObjectReference _objectReference)
     objectReference = _objectReference;
 }
 
-void BuildableObject::update(float dt, bool onWater, bool loopAnimation)
+void BuildableObject::update(Game& game, float dt, bool onWater, bool loopAnimation)
 {
     if (objectType < 0)
         return;
@@ -128,19 +128,24 @@ bool BuildableObject::damage(int amount, InventoryData& inventory)
     return false;
 }
 
-ObjectInteractionType BuildableObject::interact() const
+void BuildableObject::interact(Game& game)
 {
-    return ObjectInteractionType::NoAction;
+    // No interaction for regular object
+}
+
+bool BuildableObject::isInteractable() const
+{
+    return false;
+}
+
+void BuildableObject::triggerBehaviour(Game& game, ObjectBehaviourTrigger trigger)
+{
+    // No behaviour trigger for regular object
 }
 
 void BuildableObject::setWorldPosition(sf::Vector2f position)
 {
     this->position = position;
-}
-
-bool BuildableObject::isInteractable() const
-{
-    return (interact() != ObjectInteractionType::NoAction);
 }
 
 // Dummy object

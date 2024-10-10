@@ -77,6 +77,20 @@ public:
 
     void run();
 
+public:
+    // Chest
+    void openChest(ChestObject& chest);
+    void closeChest();
+    uint16_t getOpenChestID();
+    ChestDataPool& getChestDataPool();
+
+    // Rocket
+    void enterRocket(RocketObject& rocket);
+    void exitRocket();
+    void enterIncomingRocket(RocketObject& rocket);
+    void rocketFinishedUp(RocketObject& rocket);
+    void rocketFinishedDown(RocketObject& rocket);
+
 private:
 
     // -- Main Menu -- //
@@ -100,11 +114,9 @@ private:
     void testExitStructure();
 
     // Rocket
-    void enterRocket(ObjectReference rocketObjectReference, RocketObject& rocket);
-    void exitRocket();
-    void startFlyingRocket(PlanetType destination, bool flyingDownwards = false);
-    void updateFlyingRocket(float dt, bool flyingDownwards = false);
-    std::vector<PlanetType> getRocketAvailableDestinations();
+    // void startFlyingRocket(PlanetType destination, bool flyingDownwards = false);
+    // void updateFlyingRocket(float dt, bool flyingDownwards = false);
+    // std::vector<PlanetType> getRocketAvailableDestinations();
 
 
     // -- In Structure -- //
@@ -142,11 +154,8 @@ private:
 
     void giveStartingInventory();
 
-    void initChestInData(ChestObject& chest);
-    void removeChestFromData(ChestObject& chest);
     void checkChestOpenInRange();
     void handleOpenChestPositionWorldWrap(sf::Vector2f positionDelta);
-    void closeChest();
 
 
     // -- Planet travelling -- //
@@ -254,7 +263,7 @@ private:
 
     // 0xFFFF chest ID reserved for no chest opened / non-initialised chest
     uint16_t openedChestID;
-    ObjectReference openedChest;
+    // ObjectReference openedChest;
     sf::Vector2f openedChestPos;
     ChestDataPool chestDataPool;
 
@@ -264,8 +273,9 @@ private:
     RoomPool structureRoomPool;
 
     // Rocket
-    ObjectReference rocketObject;
+    ObjectReference rocketEnteredReference;
     PlanetType destinationPlanet;
+    bool travelPlanetTrigger = false;
 
     Tween<float> floatTween;
 };

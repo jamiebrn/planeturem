@@ -31,6 +31,8 @@
 #include "GameConstants.hpp"
 #include "DebugOptions.hpp"
 
+class Game;
+
 class Room
 {
 public:
@@ -52,7 +54,7 @@ public:
 
     std::vector<std::vector<std::unique_ptr<BuildableObject>>>& getObjectGrid() {return objectGrid;}
 
-    void updateObjects(float dt);
+    void updateObjects(Game& game, float dt);
 
     BuildableObject* getObject(sf::Vector2f mouseWorldPos);
     BuildableObject* getObject(sf::Vector2i tile);

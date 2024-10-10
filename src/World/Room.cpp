@@ -98,16 +98,13 @@ void Room::createObjects(ChestDataPool& chestDataPool)
                 
                 object = BuildableObjectFactory::create(objectPos, objectTypeToSpawn);
 
-                // Fill chest if required
-                if (object->interact() == ObjectInteractionType::Chest)
+                if (roomObjectData.chestContents.has_value())
                 {
-                    if (roomObjectData.chestContents.has_value())
+                    if (ChestObject* chest = dynamic_cast<ChestObject*>(object.get()))
                     {
-                        ChestObject* chestObject = static_cast<ChestObject*>(object.get());
-
                         uint16_t chestID = chestDataPool.createChest(roomObjectData.chestContents.value());
 
-                        chestObject->setChestID(chestID);
+                        chest->setChestID(chestID);
                     }
                 }
             }
@@ -183,7 +180,7 @@ sf::Vector2f Room::getEntrancePosition() const
     return entrancePos;
 }
 
-void Room::updateObjects(float dt)
+void Room::updateObjects(Game& game, float dt)
 {
     for (int y = 0; y < objectGrid.size(); y++)
     {
@@ -194,7 +191,7 @@ void Room::updateObjects(float dt)
             if (!object)
                 continue;
 
-            object->update(dt, false);
+            object->update(game, dt, false);
         }
     }
 }

@@ -605,7 +605,7 @@ void Chunk::drawChunkWater(sf::RenderTarget& window)
     TextureManager::drawSubTexture(window, {TextureType::Water, waterPos, 0, {scale, scale}}, waterRect, waterShader);
 }
 
-void Chunk::updateChunkObjects(float dt, int worldSize, ChunkManager& chunkManager)
+void Chunk::updateChunkObjects(Game& game, float dt, int worldSize, ChunkManager& chunkManager)
 {
     for (int y = 0; y < objectGrid.size(); y++)
     {
@@ -623,7 +623,7 @@ void Chunk::updateChunkObjects(float dt, int worldSize, ChunkManager& chunkManag
                 // Determine whether on water
                 bool onWater = (getTileType(object->getChunkTileInside(worldSize)) == 0);
                 
-                object->update(dt, onWater);
+                object->update(game, dt, onWater);
                 if (!object->isAlive())
                     deleteObject(sf::Vector2i(x, y), chunkManager);
             }

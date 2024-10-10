@@ -552,13 +552,19 @@ void Game::runOnPlanet(float dt)
         }
         case WorldMenuState::TravelSelect:
         {
-            std::vector<PlanetType> availableDestinations = getRocketAvailableDestinations();
+            // std::vector<PlanetType> availableDestinations = getRocketAvailableDestinations();
             PlanetType selectedDestination;
 
-            if (TravelSelectGUI::createGUI(window, availableDestinations, selectedDestination))
+            if (TravelSelectGUI::createGUI(window, selectedDestination))
             {
-                startFlyingRocket(selectedDestination);
-                // travelToPlanet(selectedDestination);
+                BuildableObject* rocketObject = chunkManager.getChunkObject(rocketEnteredReference.chunk, rocketEnteredReference.tile);
+
+                if (rocketObject)
+                {
+                    destinationPlanet = selectedDestination;
+                    worldMenuState = WorldMenuState::FlyingRocket;
+                    rocketObject->triggerBehaviour(*this, ObjectBehaviourTrigger::RocketFlyUp);
+                }
             }
         }
     }
@@ -625,7 +631,7 @@ void Game::updateOnPlanet(float dt)
 
     // Update (loaded) chunks
     chunkManager.updateChunks();
-    chunkManager.updateChunksObjects(dt);
+    chunkManager.updateChunksObjects(*this, dt);
     chunkManager.updateChunksEntities(dt);
     
     // Get nearby crafting stations
@@ -635,10 +641,10 @@ void Game::updateOnPlanet(float dt)
     {
         testEnterStructure();
     }
-    
-    if (worldMenuState == WorldMenuState::FlyingRocket)
+
+    if (travelPlanetTrigger)
     {
-        updateFlyingRocket(dt, destinationPlanet == chunkManager.getPlanetType());
+        travelToPlanet(destinationPlanet);
     }
 }
 
@@ -792,14 +798,17 @@ void Game::testExitStructure()
 }
 
 // Rocket
-void Game::enterRocket(ObjectReference rocketObjectReference, RocketObject& rocket)
+void Game::enterRocket(RocketObject& rocket)
 {
-    rocketObject = rocketObjectReference;
+    rocketEnteredReference.chunk = rocket.getChunkInside(chunkManager.getWorldSize());
+    rocketEnteredReference.tile = rocket.getChunkTileInside(chunkManager.getWorldSize());
 
     // Save just before enter
     saveGame(true);
 
     worldMenuState = WorldMenuState::TravelSelect;
+
+    TravelSelectGUI::setAvailableDestinations(rocket.getRocketAvailableDestinations(chunkManager.getPlanetType()));
 
     player.enterRocket(rocket.getRocketPosition());
 }
@@ -808,99 +817,30 @@ void Game::exitRocket()
 {
     worldMenuState = WorldMenuState::Main;
 
+    // Exit rocket object
+    BuildableObject* rocketObject = chunkManager.getChunkObject(rocketEnteredReference.chunk, rocketEnteredReference.tile);
+
+    if (rocketObject)
+    {
+        rocketObject->triggerBehaviour(*this, ObjectBehaviourTrigger::RocketExit);
+    }
+
     player.exitRocket();
 }
 
-void Game::startFlyingRocket(PlanetType destination, bool flyingDownwards)
+void Game::enterIncomingRocket(RocketObject& rocket)
 {
-    BuildableObject* object = getObjectFromChunkOrRoom(rocketObject);
-    if (!object)
-    {
-        exitRocket();
-        return;
-    }
-    if (object->interact() != ObjectInteractionType::Rocket)
-    {
-        exitRocket();
-        return;
-    }
-
-    RocketObject* rocket = static_cast<RocketObject*>(object);
-
-    if (flyingDownwards)
-    {
-        rocket->startFlyingDownwards();   
-    }
-    else
-    {
-        rocket->startFlyingUpwards();
-    }
-
-    worldMenuState = WorldMenuState::FlyingRocket;
-
-    destinationPlanet = destination;
+    player.enterRocket(rocket.getRocketPosition());
 }
 
-// TODO: Refactor this into some sort of interaction handler system with objects
-void Game::updateFlyingRocket(float dt, bool flyingDownwards)
+void Game::rocketFinishedUp(RocketObject& rocket)
 {
-    BuildableObject* object = getObjectFromChunkOrRoom(rocketObject);
-    if (!object)
-    {
-        exitRocket();
-        return;
-    }
-
-    if (object->interact() != ObjectInteractionType::Rocket)
-    {
-        exitRocket();
-        return;
-    }
-
-    RocketObject* rocket = static_cast<RocketObject*>(object);
-
-    // If tween over, go to destination planet
-    if (rocket->finishedFlying())
-    {
-        if (flyingDownwards)
-        {
-            exitRocket();
-        }
-        else
-        {
-            travelToPlanet(destinationPlanet);
-        }
-    }
+    travelPlanetTrigger = true;
 }
 
-std::vector<PlanetType> Game::getRocketAvailableDestinations()
+void Game::rocketFinishedDown(RocketObject& rocket)
 {
-    std::vector<PlanetType> availableDestinations;
-
-    // Get object
-    BuildableObject* rocket = chunkManager.getChunkObject(rocketObject.chunk, rocketObject.tile);
-    if (!rocket)
-    {
-        exitRocket();
-        return availableDestinations;
-    }
-
-    const ObjectData& objectData = ObjectDataLoader::getObjectData(rocket->getObjectType());
-    if (!objectData.rocketObjectData.has_value())
-    {
-        exitRocket();
-        return availableDestinations;
-    }
-
-    for (PlanetType destination : objectData.rocketObjectData->availableDestinations)
-    {
-        if (destination == chunkManager.getPlanetType())
-            continue;
-        
-        availableDestinations.push_back(destination);
-    }
-
-    return availableDestinations;
+    exitRocket();
 }
 
 
@@ -918,10 +858,10 @@ void Game::updateInStructure(float dt)
         player.updateInStructure(dt, Cursor::getMouseWorldPos(window), structureRoom);
 
     // Update room objects
-    structureRoom.updateObjects(dt);
+    structureRoom.updateObjects(*this, dt);
 
     // Continue to update objects and entities in world
-    chunkManager.updateChunksObjects(dt);
+    chunkManager.updateChunksObjects(*this, dt);
     chunkManager.updateChunksEntities(dt);
 
     if (!isStateTransitioning())
@@ -1036,16 +976,7 @@ void Game::attemptUseToolPickaxe()
 
         if (selectedObject)
         {
-            bool destroyed = selectedObject->damage(toolData.damage, inventory);
-
-            if (destroyed)
-            {
-                if (selectedObject->interact() == ObjectInteractionType::Chest)
-                {
-                    ChestObject* chestObject = static_cast<ChestObject*>(selectedObject);
-                    removeChestFromData(*chestObject);
-                }
-            }
+            selectedObject->damage(toolData.damage, inventory);
         }
     }
 }
@@ -1129,69 +1060,7 @@ void Game::attemptObjectInteract()
 
     if (selectedObject)
     {
-        switch (selectedObject->interact())
-        {
-            case ObjectInteractionType::Chest:
-            {
-                ChestObject* chestObject = static_cast<ChestObject*>(selectedObject);
-
-                // If chest has ID 0xFFFF, then has not been initialised
-                // Therefore must initialise chest
-                if (chestObject->getChestID() == 0xFFFF)
-                {
-                    initChestInData(*chestObject);
-                }
-
-                // Close chest if currently open is selected
-                if (chestObject->getChestID() == openedChestID)
-                {
-                    closeChest();
-                }
-                else
-                {
-                    // If a chest is currently open, close it
-                    if (openedChestID != 0xFFFF)
-                    {
-                        closeChest();
-                    }
-
-                    openedChestID = chestObject->getChestID();
-
-                    // Get tile depending on game state
-                    if (gameState == GameState::OnPlanet)
-                    {
-                        openedChest.chunk = chestObject->getChunkInside(chunkManager.getWorldSize());
-                        openedChest.tile = chestObject->getChunkTileInside(chunkManager.getWorldSize());
-                    }
-                    else if (gameState == GameState::InStructure)
-                    {
-                        openedChest.tile = chestObject->getTileInside();
-                    }
-                    openedChestPos = chestObject->getPosition();
-
-                    // Reset chest UI animations as opened new chest
-                    InventoryGUI::chestOpened(chestDataPool.getChestDataPtr(openedChestID));
-
-                    // Tell chest object it has been opened
-                    chestObject->openChest();
-
-                    // Open inventory to see chest
-                    worldMenuState = WorldMenuState::Inventory;
-                }
-                break;
-            }
-            case ObjectInteractionType::Rocket:
-            {
-                ObjectReference rocketObjectReference;
-                rocketObjectReference.chunk = selectedObject->getChunkInside(chunkManager.getWorldSize());
-                rocketObjectReference.tile = selectedObject->getChunkTileInside(chunkManager.getWorldSize());
-
-                RocketObject* rocket = static_cast<RocketObject*>(selectedObject);
-
-                enterRocket(rocketObjectReference, *rocket);
-                break;
-            }
-        }
+        selectedObject->interact(*this);
     }
 }
 
@@ -1409,40 +1278,31 @@ void Game::giveStartingInventory()
     changePlayerTool();
 }
 
-void Game::initChestInData(ChestObject& chest)
+void Game::openChest(ChestObject& chest)
 {
-    int chestCapacity = chest.getChestCapactity();
+    openedChestID = chest.getChestID();
 
-    uint16_t chestID = chestDataPool.createChest(chestCapacity);
+    openedChestPos = chest.getPosition();
 
-    if (chestID == 0xFFFF)
-        return;
-    
-    chest.setChestID(chestID);
+    InventoryGUI::chestOpened(chestDataPool.getChestDataPtr(openedChestID));
+
+    worldMenuState = WorldMenuState::Inventory;
 }
 
-void Game::removeChestFromData(ChestObject& chest)
+uint16_t Game::getOpenChestID()
 {
-    chestDataPool.destroyChest(chest.getChestID());
+    return openedChestID;
+}
 
-    if (openedChestID == chest.getChestID())
-    {
-        closeChest();
-    }
+ChestDataPool& Game::getChestDataPool()
+{
+    return chestDataPool;
 }
 
 void Game::checkChestOpenInRange()
 {
     if (openedChestID == 0xFFFF)
         return;
-
-    BuildableObject* chestObjectPtr = getObjectFromChunkOrRoom(openedChest);
-
-    if (!chestObjectPtr)
-    {
-        closeChest();
-        return;
-    }
 
     if (!player.canReachPosition(openedChestPos))
     {
@@ -1458,24 +1318,8 @@ void Game::handleOpenChestPositionWorldWrap(sf::Vector2f positionDelta)
 void Game::closeChest()
 {
     InventoryGUI::chestClosed();
-    
-    // Tell chest object it has been closed
-    // std::optional<BuildableObject>& chestObject = chunkManager.getChunkObject(openedChest.chunk, openedChest.tile);
-    BuildableObject* object = getObjectFromChunkOrRoom(openedChest);
-
-    if (!object)
-        return;
-
-    if (object->interact() != ObjectInteractionType::Chest)
-        return;
-    
-    ChestObject* chestObject = static_cast<ChestObject*>(object);
-
-    chestObject->closeChest();
 
     openedChestID = 0xFFFF;
-    openedChest.chunk = ChunkPosition(0, 0);
-    openedChest.tile = sf::Vector2i(0, 0);
     openedChestPos = sf::Vector2f(0, 0);
 }
 
@@ -1486,22 +1330,32 @@ void Game::travelToPlanet(PlanetType planetType)
 {
     //exitRocket();
 
+    travelPlanetTrigger = false;
+
+    player.exitRocket();
+
     resetChestDataPool();
     resetStructureRoomPool();
 
     if (!loadPlanet(planetType))
     {
-        initialiseNewPlanet(planetType, true);
+        initialiseNewPlanet(planetType, true);   
     }
 
     Camera::instantUpdate(player.getPosition());
 
     chunkManager.updateChunks();
 
-    RocketObject* rocket = static_cast<RocketObject*>(chunkManager.getChunkObject(rocketObject.chunk, rocketObject.tile));
+    // Start rocket flying downwards
+    BuildableObject* rocketObject = chunkManager.getChunkObject(rocketEnteredReference.chunk, rocketEnteredReference.tile);
+    if (rocketObject)
+    {
+        rocketObject->triggerBehaviour(*this, ObjectBehaviourTrigger::RocketFlyDown);
+    }
+    // RocketObject* rocket = static_cast<RocketObject*>(chunkManager.getChunkObject(rocketObject.chunk, rocketObject.tile));
 
-    player.enterRocket(rocket->getRocketPosition());
-    startFlyingRocket(chunkManager.getPlanetType(), true);
+    // player.enterRocket(rocket->getRocketPosition());
+    // startFlyingRocket(chunkManager.getPlanetType(), true);
 
     Camera::instantUpdate(player.getPosition());
 }
@@ -1525,8 +1379,8 @@ void Game::initialiseNewPlanet(PlanetType planetType, bool placeRocket)
         chunkManager.updateChunks();
 
         chunkManager.setObject(playerSpawnChunk, sf::Vector2i(0, 0), ObjectDataLoader::getObjectTypeFromName("Rocket Launch Pad"));
-        rocketObject.chunk = playerSpawnChunk;
-        rocketObject.tile = sf::Vector2i(0, 0);
+        rocketEnteredReference.chunk = playerSpawnChunk;
+        rocketEnteredReference.tile = sf::Vector2i(0, 0);
     }
 }
 
@@ -1667,7 +1521,7 @@ bool Game::saveGame(bool gettingInRocket)
     
     if (gettingInRocket)
     {
-        planetGameSave.rocketObjectUsed = rocketObject;
+        planetGameSave.rocketObjectUsed = rocketEnteredReference;
     }
 
     io.write(playerGameSave, planetGameSave);
@@ -1694,6 +1548,8 @@ bool Game::loadGame(const std::string& saveName)
     chunkManager.setPlanetType(playerGameSave.planetType);
     inventory = playerGameSave.inventory;
     player.setPosition(planetGameSave.playerLastPos);
+
+    changePlayerTool();
 
     chunkManager.loadFromChunkPODs(planetGameSave.chunks);
     chestDataPool = planetGameSave.chestDataPool;
@@ -1728,9 +1584,18 @@ bool Game::loadPlanet(PlanetType planetType)
     chestDataPool = planetGameSave.chestDataPool;
     structureRoomPool = planetGameSave.structureRoomPool;
 
-    assert(planetGameSave.rocketObjectUsed.has_value());
+    // assert(planetGameSave.rocketObjectUsed.has_value());
 
-    rocketObject = planetGameSave.rocketObjectUsed.value();
+    if (planetGameSave.rocketObjectUsed.has_value())
+    {
+        rocketEnteredReference = planetGameSave.rocketObjectUsed.value();
+    }
+    else
+    {
+        return false;
+    }
+
+    // rocketObject = planetGameSave.rocketObjectUsed.value();
 
     return true;
 }
