@@ -56,12 +56,17 @@ class Chunk
 public:
     Chunk(ChunkPosition worldPosition);
 
+    // Resets chunk to blank in a pre-generated state
+    // DOES NOT RESET "WORLD POSITION" - meaning position as shown in game
+    void reset(bool fullReset = false);
+
     // Initialisation / generation
-    void generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, int worldSize, ChunkManager& chunkManager);
+    void generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, int worldSize, ChunkManager& chunkManager, bool allowStructureGen = true);
 
     // Tiles meaning tile grid, not tilemaps
     // Returns random int generator to continue to be used in generation
-    RandInt generateTilesAndStructure(const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, int worldSize, ChunkManager& chunkManager);
+    RandInt generateTilesAndStructure(const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, int worldSize,
+        ChunkManager& chunkManager, bool allowStructureGen = true);
 
     void generateObjectsAndEntities(const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, RandInt& randGen,
         int worldSize, ChunkManager& chunkManager);
@@ -195,7 +200,7 @@ public:
         RandInt& randGen, PlanetType planetType);
 
 private:
-    void generateRandomStructure(int worldSize, const FastNoise& biomeNoise, RandInt& randGen, PlanetType planetType);
+    void generateRandomStructure(int worldSize, const FastNoise& biomeNoise, RandInt& randGen, PlanetType planetType, bool allowStructureGen);
 
 private:
     // 0 reserved for water / no tile

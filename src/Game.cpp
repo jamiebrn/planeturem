@@ -1394,6 +1394,9 @@ void Game::initialiseNewPlanet(PlanetType planetType, bool placeRocket)
 
         chunkManager.updateChunks();
 
+        // Ennsure spawn chunk does not have structure
+        chunkManager.regenerateChunkWithoutStructure(playerSpawnChunk);
+
         chunkManager.setObject(playerSpawnChunk, sf::Vector2i(0, 0), ObjectDataLoader::getObjectTypeFromName("Rocket Launch Pad"));
         rocketEnteredReference.chunk = playerSpawnChunk;
         rocketEnteredReference.tile = sf::Vector2i(0, 0);

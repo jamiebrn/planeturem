@@ -4,6 +4,11 @@ Chunk::Chunk(ChunkPosition chunkPosition)
 {
     this->chunkPosition = chunkPosition;
 
+    reset();
+}
+
+void Chunk::reset(bool fullReset)
+{
     containsWater = false;
     modified = false;
 
@@ -16,9 +21,28 @@ Chunk::Chunk(ChunkPosition chunkPosition)
     {
         visualTileGrid[i].fill(TileType::Visual_BLANK);
     }
+
+    if (!fullReset)
+    {
+        return;
+    }
+
+    // Full reset
+    collisionRects.clear();
+    tileMaps.clear();
+    entities.clear();
+    structureObject = std::nullopt;
+
+    for (int y = 0; y < objectGrid.size(); y++)
+    {
+        for (int x = 0; x < objectGrid[y].size(); x++)
+        {
+            objectGrid[y][x].reset();
+        }
+    }
 }
 
-void Chunk::generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, int worldSize, ChunkManager& chunkManager)
+void Chunk::generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, int worldSize, ChunkManager& chunkManager, bool allowStructureGen)
 {
     RandInt randGen = generateTilesAndStructure(heightNoise, biomeNoise, planetType, worldSize, chunkManager);
 
@@ -27,7 +51,8 @@ void Chunk::generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNo
     generateTilemapsAndInit(heightNoise, biomeNoise, planetType, worldSize, chunkManager);
 }
 
-RandInt Chunk::generateTilesAndStructure(const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, int worldSize, ChunkManager& chunkManager)
+RandInt Chunk::generateTilesAndStructure(const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, int worldSize,
+    ChunkManager& chunkManager, bool allowStructureGen)
 {
     sf::Vector2i worldNoisePosition = sf::Vector2i(chunkPosition.x, chunkPosition.y) * static_cast<int>(CHUNK_TILE_SIZE);
 
@@ -63,7 +88,7 @@ RandInt Chunk::generateTilesAndStructure(const FastNoise& heightNoise, const Fas
     // Create structure if required
     if (!containsWater)
     {
-        generateRandomStructure(worldSize, biomeNoise, randGen, planetType);
+        generateRandomStructure(worldSize, biomeNoise, randGen, planetType, allowStructureGen);
     }
 
     return randGen;
@@ -156,7 +181,7 @@ void Chunk::generateTilemapsAndInit(const FastNoise& heightNoise, const FastNois
     generatedFromPOD = false;
 }
 
-void Chunk::generateRandomStructure(int worldSize, const FastNoise& biomeNoise, RandInt& randGen, PlanetType planetType)
+void Chunk::generateRandomStructure(int worldSize, const FastNoise& biomeNoise, RandInt& randGen, PlanetType planetType, bool allowStructureGen)
 {
     // Get biome gen data
     const BiomeGenData* biomeGenData = getBiomeGenAtWorldTile(sf::Vector2i(chunkPosition.x * CHUNK_TILE_SIZE, chunkPosition.y * CHUNK_TILE_SIZE),
@@ -195,6 +220,13 @@ void Chunk::generateRandomStructure(int worldSize, const FastNoise& biomeNoise, 
     sf::Vector2i spawnTile;
     spawnTile.x = randGen.generate(0, CHUNK_TILE_SIZE - 1 - structureData.size.x);
     spawnTile.y = randGen.generate(0, CHUNK_TILE_SIZE - 1 - structureData.size.y);
+
+    // If not actually spawning structure, i.e. simply using this function to continue randgen sequence
+    // then can skip actually generating the structure, as no more randgen for structures from this point
+    if (!allowStructureGen)
+    {
+        return;
+    }
 
     bool spawnedStructureObject = false;
 

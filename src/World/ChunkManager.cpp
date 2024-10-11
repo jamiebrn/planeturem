@@ -169,6 +169,22 @@ void ChunkManager::reloadChunks()
     }
 }
 
+void ChunkManager::regenerateChunkWithoutStructure(ChunkPosition chunk)
+{
+    Chunk* chunkPtr = getChunk(chunk);
+
+    if (!chunkPtr)
+    {
+        return;
+    }
+
+    // Full reset of chunk
+    chunkPtr->reset(true);
+
+    // Regenerate without structure
+    chunkPtr->generateChunk(heightNoise, biomeNoise, planetType, worldSize, *this, false);
+}
+
 void ChunkManager::drawChunkTerrain(sf::RenderTarget& window, SpriteBatch& spriteBatch, float time)
 {
     // Draw terrain
