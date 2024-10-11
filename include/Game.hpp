@@ -41,6 +41,9 @@
 #include "Object/StructureObject.hpp"
 #include "Object/ParticleSystem.hpp"
 
+#include "Entity/Boss/BossEntity.hpp"
+#include "Entity/Boss/BossBenjaminCrow.hpp"
+
 #include "Data/typedefs.hpp"
 #include "Data/ItemData.hpp"
 #include "Data/ObjectData.hpp"
@@ -113,11 +116,6 @@ private:
     void testEnterStructure();
     void testExitStructure();
 
-    // Rocket
-    // void startFlyingRocket(PlanetType destination, bool flyingDownwards = false);
-    // void updateFlyingRocket(float dt, bool flyingDownwards = false);
-    // std::vector<PlanetType> getRocketAvailableDestinations();
-
 
     // -- In Structure -- //
 
@@ -176,6 +174,11 @@ private:
     void changeState(GameState newState);
 
     void setWorldSeedFromInput();
+
+
+    // -- Bosses -- //
+
+    void createBoss();
 
 
     // -- Save / load -- //
@@ -276,6 +279,9 @@ private:
     ObjectReference rocketEnteredReference;
     PlanetType destinationPlanet;
     bool travelPlanetTrigger = false;
+
+    // Boss
+    std::unique_ptr<BossEntity> bossEntity = nullptr;
 
     Tween<float> floatTween;
 };

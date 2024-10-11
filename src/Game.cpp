@@ -3,9 +3,7 @@
 // FIX: Rocket auto-place on new planets where spawn chunk contains structure
 
 // PRIORITY: HIGH
-// TODO: Reset chest and structure pools on planet change
-// TODO: Place rocket object when spawned on new planet
-// TODO: Load previous planet save when landed on old planet
+// TODO: Create event callback system for object responding to triggers, rather than calling game functions directly
 
 // TODO: Structure functionality (item spawns, crafting stations etc)
 // TODO: Different types of structures
@@ -627,6 +625,12 @@ void Game::updateOnPlanet(float dt)
         Cursor::handleWorldWrap(wrapPositionDelta);
         handleOpenChestPositionWorldWrap(wrapPositionDelta);
         chunkManager.reloadChunks();
+
+        // Wrap boss entity
+        if (bossEntity)
+        {
+            bossEntity->handleWorldWrap(wrapPositionDelta);
+        }
     }
 
     // Update (loaded) chunks
@@ -636,6 +640,12 @@ void Game::updateOnPlanet(float dt)
     
     // Get nearby crafting stations
     nearbyCraftingStationLevels = chunkManager.getNearbyCraftingStationLevels(player.getChunkInside(worldSize), player.getChunkTileInside(worldSize), 4);
+
+    // Update boss if required
+    if (bossEntity)
+    {
+        bossEntity->update(*this, player.getPosition(), dt);
+    }
 
     if (!isStateTransitioning())
     {
@@ -704,6 +714,12 @@ void Game::drawWorld(float dt, std::vector<WorldObject*>& worldObjects, std::vec
     for (WorldObject* worldObject : worldObjects)
     {
         worldObject->draw(worldTexture, spriteBatch, dt, gameTime, chunkManager.getWorldSize(), {255, 255, 255, 255});
+    }
+
+    // Draw boss if required
+    if (bossEntity)
+    {
+        bossEntity->draw(worldTexture, spriteBatch);
     }
 
     spriteBatch.endDrawing(worldTexture);
@@ -1382,6 +1398,8 @@ void Game::initialiseNewPlanet(PlanetType planetType, bool placeRocket)
         rocketEnteredReference.chunk = playerSpawnChunk;
         rocketEnteredReference.tile = sf::Vector2i(0, 0);
     }
+
+    createBoss();
 }
 
 void Game::resetChestDataPool()
@@ -1487,6 +1505,19 @@ void Game::setWorldSeedFromInput()
 
     chunkManager.setSeed(seed);
 }
+
+
+// -- Bosses -- //
+
+void Game::createBoss()
+{
+    sf::Vector2f spawnPos;
+    spawnPos.x = player.getPosition().x - 400.0f;
+    spawnPos.y = player.getPosition().y - 400.0f;
+
+    bossEntity = std::make_unique<BossBenjaminCrow>(spawnPos);
+}
+
 
 // -- Save / load -- //
 
