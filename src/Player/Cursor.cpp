@@ -61,6 +61,9 @@ void Cursor::updateTileCursor(sf::RenderWindow& window,
                 case ToolBehaviourType::FishingRod:
                     updateTileCursorOnPlanetToolFishingRod(window, dt, chunkManager);
                     break;
+                default:
+                    updateTileCursorOnPlanetNoItem(dt, chunkManager);
+                    break;
             }
         }
         else

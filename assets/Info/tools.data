@@ -1,35 +1,59 @@
-[
-    {
-        "name": "Wooden Pickaxe",
-        "behaviour-type": "Pickaxe",
-        "textures": [[16, 0]],
-        "texture-width": 16,
-        "texture-height": 16,
-        "pivot-x": 0.6875,
-        "pivot-y": 0.6875,
-        "hold-offset": [-2, -3],
-        "damage": 1
-    },
-    {
-        "name": "Metal Pickaxe",
-        "behaviour-type": "Pickaxe",
-        "textures": [[0, 0]],
-        "texture-width": 16,
-        "texture-height": 16,
-        "pivot-x": 0.75,
-        "pivot-y": 0.75,
-        "hold-offset": [-2, -3],
-        "damage": 2
-    },
-    {
-        "name": "Wooden Fishing Rod",
-        "behaviour-type": "Fishing Rod",
-        "textures": [[0, 48], [16, 48]],
-        "texture-width": 16,
-        "texture-height": 16,
-        "pivot-x": 0.25,
-        "pivot-y": 0.75,
-        "hold-offset": [3, -2],
-        "fishing-rod-line-offset": [8, -8]
-    }
-]
+{
+    "projectiles": [
+        {
+            "name": "Wooden Arrow",
+            "texture": [64, 48],
+            "texture-width": 16,
+            "texture-height": 16,
+            "origin": [0.5, 0.5],
+            "damage": 1
+        }
+    ],
+    "tools": [
+        {
+            "name": "Wooden Pickaxe",
+            "behaviour-type": "Pickaxe",
+            "textures": [[16, 0]],
+            "texture-width": 16,
+            "texture-height": 16,
+            "pivot-x": 0.6875,
+            "pivot-y": 0.6875,
+            "hold-offset": [-2, -3],
+            "damage": 1
+        },
+        {
+            "name": "Metal Pickaxe",
+            "behaviour-type": "Pickaxe",
+            "textures": [[0, 0]],
+            "texture-width": 16,
+            "texture-height": 16,
+            "pivot-x": 0.75,
+            "pivot-y": 0.75,
+            "hold-offset": [-2, -3],
+            "damage": 2
+        },
+        {
+            "name": "Wooden Fishing Rod",
+            "behaviour-type": "Fishing Rod",
+            "textures": [[0, 48], [16, 48]],
+            "texture-width": 16,
+            "texture-height": 16,
+            "pivot-x": 0.25,
+            "pivot-y": 0.75,
+            "hold-offset": [3, -2],
+            "fishing-rod-line-offset": [8, -8]
+        },
+
+        {
+            "name": "Wooden Bow",
+            "behaviour-type": "BowWeapon",
+            "textures": [[48, 48]],
+            "texture-width": 16,
+            "texture-height": 16,
+            "pivot-x": 0.5,
+            "pivot-y": 0.5,
+            "hold-offset": [3, -4],
+            "projectile": "Wooden Arrow"
+        }
+    ]
+}

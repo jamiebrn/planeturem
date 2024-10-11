@@ -2,16 +2,52 @@
 
 std::vector<ToolData> ToolDataLoader::loaded_toolData;
 std::unordered_map<std::string, ToolType> ToolDataLoader::toolNameToTypeMap;
+std::vector<ProjectileData> ToolDataLoader::loaded_projectileData;
 
 bool ToolDataLoader::loadData(std::string toolDataPath)
 {
     std::ifstream file(toolDataPath);
     nlohmann::json data = nlohmann::json::parse(file);
 
-    int toolIdx = 0;
+    // Load projectiles
+    auto projectiles = data.at("projectiles");
+    int projectileIdx = 0;
 
-    // Load data
-    for (nlohmann::json::iterator iter = data.begin(); iter != data.end(); ++iter)
+    // Store projectile name to type temporarily for tools to reference
+    std::unordered_map<std::string, ProjectileType> projectileNameToTypeMap;
+
+    for (nlohmann::json::iterator iter = projectiles.begin(); iter != projectiles.end(); ++iter)
+    {
+        ProjectileData projectileData;
+        auto jsonProjectileData = iter.value();
+
+        projectileData.name = jsonProjectileData.at("name");
+
+        projectileData.damage = jsonProjectileData.at("damage");
+
+        auto textureRectPos = jsonProjectileData.at("texture");
+
+        projectileData.textureRect.top = textureRectPos[1];
+        projectileData.textureRect.left = textureRectPos[0];
+        projectileData.textureRect.width = jsonProjectileData.at("texture-width");
+        projectileData.textureRect.height = jsonProjectileData.at("texture-height");
+
+        auto origin = jsonProjectileData.at("origin");
+        projectileData.origin.x = origin[0];
+        projectileData.origin.y = origin[1];
+
+        loaded_projectileData.push_back(projectileData);
+
+        projectileNameToTypeMap[projectileData.name] = projectileIdx;
+
+        projectileIdx++;
+    }
+
+
+    // Load tool data
+    auto tools = data.at("tools");
+    int toolIdx = 0;
+    for (nlohmann::json::iterator iter = tools.begin(); iter != tools.end(); ++iter)
     {
         ToolData toolData;
         auto jsonToolData = iter.value();
@@ -54,6 +90,20 @@ bool ToolDataLoader::loadData(std::string toolDataPath)
             toolData.fishingRodLineOffset.y = lineOffset[1];
         }
 
+        // Load projectile if any
+        if (jsonToolData.contains("projectile"))
+        {
+            std::string projectileName = jsonToolData.at("projectile");
+            if (projectileNameToTypeMap.contains(projectileName))
+            {
+                toolData.projectileShootType = projectileNameToTypeMap[projectileName];
+            }
+            else
+            {
+                toolData.projectileShootType = 0;
+            }
+        }
+
         loaded_toolData.push_back(toolData);
 
         toolNameToTypeMap[toolData.name] = toolIdx;
@@ -75,6 +125,11 @@ const ToolData& ToolDataLoader::getToolData(ToolType tool)
 ToolType ToolDataLoader::getToolTypeFromName(const std::string& toolName)
 {
     return toolNameToTypeMap[toolName];
+}
+
+const ProjectileData& ToolDataLoader::getProjectileData(ProjectileType projectile)
+{
+    return loaded_projectileData[projectile];
 }
 
 ToolBehaviourType ToolDataLoader::getToolBehaviourTypeFromStr(const std::string& toolBehaviourStr)

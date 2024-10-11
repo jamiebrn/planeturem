@@ -9,6 +9,7 @@ typedef int ObjectType;
 typedef int EntityType;
 
 typedef int ToolType;
+typedef int ProjectileType;
 
 typedef std::pair<ItemType, unsigned int> ItemCount;
 

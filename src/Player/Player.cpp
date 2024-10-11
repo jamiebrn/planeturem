@@ -1,4 +1,5 @@
 #include "Player/Player.hpp"
+#include "Player/Cursor.hpp"
 
 Player::Player(sf::Vector2f position)
     : WorldObject(position)
@@ -67,6 +68,23 @@ void Player::update(float dt, sf::Vector2f mouseWorldPos, ChunkManager& chunkMan
     if (fishingRodCasted)
     {
         updateFishingRodCatch(dt);
+    }
+
+    // Rotate bow if tool is of type
+    if (equippedTool > 0)
+    {
+        const ToolData& toolData = ToolDataLoader::getToolData(equippedTool);
+        if (toolData.toolBehaviourType == ToolBehaviourType::BowWeapon)
+        {
+            if (flippedTexture)
+            {
+                toolRotation = 180.0f * std::atan2(mouseWorldPos.y - position.y, position.x - mouseWorldPos.x) / M_PI;
+            }
+            else
+            {
+                toolRotation = 180.0f * std::atan2(mouseWorldPos.y - position.y, mouseWorldPos.x - position.x) / M_PI;
+            }
+        }
     }
 
     // Update on water
@@ -350,6 +368,8 @@ void Player::setTool(ToolType toolType)
 {
     equippedTool = toolType;
 
+    toolRotation = 0.0f;
+
     fishingRodCasted = false;
 }
 
@@ -360,28 +380,41 @@ ToolType Player::getTool()
 
 void Player::useTool()
 {
-    usingTool = true;
     // swingingTool = true;
 
     const ToolData& toolData = ToolDataLoader::getToolData(equippedTool);
 
-    // Different tween values based on tool behaviour
-    float destRotation = 0.0f;
-    float tweenTime = 0.0f;
     switch (toolData.toolBehaviourType)
     {
         case ToolBehaviourType::Pickaxe:
-            destRotation = 90.0f;
-            tweenTime = 0.1f;
+        {
+            usingTool = true;
+
+            static constexpr float destRotation = 90.0f;
+            static constexpr float tweenTime = 0.1f;
+
+            rotationTweenID = toolTweener.startTween(&toolRotation, toolRotation, destRotation, tweenTime, TweenTransition::Circ, TweenEasing::EaseInOut);
+            toolTweener.addTweenToQueue(rotationTweenID, &toolRotation, destRotation, 0.0f, 0.15, TweenTransition::Expo, TweenEasing::EaseOut);
             break;
+        }
         case ToolBehaviourType::FishingRod:
-            destRotation = -80.0f;
-            tweenTime = 0.1f;
+        {
+            usingTool = true;
+
+            static constexpr float destRotation = -80.0f;
+            static constexpr float tweenTime = 0.1f;
+
+            rotationTweenID = toolTweener.startTween(&toolRotation, toolRotation, destRotation, tweenTime, TweenTransition::Circ, TweenEasing::EaseInOut);
+            toolTweener.addTweenToQueue(rotationTweenID, &toolRotation, destRotation, 0.0f, 0.15, TweenTransition::Expo, TweenEasing::EaseOut);
             break;
+        }
+        case ToolBehaviourType::BowWeapon:
+        {
+            // Shoot projectile
+            break;
+        }
     }
 
-    rotationTweenID = toolTweener.startTween(&toolRotation, toolRotation, destRotation, tweenTime, TweenTransition::Circ, TweenEasing::EaseInOut);
-    toolTweener.addTweenToQueue(rotationTweenID, &toolRotation, destRotation, 0.0f, 0.15, TweenTransition::Expo, TweenEasing::EaseOut);
 }
 
 bool Player::isUsingTool()
