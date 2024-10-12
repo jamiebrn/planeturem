@@ -44,6 +44,8 @@
 #include "Entity/Boss/BossEntity.hpp"
 #include "Entity/Boss/BossBenjaminCrow.hpp"
 
+#include "Entity/Projectile/ProjectileManager.hpp"
+
 #include "Data/typedefs.hpp"
 #include "Data/ItemData.hpp"
 #include "Data/ObjectData.hpp"
@@ -129,6 +131,7 @@ private:
     void attemptUseTool();
     void attemptUseToolPickaxe();
     void attemptUseToolFishingRod();
+    void attemptUseToolWeapon();
 
     void catchRandomFish(sf::Vector2i fishedTile);
 
@@ -246,11 +249,11 @@ private:
     float musicGapTimer;
     float musicGap;
 
+    // Game general data
     Player player;
     InventoryData inventory;
-
     ChunkManager chunkManager;
-
+    ProjectileManager projectileManager;
     ParticleSystem particleSystem;
 
     std::array<sf::Texture, 2> waterNoiseTextures;

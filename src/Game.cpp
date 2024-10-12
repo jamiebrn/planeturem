@@ -1,6 +1,6 @@
 #include "Game.hpp"
 
-// FIX: Rocket auto-place on new planets where spawn chunk contains structure
+// FIX: Weird collision bug on world wrap while walking into object
 
 // PRIORITY: HIGH
 // TODO: Create event callback system for object responding to triggers, rather than calling game functions directly
@@ -626,6 +626,9 @@ void Game::updateOnPlanet(float dt)
         handleOpenChestPositionWorldWrap(wrapPositionDelta);
         chunkManager.reloadChunks();
 
+        // Wrap projectiles
+        projectileManager.handleWorldWrap(wrapPositionDelta);
+
         // Wrap boss entity
         if (bossEntity)
         {
@@ -641,10 +644,13 @@ void Game::updateOnPlanet(float dt)
     // Get nearby crafting stations
     nearbyCraftingStationLevels = chunkManager.getNearbyCraftingStationLevels(player.getChunkInside(worldSize), player.getChunkTileInside(worldSize), 4);
 
+    // Update projectiles
+    projectileManager.update(dt);
+
     // Update boss if required
     if (bossEntity)
     {
-        bossEntity->update(*this, player.getPosition(), dt);
+        bossEntity->update(*this, projectileManager, player.getPosition(), dt);
     }
 
     if (!isStateTransitioning())
@@ -721,6 +727,9 @@ void Game::drawWorld(float dt, std::vector<WorldObject*>& worldObjects, std::vec
     {
         bossEntity->draw(worldTexture, spriteBatch);
     }
+
+    // Draw projectiles
+    projectileManager.drawProjectiles(worldTexture, spriteBatch);
 
     spriteBatch.endDrawing(worldTexture);
 
@@ -955,15 +964,18 @@ void Game::attemptUseTool()
         case ToolBehaviourType::FishingRod:
             attemptUseToolFishingRod();
             break;
+        default:
+            attemptUseToolWeapon();
+            break;
     }
 }
 
 void Game::attemptUseToolPickaxe()
 {
-    // Swing pickaxe
-    player.useTool();
-    
     sf::Vector2f mouseWorldPos = Cursor::getMouseWorldPos(window);
+    
+    // Swing pickaxe
+    player.useTool(projectileManager, mouseWorldPos);
 
     if (!player.canReachPosition(mouseWorldPos))
         return;
@@ -1034,9 +1046,16 @@ void Game::attemptUseToolFishingRod()
     }
     
     // Swing fishing rod
-    player.useTool();
+    player.useTool(projectileManager, mouseWorldPos);
 
     player.swingFishingRod(mouseWorldPos, Cursor::getSelectedWorldTile(chunkManager.getWorldSize()));
+}
+
+void Game::attemptUseToolWeapon()
+{
+    sf::Vector2f mouseWorldPos = Cursor::getMouseWorldPos(window);
+
+    player.useTool(projectileManager, mouseWorldPos);
 }
 
 void Game::catchRandomFish(sf::Vector2i fishedTile)

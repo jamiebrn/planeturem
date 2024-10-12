@@ -378,7 +378,7 @@ ToolType Player::getTool()
     return equippedTool;
 }
 
-void Player::useTool()
+void Player::useTool(ProjectileManager& projectileManager, sf::Vector2f mouseWorldPos)
 {
     // swingingTool = true;
 
@@ -410,7 +410,23 @@ void Player::useTool()
         }
         case ToolBehaviourType::BowWeapon:
         {
-            // Shoot projectile
+            // Calculate projectile position and angle
+            float angle = 180.0f * std::atan2(mouseWorldPos.y - position.y, mouseWorldPos.x - position.x) / M_PI;
+
+            sf::Vector2f spawnPos = static_cast<sf::Vector2f>(toolData.holdOffset);
+
+            if (flippedTexture)
+            {
+                spawnPos.x *= -1;
+            }
+
+            spawnPos += position;
+
+            // Create projectile
+            std::unique_ptr<Projectile> projectile = std::make_unique<Projectile>(spawnPos, angle, toolData.projectileShootType);
+
+            // Add projectile to manager
+            projectileManager.addProjectile(std::move(projectile));
             break;
         }
     }

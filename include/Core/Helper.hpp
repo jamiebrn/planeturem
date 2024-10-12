@@ -34,9 +34,14 @@ inline sf::Vector2f rotateVector(sf::Vector2f vector, float angle)
     return rotatedVector;
 }
 
+inline float getVectorLength(sf::Vector2f vector)
+{
+    return std::sqrt(vector.x * vector.x + vector.y * vector.y);
+}
+
 inline sf::Vector2f normaliseVector(sf::Vector2f vector)
 {
-    float length = std::sqrt(vector.x * vector.x + vector.y * vector.y);
+    float length = getVectorLength(vector);
     if (length > 0)
     {
         return vector / length;

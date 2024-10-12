@@ -4,6 +4,7 @@
 #include <cmath>
 #include <algorithm>
 #include <array>
+#include <memory>
 
 #include "Core/ResolutionHandler.hpp"
 #include "Core/CollisionRect.hpp"
@@ -18,6 +19,9 @@
 #include "Data/typedefs.hpp"
 #include "Data/ToolData.hpp"
 #include "Data/ToolDataLoader.hpp"
+
+#include "Entity/Projectile/Projectile.hpp"
+#include "Entity/Projectile/ProjectileManager.hpp"
 
 #include "GameConstants.hpp"
 #include "DebugOptions.hpp"
@@ -36,7 +40,7 @@ public:
     void setTool(ToolType toolType);
     ToolType getTool();
 
-    void useTool();
+    void useTool(ProjectileManager& projectileManager, sf::Vector2f mouseWorldPos);
     bool isUsingTool();
 
     // Fishing rod specific

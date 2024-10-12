@@ -2,7 +2,9 @@
 
 #include <SFML/Graphics.hpp>
 #include <optional>
+#include <cmath>
 
+#include "Core/Helper.hpp"
 #include "Core/TextureManager.hpp"
 
 class SpriteBatch
