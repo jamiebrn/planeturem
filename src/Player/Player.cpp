@@ -30,13 +30,12 @@ Player::Player(sf::Vector2f position)
 
 void Player::update(float dt, sf::Vector2f mouseWorldPos, ChunkManager& chunkManager, int worldSize, bool& wrappedAroundWorld, sf::Vector2f& wrapPositionDelta)
 {
-    wrappedAroundWorld = testWorldWrap(worldSize, wrapPositionDelta);
-
     if (inRocket)
         return;
 
     updateDirection(mouseWorldPos);
     updateAnimation(dt);
+    updateToolRotation(mouseWorldPos);
 
     // Handle collision with world (tiles, object)
 
@@ -60,6 +59,8 @@ void Player::update(float dt, sf::Vector2f mouseWorldPos, ChunkManager& chunkMan
         chunkManager.collisionRectChunkStaticCollisionY(collisionRect, direction.y);
     }
     
+    wrappedAroundWorld = testWorldWrap(worldSize, wrapPositionDelta);
+
     // Update position using collision rect after collision has been handled
     position.x = collisionRect.x + collisionRect.width / 2.0f;
     position.y = collisionRect.y + collisionRect.height / 2.0f;
@@ -70,23 +71,6 @@ void Player::update(float dt, sf::Vector2f mouseWorldPos, ChunkManager& chunkMan
         updateFishingRodCatch(dt);
     }
 
-    // Rotate bow if tool is of type
-    if (equippedTool > 0)
-    {
-        const ToolData& toolData = ToolDataLoader::getToolData(equippedTool);
-        if (toolData.toolBehaviourType == ToolBehaviourType::BowWeapon)
-        {
-            if (flippedTexture)
-            {
-                toolRotation = 180.0f * std::atan2(mouseWorldPos.y - position.y, position.x - mouseWorldPos.x) / M_PI;
-            }
-            else
-            {
-                toolRotation = 180.0f * std::atan2(mouseWorldPos.y - position.y, mouseWorldPos.x - position.x) / M_PI;
-            }
-        }
-    }
-
     // Update on water
     onWater = (chunkManager.getLoadedChunkTileType(getChunkInside(worldSize), getChunkTileInside(worldSize)) == 0);
 }
@@ -95,6 +79,7 @@ void Player::updateInStructure(float dt, sf::Vector2f mouseWorldPos, const Room&
 {
     updateDirection(mouseWorldPos);
     updateAnimation(dt);
+    updateToolRotation(mouseWorldPos);
 
     collisionRect.x += direction.x * speed * dt;
     structureRoom.handleStaticCollisionX(collisionRect, direction.x);
@@ -163,6 +148,28 @@ void Player::updateAnimation(float dt)
             {
                 castFishingRod();
             }
+        }
+    }
+}
+
+void Player::updateToolRotation(sf::Vector2f mouseWorldPos)
+{
+    // Rotate bow if tool is of type
+    if (equippedTool < 0)
+    {
+        return;
+    } 
+
+    const ToolData& toolData = ToolDataLoader::getToolData(equippedTool);
+    if (toolData.toolBehaviourType == ToolBehaviourType::BowWeapon)
+    {
+        if (flippedTexture)
+        {
+            toolRotation = 180.0f * std::atan2(mouseWorldPos.y - position.y, position.x - mouseWorldPos.x) / M_PI;
+        }
+        else
+        {
+            toolRotation = 180.0f * std::atan2(mouseWorldPos.y - position.y, mouseWorldPos.x - position.x) / M_PI;
         }
     }
 }

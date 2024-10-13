@@ -65,6 +65,7 @@ public:
 private:
     void updateDirection(sf::Vector2f mouseWorldPos);
     void updateAnimation(float dt);
+    void updateToolRotation(sf::Vector2f mouseWorldPos);
 
     bool testWorldWrap(int worldSize, sf::Vector2f& wrapPositionDelta);
 

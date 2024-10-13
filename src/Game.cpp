@@ -1,6 +1,6 @@
 #include "Game.hpp"
 
-// FIX: Weird collision bug on world wrap while walking into object
+// FIX: Initial travel to planet very weird generation bug (chunks generate incorrectly in initial camera view) -- maybe fixed?
 
 // PRIORITY: HIGH
 // TODO: Create event callback system for object responding to triggers, rather than calling game functions directly

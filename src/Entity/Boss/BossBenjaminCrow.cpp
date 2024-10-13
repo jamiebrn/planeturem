@@ -95,26 +95,22 @@ void BossBenjaminCrow::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch)
 
     // drawData.centerRatio = sf::Vector2f(0.5f, 1.0f);
 
+    // Apply flash if required
+    std::optional<ShaderType> shaderType;
+
+    if (flashTime > 0)
+    {
+        shaderType = ShaderType::Flash;
+        sf::Shader* shader = Shaders::getShader(shaderType.value());
+        shader->setUniform("flash_amount", flashTime / MAX_FLASH_TIME);
+    }
 
     switch (behaviourState)
     {
         case BossBenjaminState::Idle:
         {
-            // TODO: Add shader support to spritebatch so I dont have to do this switching
-            // If flash required
-            if (flashTime > 0)
-            {
-                spriteBatch.endDrawing(window);
-
-                sf::Shader* flashShader = Shaders::getShader(ShaderType::Flash);
-                flashShader->setUniform("flash_amount", flashTime / MAX_FLASH_TIME);
-
-                TextureManager::drawSubTexture(window, drawData, idleAnim.getTextureRect(), flashShader);
-            }
-            else
-            {
-                spriteBatch.draw(window, drawData, idleAnim.getTextureRect());
-            }
+            
+            spriteBatch.draw(window, drawData, idleAnim.getTextureRect(), shaderType);
             break;
         }
     }

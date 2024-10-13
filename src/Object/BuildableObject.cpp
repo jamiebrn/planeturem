@@ -72,20 +72,27 @@ void BuildableObject::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, f
         TextureType::Objects, Camera::worldToScreenTransform(position + sf::Vector2f(0, waterYOffset)), 0, scale, objectData.textureOrigin, color
         };
 
-    if (flash_amount <= 0)
-    {
-        spriteBatch.draw(window, drawData, textureRect);
-    }
-    else
-    {
+    // if (flash_amount <= 0)
+    // {
+    // }
+    // else
+    // {
         // End batch
-        spriteBatch.endDrawing(window);
+        // spriteBatch.endDrawing(window);
+    
+    std::optional<ShaderType> shaderType;
 
-        sf::Shader* shader = Shaders::getShader(ShaderType::Flash);
+    if (flash_amount > 0)
+    {
+        shaderType = ShaderType::Flash;
+        sf::Shader* shader = Shaders::getShader(shaderType.value());
         shader->setUniform("flash_amount", flash_amount);
-
-        TextureManager::drawSubTexture(window, drawData, textureRect, shader);
     }
+
+    spriteBatch.draw(window, drawData, textureRect, shaderType);
+    
+        // TextureManager::drawSubTexture(window, drawData, textureRect, shader);
+    // }
 }
 
 bool BuildableObject::damage(int amount, InventoryData& inventory)

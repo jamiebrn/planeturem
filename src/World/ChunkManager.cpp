@@ -12,8 +12,8 @@ void ChunkManager::setSeed(int seed)
     heightNoise.SetFrequency(0.1);
     biomeNoise.SetFrequency(0.1);
 
-    heightNoise.SetSeed(seed);
-    biomeNoise.SetSeed(seed + 1);
+    heightNoise.SetSeed(seed + planetType);
+    biomeNoise.SetSeed(seed + planetType + 1);
 }
 
 int ChunkManager::getSeed()
@@ -31,6 +31,9 @@ void ChunkManager::setPlanetType(PlanetType planetType)
     deleteAllChunks();
 
     this->planetType = planetType;
+
+    // Update noise seeds
+    setSeed(seed);
 
     const PlanetGenData& planetGenData = PlanetGenDataLoader::getPlanetGenData(planetType);
 

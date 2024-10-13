@@ -30,8 +30,6 @@ void ChestObject::update(Game& game, float dt, bool onWater, bool loopAnimation)
 void ChestObject::interact(Game& game)
 {
     // Chest interaction stuff
-    std::cout << "interacted with chest\n";
-
     if (chestID == 0xFFFF)
     {
         const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
@@ -93,7 +91,6 @@ void ChestObject::closeChest()
 
 void ChestObject::removeChestFromPool(Game& game)
 {
-    std::cout << "removed chest " << chestID << " from pool\n";
     game.getChestDataPool().destroyChest(chestID);
 }
 

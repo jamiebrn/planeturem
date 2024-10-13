@@ -6,6 +6,7 @@
 
 #include "Core/Helper.hpp"
 #include "Core/TextureManager.hpp"
+#include "Core/Shaders.hpp"
 
 class SpriteBatch
 {
@@ -14,12 +15,12 @@ public:
 
     void beginDrawing();
 
-    void draw(sf::RenderTarget& window, TextureDrawData drawData, sf::IntRect textureRect);
+    void draw(sf::RenderTarget& window, const TextureDrawData& drawData, const sf::IntRect& textureRect, std::optional<ShaderType> shaderType = std::nullopt);
 
-    void endDrawing(sf::RenderTarget& window);
+    void endDrawing(sf::RenderTarget& window, std::optional<ShaderType> shaderType = std::nullopt);
 
 private:
-    void drawVertexArray(sf::RenderTarget& window);
+    void drawVertexArray(sf::RenderTarget& window, std::optional<ShaderType> shaderType = std::nullopt);
 
     void resetBatchValues();
 

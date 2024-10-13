@@ -10,20 +10,29 @@ void SpriteBatch::beginDrawing()
     resetBatchValues();
 }
 
-void SpriteBatch::draw(sf::RenderTarget& window, TextureDrawData drawData, sf::IntRect textureRect)
+void SpriteBatch::draw(sf::RenderTarget& window, const TextureDrawData& drawData, const sf::IntRect& textureRect, std::optional<ShaderType> shaderType)
 {
-    if (batchTextureType.has_value())
+    if (shaderType.has_value())
     {
-        if (batchTextureType.value() != drawData.type)
-        {
-            // End current batch and start new
-            endDrawing(window);
-            batchTextureType = drawData.type;
-        }
+        // If shader used, end batch
+        endDrawing(window);
+        batchTextureType = drawData.type;
     }
     else
     {
-        batchTextureType = drawData.type;
+        if (batchTextureType.has_value())
+        {
+            if (batchTextureType.value() != drawData.type)
+            {
+                // End current batch and start new
+                endDrawing(window);
+                batchTextureType = drawData.type;
+            }
+        }
+        else
+        {
+            batchTextureType = drawData.type;
+        }
     }
 
     sf::Vertex vertices[4];
@@ -61,35 +70,46 @@ void SpriteBatch::draw(sf::RenderTarget& window, TextureDrawData drawData, sf::I
         vertices[3].position = Helper::rotateVector(sf::Vector2f(nX, pY), angleRadians) + drawData.position;
     }
 
-    // Draw to vertex array
+    // Set UV coords
     vertices[0].texCoords = static_cast<sf::Vector2f>(textureRect.getPosition());
-    vertices[0].color = drawData.colour;
     vertices[1].texCoords = static_cast<sf::Vector2f>(textureRect.getPosition()) + sf::Vector2f(textureRect.width, 0);
-    vertices[1].color = drawData.colour;
     vertices[2].texCoords = static_cast<sf::Vector2f>(textureRect.getPosition() + textureRect.getSize());
-    vertices[2].color = drawData.colour;
     vertices[3].texCoords = static_cast<sf::Vector2f>(textureRect.getPosition()) + sf::Vector2f(0, textureRect.height);
-    vertices[3].color = drawData.colour;
 
     for (int i = 0; i < 4; i++)
     {
+        vertices[i].color = drawData.colour;
         vertexArray.append(vertices[i]);
+    }
+
+    // If shader is used, draw using shader (do not batch)
+    if (shaderType.has_value())
+    {
+        endDrawing(window, shaderType);
     }
 }
 
-void SpriteBatch::endDrawing(sf::RenderTarget& window)
+void SpriteBatch::endDrawing(sf::RenderTarget& window, std::optional<ShaderType> shaderType)
 {
-    drawVertexArray(window);
+    drawVertexArray(window, shaderType);
     resetBatchValues();
 }
 
-void SpriteBatch::drawVertexArray(sf::RenderTarget& window)
+void SpriteBatch::drawVertexArray(sf::RenderTarget& window, std::optional<ShaderType> shaderType)
 {
     if (!batchTextureType.has_value())
         return;
+    
+    sf::RenderStates renderState;
+    renderState.texture = TextureManager::getTexture(batchTextureType.value());
 
-    sf::Texture* texture = TextureManager::getTexture(batchTextureType.value());
-    window.draw(vertexArray, texture);
+    if (shaderType.has_value())
+    {
+        sf::Shader* shader = Shaders::getShader(shaderType.value());
+        renderState.shader = shader;
+    }
+
+    window.draw(vertexArray, renderState);
 }
 
 void SpriteBatch::resetBatchValues()

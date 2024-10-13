@@ -59,8 +59,6 @@ void RocketObject::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, floa
 void RocketObject::interact(Game& game)
 {
     // Rocket interaction stuff
-    std::cout << "interacted with rocket\n";
-
     if (!entered)
     {
         game.enterRocket(*this);
