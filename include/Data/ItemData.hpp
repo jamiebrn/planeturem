@@ -17,6 +17,8 @@ struct ItemData
     ToolType toolType = -1;
     bool placesLand = false;
 
+    std::string summonsBoss;
+
     bool isMaterial = false;
 
     // 0, 0, 0 reserved for rainbow effect

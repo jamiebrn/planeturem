@@ -1,8 +1,10 @@
 #pragma once
 
+#define _USE_MATH_DEFINES
+#include <cmath>
+
 #include <SFML/Graphics.hpp>
 #include <optional>
-#include <cmath>
 
 #include "Core/Helper.hpp"
 #include "Core/TextureManager.hpp"

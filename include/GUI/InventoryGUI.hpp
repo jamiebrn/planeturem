@@ -91,7 +91,7 @@ public:
 
     // Subtracts from currently held item, called when object is placed
     // Places from item picked up, if not will attempt to place from hotbar
-    static void placeHeldObject(InventoryData& inventory);
+    static void subtractHeldItem(InventoryData& inventory);
 
     static bool heldItemPlacesLand(InventoryData& inventory);
 
@@ -111,7 +111,7 @@ public:
     static ToolType getHotbarSelectedTool(InventoryData& inventory);
     static bool hotbarItemPlacesLand(InventoryData& inventory);
 
-    static void placeHotbarObject(InventoryData& inventory);
+    static void subtractHotbarItem(InventoryData& inventory);
 
     // Hotbar drawn when not in inventory
     static void drawHotbar(sf::RenderTarget& window, sf::Vector2f mouseScreenPos, InventoryData& inventory);

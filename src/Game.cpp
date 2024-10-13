@@ -429,6 +429,7 @@ void Game::runOnPlanet(float dt)
                             attemptUseTool();
                             attemptBuildObject();
                             attemptPlaceLand();
+                            attemptUseBossSpawn();
                         }
                         else
                         {
@@ -449,6 +450,7 @@ void Game::runOnPlanet(float dt)
                             attemptUseTool();
                             attemptBuildObject();
                             attemptPlaceLand();
+                            attemptUseBossSpawn();
                         }
 
                         if (itemHeldBefore != InventoryGUI::getHeldItemType(inventory))
@@ -585,6 +587,7 @@ void Game::runOnPlanet(float dt)
             break;
     }
 
+
     switch (worldMenuState)
     {
         case WorldMenuState::Main:
@@ -626,14 +629,11 @@ void Game::updateOnPlanet(float dt)
         handleOpenChestPositionWorldWrap(wrapPositionDelta);
         chunkManager.reloadChunks();
 
+        // Wrap bosses
+        bossManager.handleWorldWrap(wrapPositionDelta);
+
         // Wrap projectiles
         projectileManager.handleWorldWrap(wrapPositionDelta);
-
-        // Wrap boss entity
-        if (bossEntity)
-        {
-            bossEntity->handleWorldWrap(wrapPositionDelta);
-        }
     }
 
     // Update (loaded) chunks
@@ -644,14 +644,11 @@ void Game::updateOnPlanet(float dt)
     // Get nearby crafting stations
     nearbyCraftingStationLevels = chunkManager.getNearbyCraftingStationLevels(player.getChunkInside(worldSize), player.getChunkTileInside(worldSize), 4);
 
+    // Update bosses
+    bossManager.update(*this, projectileManager, inventory, player.getPosition(), dt);
+
     // Update projectiles
     projectileManager.update(dt);
-
-    // Update boss if required
-    if (bossEntity)
-    {
-        bossEntity->update(*this, projectileManager, player.getPosition(), dt);
-    }
 
     if (!isStateTransitioning())
     {
@@ -676,6 +673,8 @@ void Game::drawOnPlanet(float dt)
     drawLighting(dt, worldObjects, entities);
 
     // UI
+    sf::Vector2f mouseScreenPos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
+
     Cursor::drawCursor(window);
 
     if (player.getTool() < 0)
@@ -693,6 +692,8 @@ void Game::drawOnPlanet(float dt)
             drawGhostPlaceLandAtCursor();
         }
     }
+
+    bossManager.drawStatsAtCursor(window, mouseScreenPos);
 }
 
 void Game::drawWorld(float dt, std::vector<WorldObject*>& worldObjects, std::vector<WorldObject*>& entities)
@@ -722,11 +723,8 @@ void Game::drawWorld(float dt, std::vector<WorldObject*>& worldObjects, std::vec
         worldObject->draw(worldTexture, spriteBatch, dt, gameTime, chunkManager.getWorldSize(), {255, 255, 255, 255});
     }
 
-    // Draw boss if required
-    if (bossEntity)
-    {
-        bossEntity->draw(worldTexture, spriteBatch);
-    }
+    // Draw bosses
+    bossManager.draw(worldTexture, spriteBatch);
 
     // Draw projectiles
     projectileManager.drawProjectiles(worldTexture, spriteBatch);
@@ -1135,7 +1133,7 @@ void Game::attemptBuildObject()
         // }
         // else
         // {
-        InventoryGUI::placeHeldObject(inventory);
+        InventoryGUI::subtractHeldItem(inventory);
         // }
 
         // Play build sound
@@ -1202,8 +1200,40 @@ void Game::attemptPlaceLand()
     // }
     // else
     // {
-    InventoryGUI::placeHeldObject(inventory);
+    InventoryGUI::subtractHeldItem(inventory);
     // }
+}
+
+void Game::attemptUseBossSpawn()
+{
+    if (gameState != GameState::OnPlanet)
+    {
+        return;
+    }
+    
+    if (player.isInRocket())
+    {
+        return;
+    }
+    
+    ItemType heldItemType = InventoryGUI::getHeldItemType(inventory);
+
+    const ItemData& itemData = ItemDataLoader::getItemData(heldItemType);
+
+    if (itemData.summonsBoss.empty())
+    {
+        return;
+    }
+
+    // Take boss summon item
+    InventoryGUI::subtractHeldItem(inventory);
+
+    // Summon boss
+    sf::Vector2f spawnPos;
+    spawnPos.x = player.getPosition().x - 400.0f;
+    spawnPos.y = player.getPosition().y - 400.0f;
+
+    bossManager.createBoss(itemData.summonsBoss, spawnPos);
 }
 
 void Game::drawGhostPlaceObjectAtCursor(ObjectType object)
@@ -1420,8 +1450,6 @@ void Game::initialiseNewPlanet(PlanetType planetType, bool placeRocket)
         rocketEnteredReference.chunk = playerSpawnChunk;
         rocketEnteredReference.tile = sf::Vector2i(0, 0);
     }
-
-    createBoss();
 }
 
 void Game::resetChestDataPool()
@@ -1526,18 +1554,6 @@ void Game::setWorldSeedFromInput()
     }
 
     chunkManager.setSeed(seed);
-}
-
-
-// -- Bosses -- //
-
-void Game::createBoss()
-{
-    sf::Vector2f spawnPos;
-    spawnPos.x = player.getPosition().x - 400.0f;
-    spawnPos.y = player.getPosition().y - 400.0f;
-
-    bossEntity = std::make_unique<BossBenjaminCrow>(spawnPos);
 }
 
 

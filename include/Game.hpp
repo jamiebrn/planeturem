@@ -41,9 +41,7 @@
 #include "Object/StructureObject.hpp"
 #include "Object/ParticleSystem.hpp"
 
-#include "Entity/Boss/BossEntity.hpp"
-#include "Entity/Boss/BossBenjaminCrow.hpp"
-
+#include "Entity/Boss/BossManager.hpp"
 #include "Entity/Projectile/ProjectileManager.hpp"
 
 #include "Data/typedefs.hpp"
@@ -139,6 +137,8 @@ private:
     void attemptBuildObject();
     void attemptPlaceLand();
 
+    void attemptUseBossSpawn();
+
     void drawGhostPlaceObjectAtCursor(ObjectType object);
     void drawGhostPlaceLandAtCursor();
 
@@ -177,11 +177,6 @@ private:
     void changeState(GameState newState);
 
     void setWorldSeedFromInput();
-
-
-    // -- Bosses -- //
-
-    void createBoss();
 
 
     // -- Save / load -- //
@@ -254,6 +249,7 @@ private:
     InventoryData inventory;
     ChunkManager chunkManager;
     ProjectileManager projectileManager;
+    BossManager bossManager;
     ParticleSystem particleSystem;
 
     std::array<sf::Texture, 2> waterNoiseTextures;
@@ -282,9 +278,6 @@ private:
     ObjectReference rocketEnteredReference;
     PlanetType destinationPlanet;
     bool travelPlanetTrigger = false;
-
-    // Boss
-    std::unique_ptr<BossEntity> bossEntity = nullptr;
 
     Tween<float> floatTween;
 };

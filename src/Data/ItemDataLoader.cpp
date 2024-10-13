@@ -18,22 +18,14 @@ bool ItemDataLoader::loadData(std::string itemDataPath)
 
         itemData.name = jsonItemData.at("name");
 
-        // Handle if places object
-        // if (jsonItemData.contains("places-object"))
-        // {
-        //     const std::string& objectName = jsonItemData.at("places-object");
-        //     itemData.placesObjectType = ObjectDataLoader::getObjectTypeFromName(objectName);
-        // }
-        // else
-        // {
-        // Load as normal item if does not place object
-
         if (jsonItemData.contains("texture-x")) itemData.textureRect.left = jsonItemData.at("texture-x");
         if (jsonItemData.contains("texture-y")) itemData.textureRect.top = jsonItemData.at("texture-y");
         if (jsonItemData.contains("texture-width")) itemData.textureRect.width = jsonItemData.at("texture-width");
         if (jsonItemData.contains("texture-height")) itemData.textureRect.height = jsonItemData.at("texture-height");
 
         if (jsonItemData.contains("places-land")) itemData.placesLand = jsonItemData.at("places-land");
+
+        if (jsonItemData.contains("summons-boss")) itemData.summonsBoss = jsonItemData.at("summons-boss");
 
         if (jsonItemData.contains("max-stack-size")) itemData.maxStackSize = jsonItemData.at("max-stack-size");
 

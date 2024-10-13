@@ -106,6 +106,44 @@
     },
 
     {
+        "name": "Feather",
+        "texture-x": 48,
+        "texture-y": 80,
+        "texture-width": 16,
+        "texture-height": 16
+    },
+    {
+        "name": "Bone",
+        "texture-x": 64,
+        "texture-y": 80,
+        "texture-width": 16,
+        "texture-height": 16
+    },
+    {
+        "name": "Crow Claw",
+        "texture-x": 80,
+        "texture-y": 80,
+        "texture-width": 16,
+        "texture-height": 16
+    },
+    {
+        "name": "Crow Skull",
+        "texture-x": 96,
+        "texture-y": 80,
+        "texture-width": 16,
+        "texture-height": 16
+    },
+
+    {
+        "name": "Severed Worm",
+        "texture-x": 80,
+        "texture-y": 64,
+        "texture-width": 16,
+        "texture-height": 16,
+        "summons-boss": "Benjamin"
+    },
+
+    {
         "name": "Land",
         "texture-x": 112,
         "texture-y": 112,

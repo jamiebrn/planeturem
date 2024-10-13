@@ -9,7 +9,6 @@ enum class ShaderType
 {
     Flash,
     Water,
-    Cliff,
     Lighting
 };
 

@@ -668,7 +668,7 @@ ToolType InventoryGUI::getHeldToolType(InventoryData& inventory)
     return getHotbarSelectedTool(inventory);
 }
 
-void InventoryGUI::placeHeldObject(InventoryData& inventory)
+void InventoryGUI::subtractHeldItem(InventoryData& inventory)
 {
     if (isItemPickedUp)
     {
@@ -684,7 +684,7 @@ void InventoryGUI::placeHeldObject(InventoryData& inventory)
     }
     
     // Take from hotbar
-    placeHotbarObject(inventory);
+    subtractHotbarItem(inventory);
 }
 
 bool InventoryGUI::heldItemPlacesLand(InventoryData& inventory)
@@ -904,6 +904,10 @@ sf::Vector2f InventoryGUI::drawItemInfoBox(sf::RenderTarget& window, float gameT
         {
             infoStrings.push_back({std::to_string(toolData.damage) + " damage", 20});
         }
+    }
+    else if (!itemData.summonsBoss.empty())
+    {
+        infoStrings.push_back({"Summons " + itemData.summonsBoss, 20});
     }
 
     if (itemData.isMaterial)
@@ -1179,7 +1183,7 @@ bool InventoryGUI::hotbarItemPlacesLand(InventoryData& inventory)
     return itemData.placesLand;
 }
 
-void InventoryGUI::placeHotbarObject(InventoryData& inventory)
+void InventoryGUI::subtractHotbarItem(InventoryData& inventory)
 {
     inventory.takeItemAtIndex(selectedHotbarIndex, 1);
 }
