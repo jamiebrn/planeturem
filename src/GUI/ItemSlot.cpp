@@ -36,7 +36,7 @@ void ItemSlot::update(sf::Vector2f mouseScreenPos, float dt, bool forceItemScale
     }
 }
 
-bool ItemSlot::isHovered()
+bool ItemSlot::isHovered() const
 {
     return hovered;
 }

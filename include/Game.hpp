@@ -247,6 +247,7 @@ private:
     // Game general data
     Player player;
     InventoryData inventory;
+    InventoryData armourInventory;
     ChunkManager chunkManager;
     ProjectileManager projectileManager;
     BossManager bossManager;

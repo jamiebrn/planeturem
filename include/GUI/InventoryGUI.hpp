@@ -55,7 +55,7 @@ public:
     // Initialise animations etc
     static void initialise(InventoryData& inventory);
 
-    static void updateInventory(sf::Vector2f mouseScreenPos, float dt, InventoryData& inventory, InventoryData* chestData = nullptr);
+    static void updateInventory(sf::Vector2f mouseScreenPos, float dt, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData = nullptr);
 
     // May pick up item stack, may put down item stack
     static void handleLeftClick(sf::Vector2f mouseScreenPos, bool shiftMode, InventoryData& inventory, InventoryData* chestData = nullptr);
@@ -137,14 +137,7 @@ private:
     static void createChestItemSlots(InventoryData* chestData);
 
     // Returns -1 if no index selected (mouse not hovered over item)
-    static int getInventoryHoveredIndex(sf::Vector2f mouseScreenPos);
-
-    // Returns -1 if not hovering over recipe
-    static int getHoveredRecipe(sf::Vector2f mouseScreenPos);
-
-    static int getHoveredChestIndex(sf::Vector2f mouseScreenPos);
-
-    static int getHotbarHoveredIndex(sf::Vector2f mouseScreenPos);
+    static int getHoveredItemSlotIndex(const std::vector<ItemSlot>& itemSlots, sf::Vector2f mouseScreenPos);
 
     static bool isBinSelected(sf::Vector2f mouseScreenPos);
     static bool isInventorySelected(sf::Vector2f mouseScreenPos);
@@ -152,6 +145,13 @@ private:
 
     // Attempt to craft recipe selected
     static void craftSelectedRecipe(InventoryData& inventory);
+
+    static void drawInventory(sf::RenderTarget& window, InventoryData& inventory);
+    static void drawBin(sf::RenderTarget& window);
+    static void drawRecipes(sf::RenderTarget& window);
+    static void drawChest(sf::RenderTarget& window, InventoryData* chestData);
+    static void drawPickedUpItem(sf::RenderTarget& window, float gameTime, sf::Vector2f mouseScreenPos);
+    static void drawHoveredItemInfoBox(sf::RenderTarget& window, float gameTime, sf::Vector2f mouseScreenPos, InventoryData& inventory, InventoryData* chestData);
 
     static sf::Vector2f drawItemInfoBox(sf::RenderTarget& window, float gameTime, int itemIndex, InventoryData& inventory, sf::Vector2f mouseScreenPos);
     static sf::Vector2f drawItemInfoBox(sf::RenderTarget& window, float gameTime, ItemType itemType, sf::Vector2f mouseScreenPos);
@@ -174,6 +174,8 @@ private:
     static int itemBoxPadding;
     static constexpr int ITEM_BOX_PER_ROW = 8;
 
+    static constexpr int ARMOUR_SLOTS = 3;
+
     static bool isItemPickedUp;
     static ItemType pickedUpItem;
     static int pickedUpItemCount;
@@ -184,7 +186,8 @@ private:
 
     // Item Slots (visual / interacting)
     static std::vector<ItemSlot> inventoryItemSlots;
-    static std::array<ItemSlot, ITEM_BOX_PER_ROW> hotbarItemSlots;
+    static std::vector<ItemSlot> armourItemSlots;
+    static std::vector<ItemSlot> hotbarItemSlots;
     static std::vector<ItemSlot> recipeItemSlots;
     static std::vector<ItemSlot> chestItemSlots;
 

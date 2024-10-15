@@ -13,7 +13,8 @@ std::unordered_map<ItemType, unsigned int> InventoryGUI::previous_inventoryItemC
 std::vector<int> InventoryGUI::availableRecipes;
 
 std::vector<ItemSlot> InventoryGUI::inventoryItemSlots;
-std::array<ItemSlot, InventoryGUI::ITEM_BOX_PER_ROW> InventoryGUI::hotbarItemSlots;
+std::vector<ItemSlot> InventoryGUI::armourItemSlots;
+std::vector<ItemSlot> InventoryGUI::hotbarItemSlots;
 std::vector<ItemSlot> InventoryGUI::recipeItemSlots;
 std::vector<ItemSlot> InventoryGUI::chestItemSlots;
 
@@ -62,15 +63,26 @@ void InventoryGUI::initialiseInventory(InventoryData& inventory)
             itemBoxPosition.y += itemBoxSize + itemBoxSpacing;
         }
     }
+
+    // Start armour boxes at right end of inventory, one item box down
+    sf::Vector2f armourBoxPosition(ITEM_BOX_PER_ROW * (itemBoxSize + itemBoxSpacing) + itemBoxPadding, itemBoxPadding + itemBoxSize + itemBoxSpacing);
+
+    // Initialise armour item slots
+    for (int i = 0; i < ARMOUR_SLOTS; i++)
+    {
+        armourItemSlots.push_back(ItemSlot(armourBoxPosition, itemBoxSize));
+        
+        armourBoxPosition.y += itemBoxSize + itemBoxSpacing;
+    }
 }
 
 void InventoryGUI::initialiseHotbar()
 {
     sf::Vector2f itemBoxPosition = sf::Vector2f(itemBoxPadding, itemBoxPadding);
 
-    for (int itemIndex = 0; itemIndex < hotbarItemSlots.size(); itemIndex++)
+    for (int itemIndex = 0; itemIndex < ITEM_BOX_PER_ROW; itemIndex++)
     {
-        hotbarItemSlots[itemIndex] = ItemSlot(itemBoxPosition, itemBoxSize);
+        hotbarItemSlots.push_back(ItemSlot(itemBoxPosition, itemBoxSize));
 
         // Increment box position
         itemBoxPosition.x += itemBoxSize + itemBoxSpacing;
@@ -110,7 +122,7 @@ void InventoryGUI::createRecipeItemSlots(InventoryData& inventory)
     }
 }
 
-void InventoryGUI::updateInventory(sf::Vector2f mouseScreenPos, float dt, InventoryData& inventory, InventoryData* chestData)
+void InventoryGUI::updateInventory(sf::Vector2f mouseScreenPos, float dt, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData)
 {
     // Update bin animation
     int binAnimationUpdateDirection = 0;
@@ -135,6 +147,17 @@ void InventoryGUI::updateInventory(sf::Vector2f mouseScreenPos, float dt, Invent
         if (!inventory.getItemSlotData(i).has_value())
         {
             inventoryItemSlots[i].overrideItemScaleMult(1.0f);
+        }
+    }
+
+    // Update armour item slots
+    for (int i = 0; i < std::min(armourInventory.getSize(), static_cast<int>(armourItemSlots.size())); i++)
+    {
+        armourItemSlots[i].update(mouseScreenPos, dt);
+
+        if (!armourInventory.getItemSlotData(i).has_value())
+        {
+            armourItemSlots[i].overrideItemScaleMult(1.0f);
         }
     }
 
@@ -182,7 +205,7 @@ void InventoryGUI::handleLeftClick(sf::Vector2f mouseScreenPos, bool shiftMode, 
         }
     }
 
-    int recipeClicked = getHoveredRecipe(mouseScreenPos);
+    int recipeClicked = getHoveredItemSlotIndex(recipeItemSlots, mouseScreenPos);
     if (recipeClicked >= 0)
     {
         // If clicked on recipe is selected, attempt to craft item
@@ -227,8 +250,8 @@ bool InventoryGUI::handleScroll(sf::Vector2f mouseScreenPos, int direction)
 void InventoryGUI::pickUpItem(sf::Vector2f mouseScreenPos, unsigned int amount, InventoryData& inventory, InventoryData* chestData)
 {
     // Get item selected at mouse
-    int itemIndex = getInventoryHoveredIndex(mouseScreenPos);
-    int chestHoveredItemIndex = getHoveredChestIndex(mouseScreenPos);
+    int itemIndex = getHoveredItemSlotIndex(inventoryItemSlots, mouseScreenPos);
+    int chestHoveredItemIndex = getHoveredItemSlotIndex(chestItemSlots, mouseScreenPos);
 
     // No valid item selected
     if (itemIndex < 0 && chestHoveredItemIndex < 0)
@@ -292,8 +315,8 @@ void InventoryGUI::putDownItem(sf::Vector2f mouseScreenPos, InventoryData& inven
     }
 
     // Get item selected at mouse
-    int chestHoveredItemIndex = getHoveredChestIndex(mouseScreenPos);
-    int itemIndex = getInventoryHoveredIndex(mouseScreenPos);
+    int chestHoveredItemIndex = getHoveredItemSlotIndex(chestItemSlots, mouseScreenPos);
+    int itemIndex = getHoveredItemSlotIndex(inventoryItemSlots, mouseScreenPos);
 
     // No valid item selected
     if (itemIndex < 0 && chestHoveredItemIndex < 0)
@@ -363,59 +386,11 @@ void InventoryGUI::putDownItem(sf::Vector2f mouseScreenPos, InventoryData& inven
         isItemPickedUp = false;
 }
 
-int InventoryGUI::getInventoryHoveredIndex(sf::Vector2f mouseScreenPos)
+int InventoryGUI::getHoveredItemSlotIndex(const std::vector<ItemSlot>& itemSlots, sf::Vector2f mouseScreenPos)
 {
-    for (int itemIndex = 0; itemIndex < inventoryItemSlots.size(); itemIndex++)
+    for (int itemIndex = 0; itemIndex < itemSlots.size(); itemIndex++)
     {
-        ItemSlot& itemSlot = inventoryItemSlots[itemIndex];
-
-        if (itemSlot.isHovered())
-        {
-            return itemIndex;
-        }
-    }
-
-    // Default case
-    return -1;
-}
-
-int InventoryGUI::getHoveredRecipe(sf::Vector2f mouseScreenPos)
-{
-    for (int itemIndex = 0; itemIndex < recipeItemSlots.size(); itemIndex++)
-    {
-        ItemSlot& itemSlot = recipeItemSlots[itemIndex];
-
-        if (itemSlot.isHovered())
-        {
-            return itemIndex;
-        }
-    }
-
-    // Default case
-    return -1;
-}
-
-int InventoryGUI::getHoveredChestIndex(sf::Vector2f mouseScreenPos)
-{    
-    for (int itemIndex = 0; itemIndex < chestItemSlots.size(); itemIndex++)
-    {
-        ItemSlot& itemSlot = chestItemSlots[itemIndex];
-
-        if (itemSlot.isHovered())
-        {
-            return itemIndex;
-        }
-    }
-
-    // Default case
-    return -1;
-}
-
-int InventoryGUI::getHotbarHoveredIndex(sf::Vector2f mouseScreenPos)
-{
-    for (int itemIndex = 0; itemIndex < hotbarItemSlots.size(); itemIndex++)
-    {
-        ItemSlot& itemSlot = hotbarItemSlots[itemIndex];
+        const ItemSlot& itemSlot = itemSlots[itemIndex];
 
         if (itemSlot.isHovered())
         {
@@ -447,12 +422,12 @@ bool InventoryGUI::isBinSelected(sf::Vector2f mouseScreenPos)
 
 bool InventoryGUI::isInventorySelected(sf::Vector2f mouseScreenPos)
 {
-    return (getInventoryHoveredIndex(mouseScreenPos) >= 0);
+    return (getHoveredItemSlotIndex(inventoryItemSlots, mouseScreenPos) >= 0);
 }
 
 bool InventoryGUI::isCraftingSelected(sf::Vector2f mouseScreenPos)
 {
-    return (getHoveredRecipe(mouseScreenPos) >= 0);
+    return (getHoveredItemSlotIndex(recipeItemSlots, mouseScreenPos) >= 0);
 }
 
 void InventoryGUI::craftSelectedRecipe(InventoryData& inventory)
@@ -529,7 +504,7 @@ void InventoryGUI::handleClose(InventoryData& inventory, InventoryData* chestDat
 bool InventoryGUI::isMouseOverUI(sf::Vector2f mouseScreenPos)
 {
     return (isInventorySelected(mouseScreenPos) || isCraftingSelected(mouseScreenPos) || isBinSelected(mouseScreenPos) || 
-        (getHoveredChestIndex(mouseScreenPos) >= 0));
+        (getHoveredItemSlotIndex(chestItemSlots, mouseScreenPos) >= 0));
 }
 
 void InventoryGUI::updateAvailableRecipes(InventoryData& inventory, std::unordered_map<std::string, int> nearbyCraftingStationLevels)
@@ -701,16 +676,16 @@ bool InventoryGUI::heldItemPlacesLand(InventoryData& inventory)
 
 void InventoryGUI::draw(sf::RenderTarget& window, float gameTime, sf::Vector2f mouseScreenPos, InventoryData& inventory, InventoryData* chestData)
 {
-    // Get intscale
-    float intScale = ResolutionHandler::getResolutionIntegerScale();
+    drawInventory(window, inventory);
+    drawBin(window);
+    drawRecipes(window);
+    drawChest(window, chestData);
+    drawPickedUpItem(window, gameTime, mouseScreenPos);
+    drawHoveredItemInfoBox(window, gameTime, mouseScreenPos, inventory, chestData);
+}
 
-    // Get currently hovered over item
-    int hoveredItemIndex = getInventoryHoveredIndex(mouseScreenPos);
-
-    // Get currently hovered recipe
-    int hoveredRecipeIndex = getHoveredRecipe(mouseScreenPos);
-
-    // Draw inventory data
+void InventoryGUI::drawInventory(sf::RenderTarget& window, InventoryData& inventory)
+{
     for (int itemIdx = 0; itemIdx < inventoryItemSlots.size(); itemIdx++)
     {
         const std::optional<ItemCount>& itemSlotData = inventory.getItemSlotData(itemIdx);
@@ -729,8 +704,12 @@ void InventoryGUI::draw(sf::RenderTarget& window, float gameTime, sf::Vector2f m
             itemSlot.draw(window);
         }
     }
+}
 
-    // Draw bin
+void InventoryGUI::drawBin(sf::RenderTarget& window)
+{
+    float intScale = ResolutionHandler::getResolutionIntegerScale();
+
     sf::Vector2f binPosition;
     binPosition.x = itemBoxPadding * intScale + (itemBoxSize + itemBoxSpacing) * static_cast<float>(ITEM_BOX_PER_ROW) * intScale + (16 / 2) * 3 * intScale;
     binPosition.y = itemBoxPadding * intScale + (20 / 2) * 3 * intScale;
@@ -742,13 +721,16 @@ void InventoryGUI::draw(sf::RenderTarget& window, float gameTime, sf::Vector2f m
         {3 * binScale * intScale, 3 * binScale * intScale},
         {0.5, 0.5}
     }, binAnimation.getTextureRect());
+}
 
+void InventoryGUI::drawRecipes(sf::RenderTarget& window)
+{
+    float intScale = ResolutionHandler::getResolutionIntegerScale();
 
-    // Draw Available recipes
     if (recipeItemSlots.size() > 0)
     {
         // Store recipe index hovered over for drawing
-        int hoveredRecipeIdx = -1;
+        // int hoveredRecipeIdx = -1;
 
         // Draw recipes
         for (int i = 0; i < recipeItemSlots.size(); i++)
@@ -764,33 +746,15 @@ void InventoryGUI::draw(sf::RenderTarget& window, float gameTime, sf::Vector2f m
 
             // If recipe is selected, draw requirements
             bool selected = i == selectedRecipe;
-            // if (i == selectedRecipe)
-            // {
-            //     selected = true;
-
-            //     int requirementXPos = itemSlot.getPosition().x;
-            //     int requirementYPos = itemSlot.getPosition().y + itemBoxSize;
-
-            //     for (const auto& itemRequired : recipeData.itemRequirements)
-            //     {
-            //         // Draw requirement
-            //         ItemSlot recipeItem(sf::Vector2f(requirementXPos, requirementYPos), itemBoxSize);
-
-            //         recipeItem.draw(window, itemRequired.first, itemRequired.second, true);
-
-            //         // Increment position
-            //         requirementYPos += itemBoxSize + itemBoxSpacing;
-            //     }
-            // }
 
             // Draw item box for product
             itemSlot.draw(window, recipeData.product, recipeData.productAmount, false, selected);
             
             // Test whether mouse is over - if so, store recipe index for drawing info later
-            if (itemSlot.isHovered())
-            {
-                hoveredRecipeIdx = recipeIdx;
-            }
+            // if (itemSlot.isHovered())
+            // {
+            //     hoveredRecipeIdx = recipeIdx;
+            // }
         }
 
         // Draw hammer icon
@@ -802,61 +766,83 @@ void InventoryGUI::draw(sf::RenderTarget& window, float gameTime, sf::Vector2f m
         }, sf::IntRect(80, 16, 16, 16));
 
         // Draw info of recipe hovered over (if any)
-        if (hoveredRecipeIdx >= 0 && !isItemPickedUp)
-        {
-            drawItemInfoBoxRecipe(window, gameTime, hoveredRecipeIdx, mouseScreenPos);
-        }
+        // if (hoveredRecipeIdx >= 0 && !isItemPickedUp)
+        // {
+        //     drawItemInfoBoxRecipe(window, gameTime, hoveredRecipeIdx, mouseScreenPos);
+        // }
     }
+}
 
-
-    // Draw Chest
-    if (chestData != nullptr)
+void InventoryGUI::drawChest(sf::RenderTarget& window, InventoryData* chestData)
+{
+    if (chestData == nullptr)
     {
-        for (int itemIdx = 0; itemIdx < chestItemSlots.size(); itemIdx++)
-        {
-            const std::optional<ItemCount>& itemSlotData = chestData->getItemSlotData(itemIdx);
-
-            ItemSlot& itemSlot = chestItemSlots[itemIdx];
-
-            if (itemSlotData.has_value())
-            {
-                const ItemCount& itemCount = itemSlotData.value();
-
-                itemSlot.draw(window, itemCount.first, itemCount.second);
-            }
-            else
-            {
-                // Draw blank item box
-                itemSlot.draw(window);
-            }
-        }
+        return;
     }
 
-    // Draw picked up item at cursor
+    for (int itemIdx = 0; itemIdx < chestItemSlots.size(); itemIdx++)
+    {
+        const std::optional<ItemCount>& itemSlotData = chestData->getItemSlotData(itemIdx);
+
+        ItemSlot& itemSlot = chestItemSlots[itemIdx];
+
+        if (itemSlotData.has_value())
+        {
+            const ItemCount& itemCount = itemSlotData.value();
+
+            itemSlot.draw(window, itemCount.first, itemCount.second);
+        }
+        else
+        {
+            // Draw blank item box
+            itemSlot.draw(window);
+        }
+    }
+}
+
+void InventoryGUI::drawPickedUpItem(sf::RenderTarget& window, float gameTime, sf::Vector2f mouseScreenPos)
+{
+    if (!isItemPickedUp)
+    {
+        return;
+    }
+
+    // Create dummy item slot at cursor
+    ItemSlot pickedUpItemSlot(mouseScreenPos, itemBoxSize, false);
+    pickedUpItemSlot.overrideItemScaleMult(1.0f + std::pow(std::sin(gameTime * 3.5f), 2) / 8.0f);
+    pickedUpItemSlot.draw(window, pickedUpItem, pickedUpItemCount, true);
+}
+
+void InventoryGUI::drawHoveredItemInfoBox(sf::RenderTarget& window, float gameTime, sf::Vector2f mouseScreenPos, InventoryData& inventory, InventoryData* chestData)
+{
+    // Do not draw info box if an item is picked up
     if (isItemPickedUp)
     {
-        // Create dummy item slot at cursor
-        ItemSlot pickedUpItemSlot(mouseScreenPos, itemBoxSize, false);
-        pickedUpItemSlot.overrideItemScaleMult(1.0f + std::pow(std::sin(gameTime * 3.5f), 2) / 8.0f);
-        pickedUpItemSlot.draw(window, pickedUpItem, pickedUpItemCount, true);
+        return;
     }
-    else
+
+    // Get currently hovered over item
+    int hoveredItemIndex = getHoveredItemSlotIndex(inventoryItemSlots, mouseScreenPos);
+
+    // Get currently hovered recipe
+    int hoveredRecipeIndex = getHoveredItemSlotIndex(recipeItemSlots, mouseScreenPos);
+
+    // If an item is hovered over, draw item info box
+    if (hoveredItemIndex >= 0)
     {
-        // Draw item info box if no item held in cursor and hovering over item
-    
-        // If an item is hovered over, draw item info box
-        if (hoveredItemIndex >= 0)
+        drawItemInfoBox(window, gameTime, hoveredItemIndex, inventory, mouseScreenPos);
+    }
+    else if (hoveredRecipeIndex >= 0)
+    {
+        drawItemInfoBoxRecipe(window, gameTime, availableRecipes[hoveredRecipeIndex], mouseScreenPos);
+    }
+    else if (chestData != nullptr)
+    {
+        // Draw chest hovered item info
+        int chestHoveredItemIndex = getHoveredItemSlotIndex(chestItemSlots, mouseScreenPos);
+        if (chestHoveredItemIndex >= 0)
         {
-            drawItemInfoBox(window, gameTime, hoveredItemIndex, inventory, mouseScreenPos);
-        }
-        else if (chestData != nullptr)
-        {
-            // Draw chest hovered item info
-            int chestHoveredItemIndex = getHoveredChestIndex(mouseScreenPos);
-            if (chestHoveredItemIndex >= 0)
-            {
-                drawItemInfoBox(window, gameTime, chestHoveredItemIndex, *chestData, mouseScreenPos);
-            }
+            drawItemInfoBox(window, gameTime, chestHoveredItemIndex, *chestData, mouseScreenPos);
         }
     }
 }
@@ -1115,7 +1101,7 @@ void InventoryGUI::updateHotbar(float dt, sf::Vector2f mouseScreenPos)
 bool InventoryGUI::handleLeftClickHotbar(sf::Vector2f mouseScreenPos)
 {
     // Get hovered index
-    int hoveredIndex = getHotbarHoveredIndex(mouseScreenPos);
+    int hoveredIndex = getHoveredItemSlotIndex(hotbarItemSlots, mouseScreenPos);
 
     // Set selected index to hovered, as left click has occured
     if (hoveredIndex >= 0)
@@ -1293,10 +1279,10 @@ void InventoryGUI::inventoryChestItemQuickTransfer(sf::Vector2f mouseScreenPos, 
     InventoryData* hoveredInventory = &inventory;
     InventoryData* destinationInventory = &chestData;
 
-    int itemHovered = getInventoryHoveredIndex(mouseScreenPos);
+    int itemHovered = getHoveredItemSlotIndex(inventoryItemSlots, mouseScreenPos);
     if (itemHovered < 0)
     {
-        itemHovered = getHoveredChestIndex(mouseScreenPos);
+        itemHovered = getHoveredItemSlotIndex(chestItemSlots, mouseScreenPos);
         hoveredInventory = &chestData;
         destinationInventory = &inventory;
     }
@@ -1416,10 +1402,10 @@ bool InventoryGUI::canQuickTransfer(sf::Vector2f mouseScreenPos, bool shiftMode,
     
     InventoryData* hoveredInventory = &inventory;
     
-    int itemHovered = getInventoryHoveredIndex(mouseScreenPos);
+    int itemHovered = getHoveredItemSlotIndex(inventoryItemSlots, mouseScreenPos);
     if (itemHovered < 0)
     {
-        itemHovered = getHoveredChestIndex(mouseScreenPos);
+        itemHovered = getHoveredItemSlotIndex(chestItemSlots, mouseScreenPos);
         hoveredInventory = chestData;
     }
 

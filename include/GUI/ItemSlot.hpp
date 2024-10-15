@@ -25,7 +25,7 @@ public:
 
     void update(sf::Vector2f mouseScreenPos, float dt, bool forceItemScaleUp = false);
 
-    bool isHovered();
+    bool isHovered() const;
 
     sf::Vector2f getPosition();
 

@@ -93,6 +93,7 @@ bool Game::initialise()
     musicGap = 0.0f;
 
     inventory = InventoryData(32);
+    armourInventory = InventoryData(3);
 
     // Initialise day/night cycle
     dayNightToggleTimer = 0.0f;
@@ -547,7 +548,7 @@ void Game::runOnPlanet(float dt)
         {
             // Update inventory GUI available recipes if required, and animations
             InventoryGUI::updateAvailableRecipes(inventory, nearbyCraftingStationLevels);
-            InventoryGUI::updateInventory(mouseScreenPos, dt, inventory, chestDataPool.getChestDataPtr(openedChestID));
+            InventoryGUI::updateInventory(mouseScreenPos, dt, inventory, armourInventory, chestDataPool.getChestDataPtr(openedChestID));
             break;
         }
         case WorldMenuState::TravelSelect:
