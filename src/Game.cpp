@@ -17,7 +17,7 @@
 // -- Public methods / entry point -- //
 
 Game::Game()
-    : player(sf::Vector2f(0, 0)), window()
+    : player(sf::Vector2f(0, 0), &armourInventory), window()
 {}
 
 bool Game::initialise()
@@ -51,6 +51,7 @@ bool Game::initialise()
     if(!ItemDataLoader::loadData("Data/Info/items.data")) return false;
     if(!ObjectDataLoader::loadData("Data/Info/objects.data")) return false;
     if(!ToolDataLoader::loadData("Data/Info/tools.data")) return false;
+    if(!ArmourDataLoader::loadData("Data/Info/armour.data")) return false;
     if(!EntityDataLoader::loadData("Data/Info/entities.data")) return false;
     if(!RecipeDataLoader::loadData("Data/Info/item_recipes.data")) return false;
     if(!StructureDataLoader::loadData("Data/Info/structures.data")) return false;
@@ -444,7 +445,7 @@ void Game::runOnPlanet(float dt)
                         
                         if (InventoryGUI::isMouseOverUI(mouseScreenPos))
                         {
-                            InventoryGUI::handleLeftClick(mouseScreenPos, shiftMode, inventory, chestDataPool.getChestDataPtr(openedChestID));
+                            InventoryGUI::handleLeftClick(mouseScreenPos, shiftMode, inventory, armourInventory, chestDataPool.getChestDataPtr(openedChestID));
                         }
                         else
                         {
@@ -472,7 +473,7 @@ void Game::runOnPlanet(float dt)
                     case WorldMenuState::Inventory:
                         if (InventoryGUI::isMouseOverUI(mouseScreenPos))
                         {
-                            InventoryGUI::handleRightClick(mouseScreenPos, shiftMode, inventory, chestDataPool.getChestDataPtr(openedChestID));
+                            InventoryGUI::handleRightClick(mouseScreenPos, shiftMode, inventory, armourInventory, chestDataPool.getChestDataPtr(openedChestID));
                             changePlayerTool();
                         }
                         else
@@ -597,7 +598,7 @@ void Game::runOnPlanet(float dt)
             break;
         
         case WorldMenuState::Inventory:
-            InventoryGUI::draw(window, gameTime, mouseScreenPos, inventory, chestDataPool.getChestDataPtr(openedChestID));
+            InventoryGUI::draw(window, gameTime, mouseScreenPos, inventory, armourInventory, chestDataPool.getChestDataPtr(openedChestID));
             break;
         
         case WorldMenuState::TravelSelect:

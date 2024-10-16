@@ -27,6 +27,8 @@
 #include "Data/RecipeDataLoader.hpp"
 #include "Data/ToolData.hpp"
 #include "Data/ToolDataLoader.hpp"
+#include "Data/ArmourData.hpp"
+#include "Data/ArmourDataLoader.hpp"
 
 #include "World/ChestDataPool.hpp"
 
@@ -58,19 +60,19 @@ public:
     static void updateInventory(sf::Vector2f mouseScreenPos, float dt, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData = nullptr);
 
     // May pick up item stack, may put down item stack
-    static void handleLeftClick(sf::Vector2f mouseScreenPos, bool shiftMode, InventoryData& inventory, InventoryData* chestData = nullptr);
+    static void handleLeftClick(sf::Vector2f mouseScreenPos, bool shiftMode, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData = nullptr);
 
     // May pick up single item
-    static void handleRightClick(sf::Vector2f mouseScreenPos, bool shiftMode, InventoryData& inventory, InventoryData* chestData = nullptr);
+    static void handleRightClick(sf::Vector2f mouseScreenPos, bool shiftMode, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData = nullptr);
 
     static bool handleScroll(sf::Vector2f mouseScreenPos, int direction);
 
     // Pickup max stack size to pickup whole stack (may be less than whole stack)
     // Pickup less (e.g 1) to limit pickup amount
-    static void pickUpItem(sf::Vector2f mouseScreenPos, unsigned int amount, InventoryData& inventory, InventoryData* chestData = nullptr);
+    static void pickUpItem(sf::Vector2f mouseScreenPos, unsigned int amount, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData = nullptr);
 
     // Put down whole stack held in cursor
-    static void putDownItem(sf::Vector2f mouseScreenPos, InventoryData& inventory, InventoryData* chestData = nullptr);
+    static void putDownItem(sf::Vector2f mouseScreenPos, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData = nullptr);
 
     // Called when inventory is closed, handles item picked up (if any)
     static void handleClose(InventoryData& inventory, InventoryData* chestData = nullptr);
@@ -95,7 +97,7 @@ public:
 
     static bool heldItemPlacesLand(InventoryData& inventory);
 
-    static void draw(sf::RenderTarget& window, float gameTime, sf::Vector2f mouseScreenPos, InventoryData& inventory, InventoryData* chestData = nullptr);
+    static void draw(sf::RenderTarget& window, float gameTime, sf::Vector2f mouseScreenPos, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData = nullptr);
 
     static inline const std::vector<int>& getAvailableRecipes() {return availableRecipes;}
 
@@ -147,11 +149,13 @@ private:
     static void craftSelectedRecipe(InventoryData& inventory);
 
     static void drawInventory(sf::RenderTarget& window, InventoryData& inventory);
+    static void drawArmourInventory(sf::RenderTarget& window, InventoryData& armourInventory);
     static void drawBin(sf::RenderTarget& window);
     static void drawRecipes(sf::RenderTarget& window);
     static void drawChest(sf::RenderTarget& window, InventoryData* chestData);
     static void drawPickedUpItem(sf::RenderTarget& window, float gameTime, sf::Vector2f mouseScreenPos);
-    static void drawHoveredItemInfoBox(sf::RenderTarget& window, float gameTime, sf::Vector2f mouseScreenPos, InventoryData& inventory, InventoryData* chestData);
+    static void drawHoveredItemInfoBox(sf::RenderTarget& window, float gameTime, sf::Vector2f mouseScreenPos, InventoryData& inventory,
+        InventoryData& armourInventory, InventoryData* chestData);
 
     static sf::Vector2f drawItemInfoBox(sf::RenderTarget& window, float gameTime, int itemIndex, InventoryData& inventory, sf::Vector2f mouseScreenPos);
     static sf::Vector2f drawItemInfoBox(sf::RenderTarget& window, float gameTime, ItemType itemType, sf::Vector2f mouseScreenPos);
@@ -159,6 +163,9 @@ private:
 
     // Returns size of drawn info box
     static sf::Vector2f drawInfoBox(sf::RenderTarget& window, sf::Vector2f position, const std::vector<ItemInfoString>& infoStrings, int alpha = 255);
+
+    // Armour inventory helper
+    static bool canPutDownItemInArmourInventory(int hoveredIndex);
 
     // -- Hotbar --
     static void handleHotbarItemChange();

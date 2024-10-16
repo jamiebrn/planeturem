@@ -186,11 +186,11 @@ void InventoryGUI::updateInventory(sf::Vector2f mouseScreenPos, float dt, Invent
     }
 }
 
-void InventoryGUI::handleLeftClick(sf::Vector2f mouseScreenPos, bool shiftMode, InventoryData& inventory, InventoryData* chestData)
+void InventoryGUI::handleLeftClick(sf::Vector2f mouseScreenPos, bool shiftMode, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData)
 {
     if (isItemPickedUp)
     {
-        putDownItem(mouseScreenPos, inventory, chestData);
+        putDownItem(mouseScreenPos, inventory, armourInventory, chestData);
     }
     else
     {
@@ -201,7 +201,7 @@ void InventoryGUI::handleLeftClick(sf::Vector2f mouseScreenPos, bool shiftMode, 
         }
         else
         {
-            pickUpItem(mouseScreenPos, 999999999, inventory, chestData);
+            pickUpItem(mouseScreenPos, 999999999, inventory, armourInventory, chestData);
         }
     }
 
@@ -221,7 +221,7 @@ void InventoryGUI::handleLeftClick(sf::Vector2f mouseScreenPos, bool shiftMode, 
     }
 }
 
-void InventoryGUI::handleRightClick(sf::Vector2f mouseScreenPos, bool shiftMode, InventoryData& inventory, InventoryData* chestData)
+void InventoryGUI::handleRightClick(sf::Vector2f mouseScreenPos, bool shiftMode, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData)
 {
     if (canQuickTransfer(mouseScreenPos, shiftMode, inventory, chestData))
     {
@@ -229,7 +229,7 @@ void InventoryGUI::handleRightClick(sf::Vector2f mouseScreenPos, bool shiftMode,
     }
     else
     {
-        pickUpItem(mouseScreenPos, 1, inventory, chestData);
+        pickUpItem(mouseScreenPos, 1, inventory, armourInventory, chestData);
     }
 }
 
@@ -247,18 +247,24 @@ bool InventoryGUI::handleScroll(sf::Vector2f mouseScreenPos, int direction)
     return true;
 }
 
-void InventoryGUI::pickUpItem(sf::Vector2f mouseScreenPos, unsigned int amount, InventoryData& inventory, InventoryData* chestData)
+void InventoryGUI::pickUpItem(sf::Vector2f mouseScreenPos, unsigned int amount, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData)
 {
     // Get item selected at mouse
     int itemIndex = getHoveredItemSlotIndex(inventoryItemSlots, mouseScreenPos);
+    int armourHoveredIndex = getHoveredItemSlotIndex(armourItemSlots, mouseScreenPos);
     int chestHoveredItemIndex = getHoveredItemSlotIndex(chestItemSlots, mouseScreenPos);
 
     // No valid item selected
-    if (itemIndex < 0 && chestHoveredItemIndex < 0)
+    if (itemIndex < 0 && armourHoveredIndex < 0 && chestHoveredItemIndex < 0)
         return;
     
     InventoryData* hoveredInventory = &inventory;
-    if (chestHoveredItemIndex >= 0 && chestData != nullptr)
+    if (armourHoveredIndex >= 0)
+    {
+        hoveredInventory = &armourInventory;
+        itemIndex = armourHoveredIndex;
+    }
+    else if (chestHoveredItemIndex >= 0 && chestData != nullptr)
     {
         hoveredInventory = chestData;
         itemIndex = chestHoveredItemIndex;
@@ -300,7 +306,7 @@ void InventoryGUI::pickUpItem(sf::Vector2f mouseScreenPos, unsigned int amount, 
     }
 }
 
-void InventoryGUI::putDownItem(sf::Vector2f mouseScreenPos, InventoryData& inventory, InventoryData* chestData)
+void InventoryGUI::putDownItem(sf::Vector2f mouseScreenPos, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData)
 {
     if (!isItemPickedUp)
         return;
@@ -315,15 +321,27 @@ void InventoryGUI::putDownItem(sf::Vector2f mouseScreenPos, InventoryData& inven
     }
 
     // Get item selected at mouse
-    int chestHoveredItemIndex = getHoveredItemSlotIndex(chestItemSlots, mouseScreenPos);
     int itemIndex = getHoveredItemSlotIndex(inventoryItemSlots, mouseScreenPos);
+    int armourHoveredIndex = getHoveredItemSlotIndex(armourItemSlots, mouseScreenPos);
+    int chestHoveredItemIndex = getHoveredItemSlotIndex(chestItemSlots, mouseScreenPos);
 
     // No valid item selected
-    if (itemIndex < 0 && chestHoveredItemIndex < 0)
+    if (itemIndex < 0 && armourHoveredIndex < 0 && chestHoveredItemIndex < 0)
         return;
 
     InventoryData* hoveredInventory = &inventory;
-    if (chestHoveredItemIndex >= 0 && chestData != nullptr)
+    if (armourHoveredIndex >= 0)
+    {
+        // Check can put down armour
+        if (!canPutDownItemInArmourInventory(armourHoveredIndex))
+        {
+            return;
+        }
+
+        hoveredInventory = &armourInventory;
+        itemIndex = armourHoveredIndex;
+    }
+    else if (chestHoveredItemIndex >= 0 && chestData != nullptr)
     {
         hoveredInventory = chestData;
         itemIndex = chestHoveredItemIndex;
@@ -503,7 +521,7 @@ void InventoryGUI::handleClose(InventoryData& inventory, InventoryData* chestDat
 
 bool InventoryGUI::isMouseOverUI(sf::Vector2f mouseScreenPos)
 {
-    return (isInventorySelected(mouseScreenPos) || isCraftingSelected(mouseScreenPos) || isBinSelected(mouseScreenPos) || 
+    return (isInventorySelected(mouseScreenPos) || isCraftingSelected(mouseScreenPos) || isBinSelected(mouseScreenPos) || (getHoveredItemSlotIndex(armourItemSlots, mouseScreenPos) >= 0) ||
         (getHoveredItemSlotIndex(chestItemSlots, mouseScreenPos) >= 0));
 }
 
@@ -674,14 +692,15 @@ bool InventoryGUI::heldItemPlacesLand(InventoryData& inventory)
     return hotbarItemPlacesLand(inventory);
 }
 
-void InventoryGUI::draw(sf::RenderTarget& window, float gameTime, sf::Vector2f mouseScreenPos, InventoryData& inventory, InventoryData* chestData)
+void InventoryGUI::draw(sf::RenderTarget& window, float gameTime, sf::Vector2f mouseScreenPos, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData)
 {
     drawInventory(window, inventory);
+    drawArmourInventory(window, armourInventory);
     drawBin(window);
     drawRecipes(window);
     drawChest(window, chestData);
     drawPickedUpItem(window, gameTime, mouseScreenPos);
-    drawHoveredItemInfoBox(window, gameTime, mouseScreenPos, inventory, chestData);
+    drawHoveredItemInfoBox(window, gameTime, mouseScreenPos, inventory, armourInventory, chestData);
 }
 
 void InventoryGUI::drawInventory(sf::RenderTarget& window, InventoryData& inventory)
@@ -702,6 +721,33 @@ void InventoryGUI::drawInventory(sf::RenderTarget& window, InventoryData& invent
         {
             // Draw blank item box
             itemSlot.draw(window);
+        }
+    }
+}
+
+void InventoryGUI::drawArmourInventory(sf::RenderTarget& window, InventoryData& armourInventory)
+{
+    static const std::array<sf::IntRect, ARMOUR_SLOTS> emptyArmourSlotIcons = {{
+        {176, 32, 15, 10},
+        {192, 32, 11, 10},
+        {208, 32, 9, 9}
+    }};
+
+    for (int i = 0; i < std::min(armourInventory.getSize(), static_cast<int>(armourItemSlots.size())); i++)
+    {
+        const std::optional<ItemCount>& itemSlotData = armourInventory.getItemSlotData(i);
+
+        ItemSlot& itemSlot = armourItemSlots[i];
+
+        if (itemSlotData.has_value())
+        {
+            const ItemCount& itemCount = itemSlotData.value();
+
+            itemSlot.draw(window, itemCount.first, itemCount.second);
+        }
+        else
+        {
+            armourItemSlots[i].draw(window, std::nullopt, std::nullopt, false, false, emptyArmourSlotIcons[i]);
         }
     }
 }
@@ -813,7 +859,8 @@ void InventoryGUI::drawPickedUpItem(sf::RenderTarget& window, float gameTime, sf
     pickedUpItemSlot.draw(window, pickedUpItem, pickedUpItemCount, true);
 }
 
-void InventoryGUI::drawHoveredItemInfoBox(sf::RenderTarget& window, float gameTime, sf::Vector2f mouseScreenPos, InventoryData& inventory, InventoryData* chestData)
+void InventoryGUI::drawHoveredItemInfoBox(sf::RenderTarget& window, float gameTime, sf::Vector2f mouseScreenPos, InventoryData& inventory,
+    InventoryData& armourInventory, InventoryData* chestData)
 {
     // Do not draw info box if an item is picked up
     if (isItemPickedUp)
@@ -824,6 +871,9 @@ void InventoryGUI::drawHoveredItemInfoBox(sf::RenderTarget& window, float gameTi
     // Get currently hovered over item
     int hoveredItemIndex = getHoveredItemSlotIndex(inventoryItemSlots, mouseScreenPos);
 
+    // Get currently hovered armour piece
+    int hoveredArmourIndex = getHoveredItemSlotIndex(armourItemSlots, mouseScreenPos);
+
     // Get currently hovered recipe
     int hoveredRecipeIndex = getHoveredItemSlotIndex(recipeItemSlots, mouseScreenPos);
 
@@ -831,6 +881,10 @@ void InventoryGUI::drawHoveredItemInfoBox(sf::RenderTarget& window, float gameTi
     if (hoveredItemIndex >= 0)
     {
         drawItemInfoBox(window, gameTime, hoveredItemIndex, inventory, mouseScreenPos);
+    }
+    else if (hoveredArmourIndex >= 0)
+    {
+        drawItemInfoBox(window, gameTime, hoveredArmourIndex, armourInventory, mouseScreenPos);
     }
     else if (hoveredRecipeIndex >= 0)
     {
@@ -877,6 +931,14 @@ sf::Vector2f InventoryGUI::drawItemInfoBox(sf::RenderTarget& window, float gameT
     }
 
     infoStrings.push_back({itemData.name, 24, itemNameColor});
+
+    if (itemData.armourType >= 0)
+    {
+        const ArmourData& armourData = ArmourDataLoader::getArmourData(itemData.armourType);
+
+        infoStrings.push_back({"Equippable", 20});
+        infoStrings.push_back({std::to_string(armourData.defence) + " defence", 20});
+    }
 
     if (itemData.placesObjectType >= 0 || itemData.placesLand)
     {
@@ -1080,6 +1142,30 @@ sf::Vector2f InventoryGUI::drawInfoBox(sf::RenderTarget& window, sf::Vector2f po
     return sf::Vector2f(totalWidth, totalHeight);
 }
 
+bool InventoryGUI::canPutDownItemInArmourInventory(int hoveredIndex)
+{
+    // Get held item data
+    const ItemData& pickedUpItemData = ItemDataLoader::getItemData(pickedUpItem);
+    
+    // If picked up item is not armour, cannot put down here
+    if (pickedUpItemData.armourType < 0)
+    {
+        return false;
+    }
+
+    const ArmourData& heldArmourData = ArmourDataLoader::getArmourData(pickedUpItemData.armourType);
+
+    switch (hoveredIndex)
+    {
+        case 0: return (heldArmourData.armourWearType == ArmourWearType::Head);
+        case 1: return (heldArmourData.armourWearType == ArmourWearType::Chest);
+        case 2: return (heldArmourData.armourWearType == ArmourWearType::Feet);
+    }
+
+    // Default case
+    return false;
+}
+
 
 // -- Hotbar -- //
 
@@ -1251,7 +1337,9 @@ void InventoryGUI::createChestItemSlots(InventoryData* chestData)
     
     chestItemSlots.clear();
 
-    sf::Vector2f chestItemBoxPosition = sf::Vector2f(itemBoxPadding + (ITEM_BOX_PER_ROW + 2) * itemBoxSize, itemBoxPadding);
+    static const float xStart = itemBoxPadding + (ITEM_BOX_PER_ROW + 4) * itemBoxSize;
+
+    sf::Vector2f chestItemBoxPosition = sf::Vector2f(xStart, itemBoxPadding);
 
     int currentRowIndex = 0;
     for (int itemIndex = 0; itemIndex < chestData->getSize(); itemIndex++)
@@ -1268,7 +1356,7 @@ void InventoryGUI::createChestItemSlots(InventoryData* chestData)
         {
             // Increment to next row
             currentRowIndex = 0;
-            chestItemBoxPosition.x = itemBoxPadding + (ITEM_BOX_PER_ROW + 2) * itemBoxSize;
+            chestItemBoxPosition.x = xStart;
             chestItemBoxPosition.y += itemBoxSize + itemBoxSpacing;
         }
     }

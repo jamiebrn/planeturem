@@ -15,6 +15,7 @@ struct ItemData
 
     ObjectType placesObjectType = -1;
     ToolType toolType = -1;
+    ArmourType armourType = -1;
     bool placesLand = false;
 
     std::string summonsBoss;

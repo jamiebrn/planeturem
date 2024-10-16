@@ -11,6 +11,8 @@ typedef int EntityType;
 typedef int ToolType;
 typedef int ProjectileType;
 
+typedef int ArmourType;
+
 typedef std::pair<ItemType, unsigned int> ItemCount;
 
 typedef int StructureType;

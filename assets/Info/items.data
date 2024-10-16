@@ -1,154 +1,91 @@
 [
     {
         "name": "Wood",
-        "texture-x": 0,
-        "texture-y": 0,
-        "texture-width": 16,
-        "texture-height": 16
+        "texture": [0, 0, 16, 16]
     },
     {
         "name": "Coal",
-        "texture-x": 16,
-        "texture-y": 0,
-        "texture-width": 16,
-        "texture-height": 16
+        "texture": [16, 0, 16, 16]
     },
     {
         "name": "Stone",
-        "texture-x": 32,
-        "texture-y": 0,
-        "texture-width": 16,
-        "texture-height": 16
+        "texture": [32, 0, 16, 16]
     },
     {
         "name": "Refined Stone",
-        "texture-x": 48,
-        "texture-y": 0,
-        "texture-width": 16,
-        "texture-height": 16
+        "texture": [48, 0, 16, 16]
     },
     {
         "name": "Raw Coal",
-        "texture-x": 48,
-        "texture-y": 16,
-        "texture-width": 16,
-        "texture-height": 16
+        "texture": [48, 16, 16, 16]
     },
     {
         "name": "Raw Iron",
-        "texture-x": 16,
-        "texture-y": 16,
-        "texture-width": 16,
-        "texture-height": 16
+        "texture": [16, 16, 16, 16]
     },
     {
         "name": "Raw Gold",
-        "texture-x": 32,
-        "texture-y": 16,
-        "texture-width": 16,
-        "texture-height": 16
+        "texture": [32, 16, 16, 16]
     },
     {
         "name": "Refined Wood",
-        "texture-x": 0,
-        "texture-y": 16,
-        "texture-width": 16,
-        "texture-height": 16
+        "texture": [0, 16, 16, 16]
     },
     {
         "name": "Iron Bar",
-        "texture-x": 32,
-        "texture-y": 32,
-        "texture-width": 16,
-        "texture-height": 16
+        "texture": [32, 32, 16, 16]
     },
     {
         "name": "Gold Bar",
-        "texture-x": 48,
-        "texture-y": 32,
-        "texture-width": 16,
-        "texture-height": 16
+        "texture": [48, 32, 16, 16]
     },
     {
         "name": "Meat",
-        "texture-x": 80,
-        "texture-y": 16,
-        "texture-width": 16,
-        "texture-height": 16
+        "texture": [80, 16, 16, 16]
     },
     {
         "name": "Fish",
-        "texture-x": 0,
-        "texture-y": 112,
-        "texture-width": 16,
-        "texture-height": 16
+        "texture": [0, 112, 16, 16]
     },
     {
         "name": "Rockfish",
-        "texture-x": 16,
-        "texture-y": 96,
-        "texture-width": 16,
-        "texture-height": 16
+        "texture": [16, 96, 16, 16]
     },
     {
         "name": "Sandfish",
-        "texture-x": 16,
-        "texture-y": 112,
-        "texture-width": 16,
-        "texture-height": 16
+        "texture": [16, 112, 16, 16]
     },
     {
         "name": "Moonrock",
-        "texture-x": 64,
-        "texture-y": 0,
-        "texture-width": 16,
-        "texture-height": 16
+        "texture": [64, 0, 16, 16]
     },
 
     {
         "name": "Feather",
-        "texture-x": 48,
-        "texture-y": 80,
-        "texture-width": 16,
-        "texture-height": 16
+        "texture": [48, 80, 16, 16]
     },
     {
         "name": "Bone",
-        "texture-x": 64,
-        "texture-y": 80,
-        "texture-width": 16,
-        "texture-height": 16
+        "texture": [64, 80, 16, 16]
     },
     {
         "name": "Crow Claw",
-        "texture-x": 80,
-        "texture-y": 80,
-        "texture-width": 16,
-        "texture-height": 16
+        "texture": [80, 80, 16, 16]
     },
     {
         "name": "Crow Skull",
-        "texture-x": 96,
-        "texture-y": 80,
-        "texture-width": 16,
-        "texture-height": 16
+        "texture": [96, 80, 16, 16]
     },
 
     {
         "name": "Severed Worm",
-        "texture-x": 80,
-        "texture-y": 64,
-        "texture-width": 16,
-        "texture-height": 16,
+        "texture": [80, 64, 16, 16],
         "summons-boss": "Benjamin"
     },
 
     {
         "name": "Land",
-        "texture-x": 112,
-        "texture-y": 112,
-        "texture-width": 16,
-        "texture-height": 16,
+        "texture": [112, 112, 16, 16],
         "places-land": true
     }
 ]

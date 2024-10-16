@@ -55,7 +55,8 @@ void ItemSlot::draw(sf::RenderTarget& window,
                     std::optional<ItemType> itemType,
                     std::optional<int> itemAmount,
                     bool hiddenBackground,
-                    bool selectHighlight)
+                    bool selectHighlight,
+                    std::optional<sf::IntRect> emptyIconTexture)
 {
     float intScale = ResolutionHandler::getResolutionIntegerScale();
 
@@ -89,6 +90,11 @@ void ItemSlot::draw(sf::RenderTarget& window,
         sf::Vector2f itemPos = position * positionIntScale + (sf::Vector2f(std::round(boxSize / 2.0f), std::round(boxSize / 2.0f))) * intScale;
         drawItem(window, itemType.value(), itemPos, itemScaleMult);
     }
+    else if (emptyIconTexture.has_value())
+    {
+        // If no item and empty icon texture is supplied, draw empty icon in item place
+        drawEmptyIconTexture(window, emptyIconTexture.value());
+    }
 
     // Draw item count (if > 1)
     if (itemAmount.has_value())
@@ -106,6 +112,25 @@ void ItemSlot::draw(sf::RenderTarget& window,
                 true});
         }
     }
+}
+
+void ItemSlot::drawEmptyIconTexture(sf::RenderTarget& window, sf::IntRect emptyIconTexture)
+{
+    float intScale = ResolutionHandler::getResolutionIntegerScale();
+
+    float positionIntScale = intScale;
+    if (!affectedByIntScale)
+        positionIntScale = 1.0f;
+
+    sf::Vector2f emptyIconPos = position * positionIntScale + (sf::Vector2f(std::round(boxSize / 2.0f), std::round(boxSize / 2.0f))) * intScale;
+
+    TextureDrawData drawData;
+    drawData.type = TextureType::UI;
+    drawData.position = emptyIconPos;
+    drawData.scale = sf::Vector2f(3, 3) * intScale;
+    drawData.centerRatio = sf::Vector2f(0.5f, 0.5f);
+
+    TextureManager::drawSubTexture(window, drawData, emptyIconTexture);
 }
 
 void ItemSlot::drawItem(sf::RenderTarget& window, ItemType itemType, sf::Vector2f position, float scaleMult, bool centred, int alpha)
@@ -148,6 +173,16 @@ void ItemSlot::drawItem(sf::RenderTarget& window, ItemType itemType, sf::Vector2
         scale = sf::Vector2f(toolScale * intScale, toolScale * intScale);
 
         textureRect = toolData.textureRects[0];
+    }
+    else if (itemData.armourType >= 0)
+    {
+        textureType = TextureType::Tools;
+        const ArmourData& armourData = ArmourDataLoader::getArmourData(itemData.armourType);
+
+        float armourScale = std::max(4 - std::max(armourData.itemTexture.width / 16.0f, armourData.itemTexture.height / 16.0f), 1.0f) * scaleMult;
+        scale = sf::Vector2f(armourScale * intScale, armourScale * intScale);
+
+        textureRect = armourData.itemTexture;
     }
     
     // Draw item / tool / object

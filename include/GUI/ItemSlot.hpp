@@ -15,6 +15,8 @@
 #include "Data/ObjectDataLoader.hpp"
 #include "Data/ToolData.hpp"
 #include "Data/ToolDataLoader.hpp"
+#include "Data/ArmourData.hpp"
+#include "Data/ArmourDataLoader.hpp"
 
 // Does not store / control what is in item slot
 class ItemSlot
@@ -35,9 +37,13 @@ public:
               std::optional<ItemType> itemType = std::nullopt,
               std::optional<int> itemAmount = std::nullopt,
               bool hiddenBackground = false,
-              bool selectHighlight = false);
+              bool selectHighlight = false,
+              std::optional<sf::IntRect> emptyIconTexture = std::nullopt);
     
     static void drawItem(sf::RenderTarget& window, ItemType itemType, sf::Vector2f position, float scaleMult = 1.0f, bool centred = true, int alpha = 255);
+
+private:
+    void drawEmptyIconTexture(sf::RenderTarget& window, sf::IntRect emptyIconTexture);
 
 private:
     sf::Vector2f position;

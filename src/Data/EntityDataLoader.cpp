@@ -18,8 +18,7 @@ bool EntityDataLoader::loadData(std::string objectDataPath)
 
         entityData.name = jsonEntityData.at("name");
 
-        int textureWidth = jsonEntityData.at("texture-width");
-        int textureHeight = jsonEntityData.at("texture-height");
+        sf::Vector2f textureSize = jsonEntityData.at("texture-size");
 
         if (jsonEntityData.contains("texture-idle"))
         {
@@ -29,8 +28,8 @@ bool EntityDataLoader::loadData(std::string objectDataPath)
                 sf::IntRect textureRect;
                 textureRect.left = texturePositionIter.value()[0];
                 textureRect.top = texturePositionIter.value()[1];
-                textureRect.width = textureWidth;
-                textureRect.height = textureHeight;
+                textureRect.width = textureSize.x;
+                textureRect.height = textureSize.y;
 
                 entityData.idleTextureRects.push_back(textureRect);
             }
@@ -46,8 +45,8 @@ bool EntityDataLoader::loadData(std::string objectDataPath)
                 sf::IntRect textureRect;
                 textureRect.left = texturePositionIter.value()[0];
                 textureRect.top = texturePositionIter.value()[1];
-                textureRect.width = textureWidth;
-                textureRect.height = textureHeight;
+                textureRect.width = textureSize.x;
+                textureRect.height = textureSize.y;
 
                 entityData.walkTextureRects.push_back(textureRect);
             }
@@ -55,11 +54,9 @@ bool EntityDataLoader::loadData(std::string objectDataPath)
 
         if (jsonEntityData.contains("texture-idle-speed")) entityData.idleAnimSpeed = jsonEntityData.at("texture-idle-speed");
 
-        if (jsonEntityData.contains("texture-x-origin")) entityData.textureOrigin.x = jsonEntityData.at("texture-x-origin");
-        if (jsonEntityData.contains("texture-y-origin")) entityData.textureOrigin.y = jsonEntityData.at("texture-y-origin");
+        if (jsonEntityData.contains("texture-origin")) entityData.textureOrigin = jsonEntityData.at("texture-origin");
         if (jsonEntityData.contains("health")) entityData.health = jsonEntityData.at("health");
-        if (jsonEntityData.contains("size-x")) entityData.size.x = jsonEntityData.at("size-x");
-        if (jsonEntityData.contains("size-y")) entityData.size.y = jsonEntityData.at("size-y");
+        if (jsonEntityData.contains("size")) entityData.size = jsonEntityData.at("size");
 
         if (jsonEntityData.contains("item-drops"))
         {

@@ -6,9 +6,11 @@
 #include <unordered_map>
 
 #include "Core/json.hpp"
+#include "Data/Serialise/IntRectSerialise.hpp"
 #include "Data/typedefs.hpp"
 #include "Data/ItemData.hpp"
 #include "Data/ObjectData.hpp"
+#include "Data/ArmourData.hpp"
 
 class ItemDataLoader
 {
@@ -24,6 +26,8 @@ public:
     static void createItemFromObject(ObjectType objectType, const ObjectData& objectData);
 
     static void createItemFromTool(const std::string& toolName, ToolType toolType);
+
+    static void createItemFromArmour(ArmourType armourType, const ArmourData& armourData);
 
     static void setItemIsMaterial(ItemType item, bool isMaterial = true);
 

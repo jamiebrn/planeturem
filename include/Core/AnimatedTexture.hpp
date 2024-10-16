@@ -17,6 +17,8 @@ public:
     inline void setFrame(int frame) {this->frame = frame;}
     inline int getFrame() const {return frame;}
 
+    inline int getFrameCount() const {return frameCount;}
+
 private:
     int xStart;
     int y;

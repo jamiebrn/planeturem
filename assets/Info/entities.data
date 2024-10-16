@@ -5,13 +5,10 @@
         "texture-idle-speed": 0,
         "texture-walk": [[16, 0], [32, 0], [48, 0]],
         "texture-walk-speed": 0.15,
-        "texture-width": 16,
-        "texture-height": 12,
-        "texture-x-origin": 0.5,
-        "texture-y-origin": 1,
+        "texture-size": [16, 12],
+        "texture-origin": [0.5, 1],
         "health": 5,
-        "size-x": 1,
-        "size-y": 0.6,
+        "size": [1, 0.6],
         "item-drops": {
             "Meat": [0, 2, 1.0]
         }
@@ -22,13 +19,10 @@
         "texture-idle-speed": 0,
         "texture-walk": [[16, 12], [32, 12], [48, 12], [64, 12]],
         "texture-walk-speed": 0.12,
-        "texture-width": 16,
-        "texture-height": 18,
-        "texture-x-origin": 0.4375,
-        "texture-y-origin": 1,
+        "texture-size": [16, 18],
+        "texture-origin": [0.4375, 1],
         "health": 5,
-        "size-x": 1,
-        "size-y": 0.7,
+        "size": [1, 0.7],
         "item-drops": {
             "Meat": [0, 2, 1.0]
         }

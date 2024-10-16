@@ -52,6 +52,7 @@
 #include "Data/EntityData.hpp"
 #include "Data/ItemDataLoader.hpp"
 #include "Data/PlanetGenData.hpp"
+#include "Data/ArmourData.hpp"
 #include "Data/ObjectDataLoader.hpp"
 #include "Data/RecipeDataLoader.hpp"
 #include "Data/EntityDataLoader.hpp"
@@ -59,6 +60,7 @@
 #include "Data/PlanetGenDataLoader.hpp"
 #include "Data/StructureData.hpp"
 #include "Data/StructureDataLoader.hpp"
+#include "Data/ArmourDataLoader.hpp"
 
 #include "Types/GameState.hpp"
 #include "Types/WorldMenuState.hpp"

@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <array>
 #include <memory>
+#include <optional>
 
 #include "Core/ResolutionHandler.hpp"
 #include "Core/CollisionRect.hpp"
@@ -16,9 +17,14 @@
 #include "Object/WorldObject.hpp"
 #include "World/ChunkManager.hpp"
 #include "World/Room.hpp"
+
+#include "Player/InventoryData.hpp"
+
 #include "Data/typedefs.hpp"
 #include "Data/ToolData.hpp"
 #include "Data/ToolDataLoader.hpp"
+#include "Data/ArmourData.hpp"
+#include "Data/ArmourDataLoader.hpp"
 
 #include "Entity/Projectile/Projectile.hpp"
 #include "Entity/Projectile/ProjectileManager.hpp"
@@ -29,7 +35,7 @@
 class Player : public WorldObject
 {
 public:
-    Player(sf::Vector2f position);
+    Player(sf::Vector2f position, InventoryData* armourInventory);
 
     void update(float dt, sf::Vector2f mouseWorldPos, ChunkManager& chunkManager, int worldSize, bool& wrappedAroundWorld, sf::Vector2f& wrapPositionDelta);
     void updateInStructure(float dt, sf::Vector2f mouseWorldPos, const Room& structureRoom);
@@ -74,6 +80,8 @@ private:
 
     void drawFishingRodCast(sf::RenderTarget& window, float gameTime, int worldSize, float waterYOffset) const;
 
+    void drawArmour(sf::RenderTarget& window) const;
+
 private:
     CollisionRect collisionRect;
     sf::Vector2f direction;
@@ -86,6 +94,7 @@ private:
     float speed = 120.0f;
 
     ToolType equippedTool;
+    InventoryData* armourInventory;
 
     // Tool animation
     float toolRotation;

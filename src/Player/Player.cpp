@@ -1,7 +1,7 @@
 #include "Player/Player.hpp"
 #include "Player/Cursor.hpp"
 
-Player::Player(sf::Vector2f position)
+Player::Player(sf::Vector2f position, InventoryData* armourInventory)
     : WorldObject(position)
 {
     collisionRect.width = 12.0f;
@@ -24,6 +24,8 @@ Player::Player(sf::Vector2f position)
     fishingRodCasted = false;
     swingingFishingRod = false;
     fishBitingLine = false;
+
+    this->armourInventory = armourInventory;
 
     inRocket = false;
 }
@@ -258,6 +260,9 @@ void Player::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, 
 
     TextureManager::drawSubTexture(window, {TextureType::Player, Camera::worldToScreenTransform(position + sf::Vector2f(0, waterYOffset)), 0, playerScale, {0.5, 1}}, 
         animationRect);
+    
+    // Draw armour
+    drawArmour(window);
 
     // Draw equipped tool
     if (equippedTool >= 0)
@@ -369,6 +374,55 @@ void Player::drawFishingRodCast(sf::RenderTarget& window, float gameTime, int wo
     line.append(sf::Vertex(Camera::worldToScreenTransform(bobPosition), sf::Color(255, 255, 255)));
 
     window.draw(line);
+}
+
+void Player::drawArmour(sf::RenderTarget& window) const
+{
+    float scale = ResolutionHandler::getScale();
+
+    int xScaleMult = 1;
+    if (flippedTexture)
+    {
+        xScaleMult = -1;
+    }
+
+    sf::Vector2f armourOrigin = position - sf::Vector2f(8 * xScaleMult, 16);
+
+    // Draw headpiece, chest, and boots
+    for (int i = 0; i < 3; i++)
+    {
+        const std::optional<ItemCount> itemSlot = armourInventory->getItemSlotData(i);
+
+        if (!itemSlot.has_value())
+        {
+            continue;
+        }
+
+        // Get data
+        const ItemData& armourItemData = ItemDataLoader::getItemData(itemSlot->first);
+        if (armourItemData.armourType < 0)
+        {
+            continue;
+        }
+
+        const ArmourData& armourData = ArmourDataLoader::getArmourData(armourItemData.armourType);
+
+        // Draw armour piece
+        int frame = idleAnimation.getFrame();
+        if (direction.x != 0 || direction.y != 0)
+        {
+            frame = idleAnimation.getFrameCount() + runAnimation.getFrame();
+        }
+
+        const sf::IntRect& armourTextureRect = armourData.wearTextures[frame];
+
+        TextureDrawData drawData;
+        drawData.type = TextureType::Tools;
+        drawData.position = Camera::worldToScreenTransform(armourOrigin + sf::Vector2f(armourData.wearTextureOffset.x * xScaleMult, armourData.wearTextureOffset.y));
+        drawData.scale = sf::Vector2f(scale * xScaleMult, scale);
+        
+        TextureManager::drawSubTexture(window, drawData, armourTextureRect);
+    }
 }
 
 void Player::setTool(ToolType toolType)

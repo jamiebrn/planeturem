@@ -18,10 +18,7 @@ bool ItemDataLoader::loadData(std::string itemDataPath)
 
         itemData.name = jsonItemData.at("name");
 
-        if (jsonItemData.contains("texture-x")) itemData.textureRect.left = jsonItemData.at("texture-x");
-        if (jsonItemData.contains("texture-y")) itemData.textureRect.top = jsonItemData.at("texture-y");
-        if (jsonItemData.contains("texture-width")) itemData.textureRect.width = jsonItemData.at("texture-width");
-        if (jsonItemData.contains("texture-height")) itemData.textureRect.height = jsonItemData.at("texture-height");
+        itemData.textureRect = jsonItemData.at("texture");
 
         if (jsonItemData.contains("places-land")) itemData.placesLand = jsonItemData.at("places-land");
 
@@ -81,6 +78,20 @@ void ItemDataLoader::createItemFromTool(const std::string& toolName, ToolType to
     loaded_itemData.push_back(toolItemData);
 
     itemNameToTypeMap[toolItemData.name] = itemIndex;
+}
+
+void ItemDataLoader::createItemFromArmour(ArmourType armourType, const ArmourData& armourData)
+{
+    ItemData armourItemData;
+    armourItemData.name = armourData.name;
+    armourItemData.armourType = armourType;
+    armourItemData.maxStackSize = 1;
+
+    int itemIndex = loaded_itemData.size();
+
+    loaded_itemData.push_back(armourItemData);
+
+    itemNameToTypeMap[armourItemData.name] = itemIndex;
 }
 
 void ItemDataLoader::setItemIsMaterial(ItemType item, bool isMaterial)
