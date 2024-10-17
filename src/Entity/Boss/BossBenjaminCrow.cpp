@@ -199,9 +199,9 @@ void BossBenjaminCrow::applyKnockback(Projectile& projectile)
 
     sf::Vector2f relativePos = sf::Vector2f(position.x, position.y - flyingHeight) - projectile.getPosition();
 
-    static constexpr float KNOCKBACK_STRENGTH = 15.0f;
+    static constexpr float KNOCKBACK_STRENGTH = 7.0f;
 
-    velocity = Helper::normaliseVector(-relativePos) * KNOCKBACK_STRENGTH;
+    velocity -= Helper::normaliseVector(-relativePos) * KNOCKBACK_STRENGTH;
 }
 
 void BossBenjaminCrow::giveItemDrops(InventoryData& inventory)

@@ -109,10 +109,10 @@ private:
 
     static constexpr float FAST_CHASE_DISTANCE_THRESHOLD = 300.0f;
 
-    static constexpr float MOVE_SPEED = 160.0f;
+    static constexpr float MOVE_SPEED = 180.0f;
     static constexpr float FAST_CHASE_MOVE_SPEED = 280.0f;
     static constexpr float DASH_MOVE_SPEED = 550.0f;
-    static constexpr float SECOND_STAGE_SPEED_MULTIPLIER = 1.3f;
+    static constexpr float SECOND_STAGE_SPEED_MULTIPLIER = 1.6f;
     float currentMoveSpeed;
 
     static constexpr float MAX_FLASH_TIME = 0.3f;

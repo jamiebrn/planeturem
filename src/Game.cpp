@@ -259,7 +259,7 @@ void Game::runMainMenu(float dt)
 
             if (guiContext.createButton(window.getSize().x / 2.0f - 100 * intScale, window.getSize().y / 2.0f + 300 * intScale, 200 * intScale, 75 * intScale, "Start"))
             {
-                if (!isStateTransitioning())
+                if (!isStateTransitioning() && !currentSaveName.empty())
                 {
                     startNewGame();
                 }
@@ -1583,6 +1583,7 @@ bool Game::saveGame(bool gettingInRocket)
     playerGameSave.planetType = chunkManager.getPlanetType();
     // playerGameSave.playerPos = player.getPosition();
     playerGameSave.inventory = inventory;
+    playerGameSave.armourInventory = armourInventory;
 
     PlanetGameSave planetGameSave;
     planetGameSave.playerLastPos = player.getPosition();
@@ -1618,6 +1619,7 @@ bool Game::loadGame(const std::string& saveName)
     chunkManager.setSeed(playerGameSave.seed);
     chunkManager.setPlanetType(playerGameSave.planetType);
     inventory = playerGameSave.inventory;
+    armourInventory = playerGameSave.armourInventory;
     player.setPosition(planetGameSave.playerLastPos);
 
     changePlayerTool();

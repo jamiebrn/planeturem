@@ -423,9 +423,11 @@ int InventoryGUI::getHoveredItemSlotIndex(const std::vector<ItemSlot>& itemSlots
 bool InventoryGUI::isBinSelected(sf::Vector2f mouseScreenPos)
 {
     float intScale = ResolutionHandler::getResolutionIntegerScale();
-     
-    sf::Vector2f binPos = sf::Vector2f(itemBoxPadding, itemBoxPadding) * intScale + sf::Vector2f(itemBoxSize + itemBoxSpacing, 0) * static_cast<float>(ITEM_BOX_PER_ROW) * intScale;
     
+    sf::Vector2f binPos;
+    binPos.x = (itemBoxPadding + (itemBoxSize + itemBoxSpacing) * static_cast<float>(ITEM_BOX_PER_ROW + 1)) * intScale;
+    binPos.y = itemBoxPadding * intScale;
+
     // Add offset due to sprite size
     binPos += sf::Vector2f(0, 4) * 3.0f * intScale;
 
@@ -733,6 +735,37 @@ void InventoryGUI::drawArmourInventory(sf::RenderTarget& window, InventoryData& 
         {208, 32, 9, 9}
     }};
 
+    static const sf::IntRect defenceIconTextureRect = sf::IntRect(160, 32, 16, 16);
+
+    float intScale = ResolutionHandler::getResolutionIntegerScale();
+
+    // Draw defence
+    sf::Vector2f defenceDisplayPos;
+    defenceDisplayPos.x = (itemBoxPadding + (itemBoxSize + itemBoxSpacing) * (static_cast<float>(ITEM_BOX_PER_ROW) + 0.5f)) * intScale;
+    defenceDisplayPos.y = (itemBoxPadding + itemBoxSize * 0.5f) * intScale;
+
+    TextureDrawData defenceDrawData;
+    defenceDrawData.position = defenceDisplayPos;
+    defenceDrawData.type = TextureType::UI;
+    defenceDrawData.scale = sf::Vector2f(3, 3) * intScale;
+    defenceDrawData.centerRatio = sf::Vector2f(0.5f, 0.5f);
+
+    TextureManager::drawSubTexture(window, defenceDrawData, defenceIconTextureRect);
+
+    // Draw defence text
+    int defence = PlayerStats::calculateDefence(armourInventory);
+
+    TextDrawData defenceTextDrawData;
+    defenceTextDrawData.position = defenceDisplayPos + sf::Vector2f(itemBoxSize, itemBoxSize) * 0.25f * intScale;
+    defenceTextDrawData.size = 24 * static_cast<unsigned int>(intScale);
+    defenceTextDrawData.colour = sf::Color(255, 255, 255);
+    defenceTextDrawData.text = std::to_string(defence);
+    defenceTextDrawData.centeredX = true;
+    defenceTextDrawData.centeredY = true;
+
+    TextDraw::drawText(window, defenceTextDrawData);
+
+    // Draw armour slots
     for (int i = 0; i < std::min(armourInventory.getSize(), static_cast<int>(armourItemSlots.size())); i++)
     {
         const std::optional<ItemCount>& itemSlotData = armourInventory.getItemSlotData(i);
@@ -757,8 +790,8 @@ void InventoryGUI::drawBin(sf::RenderTarget& window)
     float intScale = ResolutionHandler::getResolutionIntegerScale();
 
     sf::Vector2f binPosition;
-    binPosition.x = itemBoxPadding * intScale + (itemBoxSize + itemBoxSpacing) * static_cast<float>(ITEM_BOX_PER_ROW) * intScale + (16 / 2) * 3 * intScale;
-    binPosition.y = itemBoxPadding * intScale + (20 / 2) * 3 * intScale;
+    binPosition.x = itemBoxPadding * intScale + (itemBoxSize + itemBoxSpacing) * static_cast<float>(ITEM_BOX_PER_ROW) * intScale + (itemBoxSize * 1.5f) * intScale;
+    binPosition.y = (itemBoxPadding + itemBoxSize * 0.5f) * intScale;
 
     TextureManager::drawSubTexture(window, {
         TextureType::UI,

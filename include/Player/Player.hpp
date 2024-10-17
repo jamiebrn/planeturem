@@ -80,7 +80,7 @@ private:
 
     void drawFishingRodCast(sf::RenderTarget& window, float gameTime, int worldSize, float waterYOffset) const;
 
-    void drawArmour(sf::RenderTarget& window) const;
+    void drawArmour(sf::RenderTarget& window, float waterYOffset) const;
 
 private:
     CollisionRect collisionRect;

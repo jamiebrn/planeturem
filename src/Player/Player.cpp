@@ -262,7 +262,7 @@ void Player::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, 
         animationRect);
     
     // Draw armour
-    drawArmour(window);
+    drawArmour(window, waterYOffset);
 
     // Draw equipped tool
     if (equippedTool >= 0)
@@ -376,7 +376,7 @@ void Player::drawFishingRodCast(sf::RenderTarget& window, float gameTime, int wo
     window.draw(line);
 }
 
-void Player::drawArmour(sf::RenderTarget& window) const
+void Player::drawArmour(sf::RenderTarget& window, float waterYOffset) const
 {
     float scale = ResolutionHandler::getScale();
 
@@ -418,7 +418,7 @@ void Player::drawArmour(sf::RenderTarget& window) const
 
         TextureDrawData drawData;
         drawData.type = TextureType::Tools;
-        drawData.position = Camera::worldToScreenTransform(armourOrigin + sf::Vector2f(armourData.wearTextureOffset.x * xScaleMult, armourData.wearTextureOffset.y));
+        drawData.position = Camera::worldToScreenTransform(armourOrigin + sf::Vector2f(armourData.wearTextureOffset.x * xScaleMult, armourData.wearTextureOffset.y + waterYOffset));
         drawData.scale = sf::Vector2f(scale * xScaleMult, scale);
         
         TextureManager::drawSubTexture(window, drawData, armourTextureRect);

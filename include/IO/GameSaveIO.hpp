@@ -31,11 +31,12 @@ struct PlayerGameSave
     PlanetType planetType;
 
     InventoryData inventory;
+    InventoryData armourInventory;
 
     template <class Archive>
     void serialize(Archive& ar)
     {
-        ar(seed, planetType, inventory);
+        ar(seed, planetType, inventory, armourInventory);
     }
 };
 

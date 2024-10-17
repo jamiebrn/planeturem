@@ -16,6 +16,7 @@
 #include "Core/Helper.hpp"
 #include "Core/SpriteBatch.hpp"
 
+#include "Player/PlayerStats.hpp"
 #include "Player/InventoryData.hpp"
 
 #include "Data/typedefs.hpp"
