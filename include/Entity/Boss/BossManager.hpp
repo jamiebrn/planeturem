@@ -6,6 +6,8 @@
 
 #include <SFML/Graphics.hpp>
 
+#include "Core/Sounds.hpp"
+
 #include "BossEntity.hpp"
 #include "BossBenjaminCrow.hpp"
 
@@ -19,6 +21,8 @@ public:
     void update(Game& game, ProjectileManager& projectileManager, InventoryData& inventory, sf::Vector2f playerPos, float dt);
 
     void handleWorldWrap(sf::Vector2f positionDelta);
+
+    void stopBossMusic();
 
     void clearBosses();
 

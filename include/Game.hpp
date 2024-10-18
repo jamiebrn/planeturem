@@ -242,7 +242,6 @@ private:
     bool isDay;
 
     static constexpr float MUSIC_GAP_MIN = 5.0f;
-    std::optional<MusicType> musicTypePlaying;
     float musicGapTimer;
     float musicGap;
 

@@ -22,6 +22,12 @@ void BossManager::update(Game& game, ProjectileManager& projectileManager, Inven
         else
         {
             iter = bosses.erase(iter);
+
+            // Stop boss music if required
+            if (bosses.size() <= 0)
+            {
+                stopBossMusic();
+            }
         }
     }
 }
@@ -32,6 +38,11 @@ void BossManager::handleWorldWrap(sf::Vector2f positionDelta)
     {
         boss->handleWorldWrap(positionDelta);
     }   
+}
+
+void BossManager::stopBossMusic()
+{
+    Sounds::stopMusic();
 }
 
 void BossManager::clearBosses()

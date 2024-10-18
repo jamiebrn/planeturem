@@ -124,6 +124,12 @@ void Sounds::playMusic(MusicType type, float volume)
     // Stop all music tracks
     if (currentlyPlayingMusic.has_value())
     {
+        // If attempt to start same track, do not start again
+        if (currentlyPlayingMusic.value() == type)
+        {
+            return;
+        }
+
         musicMap[currentlyPlayingMusic.value()]->stop();
     }
 
@@ -137,6 +143,16 @@ void Sounds::playMusic(MusicType type, float volume)
     music->play();
 }
 
+void Sounds::stopMusic()
+{
+    if (!currentlyPlayingMusic.has_value())
+    {
+        return;
+    }
+
+    stopMusic(currentlyPlayingMusic.value());
+}
+
 // Stop music track
 void Sounds::stopMusic(MusicType type)
 {
@@ -148,6 +164,15 @@ void Sounds::stopMusic(MusicType type)
     musicMap.at(type)->stop();
 
     currentlyPlayingMusic = std::nullopt;
+}
+
+bool Sounds::isMusicFinished()
+{
+    if (!currentlyPlayingMusic.has_value())
+    {
+        return true;
+    }
+    return isMusicFinished(currentlyPlayingMusic.value());
 }
 
 bool Sounds::isMusicFinished(MusicType type)

@@ -11,14 +11,16 @@
 enum class SoundType
 {
     HitObject, HitObject2, HitObject3,
-    CraftBuild1, CraftBuild2
+    CraftBuild1, CraftBuild2,
+    Crow
 };
 
 // Enum containing all music tracks
 enum class MusicType
 {
     WorldTheme,
-    WorldTheme2
+    WorldTheme2,
+    BossTheme1
 };
 
 // Declare sound manager class
@@ -44,8 +46,10 @@ public:
     static void playMusic(MusicType type, float volume = 100.0f);
 
     // Stop music track
+    static void stopMusic();
     static void stopMusic(MusicType type);
 
+    static bool isMusicFinished();
     static bool isMusicFinished(MusicType type);
 
     static int getMusicVolume();
@@ -71,7 +75,8 @@ private:
         {SoundType::HitObject2, "Data/Sounds/hit_object_2.ogg"},
         {SoundType::HitObject3, "Data/Sounds/hit_object_3.ogg"},
         {SoundType::CraftBuild1, "Data/Sounds/craftbuild1.ogg"},
-        {SoundType::CraftBuild2, "Data/Sounds/craftbuild2.ogg"}
+        {SoundType::CraftBuild2, "Data/Sounds/craftbuild2.ogg"},
+        {SoundType::Crow, "Data/Sounds/crow.ogg"}
     };
 
     // Map storing music objects, which interface with the music streams
@@ -80,7 +85,8 @@ private:
     // Constant map storing file paths for all music tracks
     inline static const std::unordered_map<MusicType, std::string> musicPaths = {
         {MusicType::WorldTheme, "Data/Sounds/world_theme.ogg"},
-        {MusicType::WorldTheme2, "Data/Sounds/world_theme_2.ogg"}
+        {MusicType::WorldTheme2, "Data/Sounds/world_theme_2.ogg"},
+        {MusicType::BossTheme1, "Data/Sounds/boss_theme_1.ogg"}
     };
 
 };

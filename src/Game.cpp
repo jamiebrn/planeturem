@@ -89,7 +89,6 @@ bool Game::initialise()
 
     openedChestID = 0xFFFF;
 
-    musicTypePlaying = std::nullopt;
     musicGapTimer = 0.0f;
     musicGap = 0.0f;
 
@@ -1832,16 +1831,9 @@ void Game::generateWaterNoiseTexture()
 void Game::updateMusic(float dt)
 {
     // Music playing
-    if (musicTypePlaying.has_value())
+    if (!Sounds::isMusicFinished())
     {
-        if (Sounds::isMusicFinished(musicTypePlaying.value()))
-        {
-            musicTypePlaying = std::nullopt;
-        }
-        else
-        {
-            return;
-        }
+        return;
     }
     
     musicGapTimer += dt;
@@ -1853,8 +1845,7 @@ void Game::updateMusic(float dt)
     static constexpr std::array<MusicType, 2> musicTypes = {MusicType::WorldTheme, MusicType::WorldTheme2};
     int musicTypeChance = rand() % musicTypes.size();
 
-    musicTypePlaying = musicTypes[musicTypeChance];
-    Sounds::playMusic(musicTypePlaying.value(), 70.0f);
+    Sounds::playMusic(musicTypes[musicTypeChance], 70.0f);
 
     musicGapTimer = 0.0f;
     musicGap = MUSIC_GAP_MIN + rand() % 5;

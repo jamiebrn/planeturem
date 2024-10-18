@@ -10,6 +10,9 @@ const sf::IntRect BossBenjaminCrow::shadowTextureRect = sf::IntRect(64, 208, 48,
 
 BossBenjaminCrow::BossBenjaminCrow(sf::Vector2f position)
 {
+    Sounds::playSound(SoundType::Crow);
+    Sounds::playMusic(MusicType::BossTheme1);
+
     this->position = position;
 
     idleAnims[0].create(6, 48, 64, 112, 160, 0.1);

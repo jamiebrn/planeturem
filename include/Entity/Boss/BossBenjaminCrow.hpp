@@ -14,6 +14,7 @@
 #include "Core/Camera.hpp"
 #include "Core/Tween.hpp"
 #include "Core/Helper.hpp"
+#include "Core/Sounds.hpp"
 #include "Core/AnimatedTexture.hpp"
 #include "Core/CollisionCircle.hpp"
 
