@@ -19,6 +19,8 @@ public:
 
     void update(Game& game, float dt, bool onWater, bool loopAnimation) override;
 
+    bool damage(int amount, Game& game, InventoryData& inventory) override;
+
     void interact(Game& game) override;
     bool isInteractable() const override;
 

@@ -976,6 +976,9 @@ void Game::attemptUseToolPickaxe()
     // Swing pickaxe
     player.useTool(projectileManager, mouseWorldPos);
 
+    if (gameState != GameState::OnPlanet)
+        return;
+
     if (!player.canReachPosition(mouseWorldPos))
         return;
 
@@ -1003,7 +1006,7 @@ void Game::attemptUseToolPickaxe()
 
         if (selectedObject)
         {
-            selectedObject->damage(toolData.damage, inventory);
+            selectedObject->damage(toolData.damage, *this, inventory);
         }
     }
 }

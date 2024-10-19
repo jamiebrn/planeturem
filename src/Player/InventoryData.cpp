@@ -181,3 +181,18 @@ std::optional<ItemCount>& InventoryData::getItemSlotData(int index)
 
     return itemSlotData;
 }
+
+bool InventoryData::isEmpty() const
+{
+    // Check all slots
+    for (auto& itemSlot : inventoryData)
+    {
+        if (itemSlot.has_value())
+        {
+            return false;
+        }
+    }
+
+    // Default case
+    return true;
+}

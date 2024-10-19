@@ -95,10 +95,15 @@ void BuildableObject::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, f
     // }
 }
 
-bool BuildableObject::damage(int amount, InventoryData& inventory)
+bool BuildableObject::damage(int amount, Game& game, InventoryData& inventory)
 {
     if (objectType < 0)
         return false;
+    
+    if (amount <= 0)
+    {
+        return false;
+    }
 
     flash_amount = 1.0f;
     health -= amount;

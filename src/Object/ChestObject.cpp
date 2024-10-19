@@ -16,15 +16,36 @@ void ChestObject::update(Game& game, float dt, bool onWater, bool loopAnimation)
 {
     BuildableObject::update(game, dt, onWater, false);
 
-    if (!isAlive())
-    {
-        removeChestFromPool(game);
-    }
-
     if (game.getOpenChestID() != chestID)
     {
         closeChest();
     }
+}
+
+bool ChestObject::damage(int amount, Game& game, InventoryData& inventory)
+{
+    // Check if chest contains items - if it does, set damage amount to 0
+    if (chestID != 0xFFFF)
+    {
+        if (!game.getChestDataPool().getChestDataPtr(chestID)->isEmpty())
+        {
+            amount = 0;
+        }
+    }
+
+    bool destroyed = BuildableObject::damage(amount, game, inventory);
+
+    if (destroyed)
+    {
+        removeChestFromPool(game);
+
+        if (game.getOpenChestID() == chestID)
+        {
+            game.closeChest();
+        }
+    }
+
+    return destroyed;
 }
 
 void ChestObject::interact(Game& game)

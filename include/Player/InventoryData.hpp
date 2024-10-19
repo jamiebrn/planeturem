@@ -36,6 +36,8 @@ public:
 
     std::optional<ItemCount>& getItemSlotData(int index);
 
+    bool isEmpty() const;
+
     inline int getSize() {return inventoryData.size();}
 
     inline const std::vector<std::optional<ItemCount>>& getData() {return inventoryData;}

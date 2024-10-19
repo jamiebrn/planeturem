@@ -50,7 +50,7 @@ public:
     virtual void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime, int worldSize, const sf::Color& color) const override;
 
     // Returns true if destroyed
-    bool damage(int amount, InventoryData& inventory);
+    virtual bool damage(int amount, Game& game, InventoryData& inventory);
     
     void setWorldPosition(sf::Vector2f position);
 
