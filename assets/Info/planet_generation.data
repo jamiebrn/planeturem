@@ -37,7 +37,9 @@
                     "objects": [
                         ["Tree", 0.04],
                         ["Bush", 0.016],
-                        ["Rock", 0.016]
+                        ["Rock", 0.016],
+                        ["Dirt Pile", 0.006],
+                        ["Dirt Pile Worm", 0.002]
                     ],
                     "entities": [
                         ["Horse", 0.004],

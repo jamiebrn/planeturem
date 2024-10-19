@@ -36,9 +36,12 @@ bool ToolDataLoader::loadData(std::string toolDataPath)
         projectileData.origin.x = origin[0];
         projectileData.origin.y = origin[1];
 
-        loaded_projectileData.push_back(projectileData);
-
         projectileNameToTypeMap[projectileData.name] = projectileIdx;
+
+        // Link with item data
+        projectileData.itemType = ItemDataLoader::createItemFromProjectile(projectileIdx, projectileData);
+
+        loaded_projectileData.push_back(projectileData);
 
         projectileIdx++;
     }
@@ -91,16 +94,15 @@ bool ToolDataLoader::loadData(std::string toolDataPath)
         }
 
         // Load projectile if any
-        if (jsonToolData.contains("projectile"))
+        if (jsonToolData.contains("projectiles"))
         {
-            std::string projectileName = jsonToolData.at("projectile");
-            if (projectileNameToTypeMap.contains(projectileName))
+            auto projectiles = jsonToolData.at("projectiles");
+            for (auto iter = projectiles.begin(); iter != projectiles.end(); ++iter)
             {
-                toolData.projectileShootType = projectileNameToTypeMap[projectileName];
-            }
-            else
-            {
-                toolData.projectileShootType = 0;
+                if (projectileNameToTypeMap.contains(iter.value()))
+                {
+                    toolData.projectileShootTypes.push_back(projectileNameToTypeMap[iter.value()]);
+                }
             }
         }
 

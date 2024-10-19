@@ -9,6 +9,7 @@
 struct ItemData
 {
     std::string name;
+    std::string description;
     sf::IntRect textureRect;
 
     unsigned int maxStackSize = 99;
@@ -16,6 +17,7 @@ struct ItemData
     ObjectType placesObjectType = -1;
     ToolType toolType = -1;
     ArmourType armourType = -1;
+    ProjectileType projectileType = -1;
     bool placesLand = false;
 
     std::string summonsBoss;

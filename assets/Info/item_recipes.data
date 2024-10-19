@@ -132,10 +132,33 @@
         }
     },
     {
+        "product": "Wooden Arrow",
+        "item-requirements": {
+            "Wood": 1
+        }
+    },
+    {
         "product": "Wooden Fishing Rod",
         "item-requirements": {
             "Wood": 1
         }
+    },
+    {
+        "product": "Small Blade",
+        "item-requirements": {
+            "Iron Bar": 2
+        },
+        "crafting-station": "anvil",
+        "crafting-station-level": 1
+    },
+    {
+        "product": "Severed Worm",
+        "item-requirements": {
+            "Worm": 1,
+            "Small Blade": 1
+        },
+        "crafting-station": "bench",
+        "crafting-station-level": 1
     },
 
     {

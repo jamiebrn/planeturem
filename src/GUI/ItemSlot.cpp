@@ -56,7 +56,8 @@ void ItemSlot::draw(sf::RenderTarget& window,
                     std::optional<int> itemAmount,
                     bool hiddenBackground,
                     bool selectHighlight,
-                    std::optional<sf::IntRect> emptyIconTexture)
+                    std::optional<sf::IntRect> emptyIconTexture,
+                    InventoryData* inventory)
 {
     float intScale = ResolutionHandler::getResolutionIntegerScale();
 
@@ -89,6 +90,33 @@ void ItemSlot::draw(sf::RenderTarget& window,
     {
         sf::Vector2f itemPos = position * positionIntScale + (sf::Vector2f(std::round(boxSize / 2.0f), std::round(boxSize / 2.0f))) * intScale;
         drawItem(window, itemType.value(), itemPos, itemScaleMult);
+
+        // If inventory data given, search for projectile counts if required
+        if (inventory)
+        {
+            // If tool is a weapon, draw projectile count instead of amount in stack
+            const ItemData& itemData = ItemDataLoader::getItemData(itemType.value());
+            if (itemData.toolType >= 0)
+            {
+                const ToolData& toolData = ToolDataLoader::getToolData(itemData.toolType);
+                if (toolData.toolBehaviourType == ToolBehaviourType::BowWeapon)
+                {
+                    // Get projectile count
+                    int projectileCount = inventory->getProjectileCountForWeapon(itemData.toolType);
+
+                    // Draw projectile count
+                    TextDraw::drawText(window, {
+                    std::to_string(projectileCount),
+                    position * positionIntScale + (sf::Vector2f(std::round(boxSize / 4.0f) * 3.0f, std::round(boxSize / 4.0f) * 3.0f)) * intScale,
+                    {255, 255, 255},
+                    24 * static_cast<unsigned int>(intScale),
+                    {0, 0, 0},
+                    0,
+                    true,
+                    true});
+                }
+            }
+        }
     }
     else if (emptyIconTexture.has_value())
     {
@@ -183,6 +211,16 @@ void ItemSlot::drawItem(sf::RenderTarget& window, ItemType itemType, sf::Vector2
         scale = sf::Vector2f(armourScale * intScale, armourScale * intScale);
 
         textureRect = armourData.itemTexture;
+    }
+    else if (itemData.projectileType >= 0)
+    {
+        textureType = TextureType::Tools;
+        const ProjectileData& projectileData = ToolDataLoader::getProjectileData(itemData.projectileType);
+
+        float projectileScale = std::max(4 - std::max(projectileData.textureRect.width / 16.0f, projectileData.textureRect.height / 16.0f), 1.0f) * scaleMult;
+        scale = sf::Vector2f(projectileScale * intScale, projectileScale * intScale);
+
+        textureRect = projectileData.textureRect;
     }
     
     // Draw item / tool / object

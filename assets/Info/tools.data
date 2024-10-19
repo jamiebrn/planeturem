@@ -53,7 +53,7 @@
             "pivot-x": 0.5,
             "pivot-y": 0.5,
             "hold-offset": [3, -4],
-            "projectile": "Wooden Arrow"
+            "projectiles": ["Wooden Arrow"]
         }
     ]
 }

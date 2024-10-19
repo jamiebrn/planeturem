@@ -974,7 +974,7 @@ void Game::attemptUseToolPickaxe()
     sf::Vector2f mouseWorldPos = Cursor::getMouseWorldPos(window);
     
     // Swing pickaxe
-    player.useTool(projectileManager, mouseWorldPos);
+    player.useTool(projectileManager, inventory, mouseWorldPos);
 
     if (gameState != GameState::OnPlanet)
         return;
@@ -1048,7 +1048,7 @@ void Game::attemptUseToolFishingRod()
     }
     
     // Swing fishing rod
-    player.useTool(projectileManager, mouseWorldPos);
+    player.useTool(projectileManager, inventory, mouseWorldPos);
 
     player.swingFishingRod(mouseWorldPos, Cursor::getSelectedWorldTile(chunkManager.getWorldSize()));
 }
@@ -1057,7 +1057,7 @@ void Game::attemptUseToolWeapon()
 {
     sf::Vector2f mouseWorldPos = Cursor::getMouseWorldPos(window);
 
-    player.useTool(projectileManager, mouseWorldPos);
+    player.useTool(projectileManager, inventory, mouseWorldPos);
 }
 
 void Game::catchRandomFish(sf::Vector2i fishedTile)

@@ -76,11 +76,21 @@
         "name": "Crow Skull",
         "texture": [96, 80, 16, 16]
     },
-
+    {
+        "name": "Small Blade",
+        "texture": [32, 64, 16, 16],
+        "description": "Very sharp\n\"Looks very good for slicing...\""
+    },
+    {
+        "name": "Worm",
+        "texture": [64, 64, 16, 16],
+        "description": "\"It's still alive\""
+    },
     {
         "name": "Severed Worm",
         "texture": [80, 64, 16, 16],
-        "summons-boss": "Benjamin"
+        "summons-boss": "Benjamin",
+        "description": "\"He watches when sun falls for his prey\""
     },
 
     {

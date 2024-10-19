@@ -206,6 +206,33 @@
             "Wood": [2, 4, 1.0]
         }
     },
+    {
+        "name": "Dirt Pile",
+        "health": 3,
+        "textures": [[96, 128]],
+        "texture-width": 16,
+        "texture-height": 16,
+        "texture-x-origin": 0.5,
+        "texture-y-origin": 1,
+        "item-drops": {
+            "Wood": [1, 1, 0.4],
+            "Stone": [1, 2, 0.6]
+        }
+    },
+    {
+        "name": "Dirt Pile Worm",
+        "health": 3,
+        "textures": [[112, 128]],
+        "texture-width": 16,
+        "texture-height": 16,
+        "texture-x-origin": 0.5,
+        "texture-y-origin": 1,
+        "item-drops": {
+            "Wood": [1, 1, 0.4],
+            "Stone": [1, 2, 0.6],
+            "Worm": [1, 1, 1.0]
+        }
+    },
 
     {
         "name": "Rocket Launch Pad",

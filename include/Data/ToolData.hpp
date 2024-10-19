@@ -27,6 +27,10 @@ struct ProjectileData
     sf::Vector2f origin;
 
     int damage = 0;
+
+    // Double link with item data, as projectiles are required to be dynamically taken from inventory
+    // based on projectile type, not item type
+    ItemType itemType;
 };
 
 struct ToolData
@@ -45,5 +49,5 @@ struct ToolData
     sf::Vector2f fishingRodLineOffset;
 
     // Weapon stuff
-    ProjectileType projectileShootType;
+    std::vector<ProjectileType> projectileShootTypes;
 };

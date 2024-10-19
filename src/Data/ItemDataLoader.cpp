@@ -18,6 +18,8 @@ bool ItemDataLoader::loadData(std::string itemDataPath)
 
         itemData.name = jsonItemData.at("name");
 
+        if (jsonItemData.contains("description")) itemData.description = jsonItemData.at("description");
+
         itemData.textureRect = jsonItemData.at("texture");
 
         if (jsonItemData.contains("places-land")) itemData.placesLand = jsonItemData.at("places-land");
@@ -92,6 +94,22 @@ void ItemDataLoader::createItemFromArmour(ArmourType armourType, const ArmourDat
     loaded_itemData.push_back(armourItemData);
 
     itemNameToTypeMap[armourItemData.name] = itemIndex;
+}
+
+ItemType ItemDataLoader::createItemFromProjectile(ProjectileType projectileType, const ProjectileData& projectileData)
+{
+    ItemData projectileItemData;
+    projectileItemData.name = projectileData.name;
+    projectileItemData.projectileType = projectileType;
+    projectileItemData.maxStackSize = 99;
+
+    int itemIndex = loaded_itemData.size();
+
+    loaded_itemData.push_back(projectileItemData);
+
+    itemNameToTypeMap[projectileItemData.name] = itemIndex;
+
+    return itemIndex;
 }
 
 void ItemDataLoader::setItemIsMaterial(ItemType item, bool isMaterial)

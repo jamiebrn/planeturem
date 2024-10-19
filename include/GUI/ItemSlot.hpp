@@ -8,6 +8,8 @@
 #include "Core/TextDraw.hpp"
 #include "Core/CollisionRect.hpp"
 
+#include "Player/InventoryData.hpp"
+
 #include "Data/typedefs.hpp"
 #include "Data/ItemData.hpp"
 #include "Data/ItemDataLoader.hpp"
@@ -38,7 +40,9 @@ public:
               std::optional<int> itemAmount = std::nullopt,
               bool hiddenBackground = false,
               bool selectHighlight = false,
-              std::optional<sf::IntRect> emptyIconTexture = std::nullopt);
+              std::optional<sf::IntRect> emptyIconTexture = std::nullopt,
+              InventoryData* inventory = nullptr // give pointer to inventory if amount of projectiles etc required to be drawn
+              );
     
     static void drawItem(sf::RenderTarget& window, ItemType itemType, sf::Vector2f position, float scaleMult = 1.0f, bool centred = true, int alpha = 255);
 

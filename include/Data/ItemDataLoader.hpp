@@ -10,6 +10,7 @@
 #include "Data/typedefs.hpp"
 #include "Data/ItemData.hpp"
 #include "Data/ObjectData.hpp"
+#include "Data/ToolData.hpp"
 #include "Data/ArmourData.hpp"
 
 class ItemDataLoader
@@ -28,6 +29,9 @@ public:
     static void createItemFromTool(const std::string& toolName, ToolType toolType);
 
     static void createItemFromArmour(ArmourType armourType, const ArmourData& armourData);
+
+    // Returns the item type corresponding to the added projectile
+    static ItemType createItemFromProjectile(ProjectileType projectileType, const ProjectileData& projectileData);
 
     static void setItemIsMaterial(ItemType item, bool isMaterial = true);
 

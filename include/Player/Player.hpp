@@ -26,8 +26,10 @@
 #include "Data/ArmourData.hpp"
 #include "Data/ArmourDataLoader.hpp"
 
+#include "Entity/HitRect.hpp"
 #include "Entity/Projectile/Projectile.hpp"
 #include "Entity/Projectile/ProjectileManager.hpp"
+#include "Entity/Boss/BossEntity.hpp"
 
 #include "GameConstants.hpp"
 #include "DebugOptions.hpp"
@@ -46,8 +48,11 @@ public:
     void setTool(ToolType toolType);
     ToolType getTool();
 
-    void useTool(ProjectileManager& projectileManager, sf::Vector2f mouseWorldPos);
+    void useTool(ProjectileManager& projectileManager, InventoryData& inventory, sf::Vector2f mouseWorldPos);
     bool isUsingTool();
+
+    // Damage
+    void testHitCollision(const HitRect& hitRect);
 
     // Fishing rod specific
     void swingFishingRod(sf::Vector2f mouseWorldPos, sf::Vector2i selectedWorldTile);
@@ -92,6 +97,8 @@ private:
 
     int tileReach = 4;
     float speed = 120.0f;
+
+    int health;
 
     ToolType equippedTool;
     InventoryData* armourInventory;

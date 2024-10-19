@@ -196,3 +196,36 @@ bool InventoryData::isEmpty() const
     // Default case
     return true;
 }
+
+int InventoryData::getProjectileCountForWeapon(ToolType weapon) const
+{
+    const ToolData& toolData = ToolDataLoader::getToolData(weapon);
+
+    if (toolData.toolBehaviourType != ToolBehaviourType::BowWeapon)
+    {
+        return 0;
+    }
+
+    int count = 0;
+
+    // Iterate over inventory and count valid projectiles
+    for (auto& itemSlot : inventoryData)
+    {
+        if (!itemSlot.has_value())
+        {
+            continue;
+        }
+
+        // Check projectile types for tool against this item
+        for (ProjectileType projectileType : toolData.projectileShootTypes)
+        {
+            if (projectileType == ItemDataLoader::getItemData(itemSlot->first).projectileType)
+            {
+                count += itemSlot->second;
+                break;
+            }
+        }
+    }
+
+    return count;
+}

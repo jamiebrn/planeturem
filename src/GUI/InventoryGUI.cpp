@@ -717,7 +717,7 @@ void InventoryGUI::drawInventory(sf::RenderTarget& window, InventoryData& invent
         {
             const ItemCount& itemCount = itemSlotData.value();
 
-            itemSlot.draw(window, itemCount.first, itemCount.second);
+            itemSlot.draw(window, itemCount.first, itemCount.second, false, false, std::nullopt, &inventory);
         }
         else
         {
@@ -994,6 +994,11 @@ sf::Vector2f InventoryGUI::drawItemInfoBox(sf::RenderTarget& window, float gameT
     if (itemData.isMaterial)
     {
         infoStrings.push_back({"Material", 20});
+    }
+
+    if (!itemData.description.empty())
+    {
+        infoStrings.push_back({itemData.description, 20});
     }
 
     return drawInfoBox(window, mouseScreenPos + sf::Vector2f(8, 8) * 3.0f * intScale, infoStrings);
@@ -1319,7 +1324,7 @@ void InventoryGUI::drawHotbar(sf::RenderTarget& window, sf::Vector2f mouseScreen
         {
             const ItemCount& itemCount = itemSlotData.value();
 
-            itemSlot.draw(window, itemCount.first, itemCount.second, false, selected);
+            itemSlot.draw(window, itemCount.first, itemCount.second, false, selected, std::nullopt, &inventory);
 
             // Set item name string if selected
             if (selected)

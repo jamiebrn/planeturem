@@ -439,7 +439,7 @@ ToolType Player::getTool()
     return equippedTool;
 }
 
-void Player::useTool(ProjectileManager& projectileManager, sf::Vector2f mouseWorldPos)
+void Player::useTool(ProjectileManager& projectileManager, InventoryData& inventory, sf::Vector2f mouseWorldPos)
 {
     // swingingTool = true;
 
@@ -471,6 +471,16 @@ void Player::useTool(ProjectileManager& projectileManager, sf::Vector2f mouseWor
         }
         case ToolBehaviourType::BowWeapon:
         {
+            // Ensure enough projectiles in inventory for weapon
+            if (inventory.getProjectileCountForWeapon(equippedTool) <= 0)
+            {
+                return;
+            }
+
+            // Take projectile from inventory
+            const ProjectileData& projectileData = ToolDataLoader::getProjectileData(toolData.projectileShootTypes[0]);
+            inventory.takeItem(projectileData.itemType, 1);
+
             // Calculate projectile position and angle
             float angle = 180.0f * std::atan2(mouseWorldPos.y - position.y, mouseWorldPos.x - position.x) / M_PI;
 
@@ -484,7 +494,8 @@ void Player::useTool(ProjectileManager& projectileManager, sf::Vector2f mouseWor
             spawnPos += position;
 
             // Create projectile
-            std::unique_ptr<Projectile> projectile = std::make_unique<Projectile>(spawnPos, angle, toolData.projectileShootType);
+            // TODO: Use best projectile in inventory
+            std::unique_ptr<Projectile> projectile = std::make_unique<Projectile>(spawnPos, angle, toolData.projectileShootTypes[0]);
 
             // Add projectile to manager
             projectileManager.addProjectile(std::move(projectile));
@@ -497,6 +508,17 @@ void Player::useTool(ProjectileManager& projectileManager, sf::Vector2f mouseWor
 bool Player::isUsingTool()
 {
     return usingTool;
+}
+
+void Player::testHitCollision(const HitRect& hitRect)
+{
+    if (!collisionRect.isColliding(hitRect))
+    {
+        return;
+    }
+
+    // Collision
+    health -= hitRect.damage;
 }
 
 void Player::swingFishingRod(sf::Vector2f mouseWorldPos, sf::Vector2i selectedWorldTile)
