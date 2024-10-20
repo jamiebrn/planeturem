@@ -2,9 +2,16 @@
 
 #include <SFML/Graphics.hpp>
 #include <string>
+#include <optional>
 
 #include "Data/typedefs.hpp"
 #include "Data/ObjectData.hpp"
+
+struct BossSummonData
+{
+    std::string bossName;
+    bool useAtNight = false;
+};
 
 struct ItemData
 {
@@ -20,7 +27,7 @@ struct ItemData
     ProjectileType projectileType = -1;
     bool placesLand = false;
 
-    std::string summonsBoss;
+    std::optional<BossSummonData> bossSummonData = std::nullopt;
 
     bool isMaterial = false;
 

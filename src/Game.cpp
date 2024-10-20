@@ -1,8 +1,9 @@
 #include "Game.hpp"
 
-// FIX: Initial travel to planet very weird generation bug (chunks generate incorrectly in initial camera view) -- maybe fixed?
+// FIX: Crash on save / rocket enter bug (can't save???)
 
 // PRIORITY: HIGH
+// TODO: Plants / farming / growing objects
 // TODO: Create event callback system for object responding to triggers, rather than calling game functions directly
 
 // TODO: Structure functionality (item spawns, crafting stations etc)
@@ -10,7 +11,6 @@
 // TODO: Different types of tools? (fishing rod etc)
 
 // PRIORITY: LOW
-// TODO: Prevent chests from being destroyed when containing items
 // TODO: Fishing rod draw order (split into separate objects?)
 
 
@@ -516,7 +516,7 @@ void Game::runOnPlanet(float dt)
 
     Camera::update(player.getPosition(), mouseScreenPos, dt);
 
-    // updateDayNightCycle(dt);
+    updateDayNightCycle(dt);
 
     // Update depending on game state
     switch (gameState)
@@ -594,16 +594,20 @@ void Game::runOnPlanet(float dt)
         case WorldMenuState::Main:
             InventoryGUI::drawHotbar(window, mouseScreenPos, inventory);
             InventoryGUI::drawItemPopups(window);
+            HealthGUI::drawHealth(window, spriteBatch, player.getHealth(), player.getMaxHealth());
             break;
         
         case WorldMenuState::Inventory:
             InventoryGUI::draw(window, gameTime, mouseScreenPos, inventory, armourInventory, chestDataPool.getChestDataPtr(openedChestID));
+            HealthGUI::drawHealth(window, spriteBatch, player.getHealth(), player.getMaxHealth());
             break;
         
         case WorldMenuState::TravelSelect:
             TravelSelectGUI::drawGUI(window);
             break;
     }
+
+    spriteBatch.endDrawing(window);
 }
 
 void Game::updateOnPlanet(float dt)
@@ -646,7 +650,7 @@ void Game::updateOnPlanet(float dt)
     nearbyCraftingStationLevels = chunkManager.getNearbyCraftingStationLevels(player.getChunkInside(worldSize), player.getChunkTileInside(worldSize), 4);
 
     // Update bosses
-    bossManager.update(*this, projectileManager, inventory, player.getPosition(), dt);
+    bossManager.update(*this, projectileManager, inventory, player, dt);
 
     // Update projectiles
     projectileManager.update(dt);
@@ -773,7 +777,7 @@ void Game::updateDayNightCycle(float dt)
     // Update day / night cycle
     dayNightToggleTimer += dt;
 
-    if (dayNightToggleTimer >= 15.0f)
+    if (dayNightToggleTimer >= DAY_LENGTH)
     {
         dayNightToggleTimer = 0.0f;
         if (isDay) floatTween.startTween(&worldDarkness, 0.0f, 0.95f, 7, TweenTransition::Sine, TweenEasing::EaseInOut);
@@ -1224,7 +1228,12 @@ void Game::attemptUseBossSpawn()
 
     const ItemData& itemData = ItemDataLoader::getItemData(heldItemType);
 
-    if (itemData.summonsBoss.empty())
+    if (!itemData.bossSummonData.has_value())
+    {
+        return;
+    }
+
+    if (itemData.bossSummonData->useAtNight && isDay)
     {
         return;
     }
@@ -1237,7 +1246,7 @@ void Game::attemptUseBossSpawn()
     spawnPos.x = player.getPosition().x - 400.0f;
     spawnPos.y = player.getPosition().y - 400.0f;
 
-    bossManager.createBoss(itemData.summonsBoss, spawnPos);
+    bossManager.createBoss(itemData.bossSummonData->bossName, spawnPos);
 }
 
 void Game::drawGhostPlaceObjectAtCursor(ObjectType object)

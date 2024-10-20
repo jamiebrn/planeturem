@@ -3,12 +3,14 @@
 #include <SFML/Graphics.hpp>
 
 #include "Core/SpriteBatch.hpp"
+
 #include "Player/InventoryData.hpp"
 
 #include "Entity/Projectile/Projectile.hpp"
 #include "Entity/Projectile/ProjectileManager.hpp"
 
 class Game;
+class Player;
 
 class BossEntity
 {
@@ -24,6 +26,8 @@ public:
     virtual void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch) = 0;
 
     virtual void drawStatsAtCursor(sf::RenderTarget& window, sf::Vector2f mouseScreenPos) = 0;
+
+    virtual void testCollisionWithPlayer(Player& player) = 0;
 
 protected:
     static constexpr float STATS_DRAW_OFFSET_X = 24;

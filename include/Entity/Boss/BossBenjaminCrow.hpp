@@ -19,6 +19,7 @@
 #include "Core/CollisionCircle.hpp"
 
 #include "Player/InventoryData.hpp"
+#include "Player/Player.hpp"
 #include "Data/ItemData.hpp"
 #include "Data/ItemDataLoader.hpp"
 
@@ -26,10 +27,9 @@
 
 #include "Entity/Projectile/Projectile.hpp"
 #include "Entity/Projectile/ProjectileManager.hpp"
+#include "Entity/HitRect.hpp"
 
 #include "BossEntity.hpp"
-
-// TODO: Ghost effect when dash
 
 class BossBenjaminCrow : public BossEntity
 {
@@ -45,6 +45,8 @@ public:
     void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch) override;
 
     void drawStatsAtCursor(sf::RenderTarget& window, sf::Vector2f mouseScreenPos) override;
+
+    void testCollisionWithPlayer(Player& player) override;
 
 private:
     void updateCollision();
@@ -87,7 +89,7 @@ private:
     sf::Vector2f velocity;
     sf::Vector2f direction;
 
-    static constexpr float hitboxSize = 16.0f;
+    static constexpr float HITBOX_SIZE = 16.0f;
     CollisionCircle collision;
 
     static constexpr int MAX_HEALTH = 100;
@@ -122,6 +124,9 @@ private:
     std::vector<DashGhostEffect> dashGhostEffects;
     static constexpr float MAX_DASH_GHOST_TIMER = 0.05f;
     float dashGhostTimer;
+
+    static const int DAMAGE_HITBOX_SIZE;
+    static const std::array<int, 2> damageValues;
 
     BossBenjaminState behaviourState;
 

@@ -24,7 +24,16 @@ bool ItemDataLoader::loadData(std::string itemDataPath)
 
         if (jsonItemData.contains("places-land")) itemData.placesLand = jsonItemData.at("places-land");
 
-        if (jsonItemData.contains("summons-boss")) itemData.summonsBoss = jsonItemData.at("summons-boss");
+        if (jsonItemData.contains("boss-summon-data"))
+        {
+            auto jsonBossSummonData = jsonItemData.at("boss-summon-data");
+            
+            BossSummonData bossSummonData;
+            bossSummonData.bossName = jsonBossSummonData.at("boss-name");
+            if (jsonBossSummonData.contains("use-at-night")) bossSummonData.useAtNight = jsonBossSummonData.at("use-at-night");
+
+            itemData.bossSummonData = bossSummonData;
+        }
 
         if (jsonItemData.contains("max-stack-size")) itemData.maxStackSize = jsonItemData.at("max-stack-size");
 

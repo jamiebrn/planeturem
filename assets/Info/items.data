@@ -89,7 +89,10 @@
     {
         "name": "Severed Worm",
         "texture": [80, 64, 16, 16],
-        "summons-boss": "Benjamin",
+        "boss-summon-data": {
+            "boss-name": "Benjamin",
+            "use-at-night": true
+        },
         "description": "\"He watches when sun falls for his prey\""
     },
 

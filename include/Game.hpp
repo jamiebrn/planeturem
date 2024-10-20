@@ -67,6 +67,7 @@
 
 #include "GUI/Base/GUIContext.hpp"
 #include "GUI/InventoryGUI.hpp"
+#include "GUI/HealthGUI.hpp"
 #include "GUI/TravelSelectGUI.hpp"
 
 #include "IO/GameSaveIO.hpp"
@@ -237,6 +238,7 @@ private:
     sf::Clock clock;
     float gameTime;
 
+    static constexpr float DAY_LENGTH = 3 * 60;
     float dayNightToggleTimer;
     float worldDarkness;
     bool isDay;

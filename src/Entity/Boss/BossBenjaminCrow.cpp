@@ -1,6 +1,9 @@
 #include "Entity/Boss/BossBenjaminCrow.hpp"
 #include "Game.hpp"
 
+const int BossBenjaminCrow::DAMAGE_HITBOX_SIZE = 20;
+const std::array<int, 2> BossBenjaminCrow::damageValues = {1, 2};
+
 const std::array<sf::IntRect, 2> BossBenjaminCrow::dashGhostTextureRects = {
     sf::IntRect(400, 160, 48, 64),
     sf::IntRect(400, 224, 48, 64)
@@ -168,7 +171,7 @@ void BossBenjaminCrow::update(Game& game, ProjectileManager& projectileManager, 
 
 void BossBenjaminCrow::updateCollision()
 {
-    collision = CollisionCircle(position.x, position.y - flyingHeight, hitboxSize);
+    collision = CollisionCircle(position.x, position.y - flyingHeight, HITBOX_SIZE);
 }
 
 void BossBenjaminCrow::takeDamage(int damage, InventoryData& inventory)
@@ -367,4 +370,22 @@ void BossBenjaminCrow::drawStatsAtCursor(sf::RenderTarget& window, sf::Vector2f 
     textDrawData.containOnScreenY = true;
 
     TextDraw::drawText(window, textDrawData);
+}
+
+void BossBenjaminCrow::testCollisionWithPlayer(Player& player)
+{
+    if (behaviourState == BossBenjaminState::Killed)
+    {
+        return;
+    }
+
+    HitRect hitRect;
+    hitRect.x = position.x - DAMAGE_HITBOX_SIZE;
+    hitRect.y = position.y - flyingHeight - DAMAGE_HITBOX_SIZE;
+    hitRect.height = DAMAGE_HITBOX_SIZE * 2;
+    hitRect.width = DAMAGE_HITBOX_SIZE * 2;
+
+    hitRect.damage = damageValues[stage];
+
+    player.testHitCollision(hitRect);
 }

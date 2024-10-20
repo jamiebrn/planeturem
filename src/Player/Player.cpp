@@ -17,6 +17,10 @@ Player::Player(sf::Vector2f position, InventoryData* armourInventory)
     idleAnimation.create(3, 16, 18, 0, 0, 0.3);
     runAnimation.create(5, 16, 18, 48, 0, 0.1);
 
+    maxHealth = 5;
+    health = maxHealth;
+    damageCooldownTimer = 0.0f;
+
     equippedTool = -1;
     toolRotation = 0;
     usingTool = false;
@@ -38,6 +42,7 @@ void Player::update(float dt, sf::Vector2f mouseWorldPos, ChunkManager& chunkMan
     updateDirection(mouseWorldPos);
     updateAnimation(dt);
     updateToolRotation(mouseWorldPos);
+    updateDamageCooldownTimer(dt);
 
     // Handle collision with world (tiles, object)
 
@@ -82,6 +87,7 @@ void Player::updateInStructure(float dt, sf::Vector2f mouseWorldPos, const Room&
     updateDirection(mouseWorldPos);
     updateAnimation(dt);
     updateToolRotation(mouseWorldPos);
+    updateDamageCooldownTimer(dt);
 
     collisionRect.x += direction.x * speed * dt;
     structureRoom.handleStaticCollisionX(collisionRect, direction.x);
@@ -174,6 +180,11 @@ void Player::updateToolRotation(sf::Vector2f mouseWorldPos)
             toolRotation = 180.0f * std::atan2(mouseWorldPos.y - position.y, mouseWorldPos.x - position.x) / M_PI;
         }
     }
+}
+
+void Player::updateDamageCooldownTimer(float dt)
+{
+    damageCooldownTimer = std::max(damageCooldownTimer - dt, 0.0f);
 }
 
 bool Player::testWorldWrap(int worldSize, sf::Vector2f& wrapPositionDelta)
@@ -512,6 +523,11 @@ bool Player::isUsingTool()
 
 void Player::testHitCollision(const HitRect& hitRect)
 {
+    if (damageCooldownTimer > 0)
+    {
+        return;
+    }
+
     if (!collisionRect.isColliding(hitRect))
     {
         return;
@@ -519,6 +535,8 @@ void Player::testHitCollision(const HitRect& hitRect)
 
     // Collision
     health -= hitRect.damage;
+
+    damageCooldownTimer = MAX_DAMAGE_COOLDOWN_TIMER;
 }
 
 void Player::swingFishingRod(sf::Vector2f mouseWorldPos, sf::Vector2i selectedWorldTile)

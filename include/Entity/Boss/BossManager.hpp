@@ -11,6 +11,8 @@
 #include "BossEntity.hpp"
 #include "BossBenjaminCrow.hpp"
 
+class Player;
+
 class BossManager
 {
 public:
@@ -18,7 +20,7 @@ public:
 
     void createBoss(const std::string& name, sf::Vector2f position);
 
-    void update(Game& game, ProjectileManager& projectileManager, InventoryData& inventory, sf::Vector2f playerPos, float dt);
+    void update(Game& game, ProjectileManager& projectileManager, InventoryData& inventory, Player& player, float dt);
 
     void handleWorldWrap(sf::Vector2f positionDelta);
 

@@ -73,10 +73,14 @@ public:
 
     const CollisionRect& getCollisionRect();
 
+    inline int getMaxHealth() {return maxHealth;}
+    inline int getHealth() {return health;}
+
 private:
     void updateDirection(sf::Vector2f mouseWorldPos);
     void updateAnimation(float dt);
     void updateToolRotation(sf::Vector2f mouseWorldPos);
+    void updateDamageCooldownTimer(float dt);
 
     bool testWorldWrap(int worldSize, sf::Vector2f& wrapPositionDelta);
 
@@ -98,7 +102,10 @@ private:
     int tileReach = 4;
     float speed = 120.0f;
 
+    int maxHealth;
     int health;
+    static constexpr float MAX_DAMAGE_COOLDOWN_TIMER = 0.4f;
+    float damageCooldownTimer;
 
     ToolType equippedTool;
     InventoryData* armourInventory;

@@ -12,6 +12,43 @@
         }
     },
     {
+        "name": "Tree1",
+        "health": 4,
+        "textures": [[0, 160]],
+        "texture-width": 32,
+        "texture-height": 48,
+        "texture-x-origin": 0.5,
+        "texture-y-origin": 0.94,
+        "item-drops": {
+            "Wood": [1, 3, 1.0]
+        }
+    },
+    {
+        "name": "Tree2",
+        "health": 4,
+        "textures": [[32, 160]],
+        "texture-width": 32,
+        "texture-height": 48,
+        "texture-x-origin": 0.5,
+        "texture-y-origin": 0.94,
+        "item-drops": {
+            "Wood": [1, 3, 1.0]
+        }
+    },
+    {
+        "name": "Tree3",
+        "health": 4,
+        "textures": [[64, 176]],
+        "texture-width": 32,
+        "texture-height": 32,
+        "texture-x-origin": 0.5,
+        "texture-y-origin": 0.94,
+        "item-drops": {
+            "Wood": [1, 3, 1.0]
+        }
+    },
+
+    {
         "name": "Bush",
         "health": 2,
         "textures": [[48, 48]],

@@ -986,9 +986,9 @@ sf::Vector2f InventoryGUI::drawItemInfoBox(sf::RenderTarget& window, float gameT
             infoStrings.push_back({std::to_string(toolData.damage) + " damage", 20});
         }
     }
-    else if (!itemData.summonsBoss.empty())
+    else if (itemData.bossSummonData.has_value())
     {
-        infoStrings.push_back({"Summons " + itemData.summonsBoss, 20});
+        infoStrings.push_back({"Summons " + itemData.bossSummonData->bossName, 20});
     }
 
     if (itemData.isMaterial)
