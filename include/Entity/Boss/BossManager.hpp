@@ -1,8 +1,10 @@
 #pragma once
 
 #include <vector>
+#include <array>
 #include <memory>
 #include <string>
+#include <optional>
 
 #include <SFML/Graphics.hpp>
 
@@ -25,6 +27,8 @@ public:
     void handleWorldWrap(sf::Vector2f positionDelta);
 
     void stopBossMusic();
+
+    bool isPlayingMusicBossMusic();
 
     void clearBosses();
 

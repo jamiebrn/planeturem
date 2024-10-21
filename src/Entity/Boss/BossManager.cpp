@@ -14,7 +14,7 @@ void BossManager::update(Game& game, ProjectileManager& projectileManager, Inven
     for (auto iter = bosses.begin(); iter != bosses.end();)
     {
         BossEntity* boss = iter->get();
-        if (boss->isAlive())
+        if (boss->isAlive() && boss->inPlayerRange(player))
         {
             boss->update(game, projectileManager, inventory, player, dt);
             iter++;
@@ -42,7 +42,36 @@ void BossManager::handleWorldWrap(sf::Vector2f positionDelta)
 
 void BossManager::stopBossMusic()
 {
+    if (!isPlayingMusicBossMusic())
+    {
+        return;
+    }
+    
     Sounds::stopMusic();
+}
+
+bool BossManager::isPlayingMusicBossMusic()
+{
+    std::optional<MusicType> playingMusicType = Sounds::getPlayingMusic();
+    
+    if (!playingMusicType.has_value())
+    {
+        return false;
+    }
+
+    static constexpr std::array<MusicType, 1> bossMusicTypes = {
+        MusicType::BossTheme1
+    };
+
+    for (MusicType musicType : bossMusicTypes)
+    {
+        if (playingMusicType.value() == musicType)
+        {
+            return true;
+        }
+    }
+    
+    return false;
 }
 
 void BossManager::clearBosses()

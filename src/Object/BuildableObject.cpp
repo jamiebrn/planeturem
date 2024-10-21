@@ -95,6 +95,36 @@ void BuildableObject::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, f
     // }
 }
 
+void BuildableObject::drawLightMask(sf::RenderTarget& lightTexture) const
+{
+    const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
+
+    if (objectData.lightEmission <= 0)
+    {
+        return;
+    }
+
+    // Calculate light position based on object size
+    sf::Vector2f lightPos = position;
+    if (objectData.size != sf::Vector2i(1, 1))
+    {
+        sf::Vector2f topLeftPos = position - sf::Vector2f(0.5f, 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
+        lightPos = topLeftPos + TILE_SIZE_PIXELS_UNSCALED * static_cast<sf::Vector2f>(objectData.size) / 2.0f;
+    }
+
+    // Draw light
+    static const sf::Color lightColor(255, 220, 140);
+    float lightScale = 0.3f * objectData.lightEmission;
+
+    sf::Vector2f scale((float)ResolutionHandler::getScale() * lightScale, (float)ResolutionHandler::getScale() * lightScale);
+
+    sf::IntRect lightMaskRect(0, 0, 256, 256);
+
+    TextureManager::drawSubTexture(lightTexture, {
+        TextureType::LightMask, Camera::worldToScreenTransform(lightPos), 0, scale, {0.5, 0.5}, lightColor
+        }, lightMaskRect, sf::BlendAdd);
+}
+
 bool BuildableObject::damage(int amount, Game& game, InventoryData& inventory)
 {
     if (objectType < 0)

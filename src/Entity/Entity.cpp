@@ -94,18 +94,18 @@ void Entity::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, 
     }
 }
 
-void Entity::drawLightMask(sf::RenderTarget& lightTexture)
+void Entity::drawLightMask(sf::RenderTarget& lightTexture) const
 {
-    static constexpr float lightScale = 0.3f;
-    static const sf::Color lightColor(255, 220, 140);
+    // static constexpr float lightScale = 0.3f;
+    // static const sf::Color lightColor(255, 220, 140);
 
-    sf::Vector2f scale((float)ResolutionHandler::getScale() * lightScale, (float)ResolutionHandler::getScale() * lightScale);
+    // sf::Vector2f scale((float)ResolutionHandler::getScale() * lightScale, (float)ResolutionHandler::getScale() * lightScale);
 
-    sf::IntRect lightMaskRect(0, 0, 256, 256);
+    // sf::IntRect lightMaskRect(0, 0, 256, 256);
 
-    TextureManager::drawSubTexture(lightTexture, {
-        TextureType::LightMask, Camera::worldToScreenTransform(position), 0, scale, {0.5, 0.5}, lightColor
-        }, lightMaskRect, sf::BlendAdd);
+    // TextureManager::drawSubTexture(lightTexture, {
+    //     TextureType::LightMask, Camera::worldToScreenTransform(position), 0, scale, {0.5, 0.5}, lightColor
+    //     }, lightMaskRect, sf::BlendAdd);
 }
 
 

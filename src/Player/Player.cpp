@@ -20,6 +20,7 @@ Player::Player(sf::Vector2f position, InventoryData* armourInventory)
     maxHealth = 5;
     health = maxHealth;
     damageCooldownTimer = 0.0f;
+    respawnTimer = 0.0f;
 
     equippedTool = -1;
     toolRotation = 0;
@@ -36,13 +37,16 @@ Player::Player(sf::Vector2f position, InventoryData* armourInventory)
 
 void Player::update(float dt, sf::Vector2f mouseWorldPos, ChunkManager& chunkManager, int worldSize, bool& wrappedAroundWorld, sf::Vector2f& wrapPositionDelta)
 {
-    if (inRocket)
+    updateTimers(dt);
+
+    if (inRocket || !isAlive())
+    {
         return;
+    }
 
     updateDirection(mouseWorldPos);
     updateAnimation(dt);
     updateToolRotation(mouseWorldPos);
-    updateDamageCooldownTimer(dt);
 
     // Handle collision with world (tiles, object)
 
@@ -84,10 +88,16 @@ void Player::update(float dt, sf::Vector2f mouseWorldPos, ChunkManager& chunkMan
 
 void Player::updateInStructure(float dt, sf::Vector2f mouseWorldPos, const Room& structureRoom)
 {
+    updateTimers(dt);
+    
+    if (!isAlive())
+    {
+        return;
+    }
+    
     updateDirection(mouseWorldPos);
     updateAnimation(dt);
     updateToolRotation(mouseWorldPos);
-    updateDamageCooldownTimer(dt);
 
     collisionRect.x += direction.x * speed * dt;
     structureRoom.handleStaticCollisionX(collisionRect, direction.x);
@@ -182,9 +192,18 @@ void Player::updateToolRotation(sf::Vector2f mouseWorldPos)
     }
 }
 
-void Player::updateDamageCooldownTimer(float dt)
+void Player::updateTimers(float dt)
 {
     damageCooldownTimer = std::max(damageCooldownTimer - dt, 0.0f);
+
+    if (respawnTimer > 0)
+    {
+        respawnTimer -= dt;
+        if (respawnTimer <= 0)
+        {
+            respawn();
+        }
+    }
 }
 
 bool Player::testWorldWrap(int worldSize, sf::Vector2f& wrapPositionDelta)
@@ -221,6 +240,11 @@ bool Player::testWorldWrap(int worldSize, sf::Vector2f& wrapPositionDelta)
     return wrapped;
 }
 
+void Player::respawn()
+{
+    health = maxHealth;
+}
+
 void Player::updateFishingRodCatch(float dt)
 {
     fishingRodCastedTime += dt;
@@ -240,7 +264,7 @@ void Player::updateFishingRodCatch(float dt)
 
 void Player::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime, int worldSize, const sf::Color& color) const
 {
-    if (inRocket)
+    if (inRocket || !isAlive())
         return;
 
     spriteBatch.endDrawing(window);
@@ -322,9 +346,9 @@ void Player::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, 
     }
 }
 
-void Player::drawLightMask(sf::RenderTarget& lightTexture)
+void Player::drawLightMask(sf::RenderTarget& lightTexture) const
 {
-    if (inRocket)
+    if (inRocket || !isAlive())
         return;
 
     static constexpr float lightScale = 0.7f;
@@ -332,7 +356,7 @@ void Player::drawLightMask(sf::RenderTarget& lightTexture)
 
     sf::Vector2f scale((float)ResolutionHandler::getScale() * lightScale, (float)ResolutionHandler::getScale() * lightScale);
 
-    sf::IntRect lightMaskRect(0, 0, 256, 256);
+    static const sf::IntRect lightMaskRect(0, 0, 256, 256);
 
     TextureManager::drawSubTexture(lightTexture, {
         TextureType::LightMask, Camera::worldToScreenTransform(position), 0, scale, {0.5, 0.5}, lightColor
@@ -523,7 +547,7 @@ bool Player::isUsingTool()
 
 void Player::testHitCollision(const HitRect& hitRect)
 {
-    if (damageCooldownTimer > 0)
+    if (damageCooldownTimer > 0 || !isAlive())
     {
         return;
     }
@@ -537,6 +561,11 @@ void Player::testHitCollision(const HitRect& hitRect)
     health -= hitRect.damage;
 
     damageCooldownTimer = MAX_DAMAGE_COOLDOWN_TIMER;
+
+    if (!isAlive())
+    {
+        respawnTimer = MAX_RESPAWN_TIMER;
+    }
 }
 
 void Player::swingFishingRod(sf::Vector2f mouseWorldPos, sf::Vector2i selectedWorldTile)
@@ -629,7 +658,7 @@ const CollisionRect& Player::getCollisionRect()
     return collisionRect;
 }
 
-bool Player::isAlive()
+bool Player::isAlive() const
 {
     return (health > 0);
 }

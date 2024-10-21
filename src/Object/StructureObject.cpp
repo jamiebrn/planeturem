@@ -57,6 +57,11 @@ void StructureObject::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, f
     spriteBatch.draw(window, textureDrawData, structureData.textureRect);
 }
 
+void StructureObject::drawLightMask(sf::RenderTarget& lightTexture) const
+{
+
+}
+
 StructureObjectPOD StructureObject::getPOD(sf::Vector2f chunkPosition)
 {
     StructureObjectPOD pod;

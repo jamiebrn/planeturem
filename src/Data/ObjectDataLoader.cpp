@@ -43,6 +43,7 @@ bool ObjectDataLoader::loadData(std::string objectDataPath)
         if (jsonObjectData.contains("texture-x-origin")) objectData.textureOrigin.x = jsonObjectData.at("texture-x-origin");
         if (jsonObjectData.contains("texture-y-origin")) objectData.textureOrigin.y = jsonObjectData.at("texture-y-origin");
         if (jsonObjectData.contains("health")) objectData.health = jsonObjectData.at("health");
+        if (jsonObjectData.contains("light-emission")) objectData.lightEmission = jsonObjectData.at("light-emission");
         if (jsonObjectData.contains("has-collision")) objectData.hasCollision = jsonObjectData.at("has-collision");
         if (jsonObjectData.contains("place-on-water")) objectData.placeOnWater = jsonObjectData.at("place-on-water");
         if (jsonObjectData.contains("draw-layer")) objectData.drawLayer = jsonObjectData.at("draw-layer");

@@ -3,6 +3,7 @@
 #include <SFML/Graphics.hpp>
 
 #include "Core/SpriteBatch.hpp"
+#include "Core/Helper.hpp"
 
 #include "Player/InventoryData.hpp"
 
@@ -29,8 +30,14 @@ public:
 
     virtual void testCollisionWithPlayer(Player& player) = 0;
 
+    // Test for despawn
+    bool inPlayerRange(Player& player);
+
 protected:
     static constexpr float STATS_DRAW_OFFSET_X = 24;
     static constexpr float STATS_DRAW_OFFSET_Y = 24;
     static constexpr int STATS_DRAW_SIZE = 24;
+
+    sf::Vector2f position;
+    float playerMaxRange = 1000.0f;
 };

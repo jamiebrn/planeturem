@@ -113,8 +113,8 @@ private:
     void updateOnPlanet(float dt);
     void drawOnPlanet(float dt);
 
-    void drawWorld(float dt, std::vector<WorldObject*>& worldObjects, std::vector<WorldObject*>& entities);
-    void drawLighting(float dt, std::vector<WorldObject*>& worldObjects, std::vector<WorldObject*>& entities);
+    void drawWorld(float dt, std::vector<WorldObject*>& worldObjects);
+    void drawLighting(float dt, std::vector<WorldObject*>& worldObjects);
 
     void updateDayNightCycle(float dt);
 

@@ -95,6 +95,20 @@
         }
     },
     {
+        "name": "Torch",
+        "health": 3,
+        "textures": [[240, 64], [256, 64], [272, 64], [288, 64]],
+        "texture-frame-delay": 0.1,
+        "texture-width": 16,
+        "texture-height": 16,
+        "texture-x-origin": 0.5,
+        "texture-y-origin": 0.8125,
+        "light-emission": 3,
+        "item-drops": {
+            "Torch": [1, 1, 1]
+        }
+    },
+    {
         "name": "Furnace",
         "health": 6,
         "textures": [[112, 48], [144, 48], [176, 48], [208, 48]],
@@ -105,6 +119,7 @@
         "texture-y-origin": 0.75,
         "size-x": 2,
         "size-y": 1,
+        "light-emission": 1,
         "has-collision": true,
         "crafting-station": "furnace",
         "crafting-station-level": 1,

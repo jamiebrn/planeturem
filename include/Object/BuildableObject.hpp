@@ -49,6 +49,8 @@ public:
 
     virtual void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime, int worldSize, const sf::Color& color) const override;
 
+    void drawLightMask(sf::RenderTarget& lightTexture) const override;
+
     // Returns true if destroyed
     virtual bool damage(int amount, Game& game, InventoryData& inventory);
     

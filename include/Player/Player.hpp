@@ -43,7 +43,7 @@ public:
     void updateInStructure(float dt, sf::Vector2f mouseWorldPos, const Room& structureRoom);
 
     void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime, int worldSize, const sf::Color& color) const override;
-    void drawLightMask(sf::RenderTarget& lightTexture);
+    void drawLightMask(sf::RenderTarget& lightTexture) const override;
 
     void setTool(ToolType toolType);
     ToolType getTool();
@@ -73,17 +73,19 @@ public:
 
     const CollisionRect& getCollisionRect();
 
-    bool isAlive();
-    inline int getMaxHealth() {return maxHealth;}
-    inline int getHealth() {return health;}
+    bool isAlive() const;
+    inline int getMaxHealth() const {return maxHealth;}
+    inline int getHealth() const {return health;}
 
 private:
     void updateDirection(sf::Vector2f mouseWorldPos);
     void updateAnimation(float dt);
     void updateToolRotation(sf::Vector2f mouseWorldPos);
-    void updateDamageCooldownTimer(float dt);
+    void updateTimers(float dt);
 
     bool testWorldWrap(int worldSize, sf::Vector2f& wrapPositionDelta);
+
+    void respawn();
 
     void updateFishingRodCatch(float dt);
     void castFishingRod();
@@ -107,6 +109,8 @@ private:
     int health;
     static constexpr float MAX_DAMAGE_COOLDOWN_TIMER = 0.4f;
     float damageCooldownTimer;
+    static constexpr float MAX_RESPAWN_TIMER = 10.0f;
+    float respawnTimer;
 
     ToolType equippedTool;
     InventoryData* armourInventory;

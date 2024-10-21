@@ -5,5 +5,6 @@ enum WorldMenuState
     Main,
     Inventory,
     TravelSelect,
-    FlyingRocket
+    FlyingRocket,
+    Dead
 };

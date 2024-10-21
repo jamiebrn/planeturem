@@ -33,6 +33,8 @@ struct ObjectData
 
     sf::Vector2i size = {1, 1};
 
+    int lightEmission = 0;
+
     bool hasCollision = false;
     bool placeOnWater = false;
 

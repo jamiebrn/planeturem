@@ -85,8 +85,6 @@ private:
     };
 
 private:
-    sf::Vector2f position;
-
     static constexpr float VELOCITY_LERP_WEIGHT = 3.0f;
     sf::Vector2f velocity;
     sf::Vector2f direction;

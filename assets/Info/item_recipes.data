@@ -198,5 +198,12 @@
             "Stone": 10,
             "Coal": 2
         }
+    },
+    {
+        "product": "Torch",
+        "item-requirements": {
+            "Wood": 2,
+            "Coal": 1
+        }
     }
 ]

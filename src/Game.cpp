@@ -1,6 +1,7 @@
 #include "Game.hpp"
 
 // FIX: Crash on save / rocket enter bug (can't save???)
+// FIX: Collisions broken for objects when loading save
 
 // PRIORITY: HIGH
 // TODO: Plants / farming / growing objects
@@ -372,8 +373,10 @@ void Game::runOnPlanet(float dt)
     {
         handleEventsWindow(event);
 
-        if (isStateTransitioning())
+        if (isStateTransitioning() || !player.isAlive())
+        {
             continue;
+        }
         
         if (worldMenuState == WorldMenuState::TravelSelect)
         {
@@ -539,34 +542,37 @@ void Game::runOnPlanet(float dt)
     // Inventory GUI updating
     InventoryGUI::updateItemPopups(dt);
 
-    switch (worldMenuState)
+    if (player.isAlive())
     {
-        case WorldMenuState::Main:
+        switch (worldMenuState)
         {
-            InventoryGUI::updateHotbar(dt, mouseScreenPos);
-            break;
-        }
-        case WorldMenuState::Inventory:
-        {
-            // Update inventory GUI available recipes if required, and animations
-            InventoryGUI::updateAvailableRecipes(inventory, nearbyCraftingStationLevels);
-            InventoryGUI::updateInventory(mouseScreenPos, dt, inventory, armourInventory, chestDataPool.getChestDataPtr(openedChestID));
-            break;
-        }
-        case WorldMenuState::TravelSelect:
-        {
-            // std::vector<PlanetType> availableDestinations = getRocketAvailableDestinations();
-            PlanetType selectedDestination;
-
-            if (TravelSelectGUI::createGUI(window, selectedDestination))
+            case WorldMenuState::Main:
             {
-                BuildableObject* rocketObject = chunkManager.getChunkObject(rocketEnteredReference.chunk, rocketEnteredReference.tile);
+                InventoryGUI::updateHotbar(dt, mouseScreenPos);
+                break;
+            }
+            case WorldMenuState::Inventory:
+            {
+                // Update inventory GUI available recipes if required, and animations
+                InventoryGUI::updateAvailableRecipes(inventory, nearbyCraftingStationLevels);
+                InventoryGUI::updateInventory(mouseScreenPos, dt, inventory, armourInventory, chestDataPool.getChestDataPtr(openedChestID));
+                break;
+            }
+            case WorldMenuState::TravelSelect:
+            {
+                // std::vector<PlanetType> availableDestinations = getRocketAvailableDestinations();
+                PlanetType selectedDestination;
 
-                if (rocketObject)
+                if (TravelSelectGUI::createGUI(window, selectedDestination))
                 {
-                    destinationPlanet = selectedDestination;
-                    worldMenuState = WorldMenuState::FlyingRocket;
-                    rocketObject->triggerBehaviour(*this, ObjectBehaviourTrigger::RocketFlyUp);
+                    BuildableObject* rocketObject = chunkManager.getChunkObject(rocketEnteredReference.chunk, rocketEnteredReference.tile);
+
+                    if (rocketObject)
+                    {
+                        destinationPlanet = selectedDestination;
+                        worldMenuState = WorldMenuState::FlyingRocket;
+                        rocketObject->triggerBehaviour(*this, ObjectBehaviourTrigger::RocketFlyUp);
+                    }
                 }
             }
         }
@@ -590,23 +596,29 @@ void Game::runOnPlanet(float dt)
             break;
     }
 
-
-    switch (worldMenuState)
+    if (player.isAlive())
     {
-        case WorldMenuState::Main:
-            InventoryGUI::drawHotbar(window, mouseScreenPos, inventory);
-            InventoryGUI::drawItemPopups(window);
-            HealthGUI::drawHealth(window, spriteBatch, player.getHealth(), player.getMaxHealth());
-            break;
-        
-        case WorldMenuState::Inventory:
-            InventoryGUI::draw(window, gameTime, mouseScreenPos, inventory, armourInventory, chestDataPool.getChestDataPtr(openedChestID));
-            HealthGUI::drawHealth(window, spriteBatch, player.getHealth(), player.getMaxHealth());
-            break;
-        
-        case WorldMenuState::TravelSelect:
-            TravelSelectGUI::drawGUI(window);
-            break;
+        switch (worldMenuState)
+        {
+            case WorldMenuState::Main:
+                InventoryGUI::drawHotbar(window, mouseScreenPos, inventory);
+                InventoryGUI::drawItemPopups(window);
+                HealthGUI::drawHealth(window, spriteBatch, player.getHealth(), player.getMaxHealth(), gameTime);
+                break;
+            
+            case WorldMenuState::Inventory:
+                InventoryGUI::draw(window, gameTime, mouseScreenPos, inventory, armourInventory, chestDataPool.getChestDataPtr(openedChestID));
+                HealthGUI::drawHealth(window, spriteBatch, player.getHealth(), player.getMaxHealth(), gameTime);
+                break;
+            
+            case WorldMenuState::TravelSelect:
+                TravelSelectGUI::drawGUI(window);
+                break;
+        }
+    }
+    else
+    {
+        HealthGUI::drawDeadPrompt(window);
     }
 
     spriteBatch.endDrawing(window);
@@ -657,7 +669,7 @@ void Game::updateOnPlanet(float dt)
     // Update projectiles
     projectileManager.update(dt);
 
-    if (!isStateTransitioning())
+    if (!isStateTransitioning() && !player.isInRocket() && player.isAlive())
     {
         testEnterStructure();
     }
@@ -676,8 +688,8 @@ void Game::drawOnPlanet(float dt)
     worldObjects.insert(worldObjects.end(), entities.begin(), entities.end());
     worldObjects.push_back(&player);
 
-    drawWorld(dt, worldObjects, entities);
-    drawLighting(dt, worldObjects, entities);
+    drawWorld(dt, worldObjects);
+    drawLighting(dt, worldObjects);
 
     // UI
     sf::Vector2f mouseScreenPos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
@@ -703,7 +715,7 @@ void Game::drawOnPlanet(float dt)
     bossManager.drawStatsAtCursor(window, mouseScreenPos);
 }
 
-void Game::drawWorld(float dt, std::vector<WorldObject*>& worldObjects, std::vector<WorldObject*>& entities)
+void Game::drawWorld(float dt, std::vector<WorldObject*>& worldObjects)
 {
     // Draw all world onto texture for lighting
     worldTexture.create(window.getSize().x, window.getSize().y);
@@ -741,7 +753,7 @@ void Game::drawWorld(float dt, std::vector<WorldObject*>& worldObjects, std::vec
     worldTexture.display();
 }
 
-void Game::drawLighting(float dt, std::vector<WorldObject*>& worldObjects, std::vector<WorldObject*>& entities)
+void Game::drawLighting(float dt, std::vector<WorldObject*>& worldObjects)
 {
     // Draw light sources on light texture
     sf::RenderTexture lightTexture;
@@ -755,10 +767,9 @@ void Game::drawLighting(float dt, std::vector<WorldObject*>& worldObjects, std::
 
     player.drawLightMask(lightTexture);
 
-    for (WorldObject* entity : entities)
+    for (WorldObject* worldObject : worldObjects)
     {
-        Entity* entityCasted = static_cast<Entity*>(entity);
-        entityCasted->drawLightMask(lightTexture);
+        worldObject->drawLightMask(lightTexture);
     }
 
     lightTexture.display();

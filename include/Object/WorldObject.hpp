@@ -37,6 +37,8 @@ public:
     // Overriden by inherited classes (specific)
     virtual void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime, int worldSize, const sf::Color& color) const = 0;
 
+    virtual void drawLightMask(sf::RenderTarget& lightTexture) const = 0;
+
 protected:
     sf::Vector2f position;
     int drawLayer = 0;
