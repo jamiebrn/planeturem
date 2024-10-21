@@ -37,15 +37,21 @@ BossBenjaminCrow::BossBenjaminCrow(sf::Vector2f position)
     updateCollision();
 }
 
-void BossBenjaminCrow::update(Game& game, ProjectileManager& projectileManager, InventoryData& inventory, sf::Vector2f playerPos, float dt)
+void BossBenjaminCrow::update(Game& game, ProjectileManager& projectileManager, InventoryData& inventory, Player& player, float dt)
 {
     // Update animation
     idleAnims[stage].update(dt);
 
     flashTime = std::max(flashTime - dt, 0.0f);
 
+    // If player is dead, fly away
+    if (game.getIsDay() || (!player.isAlive() && behaviourState != BossBenjaminState::Killed && behaviourState != BossBenjaminState::Dash))
+    {
+        behaviourState = BossBenjaminState::FlyAway;
+    }
+
     // Update state
-    float playerDistance = Helper::getVectorLength(playerPos - position);
+    float playerDistance = Helper::getVectorLength(player.getPosition() - position);
 
     switch (behaviourState)
     {
@@ -58,7 +64,7 @@ void BossBenjaminCrow::update(Game& game, ProjectileManager& projectileManager, 
             else if (playerDistance <= DASH_TARGET_INITIATE_DISTANCE && dashCooldownTimer <= 0)
             {
                 behaviourState = BossBenjaminState::Dash;
-                dashTargetPosition = Helper::normaliseVector(playerPos - (position - sf::Vector2f(0, flyingHeight))) * DASH_TARGET_OVERSHOOT + playerPos;
+                dashTargetPosition = Helper::normaliseVector(player.getPosition() - (position - sf::Vector2f(0, flyingHeight))) * DASH_TARGET_OVERSHOOT + player.getPosition();
             }
             break;
         }
@@ -87,6 +93,14 @@ void BossBenjaminCrow::update(Game& game, ProjectileManager& projectileManager, 
             }
             break;
         }
+        case BossBenjaminState::FlyAway:
+        {
+            if (!game.getIsDay() && player.isAlive())
+            {
+                behaviourState = BossBenjaminState::Chase;
+            }
+            break;
+        }
     }
 
     // Update movement based on state
@@ -95,13 +109,13 @@ void BossBenjaminCrow::update(Game& game, ProjectileManager& projectileManager, 
     {
         case BossBenjaminState::Chase:
         {
-            direction = playerPos - position;
+            direction = player.getPosition() - position;
             currentMoveSpeed = MOVE_SPEED;
             break;
         }
         case BossBenjaminState::FastChase:
         {
-            direction = playerPos - position;
+            direction = player.getPosition() - position;
             currentMoveSpeed = FAST_CHASE_MOVE_SPEED;
             break;
         }
@@ -117,6 +131,12 @@ void BossBenjaminCrow::update(Game& game, ProjectileManager& projectileManager, 
                 dashGhostTimer = 0;
                 addDashGhostEffect();
             }
+            break;
+        }
+        case BossBenjaminState::FlyAway:
+        {
+            direction = position - player.getPosition();
+            currentMoveSpeed = FAST_CHASE_MOVE_SPEED;
             break;
         }
     }
@@ -161,6 +181,7 @@ void BossBenjaminCrow::update(Game& game, ProjectileManager& projectileManager, 
 
     // Update collision
     updateCollision();
+    testCollisionWithPlayer(player);
 
     // Update dash cooldown timer
     dashCooldownTimer -= dt;
@@ -338,6 +359,7 @@ void BossBenjaminCrow::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch)
             break;
         }
         case BossBenjaminState::FastChase: // fallthrough
+        case BossBenjaminState::FlyAway: // fallthrough
         case BossBenjaminState::Dash:
         {        
             spriteBatch.draw(window, drawData, dashGhostTextureRects[stage], shaderType);
@@ -346,6 +368,7 @@ void BossBenjaminCrow::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch)
         case BossBenjaminState::Killed:
         {
             spriteBatch.draw(window, drawData, deadTextureRect, shaderType);
+            break;
         }
     }
 }

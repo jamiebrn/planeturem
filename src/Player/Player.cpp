@@ -628,3 +628,8 @@ const CollisionRect& Player::getCollisionRect()
 {
     return collisionRect;
 }
+
+bool Player::isAlive()
+{
+    return (health > 0);
+}

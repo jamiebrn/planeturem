@@ -17,7 +17,7 @@ class BossEntity
 public:
     BossEntity() = default;
 
-    virtual void update(Game& game, ProjectileManager& projectileManager, InventoryData& inventory, sf::Vector2f playerPos, float dt) = 0;
+    virtual void update(Game& game, ProjectileManager& projectileManager, InventoryData& inventory, Player& player, float dt) = 0;
 
     virtual bool isAlive() = 0;
 

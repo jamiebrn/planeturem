@@ -1,5 +1,8 @@
 #include "Core/Sounds.hpp"
 
+float Sounds::fadingMusicVolume;
+Tween<float> Sounds::fadeOutTween;
+
 bool Sounds::loadSounds()
 {
     // If sound have already been loaded, return true by default
@@ -99,6 +102,24 @@ void Sounds::unloadSounds()
     musicMap.clear();
 }
 
+void Sounds::update(float dt)
+{
+    fadeOutTween.update(dt);
+
+    // Test music has finished fading out if required
+    if (fadingOutMusic.has_value())
+    {
+        musicMap.at(fadingOutMusic.value())->setVolume(fadingMusicVolume);
+
+        if (fadingMusicVolume <= 0)
+        {
+            // Music has finished fading out
+            musicMap.at(fadingOutMusic.value())->stop();
+            fadingOutMusic = std::nullopt;
+        }
+    }
+}
+
 // Play sound effect
 void Sounds::playSound(SoundType type, float volume)
 {
@@ -115,7 +136,7 @@ void Sounds::playSound(SoundType type, float volume)
 }
 
 // Play music track
-void Sounds::playMusic(MusicType type, float volume)
+void Sounds::playMusic(MusicType type, float volume, float fadeTimeForCurrentMusic)
 {
     // If sounds have not been loaded, return by default
     if (!loadedSounds)
@@ -130,7 +151,8 @@ void Sounds::playMusic(MusicType type, float volume)
             return;
         }
 
-        musicMap[currentlyPlayingMusic.value()]->stop();
+        stopMusic(fadeTimeForCurrentMusic);
+        // musicMap[currentlyPlayingMusic.value()]->stop();
     }
 
     sf::Music* music = musicMap.at(type).get();
@@ -143,28 +165,36 @@ void Sounds::playMusic(MusicType type, float volume)
     music->play();
 }
 
-void Sounds::stopMusic()
+void Sounds::stopMusic(float fadeTime)
 {
     if (!currentlyPlayingMusic.has_value())
     {
         return;
     }
 
-    stopMusic(currentlyPlayingMusic.value());
-}
+    // Set currently playing music to fade out
+    fadingOutMusic = currentlyPlayingMusic;
 
-// Stop music track
-void Sounds::stopMusic(MusicType type)
-{
-    // If sounds have not been loaded, return by default
-    if (!loadedSounds)
-        return;
-    
-    // Stop music track from map
-    musicMap.at(type)->stop();
+    fadingMusicVolume = musicMap.at(fadingOutMusic.value())->getVolume();
+
+    // Fade out music
+    fadeOutTween.startTween(&fadingMusicVolume, fadingMusicVolume, 0.0f, fadeTime, TweenTransition::Linear, TweenEasing::EaseInOut);
 
     currentlyPlayingMusic = std::nullopt;
 }
+
+// Stop music track
+// void Sounds::stopMusic(MusicType type)
+// {
+//     // If sounds have not been loaded, return by default
+//     if (!loadedSounds)
+//         return;
+    
+//     // Stop music track from map
+//     musicMap.at(type)->stop();
+
+//     currentlyPlayingMusic = std::nullopt;
+// }
 
 bool Sounds::isMusicFinished()
 {

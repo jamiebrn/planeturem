@@ -128,6 +128,8 @@ void Game::run()
         SteamAPI_RunCallbacks();
         ImGui::SFML::Update(window, sf::seconds(dt));
 
+        Sounds::update(dt);
+
         window.setView(view);
 
         switch (gameState)
@@ -1942,6 +1944,13 @@ void Game::drawDebugMenu(float dt)
     }
 
     ImGui::Spacing();
+
+    if (ImGui::Button("Toggle Day / Night"))
+    {
+        isDay = !isDay;
+        if (isDay) worldDarkness = 0.0f;
+        else worldDarkness = 0.95f;
+    }
 
     if (ImGui::Checkbox("God Mode", &DebugOptions::godMode))
     {

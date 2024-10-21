@@ -36,7 +36,7 @@ class BossBenjaminCrow : public BossEntity
 public:
     BossBenjaminCrow(sf::Vector2f position);
 
-    void update(Game& game, ProjectileManager& projectileManager, InventoryData& inventory, sf::Vector2f playerPos, float dt) override;
+    void update(Game& game, ProjectileManager& projectileManager, InventoryData& inventory, Player& player, float dt) override;
 
     bool isAlive() override;
 
@@ -67,7 +67,9 @@ private:
         Chase,
         FastChase,
         Dash,
-        Killed
+        Killed,
+
+        FlyAway
     };
 
     struct DashGhostEffect

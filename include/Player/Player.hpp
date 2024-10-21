@@ -73,6 +73,7 @@ public:
 
     const CollisionRect& getCollisionRect();
 
+    bool isAlive();
     inline int getMaxHealth() {return maxHealth;}
     inline int getHealth() {return health;}
 

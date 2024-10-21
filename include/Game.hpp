@@ -97,6 +97,8 @@ public:
     void rocketFinishedUp(RocketObject& rocket);
     void rocketFinishedDown(RocketObject& rocket);
 
+    inline bool getIsDay() {return isDay;}
+
 private:
 
     // -- Main Menu -- //

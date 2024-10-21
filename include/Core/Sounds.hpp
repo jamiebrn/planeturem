@@ -7,6 +7,8 @@
 #include <memory>
 #include <optional>
 
+#include "Core/Tween.hpp"
+
 // Enum containing all sound effects
 enum class SoundType
 {
@@ -39,21 +41,25 @@ public:
     // Unload all sounds from memory
     static void unloadSounds();
 
+    static void update(float dt);
+
     // Play sound effect
     static void playSound(SoundType type, float volume = 100.0f);
 
     // Play music track
-    static void playMusic(MusicType type, float volume = 100.0f);
+    static void playMusic(MusicType type, float volume = 100.0f, float fadeTimeForCurrentMusic = 1.0f);
 
     // Stop music track
-    static void stopMusic();
-    static void stopMusic(MusicType type);
+    static void stopMusic(float fadeTime = 1.0f);
+    // static void stopMusic(MusicType type);
 
     static bool isMusicFinished();
     static bool isMusicFinished(MusicType type);
 
     static int getMusicVolume();
     static void setMusicVolume(int volume);
+
+    inline static std::optional<MusicType> getPlayingMusic() {return currentlyPlayingMusic;}
 
 // Private member variables
 private:
@@ -62,6 +68,9 @@ private:
 
     inline static int musicVolume = 100.0f;
     inline static std::optional<MusicType> currentlyPlayingMusic = std::nullopt;
+    inline static std::optional<MusicType> fadingOutMusic = std::nullopt;
+    static float fadingMusicVolume;
+    static Tween<float> fadeOutTween;
 
     // Map storing buffers, which store sound effect data
     inline static std::unordered_map<SoundType, sf::SoundBuffer> soundBufferMap;
