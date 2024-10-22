@@ -118,36 +118,36 @@ void Cursor::updateTileCursorOnPlanetToolPickaxe(sf::RenderWindow& window, float
     sf::Vector2f mouseWorldPos = getMouseWorldPos(window);
 
     // Get entity selected at cursor position (if any)
-    Entity* selectedEntity = chunkManager.getSelectedEntity(Cursor::getSelectedChunk(worldSize), mouseWorldPos);
+    // Entity* selectedEntity = chunkManager.getSelectedEntity(Cursor::getSelectedChunk(worldSize), mouseWorldPos);
     
-    // If entity is selected and in main world state, set size of cursor to entity size
-    if (selectedEntity != nullptr)
-    {
-        selectPos = selectedEntity->getPosition();
+    // // If entity is selected and in main world state, set size of cursor to entity size
+    // if (selectedEntity != nullptr)
+    // {
+    //     selectPos = selectedEntity->getPosition();
 
-        sf::Vector2f selectSizeFloat = selectedEntity->getSize();
+    //     sf::Vector2f selectSizeFloat = selectedEntity->getSize();
 
-        // Set tile cursor corner tile positions
-        cursorCornerPositions[0].worldPositionDestination = selectPos - selectSizeFloat / 2.0f;
-        cursorCornerPositions[1].worldPositionDestination = selectPos + sf::Vector2f(selectSizeFloat.x, -selectSizeFloat.y) / 2.0f;
-        cursorCornerPositions[2].worldPositionDestination = selectPos + sf::Vector2f(-selectSizeFloat.x, selectSizeFloat.y) / 2.0f;
-        cursorCornerPositions[3].worldPositionDestination = selectPos + selectSizeFloat / 2.0f;
+    //     // Set tile cursor corner tile positions
+    //     cursorCornerPositions[0].worldPositionDestination = selectPos - selectSizeFloat / 2.0f;
+    //     cursorCornerPositions[1].worldPositionDestination = selectPos + sf::Vector2f(selectSizeFloat.x, -selectSizeFloat.y) / 2.0f;
+    //     cursorCornerPositions[2].worldPositionDestination = selectPos + sf::Vector2f(-selectSizeFloat.x, selectSizeFloat.y) / 2.0f;
+    //     cursorCornerPositions[3].worldPositionDestination = selectPos + selectSizeFloat / 2.0f;
 
-        // Immediately set cursor position to destination position (no lerp)
-        setCursorCornersToDestination();
+    //     // Immediately set cursor position to destination position (no lerp)
+    //     setCursorCornersToDestination();
 
-        // Set cursor animation to freeze at index 0
-        for (int cursorCornerIdx = 0; cursorCornerIdx < cursorAnimatedTextures.size(); cursorCornerIdx++)
-        {
-            cursorAnimatedTextures[cursorCornerIdx].setFrame(0);
-        }
+    //     // Set cursor animation to freeze at index 0
+    //     for (int cursorCornerIdx = 0; cursorCornerIdx < cursorAnimatedTextures.size(); cursorCornerIdx++)
+    //     {
+    //         cursorAnimatedTextures[cursorCornerIdx].setFrame(0);
+    //     }
 
-        // Set dynamic draw to true as is not a tile-based selection
-        drawState = CursorDrawState::Dynamic;
+    //     // Set dynamic draw to true as is not a tile-based selection
+    //     drawState = CursorDrawState::Dynamic;
 
-        // Entity is selected, so should not attempt to find object
-        return;
-    }
+    //     // Entity is selected, so should not attempt to find object
+    //     return;
+    // }
 
     // Get object selected at cursor position (if any)
     BuildableObject* selectedObject = chunkManager.getChunkObject(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile());

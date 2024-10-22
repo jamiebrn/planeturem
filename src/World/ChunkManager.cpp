@@ -633,11 +633,11 @@ std::vector<WorldObject*> ChunkManager::getChunkObjects()
     return objects;
 }
 
-void ChunkManager::updateChunksEntities(float dt)
+void ChunkManager::updateChunksEntities(float dt, ProjectileManager& projectileManager, InventoryData& inventory)
 {
     for (auto& chunkPair : loadedChunks)
     {
-        chunkPair.second->updateChunkEntities(dt, worldSize, *this);
+        chunkPair.second->updateChunkEntities(dt, worldSize, projectileManager, inventory, *this);
     }
 }
 

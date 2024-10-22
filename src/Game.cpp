@@ -663,7 +663,7 @@ void Game::updateOnPlanet(float dt)
     // Update (loaded) chunks
     chunkManager.updateChunks();
     chunkManager.updateChunksObjects(*this, dt);
-    chunkManager.updateChunksEntities(dt);
+    chunkManager.updateChunksEntities(dt, projectileManager, inventory);
     
     // Get nearby crafting stations
     nearbyCraftingStationLevels = chunkManager.getNearbyCraftingStationLevels(player.getChunkInside(worldSize), player.getChunkTileInside(worldSize), 4);
@@ -910,7 +910,7 @@ void Game::updateInStructure(float dt)
 
     // Continue to update objects and entities in world
     chunkManager.updateChunksObjects(*this, dt);
-    chunkManager.updateChunksEntities(dt);
+    chunkManager.updateChunksEntities(dt, projectileManager, inventory);
 
     if (!isStateTransitioning())
         testExitStructure();
@@ -1011,28 +1011,28 @@ void Game::attemptUseToolPickaxe()
 
     const ToolData& toolData = ToolDataLoader::getToolData(currentTool);
 
-    Entity* selectedEntity = chunkManager.getSelectedEntity(Cursor::getSelectedChunk(chunkManager.getWorldSize()), mouseWorldPos);
-    if (selectedEntity != nullptr)
+    // Entity* selectedEntity = chunkManager.getSelectedEntity(Cursor::getSelectedChunk(chunkManager.getWorldSize()), mouseWorldPos);
+    // if (selectedEntity != nullptr)
+    // {
+        // selectedEntity->damage(toolData.damage, inventory);
+    // }
+    // else
+    // {
+    bool canDestroyObject = chunkManager.canDestroyObject(Cursor::getSelectedChunk(chunkManager.getWorldSize()),
+                                                    Cursor::getSelectedChunkTile(),
+                                                    player.getCollisionRect());
+
+    if (!canDestroyObject)
+        return;
+
+    BuildableObject* selectedObject = chunkManager.getChunkObject(Cursor::getSelectedChunk(
+        chunkManager.getWorldSize()), Cursor::getSelectedChunkTile());
+
+    if (selectedObject)
     {
-        selectedEntity->damage(toolData.damage, inventory);
+        selectedObject->damage(toolData.damage, *this, inventory);
     }
-    else
-    {
-        bool canDestroyObject = chunkManager.canDestroyObject(Cursor::getSelectedChunk(chunkManager.getWorldSize()),
-                                                        Cursor::getSelectedChunkTile(),
-                                                        player.getCollisionRect());
-
-        if (!canDestroyObject)
-            return;
-
-        BuildableObject* selectedObject = chunkManager.getChunkObject(Cursor::getSelectedChunk(
-            chunkManager.getWorldSize()), Cursor::getSelectedChunkTile());
-
-        if (selectedObject)
-        {
-            selectedObject->damage(toolData.damage, *this, inventory);
-        }
-    }
+    // }
 }
 
 void Game::attemptUseToolFishingRod()

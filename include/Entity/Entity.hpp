@@ -17,8 +17,11 @@
 #include "Player/InventoryData.hpp"
 
 #include "Entity/EntityPOD.hpp"
+#include "Entity/HitRect.hpp"
+#include "Entity/Projectile/ProjectileManager.hpp"
 
 #include "GUI/InventoryGUI.hpp"
+#include "GUI/HitMarkers.hpp"
 
 #include "DebugOptions.hpp"
 
@@ -30,7 +33,7 @@ public:
     Entity(sf::Vector2f position, EntityType entityType);
     Entity();
 
-    void update(float dt, ChunkManager& chunkManager, bool onWater);
+    void update(float dt, ProjectileManager& projectileManager, InventoryData& inventory, ChunkManager& chunkManager, bool onWater);
 
     void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime, int worldSize, const sf::Color& color) const override;
     void drawLightMask(sf::RenderTarget& lightTexture) const override;
@@ -52,6 +55,9 @@ public:
 
     EntityPOD getPOD(sf::Vector2f chunkPosition);
     void loadFromPOD(const EntityPOD& pod, sf::Vector2f chunkPosition);
+
+private:
+    bool isProjectileColliding(Projectile& projectile);
 
 private:
     EntityType entityType;

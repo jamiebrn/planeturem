@@ -28,6 +28,8 @@
 #include "Object/ObjectReference.hpp"
 #include "Object/StructureObject.hpp"
 
+#include "Player/InventoryData.hpp"
+
 #include "Entity/Entity.hpp"
 #include "World/ChunkManager.hpp"
 #include "World/TileMap.hpp"
@@ -49,6 +51,7 @@
 class Game;
 class ChunkManager;
 class Entity;
+class ProjectileManager;
 
 class Chunk
 {
@@ -133,7 +136,7 @@ public:
 
 
     // -- Entity handling -- //
-    void updateChunkEntities(float dt, int worldSize, ChunkManager& chunkManager);
+    void updateChunkEntities(float dt, int worldSize, ProjectileManager& projectileManager, InventoryData& inventory, ChunkManager& chunkManager);
     void moveEntityToChunk(std::unique_ptr<Entity> entity);
 
     // Cursor position IS IN WORLD SPACE

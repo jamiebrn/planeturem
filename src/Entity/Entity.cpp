@@ -27,7 +27,7 @@ Entity::Entity(sf::Vector2f position, EntityType entityType)
     walkAnim.setFrame(rand() % entityData.walkTextureRects.size());
 }
 
-void Entity::update(float dt, ChunkManager& chunkManager, bool onWater)
+void Entity::update(float dt, ProjectileManager& projectileManager, InventoryData& inventory, ChunkManager& chunkManager, bool onWater)
 {
     // Handle collision with world (tiles, object)
 
@@ -45,6 +45,16 @@ void Entity::update(float dt, ChunkManager& chunkManager, bool onWater)
     position.x = collisionRect.x + collisionRect.width / 2.0f;
     position.y = collisionRect.y + collisionRect.height / 2.0f;
 
+    // Test collision with projectiles
+    for (auto& projectile : projectileManager.getProjectiles())
+    {
+        if (isProjectileColliding(*projectile))
+        {
+            damage(projectile->getDamage(), inventory);
+            projectile->onCollision();
+        }
+    }
+
     // Update animations
     flash_amount = std::max(flash_amount - dt * 3.0f, 0.0f);
 
@@ -53,6 +63,11 @@ void Entity::update(float dt, ChunkManager& chunkManager, bool onWater)
     walkAnim.update(dt, 1, entityData.walkTextureRects.size(), entityData.walkAnimSpeed);
 
     this->onWater = onWater;
+}
+
+bool Entity::isProjectileColliding(Projectile& projectile)
+{
+    return (collisionRect.isPointInRect(projectile.getPosition().x, projectile.getPosition().y));
 }
 
 void Entity::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime, int worldSize, const sf::Color& color) const
@@ -113,6 +128,8 @@ void Entity::damage(int amount, InventoryData& inventory)
 {
     flash_amount = 1.0f;
     health -= amount;
+
+    HitMarkers::addHitMarker(position, amount);
 
     SoundType hitSound = SoundType::HitObject;
     int soundChance = rand() % 3;

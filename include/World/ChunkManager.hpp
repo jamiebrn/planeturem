@@ -18,6 +18,7 @@
 #include "World/TileMap.hpp"
 #include "Entity/Entity.hpp"
 #include "Types/TileType.hpp"
+#include "Player/InventoryData.hpp"
 
 #include "World/ChunkPOD.hpp"
 
@@ -29,6 +30,7 @@
 class Game;
 class Chunk;
 class Entity;
+class ProjectileManager;
 
 class ChunkManager
 {
@@ -139,7 +141,7 @@ public:
 
     // -- Entities -- //
     // Update all entities in loaded chunks
-    void updateChunksEntities(float dt);
+    void updateChunksEntities(float dt, ProjectileManager& projectileManager, InventoryData& inventory);
 
     // Handle moving of entity from one chunk to another chunk
     void moveEntityToChunkFromChunk(std::unique_ptr<Entity> entity, ChunkPosition newChunk);
