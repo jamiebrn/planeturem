@@ -69,6 +69,7 @@
 #include "GUI/InventoryGUI.hpp"
 #include "GUI/HealthGUI.hpp"
 #include "GUI/TravelSelectGUI.hpp"
+#include "GUI/HitMarkers.hpp"
 
 #include "IO/GameSaveIO.hpp"
 

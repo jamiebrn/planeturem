@@ -31,6 +31,8 @@
 #include "Entity/Projectile/ProjectileManager.hpp"
 #include "Entity/Boss/BossEntity.hpp"
 
+#include "GUI/HitMarkers.hpp"
+
 #include "GameConstants.hpp"
 #include "DebugOptions.hpp"
 

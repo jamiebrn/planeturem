@@ -24,6 +24,7 @@
 #include "Data/ItemDataLoader.hpp"
 
 #include "GUI/InventoryGUI.hpp"
+#include "GUI/HitMarkers.hpp"
 
 #include "Entity/Projectile/Projectile.hpp"
 #include "Entity/Projectile/ProjectileManager.hpp"
@@ -51,7 +52,7 @@ public:
 private:
     void updateCollision();
 
-    void takeDamage(int damage, InventoryData& inventory);
+    void takeDamage(int damage, InventoryData& inventory, sf::Vector2f damagePosition);
     void applyKnockback(Projectile& projectile);
 
     void giveItemDrops(InventoryData& inventory);
@@ -92,11 +93,11 @@ private:
     static constexpr float HITBOX_SIZE = 16.0f;
     CollisionCircle collision;
 
-    static constexpr int MAX_HEALTH = 100;
+    static constexpr int MAX_HEALTH = 450;
     int health;
     bool dead;
 
-    static constexpr int HEALTH_SECOND_STAGE_THRESHOLD = 40;
+    static constexpr int HEALTH_SECOND_STAGE_THRESHOLD = 250;
     int stage;
 
     float flyingHeight;

@@ -133,6 +133,7 @@
     },
     {
         "product": "Wooden Arrow",
+        "product-amount": 20,
         "item-requirements": {
             "Wood": 1
         }
@@ -168,6 +169,7 @@
             "Bone": 5,
             "Iron Bar": 3
         },
+        "key-items": ["Crow Skull"],
         "crafting-station": "anvil",
         "crafting-station-level": 1
     },
@@ -178,6 +180,7 @@
             "Feather": 10,
             "Iron Bar": 4
         },
+        "key-items": ["Bone", "Feather"],
         "crafting-station": "anvil",
         "crafting-station-level": 1
     },
@@ -188,6 +191,7 @@
             "Bone": 3,
             "Iron Bar": 2
         },
+        "key-items": ["Crow Claw"],
         "crafting-station": "anvil",
         "crafting-station-level": 1
     },

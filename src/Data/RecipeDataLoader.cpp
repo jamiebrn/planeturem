@@ -28,6 +28,19 @@ bool RecipeDataLoader::loadData(std::string recipeDataPath)
             }
         }
 
+        if (jsonRecipeData.contains("key-items"))
+        {
+            auto keyItems = jsonRecipeData.at("key-items");
+
+            recipeData.keyItems = std::vector<ItemType>();
+
+            for (auto itemIter = keyItems.begin(); itemIter != keyItems.end(); ++itemIter)
+            {
+                ItemType item = ItemDataLoader::getItemTypeFromName(itemIter.value());
+                recipeData.keyItems->push_back(item);
+            }
+        }
+
         if (jsonRecipeData.contains("crafting-station")) recipeData.craftingStationRequired = jsonRecipeData.at("crafting-station");
         if (jsonRecipeData.contains("crafting-station-level")) recipeData.craftingStationLevelRequired = jsonRecipeData.at("crafting-station-level");
 

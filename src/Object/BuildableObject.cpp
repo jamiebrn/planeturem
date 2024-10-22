@@ -97,6 +97,11 @@ void BuildableObject::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, f
 
 void BuildableObject::drawLightMask(sf::RenderTarget& lightTexture) const
 {
+    if (objectType < 0)
+    {
+        return;
+    }
+
     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
 
     if (objectData.lightEmission <= 0)

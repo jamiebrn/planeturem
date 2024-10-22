@@ -17,7 +17,7 @@ Player::Player(sf::Vector2f position, InventoryData* armourInventory)
     idleAnimation.create(3, 16, 18, 0, 0, 0.3);
     runAnimation.create(5, 16, 18, 48, 0, 0.1);
 
-    maxHealth = 5;
+    maxHealth = 250;
     health = maxHealth;
     damageCooldownTimer = 0.0f;
     respawnTimer = 0.0f;
@@ -530,7 +530,7 @@ void Player::useTool(ProjectileManager& projectileManager, InventoryData& invent
 
             // Create projectile
             // TODO: Use best projectile in inventory
-            std::unique_ptr<Projectile> projectile = std::make_unique<Projectile>(spawnPos, angle, toolData.projectileShootTypes[0]);
+            std::unique_ptr<Projectile> projectile = std::make_unique<Projectile>(spawnPos, angle, toolData.projectileShootTypes[0], rand() % 3 + 1);
 
             // Add projectile to manager
             projectileManager.addProjectile(std::move(projectile));
@@ -559,6 +559,8 @@ void Player::testHitCollision(const HitRect& hitRect)
 
     // Collision
     health -= hitRect.damage;
+
+    HitMarkers::addHitMarker(position, hitRect.damage);
 
     damageCooldownTimer = MAX_DAMAGE_COOLDOWN_TIMER;
 

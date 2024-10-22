@@ -1,6 +1,6 @@
 #include "Entity/Projectile/Projectile.hpp"
 
-Projectile::Projectile(sf::Vector2f position, float angle, ProjectileType type)
+Projectile::Projectile(sf::Vector2f position, float angle, ProjectileType type, int damage)
 {
     this->position = position;
 
@@ -10,6 +10,7 @@ Projectile::Projectile(sf::Vector2f position, float angle, ProjectileType type)
     this->angle = angle;
 
     projectileType = type;
+    this->damage = damage;
 
     // Calculate velocity
     float angleRadians = M_PI * angle / 180.0f;
@@ -48,6 +49,11 @@ void Projectile::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch)
 
     // TextureManager::drawSubTexture(window, drawData, projectileData.textureRect);
     spriteBatch.draw(window, drawData, projectileData.textureRect);
+}
+
+int Projectile::getDamage()
+{
+    return damage;
 }
 
 void Projectile::onCollision()

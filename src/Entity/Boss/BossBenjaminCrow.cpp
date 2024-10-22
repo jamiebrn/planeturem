@@ -2,7 +2,7 @@
 #include "Game.hpp"
 
 const int BossBenjaminCrow::DAMAGE_HITBOX_SIZE = 20;
-const std::array<int, 2> BossBenjaminCrow::damageValues = {1, 2};
+const std::array<int, 2> BossBenjaminCrow::damageValues = {35, 65};
 
 const std::array<sf::IntRect, 2> BossBenjaminCrow::dashGhostTextureRects = {
     sf::IntRect(400, 160, 48, 64),
@@ -162,7 +162,7 @@ void BossBenjaminCrow::update(Game& game, ProjectileManager& projectileManager, 
         {
             if (isProjectileColliding(*projectile))
             {
-                takeDamage(1, inventory);
+                takeDamage(projectile->getDamage(), inventory, projectile->getPosition());
                 applyKnockback(*projectile);
                 projectile->onCollision();
             }
@@ -195,11 +195,12 @@ void BossBenjaminCrow::updateCollision()
     collision = CollisionCircle(position.x, position.y - flyingHeight, HITBOX_SIZE);
 }
 
-void BossBenjaminCrow::takeDamage(int damage, InventoryData& inventory)
+void BossBenjaminCrow::takeDamage(int damage, InventoryData& inventory, sf::Vector2f damagePosition)
 {
     flashTime = MAX_FLASH_TIME;
 
     health -= damage;
+    HitMarkers::addHitMarker(damagePosition, damage);
 
     if (health <= HEALTH_SECOND_STAGE_THRESHOLD)
     {

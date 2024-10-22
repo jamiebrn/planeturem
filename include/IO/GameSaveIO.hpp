@@ -33,10 +33,13 @@ struct PlayerGameSave
     InventoryData inventory;
     InventoryData armourInventory;
 
+    float time;
+    bool isDay;
+
     template <class Archive>
     void serialize(Archive& ar)
     {
-        ar(seed, planetType, inventory, armourInventory);
+        ar(seed, planetType, inventory, armourInventory, time, isDay);
     }
 };
 

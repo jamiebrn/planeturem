@@ -519,6 +519,8 @@ void Game::runOnPlanet(float dt)
     // Update particles
     particleSystem.update(dt);
 
+    HitMarkers::update(dt);
+
     Camera::update(player.getPosition(), mouseScreenPos, dt);
 
     updateDayNightCycle(dt);
@@ -653,6 +655,9 @@ void Game::updateOnPlanet(float dt)
 
         // Wrap projectiles
         projectileManager.handleWorldWrap(wrapPositionDelta);
+
+        // Wrap hit markers
+        HitMarkers::handleWorldWrap(wrapPositionDelta);
     }
 
     // Update (loaded) chunks
@@ -711,6 +716,8 @@ void Game::drawOnPlanet(float dt)
             drawGhostPlaceLandAtCursor();
         }
     }
+
+    HitMarkers::draw(window);
 
     bossManager.drawStatsAtCursor(window, mouseScreenPos);
 }
@@ -1427,6 +1434,7 @@ void Game::travelToPlanet(PlanetType planetType)
 
     resetChestDataPool();
     resetStructureRoomPool();
+    bossManager.clearBosses();
 
     if (!loadPlanet(planetType))
     {
@@ -1608,6 +1616,8 @@ bool Game::saveGame(bool gettingInRocket)
     // playerGameSave.playerPos = player.getPosition();
     playerGameSave.inventory = inventory;
     playerGameSave.armourInventory = armourInventory;
+    playerGameSave.time = dayNightToggleTimer;
+    playerGameSave.isDay = isDay;
 
     PlanetGameSave planetGameSave;
     planetGameSave.playerLastPos = player.getPosition();
@@ -1645,6 +1655,11 @@ bool Game::loadGame(const std::string& saveName)
     inventory = playerGameSave.inventory;
     armourInventory = playerGameSave.armourInventory;
     player.setPosition(planetGameSave.playerLastPos);
+    dayNightToggleTimer = playerGameSave.time;
+    isDay = playerGameSave.isDay;
+
+    if (isDay) worldDarkness = 0.0f;
+    else worldDarkness = 0.95f;
 
     changePlayerTool();
 

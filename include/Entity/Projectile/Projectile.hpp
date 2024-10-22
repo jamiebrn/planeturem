@@ -18,11 +18,13 @@ class Projectile
 {
 public:
     // Angle in DEGREES
-    Projectile(sf::Vector2f position, float angle, ProjectileType type);
+    Projectile(sf::Vector2f position, float angle, ProjectileType type, int damage);
 
     void update(float dt);
 
     void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch);
+
+    int getDamage();
 
     // Called on collision with entity
     void onCollision();
@@ -35,6 +37,7 @@ public:
 
 private:
     ProjectileType projectileType;
+    int damage;
 
     float speed;
 

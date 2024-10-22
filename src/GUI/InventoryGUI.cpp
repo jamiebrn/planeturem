@@ -461,7 +461,7 @@ void InventoryGUI::craftSelectedRecipe(InventoryData& inventory)
     {
         const ItemData& pickedUpItemData = ItemDataLoader::getItemData(pickedUpItem);
 
-        if ((pickedUpItem != recipeData.product || pickedUpItemCount >= pickedUpItemData.maxStackSize))
+        if (pickedUpItem != recipeData.product || pickedUpItemCount > pickedUpItemData.maxStackSize - recipeData.productAmount)
         {
             return;
         }
@@ -489,7 +489,7 @@ void InventoryGUI::craftSelectedRecipe(InventoryData& inventory)
     // Give crafted item to player
     if (isItemPickedUp)
     {
-        pickedUpItemCount += recipeData.productAmount;   
+        pickedUpItemCount += recipeData.productAmount;
     }
     else
     {
@@ -583,11 +583,20 @@ void InventoryGUI::updateAvailableRecipes(InventoryData& inventory, std::unorder
                     hasItems = false;
                 }
             }
-                // if (inventoryItemCount[itemRequired.first] >= itemRequired.second)
-                // {
-                //     hasItems = true;
-                //     break;
-                // }
+        }
+
+        // Check has key items (if any)
+        if (recipeData.keyItems.has_value())
+        {
+            hasItemType = false;
+            for (const auto& keyItem : recipeData.keyItems.value())
+            {
+                if (inventoryItemCount.count(keyItem) > 0)
+                {
+                    hasItemType = true;
+                    break;
+                }
+            }
         }
 
         if (!hasItems)
