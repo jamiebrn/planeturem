@@ -30,6 +30,8 @@
 #include "World/Room.hpp"
 #include "World/RoomPool.hpp"
 
+#include "World/LightingEngine.hpp"
+
 #include "Player/Player.hpp"
 #include "Player/Cursor.hpp"
 #include "Player/InventoryData.hpp"
@@ -101,6 +103,9 @@ public:
     inline bool getIsDay() {return isDay;}
 
 private:
+
+    // test
+    void runLightingTest();
 
     // -- Main Menu -- //
 
@@ -258,6 +263,8 @@ private:
     ProjectileManager projectileManager;
     BossManager bossManager;
     ParticleSystem particleSystem;
+
+    LightingEngine lightingEngine;
 
     std::array<sf::Texture, 2> waterNoiseTextures;
 

@@ -36,7 +36,7 @@ public:
     void update(float dt, ProjectileManager& projectileManager, InventoryData& inventory, ChunkManager& chunkManager, bool onWater);
 
     void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime, int worldSize, const sf::Color& color) const override;
-    void drawLightMask(sf::RenderTarget& lightTexture) const override;
+    void createLightSource(LightingEngine& lightingEngine, sf::Vector2f topLeftChunkPos) const override;
 
     void damage(int amount, InventoryData& inventory);
     void interact();

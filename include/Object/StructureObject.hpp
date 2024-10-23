@@ -52,7 +52,7 @@ public:
 
     void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime, int worldSize, const sf::Color& color) const override;
 
-    void drawLightMask(sf::RenderTarget& lightTexture) const override;
+    void createLightSource(LightingEngine& lightingEngine, sf::Vector2f topLeftChunkPos) const override;
 
     StructureObjectPOD getPOD(sf::Vector2f chunkPosition);
     void loadFromPOD(const StructureObjectPOD& pod, sf::Vector2f chunkPosition);

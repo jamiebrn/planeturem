@@ -1,7 +1,7 @@
 #include "Game.hpp"
 
 // FIX: Crash on save / rocket enter bug (can't save???)
-// FIX: Collisions broken for objects when loading save
+// FIX: Collisions broken for objects when loading save (something to do with player death? or loading? maybe i was in god mode?)
 
 // PRIORITY: HIGH
 // TODO: Plants / farming / growing objects
@@ -133,6 +133,7 @@ void Game::run()
 
         window.setView(view);
 
+        // runLightingTest();
         switch (gameState)
         {
             case GameState::MainMenu:
@@ -161,6 +162,52 @@ void Game::run()
 
         window.display();
     }
+}
+
+
+void Game::runLightingTest()
+{
+    for (auto event = sf::Event{}; window.pollEvent(event);)
+    {
+        handleEventsWindow(event);
+
+        if (event.type == sf::Event::KeyPressed)
+        {
+            if (event.key.code == sf::Keyboard::R)
+            {
+                lightingEngine.resetLightSources();
+                lightingEngine.resetObstacles();
+            }
+        }
+    }
+
+    sf::Vector2i mousePos = sf::Mouse::getPosition(window);
+    int mouseTileX = mousePos.x / 12;
+    int mouseTileY = mousePos.y / 12;
+
+    lightingEngine.resetLighting();
+
+    if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
+    {
+        lightingEngine.addLightSource(mouseTileX, mouseTileY, 0.7f);
+    }
+
+    if (sf::Mouse::isButtonPressed(sf::Mouse::Right))
+    {
+        lightingEngine.addObstacle(mouseTileX, mouseTileY, 0.7f);
+    }
+
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
+    {
+        lightingEngine.addMovingLightSource(mouseTileX, mouseTileY, 0.7f);
+    }
+
+    lightingEngine.calculateLighting();
+
+    window.clear();
+
+    lightingEngine.drawObstacles(window);
+    // lightingEngine.drawLighting(window, );
 }
 
 
@@ -762,27 +809,43 @@ void Game::drawWorld(float dt, std::vector<WorldObject*>& worldObjects)
 
 void Game::drawLighting(float dt, std::vector<WorldObject*>& worldObjects)
 {
-    // Draw light sources on light texture
-    sf::RenderTexture lightTexture;
-    lightTexture.create(window.getSize().x, window.getSize().y);
-
     unsigned char ambientRedLight = (1.f - worldDarkness) * 255.0f;
     unsigned char ambientGreenLight = (1.f - worldDarkness * 0.97f) * 255.0f;
     unsigned char ambientBlueLight = (1.f - worldDarkness * 0.93f) * 255.0f;
 
-    lightTexture.clear({ambientRedLight, ambientGreenLight, ambientBlueLight, 255});
+    sf::Vector2i chunksSizeInView = chunkManager.getChunksSizeInView();
+    sf::Vector2f topLeftChunkPos = chunkManager.topLeftChunkPosInView();
+    
+    // Draw light sources on light texture
+    sf::RenderTexture lightTexture;
+    lightTexture.create(chunksSizeInView.x * CHUNK_TILE_SIZE * TILE_LIGHTING_RESOLUTION, chunksSizeInView.y * CHUNK_TILE_SIZE * TILE_LIGHTING_RESOLUTION);
 
-    player.drawLightMask(lightTexture);
+    // Prepare lighting engine
+    lightingEngine.resize(chunksSizeInView.x * CHUNK_TILE_SIZE * TILE_LIGHTING_RESOLUTION, chunksSizeInView.y * CHUNK_TILE_SIZE * TILE_LIGHTING_RESOLUTION);
+
+    // player.drawLightMask(lightTexture);
 
     for (WorldObject* worldObject : worldObjects)
     {
-        worldObject->drawLightMask(lightTexture);
+        // worldObject->drawLightMask(lightTexture);
+        worldObject->createLightSource(lightingEngine, topLeftChunkPos);
     }
 
+    lightingEngine.calculateLighting();
+
+    lightTexture.clear({ambientRedLight, ambientGreenLight, ambientBlueLight, 255});
+
+    // draw from lighting engine
+    lightingEngine.drawLighting(lightTexture, sf::Color(255, 220, 140));
+
     lightTexture.display();
+    lightTexture.setSmooth(true);
 
     sf::Sprite lightTextureSprite(lightTexture.getTexture());
     // lightTextureSprite.setColor(sf::Color(255, 255, 255, 255));
+
+    lightTextureSprite.setPosition(Camera::worldToScreenTransform(topLeftChunkPos));
+    lightTextureSprite.setScale(sf::Vector2f(ResolutionHandler::getScale(), ResolutionHandler::getScale()) * TILE_SIZE_PIXELS_UNSCALED / static_cast<float>(TILE_LIGHTING_RESOLUTION));
 
     worldTexture.draw(lightTextureSprite, sf::BlendMultiply);
 
@@ -1238,13 +1301,18 @@ void Game::attemptUseBossSpawn()
     {
         return;
     }
-    
+
     if (player.isInRocket())
     {
         return;
     }
-    
+
     ItemType heldItemType = InventoryGUI::getHeldItemType(inventory);
+
+    if (heldItemType < 0)
+    {
+        return;
+    }
 
     const ItemData& itemData = ItemDataLoader::getItemData(heldItemType);
 

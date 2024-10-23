@@ -346,21 +346,35 @@ void Player::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, 
     }
 }
 
-void Player::drawLightMask(sf::RenderTarget& lightTexture) const
+void Player::createLightSource(LightingEngine& lightingEngine, sf::Vector2f topLeftChunkPos) const
 {
-    if (inRocket || !isAlive())
-        return;
+    // if (inRocket || !isAlive())
+    //     return;
+    
+    // sf::Vector2f topLeftRelativePos = position - topLeftChunkPos;
 
-    static constexpr float lightScale = 0.7f;
-    static const sf::Color lightColor(255, 220, 140);
+    // int lightingTileX = std::floor(topLeftRelativePos.x / (TILE_SIZE_PIXELS_UNSCALED / TILE_LIGHTING_RESOLUTION));
+    // int lightingTileY = std::floor(topLeftRelativePos.y / (TILE_SIZE_PIXELS_UNSCALED / TILE_LIGHTING_RESOLUTION));
 
-    sf::Vector2f scale((float)ResolutionHandler::getScale() * lightScale, (float)ResolutionHandler::getScale() * lightScale);
+    // // Add 6 sources around player pos
+    // for (int x = 0; x < 2; x++)
+    // {
+    //     for (int y = -2; y <= 0; y++)
+    //     {
+    //         lightingEngine.addMovingLightSource(lightingTileX + x, lightingTileY + y, 0.85f);
+    //     }
+    // }
 
-    static const sf::IntRect lightMaskRect(0, 0, 256, 256);
+    // static constexpr float lightScale = 0.7f;
+    // static const sf::Color lightColor(255, 220, 140);
 
-    TextureManager::drawSubTexture(lightTexture, {
-        TextureType::LightMask, Camera::worldToScreenTransform(position), 0, scale, {0.5, 0.5}, lightColor
-        }, lightMaskRect, sf::BlendAdd);
+    // sf::Vector2f scale((float)ResolutionHandler::getScale() * lightScale, (float)ResolutionHandler::getScale() * lightScale);
+
+    // static const sf::IntRect lightMaskRect(0, 0, 256, 256);
+
+    // TextureManager::drawSubTexture(lightTexture, {
+    //     TextureType::LightMask, Camera::worldToScreenTransform(position), 0, scale, {0.5, 0.5}, lightColor
+    //     }, lightMaskRect, sf::BlendAdd);
 }
 
 void Player::drawFishingRodCast(sf::RenderTarget& window, float gameTime, int worldSize, float waterYOffset) const

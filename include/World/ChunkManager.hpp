@@ -206,6 +206,11 @@ public:
     // Correct for offsets < worldSize * CHUNK_TILE_SIZE
     static std::pair<ChunkPosition, sf::Vector2i> getChunkTileFromOffset(ChunkPosition chunk, sf::Vector2i tile, int xOffset, int yOffset, int worldSize);
 
+    // Returns rectangle area of size containing chunks in view
+    // Used in lighting calculations
+    static sf::Vector2i getChunksSizeInView();
+    static sf::Vector2f topLeftChunkPosInView();
+
 private:
     // Generates a chunk and stores it
     void generateChunk(const ChunkPosition& chunkPosition,

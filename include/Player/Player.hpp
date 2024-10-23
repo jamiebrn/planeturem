@@ -17,6 +17,7 @@
 #include "Object/WorldObject.hpp"
 #include "World/ChunkManager.hpp"
 #include "World/Room.hpp"
+#include "World/LightingEngine.hpp"
 
 #include "Player/InventoryData.hpp"
 
@@ -45,7 +46,7 @@ public:
     void updateInStructure(float dt, sf::Vector2f mouseWorldPos, const Room& structureRoom);
 
     void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime, int worldSize, const sf::Color& color) const override;
-    void drawLightMask(sf::RenderTarget& lightTexture) const override;
+    void createLightSource(LightingEngine& lightingEngine, sf::Vector2f topLeftChunkPos) const override;
 
     void setTool(ToolType toolType);
     ToolType getTool();

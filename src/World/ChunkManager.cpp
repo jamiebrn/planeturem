@@ -53,7 +53,7 @@ void ChunkManager::updateChunks()
     // Chunk load/unload
 
     // Get tile size
-    float tileSize = ResolutionHandler::getTileSize();
+    // float tileSize = ResolutionHandler::getTileSize();
 
     // Get screen bounds
     // sf::Vector2f screenTopLeft = -Camera::getDrawOffset();
@@ -71,9 +71,9 @@ void ChunkManager::updateChunks()
     screenBottomRightGrid.y = std::ceil(screenBottomRight.y / (TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE));
 
     // Check any chunks needed to load
-    for (int y = screenTopLeftGrid.y - 1; y <= screenBottomRightGrid.y + 1; y++)
+    for (int y = screenTopLeftGrid.y - CHUNK_VIEW_LOAD_BORDER; y <= screenBottomRightGrid.y + CHUNK_VIEW_LOAD_BORDER; y++)
     {
-        for (int x = screenTopLeftGrid.x - 1; x <= screenBottomRightGrid.x + 1; x++)
+        for (int x = screenTopLeftGrid.x - CHUNK_VIEW_LOAD_BORDER; x <= screenBottomRightGrid.x + CHUNK_VIEW_LOAD_BORDER; x++)
         {
             // Get wrapped x and y using world size
             int wrappedX = ((x % worldSize) + worldSize) % worldSize;
@@ -126,10 +126,10 @@ void ChunkManager::updateChunks()
         int normalizedChunkX = ((chunkPos.x % worldSize) + worldSize) % worldSize;
         int normalizedChunkY = ((chunkPos.y % worldSize) + worldSize) % worldSize;
 
-        int normalizedScreenLeft = (((screenTopLeftGrid.x - 1) % worldSize) + worldSize) % worldSize;
-        int normalizedScreenRight = (((screenBottomRightGrid.x + 1) % worldSize) + worldSize) % worldSize;
-        int normalizedScreenTop = (((screenTopLeftGrid.y - 1) % worldSize) + worldSize) % worldSize;
-        int normalizedScreenBottom = (((screenBottomRightGrid.y + 1) % worldSize) + worldSize) % worldSize;
+        int normalizedScreenLeft = (((screenTopLeftGrid.x - CHUNK_VIEW_LOAD_BORDER) % worldSize) + worldSize) % worldSize;
+        int normalizedScreenRight = (((screenBottomRightGrid.x + CHUNK_VIEW_LOAD_BORDER) % worldSize) + worldSize) % worldSize;
+        int normalizedScreenTop = (((screenTopLeftGrid.y - CHUNK_VIEW_LOAD_BORDER) % worldSize) + worldSize) % worldSize;
+        int normalizedScreenBottom = (((screenBottomRightGrid.y + CHUNK_VIEW_LOAD_BORDER) % worldSize) + worldSize) % worldSize;
 
         // Use normalized chunk coordinates to determine whether the chunk is visible
         bool chunkVisibleX = (normalizedChunkX >= normalizedScreenLeft && normalizedChunkX <= normalizedScreenRight) ||
@@ -1006,4 +1006,32 @@ std::pair<ChunkPosition, sf::Vector2i> ChunkManager::getChunkTileFromOffset(Chun
     }
 
     return {chunk, tile};
+}
+
+sf::Vector2i ChunkManager::getChunksSizeInView()
+{
+    sf::Vector2f screenTopLeft = Camera::screenToWorldTransform({0, 0});
+    sf::Vector2f screenBottomRight = Camera::screenToWorldTransform(static_cast<sf::Vector2f>(ResolutionHandler::getResolution()));
+
+    // Convert screen bounds to chunk units
+    sf::Vector2i screenTopLeftGrid;
+    sf::Vector2i screenBottomRightGrid;
+
+    screenTopLeftGrid.y = std::floor(screenTopLeft.y / (TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE));
+    screenTopLeftGrid.x = std::floor(screenTopLeft.x / (TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE));
+    screenBottomRightGrid.x = std::ceil(screenBottomRight.x / (TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE));
+    screenBottomRightGrid.y = std::ceil(screenBottomRight.y / (TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE));
+
+    sf::Vector2i chunkSizeInView;
+    chunkSizeInView.x = screenBottomRightGrid.x + CHUNK_VIEW_LOAD_BORDER - (screenTopLeftGrid.x - CHUNK_VIEW_LOAD_BORDER);
+    chunkSizeInView.y = screenBottomRightGrid.y + CHUNK_VIEW_LOAD_BORDER - (screenTopLeftGrid.y - CHUNK_VIEW_LOAD_BORDER);
+    return chunkSizeInView;
+}
+
+sf::Vector2f ChunkManager::topLeftChunkPosInView()
+{
+    sf::Vector2f screenTopLeft = Camera::screenToWorldTransform({0, 0});
+    screenTopLeft.y = std::floor(screenTopLeft.y / (TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE)) * TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE;
+    screenTopLeft.x = std::floor(screenTopLeft.x / (TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE)) * TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE;
+    return screenTopLeft;
 }

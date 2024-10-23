@@ -5,6 +5,7 @@
 
 #include "Core/SpriteBatch.hpp"
 #include "World/ChunkPosition.hpp"
+#include "World/LightingEngine.hpp"
 #include "GameConstants.hpp"
 
 class WorldObject
@@ -37,7 +38,7 @@ public:
     // Overriden by inherited classes (specific)
     virtual void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime, int worldSize, const sf::Color& color) const = 0;
 
-    virtual void drawLightMask(sf::RenderTarget& lightTexture) const = 0;
+    virtual void createLightSource(LightingEngine& lightingEngine, sf::Vector2f topLeftChunkPos) const = 0;
 
 protected:
     sf::Vector2f position;

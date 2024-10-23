@@ -57,7 +57,7 @@ void StructureObject::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, f
     spriteBatch.draw(window, textureDrawData, structureData.textureRect);
 }
 
-void StructureObject::drawLightMask(sf::RenderTarget& lightTexture) const
+void StructureObject::createLightSource(LightingEngine& lightingEngine, sf::Vector2f topLeftChunkPos) const
 {
 
 }

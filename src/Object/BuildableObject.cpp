@@ -95,7 +95,7 @@ void BuildableObject::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, f
     // }
 }
 
-void BuildableObject::drawLightMask(sf::RenderTarget& lightTexture) const
+void BuildableObject::createLightSource(LightingEngine& lightingEngine, sf::Vector2f topLeftChunkPos) const
 {
     if (objectType < 0)
     {
@@ -104,30 +104,59 @@ void BuildableObject::drawLightMask(sf::RenderTarget& lightTexture) const
 
     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
 
-    if (objectData.lightEmission <= 0)
+    void (LightingEngine::*lightingFunction)(int, int, float) = nullptr;
+    float lightingValue = 0.0f;
+
+    if (objectData.lightEmissionFrames.size() > 0)
+    {
+        lightingFunction = &LightingEngine::addLightSource;
+        lightingValue = objectData.lightEmissionFrames[animatedTexture.getFrame()];
+    }
+    else if (objectData.lightAbsorption > 0)
+    {
+        lightingFunction = &LightingEngine::addObstacle;
+        lightingValue = objectData.lightAbsorption;
+    }
+
+    if (!lightingFunction)
     {
         return;
     }
 
-    // Calculate light position based on object size
-    sf::Vector2f lightPos = position;
-    if (objectData.size != sf::Vector2i(1, 1))
+    // Create light emitter / absorber
+    sf::Vector2f topLeftRelativePos = position - topLeftChunkPos;
+    
+    int lightingTileX = std::floor(topLeftRelativePos.x / TILE_SIZE_PIXELS_UNSCALED) * TILE_LIGHTING_RESOLUTION;
+    int lightingTileY = std::floor(topLeftRelativePos.y / TILE_SIZE_PIXELS_UNSCALED) * TILE_LIGHTING_RESOLUTION;
+
+    // Create light sources for all required tiles
+    for (int x = 0; x < objectData.size.x * TILE_LIGHTING_RESOLUTION; x++)
     {
-        sf::Vector2f topLeftPos = position - sf::Vector2f(0.5f, 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
-        lightPos = topLeftPos + TILE_SIZE_PIXELS_UNSCALED * static_cast<sf::Vector2f>(objectData.size) / 2.0f;
+        for (int y = 0; y < objectData.size.y * TILE_LIGHTING_RESOLUTION; y++)
+        {
+            (lightingEngine.*lightingFunction)(lightingTileX + x, lightingTileY + y, lightingValue);
+        }
     }
 
-    // Draw light
-    static const sf::Color lightColor(255, 220, 140);
-    float lightScale = 0.3f * objectData.lightEmission;
+    // // Calculate light position based on object size
+    // sf::Vector2f lightPos = position;
+    // if (objectData.size != sf::Vector2i(1, 1))
+    // {
+    //     sf::Vector2f topLeftPos = position - sf::Vector2f(0.5f, 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
+    //     lightPos = topLeftPos + TILE_SIZE_PIXELS_UNSCALED * static_cast<sf::Vector2f>(objectData.size) / 2.0f;
+    // }
 
-    sf::Vector2f scale((float)ResolutionHandler::getScale() * lightScale, (float)ResolutionHandler::getScale() * lightScale);
+    // // Draw light
+    // static const sf::Color lightColor(255, 220, 140);
+    // float lightScale = 0.3f * objectData.lightEmission;
 
-    sf::IntRect lightMaskRect(0, 0, 256, 256);
+    // sf::Vector2f scale((float)ResolutionHandler::getScale() * lightScale, (float)ResolutionHandler::getScale() * lightScale);
 
-    TextureManager::drawSubTexture(lightTexture, {
-        TextureType::LightMask, Camera::worldToScreenTransform(lightPos), 0, scale, {0.5, 0.5}, lightColor
-        }, lightMaskRect, sf::BlendAdd);
+    // sf::IntRect lightMaskRect(0, 0, 256, 256);
+
+    // TextureManager::drawSubTexture(lightTexture, {
+    //     TextureType::LightMask, Camera::worldToScreenTransform(lightPos), 0, scale, {0.5, 0.5}, lightColor
+    //     }, lightMaskRect, sf::BlendAdd);
 }
 
 bool BuildableObject::damage(int amount, Game& game, InventoryData& inventory)

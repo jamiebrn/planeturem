@@ -33,7 +33,8 @@ struct ObjectData
 
     sf::Vector2i size = {1, 1};
 
-    int lightEmission = 0;
+    std::vector<float> lightEmissionFrames;
+    float lightAbsorption = 0.0f;
 
     bool hasCollision = false;
     bool placeOnWater = false;

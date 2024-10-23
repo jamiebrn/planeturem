@@ -109,7 +109,7 @@ void Entity::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, 
     }
 }
 
-void Entity::drawLightMask(sf::RenderTarget& lightTexture) const
+void Entity::createLightSource(LightingEngine& lightingEngine, sf::Vector2f topLeftChunkPos) const
 {
     // static constexpr float lightScale = 0.3f;
     // static const sf::Color lightColor(255, 220, 140);
