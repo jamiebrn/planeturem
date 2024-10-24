@@ -1,17 +1,31 @@
 #pragma once
 
+#define _USE_MATH_DEFINES
+#include <cmath>
+
 class DayCycleManager
 {
 public:
     DayCycleManager() = default;
 
+    void update(float dt);
+
+    bool isDay();
+
+    float getLightLevel();
+
+    float getCurrentTime();
+    void setCurrentTime(float time);
+
     int getCurrentDay();
     void setCurrentDay(int day);
 
+    float getDayLength();
+
 private:
-    int currentDay;
+    int currentDay = 0;
 
     static constexpr float DAY_LENGTH = 12 * 60; // length for day
-    float currentTime;
+    float currentTime = 0.5f;
 
 };

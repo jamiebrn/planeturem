@@ -30,6 +30,7 @@
 #include "World/Room.hpp"
 #include "World/RoomPool.hpp"
 
+#include "World/DayCycleManager.hpp"
 #include "World/LightingEngine.hpp"
 
 #include "Player/Player.hpp"
@@ -122,7 +123,7 @@ private:
     void drawWorld(float dt, std::vector<WorldObject*>& worldObjects);
     void drawLighting(float dt, std::vector<WorldObject*>& worldObjects);
 
-    void updateDayNightCycle(float dt);
+    // void updateDayNightCycle(float dt);
 
     void testEnterStructure();
     void testExitStructure();
@@ -246,9 +247,9 @@ private:
     sf::Clock clock;
     float gameTime;
 
-    static constexpr float DAY_LENGTH = 3 * 60;
-    float dayNightToggleTimer;
-    float worldDarkness;
+    // static constexpr float DAY_LENGTH = 3 * 60;
+    // float dayNightToggleTimer;
+    // float worldDarkness;
     bool isDay;
 
     static constexpr float MUSIC_GAP_MIN = 5.0f;
@@ -263,6 +264,7 @@ private:
     ProjectileManager projectileManager;
     BossManager bossManager;
     ParticleSystem particleSystem;
+    DayCycleManager dayCycleManager;
 
     LightingEngine lightingEngine;
     bool smoothLighting = true;

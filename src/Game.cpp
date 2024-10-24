@@ -1,7 +1,7 @@
 #include "Game.hpp"
 
 // FIX: Crash on save / rocket enter bug (can't save???)
-// FIX: Collisions broken for objects when loading save (something to do with player death? or loading? maybe i was in god mode?)
+// FIX: Planet save files strangely large...
 
 // PRIORITY: HIGH
 // TODO: Plants / farming / growing objects
@@ -23,6 +23,7 @@ Game::Game()
 
 bool Game::initialise()
 {
+    lightingEngine.resize(160, 90);
     // Get screen resolution
     sf::VideoMode videoMode = sf::VideoMode::getDesktopMode();
     
@@ -97,8 +98,8 @@ bool Game::initialise()
     armourInventory = InventoryData(3);
 
     // Initialise day/night cycle
-    dayNightToggleTimer = 0.0f;
-    worldDarkness = 0.0f;
+    // dayNightToggleTimer = 0.0f;
+    // worldDarkness = 0.0f;
     isDay = true;
 
     // Initialise GUI
@@ -595,7 +596,9 @@ void Game::runOnPlanet(float dt)
 
     Camera::update(player.getPosition(), mouseScreenPos, dt);
 
-    updateDayNightCycle(dt);
+    dayCycleManager.update(dt);
+    isDay = dayCycleManager.isDay();
+    // updateDayNightCycle(dt);
 
     // Update depending on game state
     switch (gameState)
@@ -834,9 +837,11 @@ void Game::drawWorld(float dt, std::vector<WorldObject*>& worldObjects)
 
 void Game::drawLighting(float dt, std::vector<WorldObject*>& worldObjects)
 {
-    unsigned char ambientRedLight = (1.f - worldDarkness) * 255.0f;
-    unsigned char ambientGreenLight = (1.f - worldDarkness * 0.97f) * 255.0f;
-    unsigned char ambientBlueLight = (1.f - worldDarkness * 0.93f) * 255.0f;
+    float lightLevel = dayCycleManager.getLightLevel();
+
+    unsigned char ambientRedLight = Helper::lerp(2, 255, lightLevel);
+    unsigned char ambientGreenLight = Helper::lerp(7, 244, lightLevel);
+    unsigned char ambientBlueLight = Helper::lerp(14, 234, lightLevel);
 
     sf::Vector2i chunksSizeInView = chunkManager.getChunksSizeInView();
     sf::Vector2f topLeftChunkPos = chunkManager.topLeftChunkPosInView();
@@ -880,19 +885,19 @@ void Game::drawLighting(float dt, std::vector<WorldObject*>& worldObjects)
     window.draw(worldTextureSprite);
 }
 
-void Game::updateDayNightCycle(float dt)
-{
-    // Update day / night cycle
-    dayNightToggleTimer += dt;
+// void Game::updateDayNightCycle(float dt)
+// {
+//     // Update day / night cycle
+//     dayNightToggleTimer += dt;
 
-    if (dayNightToggleTimer >= DAY_LENGTH)
-    {
-        dayNightToggleTimer = 0.0f;
-        if (isDay) floatTween.startTween(&worldDarkness, 0.0f, 0.95f, 7, TweenTransition::Sine, TweenEasing::EaseInOut);
-        else floatTween.startTween(&worldDarkness, 0.95f, 0.0f, 7, TweenTransition::Sine, TweenEasing::EaseInOut);
-        isDay = !isDay;
-    }
-}
+//     if (dayNightToggleTimer >= DAY_LENGTH)
+//     {
+//         dayNightToggleTimer = 0.0f;
+//         if (isDay) floatTween.startTween(&worldDarkness, 0.0f, 0.95f, 7, TweenTransition::Sine, TweenEasing::EaseInOut);
+//         else floatTween.startTween(&worldDarkness, 0.95f, 0.0f, 7, TweenTransition::Sine, TweenEasing::EaseInOut);
+//         isDay = !isDay;
+//     }
+// }
 
 // Structure
 void Game::testEnterStructure()
@@ -1709,7 +1714,7 @@ bool Game::saveGame(bool gettingInRocket)
     // playerGameSave.playerPos = player.getPosition();
     playerGameSave.inventory = inventory;
     playerGameSave.armourInventory = armourInventory;
-    playerGameSave.time = dayNightToggleTimer;
+    playerGameSave.time = dayCycleManager.getCurrentTime();
     playerGameSave.isDay = isDay;
 
     PlanetGameSave planetGameSave;
@@ -1748,11 +1753,11 @@ bool Game::loadGame(const std::string& saveName)
     inventory = playerGameSave.inventory;
     armourInventory = playerGameSave.armourInventory;
     player.setPosition(planetGameSave.playerLastPos);
-    dayNightToggleTimer = playerGameSave.time;
+    dayCycleManager.setCurrentTime(playerGameSave.time);
     isDay = playerGameSave.isDay;
 
-    if (isDay) worldDarkness = 0.0f;
-    else worldDarkness = 0.95f;
+    // if (isDay) worldDarkness = 0.0f;
+    // else worldDarkness = 0.95f;
 
     changePlayerTool();
 
@@ -2066,12 +2071,20 @@ void Game::drawDebugMenu(float dt)
 
     ImGui::Checkbox("Smooth Lighting", &smoothLighting);
 
-    if (ImGui::Button("Toggle Day / Night"))
+    float time = dayCycleManager.getCurrentTime();
+    if (ImGui::SliderFloat("Day time", &time, 0.0f, dayCycleManager.getDayLength()))
     {
-        isDay = !isDay;
-        if (isDay) worldDarkness = 0.0f;
-        else worldDarkness = 0.95f;
+        dayCycleManager.setCurrentTime(time);
     }
+
+    ImGui::Text(("Light level: " + std::to_string(dayCycleManager.getLightLevel())).c_str());
+
+    // if (ImGui::Button("Toggle Day / Night"))
+    // {
+    //     isDay = !isDay;
+    //     if (isDay) worldDarkness = 0.0f;
+    //     else worldDarkness = 0.95f;
+    // }
 
     if (ImGui::Checkbox("God Mode", &DebugOptions::godMode))
     {

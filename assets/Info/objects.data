@@ -68,7 +68,7 @@
         "texture-height": 32,
         "texture-x-origin": 0.5,
         "texture-y-origin": 0.75,
-        "light-absorption": 0.4,
+        "light-absorption": 0.6,
         "has-collision": true
     },
     {
