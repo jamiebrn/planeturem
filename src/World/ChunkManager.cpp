@@ -1031,7 +1031,7 @@ sf::Vector2i ChunkManager::getChunksSizeInView()
 sf::Vector2f ChunkManager::topLeftChunkPosInView()
 {
     sf::Vector2f screenTopLeft = Camera::screenToWorldTransform({0, 0});
-    screenTopLeft.y = std::floor(screenTopLeft.y / (TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE)) * TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE;
-    screenTopLeft.x = std::floor(screenTopLeft.x / (TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE)) * TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE;
+    screenTopLeft.y = (std::floor(screenTopLeft.y / (TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE)) - CHUNK_VIEW_LOAD_BORDER) * TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE;
+    screenTopLeft.x = (std::floor(screenTopLeft.x / (TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE)) - CHUNK_VIEW_LOAD_BORDER) * TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE;
     return screenTopLeft;
 }

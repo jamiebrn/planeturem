@@ -30,7 +30,7 @@ public:
 
     void calculateLighting();
 
-    void drawObstacles(sf::RenderTarget& window);
+    void drawObstacles(sf::RenderTarget& window, int scale);
 
     void drawLighting(sf::RenderTarget& window, const sf::Color& lightingColour);
 

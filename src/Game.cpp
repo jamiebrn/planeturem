@@ -181,9 +181,11 @@ void Game::runLightingTest()
         }
     }
 
+    const int SCALE = 12;
+
     sf::Vector2i mousePos = sf::Mouse::getPosition(window);
-    int mouseTileX = mousePos.x / 12;
-    int mouseTileY = mousePos.y / 12;
+    int mouseTileX = mousePos.x / SCALE;
+    int mouseTileY = mousePos.y / SCALE;
 
     lightingEngine.resetLighting();
 
@@ -206,8 +208,31 @@ void Game::runLightingTest()
 
     window.clear();
 
-    lightingEngine.drawObstacles(window);
-    // lightingEngine.drawLighting(window, );
+    sf::RenderTexture renderTexture;
+    renderTexture.create(lightingEngine.getWidth() * SCALE, lightingEngine.getHeight() * SCALE);
+    renderTexture.clear(sf::Color(255, 255, 255));
+    lightingEngine.drawObstacles(renderTexture, SCALE);
+    renderTexture.display();
+
+    sf::RenderTexture lightingTexture;
+    lightingTexture.create(lightingEngine.getWidth(), lightingEngine.getHeight());
+    lightingEngine.drawLighting(lightingTexture, sf::Color(255, 220, 140));
+    lightingTexture.display();
+
+    lightingTexture.setSmooth(smoothLighting);
+
+    sf::Sprite lightingTextureSprite;
+    lightingTextureSprite.setTexture(lightingTexture.getTexture());
+    lightingTextureSprite.setScale({SCALE, SCALE});
+
+    renderTexture.draw(lightingTextureSprite, sf::BlendMultiply);
+
+    renderTexture.display();
+
+    sf::Sprite renderTextureSprite;
+    renderTextureSprite.setTexture(renderTexture.getTexture());
+
+    window.draw(renderTextureSprite);
 }
 
 
@@ -839,7 +864,7 @@ void Game::drawLighting(float dt, std::vector<WorldObject*>& worldObjects)
     lightingEngine.drawLighting(lightTexture, sf::Color(255, 220, 140));
 
     lightTexture.display();
-    lightTexture.setSmooth(true);
+    lightTexture.setSmooth(smoothLighting);
 
     sf::Sprite lightTextureSprite(lightTexture.getTexture());
     // lightTextureSprite.setColor(sf::Color(255, 255, 255, 255));
@@ -2038,6 +2063,8 @@ void Game::drawDebugMenu(float dt)
     }
 
     ImGui::Spacing();
+
+    ImGui::Checkbox("Smooth Lighting", &smoothLighting);
 
     if (ImGui::Button("Toggle Day / Night"))
     {

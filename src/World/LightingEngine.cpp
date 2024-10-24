@@ -95,6 +95,8 @@ void LightingEngine::calculateLighting()
     const float propagationMult = 0.87f;
     const float lightThreshold = 0.01f;
 
+    const int maxDownCheckIndex = width * (height - 1) - 1;
+
     // Process light queue
     while (!lightQueue.empty())
     {
@@ -129,7 +131,7 @@ void LightingEngine::calculateLighting()
         }
 
         // Check down
-        if (lightIndex < width * (height - 1) - 1)
+        if (lightIndex < maxDownCheckIndex)
         {
             propagateLight(lightIndex + width, nextLightIntensity, lightQueue);
         }
@@ -146,9 +148,11 @@ void LightingEngine::propagateLight(int index, float lightIntensity, std::queue<
         lighting[index] = lightIntensityAbsorbed;
         lightQueue.emplace(index);
     }
+    // lighting[index] = std::max(lighting[index] + lightIntensityAbsorbed, 1.0f);
+    // lightQueue.emplace(index);
 }
 
-void LightingEngine::drawObstacles(sf::RenderTarget& window)
+void LightingEngine::drawObstacles(sf::RenderTarget& window, int scale)
 {
     static const sf::Color wallColour = sf::Color(122, 48, 69);
     static const float ambientLight = 0.3f;
@@ -168,10 +172,10 @@ void LightingEngine::drawObstacles(sf::RenderTarget& window)
         int y = static_cast<int>(std::floor(i / width));
         int x = i % width;
 
-        obstacleVertexArray.append(sf::Vertex(sf::Vector2f(x, y), sf::Color(wallColour.r * lightIntensity, wallColour.g * lightIntensity, wallColour.b * lightIntensity)));
-        obstacleVertexArray.append(sf::Vertex(sf::Vector2f(x + 1, y), sf::Color(wallColour.r * lightIntensity, wallColour.g * lightIntensity, wallColour.b * lightIntensity)));
-        obstacleVertexArray.append(sf::Vertex(sf::Vector2f(x + 1, y + 1), sf::Color(wallColour.r * lightIntensity, wallColour.g * lightIntensity, wallColour.b * lightIntensity)));
-        obstacleVertexArray.append(sf::Vertex(sf::Vector2f(x, y + 1), sf::Color(wallColour.r * lightIntensity, wallColour.g * lightIntensity, wallColour.b * lightIntensity)));
+        obstacleVertexArray.append(sf::Vertex(sf::Vector2f(x, y) * (float)scale, wallColour));
+        obstacleVertexArray.append(sf::Vertex(sf::Vector2f(x + 1, y) * (float)scale, wallColour));
+        obstacleVertexArray.append(sf::Vertex(sf::Vector2f(x + 1, y + 1) * (float)scale, wallColour));
+        obstacleVertexArray.append(sf::Vertex(sf::Vector2f(x, y + 1) * (float)scale, wallColour));
     }
     
     if (obstacleVertexArray.getVertexCount() <= 0)

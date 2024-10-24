@@ -265,6 +265,7 @@ private:
     ParticleSystem particleSystem;
 
     LightingEngine lightingEngine;
+    bool smoothLighting = true;
 
     std::array<sf::Texture, 2> waterNoiseTextures;
 
