@@ -2,6 +2,7 @@
 
 #define _USE_MATH_DEFINES
 #include <cmath>
+#include <string>
 
 class DayCycleManager
 {
@@ -16,6 +17,7 @@ public:
 
     float getCurrentTime();
     void setCurrentTime(float time);
+    std::string getTimeString();
 
     int getCurrentDay();
     void setCurrentDay(int day);

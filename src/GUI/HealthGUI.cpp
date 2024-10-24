@@ -1,6 +1,6 @@
 #include "GUI/HealthGUI.hpp"
 
-void HealthGUI::drawHealth(sf::RenderTarget& window, SpriteBatch& spriteBatch, int health, int maxHealth, float gameTime)
+void HealthGUI::drawHealth(sf::RenderTarget& window, SpriteBatch& spriteBatch, int health, int maxHealth, float gameTime, std::string time)
 {
     sf::Vector2u resolution = ResolutionHandler::getResolution();
     float intScale = ResolutionHandler::getResolutionIntegerScale();
@@ -72,6 +72,15 @@ void HealthGUI::drawHealth(sf::RenderTarget& window, SpriteBatch& spriteBatch, i
     textDrawData.containPaddingRight = HEART_X_PADDING * intScale;
 
     TextDraw::drawText(window, textDrawData);
+
+    // Draw time
+    if (!time.empty())
+    {
+        textDrawData.position.y += 24 * intScale;
+        textDrawData.text = time;
+
+        TextDraw::drawText(window, textDrawData);
+    }
 }
 
 void HealthGUI::drawDeadPrompt(sf::RenderTarget& window)

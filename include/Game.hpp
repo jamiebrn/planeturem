@@ -123,8 +123,6 @@ private:
     void drawWorld(float dt, std::vector<WorldObject*>& worldObjects);
     void drawLighting(float dt, std::vector<WorldObject*>& worldObjects);
 
-    // void updateDayNightCycle(float dt);
-
     void testEnterStructure();
     void testExitStructure();
 
@@ -247,9 +245,6 @@ private:
     sf::Clock clock;
     float gameTime;
 
-    // static constexpr float DAY_LENGTH = 3 * 60;
-    // float dayNightToggleTimer;
-    // float worldDarkness;
     bool isDay;
 
     static constexpr float MUSIC_GAP_MIN = 5.0f;

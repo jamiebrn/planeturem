@@ -209,5 +209,13 @@
             "Wood": 2,
             "Coal": 1
         }
+    },
+    {
+        "product": "Wooden Clock",
+        "item-requirements": {
+            "Wood": 10
+        },
+        "crafting-station": "bench",
+        "crafting-station-level": 1
     }
 ]

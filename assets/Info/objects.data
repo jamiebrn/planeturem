@@ -286,7 +286,6 @@
             "Worm": [1, 1, 1.0]
         }
     },
-
     {
         "name": "Rocket Launch Pad",
         "health": 5,
@@ -307,6 +306,22 @@
         },
         "item-drops": {
             "Rocket Launch Pad": [1, 1, 1.0]
+        }
+    },
+    {
+        "name": "Wooden Clock",
+        "health": 6,
+        "textures": [[160, 160]],
+        "texture-width": 16,
+        "texture-height": 32,
+        "texture-x-origin": 0.5,
+        "texture-y-origin": 0.75,
+        "has-collision": true,
+        "light-absorption": 0.5,
+        "crafting-station": "CLOCK_TIME",
+        "crafting-station-level": 1,
+        "item-drops": {
+            "Wooden Clock": [1, 1, 1]
         }
     }
 ]

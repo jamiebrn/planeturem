@@ -675,17 +675,24 @@ void Game::runOnPlanet(float dt)
 
     if (player.isAlive())
     {
+        // Draw time if required
+        std::string timeString;
+        if (nearbyCraftingStationLevels.contains("CLOCK_TIME"))
+        {
+            timeString = dayCycleManager.getTimeString();
+        }
+
         switch (worldMenuState)
         {
             case WorldMenuState::Main:
                 InventoryGUI::drawHotbar(window, mouseScreenPos, inventory);
                 InventoryGUI::drawItemPopups(window);
-                HealthGUI::drawHealth(window, spriteBatch, player.getHealth(), player.getMaxHealth(), gameTime);
+                HealthGUI::drawHealth(window, spriteBatch, player.getHealth(), player.getMaxHealth(), gameTime, timeString);
                 break;
             
             case WorldMenuState::Inventory:
                 InventoryGUI::draw(window, gameTime, mouseScreenPos, inventory, armourInventory, chestDataPool.getChestDataPtr(openedChestID));
-                HealthGUI::drawHealth(window, spriteBatch, player.getHealth(), player.getMaxHealth(), gameTime);
+                HealthGUI::drawHealth(window, spriteBatch, player.getHealth(), player.getMaxHealth(), gameTime, timeString);
                 break;
             
             case WorldMenuState::TravelSelect:
@@ -885,19 +892,6 @@ void Game::drawLighting(float dt, std::vector<WorldObject*>& worldObjects)
     window.draw(worldTextureSprite);
 }
 
-// void Game::updateDayNightCycle(float dt)
-// {
-//     // Update day / night cycle
-//     dayNightToggleTimer += dt;
-
-//     if (dayNightToggleTimer >= DAY_LENGTH)
-//     {
-//         dayNightToggleTimer = 0.0f;
-//         if (isDay) floatTween.startTween(&worldDarkness, 0.0f, 0.95f, 7, TweenTransition::Sine, TweenEasing::EaseInOut);
-//         else floatTween.startTween(&worldDarkness, 0.95f, 0.0f, 7, TweenTransition::Sine, TweenEasing::EaseInOut);
-//         isDay = !isDay;
-//     }
-// }
 
 // Structure
 void Game::testEnterStructure()
