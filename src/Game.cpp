@@ -1706,9 +1706,13 @@ void Game::startNewGame()
 
     initialiseNewPlanet(PlanetGenDataLoader::getPlanetTypeFromName("Earthlike"));
 
+    dayCycleManager.setCurrentTime(dayCycleManager.getDayLength() * 0.5f);
+    dayCycleManager.setCurrentDay(1);
+
     Camera::instantUpdate(player.getPosition());
 
     chunkManager.updateChunks();
+    lightingTick = LIGHTING_TICK;
 
     startChangeStateTransition(GameState::OnPlanet);
 }

@@ -29,6 +29,6 @@ private:
     int currentDay = 0;
 
     static constexpr float DAY_LENGTH = 12 * 60; // length for day
-    float currentTime = 0.5f;
+    float currentTime = 0.0f;
 
 };
