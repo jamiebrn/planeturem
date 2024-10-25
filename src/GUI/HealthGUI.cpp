@@ -1,6 +1,6 @@
 #include "GUI/HealthGUI.hpp"
 
-void HealthGUI::drawHealth(sf::RenderTarget& window, SpriteBatch& spriteBatch, int health, int maxHealth, float gameTime, std::string time)
+void HealthGUI::drawHealth(sf::RenderTarget& window, SpriteBatch& spriteBatch, int health, int maxHealth, float gameTime, const std::vector<std::string>& extraInfo)
 {
     sf::Vector2u resolution = ResolutionHandler::getResolution();
     float intScale = ResolutionHandler::getResolutionIntegerScale();
@@ -73,11 +73,10 @@ void HealthGUI::drawHealth(sf::RenderTarget& window, SpriteBatch& spriteBatch, i
 
     TextDraw::drawText(window, textDrawData);
 
-    // Draw time
-    if (!time.empty())
+    for (const std::string& string : extraInfo)
     {
         textDrawData.position.y += 24 * intScale;
-        textDrawData.text = time;
+        textDrawData.text = string;
 
         TextDraw::drawText(window, textDrawData);
     }

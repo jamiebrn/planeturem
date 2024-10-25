@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cmath>
+#include <vector>
 
 #include <SFML/Graphics.hpp>
 
@@ -20,7 +21,7 @@ static constexpr int HEART_SIZE = 16;
 
 static constexpr int HEALTH_PER_HEART = 50;
 
-void drawHealth(sf::RenderTarget& window, SpriteBatch& spriteBatch, int health, int maxHealth, float gameTime, std::string time = "");
+void drawHealth(sf::RenderTarget& window, SpriteBatch& spriteBatch, int health, int maxHealth, float gameTime, const std::vector<std::string>& extraInfo);
 
 void drawDeadPrompt(sf::RenderTarget& window);
 

@@ -21,6 +21,7 @@ public:
 
     int getCurrentDay();
     void setCurrentDay(int day);
+    std::string getDayString();
 
     float getDayLength();
 

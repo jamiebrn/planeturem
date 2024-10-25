@@ -674,11 +674,11 @@ void Game::runOnPlanet(float dt)
 
     if (player.isAlive())
     {
-        // Draw time if required
-        std::string timeString;
+        std::vector<std::string> extraInfoStrings;
         if (nearbyCraftingStationLevels.contains(CLOCK_CRAFTING_STATION))
         {
-            timeString = dayCycleManager.getTimeString();
+            extraInfoStrings.push_back(dayCycleManager.getDayString());
+            extraInfoStrings.push_back(dayCycleManager.getTimeString());
         }
 
         switch (worldMenuState)
@@ -686,12 +686,12 @@ void Game::runOnPlanet(float dt)
             case WorldMenuState::Main:
                 InventoryGUI::drawHotbar(window, mouseScreenPos, inventory);
                 InventoryGUI::drawItemPopups(window);
-                HealthGUI::drawHealth(window, spriteBatch, player.getHealth(), player.getMaxHealth(), gameTime, timeString);
+                HealthGUI::drawHealth(window, spriteBatch, player.getHealth(), player.getMaxHealth(), gameTime, extraInfoStrings);
                 break;
             
             case WorldMenuState::Inventory:
                 InventoryGUI::draw(window, gameTime, mouseScreenPos, inventory, armourInventory, chestDataPool.getChestDataPtr(openedChestID));
-                HealthGUI::drawHealth(window, spriteBatch, player.getHealth(), player.getMaxHealth(), gameTime, timeString);
+                HealthGUI::drawHealth(window, spriteBatch, player.getHealth(), player.getMaxHealth(), gameTime, extraInfoStrings);
                 break;
             
             case WorldMenuState::TravelSelect:
@@ -1724,7 +1724,7 @@ bool Game::saveGame(bool gettingInRocket)
     playerGameSave.inventory = inventory;
     playerGameSave.armourInventory = armourInventory;
     playerGameSave.time = dayCycleManager.getCurrentTime();
-    playerGameSave.isDay = isDay;
+    playerGameSave.day = dayCycleManager.getCurrentDay();
 
     PlanetGameSave planetGameSave;
     planetGameSave.playerLastPos = player.getPosition();
@@ -1763,10 +1763,7 @@ bool Game::loadGame(const std::string& saveName)
     armourInventory = playerGameSave.armourInventory;
     player.setPosition(planetGameSave.playerLastPos);
     dayCycleManager.setCurrentTime(playerGameSave.time);
-    isDay = playerGameSave.isDay;
-
-    // if (isDay) worldDarkness = 0.0f;
-    // else worldDarkness = 0.95f;
+    dayCycleManager.setCurrentDay(playerGameSave.day);
 
     changePlayerTool();
 

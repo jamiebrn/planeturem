@@ -46,7 +46,7 @@ std::string DayCycleManager::getTimeString()
 {
     float progress = currentTime / DAY_LENGTH;
     int hours = std::floor(progress * 24);
-    int minutes = static_cast<int>(std::floor(progress * 24 * 60)) % 60;
+    int minutes = static_cast<int>(std::floor((static_cast<int>(std::floor(progress * 24 * 60)) % 60) / 10.0f) * 10.0f);
 
     std::string minuteString = std::to_string(minutes);
 
@@ -66,6 +66,11 @@ int DayCycleManager::getCurrentDay()
 void DayCycleManager::setCurrentDay(int day)
 {
     currentDay = day;
+}
+
+std::string DayCycleManager::getDayString()
+{
+    return "Day " + std::to_string(currentDay);
 }
 
 float DayCycleManager::getDayLength()
