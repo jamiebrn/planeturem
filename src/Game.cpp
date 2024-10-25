@@ -1,7 +1,6 @@
 #include "Game.hpp"
 
 // FIX: Crash on save / rocket enter bug (can't save???)
-// FIX: Planet save files strangely large...
 
 // PRIORITY: HIGH
 // TODO: Plants / farming / growing objects
@@ -677,7 +676,7 @@ void Game::runOnPlanet(float dt)
     {
         // Draw time if required
         std::string timeString;
-        if (nearbyCraftingStationLevels.contains("CLOCK_TIME"))
+        if (nearbyCraftingStationLevels.contains(CLOCK_CRAFTING_STATION))
         {
             timeString = dayCycleManager.getTimeString();
         }

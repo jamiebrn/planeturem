@@ -297,8 +297,6 @@ void Room::loadObjectPODs(const std::vector<std::vector<std::optional<BuildableO
 
         for (int x = 0; x < pods[y].size(); x++)
         {
-            objectGrid[y].emplace_back();
-
             if (!pods[y][x].has_value())
             {
                 objectGrid[y][x] = nullptr;

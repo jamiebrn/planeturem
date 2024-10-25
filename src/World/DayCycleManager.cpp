@@ -48,7 +48,14 @@ std::string DayCycleManager::getTimeString()
     int hours = std::floor(progress * 24);
     int minutes = static_cast<int>(std::floor(progress * 24 * 60)) % 60;
 
-    return std::to_string(hours) + ":" + std::to_string(minutes);
+    std::string minuteString = std::to_string(minutes);
+
+    if (minuteString.size() < 2)
+    {
+        minuteString = "0" + minuteString;
+    }
+
+    return std::to_string(hours) + ":" + minuteString;
 }
 
 int DayCycleManager::getCurrentDay()
