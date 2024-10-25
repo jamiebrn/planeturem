@@ -262,6 +262,7 @@ private:
     DayCycleManager dayCycleManager;
 
     LightingEngine lightingEngine;
+    int lightingTick = 0;
     bool smoothLighting = true;
 
     std::array<sf::Texture, 2> waterNoiseTextures;

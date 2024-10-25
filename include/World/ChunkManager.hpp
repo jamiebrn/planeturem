@@ -49,7 +49,8 @@ public:
     void deleteAllChunks();
 
     // Load/unload chunks every frame
-    void updateChunks();
+    // Returns true if any chunks loaded / unloaded
+    bool updateChunks();
 
     // Forces a reload of chunks, used when wrapping around world
     void reloadChunks();

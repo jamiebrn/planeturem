@@ -204,7 +204,7 @@ void Game::runLightingTest()
         lightingEngine.addMovingLightSource(mouseTileX, mouseTileY, 0.7f);
     }
 
-    lightingEngine.calculateLighting();
+    lightingEngine.calculateLighting(sf::Color(255, 220, 140));
 
     window.clear();
 
@@ -216,7 +216,7 @@ void Game::runLightingTest()
 
     sf::RenderTexture lightingTexture;
     lightingTexture.create(lightingEngine.getWidth(), lightingEngine.getHeight());
-    lightingEngine.drawLighting(lightingTexture, sf::Color(255, 220, 140));
+    lightingEngine.drawLighting(lightingTexture);
     lightingTexture.display();
 
     lightingTexture.setSmooth(smoothLighting);
@@ -742,9 +742,15 @@ void Game::updateOnPlanet(float dt)
     }
 
     // Update (loaded) chunks
-    chunkManager.updateChunks();
+    bool modifiedChunks = chunkManager.updateChunks();
     chunkManager.updateChunksObjects(*this, dt);
     chunkManager.updateChunksEntities(dt, projectileManager, inventory);
+
+    // If modified chunks, force a lighting recalculation
+    if (modifiedChunks)
+    {
+        lightingTick = LIGHTING_TICK;
+    }
     
     // Get nearby crafting stations
     nearbyCraftingStationLevels = chunkManager.getNearbyCraftingStationLevels(player.getChunkInside(worldSize), player.getChunkTileInside(worldSize), 4);
@@ -856,23 +862,32 @@ void Game::drawLighting(float dt, std::vector<WorldObject*>& worldObjects)
     sf::RenderTexture lightTexture;
     lightTexture.create(chunksSizeInView.x * CHUNK_TILE_SIZE * TILE_LIGHTING_RESOLUTION, chunksSizeInView.y * CHUNK_TILE_SIZE * TILE_LIGHTING_RESOLUTION);
 
-    // Prepare lighting engine
-    lightingEngine.resize(chunksSizeInView.x * CHUNK_TILE_SIZE * TILE_LIGHTING_RESOLUTION, chunksSizeInView.y * CHUNK_TILE_SIZE * TILE_LIGHTING_RESOLUTION);
-
-    // player.drawLightMask(lightTexture);
-
-    for (WorldObject* worldObject : worldObjects)
+    lightingTick++;
+    if (lightingTick >= LIGHTING_TICK)
     {
-        // worldObject->drawLightMask(lightTexture);
-        worldObject->createLightSource(lightingEngine, topLeftChunkPos);
+        lightingTick = 0;
+
+        // Recalculate lighting
+
+        // Prepare lighting engine
+        lightingEngine.resize(chunksSizeInView.x * CHUNK_TILE_SIZE * TILE_LIGHTING_RESOLUTION, chunksSizeInView.y * CHUNK_TILE_SIZE * TILE_LIGHTING_RESOLUTION);
+
+        // player.drawLightMask(lightTexture);
+
+        for (WorldObject* worldObject : worldObjects)
+        {
+            // worldObject->drawLightMask(lightTexture);
+            worldObject->createLightSource(lightingEngine, topLeftChunkPos);
+        }
+
+        lightingEngine.calculateLighting(sf::Color(255, 220, 140));
     }
 
-    lightingEngine.calculateLighting();
 
     lightTexture.clear({ambientRedLight, ambientGreenLight, ambientBlueLight, 255});
 
     // draw from lighting engine
-    lightingEngine.drawLighting(lightTexture, sf::Color(255, 220, 140));
+    lightingEngine.drawLighting(lightTexture);
 
     lightTexture.display();
     lightTexture.setSmooth(smoothLighting);
@@ -1535,6 +1550,7 @@ void Game::travelToPlanet(PlanetType planetType)
     Camera::instantUpdate(player.getPosition());
 
     chunkManager.updateChunks();
+    lightingTick = LIGHTING_TICK;
 
     // Start rocket flying downwards
     BuildableObject* rocketObject = chunkManager.getChunkObject(rocketEnteredReference.chunk, rocketEnteredReference.tile);
@@ -1761,6 +1777,7 @@ bool Game::loadGame(const std::string& saveName)
     Camera::instantUpdate(player.getPosition());
 
     chunkManager.updateChunks();
+    lightingTick = LIGHTING_TICK;
 
     // Load successful, set save name as current save and start state transition
     currentSaveName = saveName;

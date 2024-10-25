@@ -68,10 +68,10 @@ void LightingEngine::addObstacle(int x, int y, float absorption)
     obstacles[y * width + x] = absorption;
 }
 
-void LightingEngine::calculateLighting()
+void LightingEngine::calculateLighting(const sf::Color& lightingColour)
 {
     // Initialise light sources and put indexes into queue
-    std::queue<int> lightQueue;
+    std::queue<LightPropagationNode> lightQueue;
     for (int i = 0; i < lightSources.size(); i++)
     {
         const float& intensity = std::max(lightSources[i], movingLightSources[i]);
@@ -89,10 +89,10 @@ void LightingEngine::calculateLighting()
         // Is light source
         lighting[i] = intensity * (1.0f - lightAbsorption);
 
-        lightQueue.emplace(i);
+        lightQueue.emplace(LightPropagationNode{i, 0});
     }
 
-    const float propagationMult = 0.87f;
+    // const float propagationMult = 0.87f;
     const float lightThreshold = 0.01f;
 
     const int maxDownCheckIndex = width * (height - 1) - 1;
@@ -100,56 +100,86 @@ void LightingEngine::calculateLighting()
     // Process light queue
     while (!lightQueue.empty())
     {
-        const int lightIndex = lightQueue.front();
-        const float lightIntensity = lighting[lightIndex];
-        const float nextLightIntensity = lightIntensity * propagationMult;
+        const LightPropagationNode& lightNode = lightQueue.front();
+        const float lightIntensity = lighting[lightNode.index];
+        // const float nextLightIntensity = lightIntensity * propagationMult;
 
-        if (nextLightIntensity < lightThreshold)
+        if (lightIntensity < lightThreshold)
         {
             lightQueue.pop();
             continue;
         }
 
-        int xIndex = lightIndex % width;
+        int xIndex = lightNode.index % width;
 
         // Check left
         if (xIndex > 0)
         {
-            propagateLight(lightIndex - 1, nextLightIntensity, lightQueue);
+            propagateLight(LightPropagationNode{lightNode.index - 1, lightNode.steps + 1}, lightIntensity, lightQueue);
         }
 
         // Check right
         if (xIndex < width - 1)
         {
-            propagateLight(lightIndex + 1, nextLightIntensity, lightQueue);
+            propagateLight(LightPropagationNode{lightNode.index + 1, lightNode.steps + 1}, lightIntensity, lightQueue);
         }
 
         // Check up
-        if (lightIndex > width)
+        if (lightNode.index > width)
         {
-            propagateLight(lightIndex - width, nextLightIntensity, lightQueue);
+            propagateLight(LightPropagationNode{lightNode.index - width, lightNode.steps + 1}, lightIntensity, lightQueue);
         }
 
         // Check down
-        if (lightIndex < maxDownCheckIndex)
+        if (lightNode.index < maxDownCheckIndex)
         {
-            propagateLight(lightIndex + width, nextLightIntensity, lightQueue);
+            propagateLight(LightPropagationNode{lightNode.index + width, lightNode.steps + 1}, lightIntensity, lightQueue);
         }
 
         lightQueue.pop();
     }
+
+    buildVertexArray(lightingColour);
 }
 
-void LightingEngine::propagateLight(int index, float lightIntensity, std::queue<int>& lightQueue)
+void LightingEngine::propagateLight(const LightPropagationNode& lightNode, float previousIntensity, std::queue<LightPropagationNode>& lightQueue)
 {
-    float lightIntensityAbsorbed = lightIntensity * (1.0f - obstacles[index]);
-    if (lighting[index] < lightIntensityAbsorbed)
+    const float stepBaseMult = 0.83f;
+
+    float lightIntensity = previousIntensity * std::pow(stepBaseMult, lightNode.steps);
+    float lightIntensityAbsorbed = lightIntensity * (1.0f - obstacles[lightNode.index]);
+
+    if (lighting[lightNode.index] < lightIntensityAbsorbed)
     {
-        lighting[index] = lightIntensityAbsorbed;
-        lightQueue.emplace(index);
+        lighting[lightNode.index] = lightIntensityAbsorbed;
+        lightQueue.emplace(lightNode.index);
     }
     // lighting[index] = std::max(lighting[index] + lightIntensityAbsorbed, 1.0f);
     // lightQueue.emplace(index);
+}
+
+void LightingEngine::buildVertexArray(const sf::Color& lightingColour)
+{
+    lightingVertexArray.clear();
+
+    for (int i = 0; i < lighting.size(); i++)
+    {
+        const float& intensity = lighting[i];
+        if (intensity <= 0)
+        {
+            continue;
+        }
+
+        int y = static_cast<int>(std::floor(i / width));
+        int x = i % width;
+
+        sf::Color colour(lightingColour.r * intensity, lightingColour.g * intensity, lightingColour.b * intensity);
+
+        lightingVertexArray.push_back(sf::Vertex(sf::Vector2f(x, y), colour));
+        lightingVertexArray.push_back(sf::Vertex(sf::Vector2f(x + 1, y), colour));
+        lightingVertexArray.push_back(sf::Vertex(sf::Vector2f(x + 1, y + 1), colour));
+        lightingVertexArray.push_back(sf::Vertex(sf::Vector2f(x, y + 1), colour));
+    }
 }
 
 void LightingEngine::drawObstacles(sf::RenderTarget& window, int scale)
@@ -186,29 +216,8 @@ void LightingEngine::drawObstacles(sf::RenderTarget& window, int scale)
     window.draw(&(obstacleVertexArray[0]), obstacleVertexArray.getVertexCount(), sf::Quads);
 }
 
-void LightingEngine::drawLighting(sf::RenderTarget& window, const sf::Color& lightingColour)
+void LightingEngine::drawLighting(sf::RenderTarget& window)
 {
-    lightingVertexArray.clear();
-
-    for (int i = 0; i < lighting.size(); i++)
-    {
-        const float& intensity = lighting[i];
-        if (intensity <= 0)
-        {
-            continue;
-        }
-
-        int y = static_cast<int>(std::floor(i / width));
-        int x = i % width;
-
-        sf::Color colour(lightingColour.r * intensity, lightingColour.g * intensity, lightingColour.b * intensity);
-
-        lightingVertexArray.push_back(sf::Vertex(sf::Vector2f(x, y), colour));
-        lightingVertexArray.push_back(sf::Vertex(sf::Vector2f(x + 1, y), colour));
-        lightingVertexArray.push_back(sf::Vertex(sf::Vector2f(x + 1, y + 1), colour));
-        lightingVertexArray.push_back(sf::Vertex(sf::Vector2f(x, y + 1), colour));
-    }
-
     if (lightingVertexArray.size() <= 0)
     {
         return;

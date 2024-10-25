@@ -48,9 +48,11 @@ void ChunkManager::deleteAllChunks()
     storedChunks.clear();
 }
 
-void ChunkManager::updateChunks()
+bool ChunkManager::updateChunks()
 {
     // Chunk load/unload
+
+    bool hasModifiedChunks = false;
 
     // Get tile size
     // float tileSize = ResolutionHandler::getTileSize();
@@ -84,6 +86,7 @@ void ChunkManager::updateChunks()
                 continue;
             
             // Chunk not loaded
+            hasModifiedChunks = true;
 
             // Calculate chunk world pos
             sf::Vector2f chunkWorldPos;
@@ -145,6 +148,8 @@ void ChunkManager::updateChunks()
         // If chunk is not visible, unload chunk
         if (!chunkVisible)
         {
+            hasModifiedChunks = true;
+
             // If chunk has been modified, store it
             if (iter->second->hasBeenModified())
             {
@@ -157,6 +162,8 @@ void ChunkManager::updateChunks()
         }
         iter++;
     }
+
+    return hasModifiedChunks;
 }
 
 void ChunkManager::reloadChunks()

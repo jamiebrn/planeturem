@@ -28,14 +28,23 @@ public:
 
     void addObstacle(int x, int y, float absorption = 1.0f);
 
-    void calculateLighting();
+    void calculateLighting(const sf::Color& lightingColour);
 
     void drawObstacles(sf::RenderTarget& window, int scale);
 
-    void drawLighting(sf::RenderTarget& window, const sf::Color& lightingColour);
+    void drawLighting(sf::RenderTarget& window);
 
 private:
-    void propagateLight(int index, float lightIntensity, std::queue<int>& lightQueue);
+    void buildVertexArray(const sf::Color& lightingColour);
+
+private:
+    struct LightPropagationNode
+    {
+        int index;
+        int steps;
+    };
+
+    void propagateLight(const LightPropagationNode& lightNode, float previousIntensity, std::queue<LightPropagationNode>& lightQueue);
 
 private:
     std::vector<float> lighting;
