@@ -2,7 +2,7 @@
 
 std::unique_ptr<BuildableObject> BuildableObjectFactory::create(sf::Vector2f position, ObjectType objectType)
 {
-    if (objectType > 0)
+    if (objectType >= 0)
     {
         const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
 
@@ -13,6 +13,10 @@ std::unique_ptr<BuildableObject> BuildableObjectFactory::create(sf::Vector2f pos
         if (objectData.rocketObjectData.has_value())
         {
             return std::make_unique<RocketObject>(position, objectType);
+        }
+        if (objectData.plantStageObjectData.has_value())
+        {
+            return std::make_unique<PlantObject>(position, objectType);
         }
     }
 

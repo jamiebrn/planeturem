@@ -2,6 +2,7 @@
 
 #include <string>
 
+static const std::string GAME_TITLE = "Planeturem";
 static const std::string GAME_VERSION = "prealpha-v0.6";
 
 static constexpr float TILE_SIZE_PIXELS_UNSCALED = 16;

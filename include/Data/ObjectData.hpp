@@ -9,6 +9,18 @@
 #include "Data/typedefs.hpp"
 #include "Data/ItemDrop.hpp"
 
+struct PlantStageObjectData
+{
+    std::vector<sf::IntRect> textureRects;
+    sf::Vector2f textureOrigin;
+    int health;
+
+    int minDay;
+    int maxDay;
+
+    std::vector<ItemDrop> itemDrops;
+};
+
 struct RocketObjectData
 {
     sf::IntRect textureRect;
@@ -24,7 +36,7 @@ struct RocketObjectData
 struct ObjectData
 {
     std::string name;
-    int health;
+    int health = 1;
     
     std::vector<sf::IntRect> textureRects;
     float textureFrameDelay = 0.0f;
@@ -51,6 +63,9 @@ struct ObjectData
 
     // If is rocket / launch pad
     std::optional<RocketObjectData> rocketObjectData = std::nullopt;
+
+    // If is a plant
+    std::optional<std::vector<PlantStageObjectData>> plantStageObjectData = std::nullopt;
 
     bool mythicalItem = false;
 };

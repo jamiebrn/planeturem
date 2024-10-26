@@ -10,7 +10,12 @@ BuildableObject::BuildableObject(sf::Vector2f position, ObjectType objectType, b
 
     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
 
-    health = objectData.health;
+    bool useObjectHealth = !objectData.plantStageObjectData.has_value();
+    if (useObjectHealth)
+    {
+        health = objectData.health;
+    }
+    
     flash_amount = 0.0f;
 
     drawLayer = objectData.drawLayer;
@@ -23,7 +28,7 @@ BuildableObject::BuildableObject(sf::Vector2f position, ObjectType objectType, b
     // }
 
     // Randomise animation start frame
-    if (randomiseAnimation)
+    if (randomiseAnimation && objectData.textureRects.size() > 0)
     {
         animatedTexture.setFrame(rand() % objectData.textureRects.size());
     }
@@ -54,31 +59,38 @@ void BuildableObject::update(Game& game, float dt, bool onWater, bool loopAnimat
     this->onWater = onWater;
 }
 
-void BuildableObject::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime, int worldSize, const sf::Color& color) const
+void BuildableObject::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, float dt, float gameTime, int worldSize, const sf::Color& color) const
 {
     if (objectType < 0)
         return;
 
+    drawObject(window, spriteBatch, gameTime, worldSize, color);    
+}
+
+void BuildableObject::drawObject(sf::RenderTarget& window, SpriteBatch& spriteBatch, float gameTime, int worldSize, const sf::Color& color,
+    std::optional<std::vector<sf::IntRect>> textureRectsOverride, std::optional<sf::Vector2f> textureOriginOverride) const
+{
     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
 
     float scaleMult = 0.4f * std::sin(3.14 / 2.0f * std::max(1.0f - flash_amount, 0.5f)) + 0.6f;
     sf::Vector2f scale = sf::Vector2f((float)ResolutionHandler::getScale(), (float)ResolutionHandler::getScale() * scaleMult);
 
-    const sf::IntRect& textureRect = objectData.textureRects[animatedTexture.getFrame()];
+    const sf::IntRect* textureRect = &objectData.textureRects[animatedTexture.getFrame()];
+    if (textureRectsOverride.has_value())
+    {
+        textureRect = &textureRectsOverride->at(animatedTexture.getFrame());
+    }
 
     float waterYOffset = getWaterBobYOffset(worldSize, gameTime);
 
     TextureDrawData drawData = {
         TextureType::Objects, Camera::worldToScreenTransform(position + sf::Vector2f(0, waterYOffset)), 0, scale, objectData.textureOrigin, color
         };
-
-    // if (flash_amount <= 0)
-    // {
-    // }
-    // else
-    // {
-        // End batch
-        // spriteBatch.endDrawing(window);
+    
+    if (textureOriginOverride.has_value())
+    {
+        drawData.centerRatio = textureOriginOverride.value();
+    }
     
     std::optional<ShaderType> shaderType;
 
@@ -89,10 +101,7 @@ void BuildableObject::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, f
         shader->setUniform("flash_amount", flash_amount);
     }
 
-    spriteBatch.draw(window, drawData, textureRect, shaderType);
-    
-        // TextureManager::drawSubTexture(window, drawData, textureRect, shader);
-    // }
+    spriteBatch.draw(window, drawData, *textureRect, shaderType);
 }
 
 void BuildableObject::createLightSource(LightingEngine& lightingEngine, sf::Vector2f topLeftChunkPos) const
@@ -159,7 +168,7 @@ void BuildableObject::createLightSource(LightingEngine& lightingEngine, sf::Vect
     //     }, lightMaskRect, sf::BlendAdd);
 }
 
-bool BuildableObject::damage(int amount, Game& game, InventoryData& inventory)
+bool BuildableObject::damage(int amount, Game& game, InventoryData& inventory, bool giveItems)
 {
     if (objectType < 0)
         return false;
@@ -182,26 +191,35 @@ bool BuildableObject::damage(int amount, Game& game, InventoryData& inventory)
 
     if (!isAlive())
     {
-        // Give item drops
-        const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
-        float dropChance = (rand() % 1000) / 1000.0f;
-        for (const ItemDrop& itemDrop : objectData.itemDrops)
+        if (giveItems)
         {
-            if (dropChance < itemDrop.chance)
-            {
-                // Give items
-                unsigned int itemAmount = rand() % std::max(itemDrop.maxAmount - itemDrop.minAmount + 1, 1U) + itemDrop.minAmount;
-                inventory.addItem(itemDrop.item, itemAmount);
-
-                // Create item popup
-                InventoryGUI::pushItemPopup(ItemCount(itemDrop.item, itemAmount));
-            }
+            // Give item drops
+            const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
+            giveItemDrops(inventory, objectData.itemDrops);
         }
 
         return true;
     }
 
     return false;
+}
+
+void BuildableObject::giveItemDrops(InventoryData& inventory, const std::vector<ItemDrop>& itemDrops)
+{
+    float dropChance = (rand() % 1000) / 1000.0f;
+
+    for (const ItemDrop& itemDrop : itemDrops)
+    {
+        if (dropChance < itemDrop.chance)
+        {
+            // Give items
+            unsigned int itemAmount = rand() % std::max(itemDrop.maxAmount - itemDrop.minAmount + 1, 1U) + itemDrop.minAmount;
+            inventory.addItem(itemDrop.item, itemAmount);
+
+            // Create item popup
+            InventoryGUI::pushItemPopup(ItemCount(itemDrop.item, itemAmount));
+        }
+    }
 }
 
 void BuildableObject::interact(Game& game)

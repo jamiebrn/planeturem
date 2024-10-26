@@ -7,6 +7,7 @@
 #include <iostream>
 
 #include "Core/json.hpp"
+#include "Data/Serialise/Vector2Serialise.hpp"
 #include "Data/ObjectData.hpp"
 #include "Data/ItemData.hpp"
 #include "Data/ItemDataLoader.hpp"

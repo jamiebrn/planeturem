@@ -262,7 +262,7 @@ void Player::updateFishingRodCatch(float dt)
     }
 }
 
-void Player::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime, int worldSize, const sf::Color& color) const
+void Player::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, float dt, float gameTime, int worldSize, const sf::Color& color) const
 {
     if (inRocket || !isAlive())
         return;

@@ -12,4 +12,10 @@ inline void from_json(const nlohmann::json& json, sf::Vector2f& vector)
     vector.y = json[1];
 }
 
+inline void from_json(const nlohmann::json& json, sf::Vector2i& vector)
+{
+    vector.x = json[0];
+    vector.y = json[1];
+}
+
 };

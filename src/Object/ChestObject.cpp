@@ -22,7 +22,7 @@ void ChestObject::update(Game& game, float dt, bool onWater, bool loopAnimation)
     }
 }
 
-bool ChestObject::damage(int amount, Game& game, InventoryData& inventory)
+bool ChestObject::damage(int amount, Game& game, InventoryData& inventory, bool giveItems)
 {
     // Check if chest contains items - if it does, set damage amount to 0
     if (chestID != 0xFFFF)

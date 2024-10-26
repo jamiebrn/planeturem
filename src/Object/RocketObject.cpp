@@ -46,9 +46,9 @@ void RocketObject::update(Game& game, float dt, bool onWater, bool loopAnimation
     }
 }
 
-void RocketObject::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime, int worldSize, const sf::Color& color) const
+void RocketObject::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, float dt, float gameTime, int worldSize, const sf::Color& color) const
 {
-    BuildableObject::draw(window, spriteBatch, dt, gameTime, worldSize, color);
+    BuildableObject::draw(window, spriteBatch, game, dt, gameTime, worldSize, color);
 
     // Draw rocket particles
     particleSystem.draw(window, spriteBatch);

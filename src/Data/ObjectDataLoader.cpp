@@ -8,12 +8,30 @@ bool ObjectDataLoader::loadData(std::string objectDataPath)
     std::ifstream file(objectDataPath);
     nlohmann::ordered_json data = nlohmann::ordered_json::parse(file);
 
-    int objectIdx = 0;
 
     // Store all item drops to add to objects after loading
     // Allows objects to drop other objects, including themselves, as items
     // Pair stores name of item to drop as string, and item drop (item drop item type will be overridden)
-    std::unordered_map<ObjectType, std::vector<std::pair<std::string, ItemDrop>>> objectItemDrops;
+    // std::unordered_map<ObjectType, std::vector<std::pair<std::string, ItemDrop>>> objectItemDrops;
+
+    int objectIdx = 0;
+
+    // Load all names and essential data first to load items, to allow objects to drop other objects / themselves
+    for (auto iter = data.begin(); iter != data.end(); ++iter)
+    {
+        ObjectData minimalObjectData;
+
+        minimalObjectData.name = iter.value().at("name");
+        if (iter.value().contains("mythical-item")) minimalObjectData.mythicalItem = iter.value().at("mythical-item");
+
+        objectNameToTypeMap[minimalObjectData.name] = objectIdx;
+
+        ItemDataLoader::createItemFromObject(objectIdx, minimalObjectData);
+
+        objectIdx++;
+    }
+
+    // objectIdx = 0;
 
     // Load data
     for (nlohmann::ordered_json::iterator iter = data.begin(); iter != data.end(); ++iter)
@@ -23,19 +41,22 @@ bool ObjectDataLoader::loadData(std::string objectDataPath)
 
         objectData.name = jsonObjectData.at("name");
 
-        int textureWidth = jsonObjectData.at("texture-width");
-        int textureHeight = jsonObjectData.at("texture-height");
-
-        auto textures = jsonObjectData.at("textures");
-        for (nlohmann::ordered_json::iterator texturePositionIter = textures.begin(); texturePositionIter != textures.end(); ++texturePositionIter)
+        if (jsonObjectData.contains("textures"))
         {
-            sf::IntRect textureRect;
-            textureRect.left = texturePositionIter.value()[0];
-            textureRect.top = texturePositionIter.value()[1];
-            textureRect.width = textureWidth;
-            textureRect.height = textureHeight;
+            int textureWidth = jsonObjectData.at("texture-width");
+            int textureHeight = jsonObjectData.at("texture-height");
 
-            objectData.textureRects.push_back(textureRect);
+            auto textures = jsonObjectData.at("textures");
+            for (nlohmann::ordered_json::iterator texturePositionIter = textures.begin(); texturePositionIter != textures.end(); ++texturePositionIter)
+            {
+                sf::IntRect textureRect;
+                textureRect.left = texturePositionIter.value()[0];
+                textureRect.top = texturePositionIter.value()[1];
+                textureRect.width = textureWidth;
+                textureRect.height = textureHeight;
+
+                objectData.textureRects.push_back(textureRect);
+            }
         }
 
         if (jsonObjectData.contains("texture-frame-delay")) objectData.textureFrameDelay = jsonObjectData.at("texture-frame-delay");
@@ -44,7 +65,7 @@ bool ObjectDataLoader::loadData(std::string objectDataPath)
         if (jsonObjectData.contains("texture-y-origin")) objectData.textureOrigin.y = jsonObjectData.at("texture-y-origin");
         if (jsonObjectData.contains("health")) objectData.health = jsonObjectData.at("health");
 
-        if (jsonObjectData.contains("light-emission")) 
+        if (jsonObjectData.contains("light-emission"))
         {
             auto lightEmissionFrames = jsonObjectData.at("light-emission");
             for (auto iter = lightEmissionFrames.begin(); iter != lightEmissionFrames.end(); ++iter)
@@ -74,16 +95,17 @@ bool ObjectDataLoader::loadData(std::string objectDataPath)
             for (nlohmann::ordered_json::iterator itemDropsIter = itemDrops.begin(); itemDropsIter != itemDrops.end(); ++itemDropsIter)
             {
                 ItemDrop itemDrop;
-                // itemDrop.item = ItemDataLoader::getItemTypeFromName(itemDropsIter.key());
+                itemDrop.item = ItemDataLoader::getItemTypeFromName(itemDropsIter.key());
                 itemDrop.minAmount = itemDropsIter.value()[0];
                 itemDrop.maxAmount = itemDropsIter.value()[1];
                 itemDrop.chance = itemDropsIter.value()[2];
 
-                // objectData.itemDrops.push_back(itemDrop);
-                objectItemDrops[objectIdx].push_back({itemDropsIter.key(), itemDrop});
+                objectData.itemDrops.push_back(itemDrop);
+                // objectItemDrops[objectIdx].push_back({itemDropsIter.key(), itemDrop});
             }
         }
 
+        // Load rocket data if is rocket
         if (jsonObjectData.contains("rocket-info"))
         {
             auto rocketInfo = jsonObjectData.at("rocket-info");
@@ -103,30 +125,82 @@ bool ObjectDataLoader::loadData(std::string objectDataPath)
             }
         }
 
+        // Load plant data if is plant
+        if (jsonObjectData.contains("plant-data"))
+        {
+            auto plantData = jsonObjectData.at("plant-data");
+            auto plantStages = plantData.at("stages");
+            objectData.plantStageObjectData = std::vector<PlantStageObjectData>();
+
+            // Load all stages
+            for (auto stageIter = plantStages.begin(); stageIter != plantStages.end(); ++stageIter)
+            {
+                PlantStageObjectData stageData;
+                
+                sf::Vector2i textureSize = stageIter.value().at("texture-size");
+                auto textures = stageIter.value().at("textures");
+                for (auto textureIter = textures.begin(); textureIter != textures.end(); ++textureIter)
+                {
+                    sf::IntRect textureRect;
+                    textureRect.left = textureIter.value()[0];
+                    textureRect.top = textureIter.value()[1];
+                    textureRect.width = textureSize.x;
+                    textureRect.height = textureSize.y;
+                    stageData.textureRects.push_back(textureRect);
+                }
+
+                stageData.textureOrigin = stageIter.value().at("texture-origin");
+                stageData.health = stageIter.value().at("health");
+                
+                if (stageIter.value().contains("day-range"))
+                {
+                    auto dayRange = stageIter.value().at("day-range");
+                    stageData.minDay = dayRange[0];
+                    stageData.maxDay = dayRange[1];
+                }
+
+                if (stageIter.value().contains("item-drops"))
+                {
+                    auto itemDrops = stageIter.value().at("item-drops");
+                    for (auto itemDropsIter = itemDrops.begin(); itemDropsIter != itemDrops.end(); ++itemDropsIter)
+                    {
+                        ItemDrop itemDrop;
+                        itemDrop.item = ItemDataLoader::getItemTypeFromName(itemDropsIter.key());
+                        itemDrop.minAmount = itemDropsIter.value()[0];
+                        itemDrop.maxAmount = itemDropsIter.value()[1];
+                        itemDrop.chance = itemDropsIter.value()[2];
+
+                        stageData.itemDrops.push_back(itemDrop);
+                        // objectItemDrops[objectIdx].push_back({itemDropsIter.key(), itemDrop});
+                    }
+                }
+
+                objectData.plantStageObjectData->push_back(stageData);
+            }
+        }
+
         loaded_objectData.push_back(objectData);
 
-        objectNameToTypeMap[objectData.name] = objectIdx;
-
         // Create item corresponding to object
-        ItemDataLoader::createItemFromObject(objectIdx, objectData);
+        // ItemDataLoader::createItemFromObject(objectIdx, objectData);
 
-        objectIdx++;
+        // objectIdx++;
     }
 
     // Load all item drops into objects
-    for (const auto& objectItemDrop : objectItemDrops)
-    {
-        const ObjectType& objectType = objectItemDrop.first;
-        const std::vector<std::pair<std::string, ItemDrop>>& itemDrops = objectItemDrop.second;
+    // for (const auto& objectItemDrop : objectItemDrops)
+    // {
+    //     const ObjectType& objectType = objectItemDrop.first;
+    //     const std::vector<std::pair<std::string, ItemDrop>>& itemDrops = objectItemDrop.second;
 
-        for (const auto& itemDropWithString : itemDrops)
-        {
-            ItemDrop itemDrop = itemDropWithString.second;
-            itemDrop.item = ItemDataLoader::getItemTypeFromName(itemDropWithString.first);
+    //     for (const auto& itemDropWithString : itemDrops)
+    //     {
+    //         ItemDrop itemDrop = itemDropWithString.second;
+    //         itemDrop.item = ItemDataLoader::getItemTypeFromName(itemDropWithString.first);
 
-            loaded_objectData[objectType].itemDrops.push_back(itemDrop);
-        }
-    }
+    //         loaded_objectData[objectType].itemDrops.push_back(itemDrop);
+    //     }
+    // }
 
     return true;
 }

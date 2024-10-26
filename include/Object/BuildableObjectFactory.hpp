@@ -4,6 +4,7 @@
 #include "Object/BuildableObject.hpp"
 #include "Object/ChestObject.hpp"
 #include "Object/RocketObject.hpp"
+#include "Object/PlantObject.hpp"
 
 class BuildableObjectFactory
 {

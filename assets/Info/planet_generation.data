@@ -35,11 +35,7 @@
                         ["Dark Grass", 4, 0.7, 1]
                     ],
                     "objects": [
-                        ["Tree", 0.01],
-                        ["Tree1", 0.01],
-                        ["Tree2", 0.01],
-                        ["Tree3", 0.01],
-
+                        ["Sapling", 0.04],
                         ["Bush", 0.016],
                         ["Rock", 0.016],
                         ["Dirt Pile", 0.006],

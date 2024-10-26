@@ -102,6 +102,7 @@ public:
     void rocketFinishedDown(RocketObject& rocket);
 
     inline bool getIsDay() {return isDay;}
+    inline DayCycleManager& getDayCycleManager() {return dayCycleManager;}
 
 private:
 

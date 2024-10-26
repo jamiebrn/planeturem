@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(spacebuild LANGUAGES CXX)
+project(Planeturem LANGUAGES CXX)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
@@ -38,24 +38,24 @@ file(GLOB IMGUI_FILES ${imgui_SOURCE_DIR}/*.cpp)
 
 link_directories(include/extlib/steam/lib/win64)
 
-add_executable(spacebuild ${SRC_FILES} ${IMGUI_FILES})
-target_link_libraries(spacebuild PRIVATE sfml-graphics)
-target_link_libraries(spacebuild PRIVATE sfml-audio)
-target_link_libraries(spacebuild PRIVATE ImGui-SFML::ImGui-SFML)
-target_link_libraries(spacebuild PRIVATE steam_api64)
-target_link_options(spacebuild PRIVATE -static)
-target_compile_features(spacebuild PRIVATE cxx_std_20)
-target_sources(spacebuild PRIVATE "icon/icon-data.rc")
+add_executable(Planeturem ${SRC_FILES} ${IMGUI_FILES})
+target_link_libraries(Planeturem PRIVATE sfml-graphics)
+target_link_libraries(Planeturem PRIVATE sfml-audio)
+target_link_libraries(Planeturem PRIVATE ImGui-SFML::ImGui-SFML)
+target_link_libraries(Planeturem PRIVATE steam_api64)
+target_link_options(Planeturem PRIVATE -static)
+target_compile_features(Planeturem PRIVATE cxx_std_20)
+target_sources(Planeturem PRIVATE "icon/icon-data.rc")
 
 add_custom_target(copy_assets
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_LIST_DIR}/assets ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Data
 )
-add_dependencies(spacebuild copy_assets)
+add_dependencies(Planeturem copy_assets)
 
 if(WIN32)
     add_custom_command(
-        TARGET spacebuild
+        TARGET Planeturem
         COMMENT "Copy OpenAL DLL"
-        PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${SFML_SOURCE_DIR}/extlibs/bin/$<IF:$<EQUAL:${CMAKE_SIZEOF_VOID_P},8>,x64,x86>/openal32.dll $<TARGET_FILE_DIR:spacebuild>
+        PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${SFML_SOURCE_DIR}/extlibs/bin/$<IF:$<EQUAL:${CMAKE_SIZEOF_VOID_P},8>,x64,x86>/openal32.dll $<TARGET_FILE_DIR:Planeturem>
         VERBATIM)
 endif()

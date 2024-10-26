@@ -37,6 +37,8 @@
 #include "GameConstants.hpp"
 #include "DebugOptions.hpp"
 
+class Game;
+
 class Player : public WorldObject
 {
 public:
@@ -45,7 +47,7 @@ public:
     void update(float dt, sf::Vector2f mouseWorldPos, ChunkManager& chunkManager, int worldSize, bool& wrappedAroundWorld, sf::Vector2f& wrapPositionDelta);
     void updateInStructure(float dt, sf::Vector2f mouseWorldPos, const Room& structureRoom);
 
-    void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime, int worldSize, const sf::Color& color) const override;
+    void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, float dt, float gameTime, int worldSize, const sf::Color& color) const override;
     void createLightSource(LightingEngine& lightingEngine, sf::Vector2f topLeftChunkPos) const override;
 
     void setTool(ToolType toolType);

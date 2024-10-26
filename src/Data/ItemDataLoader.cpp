@@ -62,7 +62,7 @@ void ItemDataLoader::createItemFromObject(ObjectType objectType, const ObjectDat
     ItemData objectItemData;
     objectItemData.name = objectData.name;
     objectItemData.placesObjectType = objectType;
-    objectItemData.maxStackSize = 10;
+    objectItemData.maxStackSize = 50;
 
     if (objectData.mythicalItem)
     {

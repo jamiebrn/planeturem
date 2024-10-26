@@ -8,6 +8,8 @@
 #include "World/LightingEngine.hpp"
 #include "GameConstants.hpp"
 
+class Game;
+
 class WorldObject
 {
 public:
@@ -36,7 +38,7 @@ public:
     int getDrawLayer() const;
 
     // Overriden by inherited classes (specific)
-    virtual void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime, int worldSize, const sf::Color& color) const = 0;
+    virtual void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, float dt, float gameTime, int worldSize, const sf::Color& color) const = 0;
 
     virtual void createLightSource(LightingEngine& lightingEngine, sf::Vector2f topLeftChunkPos) const = 0;
 

@@ -13,6 +13,7 @@ struct BuildableObjectPOD
 {
     ObjectType objectType;
     uint16_t chestID = 0xFFFF;
+    int plantDayPlanted = 0;
 
     std::optional<ObjectReference> objectReference;
 

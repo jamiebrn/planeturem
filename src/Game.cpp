@@ -2,6 +2,9 @@
 
 // FIX: Crash on save / rocket enter bug (can't save???)
 
+// TODO: Plant object reset health to new stage health when grow
+// FIX: Plant object
+
 // PRIORITY: HIGH
 // TODO: Plants / farming / growing objects
 // TODO: Create event callback system for object responding to triggers, rather than calling game functions directly
@@ -27,7 +30,7 @@ bool Game::initialise()
     sf::VideoMode videoMode = sf::VideoMode::getDesktopMode();
     
     // Create window
-    window.create(sf::VideoMode(videoMode.width, videoMode.height), "spacebuild", sf::Style::None);
+    window.create(sf::VideoMode(videoMode.width, videoMode.height), GAME_TITLE, sf::Style::None);
 
     // Enable VSync and frame limit
     window.setFramerateLimit(165);
@@ -280,7 +283,7 @@ void Game::runMainMenu(float dt)
     TextDrawData titleTextDrawData;
     titleTextDrawData.position = sf::Vector2f(window.getSize().x / 2.0f, 300 * intScale);
     titleTextDrawData.size = 54;
-    titleTextDrawData.text = "spacebuild";
+    titleTextDrawData.text = GAME_TITLE;
     titleTextDrawData.colour = sf::Color(255, 255, 255);
     titleTextDrawData.centeredX = true;
     titleTextDrawData.centeredY = true;
@@ -833,7 +836,7 @@ void Game::drawWorld(float dt, std::vector<WorldObject*>& worldObjects)
     // Draw objects
     for (WorldObject* worldObject : worldObjects)
     {
-        worldObject->draw(worldTexture, spriteBatch, dt, gameTime, chunkManager.getWorldSize(), {255, 255, 255, 255});
+        worldObject->draw(worldTexture, spriteBatch, *this, dt, gameTime, chunkManager.getWorldSize(), {255, 255, 255, 255});
     }
 
     // Draw bosses
@@ -1034,7 +1037,7 @@ void Game::drawInStructure(float dt)
 
     for (const WorldObject* object : worldObjects)
     {
-        object->draw(window, spriteBatch, dt, gameTime, chunkManager.getWorldSize(), sf::Color(255, 255, 255));
+        object->draw(window, spriteBatch, *this, dt, gameTime, chunkManager.getWorldSize(), sf::Color(255, 255, 255));
     }
 
     spriteBatch.endDrawing(window);
@@ -1391,7 +1394,7 @@ void Game::drawGhostPlaceObjectAtCursor(ObjectType object)
     
     BuildableObject objectGhost(Cursor::getLerpedSelectPos() + sf::Vector2f(TILE_SIZE_PIXELS_UNSCALED / 2.0f, TILE_SIZE_PIXELS_UNSCALED / 2.0f), object, false);
 
-    objectGhost.draw(window, spriteBatch, 0.0f, 0, chunkManager.getWorldSize(), drawColor);
+    objectGhost.draw(window, spriteBatch, *this, 0.0f, 0, chunkManager.getWorldSize(), drawColor);
 
     spriteBatch.endDrawing(window);
 }
@@ -1878,7 +1881,7 @@ void Game::toggleFullScreen()
     unsigned int windowStyle = sf::Style::Default;
     if (fullScreen) windowStyle = sf::Style::None;
     
-    window.create(videoMode, "spacebuild", windowStyle);
+    window.create(videoMode, GAME_TITLE, windowStyle);
 
     // Set window stuff
     window.setIcon(256, 256, icon.getPixelsPtr());

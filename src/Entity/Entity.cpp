@@ -70,7 +70,7 @@ bool Entity::isProjectileColliding(Projectile& projectile)
     return (collisionRect.isPointInRect(projectile.getPosition().x, projectile.getPosition().y));
 }
 
-void Entity::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime, int worldSize, const sf::Color& color) const
+void Entity::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, float dt, float gameTime, int worldSize, const sf::Color& color) const
 {
     spriteBatch.endDrawing(window);
 
