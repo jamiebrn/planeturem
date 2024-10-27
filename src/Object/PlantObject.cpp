@@ -1,10 +1,28 @@
 #include "Object/PlantObject.hpp"
 #include "Game.hpp"
+#include "World/ChunkManager.hpp"
 
 PlantObject::PlantObject(sf::Vector2f position, ObjectType objectType, Game& game, bool randomiseAge)
     : BuildableObject(position, objectType, false)
 {
     int currentDay = game.getDayCycleManager().getCurrentDay();
+
+    if (randomiseAge)
+    {
+        // Set seed for randgen
+        const ChunkManager& chunkManager = game.getChunkManager();
+        unsigned long int chunkSeed = (chunkManager.getSeed() + chunkManager.getPlanetType()) ^ getChunkInside(chunkManager.getWorldSize()).hash();
+        sf::Vector2i tile = getChunkTileInside(position, chunkManager.getWorldSize());
+        chunkSeed |= tile.x | tile.y;
+
+        RandInt randGen(chunkSeed);
+        
+        dayPlanted = currentDay - randGen.generate(0, getTotalGrowthDays());
+    }
+    else
+    {
+        dayPlanted = currentDay;
+    }
 
     // Set health
     const PlantStageObjectData* plantStageData = getPlantStageData(currentDay);
@@ -22,7 +40,28 @@ BuildableObject* PlantObject::clone()
 
 void PlantObject::update(Game& game, float dt, bool onWater, bool loopAnimation)
 {
-    BuildableObject::update(game, dt, onWater, loopAnimation);
+    flash_amount = std::max(flash_amount - dt * 3, 0.0f);
+
+    const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
+    const PlantStageObjectData& plantStageData = objectData.plantStageObjectData->at(currentStage);
+
+    animatedTexture.update(dt, animationDirection, plantStageData.textureRects.size(), objectData.textureFrameDelay, loopAnimation);
+
+    int newStage = getPlantStage(game.getDayCycleManager().getCurrentDay());
+
+    if (newStage != currentStage)
+    {
+        changePlantStage(newStage);
+    }
+}
+
+void PlantObject::changePlantStage(int newStage)
+{
+    currentStage = newStage;
+
+    // Reset health to new stage health
+    const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
+    health = objectData.plantStageObjectData->at(currentStage).health;
 }
 
 bool PlantObject::damage(int amount, Game& game, InventoryData& inventory, bool giveItems)
@@ -58,19 +97,16 @@ bool PlantObject::damage(int amount, Game& game, InventoryData& inventory, bool 
 
 void PlantObject::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, float dt, float gameTime, int worldSize, const sf::Color& color) const
 {
-    int currentDay = game.getDayCycleManager().getCurrentDay();
+    // int currentDay = game.getDayCycleManager().getCurrentDay();
 
-    const PlantStageObjectData* plantStageData = getPlantStageData(currentDay);
+    const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
 
-    if (!plantStageData)
-    {
-        return;
-    }
+    const PlantStageObjectData& plantStageData = objectData.plantStageObjectData->at(currentStage);
 
-    BuildableObject::drawObject(window, spriteBatch, gameTime, worldSize, color, plantStageData->textureRects, plantStageData->textureOrigin);
+    BuildableObject::drawObject(window, spriteBatch, gameTime, worldSize, color, plantStageData.textureRects, plantStageData.textureOrigin);
 }
 
-const PlantStageObjectData* PlantObject::getPlantStageData(int currentDay) const
+int PlantObject::getPlantStage(int currentDay) const
 {
     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
     int age = currentDay - dayPlanted;
@@ -82,17 +118,44 @@ const PlantStageObjectData* PlantObject::getPlantStageData(int currentDay) const
         // If is final stage, return it as current stage
         if (i == objectData.plantStageObjectData->size() - 1)
         {
-            return &plantStageData;
+            return i;
         }
 
         // Check age is in bounds of plant stage
         if (age >= plantStageData.minDay && age <= plantStageData.maxDay)
         {
-            return &plantStageData;
+            return i;
         }
     }
 
-    return nullptr;
+    // Default case
+    return -1;
+}
+
+const PlantStageObjectData* PlantObject::getPlantStageData(int currentDay) const
+{
+    int stage = getPlantStage(currentDay);
+    if (stage < 0)
+    {
+        return nullptr;
+    }
+
+    const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
+
+    return &objectData.plantStageObjectData->at(stage);
+}
+
+int PlantObject::getTotalGrowthDays() const
+{
+    const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
+    int totalDays = 0;
+
+    for (const PlantStageObjectData& plantStageData : objectData.plantStageObjectData.value())
+    {
+        totalDays += plantStageData.maxDay - plantStageData.minDay + 1;
+    }
+
+    return totalDays;
 }
 
 // Save / load

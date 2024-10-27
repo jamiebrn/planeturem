@@ -2,6 +2,11 @@
     {
         "name": "Sapling",
         "texture-frame-delay": 0.1,
+        "textures": [[128, 192]],
+        "texture-height": 16,
+        "texture-width": 16,
+        "texture-x-origin": 0.5,
+        "texture-y-origin": 1,
         "plant-data": {
             "stages": [
                 {

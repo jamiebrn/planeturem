@@ -40,7 +40,7 @@ public:
     ChunkManager() = default;
 
     void setSeed(int seed);
-    int getSeed();
+    int getSeed() const;
 
     void setWorldSize(int size);
     void setPlanetType(PlanetType planetType);
@@ -50,14 +50,14 @@ public:
 
     // Load/unload chunks every frame
     // Returns true if any chunks loaded / unloaded
-    bool updateChunks();
+    bool updateChunks(Game& game);
 
     // Forces a reload of chunks, used when wrapping around world
     void reloadChunks();
 
     // Used when a chunk is required to have no structure generated to ensure no collision interference
     // E.g. when travelling to a new planet and rocket is placed, rocket may be placed inside structure (if there is one)
-    void regenerateChunkWithoutStructure(ChunkPosition chunk);
+    void regenerateChunkWithoutStructure(ChunkPosition chunk, Game& game);
 
     // Drawing functions for chunk terrain
     void drawChunkTerrain(sf::RenderTarget& window, SpriteBatch& spriteBatch, float time);
@@ -117,7 +117,7 @@ public:
 
     // Sets object in chunk at tile
     // Places object references if required
-    void setObject(ChunkPosition chunk, sf::Vector2i tile, ObjectType objectType);
+    void setObject(ChunkPosition chunk, sf::Vector2i tile, ObjectType objectType, Game& game);
 
     // Deletes object in chunk at tile
     // Deletes object references if required
@@ -180,16 +180,16 @@ public:
 
     // Save / load
     std::vector<ChunkPOD> getChunkPODs();
-    void loadFromChunkPODs(const std::vector<ChunkPOD>& pods);
+    void loadFromChunkPODs(const std::vector<ChunkPOD>& pods, Game& game);
     
 
     // Misc
-    inline int getLoadedChunkCount() {return loadedChunks.size();}
-    inline int getGeneratedChunkCount() {return loadedChunks.size() + storedChunks.size();}
-    inline int getWorldSize() {return worldSize;}
-    inline const FastNoise& getBiomeNoise() {return biomeNoise;}
-    inline const FastNoise& getHeightNoise() {return heightNoise;}
-    inline PlanetType getPlanetType() {return planetType;}
+    inline int getLoadedChunkCount() const {return loadedChunks.size();}
+    inline int getGeneratedChunkCount() const {return loadedChunks.size() + storedChunks.size();}
+    inline int getWorldSize() const {return worldSize;}
+    inline const FastNoise& getBiomeNoise() const {return biomeNoise;}
+    inline const FastNoise& getHeightNoise() const {return heightNoise;}
+    inline PlanetType getPlanetType() const {return planetType;}
 
     // Finds valid spawn position for player i.e. no water
     // Waterless area size checks for chunks +- waterlessAreaSize
@@ -215,6 +215,7 @@ public:
 private:
     // Generates a chunk and stores it
     void generateChunk(const ChunkPosition& chunkPosition,
+                       Game& game,
                        bool putInLoaded = true,
                        std::optional<sf::Vector2f> positionOverride = std::nullopt);
 

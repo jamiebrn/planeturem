@@ -15,8 +15,8 @@ struct PlantStageObjectData
     sf::Vector2f textureOrigin;
     int health;
 
-    int minDay;
-    int maxDay;
+    int minDay = 0;
+    int maxDay = 0;
 
     std::vector<ItemDrop> itemDrops;
 };

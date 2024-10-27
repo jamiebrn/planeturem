@@ -42,16 +42,16 @@ void Chunk::reset(bool fullReset)
     }
 }
 
-void Chunk::generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, int worldSize, ChunkManager& chunkManager, bool allowStructureGen)
+void Chunk::generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, Game& game, ChunkManager& chunkManager, bool allowStructureGen)
 {
-    RandInt randGen = generateTilesAndStructure(heightNoise, biomeNoise, planetType, worldSize, chunkManager);
+    RandInt randGen = generateTilesAndStructure(heightNoise, biomeNoise, planetType, chunkManager);
 
-    generateObjectsAndEntities(heightNoise, biomeNoise, planetType, randGen, worldSize, chunkManager);
+    generateObjectsAndEntities(heightNoise, biomeNoise, planetType, randGen, game, chunkManager);
 
-    generateTilemapsAndInit(heightNoise, biomeNoise, planetType, worldSize, chunkManager);
+    generateTilemapsAndInit(heightNoise, biomeNoise, planetType, chunkManager);
 }
 
-RandInt Chunk::generateTilesAndStructure(const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, int worldSize,
+RandInt Chunk::generateTilesAndStructure(const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType,
     ChunkManager& chunkManager, bool allowStructureGen)
 {
     sf::Vector2i worldNoisePosition = sf::Vector2i(chunkPosition.x, chunkPosition.y) * static_cast<int>(CHUNK_TILE_SIZE);
@@ -66,7 +66,7 @@ RandInt Chunk::generateTilesAndStructure(const FastNoise& heightNoise, const Fas
         for (int x = 0; x < CHUNK_TILE_SIZE; x++)
         {
             const TileGenData* tileGenData = getTileGenAtWorldTile(
-                sf::Vector2i(worldNoisePosition.x + x, worldNoisePosition.y + y), worldSize, heightNoise, biomeNoise, planetType
+                sf::Vector2i(worldNoisePosition.x + x, worldNoisePosition.y + y), chunkManager.getWorldSize(), heightNoise, biomeNoise, planetType
                 );
             
             int tileType = 0;
@@ -88,14 +88,14 @@ RandInt Chunk::generateTilesAndStructure(const FastNoise& heightNoise, const Fas
     // Create structure if required
     if (!containsWater)
     {
-        generateRandomStructure(worldSize, biomeNoise, randGen, planetType, allowStructureGen);
+        generateRandomStructure(chunkManager.getWorldSize(), biomeNoise, randGen, planetType, allowStructureGen);
     }
 
     return randGen;
 }
 
 void Chunk::generateObjectsAndEntities(const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, RandInt& randGen,
-    int worldSize, ChunkManager& chunkManager)
+    Game& game, ChunkManager& chunkManager)
 {
     sf::Vector2i worldNoisePosition = sf::Vector2i(chunkPosition.x, chunkPosition.y) * static_cast<int>(CHUNK_TILE_SIZE);
 
@@ -117,11 +117,11 @@ void Chunk::generateObjectsAndEntities(const FastNoise& heightNoise, const FastN
 
             // Create random object
             ObjectType objectSpawnType = getRandomObjectToSpawnAtWorldTile(sf::Vector2i(worldNoisePosition.x + x, worldNoisePosition.y + y),
-                worldSize, heightNoise, biomeNoise, randGen, planetType);
+                chunkManager.getWorldSize(), heightNoise, biomeNoise, randGen, planetType);
 
             if (objectSpawnType >= 0)
             {
-                setObject(sf::Vector2i(x, y), objectSpawnType, worldSize, chunkManager, false, true);
+                setObject(sf::Vector2i(x, y), objectSpawnType, game, chunkManager, false, true);
             }
             else
             {
@@ -130,7 +130,7 @@ void Chunk::generateObjectsAndEntities(const FastNoise& heightNoise, const FastN
 
             // Create random entity
             EntityType entitySpawnType = getRandomEntityToSpawnAtWorldTile(sf::Vector2i(worldNoisePosition.x + x, worldNoisePosition.y + y),
-                worldSize, heightNoise, biomeNoise, randGen, planetType);
+                chunkManager.getWorldSize(), heightNoise, biomeNoise, randGen, planetType);
             
             if (entitySpawnType >= 0)
             {
@@ -145,8 +145,10 @@ void Chunk::generateObjectsAndEntities(const FastNoise& heightNoise, const FastN
     }
 }
 
-void Chunk::generateTilemapsAndInit(const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, int worldSize, ChunkManager& chunkManager)
+void Chunk::generateTilemapsAndInit(const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, ChunkManager& chunkManager)
 {
+    int worldSize = chunkManager.getWorldSize();
+
     Chunk* upChunk = chunkManager.getChunk(ChunkPosition(chunkPosition.x, ((chunkPosition.y - 1) % worldSize + worldSize) % worldSize));
     Chunk* downChunk = chunkManager.getChunk(ChunkPosition(chunkPosition.x, ((chunkPosition.y + 1) % worldSize + worldSize) % worldSize));
     Chunk* leftChunk = chunkManager.getChunk(ChunkPosition(((chunkPosition.x - 1) % worldSize + worldSize) % worldSize, chunkPosition.y));
@@ -174,7 +176,7 @@ void Chunk::generateTilemapsAndInit(const FastNoise& heightNoise, const FastNois
 
     chunkManager.performChunkSetTileUpdate(chunkPosition, tileMapsModified);
 
-    generateVisualEffectTiles(heightNoise, biomeNoise, planetType, worldSize, chunkManager);
+    generateVisualEffectTiles(heightNoise, biomeNoise, planetType, chunkManager);
 
     recalculateCollisionRects(chunkManager);
 
@@ -358,7 +360,7 @@ EntityType Chunk::getRandomEntityToSpawnAtWorldTile(sf::Vector2i worldTile, int 
     return -1;
 }
 
-void Chunk::generateVisualEffectTiles(const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, int worldSize, ChunkManager& chunkManager)
+void Chunk::generateVisualEffectTiles(const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, ChunkManager& chunkManager)
 {
     // Get visual tile from 3x3 area, where centre is tile testing for
     // Assumes centre tile is water
@@ -392,9 +394,9 @@ void Chunk::generateVisualEffectTiles(const FastNoise& heightNoise, const FastNo
 
     auto getTileTypeAt = [this](ChunkPosition chunk, sf::Vector2i tile, int xOffset, int yOffset,
                                 ChunkManager& chunkManager, const FastNoise& heightNoise, const FastNoise& biomeNoise,
-                                PlanetType planetType, int worldSize)
+                                PlanetType planetType)
     {
-        std::pair<ChunkPosition, sf::Vector2i> wrappedChunkTile = ChunkManager::getChunkTileFromOffset(chunk, tile, xOffset, yOffset, worldSize);
+        std::pair<ChunkPosition, sf::Vector2i> wrappedChunkTile = ChunkManager::getChunkTileFromOffset(chunk, tile, xOffset, yOffset, chunkManager.getWorldSize());
 
         if (wrappedChunkTile.first == chunk)
         {
@@ -422,14 +424,14 @@ void Chunk::generateVisualEffectTiles(const FastNoise& heightNoise, const FastNo
             sf::Vector2i tilePos(x, y);
 
             visualTileGrid[y][x] = getVisualTileType(
-                getTileTypeAt(chunkPosition, tilePos, -1, -1, chunkManager, heightNoise, biomeNoise, planetType, worldSize),
-                getTileTypeAt(chunkPosition, tilePos, 0, -1, chunkManager, heightNoise, biomeNoise, planetType, worldSize),
-                getTileTypeAt(chunkPosition, tilePos, 1, -1, chunkManager, heightNoise, biomeNoise, planetType, worldSize),
-                getTileTypeAt(chunkPosition, tilePos, -1, 0, chunkManager, heightNoise, biomeNoise, planetType, worldSize),
-                getTileTypeAt(chunkPosition, tilePos, 1, 0, chunkManager, heightNoise, biomeNoise, planetType, worldSize),
-                getTileTypeAt(chunkPosition, tilePos, -1, 1, chunkManager, heightNoise, biomeNoise, planetType, worldSize),
-                getTileTypeAt(chunkPosition, tilePos, 0, 1, chunkManager, heightNoise, biomeNoise, planetType, worldSize),
-                getTileTypeAt(chunkPosition, tilePos, 1, 1, chunkManager, heightNoise, biomeNoise, planetType, worldSize)
+                getTileTypeAt(chunkPosition, tilePos, -1, -1, chunkManager, heightNoise, biomeNoise, planetType),
+                getTileTypeAt(chunkPosition, tilePos, 0, -1, chunkManager, heightNoise, biomeNoise, planetType),
+                getTileTypeAt(chunkPosition, tilePos, 1, -1, chunkManager, heightNoise, biomeNoise, planetType),
+                getTileTypeAt(chunkPosition, tilePos, -1, 0, chunkManager, heightNoise, biomeNoise, planetType),
+                getTileTypeAt(chunkPosition, tilePos, 1, 0, chunkManager, heightNoise, biomeNoise, planetType),
+                getTileTypeAt(chunkPosition, tilePos, -1, 1, chunkManager, heightNoise, biomeNoise, planetType),
+                getTileTypeAt(chunkPosition, tilePos, 0, 1, chunkManager, heightNoise, biomeNoise, planetType),
+                getTileTypeAt(chunkPosition, tilePos, 1, 1, chunkManager, heightNoise, biomeNoise, planetType)
             );
         }
     }
@@ -706,7 +708,7 @@ int Chunk::getTileType(sf::Vector2i position) const
     return groundTileGrid[position.y][position.x];
 }
 
-void Chunk::setObject(sf::Vector2i position, ObjectType objectType, int worldSize, ChunkManager& chunkManager, bool recalculateCollision, bool calledWhileGenerating)
+void Chunk::setObject(sf::Vector2i position, ObjectType objectType, Game& game, ChunkManager& chunkManager, bool recalculateCollision, bool calledWhileGenerating)
 {
     if (!calledWhileGenerating)
     {
@@ -724,8 +726,10 @@ void Chunk::setObject(sf::Vector2i position, ObjectType objectType, int worldSiz
         objectSize = ObjectDataLoader::getObjectData(objectType).size;
     }
 
+    bool randomisePlantAge = calledWhileGenerating;
+
     // Set object in chunk
-    objectGrid[position.y][position.x] = BuildableObjectFactory::create(objectPos, objectType);
+    objectGrid[position.y][position.x] = BuildableObjectFactory::create(objectPos, objectType, &game, randomisePlantAge);
 
     // Create object reference objects if object is larger than one tile
     if (objectSize != sf::Vector2i(1, 1))
@@ -744,7 +748,7 @@ void Chunk::setObject(sf::Vector2i position, ObjectType objectType, int worldSiz
                     continue;
                 }
 
-                auto chunkTile = ChunkManager::getChunkTileFromOffset(chunkPosition, position, x, y, worldSize);
+                auto chunkTile = ChunkManager::getChunkTileFromOffset(chunkPosition, position, x, y, chunkManager.getWorldSize());
                 chunkManager.setObjectReference(chunkTile.first, objectReference, chunkTile.second);
             }
         }
@@ -1073,7 +1077,7 @@ void Chunk::placeLand(sf::Vector2i tile, int worldSize, const FastNoise& heightN
     chunkManager.setChunkTile(chunkPosition, tileGenData.tileID, tile);
 
     // Update visual tiles
-    generateVisualEffectTiles(heightNoise, biomeNoise, planetType, worldSize, chunkManager);
+    generateVisualEffectTiles(heightNoise, biomeNoise, planetType, chunkManager);
 
     // Recalculate collision rects
     recalculateCollisionRects(chunkManager);
@@ -1140,7 +1144,7 @@ ChunkPOD Chunk::getChunkPOD()
     return pod;
 }
 
-void Chunk::loadFromChunkPOD(const ChunkPOD& pod)
+void Chunk::loadFromChunkPOD(const ChunkPOD& pod, Game& game)
 {
     generatedFromPOD = true;
     modified = pod.modified;
@@ -1159,7 +1163,7 @@ void Chunk::loadFromChunkPOD(const ChunkPOD& pod)
                 objectPos.x = worldPosition.x + (x + 0.5f) * CHUNK_TILE_SIZE;
                 objectPos.y = worldPosition.y + (y + 0.5f) * CHUNK_TILE_SIZE;
 
-                std::unique_ptr<BuildableObject> object = BuildableObjectFactory::create(objectPos, objectPOD->objectType);
+                std::unique_ptr<BuildableObject> object = BuildableObjectFactory::create(objectPos, objectPOD->objectType, &game);
 
                 object->loadFromPOD(objectPOD.value());
 

@@ -64,22 +64,22 @@ public:
     void reset(bool fullReset = false);
 
     // Initialisation / generation
-    void generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, int worldSize, ChunkManager& chunkManager, bool allowStructureGen = true);
+    void generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, Game& game, ChunkManager& chunkManager, bool allowStructureGen = true);
 
     // Tiles meaning tile grid, not tilemaps
     // Returns random int generator to continue to be used in generation
-    RandInt generateTilesAndStructure(const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, int worldSize,
+    RandInt generateTilesAndStructure(const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType,
         ChunkManager& chunkManager, bool allowStructureGen = true);
 
     void generateObjectsAndEntities(const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, RandInt& randGen,
-        int worldSize, ChunkManager& chunkManager);
+        Game& game, ChunkManager& chunkManager);
 
     // Generates tilemaps and calls functions to generate visual tiles and calculate collision rects
     // Called during chunk generation
     // Also used to initialise a chunk when loaded into view after being loaded through POD / save file
-    void generateTilemapsAndInit(const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, int worldSize, ChunkManager& chunkManager);
+    void generateTilemapsAndInit(const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, ChunkManager& chunkManager);
 
-    void generateVisualEffectTiles(const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, int worldSize, ChunkManager& chunkManager);
+    void generateVisualEffectTiles(const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, ChunkManager& chunkManager);
 
     // static int getBiomeFromNoise(float biomeNoiseValue);
     // static int getTileTypeFromNoise(float noiseValue, int biome);
@@ -120,7 +120,7 @@ public:
     BuildableObject* getObject(sf::Vector2i position);
 
     // Sets object (and object references if size > (1, 1), across chunks)
-    void setObject(sf::Vector2i position, ObjectType objectType, int worldSize, ChunkManager& chunkManager, bool recalculateCollision = true, bool calledWhileGenerating = false);
+    void setObject(sf::Vector2i position, ObjectType objectType, Game& game, ChunkManager& chunkManager, bool recalculateCollision = true, bool calledWhileGenerating = false);
 
     // Deletes object (including object references if size > (1, 1), across chunks)
     void deleteObject(sf::Vector2i position, ChunkManager& chunkManager);
@@ -176,7 +176,7 @@ public:
 
     // Save / load
     ChunkPOD getChunkPOD();
-    void loadFromChunkPOD(const ChunkPOD& pod);
+    void loadFromChunkPOD(const ChunkPOD& pod, Game& game);
     bool wasGeneratedFromPOD();
     
 

@@ -75,10 +75,19 @@ void BuildableObject::drawObject(sf::RenderTarget& window, SpriteBatch& spriteBa
     float scaleMult = 0.4f * std::sin(3.14 / 2.0f * std::max(1.0f - flash_amount, 0.5f)) + 0.6f;
     sf::Vector2f scale = sf::Vector2f((float)ResolutionHandler::getScale(), (float)ResolutionHandler::getScale() * scaleMult);
 
-    const sf::IntRect* textureRect = &objectData.textureRects[animatedTexture.getFrame()];
+    const sf::IntRect* textureRect = nullptr;
     if (textureRectsOverride.has_value())
     {
         textureRect = &textureRectsOverride->at(animatedTexture.getFrame());
+    }
+    else
+    {
+        textureRect = &objectData.textureRects[animatedTexture.getFrame()];
+    }
+
+    if (!textureRect)
+    {
+        return;
     }
 
     float waterYOffset = getWaterBobYOffset(worldSize, gameTime);

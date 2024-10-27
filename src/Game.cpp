@@ -1,9 +1,7 @@
 #include "Game.hpp"
 
 // FIX: Crash on save / rocket enter bug (can't save???)
-
-// TODO: Plant object reset health to new stage health when grow
-// FIX: Plant object
+// FIX: Structure in spawn chunk?
 
 // PRIORITY: HIGH
 // TODO: Plants / farming / growing objects
@@ -745,7 +743,7 @@ void Game::updateOnPlanet(float dt)
     }
 
     // Update (loaded) chunks
-    bool modifiedChunks = chunkManager.updateChunks();
+    bool modifiedChunks = chunkManager.updateChunks(*this);
     chunkManager.updateChunksObjects(*this, dt);
     chunkManager.updateChunksEntities(dt, projectileManager, inventory);
 
@@ -1276,7 +1274,7 @@ void Game::attemptBuildObject()
         Sounds::playSound(buildSound, 60.0f);
 
         // Build object
-        chunkManager.setObject(Cursor::getSelectedChunk(chunkManager.getWorldSize()), Cursor::getSelectedChunkTile(), objectType);
+        chunkManager.setObject(Cursor::getSelectedChunk(chunkManager.getWorldSize()), Cursor::getSelectedChunkTile(), objectType, *this);
     }
 }
 
@@ -1552,7 +1550,7 @@ void Game::travelToPlanet(PlanetType planetType)
 
     Camera::instantUpdate(player.getPosition());
 
-    chunkManager.updateChunks();
+    chunkManager.updateChunks(*this);
     lightingTick = LIGHTING_TICK;
 
     // Start rocket flying downwards
@@ -1585,12 +1583,12 @@ void Game::initialiseNewPlanet(PlanetType planetType, bool placeRocket)
     {
         Camera::instantUpdate(player.getPosition());
 
-        chunkManager.updateChunks();
+        chunkManager.updateChunks(*this);
 
         // Ennsure spawn chunk does not have structure
-        chunkManager.regenerateChunkWithoutStructure(playerSpawnChunk);
+        chunkManager.regenerateChunkWithoutStructure(playerSpawnChunk, *this);
 
-        chunkManager.setObject(playerSpawnChunk, sf::Vector2i(0, 0), ObjectDataLoader::getObjectTypeFromName("Rocket Launch Pad"));
+        chunkManager.setObject(playerSpawnChunk, sf::Vector2i(0, 0), ObjectDataLoader::getObjectTypeFromName("Rocket Launch Pad"), *this);
         rocketEnteredReference.chunk = playerSpawnChunk;
         rocketEnteredReference.tile = sf::Vector2i(0, 0);
     }
@@ -1714,7 +1712,7 @@ void Game::startNewGame()
 
     Camera::instantUpdate(player.getPosition());
 
-    chunkManager.updateChunks();
+    chunkManager.updateChunks(*this);
     lightingTick = LIGHTING_TICK;
 
     startChangeStateTransition(GameState::OnPlanet);
@@ -1774,13 +1772,13 @@ bool Game::loadGame(const std::string& saveName)
 
     changePlayerTool();
 
-    chunkManager.loadFromChunkPODs(planetGameSave.chunks);
+    chunkManager.loadFromChunkPODs(planetGameSave.chunks, *this);
     chestDataPool = planetGameSave.chestDataPool;
     structureRoomPool = planetGameSave.structureRoomPool;
 
     Camera::instantUpdate(player.getPosition());
 
-    chunkManager.updateChunks();
+    chunkManager.updateChunks(*this);
     lightingTick = LIGHTING_TICK;
 
     // Load successful, set save name as current save and start state transition
@@ -1804,7 +1802,7 @@ bool Game::loadPlanet(PlanetType planetType)
     chunkManager.setPlanetType(planetType);
 
     player.setPosition(planetGameSave.playerLastPos);
-    chunkManager.loadFromChunkPODs(planetGameSave.chunks);
+    chunkManager.loadFromChunkPODs(planetGameSave.chunks, *this);
     chestDataPool = planetGameSave.chestDataPool;
     structureRoomPool = planetGameSave.structureRoomPool;
 

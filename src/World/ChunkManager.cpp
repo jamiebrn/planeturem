@@ -16,7 +16,7 @@ void ChunkManager::setSeed(int seed)
     biomeNoise.SetSeed(seed + planetType + 1);
 }
 
-int ChunkManager::getSeed()
+int ChunkManager::getSeed() const
 {
     return seed;
 }
@@ -48,7 +48,7 @@ void ChunkManager::deleteAllChunks()
     storedChunks.clear();
 }
 
-bool ChunkManager::updateChunks()
+bool ChunkManager::updateChunks(Game& game)
 {
     // Chunk load/unload
 
@@ -109,14 +109,14 @@ bool ChunkManager::updateChunks()
                 // Therefore must initialise
                 if (chunk->wasGeneratedFromPOD())
                 {
-                    chunk->generateTilemapsAndInit(heightNoise, biomeNoise, planetType, worldSize, *this);
+                    chunk->generateTilemapsAndInit(heightNoise, biomeNoise, planetType, *this);
                 }
 
                 continue;
             }
 
             // Generate new chunk if does not exist
-            generateChunk(ChunkPosition(wrappedX, wrappedY), true, chunkWorldPos);
+            generateChunk(ChunkPosition(wrappedX, wrappedY), game, true, chunkWorldPos);
         }
     }
 
@@ -179,7 +179,7 @@ void ChunkManager::reloadChunks()
     }
 }
 
-void ChunkManager::regenerateChunkWithoutStructure(ChunkPosition chunk)
+void ChunkManager::regenerateChunkWithoutStructure(ChunkPosition chunk, Game& game)
 {
     Chunk* chunkPtr = getChunk(chunk);
 
@@ -192,7 +192,7 @@ void ChunkManager::regenerateChunkWithoutStructure(ChunkPosition chunk)
     chunkPtr->reset(true);
 
     // Regenerate without structure
-    chunkPtr->generateChunk(heightNoise, biomeNoise, planetType, worldSize, *this, false);
+    chunkPtr->generateChunk(heightNoise, biomeNoise, planetType, game, *this, false);
 }
 
 void ChunkManager::drawChunkTerrain(sf::RenderTarget& window, SpriteBatch& spriteBatch, float time)
@@ -489,14 +489,14 @@ bool ChunkManager::isChunkGenerated(ChunkPosition chunk) const
     return (loadedChunks.count(chunk) + storedChunks.count(chunk)) > 0;
 }
 
-void ChunkManager::setObject(ChunkPosition chunk, sf::Vector2i tile, ObjectType objectType)
+void ChunkManager::setObject(ChunkPosition chunk, sf::Vector2i tile, ObjectType objectType, Game& game)
 {
     // Chunk does not exist
     if (loadedChunks.count(chunk) <= 0)
         return;
     
     // Set chunk object at position
-    loadedChunks[chunk]->setObject(tile, objectType, worldSize, *this);
+    loadedChunks[chunk]->setObject(tile, objectType, game, *this);
 }
 
 void ChunkManager::deleteObject(ChunkPosition chunk, sf::Vector2i tile)
@@ -764,7 +764,7 @@ void ChunkManager::placeLand(ChunkPosition chunk, sf::Vector2i tile)
             int wrappedX = (x % worldSize + worldSize) % worldSize;
             int wrappedY = (y % worldSize + worldSize) % worldSize;
 
-            loadedChunks[ChunkPosition(wrappedX, wrappedY)]->generateVisualEffectTiles(heightNoise, biomeNoise, planetType, worldSize, *this);
+            loadedChunks[ChunkPosition(wrappedX, wrappedY)]->generateVisualEffectTiles(heightNoise, biomeNoise, planetType, *this);
         }
     }
 }
@@ -801,14 +801,14 @@ std::vector<ChunkPOD> ChunkManager::getChunkPODs()
     return pods;
 }
 
-void ChunkManager::loadFromChunkPODs(const std::vector<ChunkPOD>& pods)
+void ChunkManager::loadFromChunkPODs(const std::vector<ChunkPOD>& pods, Game& game)
 {
     deleteAllChunks();
 
     for (const ChunkPOD& pod : pods)
     {
         std::unique_ptr<Chunk> chunk = std::make_unique<Chunk>(pod.chunkPosition);
-        chunk->loadFromChunkPOD(pod);
+        chunk->loadFromChunkPOD(pod, game);
 
         storedChunks[pod.chunkPosition] = std::move(chunk);
     }
@@ -839,7 +839,7 @@ ChunkPosition ChunkManager::findValidSpawnChunk(int waterlessAreaSize)
 
                     // Generate minimal version of chunk (tile grid and structure) to check against
                     Chunk chunk(ChunkPosition(wrappedX, wrappedY));
-                    chunk.generateTilesAndStructure(heightNoise, biomeNoise, planetType, worldSize, *this);
+                    chunk.generateTilesAndStructure(heightNoise, biomeNoise, planetType, *this);
 
                     // Check against chunk
                     if (!chunk.getContainsWater())
@@ -935,7 +935,7 @@ std::unordered_map<std::string, int> ChunkManager::getNearbyCraftingStationLevel
     return craftingStationLevels;
 }
 
-void ChunkManager::generateChunk(const ChunkPosition& chunkPosition, bool putInLoaded, std::optional<sf::Vector2f> positionOverride)
+void ChunkManager::generateChunk(const ChunkPosition& chunkPosition, Game& game, bool putInLoaded, std::optional<sf::Vector2f> positionOverride)
 {
     std::unique_ptr<Chunk> chunk = std::make_unique<Chunk>(chunkPosition);
 
@@ -967,7 +967,7 @@ void ChunkManager::generateChunk(const ChunkPosition& chunkPosition, bool putInL
     chunkPtr->setWorldPosition(chunkWorldPos, *this);
 
     // Generate
-    chunkPtr->generateChunk(heightNoise, biomeNoise, planetType, worldSize, *this);
+    chunkPtr->generateChunk(heightNoise, biomeNoise, planetType, game, *this);
 }
 
 void ChunkManager::clearUnmodifiedStoredChunks()

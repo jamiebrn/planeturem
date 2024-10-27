@@ -20,6 +20,6 @@ struct BuildableObjectPOD
     template <class Archive>
     void serialize(Archive& ar)
     {
-        ar(objectType, chestID, objectReference);
+        ar(objectType, chestID, objectReference, plantDayPlanted);
     }
 };

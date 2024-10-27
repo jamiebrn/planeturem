@@ -4,6 +4,7 @@
 
 #include <cstdint>
 
+#include "Core/Random.hpp"
 #include "Object/WorldObject.hpp"
 #include "Object/BuildableObject.hpp"
 #include "Data/ObjectData.hpp"
@@ -31,9 +32,15 @@ public:
     void loadFromPOD(const BuildableObjectPOD& pod) override;
 
 private:
+    int getPlantStage(int currentDay) const;
     const PlantStageObjectData* getPlantStageData(int currentDay) const;
+
+    void changePlantStage(int newStage);
+
+    int getTotalGrowthDays() const;
 
 private:
     int dayPlanted = 0;
+    int currentStage = 0;
 
 };

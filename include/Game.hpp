@@ -104,6 +104,8 @@ public:
     inline bool getIsDay() {return isDay;}
     inline DayCycleManager& getDayCycleManager() {return dayCycleManager;}
 
+    inline const ChunkManager& getChunkManager() {return chunkManager;}
+
 private:
 
     // test
