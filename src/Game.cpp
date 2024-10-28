@@ -278,15 +278,13 @@ void Game::runMainMenu(float dt)
 
 
     // Draw title
-    TextDrawData titleTextDrawData;
-    titleTextDrawData.position = sf::Vector2f(window.getSize().x / 2.0f, 300 * intScale);
-    titleTextDrawData.size = 54;
-    titleTextDrawData.text = GAME_TITLE;
-    titleTextDrawData.colour = sf::Color(255, 255, 255);
-    titleTextDrawData.centeredX = true;
-    titleTextDrawData.centeredY = true;
+    TextureDrawData titleDrawData;
+    titleDrawData.type = TextureType::UI;
+    titleDrawData.scale = sf::Vector2f(3, 3) * intScale;
+    titleDrawData.position = sf::Vector2f(std::round(window.getSize().x / 2.0f), std::round((200 + std::sin(gameTime) * 20) * intScale));
+    titleDrawData.centerRatio = sf::Vector2f(0.5f, 0.5f);
 
-    TextDraw::drawText(window, titleTextDrawData);
+    TextureManager::drawSubTexture(window, titleDrawData, sf::IntRect(21, 160, 212, 32));
 
     // Buttons / UI
     switch (mainMenuState)
