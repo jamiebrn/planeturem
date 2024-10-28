@@ -11,7 +11,7 @@ ChestDataPool::ChestDataPool()
 }
 
 // ID 0xFFFF returned means chest was not initialised, as data is full
-uint16_t ChestDataPool::createChest(InventoryData chestContents)
+uint16_t ChestDataPool::createChest(const InventoryData& chestContents)
 {
     uint16_t chestID = topDataSlot;
     if (openDataSlots.size() > 0)

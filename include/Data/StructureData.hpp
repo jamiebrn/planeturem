@@ -17,7 +17,7 @@ struct RoomObjectData
     ObjectType objectType;
 
     // Chest contents, if is chest
-    std::optional<InventoryData> chestContents = std::nullopt;
+    std::optional<std::vector<InventoryData>> chestContents = std::nullopt;
 
     template <class Archive>
     void serialize(Archive& ar)
@@ -55,5 +55,6 @@ struct StructureData
 
     sf::Vector2i collisionBitmaskOffset;
 
-    RoomData roomData;
+    // RoomData roomData;
+    RoomType roomType;
 };

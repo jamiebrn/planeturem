@@ -3,13 +3,14 @@
 // FIX: Crash on save / rocket enter bug (can't save???)
 // FIX: Structure in spawn chunk?
 
+// TODO: Night and menu music
+// TODO: Better GUI system / relative to window size etc and texturing
+
 // PRIORITY: HIGH
-// TODO: Plants / farming / growing objects
 // TODO: Create event callback system for object responding to triggers, rather than calling game functions directly
 
 // TODO: Structure functionality (item spawns, crafting stations etc)
 // TODO: Different types of structures
-// TODO: Different types of tools? (fishing rod etc)
 
 // PRIORITY: LOW
 // TODO: Fishing rod draw order (split into separate objects?)
@@ -918,7 +919,8 @@ void Game::testEnterStructure()
     // Create room data
     if (enterEvent.enteredStructure->getStructureID() == 0xFFFFFFFF)
     {
-        structureEnteredID = structureRoomPool.createRoom(enterEvent.enteredStructure->getStructureType(), chestDataPool);
+        const StructureData& structureData = StructureDataLoader::getStructureData(enterEvent.enteredStructure->getStructureType());
+        structureEnteredID = structureRoomPool.createRoom(structureData.roomType, chestDataPool);
         enterEvent.enteredStructure->setStructureID(structureEnteredID);
     }
     else

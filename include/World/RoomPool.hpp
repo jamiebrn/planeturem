@@ -18,7 +18,7 @@ class RoomPool
 public:
     RoomPool() = default;
 
-    uint32_t createRoom(StructureType structureType, ChestDataPool& chestDataPool);
+    uint32_t createRoom(RoomType roomType, ChestDataPool& chestDataPool);
 
     Room& getRoom(uint32_t structureID);
 

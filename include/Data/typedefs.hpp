@@ -17,5 +17,6 @@ typedef int ArmourType;
 
 typedef std::pair<ItemType, unsigned int> ItemCount;
 
+typedef int RoomType;
 typedef int StructureType;
 typedef int PlanetType;

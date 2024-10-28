@@ -22,12 +22,15 @@ public:
 
     static const StructureData& getStructureData(StructureType type_index);
 
+    static const RoomData& getRoomData(RoomType roomType);
+
     static StructureType getStructureTypeFromName(const std::string& structureName);
 
 private:
-    static void createChestInventory(RoomObjectData& roomObjectData, nlohmann::ordered_json::iterator objectIter);
+    static void loadChestContents(RoomObjectData& roomObjectData, nlohmann::ordered_json::iterator objectIter);
 
     static std::vector<StructureData> loaded_structureData;
+    static std::vector<RoomData> loaded_roomData;
 
     static std::unordered_map<std::string, StructureType> structureNameToTypeMap;
 

@@ -1,6 +1,7 @@
 #include "Data/StructureDataLoader.hpp"
 
 std::vector<StructureData> StructureDataLoader::loaded_structureData;
+std::vector<RoomData> StructureDataLoader::loaded_roomData;
 
 std::unordered_map<std::string, StructureType> StructureDataLoader::structureNameToTypeMap;
 
@@ -10,7 +11,7 @@ bool StructureDataLoader::loadData(std::string structureDataPath)
     nlohmann::ordered_json data = nlohmann::ordered_json::parse(file);
 
     // Load rooms
-    std::unordered_map<std::string, RoomData> roomNameToDataMap;
+    std::unordered_map<std::string, RoomType> roomNameToTypeMap;
 
     auto rooms = data.at("rooms");
     for (nlohmann::ordered_json::iterator iter = rooms.begin(); iter != rooms.end(); ++iter)
@@ -44,14 +45,17 @@ bool StructureDataLoader::loadData(std::string structureDataPath)
                 if (objectData.chestCapacity > 0)
                 {
                     // Create inventory
-                    createChestInventory(roomObjectData, objectIter);
+                    loadChestContents(roomObjectData, objectIter);
                 }
 
                 roomData.objectsInRoom[objectIter.value()[1]] = roomObjectData;
             }
         }
 
-        roomNameToDataMap[iter.key()] = roomData;
+        // roomNameToDataMap[iter.key()] = roomData;
+        roomNameToTypeMap[iter.key()] = loaded_roomData.size();
+
+        loaded_roomData.push_back(roomData);
     }
 
     int structureIdx = 0;
@@ -82,7 +86,7 @@ bool StructureDataLoader::loadData(std::string structureDataPath)
         structureData.collisionBitmaskOffset.x = collisionBitmask[0];
         structureData.collisionBitmaskOffset.y = collisionBitmask[1];
 
-        structureData.roomData = roomNameToDataMap[jsonStructureData.at("room")];
+        structureData.roomType = roomNameToTypeMap[jsonStructureData.at("room")];
 
         loaded_structureData.push_back(structureData);
 
@@ -94,24 +98,36 @@ bool StructureDataLoader::loadData(std::string structureDataPath)
     return true;
 }
 
-void StructureDataLoader::createChestInventory(RoomObjectData& roomObjectData, nlohmann::ordered_json::iterator objectIter)
+void StructureDataLoader::loadChestContents(RoomObjectData& roomObjectData, nlohmann::ordered_json::iterator objectIter)
 {
-    auto chestContents = objectIter.value()[2];
+    auto chestInventoryContents = objectIter.value()[2];
 
     const ObjectData& objectData = ObjectDataLoader::getObjectData(roomObjectData.objectType);
 
-    roomObjectData.chestContents = InventoryData(objectData.chestCapacity);
+    roomObjectData.chestContents = std::vector<InventoryData>();
 
-    for (nlohmann::ordered_json::iterator itemSlotIter = chestContents.begin(); itemSlotIter != chestContents.end(); ++itemSlotIter)
+    for (nlohmann::ordered_json::iterator chestInventory = chestInventoryContents.begin(); chestInventory != chestInventoryContents.end(); ++chestInventory)
     {
-        ItemType itemType = ItemDataLoader::getItemTypeFromName(itemSlotIter.value()[1]);
-        roomObjectData.chestContents->addItemAtIndex(itemSlotIter.value()[0], itemType, itemSlotIter.value()[2]);
+        InventoryData chestInventoryData(objectData.chestCapacity);
+
+        for (auto itemIter = chestInventory.value().begin(); itemIter != chestInventory.value().end(); ++itemIter)
+        {
+            ItemType itemType = ItemDataLoader::getItemTypeFromName(itemIter.value()[1]);
+            chestInventoryData.addItemAtIndex(itemIter.value()[0], itemType, itemIter.value()[2]);
+        }
+
+        roomObjectData.chestContents->push_back(chestInventoryData);
     }    
 }
 
 const StructureData& StructureDataLoader::getStructureData(StructureType type_index)
 {    
     return loaded_structureData[type_index];
+}
+
+const RoomData& StructureDataLoader::getRoomData(RoomType roomType)
+{
+    return loaded_roomData[roomType];
 }
 
 ObjectType StructureDataLoader::getStructureTypeFromName(const std::string& structureName)

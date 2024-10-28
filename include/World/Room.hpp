@@ -27,6 +27,7 @@
 #include "World/ChestDataPool.hpp"
 
 #include "Data/StructureData.hpp"
+#include "Data/StructureDataLoader.hpp"
 
 #include "GameConstants.hpp"
 #include "DebugOptions.hpp"
@@ -37,7 +38,7 @@ class Room
 {
 public:
     Room();
-    Room(const RoomData& roomData, ChestDataPool& chestDataPool);
+    Room(RoomType roomType, ChestDataPool& chestDataPool);
 
     // Copying
     Room(const Room& room);
@@ -69,7 +70,7 @@ public:
     void save(Archive& archive) const
     {
         std::vector<std::vector<std::optional<BuildableObjectPOD>>> pods = getObjectPODs();
-        archive(roomData, pods);
+        archive(roomType, pods);
     }
 
     template<class Archive>
@@ -77,7 +78,7 @@ public:
     {
         std::vector<std::vector<std::optional<BuildableObjectPOD>>> pods;
         
-        archive(roomData, pods);
+        archive(roomType, pods);
 
         loadObjectPODs(pods);
     }
@@ -91,7 +92,7 @@ private:
     void loadObjectPODs(const std::vector<std::vector<std::optional<BuildableObjectPOD>>>& pods);
 
 private:
-    RoomData roomData;
+    RoomType roomType;
 
     std::vector<CollisionRect> collisionRects;
     CollisionRect warpExitRect;

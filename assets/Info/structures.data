@@ -5,9 +5,13 @@
             "tile-size": [9, 10],
             "collision-bitmask": [0, 3],
             "objects": [
-                ["Chest", 1, [[1, "Wood", 3], [10, "Wood", 2], [12, "Rocket Launch Pad", 1]]],
-                ["Chest", 2, [[6, "Stone", 4], [13, "Raw Iron", 2]]],
-                ["Chest", 3, [[3, "Raw Gold", 3], [14, "Iron Bar", 2]]]
+                ["Chest", 1, [
+                    [[1, "Wood", 3], [10, "Wood", 2]],
+                    [[5, "Wood", 2], [14, "Stone", 1]],
+                    [[6, "Raw Iron", 2], [12, "Wood", 1]]
+                    ]],
+                ["Chest", 2, [[[6, "Stone", 4], [13, "Raw Iron", 2]]]],
+                ["Chest", 3, [[[3, "Raw Gold", 3], [14, "Iron Bar", 2]]]]
             ]
         }
     },

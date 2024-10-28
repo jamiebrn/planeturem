@@ -5,9 +5,9 @@ Room::Room()
     
 }
 
-Room::Room(const RoomData& roomData, ChestDataPool& chestDataPool)
+Room::Room(RoomType roomType, ChestDataPool& chestDataPool)
 {
-    this->roomData = roomData;
+    this->roomType = roomType;
 
     createObjects(chestDataPool);
 
@@ -21,7 +21,7 @@ Room::Room(const Room& room)
 
 Room& Room::operator=(const Room& room)
 {
-    roomData = room.roomData;
+    roomType = room.roomType;
     collisionRects = room.collisionRects;
     warpExitRect = room.warpExitRect;
 
@@ -76,6 +76,8 @@ void Room::createObjects(ChestDataPool& chestDataPool)
 {
     const sf::Image& bitmaskImage = TextureManager::getBitmask(BitmaskType::Structures);
 
+    const RoomData& roomData = StructureDataLoader::getRoomData(roomType);
+
     for (int y = 0; y < roomData.tileSize.y; y++)
     {
         objectGrid.emplace_back();
@@ -102,7 +104,9 @@ void Room::createObjects(ChestDataPool& chestDataPool)
                 {
                     if (ChestObject* chest = dynamic_cast<ChestObject*>(object.get()))
                     {
-                        uint16_t chestID = chestDataPool.createChest(roomObjectData.chestContents.value());
+                        const InventoryData& randomChestContents = roomObjectData.chestContents.value()[rand() % roomObjectData.chestContents->size()];
+
+                        uint16_t chestID = chestDataPool.createChest(randomChestContents);
 
                         chest->setChestID(chestID);
                     }
@@ -120,6 +124,8 @@ void Room::createCollisionRects()
     collisionRects.clear();
 
     const sf::Image& bitmaskImage = TextureManager::getBitmask(BitmaskType::Structures);
+
+    const RoomData& roomData = StructureDataLoader::getRoomData(roomType);
 
     for (int x = 0; x < roomData.tileSize.x; x++)
     {
@@ -249,6 +255,8 @@ void Room::draw(sf::RenderTarget& window) const
     drawData.position = Camera::worldToScreenTransform(sf::Vector2f(0, 0));
     drawData.scale = sf::Vector2f(scale, scale);
     drawData.type = TextureType::Rooms;
+
+    const RoomData& roomData = StructureDataLoader::getRoomData(roomType);
 
     TextureManager::drawSubTexture(window, drawData, roomData.textureRect);
     
