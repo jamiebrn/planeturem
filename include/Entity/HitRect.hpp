@@ -4,5 +4,5 @@
 
 struct HitRect : public CollisionRect
 {
-    int damage;
+    float damage;
 };

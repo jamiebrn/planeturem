@@ -37,6 +37,8 @@ bool ItemDataLoader::loadData(std::string itemDataPath)
 
         if (jsonItemData.contains("max-stack-size")) itemData.maxStackSize = jsonItemData.at("max-stack-size");
 
+        if (jsonItemData.contains("currency-value")) itemData.currencyValue = jsonItemData.at("currency-value");
+
         // Add to item name to type map
         itemNameToTypeMap[itemData.name] = itemIndex;
         itemIndex++;

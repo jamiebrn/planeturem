@@ -19,6 +19,7 @@ Player::Player(sf::Vector2f position, InventoryData* armourInventory)
 
     maxHealth = 250;
     health = maxHealth;
+    healthRegenCooldownTimer = 0.0f;
     damageCooldownTimer = 0.0f;
     respawnTimer = 0.0f;
 
@@ -194,6 +195,13 @@ void Player::updateToolRotation(sf::Vector2f mouseWorldPos)
 
 void Player::updateTimers(float dt)
 {
+    healthRegenCooldownTimer = std::max(healthRegenCooldownTimer - dt, 0.0f);
+
+    if (healthRegenCooldownTimer <= 0 && health < maxHealth)
+    {
+        health = std::min(health + BASE_HEALTH_REGEN_RATE * dt, static_cast<float>(maxHealth));
+    }
+
     damageCooldownTimer = std::max(damageCooldownTimer - dt, 0.0f);
 
     if (respawnTimer > 0)
@@ -572,10 +580,15 @@ void Player::testHitCollision(const HitRect& hitRect)
     }
 
     // Collision
-    health -= hitRect.damage;
+
+    // Calculate defence to modify damage
+    int defence = PlayerStats::calculateDefence(*armourInventory);
+    
+    health -= std::max(hitRect.damage * (1.0f - defence / 70.0f), 0.0f);
 
     HitMarkers::addHitMarker(position, hitRect.damage);
 
+    healthRegenCooldownTimer = MAX_HEALTH_REGEN_COOLDOWN_TIMER;
     damageCooldownTimer = MAX_DAMAGE_COOLDOWN_TIMER;
 
     if (!isAlive())

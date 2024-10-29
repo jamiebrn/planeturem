@@ -110,8 +110,11 @@ private:
     int tileReach = 4;
     float speed = 120.0f;
 
+    static constexpr float BASE_HEALTH_REGEN_RATE = 3.0f;
+    static constexpr float MAX_HEALTH_REGEN_COOLDOWN_TIMER = 5.0f;
+    float healthRegenCooldownTimer;
     int maxHealth;
-    int health;
+    float health;
     static constexpr float MAX_DAMAGE_COOLDOWN_TIMER = 0.4f;
     float damageCooldownTimer;
     static constexpr float MAX_RESPAWN_TIMER = 10.0f;

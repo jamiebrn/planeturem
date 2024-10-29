@@ -449,6 +449,11 @@ void Game::runOnPlanet(float dt)
         {
             continue;
         }
+
+        if (ImGui::GetIO().WantCaptureKeyboard || ImGui::GetIO().WantCaptureMouse)
+        {
+            continue;
+        }
         
         if (worldMenuState == WorldMenuState::TravelSelect)
         {
@@ -493,7 +498,7 @@ void Game::runOnPlanet(float dt)
             }
         }
 
-        if (event.type == sf::Event::MouseButtonPressed && !ImGui::GetIO().WantCaptureMouse)
+        if (event.type == sf::Event::MouseButtonPressed)
         {
             if (event.mouseButton.button == sf::Mouse::Left)
             {
@@ -2090,6 +2095,15 @@ void Game::drawDebugMenu(float dt)
     }
 
     ImGui::Text(("Light level: " + std::to_string(dayCycleManager.getLightLevel())).c_str());
+
+    ImGui::Spacing();
+
+    static char* itemToGive = new char[100];
+    ImGui::InputText("Give item", itemToGive, 100);
+    if (ImGui::Button("Give Item"))
+    {
+        inventory.addItem(ItemDataLoader::getItemTypeFromName(itemToGive), 1);
+    }
 
     // if (ImGui::Button("Toggle Day / Night"))
     // {

@@ -1000,6 +1000,11 @@ sf::Vector2f InventoryGUI::drawItemInfoBox(sf::RenderTarget& window, float gameT
         infoStrings.push_back({"Summons " + itemData.bossSummonData->bossName, 20});
     }
 
+    if (itemData.currencyValue > 0)
+    {
+        infoStrings.push_back({std::to_string(itemData.currencyValue) + " value each", 20});
+    }
+
     if (itemData.isMaterial)
     {
         infoStrings.push_back({"Material", 20});

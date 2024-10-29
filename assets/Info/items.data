@@ -100,5 +100,16 @@
         "name": "Land",
         "texture": [112, 112, 16, 16],
         "places-land": true
+    },
+    {
+        "name": "Golden Gemstone",
+        "texture": [80, 32, 16, 16],
+        "currency-value": 5
+    },
+    {
+        "name": "Forged Gemstone",
+        "texture": [96, 32, 16, 16],
+        "currency-value": 5,
+        "description": "You probably shouldn't have this"
     }
 ]

@@ -217,5 +217,14 @@
         },
         "crafting-station": "bench",
         "crafting-station-level": 1
+    },
+    {
+        "product": "Forged Gemstone",
+        "item-requirements": {
+            "Gold Bar": 3,
+            "Iron Bar": 2
+        },
+        "crafting-station": "anvil",
+        "crafting-station-level": 1
     }
 ]
