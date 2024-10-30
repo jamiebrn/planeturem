@@ -28,11 +28,16 @@ option(IMGUI_SFML_IMGUI_DEMO "Build imgui_demo.cpp" OFF)
 
 FetchContent_MakeAvailable(imgui-sfml)
 
+FetchContent_Declare(PlatformFolders
+  GIT_REPOSITORY https://github.com/sago007/PlatformFolders
+  GIT_TAG 4.2.0
+)
+FetchContent_MakeAvailable(PlatformFolders)
+
 include_directories(include/)
 include_directories(include/steam/)
 include_directories(include/extlib/)
 include_directories(${imgui_SOURCE_DIR})
-
 file(GLOB_RECURSE SRC_FILES src/*.cpp)
 file(GLOB IMGUI_FILES ${imgui_SOURCE_DIR}/*.cpp)
 
@@ -42,6 +47,7 @@ add_executable(Planeturem ${SRC_FILES} ${IMGUI_FILES})
 target_link_libraries(Planeturem PRIVATE sfml-graphics)
 target_link_libraries(Planeturem PRIVATE sfml-audio)
 target_link_libraries(Planeturem PRIVATE ImGui-SFML::ImGui-SFML)
+target_link_libraries(Planeturem PRIVATE platform_folders)
 target_link_libraries(Planeturem PRIVATE steam_api64)
 target_link_options(Planeturem PRIVATE -static)
 target_compile_features(Planeturem PRIVATE cxx_std_20)

@@ -41,5 +41,5 @@ private:
 
     std::vector<uint16_t> openDataSlots;
 
-    uint16_t topDataSlot;
+    // uint16_t topDataSlot;
 };

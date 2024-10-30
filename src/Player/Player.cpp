@@ -583,10 +583,12 @@ void Player::testHitCollision(const HitRect& hitRect)
 
     // Calculate defence to modify damage
     int defence = PlayerStats::calculateDefence(*armourInventory);
-    
-    health -= std::max(hitRect.damage * (1.0f - defence / 70.0f), 0.0f);
 
-    HitMarkers::addHitMarker(position, hitRect.damage);
+    int damageAmount = std::max(std::round(hitRect.damage * (1.0f - defence / 70.0f)), 0.0f);
+    
+    health -= damageAmount;
+
+    HitMarkers::addHitMarker(position, damageAmount);
 
     healthRegenCooldownTimer = MAX_HEALTH_REGEN_COOLDOWN_TIMER;
     damageCooldownTimer = MAX_DAMAGE_COOLDOWN_TIMER;

@@ -16,6 +16,7 @@
 // TODO: Fishing rod draw order (split into separate objects?)
 
 
+
 // -- Public methods / entry point -- //
 
 Game::Game()
@@ -1758,8 +1759,9 @@ bool Game::loadGame(const std::string& saveName)
 
     PlayerGameSave playerGameSave;
     PlanetGameSave planetGameSave;
+    PlanetDataVersionMapping planetDataVersionMapping;
 
-    if (!io.load(playerGameSave, planetGameSave))
+    if (!io.load(playerGameSave, planetGameSave, planetDataVersionMapping))
     {
         std::cout << "Failed to load game\n";
         return false;
@@ -1798,8 +1800,9 @@ bool Game::loadPlanet(PlanetType planetType)
     GameSaveIO io(currentSaveName);
 
     PlanetGameSave planetGameSave;
+    PlanetDataVersionMapping planetDataVersionMapping;
 
-    if (!io.loadPlanet(planetType, planetGameSave))
+    if (!io.loadPlanet(planetType, planetGameSave, planetDataVersionMapping))
     {
         return false;
     }

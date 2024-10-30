@@ -229,3 +229,45 @@ int InventoryData::getProjectileCountForWeapon(ToolType weapon) const
 
     return count;
 }
+
+// Save / load
+void to_json(nlohmann::json& json, const InventoryData& inventory)
+{
+    for (const auto& itemSlot : inventory.getData())
+    {
+        std::string itemName = "";
+        int itemCount = 0;
+        
+        if (itemSlot.has_value())
+        {
+            itemName = ItemDataLoader::getItemData(itemSlot->first).name;
+            itemCount = itemSlot->second;
+        }
+        
+        json.push_back({itemName, itemCount});
+    }
+}
+
+void from_json(const nlohmann::json& json, InventoryData& inventory)
+{
+    inventory.getData().resize(json.size());
+    
+    int idx = 0;
+    for (auto iter = json.begin(); iter != json.end(); ++iter)
+    {
+        if (iter.value()[0].empty())
+        {
+            inventory.getData()[idx] = std::nullopt;
+        }
+        else if (iter.value()[1] > 0)
+        {
+            ItemCount itemSlot;
+            itemSlot.first = ItemDataLoader::getItemTypeFromName(iter.value()[0]);
+            itemSlot.second = iter.value()[1];
+
+            inventory.getData()[idx] = itemSlot;
+        }
+
+        idx++;
+    }
+}

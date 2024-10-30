@@ -12,6 +12,10 @@
 #include <extlib/cereal/types/vector.hpp>
 #include <extlib/cereal/types/optional.hpp>
 
+#include <platform_folders.h>
+
+#include <Core/json.hpp>
+
 #include <SFML/System/Vector2.hpp>
 
 #include "World/ChunkPOD.hpp"
@@ -22,6 +26,8 @@
 #include "Object/ObjectReference.hpp"
 
 #include "Data/typedefs.hpp"
+#include "Data/ItemDataLoader.hpp"
+#include "Data/ObjectDataLoader.hpp"
 #include "Data/PlanetGenData.hpp"
 #include "Data/PlanetGenDataLoader.hpp"
 
@@ -36,11 +42,11 @@ struct PlayerGameSave
     float time;
     int day;
 
-    template <class Archive>
-    void serialize(Archive& ar)
-    {
-        ar(seed, planetType, inventory, armourInventory, time, day);
-    }
+    // template <class Archive>
+    // void serialize(Archive& ar)
+    // {
+    //     ar(seed, planetType, inventory, armourInventory, time, day);
+    // }
 };
 
 struct PlanetGameSave
@@ -60,14 +66,21 @@ struct PlanetGameSave
     }
 };
 
+// Stores items and object types saved mapped to same items / objects at current type index
+struct PlanetDataVersionMapping
+{
+    std::unordered_map<ItemType, ItemType> itemTypeMap;
+    std::unordered_map<ObjectType, ObjectType> objectTypeMap;
+};
+
 class GameSaveIO
 {
 public:
     GameSaveIO() = default;
     GameSaveIO(std::string fileName);
     
-    bool load(PlayerGameSave& playerGameSave, PlanetGameSave& planetGameSave);
-    bool loadPlanet(PlanetType planetType, PlanetGameSave& planetGameSave);
+    bool load(PlayerGameSave& playerGameSave, PlanetGameSave& planetGameSave, PlanetDataVersionMapping& planetDataVersionMapping);
+    bool loadPlanet(PlanetType planetType, PlanetGameSave& planetGameSave, PlanetDataVersionMapping& planetDataVersionMapping);
 
     bool write(const PlayerGameSave& playerGameSave, const PlanetGameSave& planetGameSave);
 
@@ -75,6 +88,16 @@ public:
 
 private:
     void createSaveDirectoryIfRequired();
+
+    bool loadPlayerSave(PlayerGameSave& playerGameSave);
+    bool writePlayerSave(const PlayerGameSave& playerGameSave);
+
+    bool loadPlanetDataVersionMapping(PlanetType planetType, PlanetDataVersionMapping& planetDataVersionMapping);
+    bool buildPlanetDataVersionMapping(PlanetType planetType);
+
+    std::string getPlanetDataVersionMappingFileName(PlanetType planetType);
+
+    std::string getRootDir();
 
 private:
     std::string fileName;

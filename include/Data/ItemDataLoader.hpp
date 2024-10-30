@@ -35,6 +35,8 @@ public:
 
     static void setItemIsMaterial(ItemType item, bool isMaterial = true);
 
+    inline static const std::unordered_map<std::string, ItemType>& getItemNameToTypeMap() {return itemNameToTypeMap;}
+
 private:
     static std::vector<ItemData> loaded_itemData;
 

@@ -25,6 +25,8 @@ public:
 
     static ObjectType getObjectTypeFromName(const std::string& objectName);
 
+    inline static const std::unordered_map<std::string, ObjectType>& getObjectNameToTypeMap() {return objectNameToTypeMap;}
+
 private:
     static std::vector<ObjectData> loaded_objectData;
 

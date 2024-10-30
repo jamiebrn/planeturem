@@ -3,37 +3,40 @@
 ChestDataPool::ChestDataPool()
 {
     // Reserve 0xFFFF - 1 slots for chest data
-    chestData = std::vector<std::optional<InventoryData>>(0xFFFF - 1);
+    // chestData = std::vector<std::optional<InventoryData>>;
 
     openDataSlots.clear();
 
-    topDataSlot = 0;
+    // topDataSlot = 0;
 }
 
 // ID 0xFFFF returned means chest was not initialised, as data is full
 uint16_t ChestDataPool::createChest(const InventoryData& chestContents)
 {
-    uint16_t chestID = topDataSlot;
+    // uint16_t chestID = topDataSlot;
     if (openDataSlots.size() > 0)
     {
-        chestID = openDataSlots.back();
+        uint16_t chestID = openDataSlots.back();
         openDataSlots.pop_back();
+        chestData[chestID] = chestContents;
     }
     else
     {
-        if (topDataSlot < chestData.size())
+        if (chestData.size() < 0xFFFF)
         {
-            topDataSlot++;
+            chestData.push_back(chestContents);
+            uint16_t chestID = chestData.size() - 1;
+            return chestID;
         }
     }
 
-    if (chestID < chestData.size())
-    {
-        // Initialise chest data
-        chestData[chestID] = chestContents;
-    }
+    // if (chestID < chestData.size())
+    // {
+    //     // Initialise chest data
+    //     chestData[chestID] = chestContents;
+    // }
 
-    return chestID;
+    return 0xFFFF;
 }
 
 uint16_t ChestDataPool::createChest(int capacity)

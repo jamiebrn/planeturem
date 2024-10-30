@@ -6,6 +6,8 @@
 #include <unordered_map>
 #include <fstream>
 
+#include <Core/json.hpp>
+
 #include <extlib/cereal/archives/binary.hpp>
 #include <extlib/cereal/types/vector.hpp>
 #include <extlib/cereal/types/utility.hpp>
@@ -44,7 +46,10 @@ public:
 
     inline int getSize() {return inventoryData.size();}
 
-    inline const std::vector<std::optional<ItemCount>>& getData() {return inventoryData;}
+    inline const std::vector<std::optional<ItemCount>>& getData() const {return inventoryData;}
+    inline std::vector<std::optional<ItemCount>>& getData() {return inventoryData;}
+
+    // Save / load
 
     template <class Archive>
     void serialize(Archive & ar)
@@ -56,3 +61,7 @@ private:
     std::vector<std::optional<ItemCount>> inventoryData;
 
 };
+
+// Save / load
+void to_json(nlohmann::json& json, const InventoryData& inventory);
+void from_json(const nlohmann::json& json, InventoryData& inventory);
