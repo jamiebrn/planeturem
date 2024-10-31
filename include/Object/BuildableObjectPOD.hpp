@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <optional>
+#include <unordered_map>
 
 #include <extlib/cereal/archives/binary.hpp>
 #include <extlib/cereal/types/optional.hpp>
@@ -21,5 +22,15 @@ struct BuildableObjectPOD
     void serialize(Archive& ar)
     {
         ar(objectType, chestID, objectReference, plantDayPlanted);
+    }
+
+    void mapVersions(const std::unordered_map<ObjectType, ObjectType>& objectVersionMap)
+    {
+        if (objectType < 0 || objectReference.has_value())
+        {
+            return;
+        }
+
+        objectType = objectVersionMap.at(objectType);
     }
 };

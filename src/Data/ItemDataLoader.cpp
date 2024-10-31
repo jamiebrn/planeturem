@@ -56,6 +56,11 @@ const ItemData& ItemDataLoader::getItemData(ItemType item)
 
 ItemType ItemDataLoader::getItemTypeFromName(const std::string& itemName)
 {
+    if (!itemNameToTypeMap.contains(itemName))
+    {
+        return 0;
+    }
+
     return itemNameToTypeMap[itemName];
 }
 

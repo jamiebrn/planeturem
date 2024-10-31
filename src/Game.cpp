@@ -1759,9 +1759,8 @@ bool Game::loadGame(const std::string& saveName)
 
     PlayerGameSave playerGameSave;
     PlanetGameSave planetGameSave;
-    PlanetDataVersionMapping planetDataVersionMapping;
-
-    if (!io.load(playerGameSave, planetGameSave, planetDataVersionMapping))
+    
+    if (!io.load(playerGameSave, planetGameSave))
     {
         std::cout << "Failed to load game\n";
         return false;
@@ -1800,9 +1799,8 @@ bool Game::loadPlanet(PlanetType planetType)
     GameSaveIO io(currentSaveName);
 
     PlanetGameSave planetGameSave;
-    PlanetDataVersionMapping planetDataVersionMapping;
 
-    if (!io.loadPlanet(planetType, planetGameSave, planetDataVersionMapping))
+    if (!io.loadPlanet(planetType, planetGameSave))
     {
         return false;
     }

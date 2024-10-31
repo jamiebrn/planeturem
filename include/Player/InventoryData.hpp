@@ -52,9 +52,22 @@ public:
     // Save / load
 
     template <class Archive>
-    void serialize(Archive & ar)
+    void serialize(Archive& ar)
     {
         ar(inventoryData);
+    }
+
+    void mapVersions(const std::unordered_map<ItemType, ItemType>& itemVersionMap)
+    {
+        for (int i = 0; i < inventoryData.size(); i++)
+        {
+            if (!inventoryData[i].has_value())
+            {
+                continue;
+            }
+
+            inventoryData[i]->first = itemVersionMap.at(inventoryData[i]->first);
+        }
     }
 
 private:

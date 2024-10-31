@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <unordered_map>
 
 #include <SFML/Graphics.hpp>
 
@@ -28,6 +29,14 @@ public:
     void serialize(Archive& archive)
     {
         archive(rooms);
+    }
+
+    void mapVersions(const std::unordered_map<ObjectType, ObjectType>& objectVersionMap)
+    {
+        for (Room& room : rooms)
+        {
+            room.mapVersions(objectVersionMap);
+        }
     }
 
 private:

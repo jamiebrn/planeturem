@@ -4,6 +4,7 @@
 #include <array>
 #include <vector>
 #include <optional>
+#include <unordered_map>
 
 #include <extlib/cereal/archives/binary.hpp>
 #include <extlib/cereal/types/array.hpp>
@@ -33,5 +34,21 @@ struct ChunkPOD
     void serialize(Archive& ar)
     {
         ar(chunkPosition.x, chunkPosition.y, groundTileGrid, objectGrid, entities, structureObject, modified);
+    }
+
+    void mapVersions(const std::unordered_map<ObjectType, ObjectType>& objectVersionMap)
+    {
+        for (auto& objectRow : objectGrid)
+        {
+            for (auto& object : objectRow)
+            {
+                if (!object.has_value())
+                {
+                    continue;
+                }
+
+                object->mapVersions(objectVersionMap);
+            }
+        }
     }
 };

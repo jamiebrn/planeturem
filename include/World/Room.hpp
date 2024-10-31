@@ -6,6 +6,7 @@
 #include <array>
 #include <optional>
 #include <memory>
+#include <unordered_map>
 
 #include <extlib/cereal/archives/binary.hpp>
 #include <extlib/cereal/types/vector.hpp>
@@ -81,6 +82,22 @@ public:
         archive(roomType, pods);
 
         loadObjectPODs(pods);
+    }
+
+    void mapVersions(const std::unordered_map<ObjectType, ObjectType>& objectVersionMap)
+    {
+        for (auto& objectRow : objectGrid)
+        {
+            for (auto& object : objectRow)
+            {
+                if (!object)
+                {
+                    continue;
+                }
+
+                object->mapVersions(objectVersionMap);
+            }
+        }   
     }
 
 private:

@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <optional>
+#include <unordered_map>
 
 #include <extlib/cereal/archives/binary.hpp>
 #include <extlib/cereal/types/vector.hpp>
@@ -13,6 +14,7 @@
 
 // #include "World/ChestData.hpp"
 #include "Player/InventoryData.hpp"
+#include "Data/typedefs.hpp"
 
 class ChestDataPool
 {
@@ -33,6 +35,19 @@ public:
     void serialize(Archive& ar)
     {
         ar(chestData, openDataSlots);
+    }
+
+    void mapVersions(const std::unordered_map<ItemType, ItemType> itemVersionMap)
+    {
+        for (auto& chestContents : chestData)
+        {
+            if (!chestContents.has_value())
+            {
+                continue;
+            }
+
+            chestContents->mapVersions(itemVersionMap);
+        }   
     }
 
 private:

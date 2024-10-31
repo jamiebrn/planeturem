@@ -5,7 +5,7 @@ GameSaveIO::GameSaveIO(std::string fileName)
     this->fileName = fileName;
 }
 
-bool GameSaveIO::load(PlayerGameSave& playerGameSave, PlanetGameSave& planetGameSave, PlanetDataVersionMapping& planetDataVersionMapping)
+bool GameSaveIO::load(PlayerGameSave& playerGameSave, PlanetGameSave& planetGameSave)
 {
     createSaveDirectoryIfRequired();
 
@@ -25,7 +25,7 @@ bool GameSaveIO::load(PlayerGameSave& playerGameSave, PlanetGameSave& planetGame
         }
 
         // Load planet file
-        if (!loadPlanet(playerGameSave.planetType, planetGameSave, planetDataVersionMapping))
+        if (!loadPlanet(playerGameSave.planetType, planetGameSave))
         {
             throw std::invalid_argument("Could not open planet file for \"" + fileName + "\"");
         }
@@ -41,7 +41,7 @@ bool GameSaveIO::load(PlayerGameSave& playerGameSave, PlanetGameSave& planetGame
     return false;
 }
 
-bool GameSaveIO::loadPlanet(PlanetType planetType, PlanetGameSave& planetGameSave, PlanetDataVersionMapping& planetDataVersionMapping)
+bool GameSaveIO::loadPlanet(PlanetType planetType, PlanetGameSave& planetGameSave)
 {
     const std::string& planetName = PlanetGenDataLoader::getPlanetGenData(planetType).name;
 
@@ -56,10 +56,15 @@ bool GameSaveIO::loadPlanet(PlanetType planetType, PlanetGameSave& planetGameSav
 
     archive(planetGameSave);
 
+    PlanetDataVersionMapping planetDataVersionMapping;
+
     if (!loadPlanetDataVersionMapping(planetType, planetDataVersionMapping))
     {
         return false;
     }
+
+    // Map loaded planet data to new types to prevent saves breaking
+    planetGameSave.mapVersions(planetDataVersionMapping);
 
     return true;
 }

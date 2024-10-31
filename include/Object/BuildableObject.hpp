@@ -3,6 +3,7 @@
 #include <SFML/Graphics.hpp>
 #include <optional>
 #include <iostream>
+#include <unordered_map>
 
 #include "Core/TextureManager.hpp"
 #include "Core/Shaders.hpp"
@@ -80,6 +81,16 @@ public:
     // Save / load
     virtual BuildableObjectPOD getPOD() const;
     virtual void loadFromPOD(const BuildableObjectPOD& pod);
+
+    void mapVersions(const std::unordered_map<ObjectType, ObjectType>& objectVersionMap)
+    {
+        if (isDummyObject() || isObjectReference())
+        {
+            return;
+        }
+        
+        objectType = objectVersionMap.at(objectType);
+    }
 
 protected:
     void giveItemDrops(InventoryData& inventory, const std::vector<ItemDrop>& itemDrops);

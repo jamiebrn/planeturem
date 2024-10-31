@@ -238,5 +238,10 @@ const ObjectData& ObjectDataLoader::getObjectData(ObjectType type_index)
 
 ObjectType ObjectDataLoader::getObjectTypeFromName(const std::string& objectName)
 {
+    if (!objectNameToTypeMap.contains(objectName))
+    {
+        return 0;
+    }
+
     return objectNameToTypeMap[objectName];
 }

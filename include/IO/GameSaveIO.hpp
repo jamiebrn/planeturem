@@ -49,6 +49,13 @@ struct PlayerGameSave
     // }
 };
 
+// Stores items and object types saved mapped to same items / objects at current type index
+struct PlanetDataVersionMapping
+{
+    std::unordered_map<ItemType, ItemType> itemTypeMap;
+    std::unordered_map<ObjectType, ObjectType> objectTypeMap;
+};
+
 struct PlanetGameSave
 {
     sf::Vector2f playerLastPos;
@@ -64,13 +71,17 @@ struct PlanetGameSave
     {
         ar(playerLastPos.x, playerLastPos.y, rocketObjectUsed, chunks, chestDataPool, structureRoomPool);
     }
-};
 
-// Stores items and object types saved mapped to same items / objects at current type index
-struct PlanetDataVersionMapping
-{
-    std::unordered_map<ItemType, ItemType> itemTypeMap;
-    std::unordered_map<ObjectType, ObjectType> objectTypeMap;
+    void mapVersions(const PlanetDataVersionMapping& planetDataVersionMapping)
+    {
+        for (ChunkPOD& chunkPod : chunks)
+        {
+            chunkPod.mapVersions(planetDataVersionMapping.objectTypeMap);
+        }
+
+        chestDataPool.mapVersions(planetDataVersionMapping.itemTypeMap);
+        structureRoomPool.mapVersions(planetDataVersionMapping.objectTypeMap);
+    }
 };
 
 class GameSaveIO
@@ -79,8 +90,8 @@ public:
     GameSaveIO() = default;
     GameSaveIO(std::string fileName);
     
-    bool load(PlayerGameSave& playerGameSave, PlanetGameSave& planetGameSave, PlanetDataVersionMapping& planetDataVersionMapping);
-    bool loadPlanet(PlanetType planetType, PlanetGameSave& planetGameSave, PlanetDataVersionMapping& planetDataVersionMapping);
+    bool load(PlayerGameSave& playerGameSave, PlanetGameSave& planetGameSave);
+    bool loadPlanet(PlanetType planetType, PlanetGameSave& planetGameSave);
 
     bool write(const PlayerGameSave& playerGameSave, const PlanetGameSave& planetGameSave);
 
