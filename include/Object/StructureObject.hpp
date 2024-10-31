@@ -11,6 +11,8 @@
 
 #include "Object/WorldObject.hpp"
 
+#include "World/LightingEngine.hpp"
+
 #include "Data/typedefs.hpp"
 #include "Data/StructureData.hpp"
 #include "Data/StructureDataLoader.hpp"

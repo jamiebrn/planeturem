@@ -69,8 +69,11 @@
     {
         "product": "Chest",
         "item-requirements": {
-            "Wood": 1
-        }
+            "Wood": 10,
+            "Iron Bar": 2
+        },
+        "crafting-station": "bench",
+        "crafting-station-level": 1
     },
     {
         "product": "Wood Wall",
@@ -108,13 +111,17 @@
         "product": "Land",
         "item-requirements": {
             "Stone": 5
-        }
+        },
+        "crafting-station": "bench",
+        "crafting-station-level": 1
     },
     {
         "product": "Wooden Pickaxe",
         "item-requirements": {
-            "Wood": 1
-        }
+            "Wood": 10
+        },
+        "crafting-station": "bench",
+        "crafting-station-level": 1
     },
     {
         "product": "Metal Pickaxe",
@@ -128,21 +135,27 @@
     {
         "product": "Wooden Bow",
         "item-requirements": {
-            "Wood": 1
-        }
+            "Wood": 15
+        },
+        "crafting-station": "bench",
+        "crafting-station-level": 1
     },
     {
         "product": "Wooden Arrow",
         "product-amount": 20,
         "item-requirements": {
-            "Wood": 1
-        }
+            "Wood": 3
+        },
+        "crafting-station": "bench",
+        "crafting-station-level": 1
     },
     {
         "product": "Wooden Fishing Rod",
         "item-requirements": {
-            "Wood": 1
-        }
+            "Wood": 15
+        },
+        "crafting-station": "bench",
+        "crafting-station-level": 1
     },
     {
         "product": "Small Blade",
@@ -194,14 +207,6 @@
         "key-items": ["Crow Claw"],
         "crafting-station": "anvil",
         "crafting-station-level": 1
-    },
-
-    {
-        "product": "Rocket Launch Pad",
-        "item-requirements": {
-            "Stone": 10,
-            "Coal": 2
-        }
     },
     {
         "product": "Torch",

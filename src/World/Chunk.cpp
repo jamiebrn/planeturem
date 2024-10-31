@@ -246,8 +246,8 @@ void Chunk::generateRandomStructure(int worldSize, const FastNoise& biomeNoise, 
             tileWorldPos.x = worldPosition.x + (tileX + 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
             tileWorldPos.y = worldPosition.y + (tileY + 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
 
-            // Create actual structure object
-            if (!spawnedStructureObject && bitmaskColor != sf::Color(0, 0, 0, 0))
+            // Create actual structure object in bottom left of tiles
+            if (!spawnedStructureObject)
             {
                 structureObject = StructureObject(tileWorldPos, structureType);
 

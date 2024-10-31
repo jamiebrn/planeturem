@@ -19,7 +19,7 @@
                 {
                     "textures": [[96, 176]],
                     "texture-size": [32, 32],
-                    "texture-origin": [0.5, 1],
+                    "texture-origin": [0.5, 0.9063],
                     "health": 4,
                     "day-range": [1, 2],
                     "item-drops": {
@@ -30,7 +30,7 @@
                 {
                     "textures": [[64, 160]],
                     "texture-size": [32, 48],
-                    "texture-origin": [0.5, 1],
+                    "texture-origin": [0.5, 0.9166],
                     "day-range": [3, 3],
                     "health": 6,
                     "item-drops": {
@@ -41,7 +41,7 @@
                 {
                     "textures": [[32, 160]],
                     "texture-size": [32, 48],
-                    "texture-origin": [0.5, 1],
+                    "texture-origin": [0.5, 0.9166],
                     "day-range": [4, 4],
                     "health": 12,
                     "item-drops": {
@@ -52,7 +52,7 @@
                 {
                     "textures": [[0, 160]],
                     "texture-size": [32, 48],
-                    "texture-origin": [0.5, 1],
+                    "texture-origin": [0.5, 0.9167],
                     "health": 18,
                     "item-drops": {
                         "Wood": [7, 12, 1.0],
@@ -325,7 +325,8 @@
     {
         "name": "Wooden Clock",
         "health": 6,
-        "textures": [[160, 160]],
+        "textures": [[160, 160], [176, 160], [192, 160], [208, 160], [224, 160], [240, 160], [256, 160], [272, 160]],
+        "texture-frame-delay": 12.5,
         "texture-width": 16,
         "texture-height": 32,
         "texture-x-origin": 0.5,

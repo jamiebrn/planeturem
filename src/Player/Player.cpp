@@ -552,7 +552,8 @@ void Player::useTool(ProjectileManager& projectileManager, InventoryData& invent
 
             // Create projectile
             // TODO: Use best projectile in inventory
-            std::unique_ptr<Projectile> projectile = std::make_unique<Projectile>(spawnPos, angle, toolData.projectileShootTypes[0], rand() % 3 + 1);
+            std::unique_ptr<Projectile> projectile = std::make_unique<Projectile>(spawnPos, angle, toolData.projectileShootTypes[0],
+                toolData.projectileDamageMult, toolData.shootPower);
 
             // Add projectile to manager
             projectileManager.addProjectile(std::move(projectile));

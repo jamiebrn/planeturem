@@ -1,16 +1,20 @@
 #include "Entity/Projectile/Projectile.hpp"
 
-Projectile::Projectile(sf::Vector2f position, float angle, ProjectileType type, int damage)
+Projectile::Projectile(sf::Vector2f position, float angle, ProjectileType type, float damageMult, float shootPower)
 {
     this->position = position;
-
-    // TODO: Change later
-    speed = 220.0f;
 
     this->angle = angle;
 
     projectileType = type;
-    this->damage = damage;
+    
+    const ProjectileData& projectileData = ToolDataLoader::getProjectileData(type);
+    
+    speed = projectileData.speed * shootPower;
+
+    // Randomise damage
+    int damageBaseValue = Helper::randInt(projectileData.damageLow, projectileData.damageHigh);
+    this->damage = std::round(damageBaseValue * damageMult);
 
     // Calculate velocity
     float angleRadians = M_PI * angle / 180.0f;

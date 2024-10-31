@@ -6,7 +6,8 @@
             "texture-width": 16,
             "texture-height": 16,
             "origin": [0.5, 0.5],
-            "damage": 1
+            "damage-range": [1, 4],
+            "speed": 220
         }
     ],
     "tools": [
@@ -41,7 +42,8 @@
             "pivot-x": 0.25,
             "pivot-y": 0.75,
             "hold-offset": [3, -2],
-            "fishing-rod-line-offset": [8, -8]
+            "fishing-rod-line-offset": [8, -8],
+            "fishing-efficiency": 1.0
         },
 
         {
@@ -53,6 +55,8 @@
             "pivot-x": 0.5,
             "pivot-y": 0.5,
             "hold-offset": [3, -4],
+            "projectile-damage-mult": 1.0,
+            "shoot-power": 1.0,
             "projectiles": ["Wooden Arrow"]
         }
     ]

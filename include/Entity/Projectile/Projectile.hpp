@@ -9,6 +9,7 @@
 #include "Core/TextureManager.hpp"
 #include "Core/ResolutionHandler.hpp"
 #include "Core/Camera.hpp"
+#include "Core/Helper.hpp"
 
 #include "Data/typedefs.hpp"
 #include "Data/ToolData.hpp"
@@ -18,7 +19,7 @@ class Projectile
 {
 public:
     // Angle in DEGREES
-    Projectile(sf::Vector2f position, float angle, ProjectileType type, int damage);
+    Projectile(sf::Vector2f position, float angle, ProjectileType type, float damageMult, float shootPower);
 
     void update(float dt);
 

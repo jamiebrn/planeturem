@@ -11,6 +11,8 @@
 #include "Data/ObjectData.hpp"
 #include "Data/ObjectDataLoader.hpp"
 
+#include "Data/Serialise/Vector2Serialise.hpp"
+
 #include "GameConstants.hpp"
 
 class StructureDataLoader

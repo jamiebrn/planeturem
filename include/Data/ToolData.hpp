@@ -26,7 +26,10 @@ struct ProjectileData
 
     sf::Vector2f origin;
 
-    int damage = 0;
+    int damageLow = 0;
+    int damageHigh = 0;
+
+    float speed = 0.0f;
 
     // Double link with item data, as projectiles are required to be dynamically taken from inventory
     // based on projectile type, not item type
@@ -47,7 +50,10 @@ struct ToolData
     
     // Relative to pivot, pixel offset (can be float) to line origin
     sf::Vector2f fishingRodLineOffset;
+    float fishingEfficiency = 0.0f;
 
     // Weapon stuff
     std::vector<ProjectileType> projectileShootTypes;
+    float shootPower = 1.0f;
+    float projectileDamageMult = 1.0f;
 };

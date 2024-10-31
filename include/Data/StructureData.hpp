@@ -54,6 +54,7 @@ struct StructureData
     sf::Vector2f textureOrigin;
 
     sf::Vector2i collisionBitmaskOffset;
+    sf::Vector2i lightBitmaskOffset;
 
     // RoomData roomData;
     RoomType roomType;

@@ -23,7 +23,11 @@ bool ToolDataLoader::loadData(std::string toolDataPath)
 
         projectileData.name = jsonProjectileData.at("name");
 
-        projectileData.damage = jsonProjectileData.at("damage");
+        auto damageRange = jsonProjectileData.at("damage-range");
+        projectileData.damageLow = damageRange[0];
+        projectileData.damageHigh = damageRange[1];
+
+        projectileData.speed = jsonProjectileData.at("speed");
 
         auto textureRectPos = jsonProjectileData.at("texture");
 
@@ -86,16 +90,23 @@ bool ToolDataLoader::loadData(std::string toolDataPath)
             toolData.holdOffset.y = holdOffset[1];
         }
 
-        if (jsonToolData.contains("fishing-rod-line-offset"))
+        if (jsonToolData.contains("fishing-efficiency"))
         {
+            toolData.fishingEfficiency = jsonToolData.at("fishing-efficiency");
+
             auto lineOffset = jsonToolData.at("fishing-rod-line-offset");
             toolData.fishingRodLineOffset.x = lineOffset[0];
             toolData.fishingRodLineOffset.y = lineOffset[1];
         }
 
-        // Load projectile if any
+        // Load projectile data if any
         if (jsonToolData.contains("projectiles"))
         {
+            // Load weapon info
+            toolData.projectileDamageMult = jsonToolData.at("projectile-damage-mult");
+            toolData.shootPower = jsonToolData.at("shoot-power");
+
+            // Load projectile types
             auto projectiles = jsonToolData.at("projectiles");
             for (auto iter = projectiles.begin(); iter != projectiles.end(); ++iter)
             {

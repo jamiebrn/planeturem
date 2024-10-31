@@ -59,7 +59,52 @@ void StructureObject::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, G
 
 void StructureObject::createLightSource(LightingEngine& lightingEngine, sf::Vector2f topLeftChunkPos) const
 {
+    const sf::Image& bitmaskImage = TextureManager::getBitmask(BitmaskType::Structures);
 
+    const StructureData& structureData = StructureDataLoader::getStructureData(structureType);
+    
+    sf::Vector2f relativePos = position - topLeftChunkPos;
+
+    // Lighting tile is top left of structure
+    int lightingTileX = std::floor(relativePos.x / TILE_SIZE_PIXELS_UNSCALED) * TILE_LIGHTING_RESOLUTION;
+    int lightingTileY = std::floor(relativePos.y / TILE_SIZE_PIXELS_UNSCALED) * TILE_LIGHTING_RESOLUTION - (structureData.size.y - 1) * TILE_LIGHTING_RESOLUTION;
+
+    // Iterate over lighting bitmask and add light emitter / absorber based on sample
+    for (int x = 0; x < structureData.size.x; x++)
+    {
+        for (int y = 0; y < structureData.size.y; y++)
+        {
+            sf::Color bitmaskColor = bitmaskImage.getPixel(structureData.lightBitmaskOffset.x + x, structureData.lightBitmaskOffset.y + y);
+
+            void (LightingEngine::*lightingFunction)(int, int, float) = nullptr;
+            float lightingValue = 0.0f;
+
+            if (bitmaskColor.b > 0)
+            {
+                lightingFunction = &LightingEngine::addLightSource;
+                lightingValue = bitmaskColor.b / 255.0f;
+            }
+            else if (bitmaskColor.r > 0)
+            {
+                lightingFunction = &LightingEngine::addObstacle;
+                lightingValue = bitmaskColor.r / 255.0f;
+            }
+
+            if (!lightingFunction)
+            {
+                continue;
+            }
+
+            // Create light emitter / absorber for tile
+            for (int subX = 0; subX < TILE_LIGHTING_RESOLUTION; subX++)
+            {
+                for (int subY = 0; subY < TILE_LIGHTING_RESOLUTION; subY++)
+                {
+                    (lightingEngine.*lightingFunction)(lightingTileX + x * TILE_LIGHTING_RESOLUTION + subX, lightingTileY + y * TILE_LIGHTING_RESOLUTION + subY, lightingValue);
+                }
+            }
+        }
+    }
 }
 
 StructureObjectPOD StructureObject::getPOD(sf::Vector2f chunkPosition)

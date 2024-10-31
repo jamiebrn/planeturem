@@ -28,9 +28,7 @@ bool StructureDataLoader::loadData(std::string structureDataPath)
         roomData.textureRect.width = roomData.tileSize.x * TILE_SIZE_PIXELS_UNSCALED;
         roomData.textureRect.height = roomData.tileSize.y * TILE_SIZE_PIXELS_UNSCALED;
 
-        auto collisionBitmask = iter->at("collision-bitmask");
-        roomData.collisionBitmaskOffset.x = collisionBitmask[0];
-        roomData.collisionBitmaskOffset.y = collisionBitmask[1];
+        roomData.collisionBitmaskOffset = iter->at("collision-bitmask");
 
         if (iter->contains("objects"))
         {
@@ -82,9 +80,8 @@ bool StructureDataLoader::loadData(std::string structureDataPath)
         structureData.size.x = jsonStructureData.at("size-x");
         structureData.size.y = jsonStructureData.at("size-y");
 
-        auto collisionBitmask = jsonStructureData.at("collision-bitmask");
-        structureData.collisionBitmaskOffset.x = collisionBitmask[0];
-        structureData.collisionBitmaskOffset.y = collisionBitmask[1];
+        structureData.collisionBitmaskOffset = jsonStructureData.at("collision-bitmask");
+        structureData.lightBitmaskOffset = jsonStructureData.at("light-bitmask");
 
         structureData.roomType = roomNameToTypeMap[jsonStructureData.at("room")];
 

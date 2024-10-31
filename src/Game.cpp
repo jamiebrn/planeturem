@@ -1,7 +1,6 @@
 #include "Game.hpp"
 
 // FIX: Crash on save / rocket enter bug (can't save???)
-// FIX: Structure in spawn chunk?
 
 // TODO: Night and menu music
 // TODO: Better GUI system / relative to window size etc and texturing
@@ -1584,16 +1583,16 @@ void Game::initialiseNewPlanet(PlanetType planetType, bool placeRocket)
     playerSpawnPos.y = playerSpawnChunk.y * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED + 0.5f * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
     player.setPosition(playerSpawnPos);
     
+    Camera::instantUpdate(player.getPosition());
+
+    chunkManager.updateChunks(*this);
+
+    // Ennsure spawn chunk does not have structure
+    chunkManager.regenerateChunkWithoutStructure(playerSpawnChunk, *this);
+    
     // Place rocket
     if (placeRocket)
     {
-        Camera::instantUpdate(player.getPosition());
-
-        chunkManager.updateChunks(*this);
-
-        // Ennsure spawn chunk does not have structure
-        chunkManager.regenerateChunkWithoutStructure(playerSpawnChunk, *this);
-
         chunkManager.setObject(playerSpawnChunk, sf::Vector2i(0, 0), ObjectDataLoader::getObjectTypeFromName("Rocket Launch Pad"), *this);
         rocketEnteredReference.chunk = playerSpawnChunk;
         rocketEnteredReference.tile = sf::Vector2i(0, 0);

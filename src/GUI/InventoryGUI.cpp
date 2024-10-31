@@ -981,8 +981,7 @@ sf::Vector2f InventoryGUI::drawItemInfoBox(sf::RenderTarget& window, float gameT
         infoStrings.push_back({"Equippable", 20});
         infoStrings.push_back({std::to_string(armourData.defence) + " defence", 20});
     }
-
-    if (itemData.placesObjectType >= 0 || itemData.placesLand)
+    else if (itemData.placesObjectType >= 0 || itemData.placesLand)
     {
         infoStrings.push_back({"Can be placed", 20});
     }
@@ -990,10 +989,33 @@ sf::Vector2f InventoryGUI::drawItemInfoBox(sf::RenderTarget& window, float gameT
     {
         const ToolData& toolData = ToolDataLoader::getToolData(itemData.toolType);
 
-        if (toolData.damage > 0)
+        switch (toolData.toolBehaviourType)
         {
-            infoStrings.push_back({std::to_string(toolData.damage) + " damage", 20});
+            case ToolBehaviourType::Pickaxe:
+            {
+                infoStrings.push_back({std::to_string(toolData.damage) + " damage", 20});
+                break;
+            }
+            case ToolBehaviourType::FishingRod:
+            {
+                infoStrings.push_back({Helper::floatToString(toolData.fishingEfficiency, 2) + " fishing efficiency", 20});
+                break;
+            }
+            case ToolBehaviourType::BowWeapon:
+            {
+                infoStrings.push_back({Helper::floatToString(toolData.projectileDamageMult, 2) + "x projectile damage", 20});
+                infoStrings.push_back({Helper::floatToString(toolData.shootPower, 2) + " shooting power", 20});
+            }
         }
+    }
+    else if (itemData.projectileType >= 0)
+    {
+        const ProjectileData& projectileData = ToolDataLoader::getProjectileData(itemData.projectileType);
+
+        int averageDamage = std::round((projectileData.damageHigh + projectileData.damageLow) / 2.0f);
+
+        infoStrings.push_back({"Ammo", 20});
+        infoStrings.push_back({std::to_string(averageDamage) + " damage", 20});
     }
     else if (itemData.bossSummonData.has_value())
     {

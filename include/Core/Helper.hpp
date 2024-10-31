@@ -2,6 +2,8 @@
 
 #include <algorithm>
 #include <cmath>
+#include <string>
+#include <format>
 #include <SFML/System/Vector2.hpp>
 
 namespace Helper
@@ -22,6 +24,16 @@ inline float randFloat(float low, float high)
 {
     float t = randInt(0, 10000) / 10000.0f;
     return (high - low) * t + low;
+}
+
+inline float roundTo(float number, int decimalPoints)
+{
+    int exp = std::pow(10, decimalPoints);
+    return std::round(number * exp) / exp;
+}
+
+inline std::string floatToString(float value, int decimalPlaces) {
+    return std::format("{:.{}f}", value, decimalPlaces);
 }
 
 // Angle in radians
