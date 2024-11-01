@@ -4,6 +4,7 @@
 
 // TODO: Night and menu music
 // TODO: Better GUI system / relative to window size etc and texturing
+// TODO: Consumable / health regen items
 
 // PRIORITY: HIGH
 // TODO: Create event callback system for object responding to triggers, rather than calling game functions directly
