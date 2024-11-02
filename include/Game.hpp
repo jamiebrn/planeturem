@@ -32,6 +32,7 @@
 
 #include "World/DayCycleManager.hpp"
 #include "World/LightingEngine.hpp"
+#include "World/PathfindingEngine.hpp"
 
 #include "Player/Player.hpp"
 #include "Player/Cursor.hpp"
@@ -109,7 +110,7 @@ public:
 private:
 
     // test
-    void runLightingTest();
+    void runFeatureTest();
 
     // -- Main Menu -- //
 
@@ -267,6 +268,8 @@ private:
     LightingEngine lightingEngine;
     int lightingTick = 0;
     bool smoothLighting = true;
+
+    PathfindingEngine pathfindingEngine;
 
     std::array<sf::Texture, 2> waterNoiseTextures;
 

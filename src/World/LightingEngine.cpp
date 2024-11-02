@@ -125,7 +125,7 @@ void LightingEngine::calculateLighting(const sf::Color& lightingColour)
         }
 
         // Check up
-        if (lightNode.index > width)
+        if (lightNode.index >= width)
         {
             propagateLight(LightPropagationNode{lightNode.index - width, lightNode.steps + 1}, lightIntensity, lightQueue);
         }

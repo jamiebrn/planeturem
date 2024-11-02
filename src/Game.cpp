@@ -25,7 +25,7 @@ Game::Game()
 
 bool Game::initialise()
 {
-    lightingEngine.resize(160, 90);
+    pathfindingEngine.resize(160, 90);
     // Get screen resolution
     sf::VideoMode videoMode = sf::VideoMode::getDesktopMode();
     
@@ -136,18 +136,18 @@ void Game::run()
 
         window.setView(view);
 
-        // runLightingTest();
-        switch (gameState)
-        {
-            case GameState::MainMenu:
-                runMainMenu(dt);
-                break;
+        runFeatureTest();
+        // switch (gameState)
+        // {
+        //     case GameState::MainMenu:
+        //         runMainMenu(dt);
+        //         break;
             
-            case GameState::InStructure:
-            case GameState::OnPlanet:
-                runOnPlanet(dt);
-                break;
-        }
+        //     case GameState::InStructure:
+        //     case GameState::OnPlanet:
+        //         runOnPlanet(dt);
+        //         break;
+        // }
 
         if (isStateTransitioning())
         {
@@ -168,8 +168,17 @@ void Game::run()
 }
 
 
-void Game::runLightingTest()
+void Game::runFeatureTest()
 {
+    static std::optional<std::pair<int, int>> start, end;
+    static int pathfindTick = 0;
+
+    const int SCALE = 12;
+
+    sf::Vector2i mousePos = sf::Mouse::getPosition(window);
+    int mouseTileX = mousePos.x / SCALE;
+    int mouseTileY = mousePos.y / SCALE;
+
     for (auto event = sf::Event{}; window.pollEvent(event);)
     {
         handleEventsWindow(event);
@@ -178,64 +187,81 @@ void Game::runLightingTest()
         {
             if (event.key.code == sf::Keyboard::R)
             {
-                lightingEngine.resetLightSources();
-                lightingEngine.resetObstacles();
+                start = std::nullopt;
+                end = std::nullopt;
+                pathfindingEngine.resize(160, 90);
+            }
+            if (event.key.code == sf::Keyboard::P)
+            {
+                start = {mouseTileX, mouseTileY};
+            }
+            if (event.key.code == sf::Keyboard::L)
+            {
+                end = {mouseTileX, mouseTileY};
             }
         }
     }
 
-    const int SCALE = 12;
-
-    sf::Vector2i mousePos = sf::Mouse::getPosition(window);
-    int mouseTileX = mousePos.x / SCALE;
-    int mouseTileY = mousePos.y / SCALE;
-
-    lightingEngine.resetLighting();
-
-    if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
-    {
-        lightingEngine.addLightSource(mouseTileX, mouseTileY, 0.7f);
-    }
-
-    if (sf::Mouse::isButtonPressed(sf::Mouse::Right))
-    {
-        lightingEngine.addObstacle(mouseTileX, mouseTileY, 0.7f);
-    }
-
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
     {
-        lightingEngine.addMovingLightSource(mouseTileX, mouseTileY, 0.7f);
+        pathfindingEngine.setObstacle(mouseTileX, mouseTileY, true);
     }
-
-    lightingEngine.calculateLighting(sf::Color(255, 220, 140));
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Backspace))
+    {
+        pathfindingEngine.setObstacle(mouseTileX, mouseTileY, false);
+    }
 
     window.clear();
 
-    sf::RenderTexture renderTexture;
-    renderTexture.create(lightingEngine.getWidth() * SCALE, lightingEngine.getHeight() * SCALE);
-    renderTexture.clear(sf::Color(255, 255, 255));
-    lightingEngine.drawObstacles(renderTexture, SCALE);
-    renderTexture.display();
+    auto& obstacles = pathfindingEngine.getObstacles();
+    for (int i = 0; i < obstacles.size(); i++)
+    {
+        if (!obstacles[i])
+        {
+            continue;
+        }
 
-    sf::RenderTexture lightingTexture;
-    lightingTexture.create(lightingEngine.getWidth(), lightingEngine.getHeight());
-    lightingEngine.drawLighting(lightingTexture);
-    lightingTexture.display();
+        sf::RectangleShape rect({SCALE, SCALE});
+        rect.setPosition(sf::Vector2f(i % 160, std::floor(i / 160)) * static_cast<float>(SCALE));
+        window.draw(rect);
+    }
 
-    lightingTexture.setSmooth(smoothLighting);
+    pathfindTick++;
 
-    sf::Sprite lightingTextureSprite;
-    lightingTextureSprite.setTexture(lightingTexture.getTexture());
-    lightingTextureSprite.setScale({SCALE, SCALE});
+    if (start.has_value() && end.has_value())
+    {
+        static std::vector<PathfindGridCoordinate> pathFound;
+        if (pathfindTick > 30)
+        {
+            pathFound.clear();
+            pathfindTick = 0;
+            pathfindingEngine.findPath(start->first, start->second, end->first, end->second, pathFound);
+        }
 
-    renderTexture.draw(lightingTextureSprite, sf::BlendMultiply);
+        for (const auto& coord : pathFound)
+        {
+            sf::RectangleShape rect({ SCALE, SCALE });
+            rect.setPosition(sf::Vector2f(coord.x, coord.y) * static_cast<float>(SCALE));
+            rect.setFillColor(sf::Color(0, 0, 255));
+            window.draw(rect);
+        }
+    }
 
-    renderTexture.display();
+    if (start.has_value())
+    {
+        sf::RectangleShape rect({SCALE, SCALE});
+        rect.setPosition(sf::Vector2f(start->first, start->second) * static_cast<float>(SCALE));
+        rect.setFillColor(sf::Color(0, 255, 0));
+        window.draw(rect);
+    }
 
-    sf::Sprite renderTextureSprite;
-    renderTextureSprite.setTexture(renderTexture.getTexture());
-
-    window.draw(renderTextureSprite);
+    if (end.has_value())
+    {
+        sf::RectangleShape rect({SCALE, SCALE});
+        rect.setPosition(sf::Vector2f(end->first, end->second) * static_cast<float>(SCALE));
+        rect.setFillColor(sf::Color(255, 0, 0));
+        window.draw(rect);
+    }
 }
 
 

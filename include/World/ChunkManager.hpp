@@ -21,6 +21,7 @@
 #include "Player/InventoryData.hpp"
 
 #include "World/ChunkPOD.hpp"
+#include "World/PathfindingEngine.hpp"
 
 #include "Data/typedefs.hpp"
 #include "Data/PlanetGenData.hpp"
