@@ -185,7 +185,7 @@ void Game::runFeatureTest()
 
         if (event.type == sf::Event::KeyPressed)
         {
-            if (event.key.code == sf::Keyboard::R)
+            if (event.key.code == sf::Keyboard::R || event.key.code == sf::Keyboard::Tab)
             {
                 start = std::nullopt;
                 end = std::nullopt;
@@ -198,6 +198,19 @@ void Game::runFeatureTest()
             if (event.key.code == sf::Keyboard::L)
             {
                 end = {mouseTileX, mouseTileY};
+            }
+            if (event.key.code == sf::Keyboard::Tab)
+            {
+                for (int x = 0; x < 190; x++)
+                {
+                    for (int y = 0; y < 90; y++)
+                    {
+                        if (rand() % 4 < 1)
+                        {
+                            pathfindingEngine.setObstacle(x, y, true);
+                        }
+                    }
+                }
             }
         }
     }
@@ -231,7 +244,7 @@ void Game::runFeatureTest()
     if (start.has_value() && end.has_value())
     {
         static std::vector<PathfindGridCoordinate> pathFound;
-        if (pathfindTick > 30)
+        if (pathfindTick > 0)
         {
             pathFound.clear();
             pathfindTick = 0;

@@ -21,80 +21,52 @@ void PathfindingEngine::setObstacle(int x, int y, bool solid)
 
 bool PathfindingEngine::findPath(int startX, int startY, int endX, int endY, std::vector<PathfindGridCoordinate>& result)
 {
-    std::unordered_map<int, int> pathCosts;
-    std::unordered_map<int, int> totalCosts;
-    std::unordered_map<int, int> previousIndexes;
+    std::unordered_map<int, PathNode> pathNodes;
 
-    std::priority_queue<int, std::vector<int>, CostComparator> idxQueue{CostComparator(totalCosts)};
-    std::unordered_map<int, bool> idxesInQueue;
+    std::priority_queue<int, std::vector<int>, PathNodeComparator> idxQueue{PathNodeComparator(pathNodes)};
 
     int startIdx = getGridIndex(startX, startY);
     int endIdx = getGridIndex(endX, endY);
 
     idxQueue.push(startIdx);
-    idxesInQueue[startIdx] = true;
-    pathCosts[startIdx] = 0;
-    totalCosts[startIdx] = calculateHeuristic(startX, startY, endX, endY);
+    pathNodes[startIdx] = PathNode{0, calculateHeuristic(startX, startY, endX, endY), 0};
 
     while (!idxQueue.empty())
     {
-        int lowestCostIdx = idxQueue.top();
-        if (lowestCostIdx == endIdx)
+        int idx = idxQueue.top();
+        if (idx == endIdx)
         {
             // End search
-            result = retracePath(endIdx, previousIndexes);
+            result = retracePath(endIdx, pathNodes);
             return true;
         }
 
         // Remove from queue
         idxQueue.pop();
-        idxesInQueue[lowestCostIdx] = false;
 
-        for (int neighbour : getNeighbours(lowestCostIdx))
+        const PathNode& previousNode = pathNodes[idx];
+
+        int xIndex = idx % width;
+
+        if (xIndex > 0)
         {
-            // If neighbour is obstacle, stop
-            if (obstacleGrid[neighbour])
-            {
-                continue;
-            }
-
-            int nextPathCost = pathCosts[lowestCostIdx] + 1;
-
-            bool canAdvance = true;
-            if (pathCosts.contains(neighbour))
-            {
-                if (nextPathCost >= pathCosts[neighbour])
-                {
-                    canAdvance = false;
-                }
-            }
-
-            if (canAdvance)
-            {
-                // More optimal path
-                previousIndexes[neighbour] = lowestCostIdx;
-                pathCosts[neighbour] = nextPathCost;
-                totalCosts[neighbour] = nextPathCost + calculateHeuristic(neighbour, endIdx);
-
-                // If neighbour is not in queue, add
-                bool addToQueue = false;
-
-                if (idxesInQueue.contains(neighbour))
-                {
-                    addToQueue = !idxesInQueue.at(neighbour);
-                }
-                else
-                {
-                    addToQueue = true;
-                }
-
-                if (addToQueue)
-                {
-                    // Add to queue
-                    idxQueue.push(neighbour);
-                    idxesInQueue[neighbour] = true;
-                }
-            }
+            // neighbours.push_back(idx - 1);
+            advancePathNode(idx - 1, idx, previousNode.pathCost, endIdx, 3, previousNode.direction, pathNodes, idxQueue);
+        }
+        if (xIndex < width - 1)
+        {
+            // neighbours.push_back(idx + 1);
+            advancePathNode(idx + 1, idx, previousNode.pathCost, endIdx, 1, previousNode.direction, pathNodes, idxQueue);
+        }
+        if (idx >= width)
+        {
+            // neighbours.push_back(idx - width);
+            advancePathNode(idx - width, idx, previousNode.pathCost, endIdx, 0, previousNode.direction, pathNodes, idxQueue);
+        }
+        if (idx < obstacleGrid.size() - width)
+        {
+            // neighbours.push_back(idx + width);
+            advancePathNode(idx + width, idx, previousNode.pathCost, endIdx, 2, previousNode.direction, pathNodes, idxQueue);    
         }
     }
 
@@ -114,40 +86,60 @@ int PathfindingEngine::calculateHeuristic(int x, int y, int destX, int destY)
 
 int PathfindingEngine::calculateHeuristic(int idx, int destIdx)
 {
+    // int diff = std::abs(destIdx - idx);
+    // return diff % width + std::floor(diff / width);
     int x = idx % width;
-    int y = std::floor(idx / width);
+    int y = idx / width;
     int destX = destIdx % width;
-    int destY = std::floor(destIdx / width);
-    return calculateHeuristic(x, y, destX, destY);
+    int destY = destIdx / width;
+    return std::abs(destX - x) + std::abs(destY - y);
 }
 
-std::vector<int> PathfindingEngine::getNeighbours(int idx)
+void PathfindingEngine::advancePathNode(int idx, int previousIdx, int previousPathCost, int destIdx, int direction, int previousDirection,
+    std::unordered_map<int, PathNode>& pathNodes, std::priority_queue<int, std::vector<int>, PathNodeComparator>& idxQueue)
 {
-    std::vector<int> neighbours;
+    if (obstacleGrid[idx])
+    {
+        return;
+    }
 
-    int xIndex = idx % width;
+    int newCost = previousPathCost + 1;
+    // if (direction != previousDirection)
+    // {
+    //     newCost++;
+    // }
 
-    if (xIndex > 0) neighbours.push_back(idx - 1);
-    if (xIndex < width - 1) neighbours.push_back(idx + 1);
-    if (idx >= width) neighbours.push_back(idx - width);
-    if (idx < obstacleGrid.size() - width) neighbours.push_back(idx + width);
+    if (pathNodes.contains(idx))
+    {
+        if (newCost < pathNodes[idx].pathCost)
+        {
+            PathNode& pathNode = pathNodes[idx];
+            pathNode.pathCost = newCost;
+            pathNode.totalCost = newCost + calculateHeuristic(idx, destIdx);
+            pathNode.direction = direction;
+            pathNode.previousIdx = previousIdx;
+            idxQueue.push(idx);
+        }
+        return;
+    }
 
-    return neighbours;
+    pathNodes[idx] = PathNode{newCost, newCost + calculateHeuristic(idx, destIdx), direction, previousIdx};
+    idxQueue.push(idx);
 }
 
-std::vector<PathfindGridCoordinate> PathfindingEngine::retracePath(int endIdx, const std::unordered_map<int, int> previousIndexes)
+std::vector<PathfindGridCoordinate> PathfindingEngine::retracePath(int endIdx, const std::unordered_map<int, PathNode>& pathNodes)
 {
     std::vector<PathfindGridCoordinate> path;
     int currentIdx = endIdx;
 
-    while (previousIndexes.contains(currentIdx))
+    while (currentIdx >= 0)
     {
         PathfindGridCoordinate coordinate;
         coordinate.x = currentIdx % width;
         coordinate.y = std::floor(currentIdx / width);
         path.push_back(coordinate);
 
-        currentIdx = previousIndexes.at(currentIdx);
+        currentIdx = pathNodes.at(currentIdx).previousIdx;
     }
 
     return path;

@@ -33,23 +33,41 @@ private:
     int calculateHeuristic(int x, int y, int destX, int destY);
     int calculateHeuristic(int idx, int destIdx);
 
-    std::vector<int> getNeighbours(int idx);
+    // std::vector<int> getNeighbours(int idx);
 
-    std::vector<PathfindGridCoordinate> retracePath(int endIdx, const std::unordered_map<int, int> previousIndexes);
+    struct PathNode
+    {
+        int pathCost;
+        int totalCost;
+        int direction;
 
-    class CostComparator
+        int previousIdx = -1;
+    };
+
+    class PathNodeComparator
     {
     public:
-        CostComparator(const std::unordered_map<int, int>& _costs) : costs(_costs) {}
+        PathNodeComparator(const std::unordered_map<int, PathNode>& _nodes) : nodes(_nodes) {}
 
         bool operator()(int i, int j) const
         {
-            return costs.at(i) > costs.at(j);
+            const PathNode& a = nodes.at(i);
+            const PathNode& b = nodes.at(j);
+            if (a.totalCost == b.totalCost)
+            {
+                return a.direction > b.direction;
+            }
+            return a.totalCost > b.totalCost;
         }
 
     private:
-        const std::unordered_map<int, int>& costs;
+        const std::unordered_map<int, PathNode>& nodes;
     };
+
+    void advancePathNode(int idx, int previousIdx, int previousPathCost, int direction, int previousDirection, int destIdx,
+        std::unordered_map<int, PathNode>& pathNodes, std::priority_queue<int, std::vector<int>, PathNodeComparator>& idxQueue);
+
+    std::vector<PathfindGridCoordinate> retracePath(int endIdx, const std::unordered_map<int, PathNode>& pathNodes);
 
 private:
     std::vector<char> obstacleGrid;
