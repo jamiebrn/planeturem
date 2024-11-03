@@ -205,7 +205,7 @@ void Game::runFeatureTest()
                 {
                     for (int y = 0; y < 90; y++)
                     {
-                        if (rand() % 4 < 1)
+                        if (rand() % 4 <= 1)
                         {
                             pathfindingEngine.setObstacle(x, y, true);
                         }

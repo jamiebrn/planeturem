@@ -23,7 +23,7 @@ public:
 
     void setObstacle(int x, int y, bool solid);
 
-    bool findPath(int startX, int startY, int endX, int endY, std::vector<PathfindGridCoordinate>& result);
+    bool findPath(int startX, int startY, int endX, int endY, std::vector<PathfindGridCoordinate>& result, bool straightening = false);
 
     inline const std::vector<char>& getObstacles() {return obstacleGrid;}
 
@@ -65,7 +65,7 @@ private:
     };
 
     void advancePathNode(int idx, int previousIdx, int previousPathCost, int direction, int previousDirection, int destIdx,
-        std::unordered_map<int, PathNode>& pathNodes, std::priority_queue<int, std::vector<int>, PathNodeComparator>& idxQueue);
+        std::unordered_map<int, PathNode>& pathNodes, std::priority_queue<int, std::vector<int>, PathNodeComparator>& idxQueue, bool straightening);
 
     std::vector<PathfindGridCoordinate> retracePath(int endIdx, const std::unordered_map<int, PathNode>& pathNodes);
 
