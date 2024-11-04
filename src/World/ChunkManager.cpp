@@ -1,8 +1,5 @@
 #include "World/ChunkManager.hpp"
 
-// std::unordered_map<ChunkPosition, std::unique_ptr<Chunk>> ChunkManager::storedChunks;
-// std::unordered_map<ChunkPosition, std::unique_ptr<Chunk>> ChunkManager::loadedChunks;
-
 void ChunkManager::setSeed(int seed)
 {
     this->seed = seed;
@@ -21,11 +18,6 @@ int ChunkManager::getSeed() const
     return seed;
 }
 
-void ChunkManager::setWorldSize(int size)
-{
-    worldSize = size;
-}
-
 void ChunkManager::setPlanetType(PlanetType planetType)
 {
     deleteAllChunks();
@@ -40,6 +32,13 @@ void ChunkManager::setPlanetType(PlanetType planetType)
     // Set water colour
     sf::Shader* waterShader = Shaders::getShader(ShaderType::Water);
     waterShader->setUniform("waterColor", sf::Glsl::Vec4(planetGenData.waterColour));
+
+    // Set planet size
+    worldSize = planetGenData.worldSize;
+
+    // Reset pathfinding engine
+    int worldTileSize = worldSize * static_cast<int>(CHUNK_TILE_SIZE);
+    pathfindingEngine.resize(worldTileSize, worldTileSize);
 }
 
 void ChunkManager::deleteAllChunks()
@@ -105,11 +104,11 @@ bool ChunkManager::updateChunks(Game& game)
                 // Update chunk position
                 chunk->setWorldPosition(chunkWorldPos, *this);
 
-                // If chunk was loaded through POD / save file, has not yet been initialised (tilemaps, collision etc)
+                // If chunk was loaded through POD / save file, has not yet been initialised (tilemaps, collision, pathfinding etc)
                 // Therefore must initialise
                 if (chunk->wasGeneratedFromPOD())
                 {
-                    chunk->generateTilemapsAndInit(heightNoise, biomeNoise, planetType, *this);
+                    chunk->generateTilemapsAndInit(heightNoise, biomeNoise, planetType, *this, pathfindingEngine);
                 }
 
                 continue;
@@ -192,7 +191,7 @@ void ChunkManager::regenerateChunkWithoutStructure(ChunkPosition chunk, Game& ga
     chunkPtr->reset(true);
 
     // Regenerate without structure
-    chunkPtr->generateChunk(heightNoise, biomeNoise, planetType, game, *this, false);
+    chunkPtr->generateChunk(heightNoise, biomeNoise, planetType, game, *this, pathfindingEngine, false);
 }
 
 void ChunkManager::drawChunkTerrain(sf::RenderTarget& window, SpriteBatch& spriteBatch, float time)
@@ -249,7 +248,7 @@ void ChunkManager::updateChunksObjects(Game& game, float dt)
 {
     for (auto& chunkPair : loadedChunks)
     {
-        chunkPair.second->updateChunkObjects(game, dt, worldSize, *this);
+        chunkPair.second->updateChunkObjects(game, dt, worldSize, *this, pathfindingEngine);
     }
 }
 
@@ -496,7 +495,7 @@ void ChunkManager::setObject(ChunkPosition chunk, sf::Vector2i tile, ObjectType 
         return;
     
     // Set chunk object at position
-    loadedChunks[chunk]->setObject(tile, objectType, game, *this);
+    loadedChunks[chunk]->setObject(tile, objectType, game, *this, &pathfindingEngine);
 }
 
 void ChunkManager::deleteObject(ChunkPosition chunk, sf::Vector2i tile)
@@ -505,7 +504,7 @@ void ChunkManager::deleteObject(ChunkPosition chunk, sf::Vector2i tile)
     if (loadedChunks.count(chunk) <= 0)
         return;
     
-    loadedChunks[chunk]->deleteObject(tile, *this);
+    loadedChunks[chunk]->deleteObject(tile, *this, pathfindingEngine);
 }
 
 void ChunkManager::deleteSingleObject(ChunkPosition chunk, sf::Vector2i tile)
@@ -513,7 +512,7 @@ void ChunkManager::deleteSingleObject(ChunkPosition chunk, sf::Vector2i tile)
     if (loadedChunks.count(chunk) <= 0)
         return;
     
-    loadedChunks[chunk]->deleteSingleObject(tile, *this);
+    loadedChunks[chunk]->deleteSingleObject(tile, *this, pathfindingEngine);
 }
 
 void ChunkManager::setObjectReference(const ChunkPosition& chunk, const ObjectReference& objectReference, sf::Vector2i tile)
@@ -522,7 +521,7 @@ void ChunkManager::setObjectReference(const ChunkPosition& chunk, const ObjectRe
     if (loadedChunks.count(chunk) <= 0)
         return;
     
-    loadedChunks[chunk]->setObjectReference(objectReference, tile, *this);
+    loadedChunks[chunk]->setObjectReference(objectReference, tile, *this, pathfindingEngine);
 }
 
 bool ChunkManager::canPlaceObject(ChunkPosition chunk, sf::Vector2i tile, ObjectType objectType, const CollisionRect& playerCollisionRect)
@@ -749,7 +748,7 @@ void ChunkManager::placeLand(ChunkPosition chunk, sf::Vector2i tile)
         return;
     
     // Place land and update visual tiles for chunk
-    loadedChunks[chunk]->placeLand(tile, worldSize, heightNoise, biomeNoise, planetType, *this);
+    loadedChunks[chunk]->placeLand(tile, worldSize, heightNoise, biomeNoise, planetType, *this, pathfindingEngine);
 
     // Update visual tiles for adjacent chunks
     for (int x = chunk.x - 1; x <= chunk.x + 1; x++)
@@ -967,7 +966,7 @@ void ChunkManager::generateChunk(const ChunkPosition& chunkPosition, Game& game,
     chunkPtr->setWorldPosition(chunkWorldPos, *this);
 
     // Generate
-    chunkPtr->generateChunk(heightNoise, biomeNoise, planetType, game, *this);
+    chunkPtr->generateChunk(heightNoise, biomeNoise, planetType, game, *this, pathfindingEngine);
 }
 
 void ChunkManager::clearUnmodifiedStoredChunks()

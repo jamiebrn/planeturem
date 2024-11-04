@@ -25,7 +25,6 @@ Game::Game()
 
 bool Game::initialise()
 {
-    pathfindingEngine.resize(160, 90);
     // Get screen resolution
     sf::VideoMode videoMode = sf::VideoMode::getDesktopMode();
     
@@ -75,10 +74,6 @@ bool Game::initialise()
 
     // Randomise
     srand(time(NULL));
-
-    chunkManager.setWorldSize(240);
-    // chunkManager.setSeed(20);
-    // chunkManager.setPlanetType(PlanetGenDataLoader::getPlanetTypeFromName("Earthlike"));
 
     // Initialise values
     gameTime = 0;
@@ -136,18 +131,18 @@ void Game::run()
 
         window.setView(view);
 
-        runFeatureTest();
-        // switch (gameState)
-        // {
-        //     case GameState::MainMenu:
-        //         runMainMenu(dt);
-        //         break;
+        // runFeatureTest();
+        switch (gameState)
+        {
+            case GameState::MainMenu:
+                runMainMenu(dt);
+                break;
             
-        //     case GameState::InStructure:
-        //     case GameState::OnPlanet:
-        //         runOnPlanet(dt);
-        //         break;
-        // }
+            case GameState::InStructure:
+            case GameState::OnPlanet:
+                runOnPlanet(dt);
+                break;
+        }
 
         if (isStateTransitioning())
         {
@@ -170,14 +165,14 @@ void Game::run()
 
 void Game::runFeatureTest()
 {
-    static std::optional<std::pair<int, int>> start, end;
-    static int pathfindTick = 0;
+    // static std::optional<std::pair<int, int>> start, end;
+    // static int pathfindTick = 0;
 
-    const int SCALE = 12;
+    // const int SCALE = 12;
 
-    sf::Vector2i mousePos = sf::Mouse::getPosition(window);
-    int mouseTileX = mousePos.x / SCALE;
-    int mouseTileY = mousePos.y / SCALE;
+    // sf::Vector2i mousePos = sf::Mouse::getPosition(window);
+    // int mouseTileX = mousePos.x / SCALE;
+    // int mouseTileY = mousePos.y / SCALE;
 
     for (auto event = sf::Event{}; window.pollEvent(event);)
     {
@@ -185,96 +180,96 @@ void Game::runFeatureTest()
 
         if (event.type == sf::Event::KeyPressed)
         {
-            if (event.key.code == sf::Keyboard::R || event.key.code == sf::Keyboard::Tab)
-            {
-                start = std::nullopt;
-                end = std::nullopt;
-                pathfindingEngine.resize(160, 90);
-            }
-            if (event.key.code == sf::Keyboard::P)
-            {
-                start = {mouseTileX, mouseTileY};
-            }
-            if (event.key.code == sf::Keyboard::L)
-            {
-                end = {mouseTileX, mouseTileY};
-            }
-            if (event.key.code == sf::Keyboard::Tab)
-            {
-                for (int x = 0; x < 190; x++)
-                {
-                    for (int y = 0; y < 90; y++)
-                    {
-                        if (rand() % 4 <= 1)
-                        {
-                            pathfindingEngine.setObstacle(x, y, true);
-                        }
-                    }
-                }
-            }
+            // if (event.key.code == sf::Keyboard::R || event.key.code == sf::Keyboard::Tab)
+            // {
+            //     start = std::nullopt;
+            //     end = std::nullopt;
+            //     pathfindingEngine.resize(160, 90);
+            // }
+            // if (event.key.code == sf::Keyboard::P)
+            // {
+            //     start = {mouseTileX, mouseTileY};
+            // }
+            // if (event.key.code == sf::Keyboard::L)
+            // {
+            //     end = {mouseTileX, mouseTileY};
+            // }
+            // if (event.key.code == sf::Keyboard::Tab)
+            // {
+            //     for (int x = 0; x < 190; x++)
+            //     {
+            //         for (int y = 0; y < 90; y++)
+            //         {
+            //             if (rand() % 4 <= 1)
+            //             {
+            //                 pathfindingEngine.setObstacle(x, y, true);
+            //             }
+            //         }
+            //     }
+            // }
         }
     }
 
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
-    {
-        pathfindingEngine.setObstacle(mouseTileX, mouseTileY, true);
-    }
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Backspace))
-    {
-        pathfindingEngine.setObstacle(mouseTileX, mouseTileY, false);
-    }
+    // if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
+    // {
+    //     pathfindingEngine.setObstacle(mouseTileX, mouseTileY, true);
+    // }
+    // if (sf::Keyboard::isKeyPressed(sf::Keyboard::Backspace))
+    // {
+    //     pathfindingEngine.setObstacle(mouseTileX, mouseTileY, false);
+    // }
 
-    window.clear();
+    // window.clear();
 
-    auto& obstacles = pathfindingEngine.getObstacles();
-    for (int i = 0; i < obstacles.size(); i++)
-    {
-        if (!obstacles[i])
-        {
-            continue;
-        }
+    // auto& obstacles = pathfindingEngine.getObstacles();
+    // for (int i = 0; i < obstacles.size(); i++)
+    // {
+    //     if (!obstacles[i])
+    //     {
+    //         continue;
+    //     }
 
-        sf::RectangleShape rect({SCALE, SCALE});
-        rect.setPosition(sf::Vector2f(i % 160, std::floor(i / 160)) * static_cast<float>(SCALE));
-        window.draw(rect);
-    }
+    //     sf::RectangleShape rect({SCALE, SCALE});
+    //     rect.setPosition(sf::Vector2f(i % 160, std::floor(i / 160)) * static_cast<float>(SCALE));
+    //     window.draw(rect);
+    // }
 
-    pathfindTick++;
+    // pathfindTick++;
 
-    if (start.has_value() && end.has_value())
-    {
-        static std::vector<PathfindGridCoordinate> pathFound;
-        if (pathfindTick > 0)
-        {
-            pathFound.clear();
-            pathfindTick = 0;
-            pathfindingEngine.findPath(start->first, start->second, end->first, end->second, pathFound);
-        }
+    // if (start.has_value() && end.has_value())
+    // {
+    //     static std::vector<PathfindGridCoordinate> pathFound;
+    //     if (pathfindTick > 0)
+    //     {
+    //         pathFound.clear();
+    //         pathfindTick = 0;
+    //         pathfindingEngine.findPath(start->first, start->second, end->first, end->second, pathFound);
+    //     }
 
-        for (const auto& coord : pathFound)
-        {
-            sf::RectangleShape rect({ SCALE, SCALE });
-            rect.setPosition(sf::Vector2f(coord.x, coord.y) * static_cast<float>(SCALE));
-            rect.setFillColor(sf::Color(0, 0, 255));
-            window.draw(rect);
-        }
-    }
+    //     for (const auto& coord : pathFound)
+    //     {
+    //         sf::RectangleShape rect({ SCALE, SCALE });
+    //         rect.setPosition(sf::Vector2f(coord.x, coord.y) * static_cast<float>(SCALE));
+    //         rect.setFillColor(sf::Color(0, 0, 255));
+    //         window.draw(rect);
+    //     }
+    // }
 
-    if (start.has_value())
-    {
-        sf::RectangleShape rect({SCALE, SCALE});
-        rect.setPosition(sf::Vector2f(start->first, start->second) * static_cast<float>(SCALE));
-        rect.setFillColor(sf::Color(0, 255, 0));
-        window.draw(rect);
-    }
+    // if (start.has_value())
+    // {
+    //     sf::RectangleShape rect({SCALE, SCALE});
+    //     rect.setPosition(sf::Vector2f(start->first, start->second) * static_cast<float>(SCALE));
+    //     rect.setFillColor(sf::Color(0, 255, 0));
+    //     window.draw(rect);
+    // }
 
-    if (end.has_value())
-    {
-        sf::RectangleShape rect({SCALE, SCALE});
-        rect.setPosition(sf::Vector2f(end->first, end->second) * static_cast<float>(SCALE));
-        rect.setFillColor(sf::Color(255, 0, 0));
-        window.draw(rect);
-    }
+    // if (end.has_value())
+    // {
+    //     sf::RectangleShape rect({SCALE, SCALE});
+    //     rect.setPosition(sf::Vector2f(end->first, end->second) * static_cast<float>(SCALE));
+    //     rect.setFillColor(sf::Color(255, 0, 0));
+    //     window.draw(rect);
+    // }
 }
 
 

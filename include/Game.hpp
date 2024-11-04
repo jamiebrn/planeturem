@@ -269,8 +269,6 @@ private:
     int lightingTick = 0;
     bool smoothLighting = true;
 
-    PathfindingEngine pathfindingEngine;
-
     std::array<sf::Texture, 2> waterNoiseTextures;
 
     GameState gameState;

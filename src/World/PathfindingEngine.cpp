@@ -19,7 +19,7 @@ void PathfindingEngine::setObstacle(int x, int y, bool solid)
     obstacleGrid[gridIndex] = solid;
 }
 
-bool PathfindingEngine::findPath(int startX, int startY, int endX, int endY, std::vector<PathfindGridCoordinate>& result, bool straightening)
+bool PathfindingEngine::findPath(int startX, int startY, int endX, int endY, std::vector<PathfindGridCoordinate>& result, bool straightening) const
 {
     std::unordered_map<int, PathNode> pathNodes;
 
@@ -29,7 +29,7 @@ bool PathfindingEngine::findPath(int startX, int startY, int endX, int endY, std
     int endIdx = getGridIndex(endX, endY);
 
     idxQueue.push(startIdx);
-    pathNodes[startIdx] = PathNode{0, calculateHeuristic(startX, startY, endX, endY), 0};
+    pathNodes[startIdx] = PathNode{0, calculateHeuristic(startX, startY, endX, endY), -1};
 
     while (!idxQueue.empty())
     {
@@ -50,22 +50,18 @@ bool PathfindingEngine::findPath(int startX, int startY, int endX, int endY, std
 
         if (xIndex > 0)
         {
-            // neighbours.push_back(idx - 1);
             advancePathNode(idx - 1, idx, previousNode.pathCost, endIdx, 3, previousNode.direction, pathNodes, idxQueue, straightening);
         }
         if (xIndex < width - 1)
         {
-            // neighbours.push_back(idx + 1);
             advancePathNode(idx + 1, idx, previousNode.pathCost, endIdx, 1, previousNode.direction, pathNodes, idxQueue, straightening);
         }
         if (idx >= width)
         {
-            // neighbours.push_back(idx - width);
             advancePathNode(idx - width, idx, previousNode.pathCost, endIdx, 0, previousNode.direction, pathNodes, idxQueue, straightening);
         }
         if (idx < obstacleGrid.size() - width)
         {
-            // neighbours.push_back(idx + width);
             advancePathNode(idx + width, idx, previousNode.pathCost, endIdx, 2, previousNode.direction, pathNodes, idxQueue, straightening);    
         }
     }
@@ -74,17 +70,17 @@ bool PathfindingEngine::findPath(int startX, int startY, int endX, int endY, std
     return false;
 }
 
-int PathfindingEngine::getGridIndex(int x, int y)
+int PathfindingEngine::getGridIndex(int x, int y) const
 {
     return y * width + x;
 }
 
-int PathfindingEngine::calculateHeuristic(int x, int y, int destX, int destY)
+int PathfindingEngine::calculateHeuristic(int x, int y, int destX, int destY) const
 {
     return std::abs(destX - x) + std::abs(destY - y);
 }
 
-int PathfindingEngine::calculateHeuristic(int idx, int destIdx)
+int PathfindingEngine::calculateHeuristic(int idx, int destIdx) const
 {
     // int diff = std::abs(destIdx - idx);
     // return diff % width + std::floor(diff / width);
@@ -96,7 +92,7 @@ int PathfindingEngine::calculateHeuristic(int idx, int destIdx)
 }
 
 void PathfindingEngine::advancePathNode(int idx, int previousIdx, int previousPathCost, int destIdx, int direction, int previousDirection,
-    std::unordered_map<int, PathNode>& pathNodes, std::priority_queue<int, std::vector<int>, PathNodeComparator>& idxQueue, bool straightening)
+    std::unordered_map<int, PathNode>& pathNodes, std::priority_queue<int, std::vector<int>, PathNodeComparator>& idxQueue, bool straightening) const
 {
     if (obstacleGrid[idx])
     {
@@ -114,9 +110,9 @@ void PathfindingEngine::advancePathNode(int idx, int previousIdx, int previousPa
 
     if (pathNodes.contains(idx))
     {
-        if (newCost < pathNodes[idx].pathCost)
+        PathNode& pathNode = pathNodes[idx];
+        if (newCost < pathNode.pathCost)
         {
-            PathNode& pathNode = pathNodes[idx];
             pathNode.pathCost = newCost;
             pathNode.totalCost = newCost + calculateHeuristic(idx, destIdx);
             pathNode.direction = direction;
@@ -130,7 +126,7 @@ void PathfindingEngine::advancePathNode(int idx, int previousIdx, int previousPa
     idxQueue.push(idx);
 }
 
-std::vector<PathfindGridCoordinate> PathfindingEngine::retracePath(int endIdx, const std::unordered_map<int, PathNode>& pathNodes)
+std::vector<PathfindGridCoordinate> PathfindingEngine::retracePath(int endIdx, const std::unordered_map<int, PathNode>& pathNodes) const
 {
     std::vector<PathfindGridCoordinate> path;
     int currentIdx = endIdx;

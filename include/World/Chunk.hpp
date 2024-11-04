@@ -33,10 +33,13 @@
 #include "Entity/Entity.hpp"
 #include "World/ChunkManager.hpp"
 #include "World/TileMap.hpp"
-#include "Data/ObjectDataLoader.hpp"
+#include "World/PathfindingEngine.hpp"
+
 #include "Types/TileType.hpp"
 
 #include "Data/typedefs.hpp"
+#include "Data/ObjectData.hpp"
+#include "Data/ObjectDataLoader.hpp"
 #include "Data/PlanetGenData.hpp"
 #include "Data/PlanetGenDataLoader.hpp"
 #include "Data/StructureData.hpp"
@@ -64,7 +67,8 @@ public:
     void reset(bool fullReset = false);
 
     // Initialisation / generation
-    void generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, Game& game, ChunkManager& chunkManager, bool allowStructureGen = true);
+    void generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, Game& game, ChunkManager& chunkManager,
+        PathfindingEngine& pathfindingEngine, bool allowStructureGen = true);
 
     // Tiles meaning tile grid, not tilemaps
     // Returns random int generator to continue to be used in generation
@@ -77,7 +81,8 @@ public:
     // Generates tilemaps and calls functions to generate visual tiles and calculate collision rects
     // Called during chunk generation
     // Also used to initialise a chunk when loaded into view after being loaded through POD / save file
-    void generateTilemapsAndInit(const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, ChunkManager& chunkManager);
+    void generateTilemapsAndInit(const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, ChunkManager& chunkManager,
+        PathfindingEngine& pathfindingEngine);
 
     void generateVisualEffectTiles(const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, ChunkManager& chunkManager);
 
@@ -114,22 +119,23 @@ public:
 
     // -- Object handling -- //
     // Update all objects
-    void updateChunkObjects(Game& game, float dt, int worldSize, ChunkManager& chunkManager);
+    void updateChunkObjects(Game& game, float dt, int worldSize, ChunkManager& chunkManager, PathfindingEngine& pathfindingEngine);
     
     // Get object (optional) at position
     BuildableObject* getObject(sf::Vector2i position);
 
     // Sets object (and object references if size > (1, 1), across chunks)
-    void setObject(sf::Vector2i position, ObjectType objectType, Game& game, ChunkManager& chunkManager, bool recalculateCollision = true, bool calledWhileGenerating = false);
+    void setObject(sf::Vector2i position, ObjectType objectType, Game& game, ChunkManager& chunkManager, PathfindingEngine* pathfindingEngine,
+        bool recalculateCollision = true, bool calledWhileGenerating = false);
 
     // Deletes object (including object references if size > (1, 1), across chunks)
-    void deleteObject(sf::Vector2i position, ChunkManager& chunkManager);
+    void deleteObject(sf::Vector2i position, ChunkManager& chunkManager, PathfindingEngine& pathfindingEngine);
 
     // Delete single object (not reference)
-    void deleteSingleObject(sf::Vector2i position, ChunkManager& chunkManager);
+    void deleteSingleObject(sf::Vector2i position, ChunkManager& chunkManager, PathfindingEngine& pathfindingEngine);
 
     // Create object reference at position
-    void setObjectReference(const ObjectReference& objectReference, sf::Vector2i tile, ChunkManager& chunkManager);
+    void setObjectReference(const ObjectReference& objectReference, sf::Vector2i tile, ChunkManager& chunkManager, PathfindingEngine& pathfindingEngine);
 
     // Tests whether object can be placed, taking into account size and attributes (e.g. water placeable) at position
     bool canPlaceObject(sf::Vector2i position, ObjectType objectType, int worldSize, ChunkManager& chunkManager);
@@ -144,8 +150,8 @@ public:
 
     // -- Collision -- //
     // Calculate all collision rects (should be called after modifying terrain/objects etc)
-    // DOES NOT INCLUDE ENTITIES
-    void recalculateCollisionRects(ChunkManager& chunkManager);
+    // If pathfinding engine passed in, update with collision accordingly
+    void recalculateCollisionRects(ChunkManager& chunkManager, PathfindingEngine* pathfindingEngine);
 
     // Get collision rects (previously calculated)
     std::vector<CollisionRect*> getCollisionRects();
@@ -165,7 +171,8 @@ public:
     // Place land and update visual tiles for chunk
     // Requires worldSize, noise, and chunk manager as regenerates visual tiles and collision rects
     // ONLY CALL IF CHECKED WHETHER CAN PLACE FIRST, DOES NOT RECHECK
-    void placeLand(sf::Vector2i tile, int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, ChunkManager& chunkManager);
+    void placeLand(sf::Vector2i tile, int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, ChunkManager& chunkManager,
+        PathfindingEngine& pathfindingEngine);
 
 
     // -- Structures -- //

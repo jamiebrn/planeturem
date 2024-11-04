@@ -42,13 +42,14 @@ void Chunk::reset(bool fullReset)
     }
 }
 
-void Chunk::generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, Game& game, ChunkManager& chunkManager, bool allowStructureGen)
+void Chunk::generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, Game& game, ChunkManager& chunkManager,
+    PathfindingEngine& pathfindingEngine, bool allowStructureGen)
 {
     RandInt randGen = generateTilesAndStructure(heightNoise, biomeNoise, planetType, chunkManager);
 
     generateObjectsAndEntities(heightNoise, biomeNoise, planetType, randGen, game, chunkManager);
 
-    generateTilemapsAndInit(heightNoise, biomeNoise, planetType, chunkManager);
+    generateTilemapsAndInit(heightNoise, biomeNoise, planetType, chunkManager, pathfindingEngine);
 }
 
 RandInt Chunk::generateTilesAndStructure(const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType,
@@ -121,7 +122,7 @@ void Chunk::generateObjectsAndEntities(const FastNoise& heightNoise, const FastN
 
             if (objectSpawnType >= 0)
             {
-                setObject(sf::Vector2i(x, y), objectSpawnType, game, chunkManager, false, true);
+                setObject(sf::Vector2i(x, y), objectSpawnType, game, chunkManager, nullptr, false, true);
             }
             else
             {
@@ -145,7 +146,8 @@ void Chunk::generateObjectsAndEntities(const FastNoise& heightNoise, const FastN
     }
 }
 
-void Chunk::generateTilemapsAndInit(const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, ChunkManager& chunkManager)
+void Chunk::generateTilemapsAndInit(const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, ChunkManager& chunkManager,
+    PathfindingEngine& pathfindingEngine)
 {
     int worldSize = chunkManager.getWorldSize();
 
@@ -178,7 +180,7 @@ void Chunk::generateTilemapsAndInit(const FastNoise& heightNoise, const FastNois
 
     generateVisualEffectTiles(heightNoise, biomeNoise, planetType, chunkManager);
 
-    recalculateCollisionRects(chunkManager);
+    recalculateCollisionRects(chunkManager, &pathfindingEngine);
 
     generatedFromPOD = false;
 }
@@ -639,7 +641,7 @@ void Chunk::drawChunkWater(sf::RenderTarget& window)
     TextureManager::drawSubTexture(window, {TextureType::Water, waterPos, 0, {scale, scale}}, waterRect, waterShader);
 }
 
-void Chunk::updateChunkObjects(Game& game, float dt, int worldSize, ChunkManager& chunkManager)
+void Chunk::updateChunkObjects(Game& game, float dt, int worldSize, ChunkManager& chunkManager, PathfindingEngine& pathfindingEngine)
 {
     for (int y = 0; y < objectGrid.size(); y++)
     {
@@ -659,7 +661,7 @@ void Chunk::updateChunkObjects(Game& game, float dt, int worldSize, ChunkManager
                 
                 object->update(game, dt, onWater);
                 if (!object->isAlive())
-                    deleteObject(sf::Vector2i(x, y), chunkManager);
+                    deleteObject(sf::Vector2i(x, y), chunkManager, pathfindingEngine);
             }
         }
     }
@@ -708,7 +710,8 @@ int Chunk::getTileType(sf::Vector2i position) const
     return groundTileGrid[position.y][position.x];
 }
 
-void Chunk::setObject(sf::Vector2i position, ObjectType objectType, Game& game, ChunkManager& chunkManager, bool recalculateCollision, bool calledWhileGenerating)
+void Chunk::setObject(sf::Vector2i position, ObjectType objectType, Game& game, ChunkManager& chunkManager, PathfindingEngine* pathfindingEngine,
+    bool recalculateCollision, bool calledWhileGenerating)
 {
     if (!calledWhileGenerating)
     {
@@ -756,11 +759,11 @@ void Chunk::setObject(sf::Vector2i position, ObjectType objectType, Game& game, 
 
     if (recalculateCollision)
     {
-        recalculateCollisionRects(chunkManager);
+        recalculateCollisionRects(chunkManager, pathfindingEngine);
     }
 }
 
-void Chunk::deleteObject(sf::Vector2i position, ChunkManager& chunkManager)
+void Chunk::deleteObject(sf::Vector2i position, ChunkManager& chunkManager, PathfindingEngine& pathfindingEngine)
 {
     modified = true;
 
@@ -777,7 +780,7 @@ void Chunk::deleteObject(sf::Vector2i position, ChunkManager& chunkManager)
     // Object is single tile
     if (objectSize == sf::Vector2i(1, 1))
     {
-        deleteSingleObject(position, chunkManager);
+        deleteSingleObject(position, chunkManager, pathfindingEngine);
         return;
     }
 
@@ -793,19 +796,19 @@ void Chunk::deleteObject(sf::Vector2i position, ChunkManager& chunkManager)
     }
 }
 
-void Chunk::deleteSingleObject(sf::Vector2i position, ChunkManager& chunkManager)
+void Chunk::deleteSingleObject(sf::Vector2i position, ChunkManager& chunkManager, PathfindingEngine& pathfindingEngine)
 {
     objectGrid[position.y][position.x].reset();
-    recalculateCollisionRects(chunkManager);
+    recalculateCollisionRects(chunkManager, &pathfindingEngine);
 }
 
-void Chunk::setObjectReference(const ObjectReference& objectReference, sf::Vector2i tile, ChunkManager& chunkManager)
+void Chunk::setObjectReference(const ObjectReference& objectReference, sf::Vector2i tile, ChunkManager& chunkManager, PathfindingEngine& pathfindingEngine)
 {
     modified = true;
 
     objectGrid[tile.y][tile.x] = std::make_unique<BuildableObject>(objectReference);
 
-    recalculateCollisionRects(chunkManager);
+    recalculateCollisionRects(chunkManager, &pathfindingEngine);
 }
 
 bool Chunk::canPlaceObject(sf::Vector2i position, ObjectType objectType, int worldSize, ChunkManager& chunkManager)
@@ -915,11 +918,8 @@ Entity* Chunk::getSelectedEntity(sf::Vector2f cursorPos)
     return nullptr;
 }
 
-void Chunk::recalculateCollisionRects(ChunkManager& chunkManager)
+void Chunk::recalculateCollisionRects(ChunkManager& chunkManager, PathfindingEngine* pathfindingEngine)
 {
-    // Clear previously calculated collision rects
-    collisionRects.clear();
-
     auto createCollisionRect = [this](std::vector<std::unique_ptr<CollisionRect>>& rects, int x, int y) -> void
     {
         std::unique_ptr<CollisionRect> collisionRect = std::make_unique<CollisionRect>();
@@ -931,6 +931,24 @@ void Chunk::recalculateCollisionRects(ChunkManager& chunkManager)
 
         rects.push_back(std::move(collisionRect));
     };
+
+    // Clear previously calculated collision rects
+    collisionRects.clear();
+
+    int pathfindingTopLeftX = chunkPosition.x * static_cast<int>(CHUNK_TILE_SIZE);
+    int pathfindingTopLeftY = chunkPosition.y * static_cast<int>(CHUNK_TILE_SIZE);
+
+    // Clear pathfinding for chunk if pathfinding engine is passed in
+    if (pathfindingEngine)
+    {
+        for (int y = 0; y < static_cast<int>(CHUNK_TILE_SIZE); y++)
+        {
+            for (int x = 0; x < static_cast<int>(CHUNK_TILE_SIZE); x++)
+            {
+                pathfindingEngine->setObstacle(pathfindingTopLeftX + x, pathfindingTopLeftY + y, false);
+            }
+        }
+    }
 
     // Get collisions for tiles
     for (int y = 0; y < CHUNK_TILE_SIZE; y++)
@@ -954,7 +972,13 @@ void Chunk::recalculateCollisionRects(ChunkManager& chunkManager)
                 continue;
 
             if (groundTileGrid[y][x] == 0)
+            {
                 createCollisionRect(collisionRects, x, y);
+                if (pathfindingEngine)
+                {
+                    pathfindingEngine->setObstacle(pathfindingTopLeftX + x, pathfindingTopLeftY + y, true);
+                }
+            }
         }
     }
 
@@ -978,6 +1002,10 @@ void Chunk::recalculateCollisionRects(ChunkManager& chunkManager)
                 if (object->dummyHasCollision())
                 {
                     createCollisionRect(collisionRects, x, y);
+                    if (pathfindingEngine)
+                    {
+                        pathfindingEngine->setObstacle(pathfindingTopLeftX + x, pathfindingTopLeftY + y, true);
+                    }
                 }
                 continue;
             }
@@ -985,7 +1013,13 @@ void Chunk::recalculateCollisionRects(ChunkManager& chunkManager)
             const ObjectData& objectData = ObjectDataLoader::getObjectData(object->getObjectType());
             
             if (objectData.hasCollision)
+            {
                 createCollisionRect(collisionRects, x, y);
+                if (pathfindingEngine)
+                {
+                    pathfindingEngine->setObstacle(pathfindingTopLeftX + x, pathfindingTopLeftY + y, true);
+                }
+            }
         }
     }
 }
@@ -1045,7 +1079,7 @@ bool Chunk::canPlaceLand(sf::Vector2i tile)
 }
 
 void Chunk::placeLand(sf::Vector2i tile, int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise,
-    PlanetType planetType, ChunkManager& chunkManager)
+    PlanetType planetType, ChunkManager& chunkManager, PathfindingEngine& pathfindingEngine)
 {
     modified = true;
 
@@ -1080,7 +1114,7 @@ void Chunk::placeLand(sf::Vector2i tile, int worldSize, const FastNoise& heightN
     generateVisualEffectTiles(heightNoise, biomeNoise, planetType, chunkManager);
 
     // Recalculate collision rects
-    recalculateCollisionRects(chunkManager);
+    recalculateCollisionRects(chunkManager, &pathfindingEngine);
 }
 
 bool Chunk::isPlayerInStructureEntrance(sf::Vector2f playerPos, StructureEnterEvent& enterEvent)
@@ -1234,7 +1268,7 @@ void Chunk::setWorldPosition(sf::Vector2f position, ChunkManager& chunkManager)
         }
     }
 
-    recalculateCollisionRects(chunkManager);
+    recalculateCollisionRects(chunkManager, nullptr);
 }
 
 sf::Vector2f Chunk::getWorldPosition()

@@ -23,15 +23,17 @@ public:
 
     void setObstacle(int x, int y, bool solid);
 
-    bool findPath(int startX, int startY, int endX, int endY, std::vector<PathfindGridCoordinate>& result, bool straightening = false);
+    bool findPath(int startX, int startY, int endX, int endY, std::vector<PathfindGridCoordinate>& result, bool straightening = false) const;
 
-    inline const std::vector<char>& getObstacles() {return obstacleGrid;}
+    inline const std::vector<char>& getObstacles() const {return obstacleGrid;}
+    inline int getWidth() const {return width;}
+    inline int getHeight() const {return height;}
 
 private:
-    int getGridIndex(int x, int y);
+    int getGridIndex(int x, int y) const;
 
-    int calculateHeuristic(int x, int y, int destX, int destY);
-    int calculateHeuristic(int idx, int destIdx);
+    int calculateHeuristic(int x, int y, int destX, int destY) const;
+    int calculateHeuristic(int idx, int destIdx) const;
 
     // std::vector<int> getNeighbours(int idx);
 
@@ -65,9 +67,9 @@ private:
     };
 
     void advancePathNode(int idx, int previousIdx, int previousPathCost, int direction, int previousDirection, int destIdx,
-        std::unordered_map<int, PathNode>& pathNodes, std::priority_queue<int, std::vector<int>, PathNodeComparator>& idxQueue, bool straightening);
+        std::unordered_map<int, PathNode>& pathNodes, std::priority_queue<int, std::vector<int>, PathNodeComparator>& idxQueue, bool straightening) const;
 
-    std::vector<PathfindGridCoordinate> retracePath(int endIdx, const std::unordered_map<int, PathNode>& pathNodes);
+    std::vector<PathfindGridCoordinate> retracePath(int endIdx, const std::unordered_map<int, PathNode>& pathNodes) const;
 
 private:
     std::vector<char> obstacleGrid;

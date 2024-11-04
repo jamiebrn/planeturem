@@ -43,7 +43,6 @@ public:
     void setSeed(int seed);
     int getSeed() const;
 
-    void setWorldSize(int size);
     void setPlanetType(PlanetType planetType);
 
     // Delete all chunks (used when switching planets)
@@ -191,6 +190,7 @@ public:
     inline const FastNoise& getBiomeNoise() const {return biomeNoise;}
     inline const FastNoise& getHeightNoise() const {return heightNoise;}
     inline PlanetType getPlanetType() const {return planetType;}
+    inline const PathfindingEngine& getPathfindingEngine() const {return pathfindingEngine;}
 
     // Finds valid spawn position for player i.e. no water
     // Waterless area size checks for chunks +- waterlessAreaSize
@@ -233,5 +233,7 @@ private:
     PlanetType planetType = 0;
 
     int seed = 0;
+
+    PathfindingEngine pathfindingEngine;
 
 };

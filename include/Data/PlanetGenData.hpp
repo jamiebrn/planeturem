@@ -72,4 +72,6 @@ struct PlanetGenData
     std::vector<BiomeGenData> biomeGenDatas;
 
     sf::Color waterColour;
+
+    int worldSize;
 };

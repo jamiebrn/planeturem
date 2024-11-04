@@ -77,7 +77,8 @@
                     "noise-range": [0.6, 1]
                 }
             ],
-            "water-colour": [77, 155, 230]
+            "water-colour": [77, 155, 230],
+            "size": 240
         },
         "Moon": {
             "biomes": [
@@ -99,7 +100,8 @@
                     "noise-range": [0, 1]
                 }
             ],
-            "water-colour": [40, 40, 40]
+            "water-colour": [40, 40, 40],
+            "size": 100
         }
     }
 }

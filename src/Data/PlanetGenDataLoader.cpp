@@ -39,6 +39,11 @@ bool PlanetGenDataLoader::loadPlanet(nlohmann::ordered_json::iterator& planetDat
     planetGenData.waterColour.r = planetData->at("water-colour")[0];
     planetGenData.waterColour.g = planetData->at("water-colour")[1];
     planetGenData.waterColour.b = planetData->at("water-colour")[2];
+
+    if (!planetData->contains("size"))
+        return false;
+    
+    planetGenData.worldSize = planetData->at("size");
     
     if (!planetData->contains("biomes"))
         return false;
