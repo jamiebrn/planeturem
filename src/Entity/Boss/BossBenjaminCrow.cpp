@@ -11,12 +11,13 @@ const std::array<sf::IntRect, 2> BossBenjaminCrow::dashGhostTextureRects = {
 const sf::IntRect BossBenjaminCrow::deadTextureRect = sf::IntRect(448, 160, 48, 64);
 const sf::IntRect BossBenjaminCrow::shadowTextureRect = sf::IntRect(64, 208, 48, 16);
 
-BossBenjaminCrow::BossBenjaminCrow(sf::Vector2f position)
+BossBenjaminCrow::BossBenjaminCrow(sf::Vector2f playerPosition)
 {
     Sounds::playSound(SoundType::Crow);
     Sounds::playMusic(MusicType::BossTheme1);
 
-    this->position = position;
+    this->position = playerPosition - sf::Vector2f(400, 400);
+    drawLayer = -999;
 
     idleAnims[0].create(6, 48, 64, 112, 160, 0.1);
     idleAnims[1].create(6, 48, 64, 112, 224, 0.1);
@@ -301,7 +302,7 @@ void BossBenjaminCrow::handleWorldWrap(sf::Vector2f positionDelta)
     }
 }
 
-void BossBenjaminCrow::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch)
+void BossBenjaminCrow::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, float dt, float gameTime, int worldSize, const sf::Color& color) const
 {
     // Draw shadow
     TextureDrawData drawData;
@@ -317,7 +318,7 @@ void BossBenjaminCrow::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch)
     spriteBatch.draw(window, drawData, shadowTextureRect);
 
     // Draw ghost effects
-    for (DashGhostEffect& dashGhostEffect : dashGhostEffects)
+    for (const DashGhostEffect& dashGhostEffect : dashGhostEffects)
     {
         TextureDrawData effectDrawData;
         effectDrawData.type = TextureType::Entities;
@@ -412,4 +413,9 @@ void BossBenjaminCrow::testCollisionWithPlayer(Player& player)
     hitRect.damage = damageValues[stage];
 
     player.testHitCollision(hitRect);
+}
+
+void BossBenjaminCrow::getWorldObjects(std::vector<WorldObject*>& worldObjects)
+{
+    worldObjects.push_back(this);
 }

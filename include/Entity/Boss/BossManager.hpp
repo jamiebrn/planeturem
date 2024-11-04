@@ -12,6 +12,7 @@
 
 #include "BossEntity.hpp"
 #include "BossBenjaminCrow.hpp"
+#include "BossSandSerpent.hpp"
 
 class Player;
 
@@ -20,7 +21,7 @@ class BossManager
 public:
     BossManager() = default;
 
-    void createBoss(const std::string& name, sf::Vector2f position);
+    void createBoss(const std::string& name, sf::Vector2f playerPosition);
 
     void update(Game& game, ProjectileManager& projectileManager, InventoryData& inventory, Player& player, float dt);
 
@@ -35,6 +36,8 @@ public:
     void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch);
 
     void drawStatsAtCursor(sf::RenderTarget& window, sf::Vector2f mouseScreenPos);
+
+    void getBossWorldObjects(std::vector<WorldObject*>& worldObjects);
 
 private:
     std::vector<std::unique_ptr<BossEntity>> bosses;

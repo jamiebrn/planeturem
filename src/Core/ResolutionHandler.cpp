@@ -14,10 +14,10 @@ const sf::Vector2u& ResolutionHandler::getResolution()
     return currentResolution;
 }
 
-void ResolutionHandler::changeScale(int amount)
-{
-    scale = std::min(std::max(scale + amount, 1), 5);
-}
+// void ResolutionHandler::changeScale(int amount)
+// {
+//     scale = std::min(std::max(scale + amount, 1), 5);
+// }
 
 void ResolutionHandler::changeZoom(int amount)
 {

@@ -13,7 +13,7 @@ public:
     static void setResolution(sf::Vector2u resolution);
     static const sf::Vector2u& getResolution();
 
-    static void changeScale(int amount);
+    // static void changeScale(int amount);
     static void changeZoom(int amount);
 
     static inline int getScale() {return (scale + currentZoom) * getResolutionIntegerScale();}

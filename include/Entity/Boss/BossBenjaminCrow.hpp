@@ -35,7 +35,7 @@
 class BossBenjaminCrow : public BossEntity
 {
 public:
-    BossBenjaminCrow(sf::Vector2f position);
+    BossBenjaminCrow(sf::Vector2f playerPosition);
 
     void update(Game& game, ProjectileManager& projectileManager, InventoryData& inventory, Player& player, float dt) override;
 
@@ -43,11 +43,16 @@ public:
 
     void handleWorldWrap(sf::Vector2f positionDelta) override;
 
-    void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch) override;
+    // void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch) override;
+    void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, float dt, float gameTime, int worldSize, const sf::Color& color) const;
+
+    inline void createLightSource(LightingEngine& lightingEngine, sf::Vector2f topLeftChunkPos) const override {}
 
     void drawStatsAtCursor(sf::RenderTarget& window, sf::Vector2f mouseScreenPos) override;
 
     void testCollisionWithPlayer(Player& player) override;
+
+    void getWorldObjects(std::vector<WorldObject*>& worldObjects) override;
 
 private:
     void updateCollision();

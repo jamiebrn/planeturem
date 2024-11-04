@@ -69,6 +69,21 @@
         "texture": [64, 80, 16, 16]
     },
     {
+        "name": "Sewing Needle",
+        "texture": [48, 64, 16, 16]
+    },
+    {
+        "name": "Wood Fibres",
+        "texture": [48, 48, 16, 16]
+    },
+    {
+        "name": "Rodent Doll",
+        "texture": [48, 96, 16, 16],
+        "boss-summon-data": {
+            "boss-name": "The Sand Serpent"
+        }
+    },
+    {
         "name": "Crow Claw",
         "texture": [80, 80, 16, 16]
     },

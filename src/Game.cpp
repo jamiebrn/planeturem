@@ -819,6 +819,7 @@ void Game::drawOnPlanet(float dt)
     std::vector<WorldObject*> entities = chunkManager.getChunkEntities();
     worldObjects.insert(worldObjects.end(), entities.begin(), entities.end());
     worldObjects.push_back(&player);
+    bossManager.getBossWorldObjects(worldObjects);
 
     drawWorld(dt, worldObjects);
     drawLighting(dt, worldObjects);
@@ -875,9 +876,6 @@ void Game::drawWorld(float dt, std::vector<WorldObject*>& worldObjects)
     {
         worldObject->draw(worldTexture, spriteBatch, *this, dt, gameTime, chunkManager.getWorldSize(), {255, 255, 255, 255});
     }
-
-    // Draw bosses
-    bossManager.draw(worldTexture, spriteBatch);
 
     // Draw projectiles
     projectileManager.drawProjectiles(worldTexture, spriteBatch);
@@ -1409,11 +1407,7 @@ void Game::attemptUseBossSpawn()
     InventoryGUI::subtractHeldItem(inventory);
 
     // Summon boss
-    sf::Vector2f spawnPos;
-    spawnPos.x = player.getPosition().x - 400.0f;
-    spawnPos.y = player.getPosition().y - 400.0f;
-
-    bossManager.createBoss(itemData.bossSummonData->bossName, spawnPos);
+    bossManager.createBoss(itemData.bossSummonData->bossName, player.getPosition());
 }
 
 void Game::drawGhostPlaceObjectAtCursor(ObjectType object)

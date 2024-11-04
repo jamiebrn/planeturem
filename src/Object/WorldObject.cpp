@@ -55,6 +55,20 @@ sf::Vector2i WorldObject::getTileInside()
     return getTileInside(position);
 }
 
+sf::Vector2i WorldObject::getWorldTileInside(sf::Vector2f position, int worldSize)
+{
+    int worldTileSize = worldSize * static_cast<int>(CHUNK_TILE_SIZE);
+    sf::Vector2i tile = getTileInside(position);
+    tile.x = (tile.x % worldTileSize + worldTileSize) % worldTileSize;
+    tile.y = (tile.y % worldTileSize + worldTileSize) % worldTileSize;
+    return tile;
+}
+
+sf::Vector2i WorldObject::getWorldTileInside(int worldSize)
+{
+    return getWorldTileInside(position, worldSize);
+}
+
 // Assumes on water
 float WorldObject::getWaterBobYOffset(sf::Vector2f position, int worldSize, float gameTime)
 {    

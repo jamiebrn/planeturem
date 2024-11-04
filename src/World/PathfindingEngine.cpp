@@ -48,22 +48,46 @@ bool PathfindingEngine::findPath(int startX, int startY, int endX, int endY, std
 
         int xIndex = idx % width;
 
-        if (xIndex > 0)
+        // if (xIndex > 0)
+        // {
+
+        int nextIdx = idx - 1;
+        if (std::floor(idx / width) > std::floor(nextIdx / width) || nextIdx < 0)
         {
-            advancePathNode(idx - 1, idx, previousNode.pathCost, endIdx, 3, previousNode.direction, pathNodes, idxQueue, straightening);
+            nextIdx += width;
         }
-        if (xIndex < width - 1)
+        advancePathNode(nextIdx, idx, previousNode.pathCost, endIdx, 3, previousNode.direction, pathNodes, idxQueue, straightening);
+
+        // }
+        // if (xIndex < width - 1)
+        // {
+        nextIdx = idx + 1;
+        if (std::floor(idx / width) < std::floor(nextIdx / width) || nextIdx >= obstacleGrid.size())
         {
-            advancePathNode(idx + 1, idx, previousNode.pathCost, endIdx, 1, previousNode.direction, pathNodes, idxQueue, straightening);
+            nextIdx -= width;
         }
-        if (idx >= width)
+        advancePathNode(nextIdx, idx, previousNode.pathCost, endIdx, 1, previousNode.direction, pathNodes, idxQueue, straightening);
+        // }
+        // if (idx >= width)
+        // {
+
+        nextIdx = idx - width;
+        if (nextIdx < 0)
         {
-            advancePathNode(idx - width, idx, previousNode.pathCost, endIdx, 0, previousNode.direction, pathNodes, idxQueue, straightening);
+            nextIdx += obstacleGrid.size();
         }
-        if (idx < obstacleGrid.size() - width)
+        advancePathNode(nextIdx, idx, previousNode.pathCost, endIdx, 0, previousNode.direction, pathNodes, idxQueue, straightening);
+        // }
+        // if (idx < obstacleGrid.size() - width)
+        // {
+
+        nextIdx = idx + width;
+        if (nextIdx >= obstacleGrid.size())
         {
-            advancePathNode(idx + width, idx, previousNode.pathCost, endIdx, 2, previousNode.direction, pathNodes, idxQueue, straightening);    
+            nextIdx -= obstacleGrid.size();
         }
+        advancePathNode(nextIdx, idx, previousNode.pathCost, endIdx, 2, previousNode.direction, pathNodes, idxQueue, straightening);    
+        // }
     }
 
     // No path found

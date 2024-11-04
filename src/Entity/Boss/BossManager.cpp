@@ -1,11 +1,15 @@
 #include "Entity/Boss/BossManager.hpp"
 
-void BossManager::createBoss(const std::string& name, sf::Vector2f position)
+void BossManager::createBoss(const std::string& name, sf::Vector2f playerPosition)
 {
     // Create boss class depending on name
     if (name == "Benjamin")
     {
-        bosses.push_back(std::make_unique<BossBenjaminCrow>(position));
+        bosses.push_back(std::make_unique<BossBenjaminCrow>(playerPosition));
+    }
+    else if (name == "The Sand Serpent")
+    {
+        bosses.push_back(std::make_unique<BossSandSerpent>(playerPosition));
     }
 }
 
@@ -79,18 +83,26 @@ void BossManager::clearBosses()
     bosses.clear();
 }
 
-void BossManager::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch)
-{
-    for (auto& boss : bosses)
-    {
-        boss->draw(window, spriteBatch);
-    }
-}
+// void BossManager::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch)
+// {
+//     for (auto& boss : bosses)
+//     {
+//         boss->draw(window, spriteBatch);
+//     }
+// }
 
 void BossManager::drawStatsAtCursor(sf::RenderTarget& window, sf::Vector2f mouseScreenPos)
 {
     for (auto& boss : bosses)
     {
         boss->drawStatsAtCursor(window, mouseScreenPos);
+    }
+}
+
+void BossManager::getBossWorldObjects(std::vector<WorldObject*>& worldObjects)
+{
+    for (auto& boss : bosses)
+    {
+        boss->getWorldObjects(worldObjects);
     }
 }
