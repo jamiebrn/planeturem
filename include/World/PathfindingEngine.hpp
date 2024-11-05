@@ -25,6 +25,8 @@ public:
 
     bool findPath(int startX, int startY, int endX, int endY, std::vector<PathfindGridCoordinate>& result, bool straightening = false) const;
 
+    std::vector<PathfindGridCoordinate> createStepSequenceFromPath(const std::vector<PathfindGridCoordinate>& path) const;
+
     inline const std::vector<char>& getObstacles() const {return obstacleGrid;}
     inline int getWidth() const {return width;}
     inline int getHeight() const {return height;}

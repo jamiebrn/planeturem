@@ -197,6 +197,7 @@
     {
         "product": "Rodent Doll",
         "product-amount": 1,
+        "key-items": ["Bone", "Meat", "Sewing Needle"],
         "item-requirements": {
             "Bone": 5,
             "Meat": 10,

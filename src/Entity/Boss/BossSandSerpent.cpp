@@ -16,7 +16,10 @@ BossSandSerpent::BossSandSerpent(sf::Vector2f playerPosition)
     // Sounds::playSound(SoundType::Crow);
     Sounds::playMusic(MusicType::BossTheme1);
 
-    this->position = playerPosition;
+    position = playerPosition;
+
+    pathfindLastStepPosition = position;
+    pathfindStepIndex = 0;
 
     health = MAX_HEALTH;
     dead = false;
@@ -35,14 +38,46 @@ void BossSandSerpent::update(Game& game, ProjectileManager& projectileManager, I
     sf::Vector2i tile = getWorldTileInside(worldSize);
     sf::Vector2i playerTile = player.getWorldTileInside(worldSize);
 
-    pathfindResult.clear();
+    if (pathfindStepIndex >= pathfindStepSequence.size())
+    {
+        std::vector<PathfindGridCoordinate> pathfindResult;
+        pathfindingEngine.findPath(tile.x, tile.y, playerTile.x, playerTile.y, pathfindResult);
+        pathfindStepSequence = pathfindingEngine.createStepSequenceFromPath(pathfindResult);
 
-    pathfindingEngine.findPath(tile.x, tile.y, playerTile.x, playerTile.y, pathfindResult);
+        pathfindLastStepPosition = position;
+        setPathfindStepIndex(0);   
+    }
+    else
+    {
+        if (Helper::getVectorLength(pathfindStepTargetPosition - position) <= 0.5f)
+        {
+            // Move to next pathfinding step
+            pathfindLastStepPosition = pathfindStepTargetPosition;
+            setPathfindStepIndex(pathfindStepIndex + 1);
+        }
+    }
+
+    // Move towards
+    position += Helper::normaliseVector(pathfindStepTargetPosition - position) * 70.0f * dt;
 }
 
 void BossSandSerpent::updateCollision()
 {
 
+}
+
+void BossSandSerpent::setPathfindStepIndex(int index)
+{
+    pathfindStepIndex = index;
+
+    if (pathfindStepIndex >= pathfindStepSequence.size())
+    {
+        return;
+    }
+
+    PathfindGridCoordinate target = pathfindStepSequence[pathfindStepIndex];
+    sf::Vector2i tilePosition = getTileInside(pathfindLastStepPosition);
+    pathfindStepTargetPosition = sf::Vector2f(target.x + tilePosition.x + 0.5f, target.y + tilePosition.y + 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
 }
 
 void BossSandSerpent::takeDamage(int damage, InventoryData& inventory, sf::Vector2f damagePosition)
@@ -114,6 +149,9 @@ bool BossSandSerpent::isAlive()
 void BossSandSerpent::handleWorldWrap(sf::Vector2f positionDelta)
 {
     position += positionDelta;
+
+    pathfindLastStepPosition += positionDelta;
+    pathfindStepTargetPosition += positionDelta;
 }
 
 void BossSandSerpent::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, float dt, float gameTime, int worldSize, const sf::Color& color) const
@@ -130,14 +168,19 @@ void BossSandSerpent::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, G
 
     spriteBatch.endDrawing(window);
 
+    sf::VertexArray line(sf::Lines);
+    line.append(sf::Vertex(Camera::worldToScreenTransform(pathfindLastStepPosition)));
+    line.append(sf::Vertex(Camera::worldToScreenTransform(pathfindStepTargetPosition)));
+    window.draw(line);
+
     // Draw pathfinding
-    for (auto coord : pathfindResult)
-    {
-        sf::RectangleShape rect(sf::Vector2f(scale, scale) * TILE_SIZE_PIXELS_UNSCALED);
-        rect.setPosition(Camera::worldToScreenTransform(sf::Vector2f(coord.x, coord.y) * TILE_SIZE_PIXELS_UNSCALED));
-        rect.setFillColor(sf::Color(0, 0, 255));
-        window.draw(rect);
-    }
+    // for (auto coord : pathfindResult)
+    // {
+    //     sf::RectangleShape rect(sf::Vector2f(scale, scale) * TILE_SIZE_PIXELS_UNSCALED);
+    //     rect.setPosition(Camera::worldToScreenTransform(sf::Vector2f(coord.x, coord.y) * TILE_SIZE_PIXELS_UNSCALED));
+    //     rect.setFillColor(sf::Color(0, 0, 255));
+    //     window.draw(rect);
+    // }
 }
 
 void BossSandSerpent::drawStatsAtCursor(sf::RenderTarget& window, sf::Vector2f mouseScreenPos)

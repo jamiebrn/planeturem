@@ -60,6 +60,8 @@ public:
 private:
     void updateCollision();
 
+    void setPathfindStepIndex(int index);
+
     void takeDamage(int damage, InventoryData& inventory, sf::Vector2f damagePosition);
     void applyKnockback(Projectile& projectile);
 
@@ -80,5 +82,8 @@ private:
 
     BossSandSerpentState behaviourState;
 
-    std::vector<PathfindGridCoordinate> pathfindResult;
+    std::vector<PathfindGridCoordinate> pathfindStepSequence;
+    sf::Vector2f pathfindLastStepPosition;
+    sf::Vector2f pathfindStepTargetPosition;
+    int pathfindStepIndex;
 };

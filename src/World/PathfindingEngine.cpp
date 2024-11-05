@@ -48,28 +48,19 @@ bool PathfindingEngine::findPath(int startX, int startY, int endX, int endY, std
 
         int xIndex = idx % width;
 
-        // if (xIndex > 0)
-        // {
-
         int nextIdx = idx - 1;
-        if (std::floor(idx / width) > std::floor(nextIdx / width) || nextIdx < 0)
+        if (xIndex - 1 < 0)
         {
             nextIdx += width;
         }
         advancePathNode(nextIdx, idx, previousNode.pathCost, endIdx, 3, previousNode.direction, pathNodes, idxQueue, straightening);
 
-        // }
-        // if (xIndex < width - 1)
-        // {
         nextIdx = idx + 1;
-        if (std::floor(idx / width) < std::floor(nextIdx / width) || nextIdx >= obstacleGrid.size())
+        if (xIndex + 1 > width - 1)
         {
             nextIdx -= width;
         }
         advancePathNode(nextIdx, idx, previousNode.pathCost, endIdx, 1, previousNode.direction, pathNodes, idxQueue, straightening);
-        // }
-        // if (idx >= width)
-        // {
 
         nextIdx = idx - width;
         if (nextIdx < 0)
@@ -77,9 +68,6 @@ bool PathfindingEngine::findPath(int startX, int startY, int endX, int endY, std
             nextIdx += obstacleGrid.size();
         }
         advancePathNode(nextIdx, idx, previousNode.pathCost, endIdx, 0, previousNode.direction, pathNodes, idxQueue, straightening);
-        // }
-        // if (idx < obstacleGrid.size() - width)
-        // {
 
         nextIdx = idx + width;
         if (nextIdx >= obstacleGrid.size())
@@ -87,7 +75,6 @@ bool PathfindingEngine::findPath(int startX, int startY, int endX, int endY, std
             nextIdx -= obstacleGrid.size();
         }
         advancePathNode(nextIdx, idx, previousNode.pathCost, endIdx, 2, previousNode.direction, pathNodes, idxQueue, straightening);    
-        // }
     }
 
     // No path found
@@ -101,18 +88,22 @@ int PathfindingEngine::getGridIndex(int x, int y) const
 
 int PathfindingEngine::calculateHeuristic(int x, int y, int destX, int destY) const
 {
-    return std::abs(destX - x) + std::abs(destY - y);
+    int dx = std::abs(destX - x);
+    int dy = std::abs(destY - y);
+
+    int wrappedDx = std::min(dx, width - dx);
+    int wrappedDy = std::min(dy, height - dy);
+
+    return wrappedDx + wrappedDy;
 }
 
 int PathfindingEngine::calculateHeuristic(int idx, int destIdx) const
 {
-    // int diff = std::abs(destIdx - idx);
-    // return diff % width + std::floor(diff / width);
     int x = idx % width;
     int y = idx / width;
     int destX = destIdx % width;
     int destY = destIdx / width;
-    return std::abs(destX - x) + std::abs(destY - y);
+    return calculateHeuristic(x, y, destX, destY);
 }
 
 void PathfindingEngine::advancePathNode(int idx, int previousIdx, int previousPathCost, int destIdx, int direction, int previousDirection,
@@ -166,4 +157,42 @@ std::vector<PathfindGridCoordinate> PathfindingEngine::retracePath(int endIdx, c
     }
 
     return path;
+}
+
+std::vector<PathfindGridCoordinate> PathfindingEngine::createStepSequenceFromPath(const std::vector<PathfindGridCoordinate>& path) const
+{
+    std::vector<PathfindGridCoordinate> steps;
+    for (int i = path.size() - 1; i >= 1; i--)
+    {
+        PathfindGridCoordinate current = path[i];
+        PathfindGridCoordinate next = path[i - 1];
+
+        int dx = next.x - current.x;
+        int dy = next.y - current.y;
+
+        if (dx >= width - 1)
+        {
+            dx = -1;
+        }
+        else if (dx <= -width + 1)
+        {
+            dx = 1;
+        }
+        if (dy >= height - 1)
+        {
+            dy = -1;
+        }
+        else if (dy <= -width + 1)
+        {
+            dy = 1;
+        }
+
+        PathfindGridCoordinate step;
+        step.x = dx;
+        step.y = dy;
+
+        steps.push_back(step);
+    }
+
+    return steps;
 }
