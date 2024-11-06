@@ -36,6 +36,19 @@ inline std::string floatToString(float value, int decimalPlaces) {
     return std::format("{:.{}f}", value, decimalPlaces);
 }
 
+inline int sign(int value)
+{
+    if (value > 0)
+    {
+        return 1;
+    }
+    else if (value < 0)
+    {
+        return -1;
+    }
+    return 0;
+}
+
 // Angle in radians
 inline sf::Vector2f rotateVector(sf::Vector2f vector, float angle)
 {

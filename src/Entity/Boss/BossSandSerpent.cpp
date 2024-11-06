@@ -11,15 +11,29 @@
 // const sf::IntRect BossSandSerpent::deadTextureRect = sf::IntRect(448, 160, 48, 64);
 // const sf::IntRect BossSandSerpent::shadowTextureRect = sf::IntRect(64, 208, 48, 16);
 
-BossSandSerpent::BossSandSerpent(sf::Vector2f playerPosition)
+const std::array<sf::IntRect, 4> BossSandSerpent::HEAD_FRAMES = {
+    sf::IntRect(0, 384, 48, 32),
+    sf::IntRect(48, 384, 48, 32),
+    sf::IntRect(96, 384, 48, 32),
+    sf::IntRect(144, 384, 48, 32),
+};
+
+BossSandSerpent::BossSandSerpent(sf::Vector2f playerPosition, Game& game)
 {
     // Sounds::playSound(SoundType::Crow);
     Sounds::playMusic(MusicType::BossTheme1);
 
-    position = playerPosition;
+    sf::Vector2i playerTile = getWorldTileInside(playerPosition, game.getChunkManager().getWorldSize());
+
+    PathfindGridCoordinate spawnTileRelative = game.getChunkManager().getPathfindingEngine().findFurthestOpenTile(playerTile.x, playerTile.y, 40, true);
+
+    position = sf::Vector2f(playerTile.x + spawnTileRelative.x + 0.5f, playerTile.y + spawnTileRelative.y + 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
 
     pathfindLastStepPosition = position;
     pathfindStepIndex = 0;
+
+    animations[BossSandSerpentState::IdleStage1] = AnimatedTexture(4, 80, 51, 0, 301, 0.1);
+    animations[BossSandSerpentState::MovingToPlayer] = AnimatedTexture(4, 16, 32, 192, 384, 0.1);
 
     health = MAX_HEALTH;
     dead = false;
@@ -31,34 +45,99 @@ BossSandSerpent::BossSandSerpent(sf::Vector2f playerPosition)
 
 void BossSandSerpent::update(Game& game, ProjectileManager& projectileManager, InventoryData& inventory, Player& player, float dt)
 {
-    const PathfindingEngine& pathfindingEngine = game.getChunkManager().getPathfindingEngine();
-
-    int worldSize = game.getChunkManager().getWorldSize();
-
-    sf::Vector2i tile = getWorldTileInside(worldSize);
-    sf::Vector2i playerTile = player.getWorldTileInside(worldSize);
-
-    if (pathfindStepIndex >= pathfindStepSequence.size())
+    switch (behaviourState)
     {
-        std::vector<PathfindGridCoordinate> pathfindResult;
-        pathfindingEngine.findPath(tile.x, tile.y, playerTile.x, playerTile.y, pathfindResult);
-        pathfindStepSequence = pathfindingEngine.createStepSequenceFromPath(pathfindResult);
-
-        pathfindLastStepPosition = position;
-        setPathfindStepIndex(0);   
-    }
-    else
-    {
-        if (Helper::getVectorLength(pathfindStepTargetPosition - position) <= 0.5f)
+        case BossSandSerpentState::IdleStage1:
         {
-            // Move to next pathfinding step
-            pathfindLastStepPosition = pathfindStepTargetPosition;
-            setPathfindStepIndex(pathfindStepIndex + 1);
+            float playerDistance = Helper::getVectorLength(player.getPosition() - position);
+            if (playerDistance >= START_MOVE_PLAYER_DISTANCE)
+            {
+                // Find path to player and change behaviour state to move towards
+                const PathfindingEngine& pathfindingEngine = game.getChunkManager().getPathfindingEngine();
+
+                int worldSize = game.getChunkManager().getWorldSize();
+
+                sf::Vector2i tile = getWorldTileInside(worldSize);
+                sf::Vector2i playerTile = player.getWorldTileInside(worldSize);
+
+                std::vector<PathfindGridCoordinate> pathfindResult;
+                if (pathfindingEngine.findPath(tile.x, tile.y, playerTile.x, playerTile.y, pathfindResult))
+                {
+                    pathfindStepSequence = pathfindingEngine.createStepSequenceFromPath(pathfindResult);
+
+                    pathfindLastStepPosition = position;
+                    setPathfindStepIndex(0);  
+
+                    behaviourState = BossSandSerpentState::MovingToPlayer;
+                }
+                else
+                {
+                    behaviourState = BossSandSerpentState::Leaving;
+                }
+            }
+            break;
+        }
+        case BossSandSerpentState::MovingToPlayer:
+        {
+            if (pathfindStepIndex < pathfindStepSequence.size())
+            {
+                if (Helper::getVectorLength(pathfindStepTargetPosition - position) <= 2.0f)
+                {
+                    // Move to next pathfinding step
+                    pathfindLastStepPosition = pathfindStepTargetPosition;
+                    setPathfindStepIndex(pathfindStepIndex + 1);
+                }
+            }
+            else
+            {
+                behaviourState = BossSandSerpentState::IdleStage1;
+            }
+
+            // Move towards
+            position += Helper::normaliseVector(pathfindStepTargetPosition - position) * 250.0f * dt;
+
+            break;
+        }
+        case BossSandSerpentState::Leaving:
+        {
+            float playerDistance = Helper::getVectorLength(player.getPosition() - position);
+            if (playerDistance < START_MOVE_PLAYER_DISTANCE)
+            {
+                behaviourState = BossSandSerpentState::IdleStage1;
+            }
+
+            position += Helper::normaliseVector(position - player.getPosition()) * 100.0f * dt;
+
+            break;
         }
     }
 
-    // Move towards
-    position += Helper::normaliseVector(pathfindStepTargetPosition - position) * 70.0f * dt;
+    // Update animations
+    animations[behaviourState].update(dt);
+    headAnimation.update(dt, 1, HEAD_FRAMES.size(), 0.1);
+
+    int worldPixelSize = game.getChunkManager().getWorldSize() * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
+
+    // Update head direction
+    sf::Vector2f playerPosDiff = player.getPosition() - position;
+    // int xWidth = animations[behaviourState].getTextureRect().width;
+    
+    if (std::abs(playerPosDiff.x) > std::abs(playerPosDiff.y))
+    {
+        if (playerPosDiff.x > 0) headDirection = 1;
+        else headDirection = -1;
+
+        if (std::abs(playerPosDiff.x) >= worldPixelSize / 2)
+        {
+            // Handle world repeating case
+            headDirection *= -1;
+        }
+    }
+    else
+    {
+        headDirection = 0;
+    }
+
 }
 
 void BossSandSerpent::updateCollision()
@@ -158,20 +237,58 @@ void BossSandSerpent::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, G
 {
     float scale = ResolutionHandler::getScale();
 
-    TextureDrawData drawData;
-    drawData.type = TextureType::Entities;
-    drawData.position = Camera::worldToScreenTransform(position);
-    drawData.centerRatio = sf::Vector2f(0.5f, 1.0f);
-    drawData.scale = sf::Vector2f(scale, scale);
+    switch (behaviourState)
+    {
+        case BossSandSerpentState::IdleStage1:
+        {
+            TextureDrawData drawData;
+            drawData.type = TextureType::Entities;
+            drawData.position = Camera::worldToScreenTransform(position);
+            drawData.centerRatio = sf::Vector2f(0.5f, 1.0f);
+            drawData.scale = sf::Vector2f(scale, scale);
 
-    spriteBatch.draw(window, drawData, sf::IntRect(0, 304, 80, 48));
+            // Draw body
+            spriteBatch.draw(window, drawData, animations.at(behaviourState).getTextureRect());
 
-    spriteBatch.endDrawing(window);
+            // Draw head
+            static const int HEAD_Y_OFFSET = -52;
+            static const int HEAD_TEXTURE_Y_OFFSET = 32;
 
-    sf::VertexArray line(sf::Lines);
-    line.append(sf::Vertex(Camera::worldToScreenTransform(pathfindLastStepPosition)));
-    line.append(sf::Vertex(Camera::worldToScreenTransform(pathfindStepTargetPosition)));
-    window.draw(line);
+            drawData.position = Camera::worldToScreenTransform(position + sf::Vector2f(0, HEAD_Y_OFFSET));
+            drawData.centerRatio = sf::Vector2f(0.5f, 0.5f); 
+
+            sf::IntRect headTextureRect = HEAD_FRAMES[headAnimation.getFrame()];
+
+            if (headDirection != 0)
+            {
+                drawData.scale.x *= headDirection;
+                headTextureRect.top += HEAD_TEXTURE_Y_OFFSET;
+            }
+
+            spriteBatch.draw(window, drawData, headTextureRect);
+            break;
+        }
+        case BossSandSerpentState::MovingToPlayer: // fallthrough
+        case BossSandSerpentState::Leaving:
+        {
+            TextureDrawData drawData;
+            drawData.type = TextureType::Entities;
+            drawData.position = Camera::worldToScreenTransform(position);
+            drawData.centerRatio = sf::Vector2f(0.5f, 1.0f);
+            drawData.scale = sf::Vector2f(scale, scale);
+
+            // Draw tail
+            spriteBatch.draw(window, drawData, animations.at(behaviourState).getTextureRect());
+            break;
+        }
+    }
+
+    // spriteBatch.endDrawing(window);
+
+    // sf::VertexArray line(sf::Lines);
+    // line.append(sf::Vertex(Camera::worldToScreenTransform(pathfindLastStepPosition)));
+    // line.append(sf::Vertex(Camera::worldToScreenTransform(pathfindStepTargetPosition)));
+    // window.draw(line);
 
     // Draw pathfinding
     // for (auto coord : pathfindResult)

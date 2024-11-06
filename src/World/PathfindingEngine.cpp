@@ -19,7 +19,8 @@ void PathfindingEngine::setObstacle(int x, int y, bool solid)
     obstacleGrid[gridIndex] = solid;
 }
 
-bool PathfindingEngine::findPath(int startX, int startY, int endX, int endY, std::vector<PathfindGridCoordinate>& result, bool straightening) const
+bool PathfindingEngine::findPath(int startX, int startY, int endX, int endY, std::vector<PathfindGridCoordinate>& result, bool straightening,
+    std::optional<int> maxDistance) const
 {
     std::unordered_map<int, PathNode> pathNodes;
 
@@ -53,28 +54,28 @@ bool PathfindingEngine::findPath(int startX, int startY, int endX, int endY, std
         {
             nextIdx += width;
         }
-        advancePathNode(nextIdx, idx, previousNode.pathCost, endIdx, 3, previousNode.direction, pathNodes, idxQueue, straightening);
+        advancePathNode(nextIdx, idx, previousNode.pathCost, endIdx, 3, previousNode.direction, pathNodes, idxQueue, straightening, maxDistance);
 
         nextIdx = idx + 1;
         if (xIndex + 1 > width - 1)
         {
             nextIdx -= width;
         }
-        advancePathNode(nextIdx, idx, previousNode.pathCost, endIdx, 1, previousNode.direction, pathNodes, idxQueue, straightening);
+        advancePathNode(nextIdx, idx, previousNode.pathCost, endIdx, 1, previousNode.direction, pathNodes, idxQueue, straightening, maxDistance);
 
         nextIdx = idx - width;
         if (nextIdx < 0)
         {
             nextIdx += obstacleGrid.size();
         }
-        advancePathNode(nextIdx, idx, previousNode.pathCost, endIdx, 0, previousNode.direction, pathNodes, idxQueue, straightening);
+        advancePathNode(nextIdx, idx, previousNode.pathCost, endIdx, 0, previousNode.direction, pathNodes, idxQueue, straightening, maxDistance);
 
         nextIdx = idx + width;
         if (nextIdx >= obstacleGrid.size())
         {
             nextIdx -= obstacleGrid.size();
         }
-        advancePathNode(nextIdx, idx, previousNode.pathCost, endIdx, 2, previousNode.direction, pathNodes, idxQueue, straightening);    
+        advancePathNode(nextIdx, idx, previousNode.pathCost, endIdx, 2, previousNode.direction, pathNodes, idxQueue, straightening, maxDistance);
     }
 
     // No path found
@@ -84,6 +85,14 @@ bool PathfindingEngine::findPath(int startX, int startY, int endX, int endY, std
 int PathfindingEngine::getGridIndex(int x, int y) const
 {
     return y * width + x;
+}
+
+PathfindGridCoordinate PathfindingEngine::getGridCoordinate(int gridIndex) const
+{
+    PathfindGridCoordinate coordinate;
+    coordinate.x = gridIndex % width;
+    coordinate.y = std::floor(gridIndex / width);
+    return coordinate;
 }
 
 int PathfindingEngine::calculateHeuristic(int x, int y, int destX, int destY) const
@@ -107,7 +116,8 @@ int PathfindingEngine::calculateHeuristic(int idx, int destIdx) const
 }
 
 void PathfindingEngine::advancePathNode(int idx, int previousIdx, int previousPathCost, int destIdx, int direction, int previousDirection,
-    std::unordered_map<int, PathNode>& pathNodes, std::priority_queue<int, std::vector<int>, PathNodeComparator>& idxQueue, bool straightening) const
+    std::unordered_map<int, PathNode>& pathNodes, std::priority_queue<int, std::vector<int>, PathNodeComparator>& idxQueue, bool straightening,
+    std::optional<int> maxDistance) const
 {
     if (obstacleGrid[idx])
     {
@@ -120,6 +130,14 @@ void PathfindingEngine::advancePathNode(int idx, int previousIdx, int previousPa
         if (direction != previousDirection)
         {
             newCost++;
+        }
+    }
+
+    if (maxDistance.has_value())
+    {
+        if (newCost >= maxDistance.value())
+        {
+            return;
         }
     }
 
@@ -195,4 +213,93 @@ std::vector<PathfindGridCoordinate> PathfindingEngine::createStepSequenceFromPat
     }
 
     return steps;
+}
+
+PathfindGridCoordinate PathfindingEngine::findFurthestOpenTile(int x, int y, int maxSearchRange, bool coordinateRelativeToStart) const
+{
+    struct TileSearchNode
+    {
+        int index;
+        int distanceTravelled;
+    };
+
+    int startIdx = getGridIndex(x, y);
+
+    std::queue<TileSearchNode> indexQueue;
+    std::unordered_map<int, bool> visitedIndexes;
+    indexQueue.push(TileSearchNode{startIdx, 0});
+
+    int furthestPointIndex = startIdx;
+    int furthestPointDistance = -1;
+
+    while (!indexQueue.empty())
+    {
+        TileSearchNode node = indexQueue.front();
+        indexQueue.pop();
+
+        if (obstacleGrid[node.index] || maxSearchRange < node.distanceTravelled || visitedIndexes[node.index])
+        {
+            continue;
+        }
+
+        visitedIndexes[node.index] = true;
+
+        if (furthestPointDistance < node.distanceTravelled)
+        {
+            furthestPointIndex = node.index;
+            furthestPointDistance = node.distanceTravelled;
+        }
+
+        int xIndex = node.index % width;
+
+        int nextIdx = node.index - 1;
+        if (xIndex - 1 < 0)
+        {
+            nextIdx += width;
+        }
+        indexQueue.push(TileSearchNode{nextIdx, node.distanceTravelled + 1});
+
+        nextIdx = node.index + 1;
+        if (xIndex + 1 > width - 1)
+        {
+            nextIdx -= width;
+        }
+        indexQueue.push(TileSearchNode{nextIdx, node.distanceTravelled + 1});
+
+        nextIdx = node.index - width;
+        if (nextIdx < 0)
+        {
+            nextIdx += obstacleGrid.size();
+        }
+        indexQueue.push(TileSearchNode{nextIdx, node.distanceTravelled + 1});
+
+        nextIdx = node.index + width;
+        if (nextIdx >= obstacleGrid.size())
+        {
+            nextIdx -= obstacleGrid.size();
+        }
+        indexQueue.push(TileSearchNode{nextIdx, node.distanceTravelled + 1});   
+    }
+
+    PathfindGridCoordinate gridCoord = getGridCoordinate(furthestPointIndex);
+
+    if (coordinateRelativeToStart)
+    {
+        int dx = gridCoord.x - x;
+        int dy = gridCoord.y - y;
+
+        if (std::abs(dx) > width / 2)
+        {
+            dx = width - dx * Helper::sign(dx);
+        }
+        if (std::abs(dy) > height / 2)
+        {
+            dy = height - dy * Helper::sign(dy);
+        }
+
+        gridCoord.x = dx;
+        gridCoord.y = dy;
+    }
+
+    return gridCoord;
 }

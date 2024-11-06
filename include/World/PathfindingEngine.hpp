@@ -5,13 +5,16 @@
 #include <functional>
 #include <cmath>
 #include <unordered_map>
+#include <optional>
+
+#include "Core/Helper.hpp"
 
 #include <SFML/Graphics.hpp>
 
 struct PathfindGridCoordinate
 {
-    int x;
-    int y;
+    int x = 0;
+    int y = 0;
 };
 
 class PathfindingEngine
@@ -23,9 +26,12 @@ public:
 
     void setObstacle(int x, int y, bool solid);
 
-    bool findPath(int startX, int startY, int endX, int endY, std::vector<PathfindGridCoordinate>& result, bool straightening = false) const;
+    bool findPath(int startX, int startY, int endX, int endY, std::vector<PathfindGridCoordinate>& result, bool straightening = false,
+        std::optional<int> maxDistance = std::nullopt) const;
 
     std::vector<PathfindGridCoordinate> createStepSequenceFromPath(const std::vector<PathfindGridCoordinate>& path) const;
+
+    PathfindGridCoordinate findFurthestOpenTile(int x, int y, int maxSearchRange, bool coordinateRelativeToStart = false) const;
 
     inline const std::vector<char>& getObstacles() const {return obstacleGrid;}
     inline int getWidth() const {return width;}
@@ -33,6 +39,7 @@ public:
 
 private:
     int getGridIndex(int x, int y) const;
+    PathfindGridCoordinate getGridCoordinate(int gridIndex) const;
 
     int calculateHeuristic(int x, int y, int destX, int destY) const;
     int calculateHeuristic(int idx, int destIdx) const;
@@ -69,7 +76,8 @@ private:
     };
 
     void advancePathNode(int idx, int previousIdx, int previousPathCost, int direction, int previousDirection, int destIdx,
-        std::unordered_map<int, PathNode>& pathNodes, std::priority_queue<int, std::vector<int>, PathNodeComparator>& idxQueue, bool straightening) const;
+        std::unordered_map<int, PathNode>& pathNodes, std::priority_queue<int, std::vector<int>, PathNodeComparator>& idxQueue, bool straightening,
+        std::optional<int> maxDistance) const;
 
     std::vector<PathfindGridCoordinate> retracePath(int endIdx, const std::unordered_map<int, PathNode>& pathNodes) const;
 

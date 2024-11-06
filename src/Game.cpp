@@ -688,6 +688,8 @@ void Game::runOnPlanet(float dt)
                         destinationPlanet = selectedDestination;
                         worldMenuState = WorldMenuState::FlyingRocket;
                         rocketObject->triggerBehaviour(*this, ObjectBehaviourTrigger::RocketFlyUp);
+                        // Fade out music
+                        Sounds::stopMusic(0.5f);
                     }
                 }
             }
@@ -1407,7 +1409,7 @@ void Game::attemptUseBossSpawn()
     InventoryGUI::subtractHeldItem(inventory);
 
     // Summon boss
-    bossManager.createBoss(itemData.bossSummonData->bossName, player.getPosition());
+    bossManager.createBoss(itemData.bossSummonData->bossName, player.getPosition(), *this);
 }
 
 void Game::drawGhostPlaceObjectAtCursor(ObjectType object)
@@ -1744,6 +1746,8 @@ void Game::startNewGame()
     dayCycleManager.setCurrentTime(dayCycleManager.getDayLength() * 0.5f);
     dayCycleManager.setCurrentDay(1);
 
+    bossManager.clearBosses();
+
     Camera::instantUpdate(player.getPosition());
 
     chunkManager.updateChunks(*this);
@@ -1810,6 +1814,8 @@ bool Game::loadGame(const std::string& saveName)
     chestDataPool = planetGameSave.chestDataPool;
     structureRoomPool = planetGameSave.structureRoomPool;
 
+    bossManager.clearBosses();
+
     Camera::instantUpdate(player.getPosition());
 
     chunkManager.updateChunks(*this);
@@ -1818,6 +1824,9 @@ bool Game::loadGame(const std::string& saveName)
     // Load successful, set save name as current save and start state transition
     currentSaveName = saveName;
     startChangeStateTransition(GameState::OnPlanet);
+
+    // Fade out previous music
+    Sounds::stopMusic(0.3f);
 
     return true;
 }

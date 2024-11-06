@@ -38,7 +38,7 @@
 class BossSandSerpent : public BossEntity
 {
 public:
-    BossSandSerpent(sf::Vector2f playerPosition);
+    BossSandSerpent(sf::Vector2f playerPosition, Game& game);
 
     void update(Game& game, ProjectileManager& projectileManager, InventoryData& inventory, Player& player, float dt) override;
 
@@ -72,7 +72,9 @@ private:
 private:
     enum class BossSandSerpentState
     {
-        IdleStage1
+        IdleStage1,
+        MovingToPlayer,
+        Leaving
     };
 
 private:
@@ -82,8 +84,16 @@ private:
 
     BossSandSerpentState behaviourState;
 
+    static constexpr int START_MOVE_PLAYER_DISTANCE = 300;
     std::vector<PathfindGridCoordinate> pathfindStepSequence;
     sf::Vector2f pathfindLastStepPosition;
     sf::Vector2f pathfindStepTargetPosition;
     int pathfindStepIndex;
+
+    std::unordered_map<BossSandSerpentState, AnimatedTexture> animations;
+
+    static const std::array<sf::IntRect, 4> HEAD_FRAMES;
+    AnimatedTextureMinimal headAnimation;
+    // forward = 0, left = -1, right = 1
+    int headDirection;
 };
