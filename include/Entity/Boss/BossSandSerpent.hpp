@@ -51,7 +51,7 @@ public:
 
     inline void createLightSource(LightingEngine& lightingEngine, sf::Vector2f topLeftChunkPos) const override {}
 
-    void drawStatsAtCursor(sf::RenderTarget& window, sf::Vector2f mouseScreenPos) override;
+    void getHoverStats(sf::Vector2f mouseScreenPos, std::vector<std::string>& hoverStats) override;
 
     void testCollisionWithPlayer(Player& player) override;
 
@@ -62,12 +62,11 @@ private:
 
     void setPathfindStepIndex(int index);
 
-    void takeDamage(int damage, InventoryData& inventory, sf::Vector2f damagePosition);
+    bool takeHeadDamage(int damage, InventoryData& inventory, sf::Vector2f damagePosition);
+    void takeBodyDamage(int damage, InventoryData& inventory, sf::Vector2f damagePosition);
     void applyKnockback(Projectile& projectile);
 
     void giveItemDrops(InventoryData& inventory);
-
-    bool isProjectileColliding(Projectile& projectile);
 
 private:
     enum class BossSandSerpentState
@@ -78,11 +77,23 @@ private:
     };
 
 private:
-    static constexpr int MAX_HEALTH = 1500;
-    int health;
+    static constexpr int MAX_HEAD_HEALTH = 1500;
+    static constexpr int MAX_BODY_HEALTH = 3500;
+    int headHealth;
+    int bodyHealth;
     bool dead;
 
     BossSandSerpentState behaviourState;
+
+    static constexpr int HEAD_HITBOX_RADIUS = 17;
+    static constexpr int BODY_HITBOX_WIDTH = 56;
+    static constexpr int BODY_HITBOX_HEIGHT = 32;
+    CollisionCircle headCollision;
+    CollisionRect bodyCollision;
+
+    static constexpr float MAX_FLASH_TIME = 0.3f;
+    float headFlashTime;
+    float bodyFlashTime;
 
     static constexpr int START_MOVE_PLAYER_DISTANCE = 300;
     std::vector<PathfindGridCoordinate> pathfindStepSequence;

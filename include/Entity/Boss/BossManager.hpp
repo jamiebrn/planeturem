@@ -43,4 +43,9 @@ public:
 private:
     std::vector<std::unique_ptr<BossEntity>> bosses;
 
+    static constexpr float STATS_DRAW_OFFSET_X = 24;
+    static constexpr float STATS_DRAW_OFFSET_Y = 24;
+    static constexpr int STATS_DRAW_SIZE = 24;
+    static constexpr int STATS_DRAW_PADDING = 3;
+
 };

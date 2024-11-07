@@ -33,7 +33,7 @@ public:
 
     virtual void createLightSource(LightingEngine& lightingEngine, sf::Vector2f topLeftChunkPos) const = 0;
 
-    virtual void drawStatsAtCursor(sf::RenderTarget& window, sf::Vector2f mouseScreenPos) = 0;
+    virtual void getHoverStats(sf::Vector2f mouseScreenPos, std::vector<std::string>& hoverStats) = 0;
 
     virtual void testCollisionWithPlayer(Player& player) = 0;
 
@@ -43,9 +43,6 @@ public:
     bool inPlayerRange(Player& player);
 
 protected:
-    static constexpr float STATS_DRAW_OFFSET_X = 24;
-    static constexpr float STATS_DRAW_OFFSET_Y = 24;
-    static constexpr int STATS_DRAW_SIZE = 24;
-
     float playerMaxRange = 1000.0f;
+    
 };

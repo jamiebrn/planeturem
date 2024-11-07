@@ -93,9 +93,30 @@ void BossManager::clearBosses()
 
 void BossManager::drawStatsAtCursor(sf::RenderTarget& window, sf::Vector2f mouseScreenPos)
 {
+    std::vector<std::string> hoverStats;
+
     for (auto& boss : bosses)
     {
-        boss->drawStatsAtCursor(window, mouseScreenPos);
+        boss->getHoverStats(mouseScreenPos, hoverStats);
+    }
+
+    float intScale = ResolutionHandler::getResolutionIntegerScale();
+
+    sf::Vector2f statPos = mouseScreenPos + sf::Vector2f(STATS_DRAW_OFFSET_X * intScale, STATS_DRAW_OFFSET_Y * intScale);
+
+    for (const std::string& bossStat : hoverStats)
+    {
+        TextDrawData textDrawData;
+        textDrawData.text = bossStat;
+        textDrawData.position = statPos;
+        textDrawData.colour = sf::Color(255, 255, 255, 255);
+        textDrawData.size = STATS_DRAW_SIZE;
+        textDrawData.containOnScreenX = true;
+        textDrawData.containOnScreenY = true;
+
+        TextDraw::drawText(window, textDrawData);
+
+        statPos.y += (STATS_DRAW_SIZE + STATS_DRAW_PADDING) * intScale;
     }
 }
 

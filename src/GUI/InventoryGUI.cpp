@@ -910,6 +910,14 @@ void InventoryGUI::drawHoveredItemInfoBox(sf::RenderTarget& window, float gameTi
         return;
     }
 
+    // Create texture to draw info box on
+    // Allows info box to be kept on screen
+    sf::RenderTexture infoBoxTexture;
+    infoBoxTexture.create(window.getSize().x, window.getSize().y);
+    infoBoxTexture.clear(sf::Color(0, 0, 0, 0));
+
+    sf::Vector2f infoBoxSize;
+
     // Get currently hovered over item
     int hoveredItemIndex = getHoveredItemSlotIndex(inventoryItemSlots, mouseScreenPos);
 
@@ -922,15 +930,15 @@ void InventoryGUI::drawHoveredItemInfoBox(sf::RenderTarget& window, float gameTi
     // If an item is hovered over, draw item info box
     if (hoveredItemIndex >= 0)
     {
-        drawItemInfoBox(window, gameTime, hoveredItemIndex, inventory, mouseScreenPos);
+        infoBoxSize = drawItemInfoBox(infoBoxTexture, gameTime, hoveredItemIndex, inventory, sf::Vector2f(0, 0));
     }
     else if (hoveredArmourIndex >= 0)
     {
-        drawItemInfoBox(window, gameTime, hoveredArmourIndex, armourInventory, mouseScreenPos);
+        infoBoxSize = drawItemInfoBox(infoBoxTexture, gameTime, hoveredArmourIndex, armourInventory, sf::Vector2f(0, 0));
     }
     else if (hoveredRecipeIndex >= 0)
     {
-        drawItemInfoBoxRecipe(window, gameTime, availableRecipes[hoveredRecipeIndex], mouseScreenPos);
+        infoBoxSize = drawItemInfoBoxRecipe(infoBoxTexture, gameTime, availableRecipes[hoveredRecipeIndex], sf::Vector2f(0, 0));
     }
     else if (chestData != nullptr)
     {
@@ -938,8 +946,23 @@ void InventoryGUI::drawHoveredItemInfoBox(sf::RenderTarget& window, float gameTi
         int chestHoveredItemIndex = getHoveredItemSlotIndex(chestItemSlots, mouseScreenPos);
         if (chestHoveredItemIndex >= 0)
         {
-            drawItemInfoBox(window, gameTime, chestHoveredItemIndex, *chestData, mouseScreenPos);
+            infoBoxSize = drawItemInfoBox(infoBoxTexture, gameTime, chestHoveredItemIndex, *chestData, sf::Vector2f(0, 0));
         }
+    }
+
+    if (infoBoxSize.x > 0 && infoBoxSize.y > 0)
+    {
+        infoBoxTexture.display();
+
+        // Keep on screen
+        sf::Vector2f drawPos = mouseScreenPos;
+        drawPos.x = std::min(window.getSize().x - infoBoxSize.x, drawPos.x);
+        drawPos.y = std::min(window.getSize().y - infoBoxSize.y, drawPos.y);
+
+        sf::Sprite infoBoxSprite(infoBoxTexture.getTexture());
+        infoBoxSprite.setPosition(drawPos);
+
+        window.draw(infoBoxSprite);
     }
 }
 
@@ -1040,7 +1063,7 @@ sf::Vector2f InventoryGUI::drawItemInfoBox(sf::RenderTarget& window, float gameT
     return drawInfoBox(window, mouseScreenPos + sf::Vector2f(8, 8) * 3.0f * intScale, infoStrings);
 }
 
-void InventoryGUI::drawItemInfoBoxRecipe(sf::RenderTarget& window, float gameTime, int recipeIdx, sf::Vector2f mouseScreenPos)
+sf::Vector2f InventoryGUI::drawItemInfoBoxRecipe(sf::RenderTarget& window, float gameTime, int recipeIdx, sf::Vector2f mouseScreenPos)
 {
     float intScale = ResolutionHandler::getResolutionIntegerScale();
 
@@ -1073,7 +1096,9 @@ void InventoryGUI::drawItemInfoBoxRecipe(sf::RenderTarget& window, float gameTim
         infoStrings.push_back(itemRequirement);
     }
 
-    drawInfoBox(window, mouseScreenPos + sf::Vector2f(8, 8 + 6) * 3.0f * intScale + sf::Vector2f(0, itemInfoBoxSize.y), infoStrings);
+    sf::Vector2f recipeInfoBoxSize = drawInfoBox(window, mouseScreenPos + sf::Vector2f(8, 8 + 6) * 3.0f * intScale + sf::Vector2f(0, itemInfoBoxSize.y), infoStrings);
+
+    return (itemInfoBoxSize + recipeInfoBoxSize + sf::Vector2f(0, 8 + 6 + 5) * 3.0f * intScale);
 }
 
 sf::Vector2f InventoryGUI::drawInfoBox(sf::RenderTarget& window, sf::Vector2f position, const std::vector<ItemInfoString>& infoStrings, int alpha)

@@ -48,7 +48,7 @@ public:
 
     inline void createLightSource(LightingEngine& lightingEngine, sf::Vector2f topLeftChunkPos) const override {}
 
-    void drawStatsAtCursor(sf::RenderTarget& window, sf::Vector2f mouseScreenPos) override;
+    void getHoverStats(sf::Vector2f mouseScreenPos, std::vector<std::string>& hoverStats) override;
 
     void testCollisionWithPlayer(Player& player) override;
 

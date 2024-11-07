@@ -375,7 +375,7 @@ void BossBenjaminCrow::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, 
     }
 }
 
-void BossBenjaminCrow::drawStatsAtCursor(sf::RenderTarget& window, sf::Vector2f mouseScreenPos)
+void BossBenjaminCrow::getHoverStats(sf::Vector2f mouseScreenPos, std::vector<std::string>& hoverStats)
 {
     sf::Vector2f mouseWorldPos = Camera::screenToWorldTransform(mouseScreenPos);
 
@@ -384,17 +384,7 @@ void BossBenjaminCrow::drawStatsAtCursor(sf::RenderTarget& window, sf::Vector2f 
         return;
     }
 
-    float intScale = ResolutionHandler::getResolutionIntegerScale();
-
-    TextDrawData textDrawData;
-    textDrawData.text = "Benjamin (" + std::to_string(health) + " / " + std::to_string(MAX_HEALTH) + ")";
-    textDrawData.position = mouseScreenPos + sf::Vector2f(STATS_DRAW_OFFSET_X * intScale, STATS_DRAW_OFFSET_Y * intScale);
-    textDrawData.colour = sf::Color(255, 255, 255, 255);
-    textDrawData.size = STATS_DRAW_SIZE;
-    textDrawData.containOnScreenX = true;
-    textDrawData.containOnScreenY = true;
-
-    TextDraw::drawText(window, textDrawData);
+    hoverStats.push_back("Benjamin (" + std::to_string(health) + " / " + std::to_string(MAX_HEALTH) + ")");
 }
 
 void BossBenjaminCrow::testCollisionWithPlayer(Player& player)
