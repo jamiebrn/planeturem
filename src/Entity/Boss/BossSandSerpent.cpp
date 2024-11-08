@@ -271,7 +271,8 @@ void BossSandSerpent::handleWorldWrap(sf::Vector2f positionDelta)
     pathfindStepTargetPosition += positionDelta;
 }
 
-void BossSandSerpent::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, float dt, float gameTime, int worldSize, const sf::Color& color) const
+void BossSandSerpent::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
+    const sf::Color& color) const
 {
     float scale = ResolutionHandler::getScale();
 
@@ -281,7 +282,7 @@ void BossSandSerpent::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, G
         {
             TextureDrawData drawData;
             drawData.type = TextureType::Entities;
-            drawData.position = Camera::worldToScreenTransform(position);
+            drawData.position = camera.worldToScreenTransform(position);
             drawData.centerRatio = sf::Vector2f(0.5f, 1.0f);
             drawData.scale = sf::Vector2f(scale, scale);
 
@@ -299,7 +300,7 @@ void BossSandSerpent::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, G
             static const int HEAD_Y_OFFSET = -51;
             static const int HEAD_TEXTURE_Y_OFFSET = 32;
 
-            drawData.position = Camera::worldToScreenTransform(position + sf::Vector2f(0, HEAD_Y_OFFSET));
+            drawData.position = camera.worldToScreenTransform(position + sf::Vector2f(0, HEAD_Y_OFFSET));
             drawData.centerRatio = sf::Vector2f(0.5f, 0.5f); 
 
             sf::IntRect headTextureRect = HEAD_FRAMES[headAnimation.getFrame()];
@@ -325,7 +326,7 @@ void BossSandSerpent::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, G
         {
             TextureDrawData drawData;
             drawData.type = TextureType::Entities;
-            drawData.position = Camera::worldToScreenTransform(position);
+            drawData.position = camera.worldToScreenTransform(position);
             drawData.centerRatio = sf::Vector2f(0.5f, 1.0f);
             drawData.scale = sf::Vector2f(scale, scale);
 
@@ -352,14 +353,12 @@ void BossSandSerpent::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, G
     // }
 }
 
-void BossSandSerpent::getHoverStats(sf::Vector2f mouseScreenPos, std::vector<std::string>& hoverStats)
+void BossSandSerpent::getHoverStats(sf::Vector2f mouseWorldPos, std::vector<std::string>& hoverStats)
 {
     if (behaviourState != BossSandSerpentState::IdleStage1)
     {
         return;
     }
-
-    sf::Vector2f mouseWorldPos = Camera::screenToWorldTransform(mouseScreenPos);
 
     if (headCollision.isPointColliding(mouseWorldPos.x, mouseWorldPos.y))
     {

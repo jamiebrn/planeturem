@@ -24,7 +24,7 @@ struct CollisionRect
     bool isColliding(const CollisionRect& otherRect) const;
     bool isPointInRect(float x, float y) const;
 
-    void debugDraw(sf::RenderTarget& window, sf::Color color = {255, 0, 0, 120}) const;
+    void debugDraw(sf::RenderTarget& window, const Camera& camera, sf::Color color = {255, 0, 0, 120}) const;
 
     template <class Archive>
     void serialize(Archive& ar)

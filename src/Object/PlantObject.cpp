@@ -95,7 +95,7 @@ bool PlantObject::damage(int amount, Game& game, InventoryData& inventory, bool 
     return false;
 }
 
-void PlantObject::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, float dt, float gameTime, int worldSize, const sf::Color& color) const
+void PlantObject::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const sf::Color& color) const
 {
     // int currentDay = game.getDayCycleManager().getCurrentDay();
 
@@ -103,7 +103,7 @@ void PlantObject::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game&
 
     const PlantStageObjectData& plantStageData = objectData.plantStageObjectData->at(currentStage);
 
-    BuildableObject::drawObject(window, spriteBatch, gameTime, worldSize, color, plantStageData.textureRects, plantStageData.textureOrigin);
+    BuildableObject::drawObject(window, spriteBatch, camera, gameTime, worldSize, color, plantStageData.textureRects, plantStageData.textureOrigin);
 }
 
 int PlantObject::getPlantStage(int currentDay) const

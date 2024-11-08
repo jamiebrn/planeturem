@@ -14,37 +14,37 @@
 class Camera
 {
 
-// Delete contructor, as is static class
 private:
-    Camera() = delete;
 
 // Public class functions
 public:
+    Camera() = default;
+
     // Update camera based on player position (or any position)
-    static void update(sf::Vector2f playerPosition, sf::Vector2f mouseScreenPos, float deltaTime);
+    void update(sf::Vector2f playerPosition, sf::Vector2f mouseScreenPos, float deltaTime);
 
     // Instantly set position to centre on player
-    static void instantUpdate(sf::Vector2f playerPosition);
+    void instantUpdate(sf::Vector2f playerPosition);
 
     // Get draw offset of camera
-    static sf::Vector2f getDrawOffset();
+    sf::Vector2f getDrawOffset() const;
 
-    static sf::Vector2f getIntegerDrawOffset();
+    sf::Vector2f getIntegerDrawOffset() const;
 
     // Get scaled draw offset (applies zoom etc)
-    static sf::Vector2f worldToScreenTransform(sf::Vector2f worldPos);
+    sf::Vector2f worldToScreenTransform(sf::Vector2f worldPos) const;
 
-    static sf::Vector2f screenToWorldTransform(sf::Vector2f screenPos);
+    sf::Vector2f screenToWorldTransform(sf::Vector2f screenPos) const;
 
-    static void handleScaleChange(float beforeScale, float afterScale, sf::Vector2f playerPosition);
+    void handleScaleChange(float beforeScale, float afterScale, sf::Vector2f playerPosition);
 
-    static void handleWorldWrap(sf::Vector2f positionDelta);
+    void handleWorldWrap(sf::Vector2f positionDelta);
 
     // Set offset of camera
-    static void setOffset(sf::Vector2f newOffset);
+    void setOffset(sf::Vector2f newOffset);
 
     // Returns whether a specific world position with dimensions is in the camera view
-    static bool isInView(sf::Vector2f position, sf::Vector2f size);
+    bool isInView(sf::Vector2f position, sf::Vector2f size) const;
 
 // Private member variables
 private:
@@ -54,6 +54,6 @@ private:
     static constexpr float MOUSE_DELTA_DAMPEN = 15;
 
     // Variable storing offset/position of camera
-    static sf::Vector2f offset;
+    sf::Vector2f offset;
 
 };

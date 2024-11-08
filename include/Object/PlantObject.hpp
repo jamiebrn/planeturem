@@ -5,6 +5,7 @@
 #include <cstdint>
 
 #include "Core/Random.hpp"
+#include "Core/Camera.hpp"
 #include "Object/WorldObject.hpp"
 #include "Object/BuildableObject.hpp"
 #include "Data/ObjectData.hpp"
@@ -25,7 +26,7 @@ public:
 
     bool damage(int amount, Game& game, InventoryData& inventory, bool giveItems = true) override;
 
-    void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, float dt, float gameTime, int worldSize, const sf::Color& color) const override;
+    void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const sf::Color& color) const override;
 
     // Save / load
     BuildableObjectPOD getPOD() const override;

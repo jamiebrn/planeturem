@@ -23,7 +23,7 @@ public:
 
     void update(float dt);
 
-    void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch);
+    void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Camera& camera);
 
     int getDamage();
 

@@ -48,7 +48,8 @@ public:
 
     virtual void update(Game& game, float dt, bool onWater, bool loopAnimation = true);
 
-    virtual void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, float dt, float gameTime, int worldSize, const sf::Color& color) const override;
+    virtual void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
+        const sf::Color& color) const override;
 
     void createLightSource(LightingEngine& lightingEngine, sf::Vector2f topLeftChunkPos) const override;
 
@@ -95,7 +96,7 @@ public:
 protected:
     void giveItemDrops(InventoryData& inventory, const std::vector<ItemDrop>& itemDrops);
 
-    void drawObject(sf::RenderTarget& window, SpriteBatch& spriteBatch, float gameTime, int worldSize, const sf::Color& color,
+    void drawObject(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Camera& camera, float gameTime, int worldSize, const sf::Color& color,
         std::optional<std::vector<sf::IntRect>> textureRectsOverride = std::nullopt, std::optional<sf::Vector2f> textureOriginOverride = std::nullopt) const;
 
 protected:

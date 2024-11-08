@@ -29,11 +29,12 @@ public:
     virtual void handleWorldWrap(sf::Vector2f positionDelta) = 0;
 
     // virtual void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch) = 0;
-    virtual void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, float dt, float gameTime, int worldSize, const sf::Color& color) const = 0;
+    virtual void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
+        const sf::Color& color) const override = 0;
 
-    virtual void createLightSource(LightingEngine& lightingEngine, sf::Vector2f topLeftChunkPos) const = 0;
+    virtual void createLightSource(LightingEngine& lightingEngine, sf::Vector2f topLeftChunkPos) const override = 0;
 
-    virtual void getHoverStats(sf::Vector2f mouseScreenPos, std::vector<std::string>& hoverStats) = 0;
+    virtual void getHoverStats(sf::Vector2f mouseWorldPos, std::vector<std::string>& hoverStats) = 0;
 
     virtual void testCollisionWithPlayer(Player& player) = 0;
 

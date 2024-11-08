@@ -25,12 +25,12 @@ void Particle::update(float dt)
     }
 }
 
-void Particle::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch) const
+void Particle::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Camera& camera) const
 {
     float scale = ResolutionHandler::getScale();
 
     TextureDrawData drawData;
-    drawData.position = Camera::worldToScreenTransform(position);
+    drawData.position = camera.worldToScreenTransform(position);
     drawData.type = TextureType::Objects;
     drawData.scale = sf::Vector2f(scale, scale);
     drawData.centerRatio = sf::Vector2f(0.5, 0.5);
@@ -62,10 +62,10 @@ void ParticleSystem::update(float dt)
     }
 }
 
-void ParticleSystem::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch) const
+void ParticleSystem::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Camera& camera) const
 {
     for (auto iter = particles.begin(); iter != particles.end(); iter++)
     {
-        iter->draw(window, spriteBatch);
+        iter->draw(window, spriteBatch, camera);
     }
 }

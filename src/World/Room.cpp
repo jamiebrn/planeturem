@@ -247,12 +247,12 @@ std::vector<const WorldObject*> Room::getObjects() const
     return objects;
 }
 
-void Room::draw(sf::RenderTarget& window) const
+void Room::draw(sf::RenderTarget& window, const Camera& camera) const
 {
     float scale = ResolutionHandler::getScale();
 
     TextureDrawData drawData;
-    drawData.position = Camera::worldToScreenTransform(sf::Vector2f(0, 0));
+    drawData.position = camera.worldToScreenTransform(sf::Vector2f(0, 0));
     drawData.scale = sf::Vector2f(scale, scale);
     drawData.type = TextureType::Rooms;
 
@@ -264,7 +264,7 @@ void Room::draw(sf::RenderTarget& window) const
     {
         for (const CollisionRect& rect : collisionRects)
         {
-            rect.debugDraw(window);
+            rect.debugDraw(window, camera);
         }
     }
 }

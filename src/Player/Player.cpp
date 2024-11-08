@@ -270,7 +270,7 @@ void Player::updateFishingRodCatch(float dt)
     }
 }
 
-void Player::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, float dt, float gameTime, int worldSize, const sf::Color& color) const
+void Player::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const sf::Color& color) const
 {
     if (inRocket || !isAlive())
         return;
@@ -298,21 +298,21 @@ void Player::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game
     }
 
     TextureManager::drawTexture(window, {
-        TextureType::Shadow, Camera::worldToScreenTransform(position + sf::Vector2f(0, waterYOffset)), 0, playerScale * shadowScale, {0.5, 0.85}
+        TextureType::Shadow, camera.worldToScreenTransform(position + sf::Vector2f(0, waterYOffset)), 0, playerScale * shadowScale, {0.5, 0.85}
         });
 
-    TextureManager::drawSubTexture(window, {TextureType::Player, Camera::worldToScreenTransform(position + sf::Vector2f(0, waterYOffset)), 0, playerScale, {0.5, 1}}, 
+    TextureManager::drawSubTexture(window, {TextureType::Player, camera.worldToScreenTransform(position + sf::Vector2f(0, waterYOffset)), 0, playerScale, {0.5, 1}}, 
         animationRect);
     
     // Draw armour
-    drawArmour(window, waterYOffset);
+    drawArmour(window, camera, waterYOffset);
 
     // Draw equipped tool
     if (equippedTool >= 0)
     {
         const ToolData& toolData = ToolDataLoader::getToolData(equippedTool);
 
-        sf::Vector2f toolPos = (Camera::worldToScreenTransform(position + sf::Vector2f(0, waterYOffset)) +
+        sf::Vector2f toolPos = (camera.worldToScreenTransform(position + sf::Vector2f(0, waterYOffset)) +
             sf::Vector2f(playerScale.x * toolData.holdOffset.x, playerScale.y * toolData.holdOffset.y));
 
         float pivotYOffset = 0.0f;
@@ -344,13 +344,13 @@ void Player::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game
     // Draw fishing line if casted rod
     if (fishingRodCasted)
     {
-        drawFishingRodCast(window, gameTime, worldSize, waterYOffset);
+        drawFishingRodCast(window, camera, gameTime, worldSize, waterYOffset);
     }
 
     // DEBUG
     if (DebugOptions::drawCollisionRects)
     {
-        collisionRect.debugDraw(window);
+        collisionRect.debugDraw(window, camera);
     }
 }
 
@@ -381,11 +381,11 @@ void Player::createLightSource(LightingEngine& lightingEngine, sf::Vector2f topL
     // static const sf::IntRect lightMaskRect(0, 0, 256, 256);
 
     // TextureManager::drawSubTexture(lightTexture, {
-    //     TextureType::LightMask, Camera::worldToScreenTransform(position), 0, scale, {0.5, 0.5}, lightColor
+    //     TextureType::LightMask, camera.worldToScreenTransform(position), 0, scale, {0.5, 0.5}, lightColor
     //     }, lightMaskRect, sf::BlendAdd);
 }
 
-void Player::drawFishingRodCast(sf::RenderTarget& window, float gameTime, int worldSize, float waterYOffset) const
+void Player::drawFishingRodCast(sf::RenderTarget& window, const Camera& camera, float gameTime, int worldSize, float waterYOffset) const
 {
     // Draw bob
     sf::Vector2f bobPosition = fishingRodBobWorldPos + sf::Vector2f(0, WorldObject::getWaterBobYOffset(fishingRodBobWorldPos, worldSize, gameTime));
@@ -400,7 +400,7 @@ void Player::drawFishingRodCast(sf::RenderTarget& window, float gameTime, int wo
     {
         // Only draw bob if fish not on line
         TextureDrawData bobDrawData;
-        bobDrawData.position = Camera::worldToScreenTransform(bobPosition);
+        bobDrawData.position = camera.worldToScreenTransform(bobPosition);
         bobDrawData.type = TextureType::Tools;
         bobDrawData.scale = sf::Vector2f(ResolutionHandler::getScale(), ResolutionHandler::getScale());
         bobDrawData.centerRatio = sf::Vector2f(0.5, 0.5);
@@ -427,13 +427,13 @@ void Player::drawFishingRodCast(sf::RenderTarget& window, float gameTime, int wo
     lineOrigin.x = position.x + (toolData.holdOffset.x + rotatedLineOffset.x) * lineOffsetXMult;
     lineOrigin.y = position.y + waterYOffset + toolData.holdOffset.y + rotatedLineOffset.y;
 
-    line.append(sf::Vertex(Camera::worldToScreenTransform(lineOrigin), sf::Color(255, 255, 255)));
-    line.append(sf::Vertex(Camera::worldToScreenTransform(bobPosition), sf::Color(255, 255, 255)));
+    line.append(sf::Vertex(camera.worldToScreenTransform(lineOrigin), sf::Color(255, 255, 255)));
+    line.append(sf::Vertex(camera.worldToScreenTransform(bobPosition), sf::Color(255, 255, 255)));
 
     window.draw(line);
 }
 
-void Player::drawArmour(sf::RenderTarget& window, float waterYOffset) const
+void Player::drawArmour(sf::RenderTarget& window, const Camera& camera, float waterYOffset) const
 {
     float scale = ResolutionHandler::getScale();
 
@@ -475,7 +475,7 @@ void Player::drawArmour(sf::RenderTarget& window, float waterYOffset) const
 
         TextureDrawData drawData;
         drawData.type = TextureType::Tools;
-        drawData.position = Camera::worldToScreenTransform(armourOrigin + sf::Vector2f(armourData.wearTextureOffset.x * xScaleMult, armourData.wearTextureOffset.y + waterYOffset));
+        drawData.position = camera.worldToScreenTransform(armourOrigin + sf::Vector2f(armourData.wearTextureOffset.x * xScaleMult, armourData.wearTextureOffset.y + waterYOffset));
         drawData.scale = sf::Vector2f(scale * xScaleMult, scale);
         
         TextureManager::drawSubTexture(window, drawData, armourTextureRect);

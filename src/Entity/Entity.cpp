@@ -1,4 +1,5 @@
 #include "Entity/Entity.hpp"
+#include "Game.hpp"
 
 Entity::Entity(sf::Vector2f position, EntityType entityType)
     : WorldObject(position)
@@ -70,7 +71,7 @@ bool Entity::isProjectileColliding(Projectile& projectile)
     return (collisionRect.isPointInRect(projectile.getPosition().x, projectile.getPosition().y));
 }
 
-void Entity::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, float dt, float gameTime, int worldSize, const sf::Color& color) const
+void Entity::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const sf::Color& color) const
 {
     spriteBatch.endDrawing(window);
 
@@ -81,7 +82,7 @@ void Entity::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game
     float waterYOffset = getWaterBobYOffset(worldSize, gameTime);
 
     // Draw shadow
-    TextureManager::drawTexture(window, {TextureType::Shadow, Camera::worldToScreenTransform(position + sf::Vector2f(0, waterYOffset)), 0, scale, {0.5, 0.85}});
+    TextureManager::drawTexture(window, {TextureType::Shadow, camera.worldToScreenTransform(position + sf::Vector2f(0, waterYOffset)), 0, scale, {0.5, 0.85}});
 
     if (velocity.x < 0)
         scale.x *= -1;
@@ -99,13 +100,13 @@ void Entity::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game
         textureRect = entityData.walkTextureRects[walkAnim.getFrame()];
     }
 
-    TextureManager::drawSubTexture(window, {TextureType::Entities, Camera::worldToScreenTransform(position + sf::Vector2f(0, waterYOffset)), 0, 
+    TextureManager::drawSubTexture(window, {TextureType::Entities, camera.worldToScreenTransform(position + sf::Vector2f(0, waterYOffset)), 0, 
         scale, entityData.textureOrigin, color}, textureRect, shader);
 
     // DEBUG
     if (DebugOptions::drawCollisionRects)
     {
-        collisionRect.debugDraw(window);
+        collisionRect.debugDraw(window, game.getCamera());
     }
 }
 

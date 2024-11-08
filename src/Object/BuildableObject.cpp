@@ -59,15 +59,16 @@ void BuildableObject::update(Game& game, float dt, bool onWater, bool loopAnimat
     this->onWater = onWater;
 }
 
-void BuildableObject::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, float dt, float gameTime, int worldSize, const sf::Color& color) const
+void BuildableObject::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
+    const sf::Color& color) const
 {
     if (objectType < 0)
         return;
 
-    drawObject(window, spriteBatch, gameTime, worldSize, color);    
+    drawObject(window, spriteBatch, camera, gameTime, worldSize, color);    
 }
 
-void BuildableObject::drawObject(sf::RenderTarget& window, SpriteBatch& spriteBatch, float gameTime, int worldSize, const sf::Color& color,
+void BuildableObject::drawObject(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Camera& camera, float gameTime, int worldSize, const sf::Color& color,
     std::optional<std::vector<sf::IntRect>> textureRectsOverride, std::optional<sf::Vector2f> textureOriginOverride) const
 {
     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
@@ -93,7 +94,7 @@ void BuildableObject::drawObject(sf::RenderTarget& window, SpriteBatch& spriteBa
     float waterYOffset = getWaterBobYOffset(worldSize, gameTime);
 
     TextureDrawData drawData = {
-        TextureType::Objects, Camera::worldToScreenTransform(position + sf::Vector2f(0, waterYOffset)), 0, scale, objectData.textureOrigin, color
+        TextureType::Objects, camera.worldToScreenTransform(position + sf::Vector2f(0, waterYOffset)), 0, scale, objectData.textureOrigin, color
         };
     
     if (textureOriginOverride.has_value())

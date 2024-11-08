@@ -6,6 +6,7 @@
 #include <SFML/Graphics.hpp>
 
 #include "Core/SpriteBatch.hpp"
+#include "Core/Camera.hpp"
 
 #include "Projectile.hpp"
 
@@ -16,7 +17,7 @@ public:
 
     void update(float dt);
 
-    void drawProjectiles(sf::RenderTarget& window, SpriteBatch& spriteBatch);
+    void drawProjectiles(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Camera& camera);
 
     void addProjectile(std::unique_ptr<Projectile> projectile);
 

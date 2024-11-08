@@ -77,14 +77,16 @@ bool Game::initialise()
 
     // Initialise values
     gameTime = 0;
-    mainMenuState = MainMenuState::Main;
+    //mainMenuState = MainMenuState::Main;
     gameState = GameState::MainMenu;
     destinationGameState = gameState;
     transitionGameStateTimer = 0.0f;
     worldMenuState = WorldMenuState::Main;
 
-    menuScreenshotIndex = 0;
-    menuScreenshotTimer = 0.0f;
+    mainMenuGUI.initialise();
+
+    //menuScreenshotIndex = 0;
+    //menuScreenshotTimer = 0.0f;
 
     openedChestID = 0xFFFF;
 
@@ -111,7 +113,7 @@ bool Game::initialise()
     // Initialise inventory
     giveStartingInventory();
 
-    Camera::instantUpdate(player.getPosition());
+    camera.instantUpdate(player.getPosition());
 
     // Return true by default
     return true;
@@ -281,189 +283,57 @@ void Game::runMainMenu(float dt)
     {
         handleEventsWindow(event);
 
-        guiContext.processEvent(event);
+        mainMenuGUI.handleEvent(event);
+        // guiContext.processEvent(event);
     }
 
-    // Drawing
-    window.clear();
+    sf::Vector2f mouseScreenPos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
 
-    float intScale = ResolutionHandler::getResolutionIntegerScale();
+    mainMenuGUI.update(dt, mouseScreenPos, *this, projectileManager, inventory);
 
-    // Draw background
-    static constexpr std::array<TextureType, 3> menuScreenshots = {TextureType::MenuScreenshot0, TextureType::MenuScreenshot1, TextureType::MenuScreenshot2};
+    std::optional<MainMenuEvent> menuEvent = mainMenuGUI.createAndDraw(window, spriteBatch, *this, dt, gameTime);
 
-    float menuScreenshotAlpha = 255.0f;
+    spriteBatch.endDrawing(window);
 
-    menuScreenshotTimer += dt;
-    if (menuScreenshotTimer >= 10.0f)
+    if (menuEvent.has_value())
     {
-        // Draw next screen shot behind and decrease alpha
-        TextureManager::drawTexture(window, {.type = menuScreenshots[(menuScreenshotIndex + 1) % menuScreenshots.size()], .scale = sf::Vector2f(intScale, intScale)});
-
-        menuScreenshotAlpha *= (2.0f - (menuScreenshotTimer - 10.0f)) / 2.0f;
-
-        if (menuScreenshotTimer >= 12.0f)
+        switch (menuEvent->type)
         {
-            menuScreenshotTimer = 0.0f;
-            menuScreenshotIndex = (menuScreenshotIndex + 1) % menuScreenshots.size();
-        }
-    }
-
-    TextureManager::drawTexture(window, {.type = menuScreenshots[menuScreenshotIndex], .scale = sf::Vector2f(intScale, intScale),
-        .colour = sf::Color(255, 255, 255, menuScreenshotAlpha)});
-
-
-    // Draw title
-    TextureDrawData titleDrawData;
-    titleDrawData.type = TextureType::UI;
-    titleDrawData.scale = sf::Vector2f(3, 3) * intScale;
-    titleDrawData.position = sf::Vector2f(std::round(window.getSize().x / 2.0f), std::round((200 + std::sin(gameTime) * 20) * intScale));
-    titleDrawData.centerRatio = sf::Vector2f(0.5f, 0.5f);
-
-    TextureManager::drawSubTexture(window, titleDrawData, sf::IntRect(21, 160, 212, 32));
-
-    // Buttons / UI
-    switch (mainMenuState)
-    {
-        case MainMenuState::Main:
-        {
-            if (guiContext.createButton(window.getSize().x / 2.0f - 100 * intScale, window.getSize().y / 2.0f - 200.0f * intScale, 200 * intScale, 75 * intScale, "New"))
+            case MainMenuEventType::StartNew:
             {
-                currentSaveName = "";
-                worldSeed = "";
-                mainMenuState = MainMenuState::StartingNew;
-            }
-
-            if (guiContext.createButton(window.getSize().x / 2.0f - 100 * intScale, window.getSize().y / 2.0f - 50 * intScale, 200 * intScale, 75 * intScale, "Load"))
-            {
-                currentSaveName = "";
-                worldSeed = "";
-                mainMenuState = MainMenuState::SelectingLoad;
+                if (isStateTransitioning())
+                {
+                    break;
+                }
                 
-                GameSaveIO io;
-                saveFileNames = io.getSaveFiles();
+                mainMenuGUI.setCanInteract(false);
 
-                saveFilePage = 0;
+                currentSaveName = menuEvent->saveName;
+                startNewGame(menuEvent->worldSeed);
+                break;
             }
-
-            if (guiContext.createButton(window.getSize().x / 2.0f - 100 * intScale, window.getSize().y / 2.0f + 100 * intScale, 200 * intScale, 75 * intScale, "Options"))
+            case MainMenuEventType::Load:
             {
-                mainMenuState = MainMenuState::Options;
-            }
+                if (isStateTransitioning())
+                {
+                    break;
+                }
 
-            if (guiContext.createButton(window.getSize().x / 2.0f - 100 * intScale, window.getSize().y / 2.0f + 250 * intScale, 200 * intScale, 75 * intScale, "Exit"))
+                currentSaveName = menuEvent->saveName;
+                if (loadGame(currentSaveName))
+                {
+                    mainMenuGUI.setCanInteract(false);
+                }
+                break;
+            }
+            case MainMenuEventType::Quit:
             {
                 window.close();
-                ImGui::SFML::Shutdown();
+                ImGui::SFML::Shutdown(window);
+                break;
             }
-            break;
-        }
-        case MainMenuState::StartingNew:
-        {
-            guiContext.createTextEnter(window.getSize().x / 2.0f - 200 * intScale, window.getSize().y / 2.0f - 100.0f * intScale,
-                400 * intScale, 40 * intScale, "Name", &currentSaveName);
-
-            guiContext.createTextEnter(window.getSize().x / 2.0f - 200 * intScale, window.getSize().y / 2.0f + 150 * intScale,
-            400 * intScale, 40 * intScale, "Seed", &worldSeed);
-
-            if (guiContext.createButton(window.getSize().x / 2.0f - 100 * intScale, window.getSize().y / 2.0f + 300 * intScale, 200 * intScale, 75 * intScale, "Start"))
-            {
-                if (!isStateTransitioning() && !currentSaveName.empty())
-                {
-                    startNewGame();
-                }
-            }
-            
-            if (guiContext.createButton(window.getSize().x / 2.0f - 100 * intScale, window.getSize().y - 150 * intScale, 200 * intScale, 75 * intScale, "Back"))
-            {
-                mainMenuState = MainMenuState::Main;
-            }
-            break;
-        }
-        case MainMenuState::SelectingLoad:
-        {
-            static constexpr int saveFilesPerPage = 5;
-
-            for (int i = saveFilesPerPage * saveFilePage; i < std::min(static_cast<int>(saveFileNames.size()), saveFilesPerPage * (saveFilePage + 1)); i++)
-            {
-                const std::string& saveName = saveFileNames[i];
-
-                if (guiContext.createButton(window.getSize().x / 2.0f - 100 * intScale, window.getSize().y / 2.0f - (150 - (i % saveFilesPerPage) * 100) * intScale,
-                    200 * intScale, 75 * intScale, saveName))
-                {
-                    if (!isStateTransitioning())
-                    {   
-                        loadGame(saveName);
-                    }
-                }
-            }
-
-            // Text if no save files
-            if (saveFileNames.size() <= 0)
-            {
-                TextDrawData textDrawData;
-                textDrawData.text = "No save files found";
-                textDrawData.position = sf::Vector2f(window.getSize().x / 2.0f, window.getSize().y / 2.0f - 150 * intScale);
-                textDrawData.size = 24 * intScale;
-                textDrawData.centeredX = true;
-                textDrawData.centeredY = true;
-
-                TextDraw::drawText(window, textDrawData);
-            }
-
-            // Create page scroll buttons if 
-            if (saveFileNames.size() > saveFilesPerPage)
-            {
-                // Create page back button
-                if (saveFilePage > 0)
-                {
-                    if (guiContext.createButton(window.getSize().x / 2.0f - 300 * intScale, window.getSize().y / 2.0f - 150 * intScale,
-                        50 * intScale, 50 * intScale, "<"))
-                    {
-                        saveFilePage--;   
-                    }
-                }
-
-                // Create page forward button
-                if (saveFilePage < std::ceil(saveFileNames.size() / saveFilesPerPage))
-                {
-                    if (guiContext.createButton(window.getSize().x / 2.0f + 250 * intScale, window.getSize().y / 2.0f - 150 * intScale,
-                        50 * intScale, 50 * intScale, ">"))
-                    {
-                        saveFilePage++;   
-                    }
-                }
-            }
-
-            if (guiContext.createButton(window.getSize().x / 2.0f - 100 * intScale, window.getSize().y - 150 * intScale, 200 * intScale, 75 * intScale, "Back"))
-            {
-                if (!isStateTransitioning())
-                {
-                    mainMenuState = MainMenuState::Main;
-                }
-            }
-            break;
-        }
-        case MainMenuState::Options:
-        {
-            float musicVolume = Sounds::getMusicVolume();
-            if (guiContext.createSlider(window.getSize().x / 2.0f - 200 * intScale, window.getSize().y / 2.0f, 400 * intScale, 15 * intScale,
-                0.0f, 100.0f, &musicVolume, "Music Volume"))
-            {
-                Sounds::setMusicVolume(musicVolume);
-            }
-
-            if (guiContext.createButton(window.getSize().x / 2.0f - 100 * intScale, window.getSize().y - 150 * intScale, 200 * intScale, 75 * intScale, "Back"))
-            {
-                mainMenuState = MainMenuState::Main;
-            }
-            break;
         }
     }
-
-    guiContext.draw(window);
-
-    guiContext.endGUI();
 }
 
 
@@ -633,7 +503,7 @@ void Game::runOnPlanet(float dt)
 
     HitMarkers::update(dt);
 
-    Camera::update(player.getPosition(), mouseScreenPos, dt);
+    camera.update(player.getPosition(), mouseScreenPos, dt);
 
     dayCycleManager.update(dt);
     isDay = dayCycleManager.isDay();
@@ -650,7 +520,7 @@ void Game::runOnPlanet(float dt)
             break;
     }
 
-    Cursor::setCursorHidden(!player.canReachPosition(Cursor::getMouseWorldPos(window)));
+    Cursor::setCursorHidden(!player.canReachPosition(Cursor::getMouseWorldPos(window, camera)));
 
     // Close chest if out of range
     checkChestOpenInRange();
@@ -756,19 +626,19 @@ void Game::updateOnPlanet(float dt)
     int worldSize = chunkManager.getWorldSize();
 
     // Update cursor
-    Cursor::updateTileCursor(window, dt, chunkManager, player.getCollisionRect(), InventoryGUI::getHeldItemType(inventory), player.getTool());
+    Cursor::updateTileCursor(window, camera, dt, chunkManager, player.getCollisionRect(), InventoryGUI::getHeldItemType(inventory), player.getTool());
 
     // Update player
     bool wrappedAroundWorld = false;
     sf::Vector2f wrapPositionDelta;
 
     if (!isStateTransitioning())
-        player.update(dt, Cursor::getMouseWorldPos(window), chunkManager, worldSize, wrappedAroundWorld, wrapPositionDelta);
+        player.update(dt, Cursor::getMouseWorldPos(window, camera), chunkManager, worldSize, wrappedAroundWorld, wrapPositionDelta);
 
     // Handle world wrapping for camera and cursor, if player wrapped around
     if (wrappedAroundWorld)
     {
-        Camera::handleWorldWrap(wrapPositionDelta);
+        camera.handleWorldWrap(wrapPositionDelta);
         Cursor::handleWorldWrap(wrapPositionDelta);
         handleOpenChestPositionWorldWrap(wrapPositionDelta);
         chunkManager.reloadChunks();
@@ -784,7 +654,7 @@ void Game::updateOnPlanet(float dt)
     }
 
     // Update (loaded) chunks
-    bool modifiedChunks = chunkManager.updateChunks(*this);
+    bool modifiedChunks = chunkManager.updateChunks(*this, camera);
     chunkManager.updateChunksObjects(*this, dt);
     chunkManager.updateChunksEntities(dt, projectileManager, inventory);
 
@@ -823,13 +693,13 @@ void Game::drawOnPlanet(float dt)
     worldObjects.push_back(&player);
     bossManager.getBossWorldObjects(worldObjects);
 
-    drawWorld(dt, worldObjects);
+    drawWorld(worldTexture, dt, worldObjects, chunkManager, camera);
     drawLighting(dt, worldObjects);
 
     // UI
     sf::Vector2f mouseScreenPos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
 
-    Cursor::drawCursor(window);
+    Cursor::drawCursor(window, camera);
 
     if (player.getTool() < 0)
     {
@@ -847,19 +717,19 @@ void Game::drawOnPlanet(float dt)
         }
     }
 
-    HitMarkers::draw(window);
+    HitMarkers::draw(window, camera);
 
     bossManager.drawStatsAtCursor(window, mouseScreenPos);
 }
 
-void Game::drawWorld(float dt, std::vector<WorldObject*>& worldObjects)
+void Game::drawWorld(sf::RenderTexture& renderTexture, float dt, std::vector<WorldObject*>& worldObjects, ChunkManager& chunkManagerArg, const Camera& cameraArg)
 {
     // Draw all world onto texture for lighting
-    worldTexture.create(window.getSize().x, window.getSize().y);
-    worldTexture.clear();
+    renderTexture.create(window.getSize().x, window.getSize().y);
+    renderTexture.clear();
 
     // Draw water
-    chunkManager.drawChunkWater(worldTexture, gameTime);
+    chunkManagerArg.drawChunkWater(renderTexture, cameraArg, gameTime);
 
     std::sort(worldObjects.begin(), worldObjects.end(), [](WorldObject* a, WorldObject* b)
     {
@@ -871,20 +741,20 @@ void Game::drawWorld(float dt, std::vector<WorldObject*>& worldObjects)
     spriteBatch.beginDrawing();
 
     // Draw terrain
-    chunkManager.drawChunkTerrain(worldTexture, spriteBatch, gameTime);
+    chunkManagerArg.drawChunkTerrain(renderTexture, spriteBatch, cameraArg, gameTime);
 
     // Draw objects
     for (WorldObject* worldObject : worldObjects)
     {
-        worldObject->draw(worldTexture, spriteBatch, *this, dt, gameTime, chunkManager.getWorldSize(), {255, 255, 255, 255});
+        worldObject->draw(renderTexture, spriteBatch, *this, cameraArg, dt, gameTime, chunkManagerArg.getWorldSize(), {255, 255, 255, 255});
     }
 
     // Draw projectiles
-    projectileManager.drawProjectiles(worldTexture, spriteBatch);
+    projectileManager.drawProjectiles(renderTexture, spriteBatch, cameraArg);
 
-    spriteBatch.endDrawing(worldTexture);
+    spriteBatch.endDrawing(renderTexture);
 
-    worldTexture.display();
+    renderTexture.display();
 }
 
 void Game::drawLighting(float dt, std::vector<WorldObject*>& worldObjects)
@@ -895,8 +765,8 @@ void Game::drawLighting(float dt, std::vector<WorldObject*>& worldObjects)
     unsigned char ambientGreenLight = Helper::lerp(7, 244, lightLevel);
     unsigned char ambientBlueLight = Helper::lerp(14, 234, lightLevel);
 
-    sf::Vector2i chunksSizeInView = chunkManager.getChunksSizeInView();
-    sf::Vector2f topLeftChunkPos = chunkManager.topLeftChunkPosInView();
+    sf::Vector2i chunksSizeInView = chunkManager.getChunksSizeInView(camera);
+    sf::Vector2f topLeftChunkPos = chunkManager.topLeftChunkPosInView(camera);
     
     // Draw light sources on light texture
     sf::RenderTexture lightTexture;
@@ -935,7 +805,7 @@ void Game::drawLighting(float dt, std::vector<WorldObject*>& worldObjects)
     sf::Sprite lightTextureSprite(lightTexture.getTexture());
     // lightTextureSprite.setColor(sf::Color(255, 255, 255, 255));
 
-    lightTextureSprite.setPosition(Camera::worldToScreenTransform(topLeftChunkPos));
+    lightTextureSprite.setPosition(camera.worldToScreenTransform(topLeftChunkPos));
     lightTextureSprite.setScale(sf::Vector2f(ResolutionHandler::getScale(), ResolutionHandler::getScale()) * TILE_SIZE_PIXELS_UNSCALED / static_cast<float>(TILE_LIGHTING_RESOLUTION));
 
     worldTexture.draw(lightTextureSprite, sf::BlendMultiply);
@@ -1042,10 +912,10 @@ void Game::updateInStructure(float dt)
 
     Room& structureRoom = structureRoomPool.getRoom(structureEnteredID);
 
-    Cursor::updateTileCursorInRoom(window, dt, structureRoom.getObjectGrid(), InventoryGUI::getHeldItemType(inventory), player.getTool());
+    Cursor::updateTileCursorInRoom(window, camera, dt, structureRoom.getObjectGrid(), InventoryGUI::getHeldItemType(inventory), player.getTool());
 
     if (!isStateTransitioning())
-        player.updateInStructure(dt, Cursor::getMouseWorldPos(window), structureRoom);
+        player.updateInStructure(dt, Cursor::getMouseWorldPos(window, camera), structureRoom);
 
     // Update room objects
     structureRoom.updateObjects(*this, dt);
@@ -1061,7 +931,7 @@ void Game::updateInStructure(float dt)
 void Game::drawInStructure(float dt)
 {
     const Room& structureRoom = structureRoomPool.getRoom(structureEnteredID);
-    structureRoom.draw(window);
+    structureRoom.draw(window, camera);
 
     std::vector<const WorldObject*> worldObjects = structureRoom.getObjects();
     worldObjects.push_back(&player);
@@ -1075,12 +945,12 @@ void Game::drawInStructure(float dt)
 
     for (const WorldObject* object : worldObjects)
     {
-        object->draw(window, spriteBatch, *this, dt, gameTime, chunkManager.getWorldSize(), sf::Color(255, 255, 255));
+        object->draw(window, spriteBatch, *this, camera, dt, gameTime, chunkManager.getWorldSize(), sf::Color(255, 255, 255));
     }
 
     spriteBatch.endDrawing(window);
 
-    Cursor::drawCursor(window);
+    Cursor::drawCursor(window, camera);
 }
 
 
@@ -1137,7 +1007,7 @@ void Game::attemptUseTool()
 
 void Game::attemptUseToolPickaxe()
 {
-    sf::Vector2f mouseWorldPos = Cursor::getMouseWorldPos(window);
+    sf::Vector2f mouseWorldPos = Cursor::getMouseWorldPos(window, camera);
     
     // Swing pickaxe
     player.useTool(projectileManager, inventory, mouseWorldPos);
@@ -1190,7 +1060,7 @@ void Game::attemptUseToolFishingRod()
         return;
     }
 
-    sf::Vector2f mouseWorldPos = Cursor::getMouseWorldPos(window);
+    sf::Vector2f mouseWorldPos = Cursor::getMouseWorldPos(window, camera);
 
     if (!player.canReachPosition(mouseWorldPos))
     {
@@ -1221,7 +1091,7 @@ void Game::attemptUseToolFishingRod()
 
 void Game::attemptUseToolWeapon()
 {
-    sf::Vector2f mouseWorldPos = Cursor::getMouseWorldPos(window);
+    sf::Vector2f mouseWorldPos = Cursor::getMouseWorldPos(window, camera);
 
     player.useTool(projectileManager, inventory, mouseWorldPos);
 }
@@ -1254,7 +1124,7 @@ void Game::catchRandomFish(sf::Vector2i fishedTile)
 void Game::attemptObjectInteract()
 {
     // Get mouse position in screen space and world space
-    sf::Vector2f mouseWorldPos = Cursor::getMouseWorldPos(window);
+    sf::Vector2f mouseWorldPos = Cursor::getMouseWorldPos(window, camera);
 
     if (!player.canReachPosition(mouseWorldPos))
         return;
@@ -1292,7 +1162,7 @@ void Game::attemptBuildObject()
                                                 objectType,
                                                 player.getCollisionRect());
 
-    bool inRange = player.canReachPosition(Cursor::getMouseWorldPos(window));
+    bool inRange = player.canReachPosition(Cursor::getMouseWorldPos(window, camera));
 
     if (canPlace && inRange)
     {
@@ -1350,7 +1220,7 @@ void Game::attemptPlaceLand()
     if (!chunkManager.canPlaceLand(Cursor::getSelectedChunk(chunkManager.getWorldSize()), Cursor::getSelectedChunkTile()))
         return;
     
-    if (!player.canReachPosition(Cursor::getMouseWorldPos(window)))
+    if (!player.canReachPosition(Cursor::getMouseWorldPos(window, camera)))
         return;
     
     // Place land
@@ -1420,7 +1290,7 @@ void Game::drawGhostPlaceObjectAtCursor(ObjectType object)
                                                 object,
                                                 player.getCollisionRect());
 
-    bool inRange = player.canReachPosition(Cursor::getMouseWorldPos(window));
+    bool inRange = player.canReachPosition(Cursor::getMouseWorldPos(window, camera));
 
     sf::Color drawColor(255, 0, 0, 180);
     if (canPlace && inRange)
@@ -1428,7 +1298,7 @@ void Game::drawGhostPlaceObjectAtCursor(ObjectType object)
     
     BuildableObject objectGhost(Cursor::getLerpedSelectPos() + sf::Vector2f(TILE_SIZE_PIXELS_UNSCALED / 2.0f, TILE_SIZE_PIXELS_UNSCALED / 2.0f), object, false);
 
-    objectGhost.draw(window, spriteBatch, *this, 0.0f, 0, chunkManager.getWorldSize(), drawColor);
+    objectGhost.draw(window, spriteBatch, *this, camera, 0.0f, 0, chunkManager.getWorldSize(), drawColor);
 
     spriteBatch.endDrawing(window);
 }
@@ -1465,7 +1335,7 @@ void Game::drawGhostPlaceLandAtCursor()
     // Draw tile at screen position
     TextureManager::drawSubTexture(window, {
         .type = TextureType::GroundTiles,
-        .position = Camera::worldToScreenTransform(tileWorldPosition),
+        .position = camera.worldToScreenTransform(tileWorldPosition),
         .scale = {scale, scale},
         .colour = landGhostColor
     }, textureRect);
@@ -1473,7 +1343,7 @@ void Game::drawGhostPlaceLandAtCursor()
 
 BuildableObject* Game::getSelectedObjectFromChunkOrRoom()
 {
-    sf::Vector2f mouseWorldPos = Cursor::getMouseWorldPos(window);
+    sf::Vector2f mouseWorldPos = Cursor::getMouseWorldPos(window, camera);
 
     if (gameState == GameState::OnPlanet)
     {
@@ -1584,9 +1454,9 @@ void Game::travelToPlanet(PlanetType planetType)
         initialiseNewPlanet(planetType, true);   
     }
 
-    Camera::instantUpdate(player.getPosition());
+    camera.instantUpdate(player.getPosition());
 
-    chunkManager.updateChunks(*this);
+    chunkManager.updateChunks(*this, camera);
     lightingTick = LIGHTING_TICK;
 
     // Start rocket flying downwards
@@ -1600,7 +1470,7 @@ void Game::travelToPlanet(PlanetType planetType)
     // player.enterRocket(rocket->getRocketPosition());
     // startFlyingRocket(chunkManager.getPlanetType(), true);
 
-    Camera::instantUpdate(player.getPosition());
+    camera.instantUpdate(player.getPosition());
 }
 
 void Game::initialiseNewPlanet(PlanetType planetType, bool placeRocket)
@@ -1614,9 +1484,9 @@ void Game::initialiseNewPlanet(PlanetType planetType, bool placeRocket)
     playerSpawnPos.y = playerSpawnChunk.y * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED + 0.5f * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
     player.setPosition(playerSpawnPos);
     
-    Camera::instantUpdate(player.getPosition());
+    camera.instantUpdate(player.getPosition());
 
-    chunkManager.updateChunks(*this);
+    chunkManager.updateChunks(*this, camera);
 
     // Ennsure spawn chunk does not have structure
     chunkManager.regenerateChunkWithoutStructure(playerSpawnChunk, *this);
@@ -1690,7 +1560,7 @@ void Game::changeState(GameState newState)
             sf::Vector2f roomEntrancePos = structureRoomPool.getRoom(structureEnteredID).getEntrancePosition();
 
             player.setPosition(roomEntrancePos);
-            Camera::instantUpdate(player.getPosition());
+            camera.instantUpdate(player.getPosition());
 
             player.enterStructure();
             break;
@@ -1703,7 +1573,7 @@ void Game::changeState(GameState newState)
                 structureEnteredID = 0xFFFFFFFF;
 
                 player.setPosition(structureEnteredPos);
-                Camera::instantUpdate(player.getPosition());
+                camera.instantUpdate(player.getPosition());
             }
             break;
         }
@@ -1712,34 +1582,14 @@ void Game::changeState(GameState newState)
     gameState = newState;
 }
 
-void Game::setWorldSeedFromInput()
-{
-    // Get seed from input
-    int seed = 0;
-    if (worldSeed.empty())
-    {
-        seed = rand();
-    }
-    else
-    {
-        // Compute simple hash of seed
-        seed = 0x55555555;
-        for (char c : worldSeed)
-        {
-            seed ^= c;
-            seed = seed << 5;
-        }
-    }
-
-    chunkManager.setSeed(seed);
-}
-
 
 // -- Save / load -- //
 
-void Game::startNewGame()
+void Game::startNewGame(int seed)
 {
-    setWorldSeedFromInput();
+    // setWorldSeedFromInput();
+
+    chunkManager.setSeed(seed);
 
     initialiseNewPlanet(PlanetGenDataLoader::getPlanetTypeFromName("Earthlike"));
 
@@ -1748,9 +1598,9 @@ void Game::startNewGame()
 
     bossManager.clearBosses();
 
-    Camera::instantUpdate(player.getPosition());
+    camera.instantUpdate(player.getPosition());
 
-    chunkManager.updateChunks(*this);
+    chunkManager.updateChunks(*this, camera);
     lightingTick = LIGHTING_TICK;
 
     startChangeStateTransition(GameState::OnPlanet);
@@ -1816,9 +1666,9 @@ bool Game::loadGame(const std::string& saveName)
 
     bossManager.clearBosses();
 
-    Camera::instantUpdate(player.getPosition());
+    camera.instantUpdate(player.getPosition());
 
-    chunkManager.updateChunks(*this);
+    chunkManager.updateChunks(*this, camera);
     lightingTick = LIGHTING_TICK;
 
     // Load successful, set save name as current save and start state transition
@@ -1876,7 +1726,7 @@ void Game::handleZoom(int zoomChange)
     
     float afterScale = ResolutionHandler::getScale();
 
-    Camera::handleScaleChange(beforeScale, afterScale, player.getPosition());
+    camera.handleScaleChange(beforeScale, afterScale, player.getPosition());
 }
 
 void Game::handleEventsWindow(sf::Event& event)
@@ -1953,12 +1803,12 @@ void Game::handleWindowResize(sf::Vector2u newSize)
 
     ResolutionHandler::setResolution({newWidth, newHeight});
 
-    Camera::instantUpdate(player.getPosition());
+    camera.instantUpdate(player.getPosition());
 
     // float afterScale = ResolutionHandler::getScale();
 
     // if (beforeScale != afterScale)
-        // Camera::handleScaleChange(beforeScale, afterScale, player.getPosition());
+        // camera.handleScaleChange(beforeScale, afterScale, player.getPosition());
 }
 
 
@@ -2142,13 +1992,6 @@ void Game::drawDebugMenu(float dt)
     {
         inventory.addItem(ItemDataLoader::getItemTypeFromName(itemToGive), 1);
     }
-
-    // if (ImGui::Button("Toggle Day / Night"))
-    // {
-    //     isDay = !isDay;
-    //     if (isDay) worldDarkness = 0.0f;
-    //     else worldDarkness = 0.95f;
-    // }
 
     if (ImGui::Checkbox("God Mode", &DebugOptions::godMode))
     {

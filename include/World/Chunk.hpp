@@ -108,9 +108,9 @@ public:
 
 
     // Drawing
-    void drawChunkTerrain(sf::RenderTarget& window, float time);
-    void drawChunkTerrainVisual(sf::RenderTarget& window, SpriteBatch& spriteBatch, float time);
-    void drawChunkWater(sf::RenderTarget& window);
+    void drawChunkTerrain(sf::RenderTarget& window, const Camera& camera, float time);
+    void drawChunkTerrainVisual(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Camera& camera, float time);
+    void drawChunkWater(sf::RenderTarget& window, const Camera& camera);
 
     // Get vector of chunk object/entities for drawing
     std::vector<WorldObject*> getObjects();

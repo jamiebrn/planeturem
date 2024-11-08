@@ -46,14 +46,14 @@ void RocketObject::update(Game& game, float dt, bool onWater, bool loopAnimation
     }
 }
 
-void RocketObject::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, float dt, float gameTime, int worldSize, const sf::Color& color) const
+void RocketObject::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const sf::Color& color) const
 {
-    BuildableObject::draw(window, spriteBatch, game, dt, gameTime, worldSize, color);
+    BuildableObject::draw(window, spriteBatch, game, camera, dt, gameTime, worldSize, color);
 
     // Draw rocket particles
-    particleSystem.draw(window, spriteBatch);
+    particleSystem.draw(window, spriteBatch, camera);
 
-    drawRocket(window, spriteBatch, color);
+    drawRocket(window, spriteBatch, camera, color);
 }
 
 void RocketObject::interact(Game& game)
@@ -200,7 +200,7 @@ void RocketObject::createRocketParticles()
     particleSystem.addParticle(Particle(position, velocity, acceleration, style));
 }
 
-void RocketObject::drawRocket(sf::RenderTarget& window, SpriteBatch& spriteBatch, const sf::Color& color) const
+void RocketObject::drawRocket(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Camera& camera, const sf::Color& color) const
 {
     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
 
@@ -210,7 +210,7 @@ void RocketObject::drawRocket(sf::RenderTarget& window, SpriteBatch& spriteBatch
     drawData.type = TextureType::Objects;
 
     sf::Vector2f rocketPosOffset = objectData.rocketObjectData->launchPosition - sf::Vector2f(TILE_SIZE_PIXELS_UNSCALED, TILE_SIZE_PIXELS_UNSCALED) * 0.5f;
-    drawData.position = Camera::worldToScreenTransform(position + rocketPosOffset + sf::Vector2f(0, rocketYOffset));
+    drawData.position = camera.worldToScreenTransform(position + rocketPosOffset + sf::Vector2f(0, rocketYOffset));
     drawData.scale = scale;
     drawData.centerRatio = objectData.rocketObjectData->textureOrigin;
     drawData.colour = color;

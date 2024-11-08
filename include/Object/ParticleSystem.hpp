@@ -22,7 +22,7 @@ public:
 
     void update(float dt);
 
-    void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch) const;
+    void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Camera& camera) const;
 
     bool isAlive();
 
@@ -46,7 +46,7 @@ public:
 
     void update(float dt);
 
-    void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch) const;
+    void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Camera& camera) const;
 
 private:
     std::vector<Particle> particles;

@@ -26,11 +26,11 @@ void HitMarkers::update(float dt)
     }
 }
 
-void HitMarkers::draw(sf::RenderTarget& window)
+void HitMarkers::draw(sf::RenderTarget& window, const Camera& camera)
 {
     for (const HitMarker& hitMarker : hitMarkers)
     {
-        hitMarker.draw(window);
+        hitMarker.draw(window, camera);
     }
 }
 
@@ -52,14 +52,14 @@ bool HitMarkers::HitMarker::isAlive() const
     return (lifetime < HIT_MARKER_LIFETIME);
 }
 
-void HitMarkers::HitMarker::draw(sf::RenderTarget& window) const
+void HitMarkers::HitMarker::draw(sf::RenderTarget& window, const Camera& camera) const
 {
     TextDrawData drawData;
     drawData.text = std::to_string(damageAmount);
 
     float alpha = 1.0f - (lifetime / HIT_MARKER_LIFETIME);
     drawData.colour = sf::Color(247, 150, 23, 255 * alpha);
-    drawData.position = Camera::worldToScreenTransform(position - sf::Vector2f(0.0f, LIFT_PER_SECOND * lifetime));
+    drawData.position = camera.worldToScreenTransform(position - sf::Vector2f(0.0f, LIFT_PER_SECOND * lifetime));
     drawData.centeredX = true;
     drawData.centeredY = true;
     drawData.size = UNSCALED_FONT_SIZE * ResolutionHandler::getScale();

@@ -38,13 +38,13 @@ void Projectile::update(float dt)
     }
 }
 
-void Projectile::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch)
+void Projectile::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Camera& camera)
 {
     const ProjectileData& projectileData = ToolDataLoader::getProjectileData(projectileType);
 
     TextureDrawData drawData;
     drawData.type = TextureType::Tools;
-    drawData.position = Camera::worldToScreenTransform(position);
+    drawData.position = camera.worldToScreenTransform(position);
     drawData.rotation = angle;
 
     float scale = ResolutionHandler::getScale();

@@ -49,7 +49,7 @@ public:
     void update(float dt, sf::Vector2f mouseWorldPos, ChunkManager& chunkManager, int worldSize, bool& wrappedAroundWorld, sf::Vector2f& wrapPositionDelta);
     void updateInStructure(float dt, sf::Vector2f mouseWorldPos, const Room& structureRoom);
 
-    void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, float dt, float gameTime, int worldSize, const sf::Color& color) const override;
+    void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const sf::Color& color) const override;
     void createLightSource(LightingEngine& lightingEngine, sf::Vector2f topLeftChunkPos) const override;
 
     void setTool(ToolType toolType);
@@ -97,9 +97,9 @@ private:
     void updateFishingRodCatch(float dt);
     void castFishingRod();
 
-    void drawFishingRodCast(sf::RenderTarget& window, float gameTime, int worldSize, float waterYOffset) const;
+    void drawFishingRodCast(sf::RenderTarget& window, const Camera& camera, float gameTime, int worldSize, float waterYOffset) const;
 
-    void drawArmour(sf::RenderTarget& window, float waterYOffset) const;
+    void drawArmour(sf::RenderTarget& window, const Camera& camera, float waterYOffset) const;
 
 private:
     CollisionRect collisionRect;

@@ -63,7 +63,7 @@ public:
 
     sf::Vector2i getSelectedTile(sf::Vector2f mouseWorldPos);
 
-    void draw(sf::RenderTarget& window) const;
+    void draw(sf::RenderTarget& window, const Camera& camera) const;
 
 
     // Save / load

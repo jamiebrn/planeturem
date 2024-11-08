@@ -1,8 +1,5 @@
 #include "Core/Camera.hpp"
 
-// Initialise member variables, as is static class
-sf::Vector2f Camera::offset = sf::Vector2f(0, 0);
-
 // Update camera based on player position (or any position)
 void Camera::update(sf::Vector2f playerPosition, sf::Vector2f mouseScreenPos, float deltaTime)
 {
@@ -34,7 +31,7 @@ void Camera::instantUpdate(sf::Vector2f playerPosition)
 }
 
 // Get draw offset of camera
-sf::Vector2f Camera::getDrawOffset()
+sf::Vector2f Camera::getDrawOffset() const
 {
     // Draw offset is negative camera position/offset
     sf::Vector2f drawOffset = -offset;
@@ -42,7 +39,7 @@ sf::Vector2f Camera::getDrawOffset()
     return drawOffset;
 }
 
-sf::Vector2f Camera::getIntegerDrawOffset()
+sf::Vector2f Camera::getIntegerDrawOffset() const
 {
     sf::Vector2f drawOffset;
     drawOffset.x = static_cast<int>(-offset.x);
@@ -51,7 +48,7 @@ sf::Vector2f Camera::getIntegerDrawOffset()
     return drawOffset;
 }
 
-sf::Vector2f Camera::worldToScreenTransform(sf::Vector2f worldPos)
+sf::Vector2f Camera::worldToScreenTransform(sf::Vector2f worldPos) const
 {
     float scale = ResolutionHandler::getScale();
 
@@ -65,7 +62,7 @@ sf::Vector2f Camera::worldToScreenTransform(sf::Vector2f worldPos)
     return screenPos;
 }
 
-sf::Vector2f Camera::screenToWorldTransform(sf::Vector2f screenPos)
+sf::Vector2f Camera::screenToWorldTransform(sf::Vector2f screenPos) const
 {
     float scale = ResolutionHandler::getScale();
 
@@ -100,7 +97,7 @@ void Camera::setOffset(sf::Vector2f newOffset)
 }
 
 // Returns whether a specific world position with dimensions is in the camera view
-bool Camera::isInView(sf::Vector2f position, sf::Vector2f size)
+bool Camera::isInView(sf::Vector2f position, sf::Vector2f size) const
 {
     // Calculate camera view world bounds (with object size)
     float minX = offset.x - size.x;

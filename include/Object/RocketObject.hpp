@@ -24,7 +24,7 @@ public:
 
     void update(Game& game, float dt, bool onWater, bool loopAnimation = true) override;
 
-    void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, float dt, float gameTime, int worldSize, const sf::Color& color) const override;
+    void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const sf::Color& color) const override;
 
     void interact(Game& game) override;
     bool isInteractable() const override;
@@ -45,7 +45,7 @@ public:
     void createRocketParticles();
 
 private:
-    void drawRocket(sf::RenderTarget& window, SpriteBatch& spriteBatch, const sf::Color& color) const;
+    void drawRocket(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Camera& camera, const sf::Color& color) const;
 
 private:
     bool flyingUp = false;

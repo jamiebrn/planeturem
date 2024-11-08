@@ -44,13 +44,14 @@ void StructureObject::setWorldPosition(sf::Vector2f newPosition)
     position = newPosition;
 }
 
-void StructureObject::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, float dt, float gameTime, int worldSize, const sf::Color& color) const
+void StructureObject::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
+    const sf::Color& color) const
 {
     const StructureData& structureData = StructureDataLoader::getStructureData(structureType);
 
     TextureDrawData textureDrawData;
     textureDrawData.type = TextureType::Objects;
-    textureDrawData.position = Camera::worldToScreenTransform(position);
+    textureDrawData.position = camera.worldToScreenTransform(position);
     textureDrawData.scale = sf::Vector2f(ResolutionHandler::getScale(), ResolutionHandler::getScale());
     textureDrawData.centerRatio = structureData.textureOrigin;
     

@@ -47,7 +47,7 @@ void ChunkManager::deleteAllChunks()
     storedChunks.clear();
 }
 
-bool ChunkManager::updateChunks(Game& game)
+bool ChunkManager::updateChunks(Game& game, const Camera& camera)
 {
     // Chunk load/unload
 
@@ -59,8 +59,8 @@ bool ChunkManager::updateChunks(Game& game)
     // Get screen bounds
     // sf::Vector2f screenTopLeft = -Camera::getDrawOffset();
     // sf::Vector2f screenBottomRight = -Camera::getDrawOffset() + static_cast<sf::Vector2f>(ResolutionHandler::getResolution());
-    sf::Vector2f screenTopLeft = Camera::screenToWorldTransform({0, 0});
-    sf::Vector2f screenBottomRight = Camera::screenToWorldTransform(static_cast<sf::Vector2f>(ResolutionHandler::getResolution()));
+    sf::Vector2f screenTopLeft = camera.screenToWorldTransform({0, 0});
+    sf::Vector2f screenBottomRight = camera.screenToWorldTransform(static_cast<sf::Vector2f>(ResolutionHandler::getResolution()));
 
     // Convert screen bounds to chunk units
     sf::Vector2i screenTopLeftGrid;
@@ -194,7 +194,7 @@ void ChunkManager::regenerateChunkWithoutStructure(ChunkPosition chunk, Game& ga
     chunkPtr->generateChunk(heightNoise, biomeNoise, planetType, game, *this, pathfindingEngine, false);
 }
 
-void ChunkManager::drawChunkTerrain(sf::RenderTarget& window, SpriteBatch& spriteBatch, float time)
+void ChunkManager::drawChunkTerrain(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Camera& camera, float time)
 {
     // Draw terrain
     for (auto& chunkPair : loadedChunks)
@@ -202,7 +202,7 @@ void ChunkManager::drawChunkTerrain(sf::RenderTarget& window, SpriteBatch& sprit
         ChunkPosition chunkPos = chunkPair.first;
         std::unique_ptr<Chunk>& chunk = chunkPair.second;
         
-        chunk->drawChunkTerrain(window, time);
+        chunk->drawChunkTerrain(window, camera, time);
     }
 
     // Draw visual terrain features e.g. cliffs
@@ -211,11 +211,11 @@ void ChunkManager::drawChunkTerrain(sf::RenderTarget& window, SpriteBatch& sprit
         ChunkPosition chunkPos = chunkPair.first;
         std::unique_ptr<Chunk>& chunk = chunkPair.second;
         
-        chunk->drawChunkTerrainVisual(window, spriteBatch, time);
+        chunk->drawChunkTerrainVisual(window, spriteBatch, camera, time);
     }
 }
 
-void ChunkManager::drawChunkWater(sf::RenderTarget& window, float time)
+void ChunkManager::drawChunkWater(sf::RenderTarget& window, const Camera& camera, float time)
 {
     // Set shader time paramenter
     sf::Shader* waterShader = Shaders::getShader(ShaderType::Water);
@@ -226,7 +226,7 @@ void ChunkManager::drawChunkWater(sf::RenderTarget& window, float time)
         ChunkPosition chunkPos = chunkPair.first;
         std::unique_ptr<Chunk>& chunk = chunkPair.second;
         
-        chunk->drawChunkWater(window);
+        chunk->drawChunkWater(window, camera);
     }
 }
 
@@ -1014,10 +1014,10 @@ std::pair<ChunkPosition, sf::Vector2i> ChunkManager::getChunkTileFromOffset(Chun
     return {chunk, tile};
 }
 
-sf::Vector2i ChunkManager::getChunksSizeInView()
+sf::Vector2i ChunkManager::getChunksSizeInView(const Camera& camera)
 {
-    sf::Vector2f screenTopLeft = Camera::screenToWorldTransform({0, 0});
-    sf::Vector2f screenBottomRight = Camera::screenToWorldTransform(static_cast<sf::Vector2f>(ResolutionHandler::getResolution()));
+    sf::Vector2f screenTopLeft = camera.screenToWorldTransform({0, 0});
+    sf::Vector2f screenBottomRight = camera.screenToWorldTransform(static_cast<sf::Vector2f>(ResolutionHandler::getResolution()));
 
     // Convert screen bounds to chunk units
     sf::Vector2i screenTopLeftGrid;
@@ -1034,9 +1034,9 @@ sf::Vector2i ChunkManager::getChunksSizeInView()
     return chunkSizeInView;
 }
 
-sf::Vector2f ChunkManager::topLeftChunkPosInView()
+sf::Vector2f ChunkManager::topLeftChunkPosInView(const Camera& camera)
 {
-    sf::Vector2f screenTopLeft = Camera::screenToWorldTransform({0, 0});
+    sf::Vector2f screenTopLeft = camera.screenToWorldTransform({0, 0});
     screenTopLeft.y = (std::floor(screenTopLeft.y / (TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE)) - CHUNK_VIEW_LOAD_BORDER) * TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE;
     screenTopLeft.x = (std::floor(screenTopLeft.x / (TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE)) - CHUNK_VIEW_LOAD_BORDER) * TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE;
     return screenTopLeft;

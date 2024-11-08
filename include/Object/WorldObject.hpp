@@ -4,6 +4,7 @@
 #include <cmath>
 
 #include "Core/SpriteBatch.hpp"
+#include "Core/Camera.hpp"
 #include "World/ChunkPosition.hpp"
 #include "World/LightingEngine.hpp"
 #include "GameConstants.hpp"
@@ -42,7 +43,8 @@ public:
     int getDrawLayer() const;
 
     // Overriden by inherited classes (specific)
-    virtual void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, float dt, float gameTime, int worldSize, const sf::Color& color) const = 0;
+    virtual void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
+        const sf::Color& color) const = 0;
 
     virtual void createLightSource(LightingEngine& lightingEngine, sf::Vector2f topLeftChunkPos) const = 0;
 

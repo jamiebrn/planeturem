@@ -50,7 +50,7 @@ public:
 
     // Load/unload chunks every frame
     // Returns true if any chunks loaded / unloaded
-    bool updateChunks(Game& game);
+    bool updateChunks(Game& game, const Camera& camera);
 
     // Forces a reload of chunks, used when wrapping around world
     void reloadChunks();
@@ -60,8 +60,8 @@ public:
     void regenerateChunkWithoutStructure(ChunkPosition chunk, Game& game);
 
     // Drawing functions for chunk terrain
-    void drawChunkTerrain(sf::RenderTarget& window, SpriteBatch& spriteBatch, float time);
-    void drawChunkWater(sf::RenderTarget& window, float time);
+    void drawChunkTerrain(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Camera& camera, float time);
+    void drawChunkWater(sf::RenderTarget& window, const Camera& camera, float time);
 
     // Returns a pointer to the chunk with ChunkPosition key
     // Chunk can be in loaded chunks or stored chunks
@@ -210,8 +210,8 @@ public:
 
     // Returns rectangle area of size containing chunks in view
     // Used in lighting calculations
-    static sf::Vector2i getChunksSizeInView();
-    static sf::Vector2f topLeftChunkPosInView();
+    static sf::Vector2i getChunksSizeInView(const Camera& camera);
+    static sf::Vector2f topLeftChunkPosInView(const Camera& camera);
 
 private:
     // Generates a chunk and stores it

@@ -20,11 +20,11 @@ void ProjectileManager::update(float dt)
     }
 }
 
-void ProjectileManager::drawProjectiles(sf::RenderTarget& window, SpriteBatch& spriteBatch)
+void ProjectileManager::drawProjectiles(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Camera& camera)
 {
     for (auto& projectile : projectiles)
     {
-        projectile->draw(window, spriteBatch);
+        projectile->draw(window, spriteBatch, camera);
     }
 }
 

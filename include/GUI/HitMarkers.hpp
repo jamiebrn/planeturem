@@ -16,7 +16,7 @@ void addHitMarker(sf::Vector2f position, int damageAmount, bool critical = false
 
 void update(float dt);
 
-void draw(sf::RenderTarget& window);
+void draw(sf::RenderTarget& window, const Camera& camera);
 
 void handleWorldWrap(sf::Vector2f positionDelta);
 
@@ -36,7 +36,7 @@ namespace
 
         void update(float dt);
         bool isAlive() const;
-        void draw(sf::RenderTarget& window) const;
+        void draw(sf::RenderTarget& window, const Camera& camera) const;
     };
 
     static std::vector<HitMarker> hitMarkers;

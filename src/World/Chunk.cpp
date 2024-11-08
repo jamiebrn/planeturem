@@ -524,7 +524,7 @@ TileMap* Chunk::getTileMap(int tileMap)
     return &(tileMaps[tileMap]);
 }
 
-void Chunk::drawChunkTerrain(sf::RenderTarget& window, float time)
+void Chunk::drawChunkTerrain(sf::RenderTarget& window, const Camera& camera, float time)
 {
     // Get tile size and scale
     float scale = ResolutionHandler::getScale();
@@ -534,7 +534,7 @@ void Chunk::drawChunkTerrain(sf::RenderTarget& window, float time)
         if (!DebugOptions::tileMapsVisible[iter->first])
             continue;
 
-        iter->second.draw(window, Camera::worldToScreenTransform(worldPosition), sf::Vector2f(scale, scale));
+        iter->second.draw(window, camera.worldToScreenTransform(worldPosition), sf::Vector2f(scale, scale));
     }
 
 
@@ -544,8 +544,8 @@ void Chunk::drawChunkTerrain(sf::RenderTarget& window, float time)
         for (auto& entity : entities)
         {
             sf::VertexArray lines(sf::Lines, 2);
-            lines[0].position = Camera::worldToScreenTransform(worldPosition);
-            lines[1].position = Camera::worldToScreenTransform(entity->getPosition());
+            lines[0].position = camera.worldToScreenTransform(worldPosition);
+            lines[1].position = camera.worldToScreenTransform(entity->getPosition());
             window.draw(lines);
         }
     }
@@ -554,14 +554,14 @@ void Chunk::drawChunkTerrain(sf::RenderTarget& window, float time)
     if (DebugOptions::drawChunkBoundaries)
     {
         sf::VertexArray lines(sf::Lines, 8);
-        lines[0].position = Camera::worldToScreenTransform(worldPosition);
-        lines[1].position = Camera::worldToScreenTransform(worldPosition + sf::Vector2f(CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED, 0));
-        lines[2].position = Camera::worldToScreenTransform(worldPosition);
-        lines[3].position = Camera::worldToScreenTransform(worldPosition + sf::Vector2f(0, CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED));
-        lines[4].position = Camera::worldToScreenTransform(worldPosition + sf::Vector2f(CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED, 0));
-        lines[5].position = Camera::worldToScreenTransform(worldPosition + sf::Vector2f(CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED, CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED));
-        lines[6].position = Camera::worldToScreenTransform(worldPosition + sf::Vector2f(0, CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED));
-        lines[7].position = Camera::worldToScreenTransform(worldPosition + sf::Vector2f(CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED, CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED));
+        lines[0].position = camera.worldToScreenTransform(worldPosition);
+        lines[1].position = camera.worldToScreenTransform(worldPosition + sf::Vector2f(CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED, 0));
+        lines[2].position = camera.worldToScreenTransform(worldPosition);
+        lines[3].position = camera.worldToScreenTransform(worldPosition + sf::Vector2f(0, CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED));
+        lines[4].position = camera.worldToScreenTransform(worldPosition + sf::Vector2f(CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED, 0));
+        lines[5].position = camera.worldToScreenTransform(worldPosition + sf::Vector2f(CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED, CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED));
+        lines[6].position = camera.worldToScreenTransform(worldPosition + sf::Vector2f(0, CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED));
+        lines[7].position = camera.worldToScreenTransform(worldPosition + sf::Vector2f(CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED, CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED));
         
         window.draw(lines);
     }
@@ -571,12 +571,12 @@ void Chunk::drawChunkTerrain(sf::RenderTarget& window, float time)
     {
         for (auto& collisionRect : collisionRects)
         {
-            collisionRect->debugDraw(window);
+            collisionRect->debugDraw(window, camera);
         }
     }
 }
 
-void Chunk::drawChunkTerrainVisual(sf::RenderTarget& window, SpriteBatch& spriteBatch, float time)
+void Chunk::drawChunkTerrainVisual(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Camera& camera, float time)
 {
     // Get tile size and scale
     float scale = ResolutionHandler::getScale();
@@ -619,7 +619,7 @@ void Chunk::drawChunkTerrainVisual(sf::RenderTarget& window, SpriteBatch& sprite
 
             // sf::Shader* cliffShader = Shaders::getShader(ShaderType::Cliff);
 
-            spriteBatch.draw(window, {TextureType::GroundTiles, Camera::worldToScreenTransform(tileWorldPosition), 0, {scale, scale}},
+            spriteBatch.draw(window, {TextureType::GroundTiles, camera.worldToScreenTransform(tileWorldPosition), 0, {scale, scale}},
                 textureRect);
 
             // TextureManager::drawSubTexture(window, {TextureType::GroundTiles, Camera::worldToScreenTransform(tileWorldPosition), 0, {scale, scale}}, textureRect);
@@ -627,13 +627,13 @@ void Chunk::drawChunkTerrainVisual(sf::RenderTarget& window, SpriteBatch& sprite
     }
 }
 
-void Chunk::drawChunkWater(sf::RenderTarget& window)
+void Chunk::drawChunkWater(sf::RenderTarget& window, const Camera& camera)
 {
     // Get scale
     float scale = ResolutionHandler::getScale();
 
     // Draw water
-    sf::Vector2f waterPos = Camera::worldToScreenTransform(worldPosition);
+    sf::Vector2f waterPos = camera.worldToScreenTransform(worldPosition);
     sf::IntRect waterRect(0, 0, TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE, TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE);
 
     sf::Shader* waterShader = Shaders::getShader(ShaderType::Water);

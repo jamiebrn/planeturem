@@ -302,13 +302,14 @@ void BossBenjaminCrow::handleWorldWrap(sf::Vector2f positionDelta)
     }
 }
 
-void BossBenjaminCrow::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, float dt, float gameTime, int worldSize, const sf::Color& color) const
+void BossBenjaminCrow::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
+    const sf::Color& color) const
 {
     // Draw shadow
     TextureDrawData drawData;
     drawData.type = TextureType::Entities;
 
-    drawData.position = Camera::worldToScreenTransform(position);
+    drawData.position = camera.worldToScreenTransform(position);
 
     float scale = ResolutionHandler::getScale();
     drawData.scale = sf::Vector2f(scale, scale);
@@ -323,7 +324,7 @@ void BossBenjaminCrow::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, 
         TextureDrawData effectDrawData;
         effectDrawData.type = TextureType::Entities;
 
-        effectDrawData.position = Camera::worldToScreenTransform(dashGhostEffect.position);
+        effectDrawData.position = camera.worldToScreenTransform(dashGhostEffect.position);
         effectDrawData.colour = sf::Color(255, 255, 255, dashGhostEffect.MAX_ALPHA * dashGhostEffect.timer / dashGhostEffect.MAX_TIME);
         effectDrawData.scale = sf::Vector2f(scale * dashGhostEffect.scaleX, scale);
         effectDrawData.centerRatio = sf::Vector2f(0.5f, 0.5f);
@@ -333,7 +334,7 @@ void BossBenjaminCrow::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, 
 
     // Draw bird
     sf::Vector2f worldPos(position.x, position.y - flyingHeight);
-    drawData.position = Camera::worldToScreenTransform(worldPos);
+    drawData.position = camera.worldToScreenTransform(worldPos);
 
     // Flip if required
     if (direction.x < 0)
@@ -375,10 +376,8 @@ void BossBenjaminCrow::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, 
     }
 }
 
-void BossBenjaminCrow::getHoverStats(sf::Vector2f mouseScreenPos, std::vector<std::string>& hoverStats)
+void BossBenjaminCrow::getHoverStats(sf::Vector2f mouseWorldPos, std::vector<std::string>& hoverStats)
 {
-    sf::Vector2f mouseWorldPos = Camera::screenToWorldTransform(mouseScreenPos);
-
     if (!collision.isPointColliding(mouseWorldPos.x, mouseWorldPos.y))
     {
         return;

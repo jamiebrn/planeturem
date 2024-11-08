@@ -69,7 +69,7 @@
 #include "Types/GameState.hpp"
 #include "Types/WorldMenuState.hpp"
 
-#include "GUI/Base/GUIContext.hpp"
+#include "GUI/MainMenuGUI.hpp"
 #include "GUI/InventoryGUI.hpp"
 #include "GUI/HealthGUI.hpp"
 #include "GUI/TravelSelectGUI.hpp"
@@ -102,10 +102,14 @@ public:
     void rocketFinishedUp(RocketObject& rocket);
     void rocketFinishedDown(RocketObject& rocket);
 
+    void drawWorld(sf::RenderTexture& renderTexture, float dt, std::vector<WorldObject*>& worldObjects, ChunkManager& chunkManagerArg, const Camera& cameraArg);
+
     inline bool getIsDay() {return isDay;}
     inline DayCycleManager& getDayCycleManager() {return dayCycleManager;}
 
     inline const ChunkManager& getChunkManager() {return chunkManager;}
+
+    inline const Camera& getCamera() {return camera;}
 
 private:
 
@@ -124,7 +128,6 @@ private:
     void updateOnPlanet(float dt);
     void drawOnPlanet(float dt);
 
-    void drawWorld(float dt, std::vector<WorldObject*>& worldObjects);
     void drawLighting(float dt, std::vector<WorldObject*>& worldObjects);
 
     void testEnterStructure();
@@ -190,12 +193,10 @@ private:
     void startChangeStateTransition(GameState newState);
     void changeState(GameState newState);
 
-    void setWorldSeedFromInput();
-
 
     // -- Save / load -- //
 
-    void startNewGame();
+    void startNewGame(int seed);
     bool saveGame(bool gettingInRocket = false);
     bool loadGame(const std::string& saveName);
     bool loadPlanet(PlanetType planetType);
@@ -228,18 +229,7 @@ private:
     sf::Image icon;
     bool fullScreen = true;
 
-    GUIContext guiContext;
-    std::string worldSeed;
     std::string currentSaveName;
-    std::string menuErrorMessage;
-    
-    // Menu
-    MainMenuState mainMenuState;
-    int menuScreenshotIndex;
-    float menuScreenshotTimer;
-
-    std::vector<std::string> saveFileNames;
-    int saveFilePage;
 
     SpriteBatch spriteBatch;
     sf::RenderTexture worldTexture;
@@ -255,8 +245,12 @@ private:
     float musicGapTimer;
     float musicGap;
 
+    // GUI
+    MainMenuGUI mainMenuGUI;
+
     // Game general data
     Player player;
+    Camera camera;
     InventoryData inventory;
     InventoryData armourInventory;
     ChunkManager chunkManager;
