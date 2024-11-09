@@ -25,6 +25,7 @@
 
 #include "Object/ObjectReference.hpp"
 
+#include "Data/Serialise/Vector2Serialise.hpp"
 #include "Data/typedefs.hpp"
 #include "Data/ItemDataLoader.hpp"
 #include "Data/ObjectDataLoader.hpp"
@@ -41,6 +42,10 @@ struct PlayerGameSave
 
     float time;
     int day;
+
+    bool isInRoom = false;
+    uint32_t inRoomID = 0;
+    sf::Vector2f positionInRoom;
 
     // template <class Archive>
     // void serialize(Archive& ar)

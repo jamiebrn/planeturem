@@ -11,19 +11,19 @@ public:
 
     void update(float dt);
 
-    bool isDay();
+    bool isDay() const;
 
-    float getLightLevel();
+    float getLightLevel() const;
 
-    float getCurrentTime();
+    float getCurrentTime() const;
     void setCurrentTime(float time);
-    std::string getTimeString();
+    std::string getTimeString()  const;
 
-    int getCurrentDay();
+    int getCurrentDay() const;
     void setCurrentDay(int day);
-    std::string getDayString();
+    std::string getDayString() const;
 
-    float getDayLength();
+    float getDayLength() const;
 
 private:
     int currentDay = 0;

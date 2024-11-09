@@ -299,6 +299,11 @@ void BossSandSerpent::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, G
             spriteBatch.draw(window, drawData, animations.at(behaviourState).getTextureRect(), shader);
 
             // Draw head
+            if (headHealth <= 0)
+            {
+                break;
+            }
+            
             static const int HEAD_Y_OFFSET = -51;
             static const int HEAD_TEXTURE_Y_OFFSET = 32;
 

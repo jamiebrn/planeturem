@@ -105,7 +105,7 @@ public:
     void drawWorld(sf::RenderTexture& renderTexture, float dt, std::vector<WorldObject*>& worldObjects, ChunkManager& chunkManagerArg, const Camera& cameraArg);
 
     inline bool getIsDay() {return isDay;}
-    inline DayCycleManager& getDayCycleManager() {return dayCycleManager;}
+    const DayCycleManager& getDayCycleManager();
 
     inline const ChunkManager& getChunkManager() {return chunkManager;}
 

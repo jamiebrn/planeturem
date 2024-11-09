@@ -132,6 +132,13 @@ bool GameSaveIO::loadPlayerSave(PlayerGameSave& playerGameSave)
         playerGameSave.armourInventory = json["armour-inventory"];
         playerGameSave.time = json["time"];
         playerGameSave.day = json["day"];
+
+        if (json.contains("in-room"))
+        {
+            playerGameSave.isInRoom = true;
+            playerGameSave.inRoomID = json.at("room-id");
+            playerGameSave.positionInRoom = json.at("room-player-pos");
+        }
     }
     catch(const std::exception& e)
     {
@@ -158,6 +165,13 @@ bool GameSaveIO::writePlayerSave(const PlayerGameSave& playerGameSave)
     json["armour-inventory"] = playerGameSave.armourInventory;
     json["time"] = playerGameSave.time;
     json["day"] = playerGameSave.day;
+
+    if (playerGameSave.isInRoom)
+    {
+        json["in-room"] = true;
+        json["room-id"] = playerGameSave.inRoomID;
+        json["room-player-pos"] = playerGameSave.positionInRoom;
+    }
 
     out << json;
     out.close();

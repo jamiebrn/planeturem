@@ -1557,10 +1557,16 @@ void Game::changeState(GameState newState)
         {
             closeChest();
             nearbyCraftingStationLevels.clear();
-            
-            sf::Vector2f roomEntrancePos = structureRoomPool.getRoom(structureEnteredID).getEntrancePosition();
 
-            player.setPosition(roomEntrancePos);
+            // If entered structure from planet (i.e. not loaded save file in structure),
+            // set position to structure entrance
+            if (gameState == GameState::OnPlanet)
+            {
+                sf::Vector2f roomEntrancePos = structureRoomPool.getRoom(structureEnteredID).getEntrancePosition();
+
+                player.setPosition(roomEntrancePos);
+            }
+
             camera.instantUpdate(player.getPosition());
 
             player.enterStructure();
@@ -1625,6 +1631,16 @@ bool Game::saveGame(bool gettingInRocket)
     planetGameSave.chunks = chunkManager.getChunkPODs();
     planetGameSave.chestDataPool = chestDataPool;
     planetGameSave.structureRoomPool = structureRoomPool;
+
+    if (gameState == GameState::InStructure)
+    {
+        playerGameSave.isInRoom = true;
+        playerGameSave.inRoomID = structureEnteredID;
+        playerGameSave.positionInRoom = player.getPosition();
+
+        planetGameSave.playerLastPos = structureEnteredPos;
+    }
+
     
     if (gettingInRocket)
     {
@@ -1665,6 +1681,17 @@ bool Game::loadGame(const std::string& saveName)
     chestDataPool = planetGameSave.chestDataPool;
     structureRoomPool = planetGameSave.structureRoomPool;
 
+    GameState nextGameState = GameState::OnPlanet;
+
+    if (playerGameSave.isInRoom)
+    {
+        structureEnteredID = playerGameSave.inRoomID;
+        structureEnteredPos = planetGameSave.playerLastPos;
+        player.setPosition(playerGameSave.positionInRoom);
+
+        nextGameState = GameState::InStructure;
+    }
+
     bossManager.clearBosses();
 
     camera.instantUpdate(player.getPosition());
@@ -1674,7 +1701,7 @@ bool Game::loadGame(const std::string& saveName)
 
     // Load successful, set save name as current save and start state transition
     currentSaveName = saveName;
-    startChangeStateTransition(GameState::OnPlanet);
+    startChangeStateTransition(nextGameState);
 
     // Fade out previous music
     Sounds::stopMusic(0.3f);
@@ -1814,6 +1841,19 @@ void Game::handleWindowResize(sf::Vector2u newSize)
 
 
 // -- Misc -- //
+
+const DayCycleManager& Game::getDayCycleManager()
+{
+    if (gameState == GameState::MainMenu)
+    {
+        // Return a new day cycle manager while in main menu
+        // Prevents world in background changing when a save is loaded
+        static DayCycleManager tempDayCycleManager;
+        return tempDayCycleManager;
+    }
+
+    return dayCycleManager;
+}
 
 void Game::generateWaterNoiseTexture()
 {

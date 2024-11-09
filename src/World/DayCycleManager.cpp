@@ -11,13 +11,13 @@ void DayCycleManager::update(float dt)
     }
 }
 
-bool DayCycleManager::isDay()
+bool DayCycleManager::isDay() const
 {
     static constexpr float DAY_LIGHT_THRESHOLD = 0.3f;
     return (getLightLevel() >= DAY_LIGHT_THRESHOLD);
 }
 
-float DayCycleManager::getLightLevel()
+float DayCycleManager::getLightLevel() const
 {
     static constexpr float a = 13.4f;
     static constexpr float b = 1.5f;
@@ -32,7 +32,7 @@ float DayCycleManager::getLightLevel()
     return light;
 }
 
-float DayCycleManager::getCurrentTime()
+float DayCycleManager::getCurrentTime() const
 {
     return currentTime;
 }
@@ -42,7 +42,7 @@ void DayCycleManager::setCurrentTime(float time)
     currentTime = time;
 }
 
-std::string DayCycleManager::getTimeString()
+std::string DayCycleManager::getTimeString() const
 {
     float progress = currentTime / DAY_LENGTH;
     int hours = std::floor(progress * 24);
@@ -58,7 +58,7 @@ std::string DayCycleManager::getTimeString()
     return std::to_string(hours) + ":" + minuteString;
 }
 
-int DayCycleManager::getCurrentDay()
+int DayCycleManager::getCurrentDay() const
 {
     return currentDay;
 }
@@ -68,12 +68,12 @@ void DayCycleManager::setCurrentDay(int day)
     currentDay = day;
 }
 
-std::string DayCycleManager::getDayString()
+std::string DayCycleManager::getDayString() const
 {
     return "Day " + std::to_string(currentDay);
 }
 
-float DayCycleManager::getDayLength()
+float DayCycleManager::getDayLength() const
 {
     return DAY_LENGTH;
 }

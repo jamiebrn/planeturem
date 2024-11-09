@@ -42,6 +42,7 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
 {
     static constexpr int buttonPaddingX = 300;
     static constexpr int panelWidth = 600;
+    
 
     // Drawing
     window.clear();
