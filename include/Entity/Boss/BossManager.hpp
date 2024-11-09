@@ -9,6 +9,9 @@
 #include <SFML/Graphics.hpp>
 
 #include "Core/Sounds.hpp"
+#include "Core/Camera.hpp"
+
+#include "Player/Cursor.hpp"
 
 #include "BossEntity.hpp"
 #include "BossBenjaminCrow.hpp"
@@ -36,7 +39,7 @@ public:
 
     void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch);
 
-    void drawStatsAtCursor(sf::RenderTarget& window, sf::Vector2f mouseScreenPos);
+    void drawStatsAtCursor(sf::RenderTarget& window, const Camera& camera, sf::Vector2f mouseScreenPos);
 
     void getBossWorldObjects(std::vector<WorldObject*>& worldObjects);
 

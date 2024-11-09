@@ -91,13 +91,15 @@ void BossManager::clearBosses()
 //     }
 // }
 
-void BossManager::drawStatsAtCursor(sf::RenderTarget& window, sf::Vector2f mouseScreenPos)
+void BossManager::drawStatsAtCursor(sf::RenderTarget& window, const Camera& camera, sf::Vector2f mouseScreenPos)
 {
     std::vector<std::string> hoverStats;
 
+    sf::Vector2f mouseWorldPos = camera.screenToWorldTransform(mouseScreenPos);
+
     for (auto& boss : bosses)
     {
-        boss->getHoverStats(mouseScreenPos, hoverStats);
+        boss->getHoverStats(mouseWorldPos, hoverStats);
     }
 
     float intScale = ResolutionHandler::getResolutionIntegerScale();

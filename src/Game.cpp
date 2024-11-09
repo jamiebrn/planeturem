@@ -1,6 +1,7 @@
 #include "Game.hpp"
 
 // FIX: Crash on save / rocket enter bug (can't save???)
+// FIX: Load save changing world menu (day etc)
 
 // TODO: Night and menu music
 // TODO: Better GUI system / relative to window size etc and texturing
@@ -719,7 +720,7 @@ void Game::drawOnPlanet(float dt)
 
     HitMarkers::draw(window, camera);
 
-    bossManager.drawStatsAtCursor(window, mouseScreenPos);
+    bossManager.drawStatsAtCursor(window, camera, mouseScreenPos);
 }
 
 void Game::drawWorld(sf::RenderTexture& renderTexture, float dt, std::vector<WorldObject*>& worldObjects, ChunkManager& chunkManagerArg, const Camera& cameraArg)

@@ -199,6 +199,8 @@ bool BossSandSerpent::takeHeadDamage(int damage, InventoryData& inventory, sf::V
     headHealth -= damage;
     HitMarkers::addHitMarker(damagePosition, damage);
 
+    return true;
+
     // if (health <= HEALTH_SECOND_STAGE_THRESHOLD)
     // {
     //     stage = 1;

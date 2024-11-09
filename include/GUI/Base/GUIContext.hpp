@@ -25,7 +25,7 @@ public:
 
     void endGUI();
 
-    bool createButton(int x, int y, int width, int height, const std::string& text);
+    bool createButton(int x, int y, int width, int height, const std::string& text, std::optional<ButtonStyle> style = std::nullopt);
 
     bool createCheckbox(int x, int y, int width, int height, const std::string& label, bool* value);
 

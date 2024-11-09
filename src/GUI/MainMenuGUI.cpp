@@ -40,6 +40,9 @@ void MainMenuGUI::update(float dt, sf::Vector2f mouseScreenPos, Game& game, Proj
 
 std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, float dt, float gameTime)
 {
+    static constexpr int buttonPaddingX = 300;
+    static constexpr int panelWidth = 600;
+
     // Drawing
     window.clear();
 
@@ -56,28 +59,48 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
     sf::Sprite worldTextureSprite(worldTexture.getTexture());
     window.draw(worldTextureSprite);
 
+    // Draw panel
+    sf::Vector2f resolution = static_cast<sf::Vector2f>(ResolutionHandler::getResolution());
+
+    sf::VertexArray panel(sf::Quads);
+    panel.append(sf::Vertex(sf::Vector2f((buttonPaddingX - 100) * intScale, 0), sf::Color(30, 30, 30, 180)));
+    panel.append(sf::Vertex(sf::Vector2f((buttonPaddingX - 100 + panelWidth) * intScale, 0), sf::Color(30, 30, 30, 180)));
+    panel.append(sf::Vertex(sf::Vector2f((buttonPaddingX - 100 + panelWidth) * intScale, resolution.y), sf::Color(30, 30, 30, 180)));
+    panel.append(sf::Vertex(sf::Vector2f((buttonPaddingX - 100) * intScale, resolution.y), sf::Color(30, 30, 30, 180)));
+
+    window.draw(panel);
+
     // Draw title
     TextureDrawData titleDrawData;
     titleDrawData.type = TextureType::UI;
     titleDrawData.scale = sf::Vector2f(3, 3) * intScale;
-    titleDrawData.position = sf::Vector2f(std::round(window.getSize().x / 2.0f), std::round((200 + std::sin(gameTime) * 20) * intScale));
+    titleDrawData.position = sf::Vector2f((buttonPaddingX - 100 + panelWidth / 2) * intScale, std::round((140 + std::sin(gameTime) * 20) * intScale));
     titleDrawData.centerRatio = sf::Vector2f(0.5f, 0.5f);
 
     TextureManager::drawSubTexture(window, titleDrawData, sf::IntRect(21, 160, 212, 32));
+
+    const ButtonStyle buttonStyle = {
+        .colour = sf::Color(0, 0, 0, 0),
+        .hoveredColour = sf::Color(0, 0, 0, 0),
+        .clickedColour = sf::Color(0, 0, 0, 0),
+        .textColour = sf::Color(200, 200, 200),
+        .hoveredTextColour = sf::Color(220, 220, 220),
+        .clickedTextColour = sf::Color(255, 255, 255)
+    };
 
     // Buttons / UI
     switch (mainMenuState)
     {
         case MainMenuState::Main:
         {
-            if (guiContext.createButton(window.getSize().x / 2.0f - 100 * intScale, window.getSize().y / 2.0f - 200.0f * intScale, 200 * intScale, 75 * intScale, "New"))
+            if (guiContext.createButton(buttonPaddingX * intScale, window.getSize().y / 2.0f - 200.0f * intScale, 200 * intScale, 75 * intScale, "New", buttonStyle))
             {
                 saveNameInput = "";
                 worldSeedInput = "";
                 mainMenuState = MainMenuState::StartingNew;
             }
 
-            if (guiContext.createButton(window.getSize().x / 2.0f - 100 * intScale, window.getSize().y / 2.0f - 50 * intScale, 200 * intScale, 75 * intScale, "Load"))
+            if (guiContext.createButton(buttonPaddingX * intScale, window.getSize().y / 2.0f - 50 * intScale, 200 * intScale, 75 * intScale, "Load", buttonStyle))
             {
                 mainMenuState = MainMenuState::SelectingLoad;
                 
@@ -87,12 +110,12 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
                 saveFilePage = 0;
             }
 
-            if (guiContext.createButton(window.getSize().x / 2.0f - 100 * intScale, window.getSize().y / 2.0f + 100 * intScale, 200 * intScale, 75 * intScale, "Options"))
+            if (guiContext.createButton(buttonPaddingX * intScale, window.getSize().y / 2.0f + 100 * intScale, 200 * intScale, 75 * intScale, "Options", buttonStyle))
             {
                 mainMenuState = MainMenuState::Options;
             }
 
-            if (guiContext.createButton(window.getSize().x / 2.0f - 100 * intScale, window.getSize().y / 2.0f + 250 * intScale, 200 * intScale, 75 * intScale, "Exit"))
+            if (guiContext.createButton(buttonPaddingX * intScale, window.getSize().y / 2.0f + 250 * intScale, 200 * intScale, 75 * intScale, "Exit", buttonStyle))
             {
                 MainMenuEvent quitEvent;
                 quitEvent.type = MainMenuEventType::Quit;
@@ -102,13 +125,13 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
         }
         case MainMenuState::StartingNew:
         {
-            guiContext.createTextEnter(window.getSize().x / 2.0f - 200 * intScale, window.getSize().y / 2.0f - 100.0f * intScale,
+            guiContext.createTextEnter(buttonPaddingX * intScale, window.getSize().y / 2.0f - 100.0f * intScale,
                 400 * intScale, 40 * intScale, "Name", &saveNameInput);
 
-            guiContext.createTextEnter(window.getSize().x / 2.0f - 200 * intScale, window.getSize().y / 2.0f + 150 * intScale,
+            guiContext.createTextEnter(buttonPaddingX * intScale, window.getSize().y / 2.0f + 150 * intScale,
             400 * intScale, 40 * intScale, "Seed", &worldSeedInput);
 
-            if (guiContext.createButton(window.getSize().x / 2.0f - 100 * intScale, window.getSize().y / 2.0f + 300 * intScale, 200 * intScale, 75 * intScale, "Start"))
+            if (guiContext.createButton(buttonPaddingX * intScale, window.getSize().y / 2.0f + 300 * intScale, 200 * intScale, 75 * intScale, "Start", buttonStyle))
             {
                 if (!saveNameInput.empty())
                 {
@@ -120,7 +143,7 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
                 }
             }
             
-            if (guiContext.createButton(window.getSize().x / 2.0f - 100 * intScale, window.getSize().y - 150 * intScale, 200 * intScale, 75 * intScale, "Back"))
+            if (guiContext.createButton(buttonPaddingX * intScale, window.getSize().y - 150 * intScale, 200 * intScale, 75 * intScale, "Back", buttonStyle))
             {
                 if (canInteract)
                 {
@@ -137,8 +160,8 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
             {
                 const std::string& saveName = saveFileNames[i];
 
-                if (guiContext.createButton(window.getSize().x / 2.0f - 100 * intScale, window.getSize().y / 2.0f - (150 - (i % saveFilesPerPage) * 100) * intScale,
-                    200 * intScale, 75 * intScale, saveName))
+                if (guiContext.createButton(buttonPaddingX * intScale, window.getSize().y / 2.0f - (150 - (i % saveFilesPerPage) * 100) * intScale,
+                    200 * intScale, 75 * intScale, saveName, buttonStyle))
                 {
                     MainMenuEvent loadEvent;
                     loadEvent.type = MainMenuEventType::Load;
@@ -152,10 +175,11 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
             {
                 TextDrawData textDrawData;
                 textDrawData.text = "No save files found";
-                textDrawData.position = sf::Vector2f(window.getSize().x / 2.0f, window.getSize().y / 2.0f - 150 * intScale);
+                textDrawData.position = sf::Vector2f(buttonPaddingX * intScale, window.getSize().y / 2.0f - 150 * intScale);
                 textDrawData.size = 24 * intScale;
                 textDrawData.centeredX = true;
                 textDrawData.centeredY = true;
+                textDrawData.colour = sf::Color(255, 255, 255);
 
                 TextDraw::drawText(window, textDrawData);
             }
@@ -166,8 +190,8 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
                 // Create page back button
                 if (saveFilePage > 0)
                 {
-                    if (guiContext.createButton(window.getSize().x / 2.0f - 300 * intScale, window.getSize().y / 2.0f - 150 * intScale,
-                        50 * intScale, 50 * intScale, "<"))
+                    if (guiContext.createButton((buttonPaddingX - 75) * intScale, window.getSize().y / 2.0f - 150 * intScale,
+                        50 * intScale, 50 * intScale, "<", buttonStyle))
                     {
                         saveFilePage--;   
                     }
@@ -176,15 +200,15 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
                 // Create page forward button
                 if (saveFilePage < std::ceil(saveFileNames.size() / saveFilesPerPage))
                 {
-                    if (guiContext.createButton(window.getSize().x / 2.0f + 250 * intScale, window.getSize().y / 2.0f - 150 * intScale,
-                        50 * intScale, 50 * intScale, ">"))
+                    if (guiContext.createButton((buttonPaddingX + 200 + 75) * intScale, window.getSize().y / 2.0f - 150 * intScale,
+                        50 * intScale, 50 * intScale, ">", buttonStyle))
                     {
                         saveFilePage++;   
                     }
                 }
             }
 
-            if (guiContext.createButton(window.getSize().x / 2.0f - 100 * intScale, window.getSize().y - 150 * intScale, 200 * intScale, 75 * intScale, "Back"))
+            if (guiContext.createButton(buttonPaddingX * intScale, window.getSize().y - 150 * intScale, 200 * intScale, 75 * intScale, "Back", buttonStyle))
             {
                 if (canInteract)
                 {
@@ -196,13 +220,13 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
         case MainMenuState::Options:
         {
             float musicVolume = Sounds::getMusicVolume();
-            if (guiContext.createSlider(window.getSize().x / 2.0f - 200 * intScale, window.getSize().y / 2.0f, 400 * intScale, 15 * intScale,
+            if (guiContext.createSlider(buttonPaddingX * intScale, window.getSize().y / 2.0f, 400 * intScale, 15 * intScale,
                 0.0f, 100.0f, &musicVolume, "Music Volume"))
             {
                 Sounds::setMusicVolume(musicVolume);
             }
 
-            if (guiContext.createButton(window.getSize().x / 2.0f - 100 * intScale, window.getSize().y - 150 * intScale, 200 * intScale, 75 * intScale, "Back"))
+            if (guiContext.createButton(buttonPaddingX * intScale, window.getSize().y - 150 * intScale, 200 * intScale, 75 * intScale, "Back", buttonStyle))
             {
                 mainMenuState = MainMenuState::Main;
             }

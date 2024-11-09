@@ -69,9 +69,9 @@ void GUIContext::endGUI()
     elements.clear();
 }
 
-bool GUIContext::createButton(int x, int y, int width, int height, const std::string& text)
+bool GUIContext::createButton(int x, int y, int width, int height, const std::string& text, std::optional<ButtonStyle> style)
 {
-    std::unique_ptr<Button> button = std::make_unique<Button>(inputState, elements.size(), x, y, width, height, text);
+    std::unique_ptr<Button> button = std::make_unique<Button>(inputState, elements.size(), x, y, width, height, text, style);
 
     bool clicked = button->isClicked();
 

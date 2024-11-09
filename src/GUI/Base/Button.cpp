@@ -1,6 +1,6 @@
 #include "GUI/Base/Button.hpp"
 
-Button::Button(const GUIInputState& inputState, ElementID id, int x, int y, int width, int height, const std::string& text)
+Button::Button(const GUIInputState& inputState, ElementID id, int x, int y, int width, int height, const std::string& text, std::optional<ButtonStyle> style)
 {
     this->x = x;
     this->y = y;
@@ -33,6 +33,13 @@ Button::Button(const GUIInputState& inputState, ElementID id, int x, int y, int 
             held = true;
         }
     }
+
+    if (!style.has_value())
+    {
+        style = ButtonStyle();
+    }
+
+    this->style = style.value();
 }
 
 bool Button::isClicked()
@@ -56,26 +63,29 @@ void Button::draw(sf::RenderTarget& window)
     sf::RectangleShape rect;
     rect.setPosition(x, y);
     rect.setSize(sf::Vector2f(width, height));
-
-    if (clicked || held)
-    {
-        rect.setFillColor(sf::Color(60, 140, 60));
-    }
-    else if (hovered)
-    {
-        rect.setFillColor(sf::Color(0, 240, 0));
-    }
-
-    window.draw(rect);
+    rect.setFillColor(style.colour);
 
     // Draw text
     TextDrawData textDrawData;
     textDrawData.text = text;
     textDrawData.size = 24;
-    textDrawData.colour = sf::Color(0, 0, 0);
+    textDrawData.colour = style.textColour;
     textDrawData.position = sf::Vector2f(x, y) + sf::Vector2f(width, height) / 2.0f;
     textDrawData.centeredX = true;
     textDrawData.centeredY = true;
+    
+    if (clicked || held)
+    {
+        rect.setFillColor(style.clickedColour);
+        textDrawData.colour = style.clickedTextColour;
+    }
+    else if (hovered)
+    {
+        rect.setFillColor(style.hoveredColour);
+        textDrawData.colour = style.hoveredTextColour;
+    }
+
+    window.draw(rect);
 
     TextDraw::drawText(window, textDrawData);
 }
