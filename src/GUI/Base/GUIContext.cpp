@@ -69,7 +69,7 @@ void GUIContext::endGUI()
     elements.clear();
 }
 
-bool GUIContext::createButton(int x, int y, int width, int height, const std::string& text, std::optional<ButtonStyle> style)
+const Button& GUIContext::createButton(int x, int y, int width, int height, const std::string& text, std::optional<ButtonStyle> style)
 {
     std::unique_ptr<Button> button = std::make_unique<Button>(inputState, elements.size(), x, y, width, height, text, style);
 
@@ -86,10 +86,10 @@ bool GUIContext::createButton(int x, int y, int width, int height, const std::st
 
     elements.push_back(std::move(button));
 
-    return clicked;
+    return *static_cast<Button*>(elements.back().get());
 }
 
-bool GUIContext::createCheckbox(int x, int y, int width, int height, const std::string& label, bool* value)
+const Checkbox& GUIContext::createCheckbox(int x, int y, int width, int height, const std::string& label, bool* value)
 {
     std::unique_ptr<Checkbox> checkbox = std::make_unique<Checkbox>(inputState, elements.size(), x, y, width, height, label, value);
 
@@ -106,10 +106,10 @@ bool GUIContext::createCheckbox(int x, int y, int width, int height, const std::
 
     elements.push_back(std::move(checkbox));
 
-    return clicked;
+    return *static_cast<Checkbox*>(elements.back().get());
 }
 
-bool GUIContext::createSlider(int x, int y, int width, int height, float minValue, float maxValue, float* value, std::optional<std::string> label)
+const Slider& GUIContext::createSlider(int x, int y, int width, int height, float minValue, float maxValue, float* value, std::optional<std::string> label)
 {
     std::unique_ptr<Slider> slider = std::make_unique<Slider>(inputState, elements.size(), x, y, width, height, minValue, maxValue, value, label);
 
@@ -126,10 +126,10 @@ bool GUIContext::createSlider(int x, int y, int width, int height, float minValu
 
     elements.push_back(std::move(slider));
 
-    return held;
+    return *static_cast<Slider*>(elements.back().get());
 }
 
-bool GUIContext::createTextEnter(int x, int y, int width, int height, const std::string& text, std::string* textPtr)
+const TextEnter& GUIContext::createTextEnter(int x, int y, int width, int height, const std::string& text, std::string* textPtr)
 {
     std::unique_ptr<TextEnter> textEnter = std::make_unique<TextEnter>(inputState, elements.size(), x, y, width, height, text, textPtr);
 
@@ -144,7 +144,8 @@ bool GUIContext::createTextEnter(int x, int y, int width, int height, const std:
 
     elements.push_back(std::move(textEnter));
 
-    return (inputState.activeElement == elements.size() - 1);
+    // return (inputState.activeElement == elements.size() - 1);
+    return *static_cast<TextEnter*>(elements.back().get());
 }
 
 void GUIContext::draw(sf::RenderTarget& window)
@@ -153,4 +154,17 @@ void GUIContext::draw(sf::RenderTarget& window)
     {
         guiElement->draw(window);
     }
+}
+
+const GUIElement* GUIContext::getHoveredElement() const
+{
+    for (auto& element : elements)
+    {
+        if (element->isHovered())
+        {
+            return element.get();
+        }
+    }
+
+    return nullptr;
 }

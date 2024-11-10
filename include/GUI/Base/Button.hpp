@@ -26,16 +26,19 @@ class Button : public GUIElement
 public:
     Button(const GUIInputState& inputState, ElementID id, int x, int y, int width, int height, const std::string& text, std::optional<ButtonStyle> style = std::nullopt);
 
-    bool isClicked();
-    bool isHeld();
-    bool hasJustReleased();
+    bool isClicked() const;
+    bool isHeld() const;
+    // virtual bool isHovered() const override;
+    bool hasJustReleased() const;
 
     void draw(sf::RenderTarget& window) override;
+
+    sf::IntRect getBoundingBox() const override;
 
 protected:
     bool clicked;
     bool held;
-    bool hovered;
+    // bool hovered;
     bool justReleased;
 
     int x, y, width, height;

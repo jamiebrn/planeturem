@@ -1,6 +1,7 @@
 #include "GUI/Base/Button.hpp"
 
 Button::Button(const GUIInputState& inputState, ElementID id, int x, int y, int width, int height, const std::string& text, std::optional<ButtonStyle> style)
+    : GUIElement(id)
 {
     this->x = x;
     this->y = y;
@@ -42,17 +43,22 @@ Button::Button(const GUIInputState& inputState, ElementID id, int x, int y, int 
     this->style = style.value();
 }
 
-bool Button::isClicked()
+bool Button::isClicked() const
 {
     return clicked;
 }
 
-bool Button::isHeld()
+bool Button::isHeld() const
 {
     return held;
 }
 
-bool Button::hasJustReleased()
+// bool Button::isHovered() const
+// {
+//     return hovered;
+// }
+
+bool Button::hasJustReleased() const
 {
     return justReleased;
 }
@@ -88,4 +94,9 @@ void Button::draw(sf::RenderTarget& window)
     window.draw(rect);
 
     TextDraw::drawText(window, textDrawData);
+}
+
+sf::IntRect Button::getBoundingBox() const
+{
+    return sf::IntRect(x, y, width, height);
 }

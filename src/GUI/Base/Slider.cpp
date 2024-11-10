@@ -2,6 +2,7 @@
 
 Slider::Slider(const GUIInputState& inputState, ElementID id, int x, int y, int width, int height, float minValue, float maxValue,
     float* value, std::optional<std::string> label)
+    : GUIElement(id)
 {
     this->x = x;
     this->y = y;
@@ -46,12 +47,12 @@ Slider::Slider(const GUIInputState& inputState, ElementID id, int x, int y, int 
     }
 }
 
-bool Slider::isHeld()
+bool Slider::isHeld() const
 {
     return held;
 }
 
-bool Slider::hasReleased()
+bool Slider::hasReleased() const
 {
     return released;
 }
@@ -106,4 +107,9 @@ void Slider::draw(sf::RenderTarget& window)
         
         TextDraw::drawText(window, textDrawData);
     }
+}
+
+sf::IntRect Slider::getBoundingBox() const
+{
+    return sf::IntRect(x, y, width, height);
 }

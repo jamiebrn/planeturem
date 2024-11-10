@@ -25,7 +25,7 @@ bool TravelSelectGUI::createGUI(sf::RenderWindow& window, PlanetType& selectedPl
     {
         const PlanetGenData& planetData = PlanetGenDataLoader::getPlanetGenData(destination);
 
-        if (guiContext.createButton(window.getSize().x / 2.0f - 100 * intScale, yPos, 200 * intScale, 75 * intScale, planetData.name))
+        if (guiContext.createButton(window.getSize().x / 2.0f - 100 * intScale, yPos, 200 * intScale, 75 * intScale, planetData.name).isClicked())
         {
             clicked = true;
             selectedPlanetType = destination;

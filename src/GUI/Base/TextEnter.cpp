@@ -1,6 +1,7 @@
 #include "GUI/Base/TextEnter.hpp"
 
 TextEnter::TextEnter(const GUIInputState& inputState, ElementID id, int x, int y, int width, int height, const std::string& text, std::string* textPtr)
+    : GUIElement(id)
 {
     this->x = x;
     this->y = y;
@@ -18,9 +19,14 @@ TextEnter::TextEnter(const GUIInputState& inputState, ElementID id, int x, int y
     }
 
     CollisionRect rect(x, y, width, height);
+    if (rect.isPointInRect(inputState.mouseX, inputState.mouseY))
+    {
+        hovered = true;
+    }
+
     if (inputState.leftMouseJustDown)
     {
-        if (rect.isPointInRect(inputState.mouseX, inputState.mouseY))
+        if (hovered)
         {
             active = true;
         }
@@ -47,12 +53,12 @@ TextEnter::TextEnter(const GUIInputState& inputState, ElementID id, int x, int y
     }
 }
 
-bool TextEnter::isActive()
+bool TextEnter::isActive() const
 {
     return active;
 }
 
-bool TextEnter::hasClickedAway()
+bool TextEnter::hasClickedAway() const
 {
     return clickedAway;
 }
@@ -89,4 +95,9 @@ void TextEnter::draw(sf::RenderTarget& window)
 
         TextDraw::drawText(window, textDrawData);
     }
+}
+
+sf::IntRect TextEnter::getBoundingBox() const
+{
+    return sf::IntRect(x, y, width, height);
 }

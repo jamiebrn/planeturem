@@ -17,14 +17,16 @@ public:
     Slider(const GUIInputState& inputState, ElementID id, int x, int y, int width, int height, float minValue, float maxValue,
         float* value, std::optional<std::string> label = std::nullopt);
 
-    bool isHeld();
-    bool hasReleased();
+    bool isHeld() const;
+    bool hasReleased() const;
 
     void draw(sf::RenderTarget& window) override;
 
+    sf::IntRect getBoundingBox() const override;
+
 private:
     bool held;
-    bool hovered;
+    // bool hovered;
     bool released;
 
     int x, y, width, height;
