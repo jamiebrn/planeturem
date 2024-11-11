@@ -15,7 +15,7 @@ class Slider : public GUIElement
 {
 public:
     Slider(const GUIInputState& inputState, ElementID id, int x, int y, int width, int height, float minValue, float maxValue,
-        float* value, std::optional<std::string> label = std::nullopt);
+        float* value, std::optional<std::string> label = std::nullopt, int paddingLeft = 0, int paddingRight = 0, int paddingY = 0);
 
     bool isHeld() const;
     bool hasReleased() const;
@@ -26,10 +26,10 @@ public:
 
 private:
     bool held;
-    // bool hovered;
     bool released;
 
     int x, y, width, height;
+    int paddingLeft, paddingRight, paddingY;
     float minValue, maxValue;
     float* value;
     std::optional<std::string> label;

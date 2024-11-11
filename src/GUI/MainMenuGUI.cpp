@@ -11,6 +11,8 @@ void MainMenuGUI::initialise()
     canInteract = true;
     mainMenuState = MainMenuState::Main;
 
+    deferHoverRectReset = false;
+
     // selectionHoverRectDrawing = false;
 
     // static const std::string backgroundWorldSeed = "Planeturem";
@@ -43,15 +45,15 @@ void MainMenuGUI::update(float dt, sf::Vector2f mouseScreenPos, Game& game, Proj
 
 std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, float dt, float gameTime)
 {
-    static constexpr int panelPaddingX = 250;
-    static constexpr int panelWidth = 500;
-    
-
     // Drawing
     window.clear();
 
     float intScale = ResolutionHandler::getResolutionIntegerScale();
+    sf::Vector2f resolution = static_cast<sf::Vector2f>(ResolutionHandler::getResolution());
 
+    const int panelPaddingX = 250 * resolution.x / 1920.0f;
+    const int panelWidth = 500;
+    
     // Draw background chunks / world
     std::vector<WorldObject*> worldObjects = backgroundChunkManager.getChunkObjects();
     std::vector<WorldObject*> entities = backgroundChunkManager.getChunkEntities();
@@ -64,7 +66,6 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
     window.draw(worldTextureSprite);
 
     // Draw panel
-    sf::Vector2f resolution = static_cast<sf::Vector2f>(ResolutionHandler::getResolution());
 
     sf::VertexArray panel(sf::Quads);
     panel.append(sf::Vertex(sf::Vector2f((panelPaddingX) * intScale, 0), sf::Color(30, 30, 30, 180)));
@@ -93,7 +94,9 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
     };
 
     MainMenuState nextUIState = mainMenuState;
-    int elementYPos = 400;
+
+    const int startElementYPos = resolution.y * 0.37f;
+    int elementYPos = startElementYPos;
 
     // Buttons / UI
     switch (mainMenuState)
@@ -118,7 +121,7 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
                 nextUIState = MainMenuState::SelectingLoad;
                 
                 GameSaveIO io;
-                saveFileNames = io.getSaveFiles();
+                saveFileSummaries = io.getSaveFiles();
 
                 saveFilePage = 0;
             }
@@ -147,14 +150,14 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
         case MainMenuState::StartingNew:
         {
             guiContext.createTextEnter(panelPaddingX * intScale, elementYPos * intScale,
-                panelWidth * intScale, 40 * intScale, "Name", &saveNameInput);
+                panelWidth * intScale, 75 * intScale, "Name", &saveNameInput, panelWidth / 5 * intScale, 30 * intScale);
 
             elementYPos += 150;
 
             guiContext.createTextEnter(panelPaddingX * intScale, elementYPos * intScale,
-                panelWidth * intScale, 40 * intScale, "Seed", &worldSeedInput);
+                panelWidth * intScale, 75 * intScale, "Seed", &worldSeedInput, panelWidth / 5 * intScale, 30 * intScale);
 
-            elementYPos += 150;
+            elementYPos += 200;
 
             if (guiContext.createButton(panelPaddingX * intScale, elementYPos * intScale, panelWidth * intScale, 75 * intScale, "Start", buttonStyle)
                 .isClicked())
@@ -163,7 +166,7 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
                 {
                     MainMenuEvent startEvent;
                     startEvent.type = MainMenuEventType::StartNew;
-                    startEvent.saveName = saveNameInput;
+                    startEvent.saveFileSummary.name = saveNameInput;
                     startEvent.worldSeed = getWorldSeedFromString(saveNameInput);
                     return startEvent;
                 }
@@ -185,17 +188,19 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
         {
             static constexpr int saveFilesPerPage = 4;
 
-            for (int i = saveFilesPerPage * saveFilePage; i < std::min(static_cast<int>(saveFileNames.size()), saveFilesPerPage * (saveFilePage + 1)); i++)
+            for (int i = saveFilesPerPage * saveFilePage; i < std::min(static_cast<int>(saveFileSummaries.size()), saveFilesPerPage * (saveFilePage + 1)); i++)
             {
-                const std::string& saveName = saveFileNames[i];
+                const SaveFileSummary& saveFileSummary = saveFileSummaries[i];
+
+                std::string saveSummaryString = saveFileSummary.name + " - (" + saveFileSummary.timePlayedString + ")";
 
                 if (guiContext.createButton(panelPaddingX * intScale, elementYPos * intScale,
-                    panelWidth * intScale, 75 * intScale, saveName, buttonStyle)
+                    panelWidth * intScale, 75 * intScale, saveSummaryString, buttonStyle)
                         .isClicked())
                 {
                     MainMenuEvent loadEvent;
                     loadEvent.type = MainMenuEventType::Load;
-                    loadEvent.saveName = saveName;
+                    loadEvent.saveFileSummary = saveFileSummary;
                     return loadEvent;
                 }
 
@@ -203,7 +208,7 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
             }
 
             // Text if no save files
-            if (saveFileNames.size() <= 0)
+            if (saveFileSummaries.size() <= 0)
             {
                 TextDrawData textDrawData;
                 textDrawData.text = "No save files found";
@@ -216,8 +221,10 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
                 TextDraw::drawText(window, textDrawData);
             }
 
+            elementYPos = startElementYPos + (100 * intScale) * saveFilesPerPage;
+
             // Create page scroll buttons if 
-            if (saveFileNames.size() > saveFilesPerPage)
+            if (saveFileSummaries.size() > saveFilesPerPage)
             {
                 // Create page back button
                 if (saveFilePage > 0)
@@ -227,19 +234,19 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
                             .isClicked())
                     {
                         saveFilePage--;
-                        resetHoverRect(); // ui may change
+                        deferHoverRectReset = true; // ui may change
                     }
                 }
 
                 // Create page forward button
-                if (saveFilePage < std::ceil(saveFileNames.size() / saveFilesPerPage))
+                if (saveFilePage < std::ceil(saveFileSummaries.size() / saveFilesPerPage))
                 {
                     if (guiContext.createButton((panelPaddingX + panelWidth / 2) * intScale, elementYPos * intScale,
                         panelWidth / 2 * intScale, 50 * intScale, ">", buttonStyle)
                             .isClicked())
                     {
                         saveFilePage++;
-                        resetHoverRect(); // ui may change
+                        deferHoverRectReset = true; // ui may change
                     }
                 }
 
@@ -259,8 +266,8 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
         case MainMenuState::Options:
         {
             float musicVolume = Sounds::getMusicVolume();
-            if (guiContext.createSlider(panelPaddingX * intScale, elementYPos, 400 * intScale, 15 * intScale,
-                0.0f, 100.0f, &musicVolume, "Music Volume")
+            if (guiContext.createSlider(panelPaddingX * intScale, elementYPos, panelWidth * intScale, 75 * intScale,
+                0.0f, 100.0f, &musicVolume, "Music Volume", panelWidth / 2 * intScale, panelWidth / 10 * intScale, 40 * intScale)
                 .isHeld())
             {
                 Sounds::setMusicVolume(musicVolume);
@@ -281,6 +288,13 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
         hoveredElement != nullptr)
     {
         updateSelectionHoverRect(hoveredElement->getBoundingBox());
+    }
+
+    CollisionRect panelCollisionRect(panelPaddingX * intScale, 0, panelWidth * intScale, resolution.y);
+
+    if (deferHoverRectReset || !panelCollisionRect.isPointInRect(guiContext.getInputState().mouseX, guiContext.getInputState().mouseY))
+    {
+        resetHoverRect();
     }
 
     if (nextUIState != mainMenuState)
@@ -353,6 +367,8 @@ void MainMenuGUI::resetHoverRect()
 {
     selectionHoverRectDestination = sf::FloatRect(0, 0, 0, 0);
     selectionHoverRect = selectionHoverRectDestination;
+
+    deferHoverRectReset = false;
 }
 
 void MainMenuGUI::setCanInteract(bool value)

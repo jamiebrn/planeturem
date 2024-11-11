@@ -47,6 +47,8 @@ struct PlayerGameSave
     uint32_t inRoomID = 0;
     sf::Vector2f positionInRoom;
 
+    int timePlayed = 0;
+
     // template <class Archive>
     // void serialize(Archive& ar)
     // {
@@ -89,6 +91,13 @@ struct PlanetGameSave
     }
 };
 
+struct SaveFileSummary
+{
+    std::string name;
+    int timePlayed = 0;
+    std::string timePlayedString;
+};
+
 class GameSaveIO
 {
 public:
@@ -100,12 +109,13 @@ public:
 
     bool write(const PlayerGameSave& playerGameSave, const PlanetGameSave& planetGameSave);
 
-    std::vector<std::string> getSaveFiles();
+    std::vector<SaveFileSummary> getSaveFiles();
 
 private:
     void createSaveDirectoryIfRequired();
 
     bool loadPlayerSave(PlayerGameSave& playerGameSave);
+    bool loadPlayerSaveFromName(std::string fileName, PlayerGameSave& playerGameSave);
     bool writePlayerSave(const PlayerGameSave& playerGameSave);
 
     bool loadPlanetDataVersionMapping(PlanetType planetType, PlanetDataVersionMapping& planetDataVersionMapping);

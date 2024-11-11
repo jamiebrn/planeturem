@@ -198,7 +198,7 @@ private:
 
     void startNewGame(int seed);
     bool saveGame(bool gettingInRocket = false);
-    bool loadGame(const std::string& saveName);
+    bool loadGame(const SaveFileSummary& saveFileSummary);
     bool loadPlanet(PlanetType planetType);
 
 
@@ -229,7 +229,8 @@ private:
     sf::Image icon;
     bool fullScreen = true;
 
-    std::string currentSaveName;
+    SaveFileSummary currentSaveFileSummary;
+    float saveSessionPlayTime;
 
     SpriteBatch spriteBatch;
     sf::RenderTexture worldTexture;

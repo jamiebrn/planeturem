@@ -308,7 +308,7 @@ void Game::runMainMenu(float dt)
                 
                 mainMenuGUI.setCanInteract(false);
 
-                currentSaveName = menuEvent->saveName;
+                currentSaveFileSummary = menuEvent->saveFileSummary;
                 startNewGame(menuEvent->worldSeed);
                 break;
             }
@@ -319,11 +319,12 @@ void Game::runMainMenu(float dt)
                     break;
                 }
 
-                currentSaveName = menuEvent->saveName;
-                if (loadGame(currentSaveName))
+                if (loadGame(menuEvent->saveFileSummary))
                 {
                     mainMenuGUI.setCanInteract(false);
                 }
+
+                currentSaveFileSummary = menuEvent->saveFileSummary;
                 break;
             }
             case MainMenuEventType::Quit:
@@ -492,6 +493,8 @@ void Game::runOnPlanet(float dt)
     //
     // -- UPDATING --
     //
+
+    saveSessionPlayTime += dt;
 
     updateMusic(dt);
 
@@ -1602,6 +1605,8 @@ void Game::startNewGame(int seed)
     dayCycleManager.setCurrentTime(dayCycleManager.getDayLength() * 0.5f);
     dayCycleManager.setCurrentDay(1);
 
+    saveSessionPlayTime = 0.0f;
+
     bossManager.clearBosses();
 
     camera.instantUpdate(player.getPosition());
@@ -1614,7 +1619,7 @@ void Game::startNewGame(int seed)
 
 bool Game::saveGame(bool gettingInRocket)
 {
-    GameSaveIO io(currentSaveName);
+    GameSaveIO io(currentSaveFileSummary.name);
 
     PlayerGameSave playerGameSave;
     playerGameSave.seed = chunkManager.getSeed();
@@ -1624,6 +1629,11 @@ bool Game::saveGame(bool gettingInRocket)
     playerGameSave.armourInventory = armourInventory;
     playerGameSave.time = dayCycleManager.getCurrentTime();
     playerGameSave.day = dayCycleManager.getCurrentDay();
+
+    // Add play time
+    currentSaveFileSummary.timePlayed += std::round(saveSessionPlayTime);
+    saveSessionPlayTime = 0.0f;
+    playerGameSave.timePlayed = currentSaveFileSummary.timePlayed;
 
     PlanetGameSave planetGameSave;
     planetGameSave.playerLastPos = player.getPosition();
@@ -1651,9 +1661,9 @@ bool Game::saveGame(bool gettingInRocket)
     return true;
 }
 
-bool Game::loadGame(const std::string& saveName)
+bool Game::loadGame(const SaveFileSummary& saveFileSummary)
 {
-    GameSaveIO io(saveName);
+    GameSaveIO io(saveFileSummary.name);
 
     PlayerGameSave playerGameSave;
     PlanetGameSave planetGameSave;
@@ -1699,8 +1709,10 @@ bool Game::loadGame(const std::string& saveName)
     lightingTick = LIGHTING_TICK;
 
     // Load successful, set save name as current save and start state transition
-    currentSaveName = saveName;
+    currentSaveFileSummary = saveFileSummary;
     startChangeStateTransition(nextGameState);
+
+    saveSessionPlayTime = 0.0f;
 
     // Fade out previous music
     Sounds::stopMusic(0.3f);
@@ -1710,7 +1722,7 @@ bool Game::loadGame(const std::string& saveName)
 
 bool Game::loadPlanet(PlanetType planetType)
 {
-    GameSaveIO io(currentSaveName);
+    GameSaveIO io(currentSaveFileSummary.name);
 
     PlanetGameSave planetGameSave;
 
@@ -2009,7 +2021,7 @@ void Game::drawDebugMenu(float dt)
 
     if (ImGui::Button("Load"))
     {
-        loadGame(currentSaveName);
+        loadGame(currentSaveFileSummary);
     }
 
     ImGui::Spacing();

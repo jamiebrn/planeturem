@@ -1,13 +1,16 @@
 #include "GUI/Base/Slider.hpp"
 
 Slider::Slider(const GUIInputState& inputState, ElementID id, int x, int y, int width, int height, float minValue, float maxValue,
-    float* value, std::optional<std::string> label)
+    float* value, std::optional<std::string> label, int paddingLeft, int paddingRight, int paddingY)
     : GUIElement(id)
 {
-    this->x = x;
-    this->y = y;
-    this->width = width;
-    this->height = height;
+    this->x = x + paddingLeft;
+    this->y = y + paddingY / 2;
+    this->width = width - (paddingLeft + paddingRight);
+    this->height = height - paddingY;
+    this->paddingLeft = paddingLeft;
+    this->paddingRight = paddingRight;
+    this->paddingY = paddingY;
     this->minValue = minValue;
     this->maxValue = maxValue;
     this->value = value;
@@ -28,14 +31,14 @@ Slider::Slider(const GUIInputState& inputState, ElementID id, int x, int y, int 
         held = true;
 
         // Move slider value as is held
-        int sliderXPos = std::max(std::min(inputState.mouseX, x + width), x);
-        float sliderProgress = (sliderXPos - x) / static_cast<float>(width);
+        int sliderXPos = std::max(std::min(inputState.mouseX, this->x + this->width), this->x);
+        float sliderProgress = (sliderXPos - this->x) / static_cast<float>(this->width);
         *value = sliderProgress * (maxValue - minValue) + minValue;
     }
 
-    int sliderXPos = ((*value - minValue) / (maxValue - minValue)) * width + x;
+    int sliderXPos = ((*value - minValue) / (maxValue - minValue)) * this->width + this->x;
 
-    CollisionRect sliderRect(x, y, width, height);
+    CollisionRect sliderRect(this->x, this->y, this->width, this->height);
     CollisionRect sliderValueRect(sliderXPos - 20.0f, y + height / 2.0f - 20, 40, 40);
     if (sliderRect.isPointInRect(inputState.mouseX, inputState.mouseY) || sliderValueRect.isPointInRect(inputState.mouseX, inputState.mouseY))
     {
@@ -111,5 +114,5 @@ void Slider::draw(sf::RenderTarget& window)
 
 sf::IntRect Slider::getBoundingBox() const
 {
-    return sf::IntRect(x, y, width, height);
+    return sf::IntRect(x - paddingLeft, y - paddingY / 2, width + paddingLeft + paddingRight, height + paddingY);
 }

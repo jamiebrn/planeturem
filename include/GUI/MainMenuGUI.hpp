@@ -26,7 +26,7 @@ enum class MainMenuEventType
 struct MainMenuEvent
 {
     MainMenuEventType type;
-    std::string saveName;
+    SaveFileSummary saveFileSummary;
     int worldSeed;
 };
 
@@ -64,11 +64,12 @@ private:
     // int menuScreenshotIndex;
     // float menuScreenshotTimer;
 
-    std::vector<std::string> saveFileNames;
+    std::vector<SaveFileSummary> saveFileSummaries;
     int saveFilePage;
 
     sf::FloatRect selectionHoverRect;
     sf::FloatRect selectionHoverRectDestination;
+    bool deferHoverRectReset;
     // bool selectionHoverRectDrawing;
 
     std::string saveNameInput;

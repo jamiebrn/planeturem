@@ -139,6 +139,11 @@ bool GameSaveIO::loadPlayerSave(PlayerGameSave& playerGameSave)
             playerGameSave.inRoomID = json.at("room-id");
             playerGameSave.positionInRoom = json.at("room-player-pos");
         }
+
+        if (json.contains("time-played"))
+        {
+            playerGameSave.timePlayed = json.at("time-played");
+        }
     }
     catch(const std::exception& e)
     {
@@ -147,6 +152,17 @@ bool GameSaveIO::loadPlayerSave(PlayerGameSave& playerGameSave)
     }
 
     return true;   
+}
+
+bool GameSaveIO::loadPlayerSaveFromName(std::string fileName, PlayerGameSave& playerGameSave)
+{
+    std::string previousFileName = this->fileName;
+    this->fileName = fileName;
+    
+    bool success = loadPlayerSave(playerGameSave);
+    this->fileName = previousFileName;
+
+    return success;
 }
 
 bool GameSaveIO::writePlayerSave(const PlayerGameSave& playerGameSave)
@@ -173,13 +189,15 @@ bool GameSaveIO::writePlayerSave(const PlayerGameSave& playerGameSave)
         json["room-player-pos"] = playerGameSave.positionInRoom;
     }
 
+    json["time-played"] = playerGameSave.timePlayed;
+
     out << json;
     out.close();
 
     return true;
 }
 
-std::vector<std::string> GameSaveIO::getSaveFiles()
+std::vector<SaveFileSummary> GameSaveIO::getSaveFiles()
 {
     createSaveDirectoryIfRequired();
 
@@ -205,7 +223,7 @@ std::vector<std::string> GameSaveIO::getSaveFiles()
         saveFilesWithDate.push_back(saveFileWithDate);
     }
     
-    std::vector<std::string> saveFiles;
+    std::vector<SaveFileSummary> saveFiles;
 
     // Sort save files by date
     std::sort(saveFilesWithDate.begin(), saveFilesWithDate.end(), [](const SaveFileWithDate& saveA, const SaveFileWithDate& saveB)
@@ -215,7 +233,44 @@ std::vector<std::string> GameSaveIO::getSaveFiles()
 
     for (const SaveFileWithDate& saveFileWithDate : saveFilesWithDate)
     {
-        saveFiles.push_back(saveFileWithDate.name);
+        SaveFileSummary saveFileSummary;
+        saveFileSummary.name = saveFileWithDate.name;
+
+        // Load time spent playing
+        PlayerGameSave playerSave;
+        if (!loadPlayerSaveFromName(saveFileSummary.name, playerSave))
+        {
+            std::cout << "Error - could not load player save " + saveFileSummary.name << "\n";
+            continue;
+        }
+
+        saveFileSummary.timePlayed = playerSave.timePlayed;
+
+        // Convert to string
+        int seconds = playerSave.timePlayed;
+        int minutes = seconds / 60;
+        int hours = minutes / 60;
+        seconds %= 60;
+        minutes %= 60;
+
+        std::string timePlayedString;
+        if (hours > 0)
+        {
+            timePlayedString += std::to_string(hours) + ":";
+        }
+        std::vector<std::string> timeStrings = {std::to_string(minutes), std::to_string(seconds)};
+        for (std::string& string : timeStrings)
+        {
+            if (string.size() < 2)
+            {
+                string = "0" + string;
+            }
+        }
+        timePlayedString += timeStrings[0] + ":" + timeStrings[1];
+
+        saveFileSummary.timePlayedString = timePlayedString;
+
+        saveFiles.push_back(saveFileSummary);
     }
 
     return saveFiles;

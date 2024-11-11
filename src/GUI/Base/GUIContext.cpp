@@ -109,9 +109,11 @@ const Checkbox& GUIContext::createCheckbox(int x, int y, int width, int height, 
     return *static_cast<Checkbox*>(elements.back().get());
 }
 
-const Slider& GUIContext::createSlider(int x, int y, int width, int height, float minValue, float maxValue, float* value, std::optional<std::string> label)
+const Slider& GUIContext::createSlider(int x, int y, int width, int height, float minValue, float maxValue, float* value, std::optional<std::string> label,
+    int paddingLeft, int paddingRight, int paddingY)
 {
-    std::unique_ptr<Slider> slider = std::make_unique<Slider>(inputState, elements.size(), x, y, width, height, minValue, maxValue, value, label);
+    std::unique_ptr<Slider> slider = std::make_unique<Slider>(inputState, elements.size(), x, y, width, height, minValue, maxValue, value, label, paddingLeft, paddingRight,
+                                                              paddingY);
 
     bool held = slider->isHeld();
 
@@ -129,9 +131,9 @@ const Slider& GUIContext::createSlider(int x, int y, int width, int height, floa
     return *static_cast<Slider*>(elements.back().get());
 }
 
-const TextEnter& GUIContext::createTextEnter(int x, int y, int width, int height, const std::string& text, std::string* textPtr)
+const TextEnter& GUIContext::createTextEnter(int x, int y, int width, int height, const std::string& text, std::string* textPtr, int paddingX, int paddingY)
 {
-    std::unique_ptr<TextEnter> textEnter = std::make_unique<TextEnter>(inputState, elements.size(), x, y, width, height, text, textPtr);
+    std::unique_ptr<TextEnter> textEnter = std::make_unique<TextEnter>(inputState, elements.size(), x, y, width, height, text, textPtr, paddingX, paddingY);
 
     if (textEnter->hasClickedAway())
     {

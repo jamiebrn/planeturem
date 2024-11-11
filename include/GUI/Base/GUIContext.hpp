@@ -29,13 +29,16 @@ public:
 
     const Checkbox& createCheckbox(int x, int y, int width, int height, const std::string& label, bool* value);
 
-    const Slider& createSlider(int x, int y, int width, int height, float minValue, float maxValue, float* value, std::optional<std::string> label = std::nullopt);
+    const Slider& createSlider(int x, int y, int width, int height, float minValue, float maxValue, float* value, std::optional<std::string> label = std::nullopt,
+        int paddingLeft = 0, int paddingRight = 0, int paddingY = 0);
 
-    const TextEnter& createTextEnter(int x, int y, int width, int height, const std::string& text, std::string* textPtr);
+    const TextEnter& createTextEnter(int x, int y, int width, int height, const std::string& text, std::string* textPtr, int paddingX = 0, int paddingY = 0);
 
     void draw(sf::RenderTarget& window);
 
     const GUIElement* getHoveredElement() const;
+
+    const inline GUIInputState getInputState() const {return inputState;}
 
 private:
     void resetActiveElement();
