@@ -47,7 +47,7 @@ BuildableObject::BuildableObject(ObjectReference _objectReference)
 
 void BuildableObject::update(Game& game, float dt, bool onWater, bool loopAnimation)
 {
-    if (objectType < 0)
+    if (objectType < 0 || isObjectReference())
         return;
 
     flash_amount = std::max(flash_amount - dt * 3, 0.0f);

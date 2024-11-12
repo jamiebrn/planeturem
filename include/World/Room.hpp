@@ -58,10 +58,8 @@ public:
 
     void updateObjects(Game& game, float dt);
 
-    BuildableObject* getObject(sf::Vector2f mouseWorldPos);
-    BuildableObject* getObject(sf::Vector2i tile);
-
-    sf::Vector2i getSelectedTile(sf::Vector2f mouseWorldPos);
+    // BuildableObject* getObject(sf::Vector2f mouseWorldPos) const;
+    BuildableObject* getObject(sf::Vector2i tile) const;
 
     void draw(sf::RenderTarget& window, const Camera& camera) const;
 
@@ -102,6 +100,7 @@ public:
 
 private:
     void createObjects(ChestDataPool& chestDataPool);
+    void setObjectFromBitmask(sf::Vector2i tile, uint8_t bitmaskValue, ChestDataPool& chestDataPool);
 
     void createCollisionRects();
     

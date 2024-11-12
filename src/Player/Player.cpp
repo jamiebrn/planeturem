@@ -91,7 +91,7 @@ void Player::updateInStructure(float dt, sf::Vector2f mouseWorldPos, const Room&
 {
     updateTimers(dt);
     
-    if (!isAlive())
+    if (inRocket || !isAlive())
     {
         return;
     }

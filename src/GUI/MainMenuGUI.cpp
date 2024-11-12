@@ -167,7 +167,7 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
                     MainMenuEvent startEvent;
                     startEvent.type = MainMenuEventType::StartNew;
                     startEvent.saveFileSummary.name = saveNameInput;
-                    startEvent.worldSeed = getWorldSeedFromString(saveNameInput);
+                    startEvent.worldSeed = getWorldSeedFromString(worldSeedInput);
                     return startEvent;
                 }
             }

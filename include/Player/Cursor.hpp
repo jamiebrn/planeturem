@@ -14,6 +14,7 @@
 #include "Entity/Entity.hpp"
 #include "World/ChunkPosition.hpp"
 #include "World/ChunkManager.hpp"
+#include "World/Room.hpp"
 #include "Types/WorldMenuState.hpp"
 
 #include "Data/typedefs.hpp"
@@ -56,13 +57,14 @@ public:
     static void updateTileCursorInRoom(sf::RenderWindow& window,
                                        const Camera& camera,
                                        float dt,
-                                       std::vector<std::vector<std::unique_ptr<BuildableObject>>>& objectGrid,
+                                       const Room& room,
                                        ItemType heldItemType,
                                        ToolType toolType);
 
     static ChunkPosition getSelectedChunk(int worldSize);
     static sf::Vector2i getSelectedChunkTile();
     static sf::Vector2i getSelectedWorldTile(int worldSize);
+    static sf::Vector2i getSelectedTile();
 
     static sf::Vector2f getMouseWorldPos(sf::RenderWindow& window, const Camera& camera);
 

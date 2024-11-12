@@ -255,7 +255,7 @@ void Cursor::updateTileCursorNoItem(float dt, BuildableObject* selectedObject)
 void Cursor::updateTileCursorInRoom(sf::RenderWindow& window,
                                     const Camera& camera,
                                     float dt,
-                                    std::vector<std::vector<std::unique_ptr<BuildableObject>>>& objectGrid,
+                                    const Room& room,
                                     ItemType heldItemType,
                                     ToolType toolType)
 {
@@ -274,20 +274,15 @@ void Cursor::updateTileCursorInRoom(sf::RenderWindow& window,
     // Set drawing to hidden by default
     drawState = CursorDrawState::Hidden;
 
-    // Check bounds
-    if (selectPosTile.y < 0 || selectPosTile.y >= objectGrid.size())
-        return;
+    BuildableObject* selectedObject = room.getObject(selectPosTile);
 
-    if (selectPosTile.x < 0 || selectPosTile.x >= objectGrid[selectPosTile.y].size())
-        return;
-
-    BuildableObject* selectedObject = objectGrid[selectPosTile.y][selectPosTile.x].get();
-
-    if (selectedObject)
+    if (!selectedObject)
     {
-        updateTileCursorNoItem(dt, selectedObject);
+        return;
     }
 
+    updateTileCursorNoItem(dt, selectedObject);
+    
     // Set tile cursor corner tile positions
     if (drawState == CursorDrawState::Tile)
     {
@@ -391,6 +386,11 @@ sf::Vector2i Cursor::getSelectedWorldTile(int worldSize)
     selectedWorldTile.x += selectedChunk.x * CHUNK_TILE_SIZE;
     selectedWorldTile.y += selectedChunk.y * CHUNK_TILE_SIZE;
     return selectedWorldTile;
+}
+
+sf::Vector2i Cursor::getSelectedTile()
+{
+    return selectPosTile;
 }
 
 sf::Vector2f Cursor::getMouseWorldPos(sf::RenderWindow& window, const Camera& camera)

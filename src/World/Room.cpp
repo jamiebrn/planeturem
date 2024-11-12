@@ -78,43 +78,33 @@ void Room::createObjects(ChestDataPool& chestDataPool)
 
     const RoomData& roomData = StructureDataLoader::getRoomData(roomType);
 
+    // Initialise object grid
+    objectGrid.clear();
+
     for (int y = 0; y < roomData.tileSize.y; y++)
     {
         objectGrid.emplace_back();
 
         for (int x = 0; x < roomData.tileSize.x; x++)
         {
-            std::unique_ptr<BuildableObject> object = nullptr;
+            objectGrid[y].emplace_back(nullptr);
+        }
+    }
+
+    for (int y = 0; y < roomData.tileSize.y; y++)
+    {
+        for (int x = 0; x < roomData.tileSize.x; x++)
+        {
+            // std::unique_ptr<BuildableObject> object = nullptr;
 
             // Sample bitmask
-            sf::Color bitmaskColor = bitmaskImage.getPixel(roomData.collisionBitmaskOffset.x + x, roomData.collisionBitmaskOffset.y + y);
+            sf::Color bitmaskColour = bitmaskImage.getPixel(roomData.collisionBitmaskOffset.x + x, roomData.collisionBitmaskOffset.y + y);
 
             // Create object
-            if (roomData.objectsInRoom.contains(bitmaskColor.b))
-            {
-                const RoomObjectData& roomObjectData = roomData.objectsInRoom.at(bitmaskColor.b);
-
-                ObjectType objectTypeToSpawn = roomObjectData.objectType;
-
-                sf::Vector2f objectPos((x + 0.5f) * TILE_SIZE_PIXELS_UNSCALED, (y + 0.5f) * TILE_SIZE_PIXELS_UNSCALED);
-                
-                object = BuildableObjectFactory::create(objectPos, objectTypeToSpawn);
-
-                if (roomObjectData.chestContents.has_value())
-                {
-                    if (ChestObject* chest = dynamic_cast<ChestObject*>(object.get()))
-                    {
-                        const InventoryData& randomChestContents = roomObjectData.chestContents.value()[rand() % roomObjectData.chestContents->size()];
-
-                        uint16_t chestID = chestDataPool.createChest(randomChestContents);
-
-                        chest->setChestID(chestID);
-                    }
-                }
-            }
+            setObjectFromBitmask(sf::Vector2i(x, y), bitmaskColour.b, chestDataPool);
 
             // Add to array
-            objectGrid.back().push_back(std::move(object));
+            // objectGrid.back().push_back(std::move(object));
         }
     }
 }
@@ -140,7 +130,7 @@ void Room::createCollisionRects()
             bool collisionCreated = false;
 
             // Check object first
-            BuildableObject* object = objectGrid[y][x].get();
+            BuildableObject* object = getObject(sf::Vector2i(x, y));
             if (object)
             {
                 const ObjectData& objectData = ObjectDataLoader::getObjectData(object->getObjectType());
@@ -202,32 +192,115 @@ void Room::updateObjects(Game& game, float dt)
     }
 }
 
-BuildableObject* Room::getObject(sf::Vector2f mouseWorldPos)
-{
-    sf::Vector2i selectedTile = getSelectedTile(mouseWorldPos);
+// BuildableObject* Room::getObject(sf::Vector2f mouseWorldPos)
+// {
+//     sf::Vector2i selectedTile = getSelectedTile(mouseWorldPos);
 
-    return getObject(selectedTile);
+//     return getObject(selectedTile);
+// }
+
+void Room::setObjectFromBitmask(sf::Vector2i tile, uint8_t bitmaskValue, ChestDataPool& chestDataPool)
+{
+    const RoomData& roomData = StructureDataLoader::getRoomData(roomType);
+
+    if (!roomData.objectsInRoom.contains(bitmaskValue))
+    {
+        return;
+    }
+
+    if (objectGrid[tile.y][tile.x] != nullptr)
+    {
+        return;
+    }
+
+    const RoomObjectData& roomObjectData = roomData.objectsInRoom.at(bitmaskValue);
+
+    ObjectType objectTypeToSpawn = roomObjectData.objectType;
+
+    const ObjectData& objectData = ObjectDataLoader::getObjectData(objectTypeToSpawn);
+
+    sf::Vector2f objectPos = sf::Vector2f(tile.x + 0.5f, tile.y + 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
+    
+    std::unique_ptr<BuildableObject> object = BuildableObjectFactory::create(objectPos, objectTypeToSpawn);
+
+    if (roomObjectData.chestContents.has_value())
+    {
+        if (ChestObject* chest = dynamic_cast<ChestObject*>(object.get()))
+        {
+            const InventoryData& randomChestContents = roomObjectData.chestContents.value()[rand() % roomObjectData.chestContents->size()];
+
+            uint16_t chestID = chestDataPool.createChest(randomChestContents);
+
+            chest->setChestID(chestID);
+        }
+    }
+
+    objectGrid[tile.y][tile.x] = std::move(object);
+
+    if (objectData.size == sf::Vector2i(1, 1))
+    {
+        return;
+    }
+
+    // Create object references
+    ObjectReference objectReference;
+    objectReference.tile = sf::Vector2i(tile.x, tile.y);
+
+    for (int y = 0; y < objectData.size.y; y++)
+    {
+        if (y >= objectGrid.size())
+        {
+            break;
+        }
+
+        for (int x = 0; x < objectData.size.x; x++)
+        {
+            if (x == 0 && y == 0)
+            {
+                continue;
+            }
+
+            if (x >= objectGrid[y].size())
+            {
+                break;
+            }
+            
+            objectGrid[tile.y + y][tile.x + x] = std::make_unique<BuildableObject>(objectReference);
+        }
+    }
 }
 
-BuildableObject* Room::getObject(sf::Vector2i tile)
+BuildableObject* Room::getObject(sf::Vector2i tile) const
 {
     // Bounds checking
-    if (tile.x < 0 || tile.x >= objectGrid[0].size())
-        return nullptr;
-    
     if (tile.y < 0 || tile.y >= objectGrid.size())
         return nullptr;
     
-    return objectGrid[tile.y][tile.x].get();
+    if (tile.x < 0 || tile.x >= objectGrid[tile.y].size())
+        return nullptr;
+    
+    BuildableObject* object = objectGrid[tile.y][tile.x].get();
+
+    if (object == nullptr)
+    {
+        return nullptr;
+    }
+
+    if (object->isObjectReference())
+    {
+        return getObject(object->getObjectReference()->tile);
+    }
+
+    return object;
 }
 
-sf::Vector2i Room::getSelectedTile(sf::Vector2f mouseWorldPos)
-{
-    sf::Vector2i selectedTile;
-    selectedTile.x = std::floor(mouseWorldPos.x / TILE_SIZE_PIXELS_UNSCALED);
-    selectedTile.y = std::floor(mouseWorldPos.y / TILE_SIZE_PIXELS_UNSCALED);
-    return selectedTile;
-}
+// sf::Vector2i Room::getSelectedTile(sf::Vector2f mouseWorldPos)
+// {
+//     sf::Vector2i selectedTile;
+//     selectedTile.x = std::floor(mouseWorldPos.x / TILE_SIZE_PIXELS_UNSCALED);
+//     selectedTile.y = std::floor(mouseWorldPos.y / TILE_SIZE_PIXELS_UNSCALED);
+//     return selectedTile;
+// }
 
 std::vector<const WorldObject*> Room::getObjects() const
 {
@@ -236,11 +309,20 @@ std::vector<const WorldObject*> Room::getObjects() const
     {
         for (int x = 0; x < objectGrid[y].size(); x++)
         {
-            if (!objectGrid[y][x])
+            BuildableObject* object = objectGrid[y][x].get();
+
+            if (!object)
+            {
                 continue;
+            }
+
+            if (object->isObjectReference())
+            {
+                continue;
+            }
 
             // Add object to vector
-            objects.push_back(objectGrid[y][x].get());
+            objects.push_back(object);
         }
     }
 

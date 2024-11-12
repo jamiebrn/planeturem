@@ -13,7 +13,7 @@
 
 struct ButtonStyle
 {
-    sf::Color colour;
+    sf::Color colour = sf::Color(255, 255, 255);
     sf::Color hoveredColour = sf::Color(0, 240, 0);
     sf::Color clickedColour = sf::Color(60, 140, 60);
     sf::Color textColour = sf::Color(0, 0, 0);

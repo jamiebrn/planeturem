@@ -14,7 +14,7 @@
                     [[6, "Stone", 4], [13, "Raw Iron", 2]],
                     [[3, "Golden Gemstone", 1], [14, "Wood", 2]]
                     ]],
-                ["Chest", 3, [[[3, "Raw Gold", 3], [14, "Iron Bar", 2]]]]
+                ["Rocket Launch Pad", 3]
             ]
         }
     },

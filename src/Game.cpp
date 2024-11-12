@@ -863,8 +863,21 @@ void Game::testExitStructure()
 // Rocket
 void Game::enterRocket(RocketObject& rocket)
 {
-    rocketEnteredReference.chunk = rocket.getChunkInside(chunkManager.getWorldSize());
-    rocketEnteredReference.tile = rocket.getChunkTileInside(chunkManager.getWorldSize());
+    switch (gameState)
+    {
+        case GameState::OnPlanet:
+        {
+            rocketEnteredReference.chunk = rocket.getChunkInside(chunkManager.getWorldSize());
+            rocketEnteredReference.tile = rocket.getChunkTileInside(chunkManager.getWorldSize());
+            break;
+        }
+        case GameState::InStructure:
+        {
+            rocketEnteredReference.chunk = ChunkPosition(0, 0);
+            rocketEnteredReference.tile = rocket.getTileInside();
+            break;
+        }
+    }
 
     // Save just before enter
     saveGame(true);
@@ -880,12 +893,32 @@ void Game::exitRocket()
 {
     worldMenuState = WorldMenuState::Main;
 
-    // Exit rocket object
-    BuildableObject* rocketObject = chunkManager.getChunkObject(rocketEnteredReference.chunk, rocketEnteredReference.tile);
+    // Get rocket object
+    BuildableObject* rocketObject = nullptr;
 
+    switch (gameState)
+    {
+        case GameState::OnPlanet:
+        {
+            rocketObject = chunkManager.getChunkObject(rocketEnteredReference.chunk, rocketEnteredReference.tile);
+            break;
+        }
+        case GameState::InStructure:
+        {
+            rocketObject = structureRoomPool.getRoom(structureEnteredID).getObject(rocketEnteredReference.tile);
+        }
+    }
+
+    // Exit rocket object
     if (rocketObject)
     {
         rocketObject->triggerBehaviour(*this, ObjectBehaviourTrigger::RocketExit);
+    }
+    else
+    {
+        std::cout << "Error: Attempted to exit null rocket object at ";
+        std::cout << rocketEnteredReference.chunk.x << ", " << rocketEnteredReference.chunk.y << ":";
+        std::cout << rocketEnteredReference.tile.x << ", " << rocketEnteredReference.tile.y << "\n";
     }
 
     player.exitRocket();
@@ -915,7 +948,7 @@ void Game::updateInStructure(float dt)
 
     Room& structureRoom = structureRoomPool.getRoom(structureEnteredID);
 
-    Cursor::updateTileCursorInRoom(window, camera, dt, structureRoom.getObjectGrid(), InventoryGUI::getHeldItemType(inventory), player.getTool());
+    Cursor::updateTileCursorInRoom(window, camera, dt, structureRoom, InventoryGUI::getHeldItemType(inventory), player.getTool());
 
     if (!isStateTransitioning())
         player.updateInStructure(dt, Cursor::getMouseWorldPos(window, camera), structureRoom);
@@ -1359,7 +1392,7 @@ BuildableObject* Game::getSelectedObjectFromChunkOrRoom()
     {
         Room& structureRoom = structureRoomPool.getRoom(structureEnteredID);
         
-        return structureRoom.getObject(mouseWorldPos);
+        return structureRoom.getObject(Cursor::getSelectedTile());
     }
 
     return nullptr;
