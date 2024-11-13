@@ -1,7 +1,7 @@
 #include "GUI/Base/TextEnter.hpp"
 
 TextEnter::TextEnter(const GUIInputState& inputState, ElementID id, int x, int y, int width, int height, const std::string& text, std::string* textPtr,
-                     int paddingX, int paddingY)
+                     int paddingX, int paddingY, int maxLength)
     : GUIElement(id)
 {
     this->x = x + paddingX / 2;
@@ -51,6 +51,10 @@ TextEnter::TextEnter(const GUIInputState& inputState, ElementID id, int x, int y
         
         for (unsigned int character : inputState.charEnterBuffer)
         {
+            if (textPtr->size() >= maxLength)
+            {
+                break;
+            }
             *textPtr += character;
         }
     }

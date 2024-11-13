@@ -150,12 +150,12 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
         case MainMenuState::StartingNew:
         {
             guiContext.createTextEnter(panelPaddingX * intScale, elementYPos * intScale,
-                panelWidth * intScale, 75 * intScale, "Name", &saveNameInput, panelWidth / 5 * intScale, 30 * intScale);
+                panelWidth * intScale, 75 * intScale, "Name", &saveNameInput, panelWidth / 5 * intScale, 30 * intScale, 30);
 
             elementYPos += 150;
 
             guiContext.createTextEnter(panelPaddingX * intScale, elementYPos * intScale,
-                panelWidth * intScale, 75 * intScale, "Seed", &worldSeedInput, panelWidth / 5 * intScale, 30 * intScale);
+                panelWidth * intScale, 75 * intScale, "Seed", &worldSeedInput, panelWidth / 5 * intScale, 30 * intScale, 30);
 
             elementYPos += 200;
 

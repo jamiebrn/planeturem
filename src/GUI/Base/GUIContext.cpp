@@ -30,12 +30,13 @@ void GUIContext::processEvent(const sf::Event& event)
 
     if (event.type == sf::Event::TextEntered)
     {
-        bool isChar = ((event.key.scancode >= sf::Keyboard::Scancode::A && event.key.scancode <= sf::Keyboard::Scancode::Num0)
-            || event.key.scancode == sf::Keyboard::Scancode::Space);
-        if (isChar)
+        if (event.text.unicode <= 90 && event.text.unicode >= 65 ||
+            event.text.unicode >= 97 && event.text.unicode <= 122 ||
+            event.text.unicode >= 48 && event.text.unicode <= 57 ||
+            event.text.unicode == 95)
         {
+            inputState.charEnterBuffer.push_back(event.text.unicode);
         }
-        inputState.charEnterBuffer.push_back(event.text.unicode);
     }
 
     if (event.type == sf::Event::KeyPressed)
@@ -131,9 +132,9 @@ const Slider& GUIContext::createSlider(int x, int y, int width, int height, floa
     return *static_cast<Slider*>(elements.back().get());
 }
 
-const TextEnter& GUIContext::createTextEnter(int x, int y, int width, int height, const std::string& text, std::string* textPtr, int paddingX, int paddingY)
+const TextEnter& GUIContext::createTextEnter(int x, int y, int width, int height, const std::string& text, std::string* textPtr, int paddingX, int paddingY, int maxLength)
 {
-    std::unique_ptr<TextEnter> textEnter = std::make_unique<TextEnter>(inputState, elements.size(), x, y, width, height, text, textPtr, paddingX, paddingY);
+    std::unique_ptr<TextEnter> textEnter = std::make_unique<TextEnter>(inputState, elements.size(), x, y, width, height, text, textPtr, paddingX, paddingY, maxLength);
 
     if (textEnter->hasClickedAway())
     {

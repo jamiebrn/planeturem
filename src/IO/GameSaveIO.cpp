@@ -133,12 +133,12 @@ bool GameSaveIO::loadPlayerSave(PlayerGameSave& playerGameSave)
         playerGameSave.time = json["time"];
         playerGameSave.day = json["day"];
 
-        if (json.contains("in-room"))
-        {
-            playerGameSave.isInRoom = true;
-            playerGameSave.inRoomID = json.at("room-id");
-            playerGameSave.positionInRoom = json.at("room-player-pos");
-        }
+        // if (json.contains("in-room"))
+        // {
+        //     playerGameSave.isInRoom = true;
+        //     playerGameSave.inRoomID = json.at("room-id");
+        //     playerGameSave.positionInRoom = json.at("room-player-pos");
+        // }
 
         if (json.contains("time-played"))
         {
@@ -182,12 +182,12 @@ bool GameSaveIO::writePlayerSave(const PlayerGameSave& playerGameSave)
     json["time"] = playerGameSave.time;
     json["day"] = playerGameSave.day;
 
-    if (playerGameSave.isInRoom)
-    {
-        json["in-room"] = true;
-        json["room-id"] = playerGameSave.inRoomID;
-        json["room-player-pos"] = playerGameSave.positionInRoom;
-    }
+    // if (playerGameSave.isInRoom)
+    // {
+    //     json["in-room"] = true;
+    //     json["room-id"] = playerGameSave.inRoomID;
+    //     json["room-player-pos"] = playerGameSave.positionInRoom;
+    // }
 
     json["time-played"] = playerGameSave.timePlayed;
 

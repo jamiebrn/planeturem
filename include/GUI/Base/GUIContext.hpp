@@ -32,7 +32,7 @@ public:
     const Slider& createSlider(int x, int y, int width, int height, float minValue, float maxValue, float* value, std::optional<std::string> label = std::nullopt,
         int paddingLeft = 0, int paddingRight = 0, int paddingY = 0);
 
-    const TextEnter& createTextEnter(int x, int y, int width, int height, const std::string& text, std::string* textPtr, int paddingX = 0, int paddingY = 0);
+    const TextEnter& createTextEnter(int x, int y, int width, int height, const std::string& text, std::string* textPtr, int paddingX = 0, int paddingY = 0, int maxLength = 9999);
 
     void draw(sf::RenderTarget& window);
 

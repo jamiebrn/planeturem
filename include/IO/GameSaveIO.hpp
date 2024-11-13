@@ -43,9 +43,9 @@ struct PlayerGameSave
     float time;
     int day;
 
-    bool isInRoom = false;
-    uint32_t inRoomID = 0;
-    sf::Vector2f positionInRoom;
+    // bool isInRoom = false;
+    // uint32_t inRoomID = 0;
+    // sf::Vector2f positionInRoom;
 
     int timePlayed = 0;
 
@@ -65,7 +65,12 @@ struct PlanetDataVersionMapping
 
 struct PlanetGameSave
 {
-    sf::Vector2f playerLastPos;
+    sf::Vector2f playerLastPlanetPos;
+
+    bool isInRoom = false;
+    uint32_t inRoomID = 0;
+    sf::Vector2f positionInRoom;
+
     std::optional<ObjectReference> rocketObjectUsed = std::nullopt;
 
     std::vector<ChunkPOD> chunks;
@@ -74,9 +79,12 @@ struct PlanetGameSave
     RoomPool structureRoomPool;
 
     template <class Archive>
-    void serialize(Archive& ar)
+    void serialize(Archive& ar, const std::uint32_t version)
     {
-        ar(playerLastPos.x, playerLastPos.y, rocketObjectUsed, chunks, chestDataPool, structureRoomPool);
+        if (version == 1)
+        {
+            ar(playerLastPlanetPos.x, playerLastPlanetPos.y, isInRoom, inRoomID, positionInRoom.x, positionInRoom.y, rocketObjectUsed, chunks, chestDataPool, structureRoomPool);
+        }
     }
 
     void mapVersions(const PlanetDataVersionMapping& planetDataVersionMapping)
@@ -90,6 +98,8 @@ struct PlanetGameSave
         structureRoomPool.mapVersions(planetDataVersionMapping.objectTypeMap);
     }
 };
+
+CEREAL_CLASS_VERSION(PlanetGameSave, 1);
 
 struct SaveFileSummary
 {

@@ -13,7 +13,7 @@ class TextEnter : public GUIElement
 {
 public:
     TextEnter(const GUIInputState& inputState, ElementID id, int x, int y, int width, int height, const std::string& text, std::string* textPtr,
-              int paddingX = 0, int paddingY = 0);
+              int paddingX = 0, int paddingY = 0, int maxLength = 9999);
 
     bool isActive() const;
     bool hasClickedAway() const;

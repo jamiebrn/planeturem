@@ -3,10 +3,6 @@
 // FIX: Crash on save / rocket enter bug (can't save???)
 // FIX: Rockets in rooms
 
-// TODO: Store whether on planet / in structure in planet save file rather than player file
-    // As rockets can now be in rooms, so could have left a planet from a room rather than on the planet, so must keep track
-    // Whereas before player could only save in room if saved during gameplay, not for planet travelling, so between planets was always planet <-> planet directly
-
 // TODO: Night and menu music
 // TODO: Better GUI system / relative to window size etc and texturing
 // TODO: Consumable / health regen items
@@ -1469,7 +1465,7 @@ void Game::travelToPlanet(PlanetType planetType)
     //exitRocket();
 
     // TODO: Set state to either on planet or in structure based on planet load data, rather than default to on planet
-    overrideState(GameState::OnPlanet);    
+    // overrideState(GameState::OnPlanet);
 
     travelPlanetTrigger = false;
 
@@ -1481,16 +1477,21 @@ void Game::travelToPlanet(PlanetType planetType)
 
     if (!loadPlanet(planetType))
     {
-        initialiseNewPlanet(planetType, true);   
+        overrideState(GameState::OnPlanet);
+        initialiseNewPlanet(planetType, true);
     }
 
     camera.instantUpdate(player.getPosition());
 
-    chunkManager.updateChunks(*this, camera);
+    if (gameState == GameState::OnPlanet)
+    {
+        chunkManager.updateChunks(*this, camera);
+    }
     lightingTick = LIGHTING_TICK;
 
     // Start rocket flying downwards
-    BuildableObject* rocketObject = chunkManager.getChunkObject(rocketEnteredReference.chunk, rocketEnteredReference.tile);
+    // BuildableObject* rocketObject = chunkManager.getChunkObject(rocketEnteredReference.chunk, rocketEnteredReference.tile);
+    BuildableObject* rocketObject = getObjectFromChunkOrRoom(rocketEnteredReference);
     if (rocketObject)
     {
         rocketObject->triggerBehaviour(*this, ObjectBehaviourTrigger::RocketFlyDown);
@@ -1518,7 +1519,7 @@ void Game::initialiseNewPlanet(PlanetType planetType, bool placeRocket)
 
     chunkManager.updateChunks(*this, camera);
 
-    // Ennsure spawn chunk does not have structure
+    // Ensure spawn chunk does not have structure
     chunkManager.regenerateChunkWithoutStructure(playerSpawnChunk, *this);
     
     // Place rocket
@@ -1586,9 +1587,7 @@ void Game::changeState(GameState newState)
         {
             closeChest();
             nearbyCraftingStationLevels.clear();
-
-            // If entered structure from planet (i.e. not loaded save file in structure),
-            // set position to structure entrance
+            
             if (gameState == GameState::OnPlanet)
             {
                 sf::Vector2f roomEntrancePos = structureRoomPool.getRoom(structureEnteredID).getEntrancePosition();
@@ -1669,20 +1668,22 @@ bool Game::saveGame(bool gettingInRocket)
     playerGameSave.timePlayed = currentSaveFileSummary.timePlayed;
 
     PlanetGameSave planetGameSave;
-    planetGameSave.playerLastPos = player.getPosition();
     planetGameSave.chunks = chunkManager.getChunkPODs();
     planetGameSave.chestDataPool = chestDataPool;
     planetGameSave.structureRoomPool = structureRoomPool;
 
-    if (gameState == GameState::InStructure)
+    if (gameState == GameState::OnPlanet)
     {
-        playerGameSave.isInRoom = true;
-        playerGameSave.inRoomID = structureEnteredID;
-        playerGameSave.positionInRoom = player.getPosition();
-
-        planetGameSave.playerLastPos = structureEnteredPos;
+        planetGameSave.playerLastPlanetPos = player.getPosition();
     }
+    else if (gameState == GameState::InStructure)
+    {
+        planetGameSave.isInRoom = true;
+        planetGameSave.inRoomID = structureEnteredID;
+        planetGameSave.positionInRoom = player.getPosition();
 
+        planetGameSave.playerLastPlanetPos = structureEnteredPos;
+    }
     
     if (gettingInRocket)
     {
@@ -1713,7 +1714,6 @@ bool Game::loadGame(const SaveFileSummary& saveFileSummary)
     chunkManager.setPlanetType(playerGameSave.planetType);
     inventory = playerGameSave.inventory;
     armourInventory = playerGameSave.armourInventory;
-    player.setPosition(planetGameSave.playerLastPos);
     dayCycleManager.setCurrentTime(playerGameSave.time);
     dayCycleManager.setCurrentDay(playerGameSave.day);
 
@@ -1725,13 +1725,17 @@ bool Game::loadGame(const SaveFileSummary& saveFileSummary)
 
     GameState nextGameState = GameState::OnPlanet;
 
-    if (playerGameSave.isInRoom)
+    if (planetGameSave.isInRoom)
     {
-        structureEnteredID = playerGameSave.inRoomID;
-        structureEnteredPos = planetGameSave.playerLastPos;
-        player.setPosition(playerGameSave.positionInRoom);
+        player.setPosition(planetGameSave.positionInRoom);
+        structureEnteredID = planetGameSave.inRoomID;
+        structureEnteredPos = planetGameSave.playerLastPlanetPos;
 
         nextGameState = GameState::InStructure;
+    }
+    else
+    {
+        player.setPosition(planetGameSave.playerLastPlanetPos);
     }
 
     bossManager.clearBosses();
@@ -1766,7 +1770,19 @@ bool Game::loadPlanet(PlanetType planetType)
 
     chunkManager.setPlanetType(planetType);
 
-    player.setPosition(planetGameSave.playerLastPos);
+    if (planetGameSave.isInRoom)
+    {
+        overrideState(GameState::InStructure);
+        player.setPosition(planetGameSave.positionInRoom);
+        structureEnteredID = planetGameSave.inRoomID;
+        structureEnteredPos = planetGameSave.playerLastPlanetPos;
+    }
+    else
+    {
+        overrideState(GameState::OnPlanet);
+        player.setPosition(planetGameSave.playerLastPlanetPos);
+    }
+
     chunkManager.loadFromChunkPODs(planetGameSave.chunks, *this);
     chestDataPool = planetGameSave.chestDataPool;
     structureRoomPool = planetGameSave.structureRoomPool;
