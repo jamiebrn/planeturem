@@ -529,13 +529,14 @@ void Player::useTool(ProjectileManager& projectileManager, InventoryData& invent
         case ToolBehaviourType::BowWeapon:
         {
             // Ensure enough projectiles in inventory for weapon
-            if (inventory.getProjectileCountForWeapon(equippedTool) <= 0)
+            ProjectileType projectileType = inventory.getValidProjectileNearestToEnd(equippedTool);
+            if (projectileType < 0)
             {
                 return;
             }
 
             // Take projectile from inventory
-            const ProjectileData& projectileData = ToolDataLoader::getProjectileData(toolData.projectileShootTypes[0]);
+            const ProjectileData& projectileData = ToolDataLoader::getProjectileData(projectileType);
             inventory.takeItem(projectileData.itemType, 1);
 
             // Calculate projectile position and angle
@@ -552,7 +553,7 @@ void Player::useTool(ProjectileManager& projectileManager, InventoryData& invent
 
             // Create projectile
             // TODO: Use best projectile in inventory
-            std::unique_ptr<Projectile> projectile = std::make_unique<Projectile>(spawnPos, angle, toolData.projectileShootTypes[0],
+            std::unique_ptr<Projectile> projectile = std::make_unique<Projectile>(spawnPos, angle, projectileType,
                 toolData.projectileDamageMult, toolData.shootPower);
 
             // Add projectile to manager

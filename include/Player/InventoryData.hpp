@@ -43,6 +43,7 @@ public:
     bool isEmpty() const;
 
     int getProjectileCountForWeapon(ToolType weapon) const;
+    ProjectileType getValidProjectileNearestToEnd(ToolType weapon) const;
 
     inline int getSize() {return inventoryData.size();}
 

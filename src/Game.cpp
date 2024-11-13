@@ -1,6 +1,11 @@
 #include "Game.hpp"
 
 // FIX: Crash on save / rocket enter bug (can't save???)
+// FIX: Rockets in rooms
+
+// TODO: Store whether on planet / in structure in planet save file rather than player file
+    // As rockets can now be in rooms, so could have left a planet from a room rather than on the planet, so must keep track
+    // Whereas before player could only save in room if saved during gameplay, not for planet travelling, so between planets was always planet <-> planet directly
 
 // TODO: Night and menu music
 // TODO: Better GUI system / relative to window size etc and texturing
@@ -69,6 +74,8 @@ bool Game::initialise()
 
     // Load Steam API
     steamInitialised = SteamAPI_Init();
+    // TODO: ugly
+    Achievements::steamInitialised = steamInitialised;
     if (steamInitialised)
         SteamUserStats()->RequestCurrentStats();
 
@@ -512,6 +519,11 @@ void Game::runOnPlanet(float dt)
     isDay = dayCycleManager.isDay();
     // updateDayNightCycle(dt);
 
+    if (travelPlanetTrigger)
+    {
+        travelToPlanet(destinationPlanet);
+    }
+
     // Update depending on game state
     switch (gameState)
     {
@@ -554,7 +566,7 @@ void Game::runOnPlanet(float dt)
 
                 if (TravelSelectGUI::createGUI(window, selectedDestination))
                 {
-                    BuildableObject* rocketObject = chunkManager.getChunkObject(rocketEnteredReference.chunk, rocketEnteredReference.tile);
+                    BuildableObject* rocketObject = getObjectFromChunkOrRoom(rocketEnteredReference);
 
                     if (rocketObject)
                     {
@@ -568,7 +580,6 @@ void Game::runOnPlanet(float dt)
             }
         }
     }
-
 
     //
     // -- DRAWING --
@@ -679,11 +690,6 @@ void Game::updateOnPlanet(float dt)
     if (!isStateTransitioning() && !player.isInRocket() && player.isAlive())
     {
         testEnterStructure();
-    }
-
-    if (travelPlanetTrigger)
-    {
-        travelToPlanet(destinationPlanet);
     }
 }
 
@@ -894,20 +900,7 @@ void Game::exitRocket()
     worldMenuState = WorldMenuState::Main;
 
     // Get rocket object
-    BuildableObject* rocketObject = nullptr;
-
-    switch (gameState)
-    {
-        case GameState::OnPlanet:
-        {
-            rocketObject = chunkManager.getChunkObject(rocketEnteredReference.chunk, rocketEnteredReference.tile);
-            break;
-        }
-        case GameState::InStructure:
-        {
-            rocketObject = structureRoomPool.getRoom(structureEnteredID).getObject(rocketEnteredReference.tile);
-        }
-    }
+    BuildableObject* rocketObject = getObjectFromChunkOrRoom(rocketEnteredReference);
 
     // Exit rocket object
     if (rocketObject)
@@ -1400,8 +1393,6 @@ BuildableObject* Game::getSelectedObjectFromChunkOrRoom()
 
 BuildableObject* Game::getObjectFromChunkOrRoom(ObjectReference objectReference)
 {
-    BuildableObject* objectPtr = nullptr;
-
     if (gameState == GameState::OnPlanet)
     {
         return chunkManager.getChunkObject(objectReference.chunk, objectReference.tile);
@@ -1476,6 +1467,9 @@ void Game::closeChest()
 void Game::travelToPlanet(PlanetType planetType)
 {
     //exitRocket();
+
+    // TODO: Set state to either on planet or in structure based on planet load data, rather than default to on planet
+    overrideState(GameState::OnPlanet);    
 
     travelPlanetTrigger = false;
 
@@ -1622,6 +1616,12 @@ void Game::changeState(GameState newState)
     }
 
     gameState = newState;
+}
+
+void Game::overrideState(GameState newState)
+{
+    gameState = newState;
+    destinationGameState = newState;
 }
 
 

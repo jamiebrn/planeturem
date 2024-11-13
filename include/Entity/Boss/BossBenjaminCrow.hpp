@@ -20,6 +20,8 @@
 
 #include "Player/InventoryData.hpp"
 #include "Player/Player.hpp"
+#include "Player/Achievements.hpp"
+
 #include "Data/ItemData.hpp"
 #include "Data/ItemDataLoader.hpp"
 

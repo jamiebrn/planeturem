@@ -37,6 +37,7 @@
 #include "Player/Player.hpp"
 #include "Player/Cursor.hpp"
 #include "Player/InventoryData.hpp"
+#include "Player/Achievements.hpp"
 
 #include "Object/WorldObject.hpp"
 #include "Object/BuildableObject.hpp"
@@ -192,6 +193,8 @@ private:
     bool isStateTransitioning();
     void startChangeStateTransition(GameState newState);
     void changeState(GameState newState);
+    // Only use to prevent game state changing default behaviour
+    void overrideState(GameState newState);
 
 
     // -- Save / load -- //

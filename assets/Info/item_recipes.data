@@ -150,6 +150,17 @@
         "crafting-station-level": 1
     },
     {
+        "product": "Feather Arrow",
+        "product-amount": 15,
+        "key-items": ["Feather"],
+        "item-requirements": {
+            "Wooden Arrow": 15,
+            "Feather": 1
+        },
+        "crafting-station": "bench",
+        "crafting-station-level": 1
+    },
+    {
         "product": "Wooden Fishing Rod",
         "item-requirements": {
             "Wood": 15

@@ -230,6 +230,36 @@ int InventoryData::getProjectileCountForWeapon(ToolType weapon) const
     return count;
 }
 
+ProjectileType InventoryData::getValidProjectileNearestToEnd(ToolType weapon) const
+{
+    const ToolData& toolData = ToolDataLoader::getToolData(weapon);
+
+    if (toolData.toolBehaviourType != ToolBehaviourType::BowWeapon)
+    {
+        return 0;
+    }
+
+    for (int i = inventoryData.size() - 1; i >= 0; i--)
+    {
+        const std::optional<ItemCount>& itemSlot = inventoryData[i];
+
+        if (!itemSlot.has_value())
+        {
+            continue;
+        }
+
+        for (ProjectileType projectileType : toolData.projectileShootTypes)
+        {
+            if (projectileType == ItemDataLoader::getItemData(itemSlot->first).projectileType)
+            {
+                return projectileType;
+            }
+        }
+    }
+
+    return -1;
+}
+
 // Save / load
 void to_json(nlohmann::json& json, const InventoryData& inventory)
 {

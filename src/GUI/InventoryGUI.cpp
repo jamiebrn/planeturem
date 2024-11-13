@@ -1037,8 +1037,8 @@ sf::Vector2f InventoryGUI::drawItemInfoBox(sf::RenderTarget& window, float gameT
 
         int averageDamage = std::round((projectileData.damageHigh + projectileData.damageLow) / 2.0f);
 
-        infoStrings.push_back({"Ammo", 20});
         infoStrings.push_back({std::to_string(averageDamage) + " damage", 20});
+        infoStrings.push_back({"Ammo", 20});
     }
     else if (itemData.bossSummonData.has_value())
     {

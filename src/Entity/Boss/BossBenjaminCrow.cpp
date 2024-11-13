@@ -287,6 +287,12 @@ void BossBenjaminCrow::updateDashGhostEffects(float dt)
 
 bool BossBenjaminCrow::isAlive()
 {
+    if (dead)
+    {
+        // Unlock achievement
+        Achievements::attemptAchievementUnlock("KILLED_BENJAMIN");
+    }
+
     return (!dead);
 }
 
