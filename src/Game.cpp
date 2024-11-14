@@ -1,7 +1,6 @@
 #include "Game.hpp"
 
 // FIX: Crash on save / rocket enter bug (can't save???)
-// FIX: Rockets in rooms
 
 // TODO: Night and menu music
 // TODO: Better GUI system / relative to window size etc and texturing
@@ -1590,9 +1589,15 @@ void Game::changeState(GameState newState)
             
             if (gameState == GameState::OnPlanet)
             {
-                sf::Vector2f roomEntrancePos = structureRoomPool.getRoom(structureEnteredID).getEntrancePosition();
+                std::optional<sf::Vector2f> roomEntrancePos = structureRoomPool.getRoom(structureEnteredID).getEntrancePosition();
 
-                player.setPosition(roomEntrancePos);
+                //assert(roomEntrancePos.has_value());
+                if (!roomEntrancePos.has_value())
+                {
+                    roomEntrancePos = sf::Vector2f(50, 50);
+                }
+
+                player.setPosition(roomEntrancePos.value());
             }
 
             camera.instantUpdate(player.getPosition());

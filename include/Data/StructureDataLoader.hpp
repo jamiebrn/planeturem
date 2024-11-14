@@ -28,6 +28,8 @@ public:
 
     static StructureType getStructureTypeFromName(const std::string& structureName);
 
+    static RoomType getRoomTypeTravelLocationFromName(const std::string& roomLocationName);
+
 private:
     static void loadChestContents(RoomObjectData& roomObjectData, nlohmann::ordered_json::iterator objectIter);
 
@@ -35,5 +37,7 @@ private:
     static std::vector<RoomData> loaded_roomData;
 
     static std::unordered_map<std::string, StructureType> structureNameToTypeMap;
+
+    static std::unordered_map<std::string, RoomType> roomTypeTravelLocationsMap;
 
 };

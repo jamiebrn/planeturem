@@ -34,6 +34,8 @@ struct RoomData
 
     sf::Vector2i collisionBitmaskOffset;
 
+    bool isTravelLocation = false;
+
     // Stores objects that will be placed in room based on bitmask blue channel
     std::unordered_map<uint8_t, RoomObjectData> objectsInRoom;
 

@@ -8,13 +8,19 @@
                 ["Chest", 1, [
                     [[1, "Wood", 3], [10, "Wood", 2]],
                     [[5, "Wood", 2], [14, "Stone", 1]],
-                    [[6, "Raw Iron", 2], [12, "Wood", 1]]
-                    ]],
-                ["Chest", 2, [
+                    [[6, "Raw Iron", 2], [12, "Wood", 1]],
                     [[6, "Stone", 4], [13, "Raw Iron", 2]],
                     [[3, "Golden Gemstone", 1], [14, "Wood", 2]]
-                    ]],
-                ["Rocket Launch Pad", 3]
+                    ]]
+            ]
+        },
+        "Space Station": {
+            "travel-location": true,
+            "texture": [0, 160],
+            "tile-size": [14, 8],
+            "collision-bitmask": [14, 4],
+            "objects": [
+                ["Rocket Launch Pad", 1]
             ]
         }
     },
@@ -27,7 +33,7 @@
             "texture-origin": [0.167, 0.833],
             "collision-bitmask": [0, 0],
             "light-bitmask": [3, 0],
-            "room": "Stone"
+            "room": "Space Station"
         }
     ]
 }

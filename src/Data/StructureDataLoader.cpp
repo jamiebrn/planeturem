@@ -53,6 +53,12 @@ bool StructureDataLoader::loadData(std::string structureDataPath)
         // roomNameToDataMap[iter.key()] = roomData;
         roomNameToTypeMap[iter.key()] = loaded_roomData.size();
 
+        if (iter->contains("travel-location"))
+        {
+            roomData.isTravelLocation = true;
+            roomTypeTravelLocationsMap[iter.key()] = loaded_roomData.size();
+        }
+
         loaded_roomData.push_back(roomData);
     }
 
@@ -130,4 +136,9 @@ const RoomData& StructureDataLoader::getRoomData(RoomType roomType)
 ObjectType StructureDataLoader::getStructureTypeFromName(const std::string& structureName)
 {
     return structureNameToTypeMap[structureName];
+}
+
+RoomType StructureDataLoader::getRoomTypeTravelLocationFromName(const std::string& roomLocationName)
+{
+    return roomTypeTravelLocationsMap[roomLocationName];
 }

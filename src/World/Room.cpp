@@ -164,14 +164,24 @@ void Room::createCollisionRects()
 
 bool Room::isPlayerInExit(sf::Vector2f playerPos) const
 {
-    return (warpExitRect.isPointInRect(playerPos.x, playerPos.y));
+    if (!warpExitRect.has_value())
+    {
+        return false;
+    }
+
+    return (warpExitRect->isPointInRect(playerPos.x, playerPos.y));
 }
 
-sf::Vector2f Room::getEntrancePosition() const
+std::optional<sf::Vector2f> Room::getEntrancePosition() const
 {
+    if (!warpExitRect.has_value())
+    {
+        return std::nullopt;
+    }
+
     sf::Vector2f entrancePos;
-    entrancePos.x = warpExitRect.x + 0.5f * TILE_SIZE_PIXELS_UNSCALED;
-    entrancePos.y = warpExitRect.y - 0.5f * TILE_SIZE_PIXELS_UNSCALED;
+    entrancePos.x = warpExitRect->x + 0.5f * TILE_SIZE_PIXELS_UNSCALED;
+    entrancePos.y = warpExitRect->y - 0.5f * TILE_SIZE_PIXELS_UNSCALED;
 
     return entrancePos;
 }

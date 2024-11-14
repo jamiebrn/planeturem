@@ -29,9 +29,9 @@ void ChunkManager::setPlanetType(PlanetType planetType)
 
     const PlanetGenData& planetGenData = PlanetGenDataLoader::getPlanetGenData(planetType);
 
-    // Set water colour
-    sf::Shader* waterShader = Shaders::getShader(ShaderType::Water);
-    waterShader->setUniform("waterColor", sf::Glsl::Vec4(planetGenData.waterColour));
+    // // Set water colour
+    // sf::Shader* waterShader = Shaders::getShader(ShaderType::Water);
+    // waterShader->setUniform("waterColor", sf::Glsl::Vec4(planetGenData.waterColour));
 
     // Set planet size
     worldSize = planetGenData.worldSize;
@@ -220,6 +220,10 @@ void ChunkManager::drawChunkWater(sf::RenderTarget& window, const Camera& camera
     // Set shader time paramenter
     sf::Shader* waterShader = Shaders::getShader(ShaderType::Water);
     waterShader->setUniform("time", time);
+
+    // Set water colour
+    const PlanetGenData& planetGenData = PlanetGenDataLoader::getPlanetGenData(planetType);
+    waterShader->setUniform("waterColor", sf::Glsl::Vec4(planetGenData.waterColour));
 
     for (auto& chunkPair : loadedChunks)
     {

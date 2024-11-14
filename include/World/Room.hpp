@@ -50,7 +50,7 @@ public:
 
     bool isPlayerInExit(sf::Vector2f playerPos) const;
 
-    sf::Vector2f getEntrancePosition() const;
+    std::optional<sf::Vector2f> getEntrancePosition() const;
 
     std::vector<const WorldObject*> getObjects() const;
 
@@ -111,7 +111,7 @@ private:
     RoomType roomType;
 
     std::vector<CollisionRect> collisionRects;
-    CollisionRect warpExitRect;
+    std::optional<CollisionRect> warpExitRect;
 
     // Objects in room
     std::vector<std::vector<std::unique_ptr<BuildableObject>>> objectGrid;
