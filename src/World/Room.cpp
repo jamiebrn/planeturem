@@ -304,6 +304,11 @@ BuildableObject* Room::getObject(sf::Vector2i tile) const
     return object;
 }
 
+RoomType Room::getRoomType() const
+{
+    return roomType;
+}
+
 // sf::Vector2i Room::getSelectedTile(sf::Vector2f mouseWorldPos)
 // {
 //     sf::Vector2i selectedTile;

@@ -29,6 +29,7 @@
 
 #include "World/Room.hpp"
 #include "World/RoomPool.hpp"
+#include "World/RoomDestinationManager.hpp"
 
 #include "World/DayCycleManager.hpp"
 #include "World/LightingEngine.hpp"
@@ -262,6 +263,7 @@ private:
     BossManager bossManager;
     ParticleSystem particleSystem;
     DayCycleManager dayCycleManager;
+    RoomDestinationManager roomDestinationManager;
 
     LightingEngine lightingEngine;
     int lightingTick = 0;

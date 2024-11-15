@@ -18,15 +18,16 @@ class TravelSelectGUI
 public:
     static void processEventGUI(const sf::Event& event);
 
-    static void setAvailableDestinations(const std::vector<PlanetType>& availableDestinations);
+    static void setAvailableDestinations(const std::vector<PlanetType>& availablePlanetDestinations, const std::vector<RoomType>& availableRoomDestinations);
 
-    static bool createGUI(sf::RenderWindow& window, PlanetType& selectedPlanetType);
+    static bool createGUI(sf::RenderWindow& window, PlanetType& selectedPlanetType, RoomType& selectedRoomType);
 
     static void drawGUI(sf::RenderTarget& window);
 
 private:
     static GUIContext guiContext;
 
-    static std::vector<PlanetType> availableDestinations;
+    static std::vector<PlanetType> availablePlanetDestinations;
+    static std::vector<RoomType> availableRoomDestinations;
 
 };

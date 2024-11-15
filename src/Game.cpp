@@ -60,6 +60,9 @@ bool Game::initialise()
     if(!StructureDataLoader::loadData("Data/Info/structures.data")) return false;
     if(!PlanetGenDataLoader::loadData("Data/Info/planet_generation.data")) return false;
 
+    // Must be done once all other data is loaded to avoid circular dependency
+    ObjectDataLoader::loadRocketPlanetDestinations(PlanetGenDataLoader::getPlanetStringToTypeMap(), StructureDataLoader::getRoomTravelLocationNameToTypeMap());
+
     // Load icon
     if(!icon.loadFromFile("Data/Textures/icon.png")) return false;
     window.setIcon(256, 256, icon.getPixelsPtr());
@@ -557,19 +560,24 @@ void Game::runOnPlanet(float dt)
             case WorldMenuState::TravelSelect:
             {
                 // std::vector<PlanetType> availableDestinations = getRocketAvailableDestinations();
-                PlanetType selectedDestination;
+                PlanetType selectedPlanetDestination;
+                RoomType selectedRoomDestination;
 
-                if (TravelSelectGUI::createGUI(window, selectedDestination))
+                if (TravelSelectGUI::createGUI(window, selectedPlanetDestination, selectedRoomDestination))
                 {
-                    BuildableObject* rocketObject = getObjectFromChunkOrRoom(rocketEnteredReference);
-
-                    if (rocketObject)
+                    // TODO: Behaviour for selected room destination
+                    if (selectedPlanetDestination >= 0)
                     {
-                        destinationPlanet = selectedDestination;
-                        worldMenuState = WorldMenuState::FlyingRocket;
-                        rocketObject->triggerBehaviour(*this, ObjectBehaviourTrigger::RocketFlyUp);
-                        // Fade out music
-                        Sounds::stopMusic(0.5f);
+                        BuildableObject* rocketObject = getObjectFromChunkOrRoom(rocketEnteredReference);
+
+                        if (rocketObject)
+                        {
+                            destinationPlanet = selectedPlanetDestination;
+                            worldMenuState = WorldMenuState::FlyingRocket;
+                            rocketObject->triggerBehaviour(*this, ObjectBehaviourTrigger::RocketFlyUp);
+                            // Fade out music
+                            Sounds::stopMusic(0.5f);
+                        }
                     }
                 }
             }
@@ -885,7 +893,23 @@ void Game::enterRocket(RocketObject& rocket)
 
     worldMenuState = WorldMenuState::TravelSelect;
 
-    TravelSelectGUI::setAvailableDestinations(rocket.getRocketAvailableDestinations(chunkManager.getPlanetType()));
+    PlanetType currentPlanetType = -1;
+    RoomType currentRoomType = -1;
+    if (gameState == GameState::OnPlanet)
+    {
+        currentPlanetType = chunkManager.getPlanetType();
+    }
+    else if (gameState == GameState::InRoomDestination)
+    {
+        currentRoomType = roomDestinationManager.getRoom().getRoomType();
+    }
+
+    std::vector<PlanetType> planetDestinations;
+    std::vector<RoomType> roomDestinations;
+
+    rocket.getRocketAvailableDestinations(chunkManager.getPlanetType(), currentRoomType, planetDestinations, roomDestinations);
+
+    TravelSelectGUI::setAvailableDestinations(planetDestinations, roomDestinations);
 
     player.enterRocket(rocket.getRocketPosition());
 }

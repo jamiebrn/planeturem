@@ -4,7 +4,8 @@ enum GameState
 {
     MainMenu,
     OnPlanet,
-    InStructure
+    InStructure,
+    InRoomDestination
 };
 
 enum class MainMenuState

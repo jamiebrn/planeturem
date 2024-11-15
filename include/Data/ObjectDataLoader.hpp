@@ -19,7 +19,8 @@ class ObjectDataLoader
 public:
     static bool loadData(std::string objectDataPath);
 
-    static bool loadRocketPlanetDestinations(const std::unordered_map<std::string, PlanetType>& planetStringToTypeMap);
+    static bool loadRocketPlanetDestinations(const std::unordered_map<std::string, PlanetType>& planetStringToTypeMap,
+        const std::unordered_map<std::string, RoomType>& roomStringToTypeMap);
 
     static const ObjectData& getObjectData(ObjectType type_index);
 

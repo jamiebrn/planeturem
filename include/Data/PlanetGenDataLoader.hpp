@@ -29,6 +29,8 @@ public:
 
     static TileMap getTileMapFromID(int tileID);
 
+    static inline const std::unordered_map<std::string, PlanetType>& getPlanetStringToTypeMap() {return planetStringToTypeMap;}
+
 private:
     static bool loadPlanet(nlohmann::ordered_json::iterator& planetData, const nlohmann::ordered_json& allPlanetGenData);
 

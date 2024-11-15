@@ -61,6 +61,8 @@ public:
     // BuildableObject* getObject(sf::Vector2f mouseWorldPos) const;
     BuildableObject* getObject(sf::Vector2i tile) const;
 
+    RoomType getRoomType() const;
+
     void draw(sf::RenderTarget& window, const Camera& camera) const;
 
 
@@ -108,7 +110,7 @@ private:
     void loadObjectPODs(const std::vector<std::vector<std::optional<BuildableObjectPOD>>>& pods);
 
 private:
-    RoomType roomType;
+    RoomType roomType = -1;
 
     std::vector<CollisionRect> collisionRects;
     std::optional<CollisionRect> warpExitRect;

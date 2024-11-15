@@ -4,6 +4,7 @@ std::vector<StructureData> StructureDataLoader::loaded_structureData;
 std::vector<RoomData> StructureDataLoader::loaded_roomData;
 
 std::unordered_map<std::string, StructureType> StructureDataLoader::structureNameToTypeMap;
+std::unordered_map<std::string, RoomType> StructureDataLoader::roomTypeTravelLocationsMap;
 
 bool StructureDataLoader::loadData(std::string structureDataPath)
 {
@@ -17,6 +18,8 @@ bool StructureDataLoader::loadData(std::string structureDataPath)
     for (nlohmann::ordered_json::iterator iter = rooms.begin(); iter != rooms.end(); ++iter)
     {
         RoomData roomData;
+
+        roomData.name = iter.key();
 
         auto tileSize = iter->at("tile-size");
         roomData.tileSize.x = tileSize[0];

@@ -8,12 +8,6 @@ bool ObjectDataLoader::loadData(std::string objectDataPath)
     std::ifstream file(objectDataPath);
     nlohmann::ordered_json data = nlohmann::ordered_json::parse(file);
 
-
-    // Store all item drops to add to objects after loading
-    // Allows objects to drop other objects, including themselves, as items
-    // Pair stores name of item to drop as string, and item drop (item drop item type will be overridden)
-    // std::unordered_map<ObjectType, std::vector<std::pair<std::string, ItemDrop>>> objectItemDrops;
-
     int objectIdx = 0;
 
     // Load all names and essential data first to load items, to allow objects to drop other objects / themselves
@@ -115,13 +109,21 @@ bool ObjectDataLoader::loadData(std::string objectDataPath)
             auto textureOrigin = rocketInfo.at("texture-origin");
             auto launchPosition = rocketInfo.at("launch-position");
             auto availableDestinations = rocketInfo.at("available-destinations");
+            auto availableRoomDestinations = rocketInfo.at("available-room-destinations");
+
             objectData.rocketObjectData->textureRect = sf::IntRect(textureRect[0], textureRect[1], textureRect[2], textureRect[3]);
             objectData.rocketObjectData->textureOrigin = sf::Vector2f(textureOrigin[0], textureOrigin[1]);
             objectData.rocketObjectData->launchPosition = sf::Vector2f(launchPosition[0], launchPosition[1]);
 
             for (nlohmann::ordered_json::iterator destinationIter = availableDestinations.begin(); destinationIter != availableDestinations.end(); ++destinationIter)
             {
-                objectData.rocketObjectData->avaiableDestinationStrings.push_back(destinationIter.value());
+                objectData.rocketObjectData->availableDestinationStrings.push_back(destinationIter.value());
+            }
+
+            for (nlohmann::ordered_json::iterator roomDestinationIter = availableRoomDestinations.begin(); roomDestinationIter != availableRoomDestinations.end();
+                ++roomDestinationIter)
+            {
+                objectData.rocketObjectData->availableRoomDestinationStrings.push_back(roomDestinationIter.value());
             }
         }
 
@@ -171,7 +173,6 @@ bool ObjectDataLoader::loadData(std::string objectDataPath)
                         itemDrop.chance = itemDropsIter.value()[2];
 
                         stageData.itemDrops.push_back(itemDrop);
-                        // objectItemDrops[objectIdx].push_back({itemDropsIter.key(), itemDrop});
                     }
                 }
 
@@ -180,32 +181,13 @@ bool ObjectDataLoader::loadData(std::string objectDataPath)
         }
 
         loaded_objectData.push_back(objectData);
-
-        // Create item corresponding to object
-        // ItemDataLoader::createItemFromObject(objectIdx, objectData);
-
-        // objectIdx++;
     }
-
-    // Load all item drops into objects
-    // for (const auto& objectItemDrop : objectItemDrops)
-    // {
-    //     const ObjectType& objectType = objectItemDrop.first;
-    //     const std::vector<std::pair<std::string, ItemDrop>>& itemDrops = objectItemDrop.second;
-
-    //     for (const auto& itemDropWithString : itemDrops)
-    //     {
-    //         ItemDrop itemDrop = itemDropWithString.second;
-    //         itemDrop.item = ItemDataLoader::getItemTypeFromName(itemDropWithString.first);
-
-    //         loaded_objectData[objectType].itemDrops.push_back(itemDrop);
-    //     }
-    // }
 
     return true;
 }
 
-bool ObjectDataLoader::loadRocketPlanetDestinations(const std::unordered_map<std::string, PlanetType>& planetStringToTypeMap)
+bool ObjectDataLoader::loadRocketPlanetDestinations(const std::unordered_map<std::string, PlanetType>& planetStringToTypeMap,
+    const std::unordered_map<std::string, RoomType>& roomStringToTypeMap)
 {
     // Load rocket destinations for all rocket objects
     for (ObjectData& objectData : loaded_objectData)
@@ -215,7 +197,7 @@ bool ObjectDataLoader::loadRocketPlanetDestinations(const std::unordered_map<std
             continue;
         
         // Load planet destinations from strings
-        for (const std::string& planetStr : objectData.rocketObjectData->avaiableDestinationStrings)
+        for (const std::string& planetStr : objectData.rocketObjectData->availableDestinationStrings)
         {
             if (!planetStringToTypeMap.contains(planetStr))
                 return false;
@@ -224,8 +206,18 @@ bool ObjectDataLoader::loadRocketPlanetDestinations(const std::unordered_map<std
             objectData.rocketObjectData->availableDestinations.push_back(planetType);
         }
 
+        // Load room destinations
+        for (const std::string& roomStr : objectData.rocketObjectData->availableRoomDestinationStrings)
+        {
+            if (!roomStringToTypeMap.contains(roomStr))
+                return false;
+
+            RoomType roomType = roomStringToTypeMap.at(roomStr);
+            objectData.rocketObjectData->availableRoomDestinations.push_back(roomType);
+        }
+
         // Free planet string destinations, as only used temporarily for loading
-        objectData.rocketObjectData->avaiableDestinationStrings.clear();
+        objectData.rocketObjectData->availableDestinationStrings.clear();
     }
 
     return true;

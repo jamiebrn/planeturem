@@ -316,7 +316,8 @@
             "texture": [32, 343, 16, 41],
             "texture-origin": [0.5, 1],
             "launch-position": [16, 14],
-            "available-destinations": ["Earthlike", "Moon"]
+            "available-destinations": ["Earthlike", "Moon"],
+            "available-room-destinations": ["Space Station"]
         },
         "item-drops": {
             "Rocket Launch Pad": [1, 1, 1.0]

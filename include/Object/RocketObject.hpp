@@ -34,7 +34,8 @@ public:
     void startFlyingUpwards();
     void startFlyingDownwards();
 
-    std::vector<PlanetType> getRocketAvailableDestinations(PlanetType currentPlanetType);
+    void getRocketAvailableDestinations(PlanetType currentPlanetType, RoomType currentRoomType,
+        std::vector<PlanetType>& planetDestinations, std::vector<RoomType>& roomDestinations);
 
     sf::Vector2f getRocketPosition();
     sf::Vector2f getRocketBottomPosition();

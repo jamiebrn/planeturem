@@ -30,6 +30,8 @@ public:
 
     static RoomType getRoomTypeTravelLocationFromName(const std::string& roomLocationName);
 
+    static inline const std::unordered_map<std::string, RoomType>& getRoomTravelLocationNameToTypeMap() {return roomTypeTravelLocationsMap;}
+
 private:
     static void loadChestContents(RoomObjectData& roomObjectData, nlohmann::ordered_json::iterator objectIter);
 

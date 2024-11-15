@@ -118,21 +118,26 @@ void RocketObject::startFlyingDownwards()
         TweenTransition::Quint, TweenEasing::EaseInOut);
 }
 
-std::vector<PlanetType> RocketObject::getRocketAvailableDestinations(PlanetType currentPlanetType)
+void RocketObject::getRocketAvailableDestinations(PlanetType currentPlanetType, RoomType currentRoomType,
+    std::vector<PlanetType>& planetDestinations, std::vector<RoomType>& roomDestinations)
 {
-    std::vector<PlanetType> availableDestinations;
-
     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
 
-    for (PlanetType destination : objectData.rocketObjectData->availableDestinations)
+    for (PlanetType planetDestination : objectData.rocketObjectData->availableDestinations)
     {
-        if (destination == currentPlanetType)
+        if (planetDestination == currentPlanetType)
             continue;
         
-        availableDestinations.push_back(destination);
+        planetDestinations.push_back(planetDestination);
     }
 
-    return availableDestinations;
+    for (RoomType roomDestination : objectData.rocketObjectData->availableRoomDestinations)
+    {
+        if (roomDestination == currentRoomType)
+            continue;
+        
+        roomDestinations.push_back(roomDestination);
+    }
 }
 
 sf::Vector2f RocketObject::getRocketPosition()

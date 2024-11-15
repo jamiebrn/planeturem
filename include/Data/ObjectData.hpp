@@ -28,9 +28,12 @@ struct RocketObjectData
     sf::Vector2f launchPosition;
 
     std::vector<PlanetType> availableDestinations;
+    std::vector<RoomType> availableRoomDestinations;
+
     // Used for loading, as planets load after objects
     // So string is stored, then planet type is loaded into available destinations
-    std::vector<std::string> avaiableDestinationStrings;
+    std::vector<std::string> availableDestinationStrings;
+    std::vector<std::string> availableRoomDestinationStrings;
 };
 
 struct ObjectData

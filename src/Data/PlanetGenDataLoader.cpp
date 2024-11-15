@@ -22,7 +22,7 @@ bool PlanetGenDataLoader::loadData(std::string planetGenDataPath)
     }
 
     // Load rocket object destinations, as planets have now loaded
-    ObjectDataLoader::loadRocketPlanetDestinations(planetStringToTypeMap);
+    // ObjectDataLoader::loadRocketPlanetDestinations(planetStringToTypeMap);
 
     return true;
 }
