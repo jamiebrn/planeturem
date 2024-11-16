@@ -25,9 +25,16 @@ public:
     static void drawGUI(sf::RenderTarget& window);
 
 private:
+    static void updateSelectionHoverRect(sf::IntRect destinationRect);
+    static void resetHoverRect();
+
+private:
     static GUIContext guiContext;
 
     static std::vector<PlanetType> availablePlanetDestinations;
     static std::vector<RoomType> availableRoomDestinations;
+
+    static sf::FloatRect selectionHoverRect;
+    static sf::FloatRect selectionHoverRectDestination;
 
 };

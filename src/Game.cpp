@@ -356,6 +356,10 @@ void Game::runOnPlanet(float dt)
     {
         handleEventsWindow(event);
 
+        // Always process events even when GUI is not drawn
+        // Prevents previous state being retained
+        TravelSelectGUI::processEventGUI(event);
+
         if (isStateTransitioning() || !player.isAlive())
         {
             continue;
@@ -366,11 +370,6 @@ void Game::runOnPlanet(float dt)
             continue;
         }
         
-        if (worldMenuState == WorldMenuState::TravelSelect)
-        {
-            TravelSelectGUI::processEventGUI(event);
-        }
-
         if (event.type == sf::Event::KeyPressed)
         {
             switch (worldMenuState)
@@ -517,9 +516,9 @@ void Game::runOnPlanet(float dt)
     isDay = dayCycleManager.isDay();
     // updateDayNightCycle(dt);
 
-    if (travelPlanetTrigger)
+    if (travelTrigger)
     {
-        travelToPlanet(destinationPlanet);
+        travelToDestination();
     }
 
     // Update depending on game state
@@ -560,8 +559,8 @@ void Game::runOnPlanet(float dt)
             case WorldMenuState::TravelSelect:
             {
                 // std::vector<PlanetType> availableDestinations = getRocketAvailableDestinations();
-                PlanetType selectedPlanetDestination;
-                RoomType selectedRoomDestination;
+                PlanetType selectedPlanetDestination = -1;
+                RoomType selectedRoomDestination = -1;
 
                 if (TravelSelectGUI::createGUI(window, selectedPlanetDestination, selectedRoomDestination))
                 {
@@ -943,7 +942,7 @@ void Game::enterIncomingRocket(RocketObject& rocket)
 
 void Game::rocketFinishedUp(RocketObject& rocket)
 {
-    travelPlanetTrigger = true;
+    travelTrigger = true;
 }
 
 void Game::rocketFinishedDown(RocketObject& rocket)
@@ -1483,14 +1482,9 @@ void Game::closeChest()
 
 // -- Planet travelling -- //
 
-void Game::travelToPlanet(PlanetType planetType)
+void Game::travelToDestination()
 {
-    //exitRocket();
-
-    // TODO: Set state to either on planet or in structure based on planet load data, rather than default to on planet
-    // overrideState(GameState::OnPlanet);
-
-    travelPlanetTrigger = false;
+    travelTrigger = false;
 
     player.exitRocket();
 
@@ -1498,6 +1492,21 @@ void Game::travelToPlanet(PlanetType planetType)
     resetStructureRoomPool();
     bossManager.clearBosses();
 
+    if (destinationPlanet >= 0)
+    {
+        travelToPlanet(destinationPlanet);
+    }
+    else if (destinationRoom >= 0)
+    {
+        travelToRoomDestination(destinationRoom);
+    }
+
+    destinationPlanet = 0;
+    destinationRoom = 0;
+}
+
+void Game::travelToPlanet(PlanetType planetType)
+{
     if (!loadPlanet(planetType))
     {
         overrideState(GameState::OnPlanet);
@@ -1513,18 +1522,21 @@ void Game::travelToPlanet(PlanetType planetType)
     lightingTick = LIGHTING_TICK;
 
     // Start rocket flying downwards
-    // BuildableObject* rocketObject = chunkManager.getChunkObject(rocketEnteredReference.chunk, rocketEnteredReference.tile);
     BuildableObject* rocketObject = getObjectFromChunkOrRoom(rocketEnteredReference);
     if (rocketObject)
     {
         rocketObject->triggerBehaviour(*this, ObjectBehaviourTrigger::RocketFlyDown);
     }
-    // RocketObject* rocket = static_cast<RocketObject*>(chunkManager.getChunkObject(rocketObject.chunk, rocketObject.tile));
-
-    // player.enterRocket(rocket->getRocketPosition());
-    // startFlyingRocket(chunkManager.getPlanetType(), true);
-
     camera.instantUpdate(player.getPosition());
+}
+
+void Game::travelToRoomDestination(RoomType destinationRoomType)
+{
+    overrideState(GameState::InRoomDestination);
+    
+    roomDestinationManager.loadRoomDestinationType(destinationRoom);
+
+
 }
 
 void Game::initialiseNewPlanet(PlanetType planetType, bool placeRocket)

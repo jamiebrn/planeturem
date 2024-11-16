@@ -220,5 +220,14 @@ void RocketObject::drawRocket(sf::RenderTarget& window, SpriteBatch& spriteBatch
     drawData.centerRatio = objectData.rocketObjectData->textureOrigin;
     drawData.colour = color;
 
-    spriteBatch.draw(window, drawData, objectData.rocketObjectData->textureRect);
+    std::optional<ShaderType> shaderType;
+
+    if (flash_amount > 0)
+    {
+        shaderType = ShaderType::Flash;
+        sf::Shader* shader = Shaders::getShader(shaderType.value());
+        shader->setUniform("flash_amount", flash_amount);
+    }
+
+    spriteBatch.draw(window, drawData, objectData.rocketObjectData->textureRect, shaderType);
 }

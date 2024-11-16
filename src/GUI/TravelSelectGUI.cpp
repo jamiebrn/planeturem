@@ -13,6 +13,19 @@ void TravelSelectGUI::setAvailableDestinations(const std::vector<PlanetType>& av
 {
     TravelSelectGUI::availablePlanetDestinations = availablePlanetDestinations;
     TravelSelectGUI::availableRoomDestinations = availableRoomDestinations;
+
+    guiContext.resetActiveElement();
+    resetHoverRect();
+}
+
+void TravelSelectGUI::updateSelectionHoverRect(sf::IntRect destinationRect)
+{
+
+}
+
+void TravelSelectGUI::resetHoverRect()
+{
+    
 }
 
 bool TravelSelectGUI::createGUI(sf::RenderWindow& window, PlanetType& selectedPlanetType, RoomType& selectedRoomType)

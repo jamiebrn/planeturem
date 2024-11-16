@@ -25,6 +25,8 @@ public:
 
     void endGUI();
 
+    void resetActiveElement();
+
     const Button& createButton(int x, int y, int width, int height, const std::string& text, std::optional<ButtonStyle> style = std::nullopt);
 
     const Checkbox& createCheckbox(int x, int y, int width, int height, const std::string& label, bool* value);
@@ -39,9 +41,6 @@ public:
     const GUIElement* getHoveredElement() const;
 
     const inline GUIInputState getInputState() const {return inputState;}
-
-private:
-    void resetActiveElement();
 
 private:
     std::vector<std::unique_ptr<GUIElement>> elements;
