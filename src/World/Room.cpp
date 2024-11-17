@@ -304,6 +304,38 @@ BuildableObject* Room::getObject(sf::Vector2i tile) const
     return object;
 }
 
+bool Room::getFirstRocketObjectReference(ObjectReference& objectReference) const
+{
+    for (int y = 0; y < objectGrid.size(); y++)
+    {
+        for (int x = 0; x < objectGrid[y].size(); x++)
+        {
+            BuildableObject* object = objectGrid[y][x].get();
+
+            if (!object)
+            {
+                continue;
+            }
+
+            if (object->isObjectReference() || object->isDummyObject())
+            {
+                continue;
+            }
+
+            const ObjectData& objectData = ObjectDataLoader::getObjectData(object->getObjectType());
+
+            if (objectData.rocketObjectData.has_value())
+            {
+                objectReference.chunk = ChunkPosition(0, 0);
+                objectReference.tile = sf::Vector2i(x, y);
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
 RoomType Room::getRoomType() const
 {
     return roomType;

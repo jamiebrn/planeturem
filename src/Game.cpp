@@ -2,6 +2,9 @@
 
 // FIX: Crash on save / rocket enter bug (can't save???)
 
+// TODO: TODAY - Improve travel GUI similar to main menu style
+// TODO: Saving in room destination
+
 // TODO: Night and menu music
 // TODO: Better GUI system / relative to window size etc and texturing
 // TODO: Consumable / health regen items
@@ -145,9 +148,10 @@ void Game::run()
                 runMainMenu(dt);
                 break;
             
-            case GameState::InStructure:
-            case GameState::OnPlanet:
-                runOnPlanet(dt);
+            case GameState::OnPlanet: // fallthrough
+            case GameState::InStructure: // fallthrough
+            case GameState::InRoomDestination:
+                runInGame(dt);
                 break;
         }
 
@@ -342,10 +346,9 @@ void Game::runMainMenu(float dt)
     }
 }
 
+// -- Main Game -- //
 
-// -- On Planet -- //
-
-void Game::runOnPlanet(float dt)
+void Game::runInGame(float dt)
 {
     sf::Vector2f mouseScreenPos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
 
@@ -528,11 +531,23 @@ void Game::runOnPlanet(float dt)
             updateOnPlanet(dt);
             break;
         case GameState::InStructure:
-            updateInStructure(dt);
+        {
+            Room& structureRoom = structureRoomPool.getRoom(structureEnteredID);
+            updateInRoom(dt, structureRoom, true);
             break;
+        }
+        case GameState::InRoomDestination:
+        {
+            Room& roomDestination = roomDestinationManager.getRoom();
+            updateInRoom(dt, roomDestination, false);
+            break;
+        }
     }
 
     Cursor::setCursorHidden(!player.canReachPosition(Cursor::getMouseWorldPos(window, camera)));
+    Cursor::setCursorHidden(worldMenuState == WorldMenuState::TravelSelect ||
+                            worldMenuState == WorldMenuState::FlyingRocket ||
+                            !player.isAlive());
 
     // Close chest if out of range
     checkChestOpenInRange();
@@ -565,18 +580,16 @@ void Game::runOnPlanet(float dt)
                 if (TravelSelectGUI::createGUI(window, selectedPlanetDestination, selectedRoomDestination))
                 {
                     // TODO: Behaviour for selected room destination
-                    if (selectedPlanetDestination >= 0)
-                    {
-                        BuildableObject* rocketObject = getObjectFromChunkOrRoom(rocketEnteredReference);
+                    BuildableObject* rocketObject = getObjectFromChunkOrRoom(rocketEnteredReference);
 
-                        if (rocketObject)
-                        {
-                            destinationPlanet = selectedPlanetDestination;
-                            worldMenuState = WorldMenuState::FlyingRocket;
-                            rocketObject->triggerBehaviour(*this, ObjectBehaviourTrigger::RocketFlyUp);
-                            // Fade out music
-                            Sounds::stopMusic(0.5f);
-                        }
+                    if (rocketObject)
+                    {
+                        destinationPlanet = selectedPlanetDestination;
+                        destinationRoom = selectedRoomDestination;
+                        worldMenuState = WorldMenuState::FlyingRocket;
+                        rocketObject->triggerBehaviour(*this, ObjectBehaviourTrigger::RocketFlyUp);
+                        // Fade out music
+                        Sounds::stopMusic(0.5f);
                     }
                 }
             }
@@ -596,8 +609,17 @@ void Game::runOnPlanet(float dt)
             drawOnPlanet(dt);
             break;
         case GameState::InStructure:
-            drawInStructure(dt);
+        {
+            const Room& structureRoom = structureRoomPool.getRoom(structureEnteredID);
+            drawInRoom(dt, structureRoom);
             break;
+        }
+        case GameState::InRoomDestination:
+        {
+            const Room& roomDestination = roomDestinationManager.getRoom();
+            drawInRoom(dt, roomDestination);
+            break;
+        }
     }
 
     if (player.isAlive())
@@ -634,6 +656,9 @@ void Game::runOnPlanet(float dt)
 
     spriteBatch.endDrawing(window);
 }
+
+
+// -- On Planet -- //
 
 void Game::updateOnPlanet(float dt)
 {
@@ -879,7 +904,8 @@ void Game::enterRocket(RocketObject& rocket)
             rocketEnteredReference.tile = rocket.getChunkTileInside(chunkManager.getWorldSize());
             break;
         }
-        case GameState::InStructure:
+        case GameState::InStructure: // fallthrough
+        case GameState::InRoomDestination:
         {
             rocketEnteredReference.chunk = ChunkPosition(0, 0);
             rocketEnteredReference.tile = rocket.getTileInside();
@@ -887,8 +913,12 @@ void Game::enterRocket(RocketObject& rocket)
         }
     }
 
-    // Save just before enter
-    saveGame(true);
+    // TODO: Saving functionality while in room destination
+    if (gameState != GameState::InRoomDestination)
+    {
+        // Save just before enter
+        saveGame(true);
+    }
 
     worldMenuState = WorldMenuState::TravelSelect;
 
@@ -906,7 +936,7 @@ void Game::enterRocket(RocketObject& rocket)
     std::vector<PlanetType> planetDestinations;
     std::vector<RoomType> roomDestinations;
 
-    rocket.getRocketAvailableDestinations(chunkManager.getPlanetType(), currentRoomType, planetDestinations, roomDestinations);
+    rocket.getRocketAvailableDestinations(currentPlanetType, currentRoomType, planetDestinations, roomDestinations);
 
     TravelSelectGUI::setAvailableDestinations(planetDestinations, roomDestinations);
 
@@ -951,36 +981,43 @@ void Game::rocketFinishedDown(RocketObject& rocket)
 }
 
 
-// -- In Structure -- //
+// -- In Room -- //
 
-void Game::updateInStructure(float dt)
+void Game::updateInRoom(float dt, Room& room, bool inStructure)
 {
     sf::Vector2f mouseScreenPos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
 
-    Room& structureRoom = structureRoomPool.getRoom(structureEnteredID);
+    // Room& structureRoom = structureRoomPool.getRoom(structureEnteredID);
 
-    Cursor::updateTileCursorInRoom(window, camera, dt, structureRoom, InventoryGUI::getHeldItemType(inventory), player.getTool());
+    Cursor::updateTileCursorInRoom(window, camera, dt, room, InventoryGUI::getHeldItemType(inventory), player.getTool());
 
     if (!isStateTransitioning())
-        player.updateInStructure(dt, Cursor::getMouseWorldPos(window, camera), structureRoom);
+    {
+        player.updateInRoom(dt, Cursor::getMouseWorldPos(window, camera), room);
+    }
 
     // Update room objects
-    structureRoom.updateObjects(*this, dt);
+    room.updateObjects(*this, dt);
 
-    // Continue to update objects and entities in world
-    chunkManager.updateChunksObjects(*this, dt);
-    chunkManager.updateChunksEntities(dt, projectileManager, inventory);
+    if (inStructure)
+    {
+        // Continue to update objects and entities in world
+        chunkManager.updateChunksObjects(*this, dt);
+        chunkManager.updateChunksEntities(dt, projectileManager, inventory);
 
-    if (!isStateTransitioning())
-        testExitStructure();
+        if (!isStateTransitioning())
+        {
+            testExitStructure();
+        }
+    }
 }
 
-void Game::drawInStructure(float dt)
+void Game::drawInRoom(float dt, const Room& room)
 {
-    const Room& structureRoom = structureRoomPool.getRoom(structureEnteredID);
-    structureRoom.draw(window, camera);
+    // const Room& structureRoom = structureRoomPool.getRoom(structureEnteredID);
+    room.draw(window, camera);
 
-    std::vector<const WorldObject*> worldObjects = structureRoom.getObjects();
+    std::vector<const WorldObject*> worldObjects = room.getObjects();
     worldObjects.push_back(&player);
 
     std::sort(worldObjects.begin(), worldObjects.end(), [](const WorldObject* a, const WorldObject* b)
@@ -1392,18 +1429,17 @@ BuildableObject* Game::getSelectedObjectFromChunkOrRoom()
 {
     sf::Vector2f mouseWorldPos = Cursor::getMouseWorldPos(window, camera);
 
-    if (gameState == GameState::OnPlanet)
+    switch (gameState)
     {
-        BuildableObject* selectedObject = chunkManager.getChunkObject(
-            Cursor::getSelectedChunk(chunkManager.getWorldSize()), Cursor::getSelectedChunkTile());
-        
-        return selectedObject;
-    }
-    else if (gameState == GameState::InStructure)
-    {
-        Room& structureRoom = structureRoomPool.getRoom(structureEnteredID);
-        
-        return structureRoom.getObject(Cursor::getSelectedTile());
+        case GameState::OnPlanet:
+        {
+            return getObjectFromChunkOrRoom(ObjectReference{Cursor::getSelectedChunk(chunkManager.getWorldSize()), Cursor::getSelectedChunkTile()});
+        }
+        case GameState::InStructure: // fallthrough
+        case GameState::InRoomDestination:
+        {
+            return getObjectFromChunkOrRoom(ObjectReference{{0, 0}, Cursor::getSelectedTile()});
+        }
     }
 
     return nullptr;
@@ -1411,14 +1447,22 @@ BuildableObject* Game::getSelectedObjectFromChunkOrRoom()
 
 BuildableObject* Game::getObjectFromChunkOrRoom(ObjectReference objectReference)
 {
-    if (gameState == GameState::OnPlanet)
+    switch (gameState)
     {
-        return chunkManager.getChunkObject(objectReference.chunk, objectReference.tile);
-    }
-    else if (gameState == GameState::InStructure)
-    {
-        Room& structureRoom = structureRoomPool.getRoom(structureEnteredID);
-        return structureRoom.getObject(objectReference.tile);
+        case GameState::OnPlanet:
+        {
+            return chunkManager.getChunkObject(objectReference.chunk, objectReference.tile);
+        }
+        case GameState::InStructure:
+        {
+            Room& structureRoom = structureRoomPool.getRoom(structureEnteredID);
+            return structureRoom.getObject(objectReference.tile);
+        }
+        case GameState::InRoomDestination:
+        {
+            Room& room = roomDestinationManager.getRoom();
+            return room.getObject(objectReference.tile);
+        }   
     }
 
     return nullptr;
@@ -1534,9 +1578,27 @@ void Game::travelToRoomDestination(RoomType destinationRoomType)
 {
     overrideState(GameState::InRoomDestination);
     
-    roomDestinationManager.loadRoomDestinationType(destinationRoom);
+    roomDestinationManager.loadRoomDestinationType(destinationRoom, chestDataPool);
 
+    Room& roomDestination = roomDestinationManager.getRoom();
 
+    if (roomDestination.getFirstRocketObjectReference(rocketEnteredReference))
+    {
+        BuildableObject* rocketObject = getObjectFromChunkOrRoom(rocketEnteredReference);
+
+        if (rocketObject)
+        {
+            player.setPosition(rocketObject->getPosition() - sf::Vector2f(TILE_SIZE_PIXELS_UNSCALED, 0));
+
+            rocketObject->triggerBehaviour(*this, ObjectBehaviourTrigger::RocketFlyDown);
+        }
+    }
+    else
+    {
+        std::cout << "Error: could not find rocket object in room destination\n";
+    }
+
+    camera.instantUpdate(player.getPosition());
 }
 
 void Game::initialiseNewPlanet(PlanetType planetType, bool placeRocket)
@@ -1692,6 +1754,11 @@ void Game::startNewGame(int seed)
 
 bool Game::saveGame(bool gettingInRocket)
 {
+    if (gameState == GameState::MainMenu || gameState == GameState::InRoomDestination)
+    {
+        return false;
+    }
+
     GameSaveIO io(currentSaveFileSummary.name);
 
     PlayerGameSave playerGameSave;

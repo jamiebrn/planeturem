@@ -123,9 +123,12 @@ private:
     void runMainMenu(float dt);
 
 
-    // -- On Planet -- //
+    // -- Main Game -- //
 
-    void runOnPlanet(float dt);
+    void runInGame(float dt);
+
+
+    // -- On Planet -- //
 
     void updateOnPlanet(float dt);
     void drawOnPlanet(float dt);
@@ -136,10 +139,10 @@ private:
     void testExitStructure();
 
 
-    // -- In Structure -- //
+    // -- In Room -- //
 
-    void updateInStructure(float dt);
-    void drawInStructure(float dt);
+    void updateInRoom(float dt, Room& room, bool inStructure);
+    void drawInRoom(float dt, const Room& room);
 
 
     // -- Tools / interactions -- //

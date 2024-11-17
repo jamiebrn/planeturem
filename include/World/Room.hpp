@@ -61,6 +61,8 @@ public:
     // BuildableObject* getObject(sf::Vector2f mouseWorldPos) const;
     BuildableObject* getObject(sf::Vector2i tile) const;
 
+    bool getFirstRocketObjectReference(ObjectReference& objectReference) const;
+
     RoomType getRoomType() const;
 
     void draw(sf::RenderTarget& window, const Camera& camera) const;
