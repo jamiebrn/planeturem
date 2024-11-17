@@ -2,7 +2,6 @@
 
 // FIX: Crash on save / rocket enter bug (can't save???)
 
-// TODO: TODAY - Improve travel GUI similar to main menu style
 // TODO: Saving in room destination
 
 // TODO: Night and menu music
@@ -571,28 +570,6 @@ void Game::runInGame(float dt)
                 InventoryGUI::updateInventory(mouseScreenPos, dt, inventory, armourInventory, chestDataPool.getChestDataPtr(openedChestID));
                 break;
             }
-            case WorldMenuState::TravelSelect:
-            {
-                // std::vector<PlanetType> availableDestinations = getRocketAvailableDestinations();
-                PlanetType selectedPlanetDestination = -1;
-                RoomType selectedRoomDestination = -1;
-
-                if (TravelSelectGUI::createGUI(window, selectedPlanetDestination, selectedRoomDestination))
-                {
-                    // TODO: Behaviour for selected room destination
-                    BuildableObject* rocketObject = getObjectFromChunkOrRoom(rocketEnteredReference);
-
-                    if (rocketObject)
-                    {
-                        destinationPlanet = selectedPlanetDestination;
-                        destinationRoom = selectedRoomDestination;
-                        worldMenuState = WorldMenuState::FlyingRocket;
-                        rocketObject->triggerBehaviour(*this, ObjectBehaviourTrigger::RocketFlyUp);
-                        // Fade out music
-                        Sounds::stopMusic(0.5f);
-                    }
-                }
-            }
         }
     }
 
@@ -645,8 +622,27 @@ void Game::runInGame(float dt)
                 break;
             
             case WorldMenuState::TravelSelect:
-                TravelSelectGUI::drawGUI(window);
+            {
+                // std::vector<PlanetType> availableDestinations = getRocketAvailableDestinations();
+                PlanetType selectedPlanetDestination = -1;
+                RoomType selectedRoomDestination = -1;
+
+                if (TravelSelectGUI::createAndDraw(window, dt, selectedPlanetDestination, selectedRoomDestination))
+                {
+                    BuildableObject* rocketObject = getObjectFromChunkOrRoom(rocketEnteredReference);
+
+                    if (rocketObject)
+                    {
+                        destinationPlanet = selectedPlanetDestination;
+                        destinationRoom = selectedRoomDestination;
+                        worldMenuState = WorldMenuState::FlyingRocket;
+                        rocketObject->triggerBehaviour(*this, ObjectBehaviourTrigger::RocketFlyUp);
+                        // Fade out music
+                        Sounds::stopMusic(0.5f);
+                    }
+                }
                 break;
+            }
         }
     }
     else

@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "Core/ResolutionHandler.hpp"
+#include "Core/TextDraw.hpp"
 
 #include "Base/GUIContext.hpp"
 
@@ -20,9 +21,9 @@ public:
 
     static void setAvailableDestinations(const std::vector<PlanetType>& availablePlanetDestinations, const std::vector<RoomType>& availableRoomDestinations);
 
-    static bool createGUI(sf::RenderWindow& window, PlanetType& selectedPlanetType, RoomType& selectedRoomType);
+    static bool createAndDraw(sf::RenderWindow& window, float dt, PlanetType& selectedPlanetType, RoomType& selectedRoomType);
 
-    static void drawGUI(sf::RenderTarget& window);
+    // static void drawGUI(sf::RenderTarget& window);
 
 private:
     static void updateSelectionHoverRect(sf::IntRect destinationRect);
