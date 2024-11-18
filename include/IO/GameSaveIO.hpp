@@ -29,13 +29,16 @@
 #include "Data/typedefs.hpp"
 #include "Data/ItemDataLoader.hpp"
 #include "Data/ObjectDataLoader.hpp"
+#include "Data/StructureData.hpp"
+#include "Data/StructureDataLoader.hpp"
 #include "Data/PlanetGenData.hpp"
 #include "Data/PlanetGenDataLoader.hpp"
 
 struct PlayerGameSave
 {
     int seed;
-    PlanetType planetType;
+    PlanetType planetType = -1;
+    RoomType roomDestinationType = -1;
 
     InventoryData inventory;
     InventoryData armourInventory;
@@ -57,7 +60,7 @@ struct PlayerGameSave
 };
 
 // Stores items and object types saved mapped to same items / objects at current type index
-struct PlanetDataVersionMapping
+struct GameDataVersionMapping
 {
     std::unordered_map<ItemType, ItemType> itemTypeMap;
     std::unordered_map<ObjectType, ObjectType> objectTypeMap;
@@ -87,19 +90,41 @@ struct PlanetGameSave
         }
     }
 
-    void mapVersions(const PlanetDataVersionMapping& planetDataVersionMapping)
+    void mapVersions(const GameDataVersionMapping& gameDataVersionMapping)
     {
         for (ChunkPOD& chunkPod : chunks)
         {
-            chunkPod.mapVersions(planetDataVersionMapping.objectTypeMap);
+            chunkPod.mapVersions(gameDataVersionMapping.objectTypeMap);
         }
 
-        chestDataPool.mapVersions(planetDataVersionMapping.itemTypeMap);
-        structureRoomPool.mapVersions(planetDataVersionMapping.objectTypeMap);
+        chestDataPool.mapVersions(gameDataVersionMapping.itemTypeMap);
+        structureRoomPool.mapVersions(gameDataVersionMapping.objectTypeMap);
+    }
+};
+
+struct RoomDestinationGameSave
+{
+    Room roomDestination;
+    ChestDataPool chestDataPool;
+
+    template <class Archive>
+    void serialize(Archive& ar, const std::uint32_t version)
+    {
+        if (version == 1)
+        {
+            ar(roomDestination, chestDataPool);
+        }
+    }
+
+    void mapVersions(const GameDataVersionMapping& gameDataVersionMapping)
+    {
+        roomDestination.mapVersions(gameDataVersionMapping.objectTypeMap);
+        chestDataPool.mapVersions(gameDataVersionMapping.itemTypeMap);
     }
 };
 
 CEREAL_CLASS_VERSION(PlanetGameSave, 1);
+CEREAL_CLASS_VERSION(RoomDestinationGameSave, 1);
 
 struct SaveFileSummary
 {
@@ -114,8 +139,10 @@ public:
     GameSaveIO() = default;
     GameSaveIO(std::string fileName);
     
-    bool load(PlayerGameSave& playerGameSave, PlanetGameSave& planetGameSave);
+    bool loadPlayerSave(PlayerGameSave& playerGameSave);
+    // bool load(PlayerGameSave& playerGameSave, PlanetGameSave& planetGameSave);
     bool loadPlanet(PlanetType planetType, PlanetGameSave& planetGameSave);
+    bool loadRoomDestination(RoomType roomDestinationType, Room& roomDestination);
 
     bool write(const PlayerGameSave& playerGameSave, const PlanetGameSave& planetGameSave);
 
@@ -124,14 +151,14 @@ public:
 private:
     void createSaveDirectoryIfRequired();
 
-    bool loadPlayerSave(PlayerGameSave& playerGameSave);
     bool loadPlayerSaveFromName(std::string fileName, PlayerGameSave& playerGameSave);
     bool writePlayerSave(const PlayerGameSave& playerGameSave);
 
-    bool loadPlanetDataVersionMapping(PlanetType planetType, PlanetDataVersionMapping& planetDataVersionMapping);
-    bool buildPlanetDataVersionMapping(PlanetType planetType);
+    bool loadGameDataVersionMapping(const std::string& baseFileName, GameDataVersionMapping& gameDataVersionMapping);
+    bool createAndWriteGameDataVersionMapping(const std::string& baseFileName);
 
-    std::string getPlanetDataVersionMappingFileName(PlanetType planetType);
+    std::string getPlanetGameDataVersionMappingFileName(PlanetType planetType);
+    std::string getRoomDestinationGameDataVersionMappingFileName(RoomType roomDestinationType);
 
     std::string getRootDir();
 

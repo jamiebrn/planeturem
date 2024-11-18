@@ -21,6 +21,15 @@ bool StructureDataLoader::loadData(std::string structureDataPath)
 
         roomData.name = iter.key();
 
+        if (iter->contains("display-name"))
+        {
+            roomData.displayName = iter->at("display-name");
+        }
+        else
+        {
+            roomData.displayName = roomData.name;
+        }
+
         auto tileSize = iter->at("tile-size");
         roomData.tileSize.x = tileSize[0];
         roomData.tileSize.y = tileSize[1];

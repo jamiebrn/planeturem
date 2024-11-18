@@ -33,6 +33,15 @@ bool PlanetGenDataLoader::loadPlanet(nlohmann::ordered_json::iterator& planetDat
 
     planetGenData.name = planetData.key();
 
+    if (planetData->contains("display-name"))
+    {
+        planetGenData.displayName = planetData->at("display-name");
+    }
+    else
+    {
+        planetGenData.displayName = planetGenData.name;
+    }
+
     if (!planetData->contains("water-colour"))
         return false;
     

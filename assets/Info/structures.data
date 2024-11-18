@@ -14,7 +14,8 @@
                     ]]
             ]
         },
-        "Space Station": {
+        "SpaceStation": {
+            "display-name": "Space Station",
             "travel-location": true,
             "texture": [0, 160],
             "tile-size": [14, 8],

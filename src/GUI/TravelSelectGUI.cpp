@@ -83,7 +83,7 @@ bool TravelSelectGUI::createAndDraw(sf::RenderWindow& window, float dt, PlanetTy
         {
             const PlanetGenData& planetData = PlanetGenDataLoader::getPlanetGenData(planetDestination);
 
-            if (guiContext.createButton(panelPaddingX * intScale, yPos * intScale, panelWidth * intScale, 75 * intScale, planetData.name, buttonStyle).isClicked())
+            if (guiContext.createButton(panelPaddingX * intScale, yPos * intScale, panelWidth * intScale, 75 * intScale, planetData.displayName, buttonStyle).isClicked())
             {
                 if (!clicked)
                 {
@@ -110,7 +110,7 @@ bool TravelSelectGUI::createAndDraw(sf::RenderWindow& window, float dt, PlanetTy
         {
             const RoomData& roomData = StructureDataLoader::getRoomData(roomDestination);
 
-            if (guiContext.createButton(panelPaddingX * intScale, yPos * intScale, panelWidth * intScale, 75 * intScale, roomData.name, buttonStyle).isClicked())
+            if (guiContext.createButton(panelPaddingX * intScale, yPos * intScale, panelWidth * intScale, 75 * intScale, roomData.displayName, buttonStyle).isClicked())
             {
                 if (!clicked)
                 {

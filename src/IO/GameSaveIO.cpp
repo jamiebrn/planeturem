@@ -5,41 +5,41 @@ GameSaveIO::GameSaveIO(std::string fileName)
     this->fileName = fileName;
 }
 
-bool GameSaveIO::load(PlayerGameSave& playerGameSave, PlanetGameSave& planetGameSave)
-{
-    createSaveDirectoryIfRequired();
+// bool GameSaveIO::load(PlayerGameSave& playerGameSave, PlanetGameSave& planetGameSave)
+// {
+//     createSaveDirectoryIfRequired();
 
-    std::filesystem::path dir(getRootDir() + "Saves/" + fileName + "/");
+//     std::filesystem::path dir(getRootDir() + "Saves/" + fileName + "/");
 
-    if (!std::filesystem::exists(dir))
-    {
-        return false;
-    }
+//     if (!std::filesystem::exists(dir))
+//     {
+//         return false;
+//     }
 
-    try
-    {
-        // Load player file
-        if (!loadPlayerSave(playerGameSave))
-        {
-            return false;
-        }
+//     try
+//     {
+//         // Load player file
+//         if (!loadPlayerSave(playerGameSave))
+//         {
+//             return false;
+//         }
 
-        // Load planet file
-        if (!loadPlanet(playerGameSave.planetType, planetGameSave))
-        {
-            throw std::invalid_argument("Could not open planet file for \"" + fileName + "\"");
-        }
+//         // Load planet file
+//         if (!loadPlanet(playerGameSave.planetType, planetGameSave))
+//         {
+//             throw std::invalid_argument("Could not open planet file for \"" + fileName + "\"");
+//         }
 
-        return true;
-    }
-    catch(const std::exception& e)
-    {
-        std::cerr << e.what() << '\n';
-        return false;
-    }
+//         return true;
+//     }
+//     catch(const std::exception& e)
+//     {
+//         std::cerr << e.what() << '\n';
+//         return false;
+//     }
 
-    return false;
-}
+//     return false;
+// }
 
 bool GameSaveIO::loadPlanet(PlanetType planetType, PlanetGameSave& planetGameSave)
 {
@@ -56,28 +56,34 @@ bool GameSaveIO::loadPlanet(PlanetType planetType, PlanetGameSave& planetGameSav
 
     archive(planetGameSave);
 
-    PlanetDataVersionMapping planetDataVersionMapping;
+    GameDataVersionMapping gameDataVersionMapping;
 
-    if (!loadPlanetDataVersionMapping(planetType, planetDataVersionMapping))
+    if (!loadGameDataVersionMapping(getPlanetGameDataVersionMappingFileName(planetType), gameDataVersionMapping))
     {
         return false;
     }
 
     // Map loaded planet data to new types to prevent saves breaking
-    planetGameSave.mapVersions(planetDataVersionMapping);
+    planetGameSave.mapVersions(gameDataVersionMapping);
 
     return true;
+}
+
+bool GameSaveIO::loadRoomDestination(RoomType roomDestinationType, Room& roomDestination)
+{
+    const std::string& roomDestinationName = StructureDataLoader::getRoomData(roomDestinationType).name;
+
+    std::fstream in(getRootDir() + "Saves/" + fileName + "/" + roomDestinationName + "-roomdest" + ".dat", std::ios::in | std::ios::binary);
+    
+    if (!in)
+    {
+        return false;
+    }
 }
 
 bool GameSaveIO::write(const PlayerGameSave& playerGameSave, const PlanetGameSave& planetGameSave)
 {
     createSaveDirectoryIfRequired();
-
-    std::filesystem::path dir(getRootDir() + "Saves/" + fileName + "/");
-    if (!std::filesystem::exists(dir))
-    {
-        std::filesystem::create_directory(dir);
-    }
 
     try
     {
@@ -93,7 +99,7 @@ bool GameSaveIO::write(const PlayerGameSave& playerGameSave, const PlanetGameSav
 
             std::fstream out(getRootDir() + "Saves/" + fileName + "/" + planetName + ".dat", std::ios::out | std::ios::binary);
 
-            if (!out || !buildPlanetDataVersionMapping(playerGameSave.planetType))
+            if (!out || !createAndWriteGameDataVersionMapping(getPlanetGameDataVersionMappingFileName(playerGameSave.planetType)))
             {
                 throw std::invalid_argument("Could not open planet file for \"" + fileName + "\"");
             }
@@ -116,6 +122,15 @@ bool GameSaveIO::write(const PlayerGameSave& playerGameSave, const PlanetGameSav
 
 bool GameSaveIO::loadPlayerSave(PlayerGameSave& playerGameSave)
 {
+    createSaveDirectoryIfRequired();
+
+    std::filesystem::path dir(getRootDir() + "Saves/" + fileName + "/");
+
+    if (!std::filesystem::exists(dir))
+    {
+        return false;
+    }
+
     std::fstream in(getRootDir() + "Saves/" + fileName + "/Player.dat", std::ios::in);
 
     if (!in)
@@ -289,11 +304,17 @@ void GameSaveIO::createSaveDirectoryIfRequired()
     {
         std::filesystem::create_directory(dir);
     }
+
+    std::filesystem::path dir(getRootDir() + "Saves/" + fileName + "/");
+    if (!std::filesystem::exists(dir))
+    {
+        std::filesystem::create_directory(dir);
+    }
 }
 
-bool GameSaveIO::loadPlanetDataVersionMapping(PlanetType planetType, PlanetDataVersionMapping& planetDataVersionMapping)
+bool GameSaveIO::loadGameDataVersionMapping(const std::string& baseFileName, GameDataVersionMapping& gameDataVersionMapping)
 {
-    std::fstream in(getPlanetDataVersionMappingFileName(planetType), std::ios::in);
+    std::fstream in(getRootDir() + "Saves/" + fileName + "/version/" + baseFileName, std::ios::in);
 
     if (!in)
     {
@@ -309,12 +330,12 @@ bool GameSaveIO::loadPlanetDataVersionMapping(PlanetType planetType, PlanetDataV
 
         for (auto iter = itemNameToTypeMap.begin(); iter != itemNameToTypeMap.end(); iter++)
         {
-            planetDataVersionMapping.itemTypeMap[iter->second] = ItemDataLoader::getItemTypeFromName(iter->first);
+            gameDataVersionMapping.itemTypeMap[iter->second] = ItemDataLoader::getItemTypeFromName(iter->first);
         }
 
         for (auto iter = objectNameToTypeMap.begin(); iter != objectNameToTypeMap.end(); iter++)
         {
-            planetDataVersionMapping.objectTypeMap[iter->second] = ObjectDataLoader::getObjectTypeFromName(iter->first);
+            gameDataVersionMapping.objectTypeMap[iter->second] = ObjectDataLoader::getObjectTypeFromName(iter->first);
         }
     }
     catch(const std::exception& e)
@@ -326,7 +347,7 @@ bool GameSaveIO::loadPlanetDataVersionMapping(PlanetType planetType, PlanetDataV
     return true;
 }
 
-bool GameSaveIO::buildPlanetDataVersionMapping(PlanetType planetType)
+bool GameSaveIO::createAndWriteGameDataVersionMapping(const std::string& baseFileName)
 {
     createSaveDirectoryIfRequired();
 
@@ -336,7 +357,7 @@ bool GameSaveIO::buildPlanetDataVersionMapping(PlanetType planetType)
         std::filesystem::create_directory(dir);
     }
     
-    std::ofstream f(getPlanetDataVersionMappingFileName(planetType));
+    std::ofstream f(getRootDir() + "Saves/" + fileName + "/version/" + baseFileName);
     
     if (!f)
     {
@@ -363,10 +384,16 @@ bool GameSaveIO::buildPlanetDataVersionMapping(PlanetType planetType)
     return true;
 }
 
-std::string GameSaveIO::getPlanetDataVersionMappingFileName(PlanetType planetType)
+std::string GameSaveIO::getPlanetGameDataVersionMappingFileName(PlanetType planetType)
 {
     std::string planetName = PlanetGenDataLoader::getPlanetGenData(planetType).name;
-    return (getRootDir() + "Saves/" + fileName + "/version/" + planetName + "VersionMapping" + ".ver");
+    return (planetName + "VersionMapping" + ".ver");
+}
+
+std::string GameSaveIO::getRoomDestinationGameDataVersionMappingFileName(RoomType roomDestinationType)
+{
+    std::string roomDestinatioNName = StructureDataLoader::getRoomData(roomDestinationType).name;
+    return (roomDestinationType + "-roomdestVersionMapping.ver");   
 }
 
 std::string GameSaveIO::getRootDir()

@@ -70,14 +70,14 @@ public:
 
     // Save / load
     template<class Archive>
-    void save(Archive& archive) const
+    void save(Archive& archive, const std::uint32_t version) const
     {
         std::vector<std::vector<std::optional<BuildableObjectPOD>>> pods = getObjectPODs();
         archive(roomType, pods);
     }
 
     template<class Archive>
-    void load(Archive& archive)
+    void load(Archive& archive, const std::uint32_t version)
     {
         std::vector<std::vector<std::optional<BuildableObjectPOD>>> pods;
         

@@ -68,6 +68,7 @@ struct BiomeGenData
 struct PlanetGenData
 {
     std::string name;
+    std::string displayName;
 
     std::vector<BiomeGenData> biomeGenDatas;
 
