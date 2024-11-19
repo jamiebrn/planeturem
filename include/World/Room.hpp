@@ -121,3 +121,5 @@ private:
     std::vector<std::vector<std::unique_ptr<BuildableObject>>> objectGrid;
 
 };
+
+CEREAL_CLASS_VERSION(Room, 1);

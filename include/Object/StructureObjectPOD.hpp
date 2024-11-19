@@ -20,8 +20,10 @@ struct StructureObjectPOD
     uint32_t structureID;
 
     template <class Archive>
-    void serialize(Archive& ar)
+    void serialize(Archive& ar, const std::uint32_t version)
     {
         ar(structureType, relativePos.x, relativePos.y, warpEntranceRectRelative, structureID);
     }
 };
+
+CEREAL_CLASS_VERSION(StructureObjectPOD, 1);

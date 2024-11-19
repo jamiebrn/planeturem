@@ -41,85 +41,6 @@ GameSaveIO::GameSaveIO(std::string fileName)
 //     return false;
 // }
 
-bool GameSaveIO::loadPlanet(PlanetType planetType, PlanetGameSave& planetGameSave)
-{
-    const std::string& planetName = PlanetGenDataLoader::getPlanetGenData(planetType).name;
-
-    std::fstream in(getRootDir() + "Saves/" + fileName + "/" + planetName + ".dat", std::ios::in | std::ios::binary);
-    
-    if (!in)
-    {
-        return false;
-    }
-
-    cereal::BinaryInputArchive archive(in);
-
-    archive(planetGameSave);
-
-    GameDataVersionMapping gameDataVersionMapping;
-
-    if (!loadGameDataVersionMapping(getPlanetGameDataVersionMappingFileName(planetType), gameDataVersionMapping))
-    {
-        return false;
-    }
-
-    // Map loaded planet data to new types to prevent saves breaking
-    planetGameSave.mapVersions(gameDataVersionMapping);
-
-    return true;
-}
-
-bool GameSaveIO::loadRoomDestination(RoomType roomDestinationType, Room& roomDestination)
-{
-    const std::string& roomDestinationName = StructureDataLoader::getRoomData(roomDestinationType).name;
-
-    std::fstream in(getRootDir() + "Saves/" + fileName + "/" + roomDestinationName + "-roomdest" + ".dat", std::ios::in | std::ios::binary);
-    
-    if (!in)
-    {
-        return false;
-    }
-}
-
-bool GameSaveIO::write(const PlayerGameSave& playerGameSave, const PlanetGameSave& planetGameSave)
-{
-    createSaveDirectoryIfRequired();
-
-    try
-    {
-        // Save player file
-        if (!writePlayerSave(playerGameSave))
-        {
-            throw std::invalid_argument("Could not open player file for \"" + fileName + "\"");
-        }
-
-        // Save planet file
-        {
-            const std::string& planetName = PlanetGenDataLoader::getPlanetGenData(playerGameSave.planetType).name;
-
-            std::fstream out(getRootDir() + "Saves/" + fileName + "/" + planetName + ".dat", std::ios::out | std::ios::binary);
-
-            if (!out || !createAndWriteGameDataVersionMapping(getPlanetGameDataVersionMappingFileName(playerGameSave.planetType)))
-            {
-                throw std::invalid_argument("Could not open planet file for \"" + fileName + "\"");
-            }
-
-            cereal::BinaryOutputArchive archive(out);
-
-            archive(planetGameSave);
-        }
-
-        return true;
-    }
-    catch(const std::exception& e)
-    {
-        std::cerr << e.what() << '\n';
-        return false;
-    }
-    
-    return false;
-}
-
 bool GameSaveIO::loadPlayerSave(PlayerGameSave& playerGameSave)
 {
     createSaveDirectoryIfRequired();
@@ -142,11 +63,25 @@ bool GameSaveIO::loadPlayerSave(PlayerGameSave& playerGameSave)
     {
         nlohmann::json json = nlohmann::json::parse(in);
         playerGameSave.seed = json["seed"];
-        playerGameSave.planetType = PlanetGenDataLoader::getPlanetTypeFromName(json["planet"]);
         playerGameSave.inventory = json["inventory"];
         playerGameSave.armourInventory = json["armour-inventory"];
         playerGameSave.time = json["time"];
         playerGameSave.day = json["day"];
+
+        if (json.contains("planet"))
+        {
+            playerGameSave.planetType = PlanetGenDataLoader::getPlanetTypeFromName(json["planet"]);
+        }
+        else if (json.contains("roomdest"))
+        {
+            playerGameSave.roomDestinationType = StructureDataLoader::getRoomTypeTravelLocationFromName(json["roomdest"]);
+        }
+        else
+        {
+            const std::string& defaultPlanetName = PlanetGenDataLoader::getPlanetGenData(0).name;
+            std::cout << "Error: Player file \"" + fileName + "\" has no previous location. Defaulting to planet \"" + defaultPlanetName + "\"\n";
+            playerGameSave.planetType = 0;
+        }
 
         // if (json.contains("in-room"))
         // {
@@ -169,6 +104,235 @@ bool GameSaveIO::loadPlayerSave(PlayerGameSave& playerGameSave)
     return true;   
 }
 
+bool GameSaveIO::loadPlanetSave(PlanetType planetType, PlanetGameSave& planetGameSave)
+{
+    try
+    {
+        const std::string& planetName = PlanetGenDataLoader::getPlanetGenData(planetType).name;
+
+        std::fstream in(getRootDir() + "Saves/" + fileName + "/" + planetName + ".dat", std::ios::in | std::ios::binary);
+        
+        if (!in)
+        {
+            return false;
+        }
+
+        cereal::BinaryInputArchive archive(in);
+
+        archive(planetGameSave);
+
+        GameDataVersionMapping gameDataVersionMapping;
+
+        if (!loadGameDataVersionMapping(getPlanetGameDataVersionMappingFileName(planetType), gameDataVersionMapping))
+        {
+            return false;
+        }
+
+        // Map loaded planet data to new types to prevent saves breaking
+        planetGameSave.mapVersions(gameDataVersionMapping);
+
+        return true;
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+        return false;
+    }
+    
+    return false;
+}
+
+bool GameSaveIO::loadRoomDestinationSave(RoomType roomDestinationType, RoomDestinationGameSave& roomDestinationGameSave)
+{
+    try
+    {
+        const std::string& roomDestinationName = StructureDataLoader::getRoomData(roomDestinationType).name;
+
+        std::fstream in(getRootDir() + "Saves/" + fileName + "/" + roomDestinationName + "-roomdest" + ".dat", std::ios::in | std::ios::binary);
+        
+        if (!in)
+        {
+            return false;
+        }
+
+        cereal::BinaryInputArchive archive(in);
+
+        archive(roomDestinationGameSave);
+
+        GameDataVersionMapping gameDataVersionMapping;
+
+        if (!loadGameDataVersionMapping(getRoomDestinationGameDataVersionMappingFileName(roomDestinationType), gameDataVersionMapping))
+        {
+            return false;
+        }
+
+        // Map loaded room destination data to new types to prevent saves breaking
+        roomDestinationGameSave.mapVersions(gameDataVersionMapping);
+
+        return true;
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+        return false;
+    }
+    
+    return false;
+}
+
+// bool GameSaveIO::write(const PlayerGameSave& playerGameSave, const PlanetGameSave& planetGameSave)
+// {
+    // createSaveDirectoryIfRequired();
+
+    // try
+    // {
+    //     // Save player file
+    //     if (!writePlayerSave(playerGameSave))
+    //     {
+    //         throw std::invalid_argument("Could not open player file for \"" + fileName + "\"");
+    //     }
+
+        // Save planet file
+    //     {
+    //         const std::string& planetName = PlanetGenDataLoader::getPlanetGenData(playerGameSave.planetType).name;
+
+    //         std::fstream out(getRootDir() + "Saves/" + fileName + "/" + planetName + ".dat", std::ios::out | std::ios::binary);
+
+    //         if (!out || !createAndWriteGameDataVersionMapping(getPlanetGameDataVersionMappingFileName(playerGameSave.planetType)))
+    //         {
+    //             throw std::invalid_argument("Could not open planet file for \"" + fileName + "\"");
+    //         }
+
+    //         cereal::BinaryOutputArchive archive(out);
+
+    //         archive(planetGameSave);
+    //     }
+
+    //     return true;
+    // }
+    // catch(const std::exception& e)
+    // {
+    //     std::cerr << e.what() << '\n';
+    //     return false;
+    // }
+    
+    // return false;
+// }
+
+bool GameSaveIO::writePlayerSave(const PlayerGameSave& playerGameSave)
+{
+    createSaveDirectoryIfRequired();
+
+    std::fstream out(getRootDir() + "Saves/" + fileName + "/Player.dat", std::ios::out);
+
+    if (!out)
+    {
+        return false;
+    }
+
+    try
+    {
+        nlohmann::json json;
+        json["seed"] = playerGameSave.seed;
+        json["inventory"] = playerGameSave.inventory;
+        json["armour-inventory"] = playerGameSave.armourInventory;
+        json["time"] = playerGameSave.time;
+        json["day"] = playerGameSave.day;
+
+        if (playerGameSave.planetType >= 0)
+        {
+            json["planet"] = PlanetGenDataLoader::getPlanetGenData(playerGameSave.planetType).name;
+        }
+        else if (playerGameSave.roomDestinationType >= 0)
+        {
+            json["roomdest"] = StructureDataLoader::getRoomData(playerGameSave.roomDestinationType).name;
+        }
+        
+        // if (playerGameSave.isInRoom)
+        // {
+        //     json["in-room"] = true;
+        //     json["room-id"] = playerGameSave.inRoomID;
+        //     json["room-player-pos"] = playerGameSave.positionInRoom;
+        // }
+
+        json["time-played"] = playerGameSave.timePlayed;
+
+        out << json;
+        out.close();
+
+        return true;
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+        return false;
+    }
+
+    return true;
+}
+
+bool GameSaveIO::writePlanetSave(PlanetType planetType, const PlanetGameSave& planetGameSave)
+{
+    createSaveDirectoryIfRequired();
+
+    try
+    {
+        const std::string& planetName = PlanetGenDataLoader::getPlanetGenData(planetType).name;
+
+        std::fstream out(getRootDir() + "Saves/" + fileName + "/" + planetName + ".dat", std::ios::out | std::ios::binary);
+
+        if (!out || !createAndWriteGameDataVersionMapping(getPlanetGameDataVersionMappingFileName(planetType)))
+        {
+            throw std::invalid_argument("Could not open planet \"" + planetName + "\" file for \"" + fileName + "\"");
+        }
+
+        cereal::BinaryOutputArchive archive(out);
+
+        archive(planetGameSave);
+
+        return true;
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+        return false;
+    }
+
+    return false;
+}
+
+bool GameSaveIO::writeRoomDestinationSave(const RoomDestinationGameSave& roomDestinationGameSave)
+{
+    createSaveDirectoryIfRequired();
+
+    try
+    {
+        RoomType roomDestinationType = roomDestinationGameSave.roomDestination.getRoomType();
+
+        const std::string& roomDestinationName = StructureDataLoader::getRoomData(roomDestinationType).name;
+
+        std::fstream out(getRootDir() + "Saves/" + fileName + "/" + roomDestinationName + "-roomdest" + ".dat", std::ios::out | std::ios::binary);
+
+        if (!out || !createAndWriteGameDataVersionMapping(getRoomDestinationGameDataVersionMappingFileName(roomDestinationType)))
+        {
+            throw std::invalid_argument("Could not open room \"" + roomDestinationName + "\" file for \"" + fileName + "\"");
+        }
+
+        cereal::BinaryOutputArchive archive(out);
+
+        archive(roomDestinationGameSave);
+
+        return true;
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+        return false;
+    }
+
+    return false;
+}
+
 bool GameSaveIO::loadPlayerSaveFromName(std::string fileName, PlayerGameSave& playerGameSave)
 {
     std::string previousFileName = this->fileName;
@@ -178,38 +342,6 @@ bool GameSaveIO::loadPlayerSaveFromName(std::string fileName, PlayerGameSave& pl
     this->fileName = previousFileName;
 
     return success;
-}
-
-bool GameSaveIO::writePlayerSave(const PlayerGameSave& playerGameSave)
-{
-    std::fstream out(getRootDir() + "Saves/" + fileName + "/Player.dat", std::ios::out);
-
-    if (!out)
-    {
-        return false;
-    }
-
-    nlohmann::json json;
-    json["seed"] = playerGameSave.seed;
-    json["planet"] = PlanetGenDataLoader::getPlanetGenData(playerGameSave.planetType).name;
-    json["inventory"] = playerGameSave.inventory;
-    json["armour-inventory"] = playerGameSave.armourInventory;
-    json["time"] = playerGameSave.time;
-    json["day"] = playerGameSave.day;
-
-    // if (playerGameSave.isInRoom)
-    // {
-    //     json["in-room"] = true;
-    //     json["room-id"] = playerGameSave.inRoomID;
-    //     json["room-player-pos"] = playerGameSave.positionInRoom;
-    // }
-
-    json["time-played"] = playerGameSave.timePlayed;
-
-    out << json;
-    out.close();
-
-    return true;
 }
 
 std::vector<SaveFileSummary> GameSaveIO::getSaveFiles()
@@ -305,7 +437,12 @@ void GameSaveIO::createSaveDirectoryIfRequired()
         std::filesystem::create_directory(dir);
     }
 
-    std::filesystem::path dir(getRootDir() + "Saves/" + fileName + "/");
+    if (fileName.empty())
+    {
+        return;
+    }
+
+    dir = std::filesystem::path(getRootDir() + "Saves/" + fileName + "/");
     if (!std::filesystem::exists(dir))
     {
         std::filesystem::create_directory(dir);
@@ -392,8 +529,8 @@ std::string GameSaveIO::getPlanetGameDataVersionMappingFileName(PlanetType plane
 
 std::string GameSaveIO::getRoomDestinationGameDataVersionMappingFileName(RoomType roomDestinationType)
 {
-    std::string roomDestinatioNName = StructureDataLoader::getRoomData(roomDestinationType).name;
-    return (roomDestinationType + "-roomdestVersionMapping.ver");   
+    std::string roomDestinationName = StructureDataLoader::getRoomData(roomDestinationType).name;
+    return (roomDestinationName + "-roomdestVersionMapping.ver");   
 }
 
 std::string GameSaveIO::getRootDir()

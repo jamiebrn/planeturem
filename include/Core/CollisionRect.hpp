@@ -27,8 +27,10 @@ struct CollisionRect
     void debugDraw(sf::RenderTarget& window, const Camera& camera, sf::Color color = {255, 0, 0, 120}) const;
 
     template <class Archive>
-    void serialize(Archive& ar)
+    void serialize(Archive& ar, const std::uint32_t version)
     {
         ar(x, y, width, height);
     }
 };
+
+CEREAL_CLASS_VERSION(CollisionRect, 1);

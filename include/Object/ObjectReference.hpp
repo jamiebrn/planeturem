@@ -11,8 +11,10 @@ struct ObjectReference
     sf::Vector2i tile;
 
     template <class Archive>
-    void serialize(Archive& ar)
+    void serialize(Archive& ar, const std::uint32_t version)
     {
         ar(chunk.x, chunk.y, tile.x, tile.y);
     }
 };
+
+CEREAL_CLASS_VERSION(ObjectReference, 1);

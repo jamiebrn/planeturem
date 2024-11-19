@@ -45,7 +45,7 @@ void Chunk::reset(bool fullReset)
 void Chunk::generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, Game& game, ChunkManager& chunkManager,
     PathfindingEngine& pathfindingEngine, bool allowStructureGen)
 {
-    RandInt randGen = generateTilesAndStructure(heightNoise, biomeNoise, planetType, chunkManager);
+    RandInt randGen = generateTilesAndStructure(heightNoise, biomeNoise, planetType, chunkManager, allowStructureGen);
 
     generateObjectsAndEntities(heightNoise, biomeNoise, planetType, randGen, game, chunkManager);
 

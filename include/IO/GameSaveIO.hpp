@@ -107,12 +107,14 @@ struct RoomDestinationGameSave
     Room roomDestination;
     ChestDataPool chestDataPool;
 
+    sf::Vector2f playerLastPos;
+
     template <class Archive>
     void serialize(Archive& ar, const std::uint32_t version)
     {
         if (version == 1)
         {
-            ar(roomDestination, chestDataPool);
+            ar(roomDestination, chestDataPool, playerLastPos.x, playerLastPos.y);
         }
     }
 
@@ -141,18 +143,21 @@ public:
     
     bool loadPlayerSave(PlayerGameSave& playerGameSave);
     // bool load(PlayerGameSave& playerGameSave, PlanetGameSave& planetGameSave);
-    bool loadPlanet(PlanetType planetType, PlanetGameSave& planetGameSave);
-    bool loadRoomDestination(RoomType roomDestinationType, Room& roomDestination);
+    bool loadPlanetSave(PlanetType planetType, PlanetGameSave& planetGameSave);
+    bool loadRoomDestinationSave(RoomType roomDestinationType, RoomDestinationGameSave& roomDestinationGameSave);
 
-    bool write(const PlayerGameSave& playerGameSave, const PlanetGameSave& planetGameSave);
+    // bool writePlayerSave(const PlayerGameSave& playerGameSave, const PlanetGameSave& planetGameSave);
+    bool writePlayerSave(const PlayerGameSave& playerGameSave);
+    bool writePlanetSave(PlanetType planetType, const PlanetGameSave& planetGameSave);
+    bool writeRoomDestinationSave(const RoomDestinationGameSave& roomDestinationGameSave);
 
     std::vector<SaveFileSummary> getSaveFiles();
 
 private:
     void createSaveDirectoryIfRequired();
 
+    // Used to temporarily switch save file name, to be able to load all save files and create summaries
     bool loadPlayerSaveFromName(std::string fileName, PlayerGameSave& playerGameSave);
-    bool writePlayerSave(const PlayerGameSave& playerGameSave);
 
     bool loadGameDataVersionMapping(const std::string& baseFileName, GameDataVersionMapping& gameDataVersionMapping);
     bool createAndWriteGameDataVersionMapping(const std::string& baseFileName);

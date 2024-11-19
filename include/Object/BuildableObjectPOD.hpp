@@ -19,7 +19,7 @@ struct BuildableObjectPOD
     std::optional<ObjectReference> objectReference;
 
     template <class Archive>
-    void serialize(Archive& ar)
+    void serialize(Archive& ar, const std::uint32_t version)
     {
         ar(objectType, chestID, objectReference, plantDayPlanted);
     }
@@ -34,3 +34,5 @@ struct BuildableObjectPOD
         objectType = objectVersionMap.at(objectType);
     }
 };
+
+CEREAL_CLASS_VERSION(BuildableObjectPOD, 1);

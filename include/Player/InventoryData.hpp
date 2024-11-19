@@ -53,7 +53,7 @@ public:
     // Save / load
 
     template <class Archive>
-    void serialize(Archive& ar)
+    void serialize(Archive& ar, const std::uint32_t version)
     {
         ar(inventoryData);
     }
@@ -79,3 +79,5 @@ private:
 // Save / load
 void to_json(nlohmann::json& json, const InventoryData& inventory);
 void from_json(const nlohmann::json& json, InventoryData& inventory);
+
+CEREAL_CLASS_VERSION(InventoryData, 1);

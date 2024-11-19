@@ -26,7 +26,7 @@ public:
 
     // Save / load
     template<class Archive>
-    void serialize(Archive& archive)
+    void serialize(Archive& archive, const std::uint32_t version)
     {
         archive(rooms);
     }
@@ -43,3 +43,5 @@ private:
     // 0xFFFFFFFF reserved for uninitialised room
     std::vector<Room> rooms;
 };
+
+CEREAL_CLASS_VERSION(RoomPool, 1);

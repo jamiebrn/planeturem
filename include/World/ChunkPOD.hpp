@@ -31,7 +31,7 @@ struct ChunkPOD
     bool modified;
 
     template <class Archive>
-    void serialize(Archive& ar)
+    void serialize(Archive& ar, const std::uint32_t version)
     {
         ar(chunkPosition.x, chunkPosition.y, groundTileGrid, objectGrid, entities, structureObject, modified);
     }
@@ -52,3 +52,5 @@ struct ChunkPOD
         }
     }
 };
+
+CEREAL_CLASS_VERSION(ChunkPOD, 1);

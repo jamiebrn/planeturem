@@ -32,7 +32,7 @@ public:
     InventoryData* getChestDataPtr(uint16_t id);
 
     template <class Archive>
-    void serialize(Archive& ar)
+    void serialize(Archive& ar, const std::uint32_t version)
     {
         ar(chestData, openDataSlots);
     }
@@ -58,3 +58,5 @@ private:
 
     // uint16_t topDataSlot;
 };
+
+CEREAL_CLASS_VERSION(ChestDataPool, 1);

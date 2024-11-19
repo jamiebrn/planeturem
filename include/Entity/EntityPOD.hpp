@@ -16,8 +16,10 @@ struct EntityPOD
     sf::Vector2f velocity;
 
     template <class Archive>
-    void serialize(Archive& ar)
+    void serialize(Archive& ar, const std::uint32_t version)
     {
         ar(entityType, chunkRelativePosition.x, chunkRelativePosition.y, velocity.x, velocity.y);
     }
 };
+
+CEREAL_CLASS_VERSION(EntityPOD, 1);

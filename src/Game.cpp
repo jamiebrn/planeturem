@@ -537,7 +537,6 @@ void Game::runInGame(float dt)
         }
         case GameState::InRoomDestination:
         {
-            Room& roomDestination = roomDestinationManager.getRoom();
             updateInRoom(dt, roomDestination, false);
             break;
         }
@@ -583,8 +582,10 @@ void Game::runInGame(float dt)
     switch (gameState)
     {
         case GameState::OnPlanet:
+        {
             drawOnPlanet(dt);
             break;
+        }
         case GameState::InStructure:
         {
             const Room& structureRoom = structureRoomPool.getRoom(structureEnteredID);
@@ -593,7 +594,6 @@ void Game::runInGame(float dt)
         }
         case GameState::InRoomDestination:
         {
-            const Room& roomDestination = roomDestinationManager.getRoom();
             drawInRoom(dt, roomDestination);
             break;
         }
@@ -909,12 +909,13 @@ void Game::enterRocket(RocketObject& rocket)
         }
     }
 
-    // TODO: Saving functionality while in room destination
-    if (gameState != GameState::InRoomDestination)
-    {
-        // Save just before enter
-        saveGame(true);
-    }
+    // // TODO: Saving functionality while in room destination
+    // if (gameState != GameState::InRoomDestination)
+    // {
+    // }
+    
+    // Save just before enter
+    saveGame(true);
 
     worldMenuState = WorldMenuState::TravelSelect;
 
@@ -926,7 +927,7 @@ void Game::enterRocket(RocketObject& rocket)
     }
     else if (gameState == GameState::InRoomDestination)
     {
-        currentRoomType = roomDestinationManager.getRoom().getRoomType();
+        currentRoomType = roomDestination.getRoomType();
     }
 
     std::vector<PlanetType> planetDestinations;
@@ -1456,8 +1457,7 @@ BuildableObject* Game::getObjectFromChunkOrRoom(ObjectReference objectReference)
         }
         case GameState::InRoomDestination:
         {
-            Room& room = roomDestinationManager.getRoom();
-            return room.getObject(objectReference.tile);
+            return roomDestination.getObject(objectReference.tile);
         }   
     }
 
@@ -1574,9 +1574,21 @@ void Game::travelToRoomDestination(RoomType destinationRoomType)
 {
     overrideState(GameState::InRoomDestination);
     
-    roomDestinationManager.loadRoomDestinationType(destinationRoom, chestDataPool);
+    // roomDestinationManager.loadRoomDestinationType(destinationRoom, chestDataPool);
+    GameSaveIO io(currentSaveFileSummary.name);
 
-    Room& roomDestination = roomDestinationManager.getRoom();
+    RoomDestinationGameSave roomDestinationGameSave;
+
+    if (io.loadRoomDestinationSave(destinationRoomType, roomDestinationGameSave))
+    {
+        chestDataPool = roomDestinationGameSave.chestDataPool;
+        roomDestination = roomDestinationGameSave.roomDestination;
+    }
+    else
+    {
+        chestDataPool = ChestDataPool();
+        roomDestination = Room(destinationRoomType, chestDataPool);
+    }
 
     if (roomDestination.getFirstRocketObjectReference(rocketEnteredReference))
     {
@@ -1750,7 +1762,7 @@ void Game::startNewGame(int seed)
 
 bool Game::saveGame(bool gettingInRocket)
 {
-    if (gameState == GameState::MainMenu || gameState == GameState::InRoomDestination)
+    if (gameState == GameState::MainMenu)
     {
         return false;
     }
@@ -1759,8 +1771,6 @@ bool Game::saveGame(bool gettingInRocket)
 
     PlayerGameSave playerGameSave;
     playerGameSave.seed = chunkManager.getSeed();
-    playerGameSave.planetType = chunkManager.getPlanetType();
-    // playerGameSave.playerPos = player.getPosition();
     playerGameSave.inventory = inventory;
     playerGameSave.armourInventory = armourInventory;
     playerGameSave.time = dayCycleManager.getCurrentTime();
@@ -1772,29 +1782,59 @@ bool Game::saveGame(bool gettingInRocket)
     playerGameSave.timePlayed = currentSaveFileSummary.timePlayed;
 
     PlanetGameSave planetGameSave;
-    planetGameSave.chunks = chunkManager.getChunkPODs();
-    planetGameSave.chestDataPool = chestDataPool;
-    planetGameSave.structureRoomPool = structureRoomPool;
+    RoomDestinationGameSave roomDestinationGameSave;
 
-    if (gameState == GameState::OnPlanet)
+    switch (gameState)
     {
-        planetGameSave.playerLastPlanetPos = player.getPosition();
-    }
-    else if (gameState == GameState::InStructure)
-    {
-        planetGameSave.isInRoom = true;
-        planetGameSave.inRoomID = structureEnteredID;
-        planetGameSave.positionInRoom = player.getPosition();
+        case GameState::InStructure:
+        {
+            planetGameSave.isInRoom = true;
+            planetGameSave.inRoomID = structureEnteredID;
+            planetGameSave.positionInRoom = player.getPosition();
 
-        planetGameSave.playerLastPlanetPos = structureEnteredPos;
-    }
-    
-    if (gettingInRocket)
-    {
-        planetGameSave.rocketObjectUsed = rocketEnteredReference;
+            planetGameSave.playerLastPlanetPos = structureEnteredPos;
+        } // fallthrough
+        case GameState::OnPlanet:
+        {
+            planetGameSave.chunks = chunkManager.getChunkPODs();
+            planetGameSave.chestDataPool = chestDataPool;
+            planetGameSave.structureRoomPool = structureRoomPool;
+            
+            playerGameSave.planetType = chunkManager.getPlanetType();
+            planetGameSave.playerLastPlanetPos = player.getPosition();
+            
+            if (gettingInRocket)
+            {
+                planetGameSave.rocketObjectUsed = rocketEnteredReference;
+            }
+            break;
+        }
+        case GameState::InRoomDestination:
+        {
+            roomDestinationGameSave.roomDestination = roomDestination;
+            roomDestinationGameSave.chestDataPool = chestDataPool;
+            roomDestinationGameSave.playerLastPos = player.getPosition();
+
+            playerGameSave.roomDestinationType = roomDestination.getRoomType();
+            break;
+        }
     }
 
-    io.write(playerGameSave, planetGameSave);
+    io.writePlayerSave(playerGameSave);
+
+    switch (gameState)
+    {
+        case GameState::InStructure: // fallthrough
+        case GameState::OnPlanet:
+        {
+            io.writePlanetSave(playerGameSave.planetType, planetGameSave);
+            break;
+        }
+        case GameState::InRoomDestination:
+        {
+            io.writeRoomDestinationSave(roomDestinationGameSave);
+        }
+    }
 
     return true;
 }
@@ -1804,18 +1844,16 @@ bool Game::loadGame(const SaveFileSummary& saveFileSummary)
     GameSaveIO io(saveFileSummary.name);
 
     PlayerGameSave playerGameSave;
-    PlanetGameSave planetGameSave;
     
-    if (!io.load(playerGameSave, planetGameSave))
+    if (!io.loadPlayerSave(playerGameSave))
     {
-        std::cout << "Failed to load game\n";
+        std::cout << "Failed to load player " + saveFileSummary.name + "\n";
         return false;
     }
 
     closeChest();
     
     chunkManager.setSeed(playerGameSave.seed);
-    chunkManager.setPlanetType(playerGameSave.planetType);
     inventory = playerGameSave.inventory;
     armourInventory = playerGameSave.armourInventory;
     dayCycleManager.setCurrentTime(playerGameSave.time);
@@ -1823,31 +1861,68 @@ bool Game::loadGame(const SaveFileSummary& saveFileSummary)
 
     changePlayerTool();
 
-    chunkManager.loadFromChunkPODs(planetGameSave.chunks, *this);
-    chestDataPool = planetGameSave.chestDataPool;
-    structureRoomPool = planetGameSave.structureRoomPool;
-
     GameState nextGameState = GameState::OnPlanet;
 
-    if (planetGameSave.isInRoom)
+    // Load planet
+    if (playerGameSave.planetType >= 0)
     {
-        player.setPosition(planetGameSave.positionInRoom);
-        structureEnteredID = planetGameSave.inRoomID;
-        structureEnteredPos = planetGameSave.playerLastPlanetPos;
+        PlanetGameSave planetGameSave;
 
-        nextGameState = GameState::InStructure;
+        if (!io.loadPlanetSave(playerGameSave.planetType, planetGameSave))
+        {
+            const std::string& planetName = PlanetGenDataLoader::getPlanetGenData(playerGameSave.planetType).name;
+            std::cout << "Failed to load planet \"" + planetName + "\" for save " + saveFileSummary.name + "\n";
+            return false;
+        }
+
+        chunkManager.setPlanetType(playerGameSave.planetType);
+        chunkManager.loadFromChunkPODs(planetGameSave.chunks, *this);
+        chestDataPool = planetGameSave.chestDataPool;
+        structureRoomPool = planetGameSave.structureRoomPool;
+
+        nextGameState = GameState::OnPlanet;
+
+        if (planetGameSave.isInRoom)
+        {
+            player.setPosition(planetGameSave.positionInRoom);
+            structureEnteredID = planetGameSave.inRoomID;
+            structureEnteredPos = planetGameSave.playerLastPlanetPos;
+
+            nextGameState = GameState::InStructure;
+        }
+        else
+        {
+            player.setPosition(planetGameSave.playerLastPlanetPos);
+        }
+
+        camera.instantUpdate(player.getPosition());
+
+        chunkManager.updateChunks(*this, camera);
+        lightingTick = LIGHTING_TICK;
     }
-    else
+    else if (playerGameSave.roomDestinationType >= 0)
     {
-        player.setPosition(planetGameSave.playerLastPlanetPos);
+        // Load room destination
+        RoomDestinationGameSave roomDestinationGameSave;
+
+        if (!io.loadRoomDestinationSave(playerGameSave.roomDestinationType, roomDestinationGameSave))
+        {
+            const std::string& roomDestinationName = StructureDataLoader::getRoomData(playerGameSave.roomDestinationType).name;
+            std::cout << "Failed to load room \"" + roomDestinationName + "\" for save " + saveFileSummary.name + "\n";
+            return false;
+        }
+
+        roomDestination = roomDestinationGameSave.roomDestination;
+        chestDataPool = roomDestinationGameSave.chestDataPool;
+
+        player.setPosition(roomDestinationGameSave.playerLastPos);
+
+        nextGameState = GameState::InRoomDestination;
     }
 
     bossManager.clearBosses();
 
     camera.instantUpdate(player.getPosition());
-
-    chunkManager.updateChunks(*this, camera);
-    lightingTick = LIGHTING_TICK;
 
     // Load successful, set save name as current save and start state transition
     currentSaveFileSummary = saveFileSummary;
@@ -1867,7 +1942,7 @@ bool Game::loadPlanet(PlanetType planetType)
 
     PlanetGameSave planetGameSave;
 
-    if (!io.loadPlanet(planetType, planetGameSave))
+    if (!io.loadPlanetSave(planetType, planetGameSave))
     {
         return false;
     }
@@ -2191,7 +2266,16 @@ void Game::drawDebugMenu(float dt)
 
     ImGui::Spacing();
 
-    static char* itemToGive = new char[100];
+    static const int inputMaxLength = 100;
+    static bool resetInputString = false;
+    static char* itemToGive = new char[inputMaxLength];
+    if (!resetInputString)
+    {
+        strcpy(itemToGive, "");
+        itemToGive[inputMaxLength - 1] = '\0';
+        resetInputString = true;
+    }
+
     ImGui::InputText("Give item", itemToGive, 100);
     if (ImGui::Button("Give Item"))
     {

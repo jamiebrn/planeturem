@@ -19,11 +19,11 @@ struct RoomObjectData
     // Chest contents, if is chest
     std::optional<std::vector<InventoryData>> chestContents = std::nullopt;
 
-    template <class Archive>
-    void serialize(Archive& ar)
-    {
-        ar(objectType, chestContents);
-    }
+    // template <class Archive>
+    // void serialize(Archive& ar)
+    // {
+    //     ar(objectType, chestContents);
+    // }
 };
 
 struct RoomData
@@ -41,11 +41,11 @@ struct RoomData
     // Stores objects that will be placed in room based on bitmask blue channel
     std::unordered_map<uint8_t, RoomObjectData> objectsInRoom;
 
-    template <class Archive>
-    void serialize(Archive& ar)
-    {
-        ar(tileSize.x, tileSize.y, textureRect.left, textureRect.top, textureRect.width, textureRect.height, collisionBitmaskOffset.x, collisionBitmaskOffset.y, objectsInRoom);
-    }
+    // template <class Archive>
+    // void serialize(Archive& ar)
+    // {
+    //     ar(tileSize.x, tileSize.y, textureRect.left, textureRect.top, textureRect.width, textureRect.height, collisionBitmaskOffset.x, collisionBitmaskOffset.y, objectsInRoom);
+    // }
 };
 
 struct StructureData
