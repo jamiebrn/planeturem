@@ -160,6 +160,8 @@ private:
 
     void attemptUseBossSpawn();
 
+    void attemptUseConsumable();
+
     void drawGhostPlaceObjectAtCursor(ObjectType object);
     void drawGhostPlaceLandAtCursor();
 

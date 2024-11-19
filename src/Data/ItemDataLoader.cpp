@@ -35,6 +35,21 @@ bool ItemDataLoader::loadData(std::string itemDataPath)
             itemData.bossSummonData = bossSummonData;
         }
 
+        if (jsonItemData.contains("consumable-data"))
+        {
+            auto jsonConsumableData = jsonItemData.at("consumable-data");
+
+            ConsumableData consumableData;
+            consumableData.cooldownTime = jsonConsumableData.at("cooldown-time");
+            
+            if (jsonConsumableData.contains("health-increase"))
+            {
+                consumableData.healthIncrease = jsonConsumableData.at("health-increase");
+            }
+
+            itemData.consumableData = consumableData;
+        }
+
         if (jsonItemData.contains("max-stack-size")) itemData.maxStackSize = jsonItemData.at("max-stack-size");
 
         if (jsonItemData.contains("currency-value")) itemData.currencyValue = jsonItemData.at("currency-value");

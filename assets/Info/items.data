@@ -41,7 +41,11 @@
     },
     {
         "name": "Meat",
-        "texture": [80, 16, 16, 16]
+        "texture": [80, 16, 16, 16],
+        "consumable-data": {
+            "cooldown-time": 20,
+            "health-increase": 40
+        }
     },
     {
         "name": "Fish",

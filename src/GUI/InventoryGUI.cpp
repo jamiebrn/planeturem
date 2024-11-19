@@ -585,15 +585,15 @@ void InventoryGUI::updateAvailableRecipes(InventoryData& inventory, std::unorder
             }
         }
 
-        // Check has key items (if any)
+        // Check has key items (must have all)
         if (recipeData.keyItems.has_value())
         {
-            hasItemType = false;
+            hasItemType = true;
             for (const auto& keyItem : recipeData.keyItems.value())
             {
-                if (inventoryItemCount.count(keyItem) > 0)
+                if (inventoryItemCount.count(keyItem) <= 0)
                 {
-                    hasItemType = true;
+                    hasItemType = false;
                     break;
                 }
             }
@@ -1043,6 +1043,14 @@ sf::Vector2f InventoryGUI::drawItemInfoBox(sf::RenderTarget& window, float gameT
     else if (itemData.bossSummonData.has_value())
     {
         infoStrings.push_back({"Summons " + itemData.bossSummonData->bossName, 20});
+    }
+    else if (itemData.consumableData.has_value())
+    {
+        infoStrings.push_back({"Consumable", 20});
+        if (itemData.consumableData->healthIncrease > 0)
+        {
+            infoStrings.push_back({"+" + std::to_string(itemData.consumableData->healthIncrease) + " health", 20});
+        }
     }
 
     if (itemData.currencyValue > 0)

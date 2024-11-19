@@ -12,7 +12,7 @@
 namespace HitMarkers
 {
 
-void addHitMarker(sf::Vector2f position, int damageAmount, bool critical = false);
+void addHitMarker(sf::Vector2f position, int damageAmount, sf::Color colour = sf::Color(247, 150, 23));
 
 void update(float dt);
 
@@ -31,7 +31,7 @@ namespace
     {
         sf::Vector2f position;
         int damageAmount;
-        bool critical;
+        sf::Color colour;
         float lifetime = 0.0f;
 
         void update(float dt);

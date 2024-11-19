@@ -24,6 +24,7 @@
 #include "Player/InventoryData.hpp"
 
 #include "Data/typedefs.hpp"
+#include "Data/ItemData.hpp"
 #include "Data/ToolData.hpp"
 #include "Data/ToolDataLoader.hpp"
 #include "Data/ArmourData.hpp"
@@ -60,6 +61,9 @@ public:
 
     // Damage
     void testHitCollision(const HitRect& hitRect);
+
+    // Consumable
+    bool useConsumable(const ConsumableData& consumable);
 
     // Fishing rod specific
     void swingFishingRod(sf::Vector2f mouseWorldPos, sf::Vector2i selectedWorldTile);
@@ -139,6 +143,9 @@ private:
     bool fishBitingLine;
     sf::Vector2f fishingRodBobWorldPos;
     sf::Vector2i fishingRodBobWorldTile;
+
+    // Consumable
+    float consumableTimer;
 
     // In rocket state
     bool inRocket;

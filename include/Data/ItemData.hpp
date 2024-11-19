@@ -13,6 +13,12 @@ struct BossSummonData
     bool useAtNight = false;
 };
 
+struct ConsumableData
+{
+    int cooldownTime;
+    int healthIncrease = 0;
+};
+
 struct ItemData
 {
     std::string name;
@@ -28,6 +34,7 @@ struct ItemData
     bool placesLand = false;
 
     std::optional<BossSummonData> bossSummonData = std::nullopt;
+    std::optional<ConsumableData> consumableData = std::nullopt;
 
     bool isMaterial = false;
 

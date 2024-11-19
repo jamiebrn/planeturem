@@ -22,6 +22,7 @@ Player::Player(sf::Vector2f position, InventoryData* armourInventory)
     healthRegenCooldownTimer = 0.0f;
     damageCooldownTimer = 0.0f;
     respawnTimer = 0.0f;
+    consumableTimer = 0.0f;
 
     equippedTool = -1;
     toolRotation = 0;
@@ -89,7 +90,7 @@ void Player::update(float dt, sf::Vector2f mouseWorldPos, ChunkManager& chunkMan
 
 void Player::updateInRoom(float dt, sf::Vector2f mouseWorldPos, const Room& room)
 {
-    updateTimers(dt);
+    // updateTimers(dt);
     
     if (inRocket || !isAlive())
     {
@@ -212,6 +213,8 @@ void Player::updateTimers(float dt)
             respawn();
         }
     }
+
+    consumableTimer = std::max(consumableTimer - dt, 0.0f);
 }
 
 bool Player::testWorldWrap(int worldSize, sf::Vector2f& wrapPositionDelta)
@@ -590,7 +593,7 @@ void Player::testHitCollision(const HitRect& hitRect)
     
     health -= damageAmount;
 
-    HitMarkers::addHitMarker(position, damageAmount);
+    HitMarkers::addHitMarker(position, damageAmount, sf::Color(208, 15, 30));
 
     healthRegenCooldownTimer = MAX_HEALTH_REGEN_COOLDOWN_TIMER;
     damageCooldownTimer = MAX_DAMAGE_COOLDOWN_TIMER;
@@ -599,6 +602,32 @@ void Player::testHitCollision(const HitRect& hitRect)
     {
         respawnTimer = MAX_RESPAWN_TIMER;
     }
+}
+
+bool Player::useConsumable(const ConsumableData& consumable)
+{
+    if (consumableTimer > 0)
+    {
+        return false;
+    }
+
+    bool usedConsumable = false;
+
+    if (consumable.healthIncrease > 0 && health < maxHealth)
+    {
+        int healthIncrease = std::min(static_cast<float>(consumable.healthIncrease), maxHealth - health);
+        health += healthIncrease;;
+        HitMarkers::addHitMarker(position, healthIncrease, sf::Color(30, 188, 28));
+
+        usedConsumable = true;
+    }
+
+    if (usedConsumable)
+    {
+        consumableTimer = consumable.cooldownTime;
+    }
+
+    return usedConsumable;
 }
 
 void Player::swingFishingRod(sf::Vector2f mouseWorldPos, sf::Vector2i selectedWorldTile)

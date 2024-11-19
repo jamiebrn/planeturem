@@ -1,11 +1,11 @@
 #include "GUI/HitMarkers.hpp"
 
-void HitMarkers::addHitMarker(sf::Vector2f position, int damageAmount, bool critical)
+void HitMarkers::addHitMarker(sf::Vector2f position, int damageAmount, sf::Color colour)
 {
     HitMarker hitMarker;
     hitMarker.position = position;
     hitMarker.damageAmount = damageAmount;
-    hitMarker.critical = critical;
+    hitMarker.colour = colour;
 
     hitMarkers.push_back(hitMarker);
 }
@@ -58,7 +58,8 @@ void HitMarkers::HitMarker::draw(sf::RenderTarget& window, const Camera& camera)
     drawData.text = std::to_string(damageAmount);
 
     float alpha = 1.0f - (lifetime / HIT_MARKER_LIFETIME);
-    drawData.colour = sf::Color(247, 150, 23, 255 * alpha);
+    drawData.colour = colour;
+    drawData.colour.a = 255 * alpha;
     drawData.position = camera.worldToScreenTransform(position - sf::Vector2f(0.0f, LIFT_PER_SECOND * lifetime));
     drawData.centeredX = true;
     drawData.centeredY = true;

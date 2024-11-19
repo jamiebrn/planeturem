@@ -2,11 +2,8 @@
 
 // FIX: Crash on save / rocket enter bug (can't save???)
 
-// TODO: Saving in room destination
-
 // TODO: Night and menu music
 // TODO: Better GUI system / relative to window size etc and texturing
-// TODO: Consumable / health regen items
 
 // PRIORITY: HIGH
 // TODO: Create event callback system for object responding to triggers, rather than calling game functions directly
@@ -425,6 +422,7 @@ void Game::runInGame(float dt)
                             attemptBuildObject();
                             attemptPlaceLand();
                             attemptUseBossSpawn();
+                            attemptUseConsumable();
                         }
                         else
                         {
@@ -446,6 +444,7 @@ void Game::runInGame(float dt)
                             attemptBuildObject();
                             attemptPlaceLand();
                             attemptUseBossSpawn();
+                            attemptUseConsumable();
                         }
 
                         if (itemHeldBefore != InventoryGUI::getHeldItemType(inventory))
@@ -1361,6 +1360,38 @@ void Game::attemptUseBossSpawn()
 
     // Summon boss
     bossManager.createBoss(itemData.bossSummonData->bossName, player.getPosition(), *this);
+}
+
+void Game::attemptUseConsumable()
+{
+    if (gameState != GameState::OnPlanet)
+    {
+        return;
+    }
+
+    if (player.isInRocket())
+    {
+        return;
+    }
+
+    ItemType heldItemType = InventoryGUI::getHeldItemType(inventory);
+
+    if (heldItemType < 0)
+    {
+        return;
+    }
+
+    const ItemData& itemData = ItemDataLoader::getItemData(heldItemType);
+
+    if (!itemData.consumableData.has_value())
+    {
+        return;
+    }
+
+    if (player.useConsumable(itemData.consumableData.value()))
+    {
+        InventoryGUI::subtractHeldItem(inventory);
+    }
 }
 
 void Game::drawGhostPlaceObjectAtCursor(ObjectType object)
