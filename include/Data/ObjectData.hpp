@@ -36,6 +36,12 @@ struct RocketObjectData
     std::vector<std::string> availableRoomDestinationStrings;
 };
 
+struct NPCObjectData
+{
+    std::string npcName;
+    NPCObjectBehaviour behaviour;
+};
+
 struct ObjectData
 {
     std::string name;
@@ -69,6 +75,9 @@ struct ObjectData
 
     // If is a plant
     std::optional<std::vector<PlantStageObjectData>> plantStageObjectData = std::nullopt;
+
+    // If is NPC
+    std::optional<NPCObjectData> npcObjectData = std::nullopt;
 
     bool mythicalItem = false;
 };

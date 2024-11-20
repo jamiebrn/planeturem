@@ -118,7 +118,7 @@
         "texture-height": 16,
         "texture-x-origin": 0.5,
         "texture-y-origin": 0.8125,
-        "light-emission": [0.9, 0.9, 0.9, 0.9],
+        "light-emission": [0.9, 0.9, 0.9, 0.8],
         "item-drops": {
             "Torch": [1, 1, 1]
         }
@@ -324,6 +324,14 @@
         }
     },
     {
+        "name": "beanos",
+        "textures": [[0, 0]],
+        "texture-height": 1,
+        "texture-width": 1,
+        "texture-x-origin": 0.5,
+        "texture-y-origin": 0.5
+    },
+    {
         "name": "Wooden Clock",
         "health": 6,
         "textures": [[160, 160], [176, 160], [192, 160], [208, 160], [224, 160], [240, 160], [256, 160], [272, 160]],
@@ -338,6 +346,20 @@
         "crafting-station-level": 1,
         "item-drops": {
             "Wooden Clock": [1, 1, 1]
+        }
+    },
+    {
+        "name": "NPCDefault",
+        "health": 10,
+        "textures": [[288, 400], [304, 400], [320, 400]],
+        "texture-frame-delay": 0.1,
+        "texture-width": 16,
+        "texture-height": 32,
+        "texture-x-origin": 0.5,
+        "texture-y-origin": 1.0,
+        "npc-data": {
+            "npc-name": "Default",
+            "behaviour": "none"
         }
     }
 ]

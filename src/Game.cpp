@@ -2,6 +2,8 @@
 
 // FIX: Crash on save / rocket enter bug (can't save???)
 
+// FIX: Crash bug in rooms when new objects added to objects.data
+
 // TODO: Night and menu music
 // TODO: Better GUI system / relative to window size etc and texturing
 

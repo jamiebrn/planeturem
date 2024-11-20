@@ -30,6 +30,10 @@
 #include "Data/ToolDataLoader.hpp"
 #include "Data/ArmourData.hpp"
 #include "Data/ArmourDataLoader.hpp"
+#include "Data/StructureData.hpp"
+#include "Data/StructureDataLoader.hpp"
+#include "Data/PlanetGenData.hpp"
+#include "Data/PlanetGenDataLoader.hpp"
 
 #include "World/ChestDataPool.hpp"
 

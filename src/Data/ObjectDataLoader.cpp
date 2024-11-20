@@ -180,6 +180,25 @@ bool ObjectDataLoader::loadData(std::string objectDataPath)
             }
         }
 
+        // Load data if is NPC
+        if (jsonObjectData.contains("npc-data"))
+        {
+            NPCObjectData npcObjectData;
+            auto jsonNpcData = jsonObjectData.at("npc-data");
+
+            npcObjectData.npcName = jsonNpcData.at("npc-name");
+
+            static const std::unordered_map<std::string, NPCObjectBehaviour> stringToNPCBehaviourMap = {
+                {"none", NPCObjectBehaviour::None},
+                {"talk", NPCObjectBehaviour::Talk},
+                {"shop", NPCObjectBehaviour::Shop}
+            };
+
+            npcObjectData.behaviour = stringToNPCBehaviourMap.at(jsonNpcData.at("behaviour"));
+
+            objectData.npcObjectData = npcObjectData;
+        }
+        
         loaded_objectData.push_back(objectData);
     }
 

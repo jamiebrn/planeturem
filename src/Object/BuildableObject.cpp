@@ -65,7 +65,7 @@ void BuildableObject::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, G
     if (objectType < 0)
         return;
 
-    drawObject(window, spriteBatch, camera, gameTime, worldSize, color);    
+    drawObject(window, spriteBatch, camera, gameTime, worldSize, color);
 }
 
 void BuildableObject::drawObject(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Camera& camera, float gameTime, int worldSize, const sf::Color& color,

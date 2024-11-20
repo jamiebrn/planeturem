@@ -1007,6 +1007,33 @@ sf::Vector2f InventoryGUI::drawItemInfoBox(sf::RenderTarget& window, float gameT
     else if (itemData.placesObjectType >= 0 || itemData.placesLand)
     {
         infoStrings.push_back({"Can be placed", 20});
+
+        const ObjectData& objectData = ObjectDataLoader::getObjectData(itemData.placesObjectType);
+
+        if (objectData.chestCapacity > 0)
+        {
+            infoStrings.push_back({std::to_string(objectData.chestCapacity) + " capacity", 20});
+        }
+        else if (objectData.rocketObjectData.has_value())
+        {
+            infoStrings.push_back({"Allows travel to:", 20});
+
+            for (PlanetType planetDestination : objectData.rocketObjectData->availableDestinations)
+            {
+                const std::string& planetName = PlanetGenDataLoader::getPlanetGenData(planetDestination).displayName;
+                infoStrings.push_back({" - " + planetName, 20});
+            }
+
+            for (RoomType roomDestination : objectData.rocketObjectData->availableRoomDestinations)
+            {
+                const std::string& roomDestinationName = StructureDataLoader::getRoomData(roomDestination).displayName;
+                infoStrings.push_back({" - " + roomDestinationName, 20});
+            }
+        }
+        else if (objectData.npcObjectData.has_value())
+        {
+            infoStrings.push_back({"How have you obtained this..?", 20});
+        }
     }
     else if (itemData.toolType >= 0)
     {

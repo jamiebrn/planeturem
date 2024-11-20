@@ -8,6 +8,13 @@ typedef int ItemType;
 // -11 Reserved for dummy object with no collision
 typedef int ObjectType;
 
+enum class NPCObjectBehaviour
+{
+    None,
+    Talk,
+    Shop
+};
+
 typedef int EntityType;
 
 typedef int ToolType;

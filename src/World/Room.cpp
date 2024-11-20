@@ -235,13 +235,16 @@ void Room::setObjectFromBitmask(sf::Vector2i tile, uint8_t bitmaskValue, ChestDa
 
     if (roomObjectData.chestContents.has_value())
     {
-        if (ChestObject* chest = dynamic_cast<ChestObject*>(object.get()))
+        if (roomObjectData.chestContents->size() > 0)
         {
-            const InventoryData& randomChestContents = roomObjectData.chestContents.value()[rand() % roomObjectData.chestContents->size()];
+            if (ChestObject* chest = dynamic_cast<ChestObject*>(object.get()))
+            {
+                const InventoryData& randomChestContents = roomObjectData.chestContents.value()[rand() % roomObjectData.chestContents->size()];
 
-            uint16_t chestID = chestDataPool.createChest(randomChestContents);
+                uint16_t chestID = chestDataPool.createChest(randomChestContents);
 
-            chest->setChestID(chestID);
+                chest->setChestID(chestID);
+            }
         }
     }
 

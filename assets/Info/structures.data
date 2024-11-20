@@ -21,7 +21,9 @@
             "tile-size": [14, 8],
             "collision-bitmask": [14, 4],
             "objects": [
-                ["Rocket Launch Pad", 1]
+                ["Rocket Launch Pad", 1],
+                ["Chest", 2],
+                ["NPCDefault", 3]
             ]
         }
     },
@@ -34,7 +36,7 @@
             "texture-origin": [0.167, 0.833],
             "collision-bitmask": [0, 0],
             "light-bitmask": [3, 0],
-            "room": "Space Station"
+            "room": "SpaceStation"
         }
     ]
 }
