@@ -2,6 +2,10 @@
 
 // FIX: Crash on save / rocket enter bug (can't save???)
 
+// TODO: NOVEMBER CHECKLIST
+    // TODO: Basic NPC interaction / basic shop system
+    // TODO: Finish sand serpent boss fight, including some new armour / weapons
+
 // TODO: Night and menu music
 // TODO: Better GUI system / relative to window size etc and texturing
 
@@ -976,6 +980,11 @@ void Game::rocketFinishedDown(RocketObject& rocket)
     exitRocket();
 }
 
+// NPC
+void Game::interactWithNPC(NPCObject& npc)
+{
+    std::cout << "Interacted with NPC\n";
+}
 
 // -- In Room -- //
 

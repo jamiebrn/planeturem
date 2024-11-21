@@ -18,6 +18,10 @@ std::unique_ptr<BuildableObject> BuildableObjectFactory::create(sf::Vector2f pos
         {
             return std::make_unique<PlantObject>(position, objectType, *game, randomisePlantAge);
         }
+        if (objectData.npcObjectData.has_value())
+        {
+            return std::make_unique<NPCObject>(position, objectType);
+        }
     }
 
     // Default case

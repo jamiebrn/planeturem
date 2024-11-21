@@ -43,6 +43,7 @@
 #include "Object/BuildableObject.hpp"
 #include "Object/ChestObject.hpp"
 #include "Object/RocketObject.hpp"
+#include "Object/NPCObject.hpp"
 #include "Object/StructureObject.hpp"
 #include "Object/ParticleSystem.hpp"
 
@@ -102,6 +103,9 @@ public:
     void enterIncomingRocket(RocketObject& rocket);
     void rocketFinishedUp(RocketObject& rocket);
     void rocketFinishedDown(RocketObject& rocket);
+
+    // NPC
+    void interactWithNPC(NPCObject& npc);
 
     void drawWorld(sf::RenderTexture& renderTexture, float dt, std::vector<WorldObject*>& worldObjects, ChunkManager& chunkManagerArg, const Camera& cameraArg);
 

@@ -36,7 +36,7 @@
             "texture-origin": [0.167, 0.833],
             "collision-bitmask": [0, 0],
             "light-bitmask": [3, 0],
-            "room": "SpaceStation"
+            "room": "Stone"
         }
     ]
 }
