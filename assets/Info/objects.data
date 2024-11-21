@@ -324,14 +324,6 @@
         }
     },
     {
-        "name": "beanos",
-        "textures": [[0, 0]],
-        "texture-height": 1,
-        "texture-width": 1,
-        "texture-x-origin": 0.5,
-        "texture-y-origin": 0.5
-    },
-    {
         "name": "Wooden Clock",
         "health": 6,
         "textures": [[160, 160], [176, 160], [192, 160], [208, 160], [224, 160], [240, 160], [256, 160], [272, 160]],

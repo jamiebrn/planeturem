@@ -235,6 +235,8 @@ void BuildableObject::giveItemDrops(InventoryData& inventory, const std::vector<
 void BuildableObject::interact(Game& game)
 {
     // No interaction for regular object
+    const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
+
 }
 
 bool BuildableObject::isInteractable() const

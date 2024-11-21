@@ -79,16 +79,23 @@ public:
     template<class Archive>
     void load(Archive& archive, const std::uint32_t version)
     {
-        std::vector<std::vector<std::optional<BuildableObjectPOD>>> pods;
-        
-        archive(roomType, pods);
+        loadingObjectPodsTemp = std::make_unique<std::vector<std::vector<std::optional<BuildableObjectPOD>>>>();
 
-        loadObjectPODs(pods);
+        archive(roomType, *loadingObjectPodsTemp);
+
+        // loadObjectPODs();
     }
 
+    // Also initialises objects from pods and therefore creates collisions etc
     void mapVersions(const std::unordered_map<ObjectType, ObjectType>& objectVersionMap)
     {
-        for (auto& objectRow : objectGrid)
+        if (loadingObjectPodsTemp == nullptr)
+        {
+            std::cout << "Error: attempted to map object versions to room with null object POD\n";
+            return;
+        }
+
+        for (auto& objectRow : *loadingObjectPodsTemp)
         {
             for (auto& object : objectRow)
             {
@@ -99,7 +106,11 @@ public:
 
                 object->mapVersions(objectVersionMap);
             }
-        }   
+        }
+
+        loadObjectPODs();
+
+        loadingObjectPodsTemp.reset();
     }
 
 private:
@@ -109,7 +120,7 @@ private:
     void createCollisionRects();
     
     std::vector<std::vector<std::optional<BuildableObjectPOD>>> getObjectPODs() const;
-    void loadObjectPODs(const std::vector<std::vector<std::optional<BuildableObjectPOD>>>& pods);
+    void loadObjectPODs();
 
 private:
     RoomType roomType = -1;
@@ -119,6 +130,8 @@ private:
 
     // Objects in room
     std::vector<std::vector<std::unique_ptr<BuildableObject>>> objectGrid;
+
+    std::unique_ptr<std::vector<std::vector<std::optional<BuildableObjectPOD>>>> loadingObjectPodsTemp = nullptr;
 
 };
 

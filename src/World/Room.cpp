@@ -427,17 +427,23 @@ std::vector<std::vector<std::optional<BuildableObjectPOD>>> Room::getObjectPODs(
     return pods;
 }
 
-void Room::loadObjectPODs(const std::vector<std::vector<std::optional<BuildableObjectPOD>>>& pods)
+void Room::loadObjectPODs()
 {
     objectGrid.clear();
 
-    for (int y = 0; y < pods.size(); y++)
+    if (loadingObjectPodsTemp == nullptr)
     {
-        objectGrid.emplace_back(pods[y].size());
+        std::cout << "Error: Room has no object POD loaded\n";
+        return;
+    }
 
-        for (int x = 0; x < pods[y].size(); x++)
+    for (int y = 0; y < loadingObjectPodsTemp->size(); y++)
+    {
+        objectGrid.emplace_back(loadingObjectPodsTemp->at(y).size());
+
+        for (int x = 0; x < loadingObjectPodsTemp->at(y).size(); x++)
         {
-            if (!pods[y][x].has_value())
+            if (!loadingObjectPodsTemp->at(y).at(x).has_value())
             {
                 objectGrid[y][x] = nullptr;
                 continue;
@@ -446,10 +452,10 @@ void Room::loadObjectPODs(const std::vector<std::vector<std::optional<BuildableO
             // Object from POD
             sf::Vector2f objectPos((x + 0.5f) * TILE_SIZE_PIXELS_UNSCALED, (y + 0.5f) * TILE_SIZE_PIXELS_UNSCALED);
 
-            std::unique_ptr<BuildableObject> object = BuildableObjectFactory::create(objectPos, pods[y][x]->objectType);
+            std::unique_ptr<BuildableObject> object = BuildableObjectFactory::create(objectPos, loadingObjectPodsTemp->at(y).at(x)->objectType);
 
-            object->loadFromPOD(pods[y][x].value());
-            
+            object->loadFromPOD(loadingObjectPodsTemp->at(y).at(x).value());
+
             objectGrid[y][x] = std::move(object);
         }
     }
