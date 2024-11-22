@@ -6,36 +6,24 @@
 #include "Core/ResolutionHandler.hpp"
 #include "Core/TextDraw.hpp"
 
-#include "Base/GUIContext.hpp"
+#include "GUI/Base/GUIContext.hpp"
+#include "GUI/DefaultGUIPanel.hpp"
 
 #include "Data/typedefs.hpp"
 #include "Data/PlanetGenData.hpp"
 #include "Data/PlanetGenDataLoader.hpp"
 
-class TravelSelectGUI
+class TravelSelectGUI : public DefaultGUIPanel
 {
-    TravelSelectGUI() = delete;
-
 public:
-    static void processEventGUI(const sf::Event& event);
+    TravelSelectGUI() = default;
 
-    static void setAvailableDestinations(const std::vector<PlanetType>& availablePlanetDestinations, const std::vector<RoomType>& availableRoomDestinations);
+    void setAvailableDestinations(const std::vector<PlanetType>& availablePlanetDestinations, const std::vector<RoomType>& availableRoomDestinations);
 
-    static bool createAndDraw(sf::RenderWindow& window, float dt, PlanetType& selectedPlanetType, RoomType& selectedRoomType);
-
-    // static void drawGUI(sf::RenderTarget& window);
+    bool createAndDraw(sf::RenderWindow& window, float dt, PlanetType& selectedPlanetType, RoomType& selectedRoomType);
 
 private:
-    static void updateSelectionHoverRect(sf::IntRect destinationRect);
-    static void resetHoverRect();
-
-private:
-    static GUIContext guiContext;
-
-    static std::vector<PlanetType> availablePlanetDestinations;
-    static std::vector<RoomType> availableRoomDestinations;
-
-    static sf::FloatRect selectionHoverRect;
-    static sf::FloatRect selectionHoverRectDestination;
+    std::vector<PlanetType> availablePlanetDestinations;
+    std::vector<RoomType> availableRoomDestinations;
 
 };

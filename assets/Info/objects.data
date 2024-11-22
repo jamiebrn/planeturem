@@ -351,7 +351,8 @@
         "texture-y-origin": 1.0,
         "npc-data": {
             "npc-name": "Default",
-            "behaviour": "none"
+            "behaviour": "talk",
+            "portrait-texture-offset": [0, 0]
         }
     }
 ]

@@ -196,6 +196,8 @@ bool ObjectDataLoader::loadData(std::string objectDataPath)
 
             npcObjectData.behaviour = stringToNPCBehaviourMap.at(jsonNpcData.at("behaviour"));
 
+            npcObjectData.portraitTextureOffset = jsonNpcData.at("portrait-texture-offset");
+
             objectData.npcObjectData = npcObjectData;
         }
         
@@ -242,9 +244,9 @@ bool ObjectDataLoader::loadRocketPlanetDestinations(const std::unordered_map<std
     return true;
 }
 
-const ObjectData& ObjectDataLoader::getObjectData(ObjectType type_index)
+const ObjectData& ObjectDataLoader::getObjectData(ObjectType objectType)
 {    
-    return loaded_objectData[type_index];
+    return loaded_objectData[objectType];
 }
 
 ObjectType ObjectDataLoader::getObjectTypeFromName(const std::string& objectName)

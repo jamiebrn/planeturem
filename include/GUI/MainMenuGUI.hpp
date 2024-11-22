@@ -13,8 +13,10 @@
 
 #include "World/ChunkManager.hpp"
 
-#include "Types/GameState.hpp"
 #include "GUI/Base/GUIContext.hpp"
+#include "GUI/DefaultGUIPanel.hpp"
+
+#include "Types/GameState.hpp"
 
 enum class MainMenuEventType
 {
@@ -34,14 +36,12 @@ class Game;
 class ProjectileManager;
 class InventoryData;
 
-class MainMenuGUI
+class MainMenuGUI : public DefaultGUIPanel
 {
 public:
-    MainMenuGUI();
+    MainMenuGUI() = default;
 
     void initialise();
-
-    void handleEvent(sf::Event& event);
 
     void update(float dt, sf::Vector2f mouseScreenPos, Game& game, ProjectileManager& projectileManager, InventoryData& inventory);
 
@@ -52,9 +52,9 @@ public:
 private:
     int getWorldSeedFromString(std::string string);
 
-    void updateSelectionHoverRect(sf::IntRect destinationRect);
+    // void updateSelectionHoverRect(sf::IntRect destinationRect);
     void changeUIState(MainMenuState newState);
-    void resetHoverRect();
+    // void resetHoverRect();
 
 private:
     std::string menuErrorMessage;
@@ -67,8 +67,8 @@ private:
     std::vector<SaveFileSummary> saveFileSummaries;
     int saveFilePage;
 
-    sf::FloatRect selectionHoverRect;
-    sf::FloatRect selectionHoverRectDestination;
+    // sf::FloatRect selectionHoverRect;
+    // sf::FloatRect selectionHoverRectDestination;
     bool deferHoverRectReset;
     // bool selectionHoverRectDrawing;
 
@@ -81,6 +81,6 @@ private:
     sf::Vector2f worldViewPosition;
     Camera backgroundCamera;
 
-    GUIContext guiContext;
+    // GUIContext guiContext;
 
 };

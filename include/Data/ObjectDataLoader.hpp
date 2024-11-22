@@ -22,7 +22,7 @@ public:
     static bool loadRocketPlanetDestinations(const std::unordered_map<std::string, PlanetType>& planetStringToTypeMap,
         const std::unordered_map<std::string, RoomType>& roomStringToTypeMap);
 
-    static const ObjectData& getObjectData(ObjectType type_index);
+    static const ObjectData& getObjectData(ObjectType objectType);
 
     static ObjectType getObjectTypeFromName(const std::string& objectName);
 

@@ -361,7 +361,8 @@ void Game::runInGame(float dt)
 
         // Always process events even when GUI is not drawn
         // Prevents previous state being retained
-        TravelSelectGUI::processEventGUI(event);
+        travelSelectGUI.handleEvent(event);
+        npcInteractionGUI.handleEvent(event);
 
         if (isStateTransitioning() || !player.isAlive())
         {
@@ -407,7 +408,18 @@ void Game::runInGame(float dt)
 
             if (event.key.code == sf::Keyboard::Escape && worldMenuState == WorldMenuState::TravelSelect)
             {
-                exitRocket();
+                switch (worldMenuState)
+                {
+                    case WorldMenuState::TravelSelect:
+                        exitRocket();
+                        break;
+                    case WorldMenuState::NPCInteract:
+                    {
+                        npcInteractionGUI.close();
+                        worldMenuState = WorldMenuState::Main;
+                        break;
+                    }
+                }
             }
         }
 
@@ -630,7 +642,7 @@ void Game::runInGame(float dt)
                 PlanetType selectedPlanetDestination = -1;
                 RoomType selectedRoomDestination = -1;
 
-                if (TravelSelectGUI::createAndDraw(window, dt, selectedPlanetDestination, selectedRoomDestination))
+                if (travelSelectGUI.createAndDraw(window, dt, selectedPlanetDestination, selectedRoomDestination))
                 {
                     BuildableObject* rocketObject = getObjectFromChunkOrRoom(rocketEnteredReference);
 
@@ -642,6 +654,20 @@ void Game::runInGame(float dt)
                         rocketObject->triggerBehaviour(*this, ObjectBehaviourTrigger::RocketFlyUp);
                         // Fade out music
                         Sounds::stopMusic(0.5f);
+                    }
+                }
+                break;
+            }
+            case WorldMenuState::NPCInteract:
+            {
+                std::optional<NPCInteractionGUIEvent> npcInteractionGUIEvent = npcInteractionGUI.createAndDraw(window, spriteBatch, dt, gameTime);
+
+                if (npcInteractionGUIEvent.has_value())
+                {
+                    if (npcInteractionGUIEvent->type == NPCInteractionGUIEventType::Exit)
+                    {
+                        npcInteractionGUI.close();
+                        worldMenuState = WorldMenuState::Main;
                     }
                 }
                 break;
@@ -672,8 +698,10 @@ void Game::updateOnPlanet(float dt)
     bool wrappedAroundWorld = false;
     sf::Vector2f wrapPositionDelta;
 
-    if (!isStateTransitioning())
+    if (!isStateTransitioning() && worldMenuState != WorldMenuState::NPCInteract)
+    {
         player.update(dt, Cursor::getMouseWorldPos(window, camera), chunkManager, worldSize, wrappedAroundWorld, wrapPositionDelta);
+    }
 
     // Handle world wrapping for camera and cursor, if player wrapped around
     if (wrappedAroundWorld)
@@ -911,11 +939,6 @@ void Game::enterRocket(RocketObject& rocket)
             break;
         }
     }
-
-    // // TODO: Saving functionality while in room destination
-    // if (gameState != GameState::InRoomDestination)
-    // {
-    // }
     
     // Save just before enter
     saveGame(true);
@@ -938,7 +961,7 @@ void Game::enterRocket(RocketObject& rocket)
 
     rocket.getRocketAvailableDestinations(currentPlanetType, currentRoomType, planetDestinations, roomDestinations);
 
-    TravelSelectGUI::setAvailableDestinations(planetDestinations, roomDestinations);
+    travelSelectGUI.setAvailableDestinations(planetDestinations, roomDestinations);
 
     player.enterRocket(rocket.getRocketPosition());
 }
@@ -983,7 +1006,8 @@ void Game::rocketFinishedDown(RocketObject& rocket)
 // NPC
 void Game::interactWithNPC(NPCObject& npc)
 {
-    std::cout << "Interacted with NPC\n";
+    npcInteractionGUI.initialise(npc);
+    worldMenuState = WorldMenuState::NPCInteract;
 }
 
 // -- In Room -- //
@@ -996,7 +1020,7 @@ void Game::updateInRoom(float dt, Room& room, bool inStructure)
 
     Cursor::updateTileCursorInRoom(window, camera, dt, room, InventoryGUI::getHeldItemType(inventory), player.getTool());
 
-    if (!isStateTransitioning())
+    if (!isStateTransitioning() && worldMenuState != WorldMenuState::NPCInteract)
     {
         player.updateInRoom(dt, Cursor::getMouseWorldPos(window, camera), room);
     }

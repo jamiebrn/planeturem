@@ -23,4 +23,6 @@ public:
 
     void triggerBehaviour(Game& game, ObjectBehaviourTrigger trigger) override;
 
+    const NPCObjectData& getNPCObjectData() const;
+
 };

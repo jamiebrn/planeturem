@@ -22,7 +22,7 @@ class StructureDataLoader
 public:
     static bool loadData(std::string structureDataPath);
 
-    static const StructureData& getStructureData(StructureType type_index);
+    static const StructureData& getStructureData(StructureType structureType);
 
     static const RoomData& getRoomData(RoomType roomType);
 

@@ -135,9 +135,9 @@ void StructureDataLoader::loadChestContents(RoomObjectData& roomObjectData, nloh
     }    
 }
 
-const StructureData& StructureDataLoader::getStructureData(StructureType type_index)
+const StructureData& StructureDataLoader::getStructureData(StructureType structureType)
 {    
-    return loaded_structureData[type_index];
+    return loaded_structureData[structureType];
 }
 
 const RoomData& StructureDataLoader::getRoomData(RoomType roomType)

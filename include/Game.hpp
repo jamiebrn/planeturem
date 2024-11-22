@@ -75,6 +75,7 @@
 #include "GUI/InventoryGUI.hpp"
 #include "GUI/HealthGUI.hpp"
 #include "GUI/TravelSelectGUI.hpp"
+#include "GUI/NPCInteractionGUI.hpp"
 #include "GUI/HitMarkers.hpp"
 
 #include "IO/GameSaveIO.hpp"
@@ -197,6 +198,7 @@ private:
     void resetChestDataPool();
     void resetStructureRoomPool();
 
+
     // -- Game State / Transition -- //
 
     void updateStateTransition(float dt);
@@ -206,7 +208,7 @@ private:
     void changeState(GameState newState);
     // Only use to prevent game state changing default behaviour
     void overrideState(GameState newState);
-
+    
 
     // -- Save / load -- //
 
@@ -262,6 +264,8 @@ private:
 
     // GUI
     MainMenuGUI mainMenuGUI;
+    NPCInteractionGUI npcInteractionGUI;
+    TravelSelectGUI travelSelectGUI;
 
     // Game general data
     Player player;

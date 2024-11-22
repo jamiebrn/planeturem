@@ -37,3 +37,12 @@ void NPCObject::triggerBehaviour(Game& game, ObjectBehaviourTrigger trigger)
 {
 
 }
+
+const NPCObjectData& NPCObject::getNPCObjectData() const
+{
+    const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
+
+    assert(objectData.npcObjectData.has_value());
+
+    return objectData.npcObjectData.value();
+}
