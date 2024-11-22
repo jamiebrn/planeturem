@@ -14,10 +14,7 @@ enum class TextureType
     LightMask,
     UI,
     Rooms,
-
-    MenuScreenshot0,
-    MenuScreenshot1,
-    MenuScreenshot2
+    Portraits
 };
 
 enum BitmaskType

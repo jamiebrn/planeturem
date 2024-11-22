@@ -19,8 +19,10 @@ void DefaultGUIPanel::drawPanel(sf::RenderTarget& window)
     float intScale = ResolutionHandler::getResolutionIntegerScale();
     sf::Vector2f resolution = static_cast<sf::Vector2f>(ResolutionHandler::getResolution());
 
+    int scaledPanelPaddingX = getScaledPanelPaddingX();
+
     sf::RectangleShape panelRect(sf::Vector2f(panelWidth * intScale, resolution.y));
-    panelRect.setPosition(sf::Vector2f(panelPaddingX * intScale, 0));
+    panelRect.setPosition(sf::Vector2f(scaledPanelPaddingX * intScale, 0));
     panelRect.setFillColor(sf::Color(30, 30, 30, 180));
 
     window.draw(panelRect);

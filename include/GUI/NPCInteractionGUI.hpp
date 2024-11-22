@@ -4,6 +4,7 @@
 
 #include <SFML/Graphics.hpp>
 
+#include "Core/TextureManager.hpp"
 #include "Core/SpriteBatch.hpp"
 
 #include "GUI/Base/GUIContext.hpp"
