@@ -198,6 +198,8 @@ bool ObjectDataLoader::loadData(std::string objectDataPath)
 
             npcObjectData.portraitTextureOffset = jsonNpcData.at("portrait-texture-offset");
 
+            npcObjectData.dialogueLines = jsonNpcData.at("dialogue");
+
             objectData.npcObjectData = npcObjectData;
         }
         

@@ -1,19 +1,10 @@
 #include "Game.hpp"
 
-// FIX: Crash on save / rocket enter bug (can't save???)
-
 // TODO: NOVEMBER CHECKLIST
     // TODO: Basic NPC interaction / basic shop system
     // TODO: Finish sand serpent boss fight, including some new armour / weapons
 
 // TODO: Night and menu music
-// TODO: Better GUI system / relative to window size etc and texturing
-
-// PRIORITY: HIGH
-// TODO: Create event callback system for object responding to triggers, rather than calling game functions directly
-
-// TODO: Structure functionality (item spawns, crafting stations etc)
-// TODO: Different types of structures
 
 // PRIORITY: LOW
 // TODO: Fishing rod draw order (split into separate objects?)

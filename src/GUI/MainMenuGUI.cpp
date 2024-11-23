@@ -259,7 +259,7 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
 
     if (nextUIState != mainMenuState)
     {
-        mainMenuState = nextUIState;
+        changeUIState(nextUIState);
     }
 
     updateAndDrawSelectionHoverRect(window, dt);

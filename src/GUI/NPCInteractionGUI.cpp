@@ -3,6 +3,11 @@
 void NPCInteractionGUI::initialise(const NPCObject& npcObject)
 {
     currentNPCObjectData = &npcObject.getNPCObjectData();
+    currentDiagloueIndex = 0;
+
+    dialogueBoxText = "";
+    dialogueCharIndex = 0;
+    dialogueCharTimer = 0.0f;
 }
 
 void NPCInteractionGUI::close()
@@ -26,25 +31,7 @@ std::optional<NPCInteractionGUIEvent> NPCInteractionGUI::createAndDraw(sf::Rende
 
     if (currentNPCObjectData != nullptr)
     {
-        // Draw name
-        TextDrawData nameTextDrawData;
-        nameTextDrawData.text = currentNPCObjectData->npcName;
-        nameTextDrawData.position = sf::Vector2f(resolution.x / 2.0f, resolution.y / 2.0f - 22 * 3 * intScale);
-        nameTextDrawData.centeredX = true;
-        nameTextDrawData.centeredY = true;
-        nameTextDrawData.colour = sf::Color(255, 255, 255);
-        nameTextDrawData.size = 32 * intScale;
-
-        TextDraw::drawText(window, nameTextDrawData);
-
-        // Draw portrait
-        TextureDrawData portraitTextureDrawData;
-        portraitTextureDrawData.type = TextureType::Portraits;
-        portraitTextureDrawData.position = resolution / 2.0f;
-        portraitTextureDrawData.centerRatio = sf::Vector2f(0.5f, 0.5f);
-        portraitTextureDrawData.scale = sf::Vector2f(3, 3) * intScale;
-
-        spriteBatch.draw(window, portraitTextureDrawData, sf::IntRect(currentNPCObjectData->portraitTextureOffset, sf::Vector2i(32, 32)));
+        drawDialogueBox(window, spriteBatch, dt, gameTime);
 
         switch (currentNPCObjectData->behaviour)
         {
@@ -52,7 +39,22 @@ std::optional<NPCInteractionGUIEvent> NPCInteractionGUI::createAndDraw(sf::Rende
             {
                 if (guiContext.createButton(scaledPanelPaddingX * intScale, elementYPos, panelWidth * intScale, 75 * intScale, "Talk", buttonStyle).isClicked())
                 {
-                    // talk
+                    const std::string& currentDialogue = currentNPCObjectData->dialogueLines.at(currentDiagloueIndex);
+
+                    // Skip dialogue animation if playing
+                    if (dialogueCharIndex < currentDialogue.size())
+                    {
+                        dialogueBoxText = currentDialogue;
+                        dialogueCharIndex = currentDialogue.size();
+                    }
+                    else
+                    {
+                        // Advance dialogue
+                        currentDiagloueIndex = std::min(currentDiagloueIndex + 1, static_cast<int>(currentNPCObjectData->dialogueLines.size()) - 1);
+                        dialogueBoxText = "";
+                        dialogueCharIndex = 0;
+                        dialogueCharTimer = 0.0f;
+                    }
                 }
 
                 elementYPos += 100 * intScale;
@@ -85,4 +87,69 @@ std::optional<NPCInteractionGUIEvent> NPCInteractionGUI::createAndDraw(sf::Rende
     guiContext.endGUI();
 
     return npcInteractionGUIEvent;
+}
+
+void NPCInteractionGUI::drawDialogueBox(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime)
+{
+    float intScale = ResolutionHandler::getResolutionIntegerScale();
+    sf::Vector2f resolution = static_cast<sf::Vector2f>(ResolutionHandler::getResolution());
+
+    static const int boxXPadding = 50;
+    static const int boxHeight = 200;
+    static const int boxWidth = 400;
+
+    int boxXPos = getScaledPanelPaddingX() + (panelWidth + boxXPadding) * intScale;
+    int boxYPos = resolution.y / 2.0f - (boxHeight / 2.0f) * intScale;
+
+    // Draw background panel
+    sf::RectangleShape backgroundPanel;
+    backgroundPanel.setPosition(sf::Vector2f(boxXPos, boxYPos));
+    backgroundPanel.setSize(sf::Vector2f(boxWidth, boxHeight) * intScale);
+    backgroundPanel.setFillColor(sf::Color(30, 30, 30, 180));
+
+    window.draw(backgroundPanel);
+
+    // Draw name
+    TextDrawData nameTextDrawData;
+    nameTextDrawData.text = currentNPCObjectData->npcName;
+    nameTextDrawData.position = sf::Vector2f(boxXPos + 20 * intScale, boxYPos + 25 * intScale);
+    nameTextDrawData.centeredY = true;
+    nameTextDrawData.colour = sf::Color(255, 255, 255);
+    nameTextDrawData.size = 32 * intScale;
+
+    TextDraw::drawText(window, nameTextDrawData);
+
+    // Draw portrait
+    TextureDrawData portraitTextureDrawData;
+    portraitTextureDrawData.type = TextureType::Portraits;
+    portraitTextureDrawData.position = sf::Vector2f(boxXPos + 20 * intScale, boxYPos + 60 * intScale);
+    portraitTextureDrawData.scale = sf::Vector2f(3, 3) * intScale;
+
+    spriteBatch.draw(window, portraitTextureDrawData, sf::IntRect(currentNPCObjectData->portraitTextureOffset, sf::Vector2i(32, 32)));
+
+    // Update dialogue timer
+    const std::string& currentDialogue = currentNPCObjectData->dialogueLines.at(currentDiagloueIndex);
+
+    if (dialogueCharIndex < currentDialogue.size())
+    {
+        dialogueCharTimer += dt;
+        if (dialogueCharTimer >= MAX_DIALOGUE_CHAR_TIMER)
+        {
+            dialogueCharTimer = 0.0f;
+            dialogueBoxText += currentDialogue.at(dialogueCharIndex);
+            dialogueCharIndex++;
+        }
+    }
+
+    if (currentDiagloueIndex < currentNPCObjectData->dialogueLines.size())
+    {
+        // Draw dialogue
+        TextDrawData dialogueTextDrawDraw;
+        dialogueTextDrawDraw.text = dialogueBoxText;
+        dialogueTextDrawDraw.position = sf::Vector2f(boxXPos + 140 * intScale, boxYPos + 90 * intScale);
+        dialogueTextDrawDraw.colour = sf::Color(255, 255, 255);
+        dialogueTextDrawDraw.size = 24 * intScale;
+
+        TextDraw::drawText(window, dialogueTextDrawDraw);
+    }
 }

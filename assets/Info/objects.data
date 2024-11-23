@@ -341,18 +341,19 @@
         }
     },
     {
-        "name": "NPCDefault",
+        "name": "AlienHostage",
         "health": 10,
-        "textures": [[288, 400], [304, 400], [320, 400]],
+        "textures": [[368, 400], [368, 400], [384, 400], [400, 400], [368, 400], [416, 400], [432, 400]],
         "texture-frame-delay": 0.1,
         "texture-width": 16,
         "texture-height": 32,
         "texture-x-origin": 0.5,
         "texture-y-origin": 1.0,
         "npc-data": {
-            "npc-name": "Default",
+            "npc-name": "Unknown",
             "behaviour": "talk",
-            "portrait-texture-offset": [0, 0]
+            "dialogue": ["Help me", "Help me", "Please help me"],
+            "portrait-texture-offset": [32, 0]
         }
     }
 ]

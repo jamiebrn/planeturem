@@ -51,26 +51,19 @@ public:
 
 private:
     int getWorldSeedFromString(std::string string);
-
-    // void updateSelectionHoverRect(sf::IntRect destinationRect);
+    
     void changeUIState(MainMenuState newState);
-    // void resetHoverRect();
 
 private:
     std::string menuErrorMessage;
 
     // Menu
     MainMenuState mainMenuState;
-    // int menuScreenshotIndex;
-    // float menuScreenshotTimer;
 
     std::vector<SaveFileSummary> saveFileSummaries;
     int saveFilePage;
 
-    // sf::FloatRect selectionHoverRect;
-    // sf::FloatRect selectionHoverRectDestination;
     bool deferHoverRectReset;
-    // bool selectionHoverRectDrawing;
 
     std::string saveNameInput;
     std::string worldSeedInput;
@@ -80,7 +73,5 @@ private:
     ChunkManager backgroundChunkManager;
     sf::Vector2f worldViewPosition;
     Camera backgroundCamera;
-
-    // GUIContext guiContext;
 
 };

@@ -17,13 +17,13 @@
         "SpaceStation": {
             "display-name": "Space Station",
             "travel-location": true,
-            "texture": [0, 160],
-            "tile-size": [14, 8],
-            "collision-bitmask": [14, 4],
+            "texture": [224, 144],
+            "tile-size": [16, 15],
+            "collision-bitmask": [12, 5],
             "objects": [
                 ["Rocket Launch Pad", 1],
                 ["Chest", 2],
-                ["NPCDefault", 3]
+                ["AlienHostage", 3]
             ]
         }
     },

@@ -41,6 +41,7 @@ struct NPCObjectData
     std::string npcName;
     NPCObjectBehaviour behaviour;
     sf::Vector2i portraitTextureOffset;
+    std::vector<std::string> dialogueLines;
 };
 
 struct ObjectData
