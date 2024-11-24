@@ -39,6 +39,7 @@ struct ItemData
     bool isMaterial = false;
 
     int currencyValue = 0;
+    int sellValue = -1;
 
     // 0, 0, 0 reserved for rainbow effect
     sf::Color nameColor = sf::Color(255, 255, 255);

@@ -257,12 +257,12 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
         }
     }
 
+    updateAndDrawSelectionHoverRect(window, dt);
+
     if (nextUIState != mainMenuState)
     {
         changeUIState(nextUIState);
     }
-
-    updateAndDrawSelectionHoverRect(window, dt);
 
     guiContext.draw(window);
 
@@ -297,6 +297,7 @@ void MainMenuGUI::changeUIState(MainMenuState newState)
 {
     mainMenuState = newState;
     resetHoverRect();
+    deferHoverRectReset = false;
 }
 
 void MainMenuGUI::setCanInteract(bool value)

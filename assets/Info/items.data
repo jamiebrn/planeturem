@@ -1,43 +1,53 @@
 [
     {
         "name": "Wood",
-        "texture": [0, 0, 16, 16]
+        "texture": [0, 0, 16, 16],
+        "sell-value": 1
     },
     {
         "name": "Coal",
-        "texture": [16, 0, 16, 16]
+        "texture": [16, 0, 16, 16],
+        "sell-value": 1
     },
     {
         "name": "Stone",
-        "texture": [32, 0, 16, 16]
+        "texture": [32, 0, 16, 16],
+        "sell-value": 1
     },
     {
         "name": "Refined Stone",
-        "texture": [48, 0, 16, 16]
+        "texture": [48, 0, 16, 16],
+        "sell-value": 2
     },
     {
         "name": "Raw Coal",
-        "texture": [48, 16, 16, 16]
+        "texture": [48, 16, 16, 16],
+        "sell-value": 1
     },
     {
         "name": "Raw Iron",
-        "texture": [16, 16, 16, 16]
+        "texture": [16, 16, 16, 16],
+        "sell-value": 1
     },
     {
         "name": "Raw Gold",
-        "texture": [32, 16, 16, 16]
+        "texture": [32, 16, 16, 16],
+        "sell-value": 1
     },
     {
         "name": "Refined Wood",
-        "texture": [0, 16, 16, 16]
+        "texture": [0, 16, 16, 16],
+        "sell-value": 2
     },
     {
         "name": "Iron Bar",
-        "texture": [32, 32, 16, 16]
+        "texture": [32, 32, 16, 16],
+        "sell-value": 2
     },
     {
         "name": "Gold Bar",
-        "texture": [48, 32, 16, 16]
+        "texture": [48, 32, 16, 16],
+        "sell-value": 2
     },
     {
         "name": "Meat",
@@ -45,65 +55,79 @@
         "consumable-data": {
             "cooldown-time": 20,
             "health-increase": 40
-        }
+        },
+        "sell-value": 1
     },
     {
         "name": "Fish",
-        "texture": [0, 112, 16, 16]
+        "texture": [0, 112, 16, 16],
+        "sell-value": 1
     },
     {
         "name": "Rockfish",
-        "texture": [16, 96, 16, 16]
+        "texture": [16, 96, 16, 16],
+        "sell-value": 1
     },
     {
         "name": "Sandfish",
-        "texture": [16, 112, 16, 16]
+        "texture": [16, 112, 16, 16],
+        "sell-value": 1
     },
     {
         "name": "Moonrock",
-        "texture": [64, 0, 16, 16]
+        "texture": [64, 0, 16, 16],
+        "sell-value": 1
     },
 
     {
         "name": "Feather",
-        "texture": [48, 80, 16, 16]
+        "texture": [48, 80, 16, 16],
+        "sell-value": 3
     },
     {
         "name": "Bone",
-        "texture": [64, 80, 16, 16]
+        "texture": [64, 80, 16, 16],
+        "sell-value": 3
     },
     {
         "name": "Sewing Needle",
-        "texture": [48, 64, 16, 16]
+        "texture": [48, 64, 16, 16],
+        "sell-value": 1
     },
     {
         "name": "Wood Fibres",
-        "texture": [48, 48, 16, 16]
+        "texture": [48, 48, 16, 16],
+        "sell-value": 1
     },
     {
         "name": "Rodent Doll",
         "texture": [48, 96, 16, 16],
         "boss-summon-data": {
             "boss-name": "The Sand Serpent"
-        }
+        },
+        "sell-value": 5
     },
     {
         "name": "Crow Claw",
-        "texture": [80, 80, 16, 16]
+        "texture": [80, 80, 16, 16],
+        "sell-value": 2
     },
     {
         "name": "Crow Skull",
-        "texture": [96, 80, 16, 16]
+        "texture": [96, 80, 16, 16],
+        "sell-value": 3
     },
     {
         "name": "Small Blade",
         "texture": [32, 64, 16, 16],
-        "description": "Very sharp\n\"Looks very good for slicing...\""
+        "description": "Very sharp\n\"Looks very good for slicing...\"",
+        "sell-value": 2
     },
     {
         "name": "Worm",
         "texture": [64, 64, 16, 16],
-        "description": "\"It's still alive\""
+        "description": "\"It's still alive\"",
+        "sell-value": 0
     },
     {
         "name": "Severed Worm",
@@ -112,13 +136,15 @@
             "boss-name": "Benjamin",
             "use-at-night": true
         },
-        "description": "\"He watches when sun falls for his prey\""
+        "description": "\"He watches when sun falls for his prey\"",
+        "sell-value": 3
     },
 
     {
         "name": "Land",
         "texture": [112, 112, 16, 16],
-        "places-land": true
+        "places-land": true,
+        "sell-value": 2
     },
     {
         "name": "Golden Gemstone",

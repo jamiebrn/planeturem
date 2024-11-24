@@ -49,7 +49,7 @@ void DefaultGUIPanel::updateAndDrawSelectionHoverRect(sf::RenderTarget& window, 
 
     CollisionRect panelCollisionRect(scaledPanelPaddingX * intScale, 0, panelWidth * intScale, resolution.y);
 
-    if (!panelCollisionRect.isPointInRect(guiContext.getInputState().mouseX, guiContext.getInputState().mouseY))
+    if (deferHoverRectReset || !panelCollisionRect.isPointInRect(guiContext.getInputState().mouseX, guiContext.getInputState().mouseY))
     {
         resetHoverRect();
     }
@@ -84,4 +84,5 @@ void DefaultGUIPanel::resetHoverRect()
 {
     selectionHoverRectDestination = sf::FloatRect(0, 0, 0, 0);
     selectionHoverRect = selectionHoverRectDestination;
+    deferHoverRectReset = false;
 }

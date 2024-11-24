@@ -7,7 +7,8 @@
             "texture-height": 16,
             "origin": [0.5, 0.5],
             "damage-range": [1, 4],
-            "speed": 220
+            "speed": 220,
+            "sell-value": 1
         },
         {
             "name": "Feather Arrow",
@@ -16,7 +17,8 @@
             "texture-height": 16,
             "origin": [0.5, 0.5],
             "damage-range": [2, 6],
-            "speed": 240
+            "speed": 240,
+            "sell-value": 1
         }
     ],
     "tools": [
@@ -29,7 +31,8 @@
             "pivot-x": 0.6875,
             "pivot-y": 0.6875,
             "hold-offset": [-2, -3],
-            "damage": 1
+            "damage": 1,
+            "sell-value": 1
         },
         {
             "name": "Metal Pickaxe",
@@ -40,7 +43,8 @@
             "pivot-x": 0.75,
             "pivot-y": 0.75,
             "hold-offset": [-2, -3],
-            "damage": 2
+            "damage": 2,
+            "sell-value": 2
         },
         {
             "name": "Wooden Fishing Rod",
@@ -52,7 +56,8 @@
             "pivot-y": 0.75,
             "hold-offset": [3, -2],
             "fishing-rod-line-offset": [8, -8],
-            "fishing-efficiency": 1.0
+            "fishing-efficiency": 1.0,
+            "sell-value": 1
         },
         {
             "name": "Wooden Bow",
@@ -65,7 +70,8 @@
             "hold-offset": [3, -4],
             "projectile-damage-mult": 1.0,
             "shoot-power": 1.0,
-            "projectiles": ["Wooden Arrow", "Feather Arrow"]
+            "projectiles": ["Wooden Arrow", "Feather Arrow"],
+            "sell-value": 1
         },
         {
             "name": "Insane Bow",
@@ -78,7 +84,8 @@
             "hold-offset": [3, -4],
             "projectile-damage-mult": 20.0,
             "shoot-power": 1.5,
-            "projectiles": ["Wooden Arrow", "Feather Arrow"]
+            "projectiles": ["Wooden Arrow", "Feather Arrow"],
+            "sell-value": 1
         }
     ]
 }

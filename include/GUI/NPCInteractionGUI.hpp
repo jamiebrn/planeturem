@@ -12,6 +12,10 @@
 
 #include "Object/NPCObject.hpp"
 
+#include "Player/ShopInventoryData.hpp"
+
+#include "Data/typedefs.hpp"
+
 enum class NPCInteractionGUIEventType
 {
     Shop,
@@ -21,6 +25,7 @@ enum class NPCInteractionGUIEventType
 struct NPCInteractionGUIEvent
 {
     NPCInteractionGUIEventType type;
+    ShopInventoryData shopInventoryData; // if interaction was shop enter
 };
 
 class NPCInteractionGUI : public DefaultGUIPanel

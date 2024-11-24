@@ -42,8 +42,11 @@ bool ToolDataLoader::loadData(std::string toolDataPath)
 
         projectileNameToTypeMap[projectileData.name] = projectileIdx;
 
+        int sellValue = -1;
+        if (jsonProjectileData.contains("sell-value")) sellValue = jsonProjectileData.at("sell-value");
+
         // Link with item data
-        projectileData.itemType = ItemDataLoader::createItemFromProjectile(projectileIdx, projectileData);
+        projectileData.itemType = ItemDataLoader::createItemFromProjectile(projectileIdx, projectileData, sellValue);
 
         loaded_projectileData.push_back(projectileData);
 
@@ -117,12 +120,15 @@ bool ToolDataLoader::loadData(std::string toolDataPath)
             }
         }
 
+        int sellValue = -1;
+        if (jsonToolData.contains("sell-value")) sellValue = jsonToolData.at("sell-value");
+
         loaded_toolData.push_back(toolData);
 
         toolNameToTypeMap[toolData.name] = toolIdx;
 
         // Create item representing tool
-        ItemDataLoader::createItemFromTool(toolData.name, toolIdx);
+        ItemDataLoader::createItemFromTool(toolData.name, toolIdx, sellValue);
 
         toolIdx++;
     }

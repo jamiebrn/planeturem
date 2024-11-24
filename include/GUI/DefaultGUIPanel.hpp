@@ -32,4 +32,6 @@ protected:
 
     sf::FloatRect selectionHoverRect;
     sf::FloatRect selectionHoverRectDestination;
+
+    bool deferHoverRectReset = false;
 };

@@ -7,6 +7,7 @@
         "texture-width": 16,
         "texture-x-origin": 0.5,
         "texture-y-origin": 1,
+        "sell-value": 1,
         "plant-data": {
             "stages": [
                 {
@@ -83,7 +84,8 @@
         "texture-x-origin": 0.5,
         "texture-y-origin": 0.75,
         "light-absorption": 0.6,
-        "has-collision": true
+        "has-collision": true,
+        "sell-value": 2
     },
     {
         "name": "Wood Bridge",
@@ -94,7 +96,8 @@
         "texture-x-origin": 0.5,
         "texture-y-origin": 0.5,
         "draw-layer": 1,
-        "place-on-water": true
+        "place-on-water": true,
+        "sell-value": 1
     },
     {
         "name": "Rock",
@@ -121,7 +124,8 @@
         "light-emission": [0.9, 0.9, 0.9, 0.8],
         "item-drops": {
             "Torch": [1, 1, 1]
-        }
+        },
+        "sell-value": 1
     },
     {
         "name": "Furnace",
@@ -140,7 +144,8 @@
         "crafting-station-level": 1,
         "item-drops": {
             "Furnace": [1, 1, 1]
-        }
+        },
+        "sell-value": 2
     },
     {
         "name": "Anvil",
@@ -155,7 +160,8 @@
         "crafting-station-level": 1,
         "item-drops": {
             "Anvil": [1, 1, 1]
-        }
+        },
+        "sell-value": 2
     },
     {
         "name": "Wooden Bench",
@@ -170,7 +176,8 @@
         "crafting-station-level": 1,
         "item-drops": {
             "Wooden Bench": [1, 1, 1]
-        }
+        },
+        "sell-value": 1
     },
     {
         "name": "Chest",
@@ -185,7 +192,8 @@
         "has-collision": true,
         "item-drops": {
             "Chest": [1, 1, 1]
-        }
+        },
+        "sell-value": 3
     },
     {
         "name": "Golden Tree",
@@ -321,7 +329,8 @@
         },
         "item-drops": {
             "Rocket Launch Pad": [1, 1, 1.0]
-        }
+        },
+        "sell-value": 10
     },
     {
         "name": "Wooden Clock",
@@ -338,7 +347,8 @@
         "crafting-station-level": 1,
         "item-drops": {
             "Wooden Clock": [1, 1, 1]
-        }
+        },
+        "sell-value": 1
     },
     {
         "name": "AlienHostage",

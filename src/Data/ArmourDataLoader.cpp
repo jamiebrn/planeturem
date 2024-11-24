@@ -43,12 +43,15 @@ bool ArmourDataLoader::loadData(std::string armourDataPath)
             armourData.wearTextureOffset = jsonArmourData.at("wear-texture-offset");
         }
 
+        int sellValue = -1;
+        if (jsonArmourData.contains("sell-value")) sellValue = jsonArmourData.at("sell-value");
+
         armourData.defence = jsonArmourData.at("defence");
 
         armourNameToTypeMap[armourData.name] = loaded_armourData.size();
 
-        // Create item representing tool
-        ItemDataLoader::createItemFromArmour(loaded_armourData.size(), armourData);
+        // Create item representing armour
+        ItemDataLoader::createItemFromArmour(loaded_armourData.size(), armourData, sellValue);
 
         loaded_armourData.push_back(armourData);
     }

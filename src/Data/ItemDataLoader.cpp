@@ -54,6 +54,8 @@ bool ItemDataLoader::loadData(std::string itemDataPath)
 
         if (jsonItemData.contains("currency-value")) itemData.currencyValue = jsonItemData.at("currency-value");
 
+        if (jsonItemData.contains("sell-value")) itemData.sellValue = jsonItemData.at("sell-value");
+
         // Add to item name to type map
         itemNameToTypeMap[itemData.name] = itemIndex;
         itemIndex++;
@@ -79,12 +81,13 @@ ItemType ItemDataLoader::getItemTypeFromName(const std::string& itemName)
     return itemNameToTypeMap[itemName];
 }
 
-void ItemDataLoader::createItemFromObject(ObjectType objectType, const ObjectData& objectData)
+void ItemDataLoader::createItemFromObject(ObjectType objectType, const ObjectData& objectData, int sellValue)
 {
     ItemData objectItemData;
     objectItemData.name = objectData.name;
     objectItemData.placesObjectType = objectType;
     objectItemData.maxStackSize = 50;
+    objectItemData.sellValue = sellValue;
 
     if (objectData.mythicalItem)
     {
@@ -99,12 +102,13 @@ void ItemDataLoader::createItemFromObject(ObjectType objectType, const ObjectDat
     itemNameToTypeMap[objectItemData.name] = itemIndex;
 }
 
-void ItemDataLoader::createItemFromTool(const std::string& toolName, ToolType toolType)
+void ItemDataLoader::createItemFromTool(const std::string& toolName, ToolType toolType, int sellValue)
 {
     ItemData toolItemData;
     toolItemData.name = toolName;
     toolItemData.toolType = toolType;
     toolItemData.maxStackSize = 1;
+    toolItemData.sellValue = sellValue;
 
     int itemIndex = loaded_itemData.size();
 
@@ -113,12 +117,13 @@ void ItemDataLoader::createItemFromTool(const std::string& toolName, ToolType to
     itemNameToTypeMap[toolItemData.name] = itemIndex;
 }
 
-void ItemDataLoader::createItemFromArmour(ArmourType armourType, const ArmourData& armourData)
+void ItemDataLoader::createItemFromArmour(ArmourType armourType, const ArmourData& armourData, int sellValue)
 {
     ItemData armourItemData;
     armourItemData.name = armourData.name;
     armourItemData.armourType = armourType;
     armourItemData.maxStackSize = 1;
+    armourItemData.sellValue = sellValue;
 
     int itemIndex = loaded_itemData.size();
 
@@ -127,12 +132,13 @@ void ItemDataLoader::createItemFromArmour(ArmourType armourType, const ArmourDat
     itemNameToTypeMap[armourItemData.name] = itemIndex;
 }
 
-ItemType ItemDataLoader::createItemFromProjectile(ProjectileType projectileType, const ProjectileData& projectileData)
+ItemType ItemDataLoader::createItemFromProjectile(ProjectileType projectileType, const ProjectileData& projectileData, int sellValue)
 {
     ItemData projectileItemData;
     projectileItemData.name = projectileData.name;
     projectileItemData.projectileType = projectileType;
     projectileItemData.maxStackSize = 99;
+    projectileItemData.sellValue = sellValue;
 
     int itemIndex = loaded_itemData.size();
 

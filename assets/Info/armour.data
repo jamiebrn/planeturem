@@ -5,20 +5,23 @@
         "texture": [752, 16, 16, 16],
         "wear-textures": [[768, 16], [784, 16], [800, 16], [816, 16], [832, 16], [848, 16], [864, 16], [880, 16]],
         "wear-texture-offset": [2, -1],
-        "defence": 3
+        "defence": 3,
+        "sell-value": 3
     },
     {
         "name": "Black Feather Chestpiece",
         "type": "Chest",
         "texture": [752, 32, 16, 16],
         "wear-textures": [[768, 32], [784, 32], [800, 32], [816, 32], [832, 32], [848, 32], [864, 32], [880, 32]],
-        "defence": 4
+        "defence": 4,
+        "sell-value": 4
     },
     {
         "name": "Black Feather Boots",
         "type": "Feet",
         "texture": [752, 48, 16, 16],
         "wear-textures": [[768, 48], [784, 48], [800, 48], [816, 48], [832, 48], [848, 48], [864, 48], [880, 48]],
-        "defence": 2
+        "defence": 2,
+        "sell-value": 3
     }
 ]

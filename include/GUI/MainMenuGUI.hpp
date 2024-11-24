@@ -63,8 +63,6 @@ private:
     std::vector<SaveFileSummary> saveFileSummaries;
     int saveFilePage;
 
-    bool deferHoverRectReset;
-
     std::string saveNameInput;
     std::string worldSeedInput;
 
