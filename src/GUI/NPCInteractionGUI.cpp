@@ -6,6 +6,7 @@ void NPCInteractionGUI::initialise(const NPCObject& npcObject)
     currentDiagloueIndex = 0;
 
     dialogueBoxText = "";
+    dialogueBoxCurrentWordBuffer = "";
     dialogueCharIndex = 0;
     dialogueCharTimer = 0.0f;
 }
@@ -33,33 +34,32 @@ std::optional<NPCInteractionGUIEvent> NPCInteractionGUI::createAndDraw(sf::Rende
     {
         drawDialogueBox(window, spriteBatch, dt, gameTime);
 
+        // Create talk button by default
+        if (guiContext.createButton(scaledPanelPaddingX * intScale, elementYPos, panelWidth * intScale, 75 * intScale, "Talk", buttonStyle).isClicked())
+        {
+            const std::string& currentDialogue = currentNPCObjectData->dialogueLines.at(currentDiagloueIndex);
+
+            // Skip dialogue animation if playing
+            if (dialogueCharIndex < currentDialogue.size())
+            {
+                // Complete dialogue
+                while (!updateDialogue(dt)) {}
+            }
+            else
+            {
+                // Advance dialogue
+                currentDiagloueIndex = std::min(currentDiagloueIndex + 1, static_cast<int>(currentNPCObjectData->dialogueLines.size()) - 1);
+                dialogueBoxText = "";
+                dialogueBoxCurrentWordBuffer = "";
+                dialogueCharIndex = 0;
+                dialogueCharTimer = 0.0f;
+            }
+        }
+
+        elementYPos += 100 * intScale;
+
         switch (currentNPCObjectData->behaviour)
         {
-            case NPCObjectBehaviour::Talk:
-            {
-                if (guiContext.createButton(scaledPanelPaddingX * intScale, elementYPos, panelWidth * intScale, 75 * intScale, "Talk", buttonStyle).isClicked())
-                {
-                    const std::string& currentDialogue = currentNPCObjectData->dialogueLines.at(currentDiagloueIndex);
-
-                    // Skip dialogue animation if playing
-                    if (dialogueCharIndex < currentDialogue.size())
-                    {
-                        dialogueBoxText = currentDialogue;
-                        dialogueCharIndex = currentDialogue.size();
-                    }
-                    else
-                    {
-                        // Advance dialogue
-                        currentDiagloueIndex = std::min(currentDiagloueIndex + 1, static_cast<int>(currentNPCObjectData->dialogueLines.size()) - 1);
-                        dialogueBoxText = "";
-                        dialogueCharIndex = 0;
-                        dialogueCharTimer = 0.0f;
-                    }
-                }
-
-                elementYPos += 100 * intScale;
-                break;
-            }
             case NPCObjectBehaviour::Shop:
             {
                 if (guiContext.createButton(scaledPanelPaddingX * intScale, elementYPos, panelWidth * intScale, 75 * intScale, "Shop", buttonStyle).isClicked())
@@ -87,6 +87,43 @@ std::optional<NPCInteractionGUIEvent> NPCInteractionGUI::createAndDraw(sf::Rende
     guiContext.endGUI();
 
     return npcInteractionGUIEvent;
+}
+
+bool NPCInteractionGUI::updateDialogue(float dt)
+{
+    const std::string& currentDialogue = currentNPCObjectData->dialogueLines.at(currentDiagloueIndex);
+    static const int charPerLine = 20;
+
+    if (dialogueCharIndex < currentDialogue.size())
+    {
+        dialogueCharTimer += dt;
+        if (dialogueCharTimer >= MAX_DIALOGUE_CHAR_TIMER)
+        {
+            dialogueCharTimer = 0.0f;
+            char currentChar = currentDialogue.at(dialogueCharIndex);
+            dialogueBoxCurrentWordBuffer += currentChar;
+
+            if (currentChar == ' ')
+            {
+                // Flush buffer and add to dialogue
+                dialogueBoxText += dialogueBoxCurrentWordBuffer;
+                dialogueBoxCurrentWordBuffer = "";
+            }
+
+            dialogueCharIndex++;
+
+            // Make new line
+            if (dialogueCharIndex % charPerLine == 0)
+            {
+                dialogueBoxText += "\n";
+            }
+        }
+
+        return false;
+    }
+
+    // Dialogue completed
+    return true;
 }
 
 void NPCInteractionGUI::drawDialogueBox(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime)
@@ -128,24 +165,13 @@ void NPCInteractionGUI::drawDialogueBox(sf::RenderTarget& window, SpriteBatch& s
     spriteBatch.draw(window, portraitTextureDrawData, sf::IntRect(currentNPCObjectData->portraitTextureOffset, sf::Vector2i(32, 32)));
 
     // Update dialogue timer
-    const std::string& currentDialogue = currentNPCObjectData->dialogueLines.at(currentDiagloueIndex);
-
-    if (dialogueCharIndex < currentDialogue.size())
-    {
-        dialogueCharTimer += dt;
-        if (dialogueCharTimer >= MAX_DIALOGUE_CHAR_TIMER)
-        {
-            dialogueCharTimer = 0.0f;
-            dialogueBoxText += currentDialogue.at(dialogueCharIndex);
-            dialogueCharIndex++;
-        }
-    }
+    updateDialogue(dt);
 
     if (currentDiagloueIndex < currentNPCObjectData->dialogueLines.size())
     {
         // Draw dialogue
         TextDrawData dialogueTextDrawDraw;
-        dialogueTextDrawDraw.text = dialogueBoxText;
+        dialogueTextDrawDraw.text = dialogueBoxText + dialogueBoxCurrentWordBuffer;
         dialogueTextDrawDraw.position = sf::Vector2f(boxXPos + 140 * intScale, boxYPos + 90 * intScale);
         dialogueTextDrawDraw.colour = sf::Color(255, 255, 255);
         dialogueTextDrawDraw.size = 24 * intScale;

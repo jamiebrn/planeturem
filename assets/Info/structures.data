@@ -23,7 +23,8 @@
             "objects": [
                 ["Rocket Launch Pad", 1],
                 ["Chest", 2],
-                ["AlienHostage", 3]
+                ["AlienHostage", 3],
+                ["BusinessAlien", 4]
             ]
         }
     },

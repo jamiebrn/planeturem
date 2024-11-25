@@ -551,6 +551,7 @@ void Game::runInGame(float dt)
     Cursor::setCursorHidden(!player.canReachPosition(Cursor::getMouseWorldPos(window, camera)));
     Cursor::setCursorHidden(worldMenuState == WorldMenuState::TravelSelect ||
                             worldMenuState == WorldMenuState::FlyingRocket ||
+                            worldMenuState == WorldMenuState::NPCInteract  ||
                             !player.isAlive());
 
     // Close chest if out of range

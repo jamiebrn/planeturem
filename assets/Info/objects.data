@@ -354,16 +354,32 @@
         "name": "AlienHostage",
         "health": 10,
         "textures": [[368, 400], [368, 400], [384, 400], [400, 400], [368, 400], [416, 400], [432, 400]],
+        "texture-frame-delay": 0.15,
+        "texture-width": 16,
+        "texture-height": 32,
+        "texture-x-origin": 0.5,
+        "texture-y-origin": 1.0,
+        "npc-data": {
+            "npc-name": "Strange Creature",
+            "behaviour": "talk",
+            "dialogue": ["Help me", "Help me", "Please help me"],
+            "portrait-texture-offset": [32, 0]
+        }
+    },
+    {
+        "name": "BusinessAlien",
+        "health": 10,
+        "textures": [[368, 464], [384, 464], [400, 464], [416, 464], [368, 464]],
         "texture-frame-delay": 0.1,
         "texture-width": 16,
         "texture-height": 32,
         "texture-x-origin": 0.5,
         "texture-y-origin": 1.0,
         "npc-data": {
-            "npc-name": "Unknown",
-            "behaviour": "talk",
-            "dialogue": ["Help me", "Help me", "Please help me"],
-            "portrait-texture-offset": [32, 0]
+            "npc-name": "Business Creature",
+            "behaviour": "shop",
+            "dialogue": ["Welcome to my business", "I hope you like my items", "I will buy items from you for a fair price", "Anything else?", "...."],
+            "portrait-texture-offset": [32, 32]
         }
     }
 ]

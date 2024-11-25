@@ -40,6 +40,8 @@ public:
     std::optional<NPCInteractionGUIEvent> createAndDraw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime);
 
 private:
+    bool updateDialogue(float dt);
+
     void drawDialogueBox(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime);
 
 private:
@@ -47,6 +49,7 @@ private:
     int currentDiagloueIndex = 0;
 
     std::string dialogueBoxText;
+    std::string dialogueBoxCurrentWordBuffer;
     int dialogueCharIndex = 0;
     float dialogueCharTimer = 0.0f;
     static constexpr float MAX_DIALOGUE_CHAR_TIMER = 0.05f;
