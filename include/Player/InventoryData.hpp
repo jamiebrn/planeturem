@@ -14,10 +14,6 @@
 #include <extlib/cereal/types/optional.hpp>
 
 #include "Data/typedefs.hpp"
-#include "Data/ItemDataLoader.hpp"
-#include "Data/ObjectDataLoader.hpp"
-#include "Data/ToolData.hpp"
-#include "Data/ToolDataLoader.hpp"
 
 // static constexpr unsigned int INVENTORY_STACK_SIZE = 20;
 // static constexpr unsigned int MAX_INVENTORY_SIZE = 32;
@@ -71,7 +67,7 @@ public:
         }
     }
 
-private:
+protected:
     std::vector<std::optional<ItemCount>> inventoryData;
 
 };

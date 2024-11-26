@@ -66,6 +66,8 @@ std::optional<NPCInteractionGUIEvent> NPCInteractionGUI::createAndDraw(sf::Rende
                 {
                     npcInteractionGUIEvent = NPCInteractionGUIEvent();
                     npcInteractionGUIEvent->type = NPCInteractionGUIEventType::Shop;
+                    npcInteractionGUIEvent->shopInventoryData = ShopInventoryData(currentNPCObjectData->shopItems, currentNPCObjectData->buyPriceMults,
+                        currentNPCObjectData->sellPriceMults);
                 }
 
                 elementYPos += 100 * intScale;

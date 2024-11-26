@@ -85,7 +85,7 @@
             "projectile-damage-mult": 20.0,
             "shoot-power": 1.5,
             "projectiles": ["Wooden Arrow", "Feather Arrow"],
-            "sell-value": 1
+            "sell-value": 100
         }
     ]
 }

@@ -1,4 +1,8 @@
 #include "Player/InventoryData.hpp"
+#include "Data/ItemDataLoader.hpp"
+#include "Data/ObjectDataLoader.hpp"
+#include "Data/ToolData.hpp"
+#include "Data/ToolDataLoader.hpp"
 
 InventoryData::InventoryData(int size)
 {

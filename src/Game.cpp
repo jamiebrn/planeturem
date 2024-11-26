@@ -46,10 +46,10 @@ bool Game::initialise()
 
     // Load data
     if(!ItemDataLoader::loadData("Data/Info/items.data")) return false;
-    if(!ObjectDataLoader::loadData("Data/Info/objects.data")) return false;
     if(!ToolDataLoader::loadData("Data/Info/tools.data")) return false;
     if(!ArmourDataLoader::loadData("Data/Info/armour.data")) return false;
     if(!EntityDataLoader::loadData("Data/Info/entities.data")) return false;
+    if(!ObjectDataLoader::loadData("Data/Info/objects.data")) return false;
     if(!RecipeDataLoader::loadData("Data/Info/item_recipes.data")) return false;
     if(!StructureDataLoader::loadData("Data/Info/structures.data")) return false;
     if(!PlanetGenDataLoader::loadData("Data/Info/planet_generation.data")) return false;
@@ -378,6 +378,7 @@ void Game::runInGame(float dt)
                     }
                     break;
                 }
+                case WorldMenuState::NPCShop: // fallthrough
                 case WorldMenuState::Inventory:
                 {
                     if ((event.key.code == sf::Keyboard::E || event.key.code == sf::Keyboard::Escape) && worldMenuState == WorldMenuState::Inventory)
@@ -397,16 +398,24 @@ void Game::runInGame(float dt)
                 }
             }
 
-            if (event.key.code == sf::Keyboard::Escape && worldMenuState == WorldMenuState::TravelSelect)
+            if (event.key.code == sf::Keyboard::Escape)
             {
                 switch (worldMenuState)
                 {
                     case WorldMenuState::TravelSelect:
+                    {
                         exitRocket();
                         break;
+                    }
                     case WorldMenuState::NPCInteract:
                     {
                         npcInteractionGUI.close();
+                        worldMenuState = WorldMenuState::Main;
+                        break;
+                    }
+                    case WorldMenuState::NPCShop:
+                    {
+                        InventoryGUI::shopClosed();
                         worldMenuState = WorldMenuState::Main;
                         break;
                     }
@@ -437,6 +446,7 @@ void Game::runInGame(float dt)
                         }
                         break;
                     }
+                    case WorldMenuState::NPCShop: // fallthrough
                     case WorldMenuState::Inventory:
                     {
                         ItemType itemHeldBefore = InventoryGUI::getHeldItemType(inventory);
@@ -469,6 +479,7 @@ void Game::runInGame(float dt)
                     case WorldMenuState::Main:
                         attemptObjectInteract();
                         break;
+                    case WorldMenuState::NPCShop: // fallthrough
                     case WorldMenuState::Inventory:
                         if (InventoryGUI::isMouseOverUI(mouseScreenPos))
                         {
@@ -549,9 +560,7 @@ void Game::runInGame(float dt)
     }
 
     Cursor::setCursorHidden(!player.canReachPosition(Cursor::getMouseWorldPos(window, camera)));
-    Cursor::setCursorHidden(worldMenuState == WorldMenuState::TravelSelect ||
-                            worldMenuState == WorldMenuState::FlyingRocket ||
-                            worldMenuState == WorldMenuState::NPCInteract  ||
+    Cursor::setCursorHidden((worldMenuState != WorldMenuState::Main && worldMenuState != WorldMenuState::Inventory) ||
                             !player.isAlive());
 
     // Close chest if out of range
@@ -569,6 +578,7 @@ void Game::runInGame(float dt)
                 InventoryGUI::updateHotbar(dt, mouseScreenPos);
                 break;
             }
+            case WorldMenuState::NPCShop: // fallthrough
             case WorldMenuState::Inventory:
             {
                 // Update inventory GUI available recipes if required, and animations
@@ -656,12 +666,27 @@ void Game::runInGame(float dt)
 
                 if (npcInteractionGUIEvent.has_value())
                 {
-                    if (npcInteractionGUIEvent->type == NPCInteractionGUIEventType::Exit)
+                    switch (npcInteractionGUIEvent->type)
                     {
-                        npcInteractionGUI.close();
-                        worldMenuState = WorldMenuState::Main;
+                        case NPCInteractionGUIEventType::Shop:
+                        {
+                            InventoryGUI::shopOpened(npcInteractionGUIEvent->shopInventoryData);
+                            worldMenuState = WorldMenuState::NPCShop;
+                            break;
+                        }
+                        case NPCInteractionGUIEventType::Exit:
+                        {
+                            npcInteractionGUI.close();
+                            worldMenuState = WorldMenuState::Main;
+                            break;
+                        }
                     }
                 }
+                break;
+            }
+            case WorldMenuState::NPCShop:
+            {
+                InventoryGUI::draw(window, gameTime, mouseScreenPos, inventory, armourInventory, nullptr);
                 break;
             }
         }
@@ -690,7 +715,7 @@ void Game::updateOnPlanet(float dt)
     bool wrappedAroundWorld = false;
     sf::Vector2f wrapPositionDelta;
 
-    if (!isStateTransitioning() && worldMenuState != WorldMenuState::NPCInteract)
+    if (!isStateTransitioning() && worldMenuState != WorldMenuState::NPCInteract && worldMenuState != WorldMenuState::NPCShop)
     {
         player.update(dt, Cursor::getMouseWorldPos(window, camera), chunkManager, worldSize, wrappedAroundWorld, wrapPositionDelta);
     }
@@ -1012,7 +1037,7 @@ void Game::updateInRoom(float dt, Room& room, bool inStructure)
 
     Cursor::updateTileCursorInRoom(window, camera, dt, room, InventoryGUI::getHeldItemType(inventory), player.getTool());
 
-    if (!isStateTransitioning() && worldMenuState != WorldMenuState::NPCInteract)
+    if (!isStateTransitioning() && worldMenuState != WorldMenuState::NPCInteract && worldMenuState != WorldMenuState::NPCShop)
     {
         player.updateInRoom(dt, Cursor::getMouseWorldPos(window, camera), room);
     }

@@ -18,6 +18,7 @@
 
 #include "Player/PlayerStats.hpp"
 #include "Player/InventoryData.hpp"
+#include "Player/ShopInventoryData.hpp"
 
 #include "Data/typedefs.hpp"
 #include "Data/ItemData.hpp"
@@ -52,6 +53,13 @@ struct ItemPopup
 {
     ItemCount itemCount;
     float timeAlive = 0;
+};
+
+enum class InventoryShopInfoMode
+{
+    None,
+    Buy,
+    Sell
 };
 
 class InventoryGUI
@@ -96,13 +104,14 @@ public:
     // INCLUDES HOTBAR AND ITEM PICKED UP
     static ToolType getHeldToolType(InventoryData& inventory);
 
-    // Subtracts from currently held item, called when object is placed
-    // Places from item picked up, if not will attempt to place from hotbar
+    // Subtracts from currently held item, called when object is placed etc
+    // Subtracts from item picked up, if not will attempt to place from hotbar
     static void subtractHeldItem(InventoryData& inventory);
 
     static bool heldItemPlacesLand(InventoryData& inventory);
 
-    static void draw(sf::RenderTarget& window, float gameTime, sf::Vector2f mouseScreenPos, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData = nullptr);
+    static void draw(sf::RenderTarget& window, float gameTime, sf::Vector2f mouseScreenPos, InventoryData& inventory, InventoryData& armourInventory,
+        InventoryData* chestData = nullptr);
 
     static inline const std::vector<int>& getAvailableRecipes() {return availableRecipes;}
 
@@ -126,6 +135,10 @@ public:
     // -- Chest -- //
     static void chestOpened(InventoryData* chestData);
     static void chestClosed();
+
+    // -- Shop -- //
+    static void shopOpened(ShopInventoryData& shopData);
+    static void shopClosed();
 
     // -- Popups -- //
     static void updateItemPopups(float dt);
@@ -162,8 +175,10 @@ private:
     static void drawHoveredItemInfoBox(sf::RenderTarget& window, float gameTime, sf::Vector2f mouseScreenPos, InventoryData& inventory,
         InventoryData& armourInventory, InventoryData* chestData);
 
-    static sf::Vector2f drawItemInfoBox(sf::RenderTarget& window, float gameTime, int itemIndex, InventoryData& inventory, sf::Vector2f mouseScreenPos);
-    static sf::Vector2f drawItemInfoBox(sf::RenderTarget& window, float gameTime, ItemType itemType, sf::Vector2f mouseScreenPos);
+    static sf::Vector2f drawItemInfoBox(sf::RenderTarget& window, float gameTime, int itemIndex, InventoryData& inventory, sf::Vector2f mouseScreenPos,
+        InventoryShopInfoMode shopInfoMode);
+    static sf::Vector2f drawItemInfoBox(sf::RenderTarget& window, float gameTime, ItemCount itemCount, sf::Vector2f mouseScreenPos,
+        InventoryShopInfoMode shopInfoMode);
     static sf::Vector2f drawItemInfoBoxRecipe(sf::RenderTarget& window, float gameTime, int recipeIdx, sf::Vector2f mouseScreenPos);
 
     // Returns size of drawn info box
@@ -211,6 +226,9 @@ private:
 
     // Chest 
     static constexpr int CHEST_BOX_PER_ROW = 6;
+
+    // Shop
+    static std::optional<ShopInventoryData> openShopData;
 
     // Item pop-up
     static std::vector<ItemPopup> itemPopups;

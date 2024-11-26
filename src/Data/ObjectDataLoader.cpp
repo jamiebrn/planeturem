@@ -1,4 +1,5 @@
 #include "Data/ObjectDataLoader.hpp"
+#include "Player/ShopInventoryData.hpp"
 
 std::vector<ObjectData> ObjectDataLoader::loaded_objectData;
 std::unordered_map<std::string, ObjectType> ObjectDataLoader::objectNameToTypeMap;
@@ -202,6 +203,32 @@ bool ObjectDataLoader::loadData(std::string objectDataPath)
             npcObjectData.portraitTextureOffset = jsonNpcData.at("portrait-texture-offset");
 
             npcObjectData.dialogueLines = jsonNpcData.at("dialogue");
+
+            if (jsonNpcData.contains("shop-items"))
+            {
+                for (std::pair<std::string, int> itemCount : jsonNpcData.at("shop-items"))
+                {
+                    npcObjectData.shopItems.push_back({ItemDataLoader::getItemTypeFromName(itemCount.first), itemCount.second});
+                }
+
+                if (jsonNpcData.contains("buy-prices"))
+                {
+                    std::unordered_map<std::string, float> buyPricesStrings = jsonNpcData.at("buy-prices");
+                    for (auto iter = buyPricesStrings.begin(); iter != buyPricesStrings.end(); ++iter)
+                    {
+                        npcObjectData.buyPriceMults[ItemDataLoader::getItemTypeFromName(iter->first)] = iter->second;
+                    }
+                }
+
+                if (jsonNpcData.contains("sell-prices"))
+                {
+                    std::unordered_map<std::string, float> sellPricesStrings = jsonNpcData.at("sell-prices");
+                    for (auto iter = sellPricesStrings.begin(); iter != sellPricesStrings.end(); ++iter)
+                    {
+                        npcObjectData.sellPriceMults[ItemDataLoader::getItemTypeFromName(iter->first)] = iter->second;
+                    }
+                }
+            }
 
             objectData.npcObjectData = npcObjectData;
         }

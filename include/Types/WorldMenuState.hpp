@@ -6,5 +6,6 @@ enum WorldMenuState
     Inventory,
     TravelSelect,
     FlyingRocket,
-    NPCInteract
+    NPCInteract,
+    NPCShop
 };

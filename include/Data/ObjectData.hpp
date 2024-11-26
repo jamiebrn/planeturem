@@ -2,7 +2,7 @@
 
 #include <SFML/Graphics.hpp>
 #include <string>
-// #include <unordered_map>
+#include <unordered_map>
 #include <vector>
 #include <optional>
 
@@ -42,6 +42,10 @@ struct NPCObjectData
     NPCObjectBehaviour behaviour;
     sf::Vector2i portraitTextureOffset;
     std::vector<std::string> dialogueLines;
+    
+    std::vector<ItemCount> shopItems;
+    std::unordered_map<ItemType, float> buyPriceMults;
+    std::unordered_map<ItemType, float> sellPriceMults;
 };
 
 struct ObjectData

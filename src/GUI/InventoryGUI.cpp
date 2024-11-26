@@ -22,6 +22,8 @@ int InventoryGUI::selectedRecipe = 0;
 
 int InventoryGUI::selectedHotbarIndex = 0;
 
+std::optional<ShopInventoryData> InventoryGUI::openShopData;
+
 std::vector<ItemPopup> InventoryGUI::itemPopups;
 
 AnimatedTexture InventoryGUI::binAnimation;
@@ -172,13 +174,14 @@ void InventoryGUI::updateInventory(sf::Vector2f mouseScreenPos, float dt, Invent
     }
 
     // Update chest item slots
-    if (chestData)
+    for (int i = 0; i < chestItemSlots.size(); i++)
     {
-        for (int i = 0; i < std::min(chestData->getSize(), static_cast<int>(chestItemSlots.size())); i++)
+        chestItemSlots[i].update(mouseScreenPos, dt);
+        
+        if (chestData)
         {
-            chestItemSlots[i].update(mouseScreenPos, dt);
-            
-            if (!chestData->getItemSlotData(i).has_value())
+            int index = std::min(chestData->getSize(), static_cast<int>(chestItemSlots.size()));
+            if (!chestData->getItemSlotData(index).has_value())
             {
                 chestItemSlots[i].overrideItemScaleMult(1.0f);
             }
@@ -705,11 +708,26 @@ bool InventoryGUI::heldItemPlacesLand(InventoryData& inventory)
 
 void InventoryGUI::draw(sf::RenderTarget& window, float gameTime, sf::Vector2f mouseScreenPos, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData)
 {
+    if (openShopData.has_value())
+    {
+        assert(chestData == nullptr);
+    }
+
     drawInventory(window, inventory);
     drawArmourInventory(window, armourInventory);
     drawBin(window);
+
+    if (openShopData.has_value())
+    {
+        drawChest(window, &openShopData.value());
+    }
+    else
+    {
+        drawChest(window, chestData);
+    }
+
     drawRecipes(window);
-    drawChest(window, chestData);
+
     drawPickedUpItem(window, gameTime, mouseScreenPos);
     drawHoveredItemInfoBox(window, gameTime, mouseScreenPos, inventory, armourInventory, chestData);
 }
@@ -930,23 +948,30 @@ void InventoryGUI::drawHoveredItemInfoBox(sf::RenderTarget& window, float gameTi
     // If an item is hovered over, draw item info box
     if (hoveredItemIndex >= 0)
     {
-        infoBoxSize = drawItemInfoBox(infoBoxTexture, gameTime, hoveredItemIndex, inventory, sf::Vector2f(0, 0));
+        infoBoxSize = drawItemInfoBox(infoBoxTexture, gameTime, hoveredItemIndex, inventory, sf::Vector2f(0, 0), InventoryShopInfoMode::Sell);
     }
     else if (hoveredArmourIndex >= 0)
     {
-        infoBoxSize = drawItemInfoBox(infoBoxTexture, gameTime, hoveredArmourIndex, armourInventory, sf::Vector2f(0, 0));
+        infoBoxSize = drawItemInfoBox(infoBoxTexture, gameTime, hoveredArmourIndex, armourInventory, sf::Vector2f(0, 0), InventoryShopInfoMode::Sell);
     }
     else if (hoveredRecipeIndex >= 0)
     {
         infoBoxSize = drawItemInfoBoxRecipe(infoBoxTexture, gameTime, availableRecipes[hoveredRecipeIndex], sf::Vector2f(0, 0));
     }
-    else if (chestData != nullptr)
+    else if (chestData != nullptr || openShopData.has_value())
     {
         // Draw chest hovered item info
         int chestHoveredItemIndex = getHoveredItemSlotIndex(chestItemSlots, mouseScreenPos);
         if (chestHoveredItemIndex >= 0)
         {
-            infoBoxSize = drawItemInfoBox(infoBoxTexture, gameTime, chestHoveredItemIndex, *chestData, sf::Vector2f(0, 0));
+            if (chestData != nullptr)
+            {
+                infoBoxSize = drawItemInfoBox(infoBoxTexture, gameTime, chestHoveredItemIndex, *chestData, sf::Vector2f(0, 0), InventoryShopInfoMode::None);
+            }
+            else
+            {
+                infoBoxSize = drawItemInfoBox(infoBoxTexture, gameTime, chestHoveredItemIndex, openShopData.value(), sf::Vector2f(0, 0), InventoryShopInfoMode::Buy);
+            }
         }
     }
 
@@ -966,7 +991,8 @@ void InventoryGUI::drawHoveredItemInfoBox(sf::RenderTarget& window, float gameTi
     }
 }
 
-sf::Vector2f InventoryGUI::drawItemInfoBox(sf::RenderTarget& window, float gameTime, int itemIndex, InventoryData& inventory, sf::Vector2f mouseScreenPos)
+sf::Vector2f InventoryGUI::drawItemInfoBox(sf::RenderTarget& window, float gameTime, int itemIndex, InventoryData& inventory, sf::Vector2f mouseScreenPos,
+    InventoryShopInfoMode shopInfoMode)
 {
     const std::optional<ItemCount>& itemSlot = inventory.getItemSlotData(itemIndex);
 
@@ -974,13 +1000,14 @@ sf::Vector2f InventoryGUI::drawItemInfoBox(sf::RenderTarget& window, float gameT
     if (!itemSlot.has_value())
         return sf::Vector2f(0, 0);
     
-    ItemType itemType = itemSlot.value().first;
-
-    return drawItemInfoBox(window, gameTime, itemType, mouseScreenPos);
+    return drawItemInfoBox(window, gameTime, itemSlot.value(), mouseScreenPos, shopInfoMode);
 }
 
-sf::Vector2f InventoryGUI::drawItemInfoBox(sf::RenderTarget& window, float gameTime, ItemType itemType, sf::Vector2f mouseScreenPos)
+sf::Vector2f InventoryGUI::drawItemInfoBox(sf::RenderTarget& window, float gameTime, ItemCount itemCount, sf::Vector2f mouseScreenPos, InventoryShopInfoMode shopInfoMode)
 {
+    ItemType itemType = itemCount.first;
+    unsigned int itemAmount = itemCount.second;
+
     const ItemData& itemData = ItemDataLoader::getItemData(itemType);
 
     float intScale = ResolutionHandler::getResolutionIntegerScale();
@@ -1082,7 +1109,7 @@ sf::Vector2f InventoryGUI::drawItemInfoBox(sf::RenderTarget& window, float gameT
 
     if (itemData.currencyValue > 0)
     {
-        infoStrings.push_back({std::to_string(itemData.currencyValue) + " value each", 20});
+        infoStrings.push_back({std::to_string(itemData.currencyValue * itemAmount) + " currency value", 20});
     }
 
     if (itemData.isMaterial)
@@ -1095,6 +1122,29 @@ sf::Vector2f InventoryGUI::drawItemInfoBox(sf::RenderTarget& window, float gameT
         infoStrings.push_back({itemData.description, 20});
     }
 
+    if (openShopData.has_value() && shopInfoMode != InventoryShopInfoMode::None)
+    {
+        std::string buyInfoString;
+
+        switch(shopInfoMode)
+        {
+            case InventoryShopInfoMode::Buy:
+            {
+                int itemPrice = std::floor(openShopData->getItemBuyPrice(itemType) * itemAmount);
+                buyInfoString = "Buy for " + std::to_string(itemPrice) + " currency";
+                break;
+            }
+            case InventoryShopInfoMode::Sell:
+            {
+                int itemPrice = std::floor(openShopData->getItemSellPrice(itemType) * itemAmount);
+                buyInfoString = "Sell for " + std::to_string(itemPrice) + " currency";
+                break;
+            }
+        }
+
+        infoStrings.push_back({"\n" + buyInfoString, 20});
+    }
+
     return drawInfoBox(window, mouseScreenPos + sf::Vector2f(8, 8) * 3.0f * intScale, infoStrings);
 }
 
@@ -1104,7 +1154,7 @@ sf::Vector2f InventoryGUI::drawItemInfoBoxRecipe(sf::RenderTarget& window, float
 
     const RecipeData& recipeData = RecipeDataLoader::getRecipeData()[recipeIdx];
 
-    sf::Vector2f itemInfoBoxSize = drawItemInfoBox(window, gameTime, recipeData.product, mouseScreenPos);
+    sf::Vector2f itemInfoBoxSize = drawItemInfoBox(window, gameTime, {recipeData.product, recipeData.productAmount}, mouseScreenPos, InventoryShopInfoMode::None);
 
     std::vector<ItemInfoString> infoStrings;
 
@@ -1525,6 +1575,23 @@ void InventoryGUI::inventoryChestItemQuickTransfer(sf::Vector2f mouseScreenPos, 
 
     // Subtract amount from source inventory
     hoveredInventory->takeItemAtIndex(itemHovered, amountTransfered);
+}
+
+
+// -- Shop -- //
+void InventoryGUI::shopOpened(ShopInventoryData& shopData)
+{
+    openShopData = shopData;
+
+    // Create item slots
+    chestOpened(&shopData);
+
+}
+
+void InventoryGUI::shopClosed()
+{
+    openShopData = std::nullopt;
+    chestClosed();
 }
 
 
