@@ -1,5 +1,7 @@
 #include "Game.hpp"
 
+// FIX: Safely close inventory when object interaction causes change of menu state
+
 // TODO: NOVEMBER CHECKLIST
     // TODO: Basic NPC interaction / basic shop system
     // TODO: Finish sand serpent boss fight, including some new armour / weapons
@@ -381,7 +383,7 @@ void Game::runInGame(float dt)
                 case WorldMenuState::NPCShop: // fallthrough
                 case WorldMenuState::Inventory:
                 {
-                    if ((event.key.code == sf::Keyboard::E || event.key.code == sf::Keyboard::Escape) && worldMenuState == WorldMenuState::Inventory)
+                    if (event.key.code == sf::Keyboard::E || event.key.code == sf::Keyboard::Escape)
                     {
                         ItemType itemHeldBefore = InventoryGUI::getHeldItemType(inventory);
 

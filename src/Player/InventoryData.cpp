@@ -132,25 +132,30 @@ void InventoryData::addItemAtIndex(int index, ItemType item, int amount)
     itemSlot = itemCount;
 }
 
-void InventoryData::takeItemAtIndex(int index, int amount)
+int InventoryData::takeItemAtIndex(int index, int amount)
 {
     if (index >= inventoryData.size())
-        return;
+        return 0;
     
     std::optional<ItemCount>& itemSlot = inventoryData[index];
     if (!itemSlot.has_value())
-        return;
+        return 0;
     
     ItemCount& itemCount = itemSlot.value();
 
+    int amountTaken = amount;
+
     if (amount >= itemCount.second)
     {
+        amountTaken = itemCount.second;
         itemSlot = std::nullopt;
     }
     else
     {
         itemCount.second -= amount;
     }
+
+    return amountTaken;
 }
 
 std::unordered_map<ItemType, unsigned int> InventoryData::getTotalItemCount() const
@@ -262,6 +267,77 @@ ProjectileType InventoryData::getValidProjectileNearestToEnd(ToolType weapon) co
     }
 
     return -1;
+}
+
+int InventoryData::getCurrencyValueTotal() const
+{
+    int total = 0;
+
+    for (const auto& itemSlot : inventoryData)
+    {
+        if (!itemSlot.has_value())
+        {
+            continue;
+        }
+
+        const ItemData& itemData = ItemDataLoader::getItemData(itemSlot->first);
+
+        total += itemData.currencyValue;
+    }
+
+    return total;
+}
+
+void InventoryData::addCurrencyValueItems(int currencyValue)
+{
+    const std::vector<ItemType>& currencyItemOrder = ItemDataLoader::getCurrencyItemOrderVector();
+
+    for (int i = 0; i < currencyItemOrder.size();)
+    {
+        ItemType currencyItemType = currencyItemOrder[i];
+
+        const ItemData& currencyItemData = ItemDataLoader::getItemData(currencyItemType);
+
+        int amountToAdd = std::floor(currencyValue / currencyItemData.currencyValue);
+
+        addItem(currencyItemType, amountToAdd);
+
+        currencyValue -= amountToAdd * currencyItemData.currencyValue;
+
+        if (currencyValue <= 0)
+        {
+            break;
+        }
+    }
+
+    if (currencyValue > 0)
+    {
+        std::cout << "Could not give remaining " + std::to_string(currencyValue) + " currency from selling items\n";
+    }
+}
+
+void InventoryData::takeCurrencyValueItems(int currencyValue)
+{
+    for (int i = inventoryData.size() - 1; i >= 0; i--)
+    {
+        std::optional<ItemCount> itemSlot = inventoryData[i];
+
+        if (!itemSlot.has_value())
+        {
+            continue;
+        }
+
+        const ItemData& itemData = ItemDataLoader::getItemData(itemSlot->first);
+
+        if (itemData.currencyValue <= 0)
+        {
+            continue;
+        }
+
+        int amountToTake = std::floor(currencyValue / itemData.currencyValue);
+
+        currencyValue -= takeItemAtIndex(i, amountToTake) * itemData.currencyValue;
+    }
 }
 
 // Save / load

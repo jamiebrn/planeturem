@@ -2,6 +2,7 @@
 
 std::vector<ItemData> ItemDataLoader::loaded_itemData;
 std::unordered_map<std::string, ItemType> ItemDataLoader::itemNameToTypeMap;
+std::vector<ItemType> ItemDataLoader::currencyItemOrder;
 
 bool ItemDataLoader::loadData(std::string itemDataPath)
 {
@@ -63,7 +64,30 @@ bool ItemDataLoader::loadData(std::string itemDataPath)
         loaded_itemData.push_back(itemData);
     }
 
+    createCurrencyItemOrderVector();
+
     return true;
+}
+
+void ItemDataLoader::createCurrencyItemOrderVector()
+{
+    currencyItemOrder.clear();
+
+    for (int i = 0; i < loaded_itemData.size(); i++)
+    {
+        if (loaded_itemData[i].currencyValue <= 0)
+        {
+            continue;
+        }
+
+        currencyItemOrder.push_back(i);
+    }
+
+    // Sort
+    std::sort(currencyItemOrder.begin(), currencyItemOrder.end(), [](ItemType a, ItemType b)
+    {
+        return getItemData(a).currencyValue < getItemData(b).currencyValue;
+    });
 }
 
 const ItemData& ItemDataLoader::getItemData(ItemType item)

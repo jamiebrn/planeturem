@@ -37,9 +37,17 @@ public:
 
     inline static const std::unordered_map<std::string, ItemType>& getItemNameToTypeMap() {return itemNameToTypeMap;}
 
+    // Highest value is at lowest index
+    inline static const std::vector<ItemType>& getCurrencyItemOrderVector() {return currencyItemOrder;}
+
+private:
+    static void createCurrencyItemOrderVector();
+
 private:
     static std::vector<ItemData> loaded_itemData;
 
     static std::unordered_map<std::string, ItemType> itemNameToTypeMap;
+
+    static std::vector<ItemType> currencyItemOrder;
 
 };

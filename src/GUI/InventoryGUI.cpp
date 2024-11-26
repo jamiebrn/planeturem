@@ -226,7 +226,7 @@ void InventoryGUI::handleLeftClick(sf::Vector2f mouseScreenPos, bool shiftMode, 
 
 void InventoryGUI::handleRightClick(sf::Vector2f mouseScreenPos, bool shiftMode, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData)
 {
-    if (canQuickTransfer(mouseScreenPos, shiftMode, inventory, chestData))
+    if (canQuickTransfer(mouseScreenPos, shiftMode, inventory, chestData) && !openShopData.has_value())
     {
         inventoryChestItemQuickTransfer(mouseScreenPos, 1, inventory, *chestData);
     }
@@ -261,16 +261,47 @@ void InventoryGUI::pickUpItem(sf::Vector2f mouseScreenPos, unsigned int amount, 
     if (itemIndex < 0 && armourHoveredIndex < 0 && chestHoveredItemIndex < 0)
         return;
     
+    bool takenFromShop = false;
+    
     InventoryData* hoveredInventory = &inventory;
     if (armourHoveredIndex >= 0)
     {
         hoveredInventory = &armourInventory;
         itemIndex = armourHoveredIndex;
     }
-    else if (chestHoveredItemIndex >= 0 && chestData != nullptr)
+    else if (chestHoveredItemIndex >= 0)
     {
-        hoveredInventory = chestData;
-        itemIndex = chestHoveredItemIndex;
+        if (openShopData.has_value())
+        {
+            // Ensure can afford
+            int currencyTotal = inventory.getCurrencyValueTotal();
+
+            const std::optional<ItemCount>& shopItemSlot = openShopData->getItemSlotData(chestHoveredItemIndex);
+            if (!shopItemSlot.has_value())
+            {
+                std::cout << "Shop has no item in slot\n";
+                return;
+            }
+
+            int price = openShopData->getItemBuyPrice(shopItemSlot->first) * shopItemSlot->second;
+
+            if (currencyTotal < price)
+            {
+                return;
+            }
+
+            // Can afford, take money
+            inventory.takeCurrencyValueItems(price);
+
+            itemIndex = chestHoveredItemIndex;
+            hoveredInventory = &openShopData.value();
+            takenFromShop = true;
+        }
+        else if (chestData != nullptr)
+        {
+            itemIndex = chestHoveredItemIndex;
+            hoveredInventory = chestData;
+        }
     }
     
     std::optional<ItemCount>& itemSlotData = hoveredInventory->getItemSlotData(itemIndex);
@@ -305,7 +336,11 @@ void InventoryGUI::pickUpItem(sf::Vector2f mouseScreenPos, unsigned int amount, 
         pickedUpItemCount = std::min(itemCount.second, amount);
 
         // Take from inventory / chest
-        hoveredInventory->takeItemAtIndex(itemIndex, amount);
+        // Do not take if taken (bought) from shop
+        if (!takenFromShop)
+        {
+            hoveredInventory->takeItemAtIndex(itemIndex, amount);
+        }
     }
 }
 

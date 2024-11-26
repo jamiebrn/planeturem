@@ -30,7 +30,7 @@ public:
 
     void addItemAtIndex(int index, ItemType item, int amount);
 
-    void takeItemAtIndex(int index, int amount);
+    int takeItemAtIndex(int index, int amount);
 
     std::unordered_map<ItemType, unsigned int> getTotalItemCount() const;
 
@@ -40,6 +40,10 @@ public:
 
     int getProjectileCountForWeapon(ToolType weapon) const;
     ProjectileType getValidProjectileNearestToEnd(ToolType weapon) const;
+
+    int getCurrencyValueTotal() const;
+    void addCurrencyValueItems(int currencyValue);
+    void takeCurrencyValueItems(int currencyValue);
 
     inline int getSize() {return inventoryData.size();}
 
