@@ -193,7 +193,16 @@ void InventoryGUI::handleLeftClick(sf::Vector2f mouseScreenPos, bool shiftMode, 
 {
     if (isItemPickedUp)
     {
-        putDownItem(mouseScreenPos, inventory, armourInventory, chestData);
+        // If in shop, buy another of same item (if holding same item)
+        int shopHoveredIndex = getHoveredItemSlotIndex(chestItemSlots, mouseScreenPos);
+        if (openShopData.has_value() && shopHoveredIndex >= 0)
+        {
+            pickUpItem(mouseScreenPos, 999999999, inventory, armourInventory, chestData);
+        }
+        else
+        {
+            putDownItem(mouseScreenPos, inventory, armourInventory, chestData);
+        }
     }
     else
     {
@@ -232,7 +241,12 @@ void InventoryGUI::handleRightClick(sf::Vector2f mouseScreenPos, bool shiftMode,
     }
     else
     {
-        pickUpItem(mouseScreenPos, 1, inventory, armourInventory, chestData);
+        int shopHoveredIndex = getHoveredItemSlotIndex(chestItemSlots, mouseScreenPos);
+        if (!openShopData.has_value() || shopHoveredIndex < 0)
+        {
+            // Only pickup single item if not attempting to buy from shop
+            pickUpItem(mouseScreenPos, 1, inventory, armourInventory, chestData);
+        }
     }
 }
 
@@ -273,25 +287,10 @@ void InventoryGUI::pickUpItem(sf::Vector2f mouseScreenPos, unsigned int amount, 
     {
         if (openShopData.has_value())
         {
-            // Ensure can afford
-            int currencyTotal = inventory.getCurrencyValueTotal();
-
-            const std::optional<ItemCount>& shopItemSlot = openShopData->getItemSlotData(chestHoveredItemIndex);
-            if (!shopItemSlot.has_value())
-            {
-                std::cout << "Shop has no item in slot\n";
-                return;
-            }
-
-            int price = openShopData->getItemBuyPrice(shopItemSlot->first) * shopItemSlot->second;
-
-            if (currencyTotal < price)
+            if (!attemptPurchaseItem(inventory, chestHoveredItemIndex))
             {
                 return;
             }
-
-            // Can afford, take money
-            inventory.takeCurrencyValueItems(price);
 
             itemIndex = chestHoveredItemIndex;
             hoveredInventory = &openShopData.value();
@@ -325,7 +324,10 @@ void InventoryGUI::pickUpItem(sf::Vector2f mouseScreenPos, unsigned int amount, 
             pickedUpItemCount += std::min(itemCount.second, amountPickedUp);
 
             // Take from inventory / chest
-            hoveredInventory->takeItemAtIndex(itemIndex, amountPickedUp);
+            if (!takenFromShop)
+            {
+                hoveredInventory->takeItemAtIndex(itemIndex, amountPickedUp);
+            }
         }
     }
     else
@@ -1177,7 +1179,7 @@ sf::Vector2f InventoryGUI::drawItemInfoBox(sf::RenderTarget& window, float gameT
             }
         }
 
-        infoStrings.push_back({"\n" + buyInfoString, 20});
+        infoStrings.push_back({buyInfoString, 20});
     }
 
     return drawInfoBox(window, mouseScreenPos + sf::Vector2f(8, 8) * 3.0f * intScale, infoStrings);
@@ -1620,13 +1622,53 @@ void InventoryGUI::shopOpened(ShopInventoryData& shopData)
 
     // Create item slots
     chestOpened(&shopData);
-
 }
 
 void InventoryGUI::shopClosed()
 {
     openShopData = std::nullopt;
     chestClosed();
+}
+
+bool InventoryGUI::attemptPurchaseItem(InventoryData& inventory, int shopIndex)
+{
+    const std::optional<ItemCount>& shopItemSlot = openShopData->getItemSlotData(shopIndex);
+    if (!shopItemSlot.has_value())
+    {
+        std::cout << "Shop has no item in slot\n";
+        return false;
+    }
+
+    // If item is picked up, ensure item is same and can fit in hand
+    if (isItemPickedUp)
+    {
+        if (pickedUpItem != shopItemSlot->first)
+        {
+            return false;
+        }
+
+        const ItemData& pickedUpItemData = ItemDataLoader::getItemData(pickedUpItem);
+
+        if (pickedUpItemCount + shopItemSlot->second > pickedUpItemData.maxStackSize)
+        {
+            return false;
+        }
+    }
+    
+    // Ensure can afford
+    int currencyTotal = inventory.getCurrencyValueTotal();
+
+    int price = openShopData->getItemBuyPrice(shopItemSlot->first) * shopItemSlot->second;
+
+    if (currencyTotal < price)
+    {
+        return false;
+    }
+
+    // Can afford, take money
+    inventory.takeCurrencyValueItems(price);
+
+    return true;
 }
 
 

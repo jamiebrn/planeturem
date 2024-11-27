@@ -282,7 +282,7 @@ int InventoryData::getCurrencyValueTotal() const
 
         const ItemData& itemData = ItemDataLoader::getItemData(itemSlot->first);
 
-        total += itemData.currencyValue;
+        total += itemData.currencyValue * itemSlot->second;
     }
 
     return total;
@@ -334,9 +334,15 @@ void InventoryData::takeCurrencyValueItems(int currencyValue)
             continue;
         }
 
-        int amountToTake = std::floor(currencyValue / itemData.currencyValue);
+        int amountToTake = std::ceil(static_cast<float>(currencyValue) / itemData.currencyValue);
 
         currencyValue -= takeItemAtIndex(i, amountToTake) * itemData.currencyValue;
+    }
+
+    // Give excess currency taken as smaller denominations
+    if (currencyValue < 0)
+    {
+        addCurrencyValueItems(-currencyValue);
     }
 }
 

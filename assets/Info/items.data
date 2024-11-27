@@ -152,6 +152,11 @@
         "currency-value": 5
     },
     {
+        "name": "Silver Gemstone",
+        "texture": [80, 48, 16, 16],
+        "currency-value": 1
+    },
+    {
         "name": "Forged Gemstone",
         "texture": [96, 32, 16, 16],
         "currency-value": 5,

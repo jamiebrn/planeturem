@@ -1559,6 +1559,9 @@ void Game::giveStartingInventory()
 
 void Game::openChest(ChestObject& chest)
 {
+    // If required
+    InventoryGUI::shopClosed();
+
     openedChestID = chest.getChestID();
 
     openedChestPos = chest.getPosition();

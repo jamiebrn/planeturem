@@ -380,7 +380,7 @@
             "behaviour": "shop",
             "dialogue": ["Welcome to my business", "I hope you like my items", "I will buy items from you for a fair price", "Anything else?", "...."],
             "shop-items": [["Insane Bow", 1], ["Wood", 10], ["Crow Claw", 1]],
-            "buy-prices": {"Insane Bow": 1.5},
+            "buy-prices": {"Insane Bow": 1.5, "Wood": 3, "Crow Claw": 5},
             "portrait-texture-offset": [32, 32]
         }
     }

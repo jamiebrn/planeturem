@@ -193,6 +193,9 @@ private:
     // -- Chest --
     static void inventoryChestItemQuickTransfer(sf::Vector2f mouseScreenPos, unsigned int amount, InventoryData& inventory, InventoryData& chestData);
 
+    // -- Shop --
+    static bool attemptPurchaseItem(InventoryData& inventory, int shopIndex);
+
 private:
     // static sf::Vector2f screenPos;
 
