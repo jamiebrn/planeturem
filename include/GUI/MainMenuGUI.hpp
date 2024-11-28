@@ -22,6 +22,7 @@ enum class MainMenuEventType
 {
     StartNew,
     Load,
+    SaveOptions,
     Quit
 };
 

@@ -1,10 +1,6 @@
 #include "Game.hpp"
 
-// FIX: Safely close inventory when object interaction causes change of menu state
-// FIX: Interactions with objects when in inventory break object state e.g. chest
-
 // TODO: NOVEMBER CHECKLIST
-    // TODO: Basic NPC interaction / basic shop system
     // TODO: Finish sand serpent boss fight, including some new armour / weapons
 
 // TODO: Night and menu music
@@ -76,6 +72,8 @@ bool Game::initialise()
 
     // Randomise
     srand(time(NULL));
+
+    loadOptions();
 
     // Initialise values
     gameTime = 0;
@@ -330,6 +328,11 @@ void Game::runMainMenu(float dt)
                 currentSaveFileSummary = menuEvent->saveFileSummary;
                 break;
             }
+            case MainMenuEventType::SaveOptions:
+            {
+                saveOptions();
+                break;
+            }
             case MainMenuEventType::Quit:
             {
                 window.close();
@@ -386,16 +389,7 @@ void Game::runInGame(float dt)
                 {
                     if (event.key.code == sf::Keyboard::E || event.key.code == sf::Keyboard::Escape)
                     {
-                        ItemType itemHeldBefore = InventoryGUI::getHeldItemType(inventory);
-
-                        InventoryGUI::handleClose(inventory, chestDataPool.getChestDataPtr(openedChestID));
-                        worldMenuState = WorldMenuState::Main;
-                        closeChest();
-
-                        if (itemHeldBefore != InventoryGUI::getHeldItemType(inventory))
-                        {
-                            changePlayerTool();
-                        }
+                        handleInventoryClose();
                     }
                     break;
                 }
@@ -421,6 +415,7 @@ void Game::runInGame(float dt)
                     {
                         InventoryGUI::shopClosed();
                         worldMenuState = WorldMenuState::Main;
+                        player.setCanMove(true);
                         break;
                     }
                 }
@@ -961,6 +956,8 @@ void Game::enterRocket(RocketObject& rocket)
             break;
         }
     }
+
+    handleInventoryClose();
     
     // Save just before enter
     saveGame(true);
@@ -1028,6 +1025,9 @@ void Game::rocketFinishedDown(RocketObject& rocket)
 // NPC
 void Game::interactWithNPC(NPCObject& npc)
 {
+    handleInventoryClose();
+    player.setCanMove(false);
+
     npcInteractionGUI.initialise(npc);
     worldMenuState = WorldMenuState::NPCInteract;
 }
@@ -1258,6 +1258,11 @@ void Game::catchRandomFish(sf::Vector2i fishedTile)
 
 void Game::attemptObjectInteract()
 {
+    if (worldMenuState != WorldMenuState::Main && worldMenuState != WorldMenuState::Inventory)
+    {
+        return;
+    }
+
     // Get mouse position in screen space and world space
     sf::Vector2f mouseWorldPos = Cursor::getMouseWorldPos(window, camera);
 
@@ -1558,6 +1563,20 @@ void Game::giveStartingInventory()
     inventory.addItem(ItemDataLoader::getItemTypeFromName("Wooden Pickaxe"), 1);
 
     changePlayerTool();
+}
+
+void Game::handleInventoryClose()
+{
+    ItemType itemHeldBefore = InventoryGUI::getHeldItemType(inventory);
+
+    InventoryGUI::handleClose(inventory, chestDataPool.getChestDataPtr(openedChestID));
+    worldMenuState = WorldMenuState::Main;
+    closeChest();
+
+    if (itemHeldBefore != InventoryGUI::getHeldItemType(inventory))
+    {
+        changePlayerTool();
+    }   
 }
 
 void Game::openChest(ChestObject& chest)
@@ -2071,7 +2090,24 @@ bool Game::loadPlanet(PlanetType planetType)
     return true;
 }
 
+void Game::saveOptions()
+{
+    OptionsSave optionsSave;
+    optionsSave.musicVolume = Sounds::getMusicVolume();
 
+    GameSaveIO optionsIO;
+    optionsIO.writeOptionsSave(optionsSave);
+}
+
+void Game::loadOptions()
+{
+    OptionsSave optionsSave;
+
+    GameSaveIO optionsIO;
+    optionsIO.loadOptionsSave(optionsSave);
+
+    Sounds::setMusicVolume(optionsSave.musicVolume);
+}
 
 // -- Window -- //
 

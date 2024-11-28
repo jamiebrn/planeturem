@@ -135,6 +135,11 @@ struct SaveFileSummary
     std::string timePlayedString;
 };
 
+struct OptionsSave
+{
+    int musicVolume = 100;
+};
+
 class GameSaveIO
 {
 public:
@@ -152,6 +157,9 @@ public:
     bool writeRoomDestinationSave(const RoomDestinationGameSave& roomDestinationGameSave);
 
     std::vector<SaveFileSummary> getSaveFiles();
+
+    bool writeOptionsSave(const OptionsSave& optionsSave);
+    bool loadOptionsSave(OptionsSave& optionsSave);
 
 private:
     void createSaveDirectoryIfRequired();

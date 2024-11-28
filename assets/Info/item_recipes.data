@@ -92,22 +92,6 @@
         "crafting-station-level": 1
     },
     {
-        "product": "Golden Tree",
-        "crafting-station": "devorb",
-        "crafting-station-level": 1
-    },
-    {
-        "product": "Golden Rock",
-        "crafting-station": "devorb",
-        "crafting-station-level": 1
-    },
-    {
-        "product": "Development Orb",
-        "item-requirements": {
-            "Wood": 1
-        }
-    },
-    {
         "product": "Land",
         "item-requirements": {
             "Stone": 5
@@ -265,15 +249,6 @@
             "Wood": 10
         },
         "crafting-station": "bench",
-        "crafting-station-level": 1
-    },
-    {
-        "product": "Forged Gemstone",
-        "item-requirements": {
-            "Gold Bar": 3,
-            "Iron Bar": 2
-        },
-        "crafting-station": "anvil",
         "crafting-station-level": 1
     }
 ]

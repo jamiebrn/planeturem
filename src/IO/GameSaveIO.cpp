@@ -423,6 +423,57 @@ std::vector<SaveFileSummary> GameSaveIO::getSaveFiles()
     return saveFiles;
 }
 
+bool GameSaveIO::writeOptionsSave(const OptionsSave& optionsSave)
+{
+    std::fstream out(getRootDir() + "config.json", std::ios::out);
+
+    if (!out)
+    {
+        return false;
+    }
+
+    try
+    {
+        nlohmann::json json;
+        json["music-volume"] = optionsSave.musicVolume;
+
+        out << json;
+        out.close();
+
+        return true;
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+        return false;
+    }
+
+    return true;
+}
+
+bool GameSaveIO::loadOptionsSave(OptionsSave& optionsSave)
+{
+    std::fstream in(getRootDir() + "config.json", std::ios::in);
+
+    if (!in)
+    {
+        return false;
+    }
+
+    try
+    {
+        nlohmann::json json = nlohmann::json::parse(in);
+        optionsSave.musicVolume = json["music-volume"];
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+        return false;
+    }
+
+    return true;   
+}
+
 void GameSaveIO::createSaveDirectoryIfRequired()
 {
     std::filesystem::path dir(sago::getDataHome() + "/Planeturem");

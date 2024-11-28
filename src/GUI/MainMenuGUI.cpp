@@ -71,6 +71,8 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
 
     int scaledPanelPaddingX = getScaledPanelPaddingX();
 
+    std::optional<MainMenuEvent> menuEvent = std::nullopt;
+
     // Buttons / UI
     switch (mainMenuState)
     {
@@ -114,9 +116,8 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
                 scaledPanelPaddingX * intScale, elementYPos, panelWidth * intScale, 75 * intScale, "Exit", buttonStyle);
                 button.isClicked())
             {
-                MainMenuEvent quitEvent;
-                quitEvent.type = MainMenuEventType::Quit;
-                return quitEvent;
+                menuEvent = MainMenuEvent();
+                menuEvent->type = MainMenuEventType::Quit;
             }
             break;
         }
@@ -137,11 +138,10 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
             {
                 if (!saveNameInput.empty())
                 {
-                    MainMenuEvent startEvent;
-                    startEvent.type = MainMenuEventType::StartNew;
-                    startEvent.saveFileSummary.name = saveNameInput;
-                    startEvent.worldSeed = getWorldSeedFromString(worldSeedInput);
-                    return startEvent;
+                    menuEvent = MainMenuEvent();
+                    menuEvent->type = MainMenuEventType::StartNew;
+                    menuEvent->saveFileSummary.name = saveNameInput;
+                    menuEvent->worldSeed = getWorldSeedFromString(worldSeedInput);
                 }
             }
 
@@ -171,10 +171,9 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
                     panelWidth * intScale, 75 * intScale, saveSummaryString, buttonStyle)
                         .isClicked())
                 {
-                    MainMenuEvent loadEvent;
-                    loadEvent.type = MainMenuEventType::Load;
-                    loadEvent.saveFileSummary = saveFileSummary;
-                    return loadEvent;
+                    menuEvent = MainMenuEvent();
+                    menuEvent->type = MainMenuEventType::Load;
+                    menuEvent->saveFileSummary = saveFileSummary;
                 }
 
                 elementYPos += 100 * intScale;
@@ -251,6 +250,9 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
             if (guiContext.createButton(scaledPanelPaddingX * intScale, elementYPos, panelWidth * intScale, 75 * intScale, "Back", buttonStyle)
                 .isClicked())
             {
+                menuEvent = MainMenuEvent();
+                menuEvent->type = MainMenuEventType::SaveOptions;
+
                 nextUIState = MainMenuState::Main;
             }
             break;
@@ -268,7 +270,7 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
 
     guiContext.endGUI();
 
-    return std::nullopt;
+    return menuEvent;
 }
 
 int MainMenuGUI::getWorldSeedFromString(std::string string)

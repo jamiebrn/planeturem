@@ -196,30 +196,6 @@
         "sell-value": 3
     },
     {
-        "name": "Golden Tree",
-        "health": 4,
-        "textures": [[0, 96]],
-        "texture-width": 32,
-        "texture-height": 48,
-        "texture-x-origin": 0.5,
-        "texture-y-origin": 0.94,
-        "item-drops": {
-            "Wood": [2000, 2000, 1.0]
-        }
-    },
-    {
-        "name": "Golden Rock",
-        "health": 4,
-        "textures": [[32, 96]],
-        "texture-width": 16,
-        "texture-height": 16,
-        "texture-x-origin": 0.5,
-        "texture-y-origin": 0.81,
-        "item-drops": {
-            "Stone": [2000, 2000, 1.0]
-        }
-    },
-    {
         "name": "Iron Rock",
         "health": 7,
         "textures": [[64, 48]],
@@ -254,20 +230,6 @@
         "item-drops": {
             "Raw Coal": [2, 2, 1.0]
         }
-    },
-    {
-        "name": "Development Orb",
-        "health": 9999,
-        "textures": [[128, 112], [144, 112], [160, 112], [176, 112], [192, 112], [208, 112], [224, 112], [240, 112]],
-        "texture-frame-delay": 0.1,
-        "texture-width": 16,
-        "texture-height": 16,
-        "texture-x-origin": 0.5,
-        "texture-y-origin": 0.75,
-        "has-collision": true,
-        "crafting-station": "devorb",
-        "crafting-station-level": 999,
-        "mythical-item": true
     },
     {
         "name": "Cactus",

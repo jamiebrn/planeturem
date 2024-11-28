@@ -183,6 +183,8 @@ private:
 
     void giveStartingInventory();
 
+    void handleInventoryClose();
+
     void checkChestOpenInRange();
     void handleOpenChestPositionWorldWrap(sf::Vector2f positionDelta);
 
@@ -216,6 +218,9 @@ private:
     bool saveGame(bool gettingInRocket = false);
     bool loadGame(const SaveFileSummary& saveFileSummary);
     bool loadPlanet(PlanetType planetType);
+
+    void saveOptions();
+    void loadOptions();
 
 
     // -- Window -- //
