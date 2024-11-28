@@ -11,6 +11,11 @@ InventoryData::InventoryData(int size)
 
 int InventoryData::addItem(ItemType item, int amount)
 {
+    if (amount <= 0)
+    {
+        return 0;
+    }
+
     int amountToAdd = amount;
 
     // Attempt to add items to existing stacks
@@ -288,14 +293,12 @@ int InventoryData::getCurrencyValueTotal() const
     return total;
 }
 
-void InventoryData::addCurrencyValueItems(int currencyValue)
+int InventoryData::addCurrencyValueItems(int currencyValue)
 {
     const std::vector<ItemType>& currencyItemOrder = ItemDataLoader::getCurrencyItemOrderVector();
 
-    for (int i = 0; i < currencyItemOrder.size();)
+    for (ItemType currencyItemType : currencyItemOrder)
     {
-        ItemType currencyItemType = currencyItemOrder[i];
-
         const ItemData& currencyItemData = ItemDataLoader::getItemData(currencyItemType);
 
         int amountToAdd = std::floor(currencyValue / currencyItemData.currencyValue);
@@ -310,10 +313,7 @@ void InventoryData::addCurrencyValueItems(int currencyValue)
         }
     }
 
-    if (currencyValue > 0)
-    {
-        std::cout << "Could not give remaining " + std::to_string(currencyValue) + " currency from selling items\n";
-    }
+    return currencyValue;
 }
 
 void InventoryData::takeCurrencyValueItems(int currencyValue)

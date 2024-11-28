@@ -42,7 +42,7 @@ bool ToolDataLoader::loadData(std::string toolDataPath)
 
         projectileNameToTypeMap[projectileData.name] = projectileIdx;
 
-        int sellValue = -1;
+        int sellValue = 0;
         if (jsonProjectileData.contains("sell-value")) sellValue = jsonProjectileData.at("sell-value");
 
         // Link with item data
@@ -120,7 +120,7 @@ bool ToolDataLoader::loadData(std::string toolDataPath)
             }
         }
 
-        int sellValue = -1;
+        int sellValue = 0;
         if (jsonToolData.contains("sell-value")) sellValue = jsonToolData.at("sell-value");
 
         loaded_toolData.push_back(toolData);

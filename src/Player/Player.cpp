@@ -17,6 +17,8 @@ Player::Player(sf::Vector2f position, InventoryData* armourInventory)
     idleAnimation.create(3, 16, 18, 0, 0, 0.3);
     runAnimation.create(5, 16, 18, 48, 0, 0.1);
 
+    canMove = true;
+
     maxHealth = 250;
     health = maxHealth;
     healthRegenCooldownTimer = 0.0f;
@@ -113,6 +115,11 @@ void Player::updateInRoom(float dt, sf::Vector2f mouseWorldPos, const Room& room
 
 void Player::updateDirection(sf::Vector2f mouseWorldPos)
 {
+    if (!canMove)
+    {
+        return;
+    }
+
     if (fishingRodCasted)
     {
         // Face towards bob
@@ -570,6 +577,12 @@ void Player::useTool(ProjectileManager& projectileManager, InventoryData& invent
 bool Player::isUsingTool()
 {
     return usingTool;
+}
+
+void Player::setCanMove(bool value)
+{
+    canMove = value;
+    direction = sf::Vector2f(0, 0);
 }
 
 void Player::testHitCollision(const HitRect& hitRect)

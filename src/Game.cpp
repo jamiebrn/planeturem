@@ -1,6 +1,7 @@
 #include "Game.hpp"
 
 // FIX: Safely close inventory when object interaction causes change of menu state
+// FIX: Interactions with objects when in inventory break object state e.g. chest
 
 // TODO: NOVEMBER CHECKLIST
     // TODO: Basic NPC interaction / basic shop system
@@ -413,6 +414,7 @@ void Game::runInGame(float dt)
                     {
                         npcInteractionGUI.close();
                         worldMenuState = WorldMenuState::Main;
+                        player.setCanMove(true);
                         break;
                     }
                     case WorldMenuState::NPCShop:
@@ -501,6 +503,7 @@ void Game::runInGame(float dt)
         {
             switch (worldMenuState)
             {
+                case WorldMenuState::NPCShop: // fallthrough
                 case WorldMenuState::Inventory:
                     if (!InventoryGUI::handleScroll(mouseScreenPos, -event.mouseWheelScroll.delta))
                         handleZoom(event.mouseWheelScroll.delta);
@@ -717,7 +720,7 @@ void Game::updateOnPlanet(float dt)
     bool wrappedAroundWorld = false;
     sf::Vector2f wrapPositionDelta;
 
-    if (!isStateTransitioning() && worldMenuState != WorldMenuState::NPCInteract && worldMenuState != WorldMenuState::NPCShop)
+    if (!isStateTransitioning())
     {
         player.update(dt, Cursor::getMouseWorldPos(window, camera), chunkManager, worldSize, wrappedAroundWorld, wrapPositionDelta);
     }
@@ -1039,7 +1042,7 @@ void Game::updateInRoom(float dt, Room& room, bool inStructure)
 
     Cursor::updateTileCursorInRoom(window, camera, dt, room, InventoryGUI::getHeldItemType(inventory), player.getTool());
 
-    if (!isStateTransitioning() && worldMenuState != WorldMenuState::NPCInteract && worldMenuState != WorldMenuState::NPCShop)
+    if (!isStateTransitioning())
     {
         player.updateInRoom(dt, Cursor::getMouseWorldPos(window, camera), room);
     }

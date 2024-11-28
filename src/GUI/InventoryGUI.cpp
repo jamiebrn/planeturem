@@ -180,7 +180,7 @@ void InventoryGUI::updateInventory(sf::Vector2f mouseScreenPos, float dt, Invent
         
         if (chestData)
         {
-            int index = std::min(chestData->getSize(), static_cast<int>(chestItemSlots.size()));
+            int index = std::min(chestData->getSize() - 1, i);
             if (!chestData->getItemSlotData(index).has_value())
             {
                 chestItemSlots[i].overrideItemScaleMult(1.0f);
@@ -197,7 +197,19 @@ void InventoryGUI::handleLeftClick(sf::Vector2f mouseScreenPos, bool shiftMode, 
         int shopHoveredIndex = getHoveredItemSlotIndex(chestItemSlots, mouseScreenPos);
         if (openShopData.has_value() && shopHoveredIndex >= 0)
         {
-            pickUpItem(mouseScreenPos, 999999999, inventory, armourInventory, chestData);
+            std::optional<ItemCount>& itemSlotData = openShopData->getItemSlotData(shopHoveredIndex);
+
+            if (itemSlotData.has_value())
+            {
+                if (itemSlotData->first == pickedUpItem)
+                {
+                    pickUpItem(mouseScreenPos, 999999999, inventory, armourInventory, chestData);
+                }
+                else
+                {
+                    attemptSellItemHeld(inventory);
+                }
+            }
         }
         else
         {
@@ -1162,24 +1174,28 @@ sf::Vector2f InventoryGUI::drawItemInfoBox(sf::RenderTarget& window, float gameT
     if (openShopData.has_value() && shopInfoMode != InventoryShopInfoMode::None)
     {
         std::string buyInfoString;
+        int itemPrice = 0;
 
         switch(shopInfoMode)
         {
             case InventoryShopInfoMode::Buy:
             {
-                int itemPrice = std::floor(openShopData->getItemBuyPrice(itemType) * itemAmount);
+                itemPrice = std::floor(openShopData->getItemBuyPrice(itemType) * itemAmount);
                 buyInfoString = "Buy for " + std::to_string(itemPrice) + " currency";
                 break;
             }
             case InventoryShopInfoMode::Sell:
             {
-                int itemPrice = std::floor(openShopData->getItemSellPrice(itemType) * itemAmount);
+                itemPrice = std::floor(openShopData->getItemSellPrice(itemType) * itemAmount);
                 buyInfoString = "Sell for " + std::to_string(itemPrice) + " currency";
                 break;
             }
         }
 
-        infoStrings.push_back({buyInfoString, 20});
+        if (itemPrice > 0)
+        {
+            infoStrings.push_back({buyInfoString, 20});
+        }
     }
 
     return drawInfoBox(window, mouseScreenPos + sf::Vector2f(8, 8) * 3.0f * intScale, infoStrings);
@@ -1668,6 +1684,25 @@ bool InventoryGUI::attemptPurchaseItem(InventoryData& inventory, int shopIndex)
     // Can afford, take money
     inventory.takeCurrencyValueItems(price);
 
+    return true;
+}
+
+bool InventoryGUI::attemptSellItemHeld(InventoryData& inventory)
+{
+    int currencyToGive = openShopData->getItemSellPrice(pickedUpItem) * pickedUpItemCount;
+
+    if (inventory.addCurrencyValueItems(currencyToGive) >= currencyToGive)
+    {
+        // Return false if no currency was given
+        return false;
+    }
+
+    // Take held item
+    isItemPickedUp = false;
+    pickedUpItem = -1;
+    pickedUpItemCount = 0;
+
+    // Return true if some currency / all was given
     return true;
 }
 

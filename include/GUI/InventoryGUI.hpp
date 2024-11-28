@@ -195,6 +195,7 @@ private:
 
     // -- Shop --
     static bool attemptPurchaseItem(InventoryData& inventory, int shopIndex);
+    static bool attemptSellItemHeld(InventoryData& inventory);
 
 private:
     // static sf::Vector2f screenPos;

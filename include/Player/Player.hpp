@@ -59,6 +59,8 @@ public:
     void useTool(ProjectileManager& projectileManager, InventoryData& inventory, sf::Vector2f mouseWorldPos);
     bool isUsingTool();
 
+    void setCanMove(bool value);
+
     // Damage
     void testHitCollision(const HitRect& hitRect);
 
@@ -115,6 +117,8 @@ private:
 
     int tileReach = 4;
     float speed = 120.0f;
+
+    bool canMove;
 
     static constexpr float BASE_HEALTH_REGEN_RATE = 3.0f;
     static constexpr float MAX_HEALTH_REGEN_COOLDOWN_TIMER = 5.0f;

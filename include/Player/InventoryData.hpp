@@ -42,7 +42,7 @@ public:
     ProjectileType getValidProjectileNearestToEnd(ToolType weapon) const;
 
     int getCurrencyValueTotal() const;
-    void addCurrencyValueItems(int currencyValue);
+    int addCurrencyValueItems(int currencyValue);
     void takeCurrencyValueItems(int currencyValue);
 
     inline int getSize() {return inventoryData.size();}

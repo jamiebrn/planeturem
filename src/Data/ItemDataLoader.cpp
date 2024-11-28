@@ -86,7 +86,7 @@ void ItemDataLoader::createCurrencyItemOrderVector()
     // Sort
     std::sort(currencyItemOrder.begin(), currencyItemOrder.end(), [](ItemType a, ItemType b)
     {
-        return getItemData(a).currencyValue < getItemData(b).currencyValue;
+        return getItemData(a).currencyValue > getItemData(b).currencyValue;
     });
 }
 
