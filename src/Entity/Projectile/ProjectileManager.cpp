@@ -45,3 +45,8 @@ void ProjectileManager::handleWorldWrap(sf::Vector2f positionDelta)
         projectile->handleWorldWrap(positionDelta);
     }
 }
+
+void ProjectileManager::clear()
+{
+    projectiles.clear();
+}

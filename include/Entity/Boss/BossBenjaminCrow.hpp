@@ -39,7 +39,7 @@ class BossBenjaminCrow : public BossEntity
 public:
     BossBenjaminCrow(sf::Vector2f playerPosition);
 
-    void update(Game& game, ProjectileManager& projectileManager, InventoryData& inventory, Player& player, float dt) override;
+    void update(Game& game, ProjectileManager& projectileManager, ProjectileManager& enemyProjectileManager, InventoryData& inventory, Player& player, float dt) override;
 
     bool isAlive() override;
 

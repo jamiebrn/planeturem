@@ -3,6 +3,7 @@
 std::vector<ToolData> ToolDataLoader::loaded_toolData;
 std::unordered_map<std::string, ToolType> ToolDataLoader::toolNameToTypeMap;
 std::vector<ProjectileData> ToolDataLoader::loaded_projectileData;
+std::unordered_map<std::string, ProjectileType> ToolDataLoader::projectileNameToTypeMap;
 
 bool ToolDataLoader::loadData(std::string toolDataPath)
 {
@@ -12,9 +13,6 @@ bool ToolDataLoader::loadData(std::string toolDataPath)
     // Load projectiles
     auto projectiles = data.at("projectiles");
     int projectileIdx = 0;
-
-    // Store projectile name to type temporarily for tools to reference
-    std::unordered_map<std::string, ProjectileType> projectileNameToTypeMap;
 
     for (nlohmann::json::iterator iter = projectiles.begin(); iter != projectiles.end(); ++iter)
     {
@@ -143,7 +141,22 @@ const ToolData& ToolDataLoader::getToolData(ToolType tool)
 
 ToolType ToolDataLoader::getToolTypeFromName(const std::string& toolName)
 {
+    if (!toolNameToTypeMap.contains(toolName))
+    {
+        return 0;
+    }
+    
     return toolNameToTypeMap[toolName];
+}
+
+ProjectileType ToolDataLoader::getProjectileTypeFromName(const std::string& projectileName)
+{
+    if (!projectileNameToTypeMap.contains(projectileName))
+    {
+        return 0;
+    }
+
+    return projectileNameToTypeMap.at(projectileName);
 }
 
 const ProjectileData& ToolDataLoader::getProjectileData(ProjectileType projectile)

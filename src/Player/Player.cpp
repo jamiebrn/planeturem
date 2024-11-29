@@ -39,7 +39,8 @@ Player::Player(sf::Vector2f position, InventoryData* armourInventory)
     inRocket = false;
 }
 
-void Player::update(float dt, sf::Vector2f mouseWorldPos, ChunkManager& chunkManager, int worldSize, bool& wrappedAroundWorld, sf::Vector2f& wrapPositionDelta)
+void Player::update(float dt, sf::Vector2f mouseWorldPos, ChunkManager& chunkManager, ProjectileManager& enemyProjectileManager,
+    bool& wrappedAroundWorld, sf::Vector2f& wrapPositionDelta)
 {
     updateTimers(dt);
 
@@ -74,11 +75,20 @@ void Player::update(float dt, sf::Vector2f mouseWorldPos, ChunkManager& chunkMan
         chunkManager.collisionRectChunkStaticCollisionY(collisionRect, direction.y);
     }
     
-    wrappedAroundWorld = testWorldWrap(worldSize, wrapPositionDelta);
+    wrappedAroundWorld = testWorldWrap(chunkManager.getWorldSize(), wrapPositionDelta);
 
     // Update position using collision rect after collision has been handled
     position.x = collisionRect.x + collisionRect.width / 2.0f;
     position.y = collisionRect.y + collisionRect.height / 2.0f;
+
+    // Test projectile collisions
+    for (auto& projectile : enemyProjectileManager.getProjectiles())
+    {
+        if (testHitCollision(*projectile))
+        {
+            projectile->onCollision();
+        }
+    }
 
     // Update fishing rod if required
     if (fishingRodCasted)
@@ -87,7 +97,7 @@ void Player::update(float dt, sf::Vector2f mouseWorldPos, ChunkManager& chunkMan
     }
 
     // Update on water
-    onWater = (chunkManager.getLoadedChunkTileType(getChunkInside(worldSize), getChunkTileInside(worldSize)) == 0);
+    onWater = (chunkManager.getLoadedChunkTileType(getChunkInside(chunkManager.getWorldSize()), getChunkTileInside(chunkManager.getWorldSize())) == 0);
 }
 
 void Player::updateInRoom(float dt, sf::Vector2f mouseWorldPos, const Room& room)
@@ -585,16 +595,26 @@ void Player::setCanMove(bool value)
     direction = sf::Vector2f(0, 0);
 }
 
-void Player::testHitCollision(const HitRect& hitRect)
+bool Player::testHitCollision(const Projectile& projectile)
+{
+    HitRect hitRect;
+    hitRect.x = projectile.getPosition().x;
+    hitRect.y = projectile.getPosition().y;
+    hitRect.damage = projectile.getDamage();
+
+    return testHitCollision(hitRect);
+}
+
+bool Player::testHitCollision(const HitRect& hitRect)
 {
     if (damageCooldownTimer > 0 || !isAlive())
     {
-        return;
+        return false;
     }
 
     if (!collisionRect.isColliding(hitRect))
     {
-        return;
+        return false;
     }
 
     // Collision
@@ -615,6 +635,8 @@ void Player::testHitCollision(const HitRect& hitRect)
     {
         respawnTimer = MAX_RESPAWN_TIMER;
     }
+
+    return true;
 }
 
 bool Player::useConsumable(const ConsumableData& consumable)

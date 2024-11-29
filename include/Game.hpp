@@ -279,6 +279,7 @@ private:
     InventoryData armourInventory;
     ChunkManager chunkManager;
     ProjectileManager projectileManager;
+    ProjectileManager enemyProjectileManager;
     BossManager bossManager;
     ParticleSystem particleSystem;
     DayCycleManager dayCycleManager;

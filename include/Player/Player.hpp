@@ -47,7 +47,8 @@ class Player : public WorldObject
 public:
     Player(sf::Vector2f position, InventoryData* armourInventory);
 
-    void update(float dt, sf::Vector2f mouseWorldPos, ChunkManager& chunkManager, int worldSize, bool& wrappedAroundWorld, sf::Vector2f& wrapPositionDelta);
+    void update(float dt, sf::Vector2f mouseWorldPos, ChunkManager& chunkManager, ProjectileManager& enemyProjectileManager,
+        bool& wrappedAroundWorld, sf::Vector2f& wrapPositionDelta);
     void updateInRoom(float dt, sf::Vector2f mouseWorldPos, const Room& room);
 
     void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const sf::Color& color) const override;
@@ -62,7 +63,8 @@ public:
     void setCanMove(bool value);
 
     // Damage
-    void testHitCollision(const HitRect& hitRect);
+    bool testHitCollision(const Projectile& projectile);
+    bool testHitCollision(const HitRect& hitRect);
 
     // Consumable
     bool useConsumable(const ConsumableData& consumable);

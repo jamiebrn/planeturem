@@ -25,6 +25,8 @@ public:
 
     void handleWorldWrap(sf::Vector2f positionDelta);
 
+    void clear();
+
 private:
     std::vector<std::unique_ptr<Projectile>> projectiles;
 

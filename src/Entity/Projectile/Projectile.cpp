@@ -55,7 +55,7 @@ void Projectile::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, const 
     spriteBatch.draw(window, drawData, projectileData.textureRect);
 }
 
-int Projectile::getDamage()
+int Projectile::getDamage() const
 {
     return damage;
 }
@@ -65,7 +65,7 @@ void Projectile::onCollision()
     alive = false;
 }
 
-sf::Vector2f Projectile::getPosition()
+sf::Vector2f Projectile::getPosition() const
 {
     return position;
 }

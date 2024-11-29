@@ -21,6 +21,8 @@ public:
 
     static ToolType getToolTypeFromName(const std::string& toolName);
 
+    static ProjectileType getProjectileTypeFromName(const std::string& projectileName);
+
     static const ProjectileData& getProjectileData(ProjectileType projectile);
 
 private:
@@ -32,5 +34,7 @@ private:
     static std::unordered_map<std::string, ToolType> toolNameToTypeMap;
 
     static std::vector<ProjectileData> loaded_projectileData;
+
+    static std::unordered_map<std::string, ProjectileType> projectileNameToTypeMap;
 
 };

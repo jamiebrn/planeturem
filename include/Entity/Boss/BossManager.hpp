@@ -27,7 +27,7 @@ public:
 
     void createBoss(const std::string& name, sf::Vector2f playerPosition, Game& game);
 
-    void update(Game& game, ProjectileManager& projectileManager, InventoryData& inventory, Player& player, float dt);
+    void update(Game& game, ProjectileManager& projectileManager, ProjectileManager& enemyProjectileManager, InventoryData& inventory, Player& player, float dt);
 
     void handleWorldWrap(sf::Vector2f positionDelta);
 

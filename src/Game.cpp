@@ -717,7 +717,7 @@ void Game::updateOnPlanet(float dt)
 
     if (!isStateTransitioning())
     {
-        player.update(dt, Cursor::getMouseWorldPos(window, camera), chunkManager, worldSize, wrappedAroundWorld, wrapPositionDelta);
+        player.update(dt, Cursor::getMouseWorldPos(window, camera), chunkManager, enemyProjectileManager, wrappedAroundWorld, wrapPositionDelta);
     }
 
     // Handle world wrapping for camera and cursor, if player wrapped around
@@ -733,6 +733,7 @@ void Game::updateOnPlanet(float dt)
 
         // Wrap projectiles
         projectileManager.handleWorldWrap(wrapPositionDelta);
+        enemyProjectileManager.handleWorldWrap(wrapPositionDelta);
 
         // Wrap hit markers
         HitMarkers::handleWorldWrap(wrapPositionDelta);
@@ -753,10 +754,11 @@ void Game::updateOnPlanet(float dt)
     nearbyCraftingStationLevels = chunkManager.getNearbyCraftingStationLevels(player.getChunkInside(worldSize), player.getChunkTileInside(worldSize), 4);
 
     // Update bosses
-    bossManager.update(*this, projectileManager, inventory, player, dt);
+    bossManager.update(*this, projectileManager, enemyProjectileManager, inventory, player, dt);
 
     // Update projectiles
     projectileManager.update(dt);
+    enemyProjectileManager.update(dt);
 
     if (!isStateTransitioning() && !player.isInRocket() && player.isAlive())
     {
@@ -831,6 +833,7 @@ void Game::drawWorld(sf::RenderTexture& renderTexture, float dt, std::vector<Wor
 
     // Draw projectiles
     projectileManager.drawProjectiles(renderTexture, spriteBatch, cameraArg);
+    enemyProjectileManager.drawProjectiles(renderTexture, spriteBatch, cameraArg);
 
     spriteBatch.endDrawing(renderTexture);
 
@@ -1639,6 +1642,8 @@ void Game::travelToDestination()
     resetChestDataPool();
     resetStructureRoomPool();
     bossManager.clearBosses();
+    projectileManager.clear();
+    enemyProjectileManager.clear();
 
     if (destinationPlanet >= 0)
     {
@@ -1859,6 +1864,8 @@ void Game::startNewGame(int seed)
     saveSessionPlayTime = 0.0f;
 
     bossManager.clearBosses();
+    projectileManager.clear();
+    enemyProjectileManager.clear();
 
     camera.instantUpdate(player.getPosition());
 
@@ -2029,6 +2036,8 @@ bool Game::loadGame(const SaveFileSummary& saveFileSummary)
     }
 
     bossManager.clearBosses();
+    projectileManager.clear();
+    enemyProjectileManager.clear();
 
     camera.instantUpdate(player.getPosition());
 

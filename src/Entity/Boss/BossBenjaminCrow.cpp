@@ -38,7 +38,7 @@ BossBenjaminCrow::BossBenjaminCrow(sf::Vector2f playerPosition)
     updateCollision();
 }
 
-void BossBenjaminCrow::update(Game& game, ProjectileManager& projectileManager, InventoryData& inventory, Player& player, float dt)
+void BossBenjaminCrow::update(Game& game, ProjectileManager& projectileManager, ProjectileManager& enemyProjectileManager, InventoryData& inventory, Player& player, float dt)
 {
     // Update animation
     idleAnims[stage].update(dt);

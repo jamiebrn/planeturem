@@ -22,7 +22,7 @@ class BossEntity : public WorldObject
 public:
     BossEntity() = default;
 
-    virtual void update(Game& game, ProjectileManager& projectileManager, InventoryData& inventory, Player& player, float dt) = 0;
+    virtual void update(Game& game, ProjectileManager& projectileManager, ProjectileManager& enemyProjectileManager, InventoryData& inventory, Player& player, float dt) = 0;
 
     virtual bool isAlive() = 0;
 

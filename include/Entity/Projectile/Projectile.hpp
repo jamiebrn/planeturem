@@ -25,12 +25,12 @@ public:
 
     void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Camera& camera);
 
-    int getDamage();
+    int getDamage() const;
 
     // Called on collision with entity
     void onCollision();
 
-    sf::Vector2f getPosition();
+    sf::Vector2f getPosition() const;
 
     void handleWorldWrap(sf::Vector2f positionDelta);
 

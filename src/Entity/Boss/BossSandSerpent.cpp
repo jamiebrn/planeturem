@@ -42,17 +42,29 @@ BossSandSerpent::BossSandSerpent(sf::Vector2f playerPosition, Game& game)
     headFlashTime = 0.0f;
     bodyFlashTime = 0.0f;
 
+    shootCooldownTime = 0.0f;
+
     behaviourState = BossSandSerpentState::IdleStage1;
 
     updateCollision();
 }
 
-void BossSandSerpent::update(Game& game, ProjectileManager& projectileManager, InventoryData& inventory, Player& player, float dt)
+void BossSandSerpent::update(Game& game, ProjectileManager& projectileManager, ProjectileManager& enemyProjectileManager, InventoryData& inventory, Player& player, float dt)
 {
     switch (behaviourState)
     {
         case BossSandSerpentState::IdleStage1:
         {
+            // Update shooting
+            shootCooldownTime += dt;
+            if (shootCooldownTime >= MAX_SHOOT_COOLDOWN_TIME)
+            {
+                shootCooldownTime = 0.0f;
+                float angle = std::atan2(player.getPosition().y - (position.y - 50), player.getPosition().x - position.x) * 180.0f / M_PI;
+                enemyProjectileManager.addProjectile(std::make_unique<Projectile>(position - sf::Vector2f(0, 50), angle,
+                    ToolDataLoader::getProjectileTypeFromName("Serpent Venom"), 1.0f, 1.0f));
+            }
+
             float playerDistance = Helper::getVectorLength(player.getPosition() - position);
             if (playerDistance >= START_MOVE_PLAYER_DISTANCE)
             {
@@ -137,7 +149,11 @@ void BossSandSerpent::update(Game& game, ProjectileManager& projectileManager, I
 
     // Update animations
     animations[behaviourState].update(dt);
-    headAnimation.update(dt, 1, HEAD_FRAMES.size(), 0.1);
+
+    if (behaviourState == BossSandSerpentState::IdleStage1)
+    {
+        headAnimation.setFrame(animations[behaviourState].getFrame());
+    }
 
     headFlashTime -= dt;
     bodyFlashTime -= dt;
@@ -342,22 +358,6 @@ void BossSandSerpent::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, G
             break;
         }
     }
-
-    // spriteBatch.endDrawing(window);
-
-    // sf::VertexArray line(sf::Lines);
-    // line.append(sf::Vertex(Camera::worldToScreenTransform(pathfindLastStepPosition)));
-    // line.append(sf::Vertex(Camera::worldToScreenTransform(pathfindStepTargetPosition)));
-    // window.draw(line);
-
-    // Draw pathfinding
-    // for (auto coord : pathfindResult)
-    // {
-    //     sf::RectangleShape rect(sf::Vector2f(scale, scale) * TILE_SIZE_PIXELS_UNSCALED);
-    //     rect.setPosition(Camera::worldToScreenTransform(sf::Vector2f(coord.x, coord.y) * TILE_SIZE_PIXELS_UNSCALED));
-    //     rect.setFillColor(sf::Color(0, 0, 255));
-    //     window.draw(rect);
-    // }
 }
 
 void BossSandSerpent::getHoverStats(sf::Vector2f mouseWorldPos, std::vector<std::string>& hoverStats)

@@ -40,7 +40,7 @@ class BossSandSerpent : public BossEntity
 public:
     BossSandSerpent(sf::Vector2f playerPosition, Game& game);
 
-    void update(Game& game, ProjectileManager& projectileManager, InventoryData& inventory, Player& player, float dt) override;
+    void update(Game& game, ProjectileManager& projectileManager, ProjectileManager& enemyProjectileManager, InventoryData& inventory, Player& player, float dt) override;
 
     bool isAlive() override;
 
@@ -101,6 +101,9 @@ private:
     sf::Vector2f pathfindLastStepPosition;
     sf::Vector2f pathfindStepTargetPosition;
     int pathfindStepIndex;
+
+    static constexpr float MAX_SHOOT_COOLDOWN_TIME = 0.2f;
+    float shootCooldownTime;
 
     std::unordered_map<BossSandSerpentState, AnimatedTexture> animations;
 

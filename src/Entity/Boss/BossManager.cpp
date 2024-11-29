@@ -13,14 +13,14 @@ void BossManager::createBoss(const std::string& name, sf::Vector2f playerPositio
     }
 }
 
-void BossManager::update(Game& game, ProjectileManager& projectileManager, InventoryData& inventory, Player& player, float dt)
+void BossManager::update(Game& game, ProjectileManager& projectileManager, ProjectileManager& enemyProjectileManager, InventoryData& inventory, Player& player, float dt)
 {
     for (auto iter = bosses.begin(); iter != bosses.end();)
     {
         BossEntity* boss = iter->get();
         if (boss->isAlive() && boss->inPlayerRange(player))
         {
-            boss->update(game, projectileManager, inventory, player, dt);
+            boss->update(game, projectileManager, enemyProjectileManager, inventory, player, dt);
             iter++;
         }
         else
