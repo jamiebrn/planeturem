@@ -16,6 +16,13 @@ BossBenjaminCrow::BossBenjaminCrow(sf::Vector2f playerPosition)
     Sounds::playSound(SoundType::Crow);
     Sounds::playMusic(MusicType::BossTheme1);
 
+    itemDrops = {
+        {{ItemDataLoader::getItemTypeFromName("Feather"), 10}, 1.0},
+        {{ItemDataLoader::getItemTypeFromName("Bone"), 5}, 1.0},
+        {{ItemDataLoader::getItemTypeFromName("Crow Claw"), 2}, 0.7},
+        {{ItemDataLoader::getItemTypeFromName("Crow Skull"), 1}, 0.4}
+    };
+
     this->position = playerPosition - sf::Vector2f(400, 400);
     drawLayer = -999;
 
@@ -231,22 +238,6 @@ void BossBenjaminCrow::applyKnockback(Projectile& projectile)
     static constexpr float KNOCKBACK_STRENGTH = 7.0f;
 
     velocity -= Helper::normaliseVector(-relativePos) * KNOCKBACK_STRENGTH;
-}
-
-void BossBenjaminCrow::giveItemDrops(InventoryData& inventory)
-{
-    static const std::vector<ItemCount> itemDrops = {
-        {ItemDataLoader::getItemTypeFromName("Feather"), 10},
-        {ItemDataLoader::getItemTypeFromName("Bone"), 5},
-        {ItemDataLoader::getItemTypeFromName("Crow Claw"), 2},
-        {ItemDataLoader::getItemTypeFromName("Crow Skull"), 1}
-    };
-
-    for (const ItemCount& itemDrop : itemDrops)
-    {
-        inventory.addItem(itemDrop.first, itemDrop.second);
-        InventoryGUI::pushItemPopup(itemDrop);
-    }
 }
 
 bool BossBenjaminCrow::isProjectileColliding(Projectile& projectile)

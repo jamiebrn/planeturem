@@ -466,7 +466,7 @@ void Player::drawArmour(sf::RenderTarget& window, const Camera& camera, float wa
     sf::Vector2f armourOrigin = position - sf::Vector2f(8 * xScaleMult, 16);
 
     // Draw headpiece, chest, and boots
-    for (int i = 0; i < 3; i++)
+    for (int i = 2; i >= 0; i--)
     {
         const std::optional<ItemCount> itemSlot = armourInventory->getItemSlotData(i);
 
@@ -607,7 +607,7 @@ bool Player::testHitCollision(const Projectile& projectile)
 
 bool Player::testHitCollision(const HitRect& hitRect)
 {
-    if (damageCooldownTimer > 0 || !isAlive())
+    if (!isAlive())
     {
         return false;
     }
@@ -620,16 +620,19 @@ bool Player::testHitCollision(const HitRect& hitRect)
     // Collision
 
     // Calculate defence to modify damage
-    int defence = PlayerStats::calculateDefence(*armourInventory);
+    if (damageCooldownTimer <= 0)
+    {
+        int defence = PlayerStats::calculateDefence(*armourInventory);
 
-    int damageAmount = std::max(std::round(hitRect.damage * (1.0f - defence / 70.0f)), 0.0f);
-    
-    health -= damageAmount;
+        int damageAmount = std::max(std::round(hitRect.damage * (1.0f - defence / 70.0f)), 0.0f);
+        
+        health -= damageAmount;
 
-    HitMarkers::addHitMarker(position, damageAmount, sf::Color(208, 15, 30));
+        HitMarkers::addHitMarker(position, damageAmount, sf::Color(208, 15, 30));
 
-    healthRegenCooldownTimer = MAX_HEALTH_REGEN_COOLDOWN_TIMER;
-    damageCooldownTimer = MAX_DAMAGE_COOLDOWN_TIMER;
+        healthRegenCooldownTimer = MAX_HEALTH_REGEN_COOLDOWN_TIMER;
+        damageCooldownTimer = MAX_DAMAGE_COOLDOWN_TIMER;
+    }
 
     if (!isAlive())
     {

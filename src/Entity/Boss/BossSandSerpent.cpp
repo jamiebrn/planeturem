@@ -23,6 +23,14 @@ BossSandSerpent::BossSandSerpent(sf::Vector2f playerPosition, Game& game)
     // Sounds::playSound(SoundType::Crow);
     Sounds::playMusic(MusicType::BossTheme1);
 
+    itemDrops = {
+        {{ItemDataLoader::getItemTypeFromName("Serpent Venom"), 75}, 1.0},
+        {{ItemDataLoader::getItemTypeFromName("Sandscale"), 3}, 0.9},
+        {{ItemDataLoader::getItemTypeFromName("Serpent Tongue"), 1}, 0.4},
+        {{ItemDataLoader::getItemTypeFromName("Serpent Mask"), 1}, 0.1},
+        {{ItemDataLoader::getItemTypeFromName("Serpent Sceptre"), 1}, 0.1}
+    };
+
     sf::Vector2i playerTile = getWorldTileInside(playerPosition, game.getChunkManager().getWorldSize());
 
     PathfindGridCoordinate spawnTileRelative = game.getChunkManager().getPathfindingEngine().findFurthestOpenTile(playerTile.x, playerTile.y, 40, true);
@@ -60,7 +68,7 @@ void BossSandSerpent::update(Game& game, ProjectileManager& projectileManager, P
             if (shootCooldownTime >= MAX_SHOOT_COOLDOWN_TIME)
             {
                 shootCooldownTime = 0.0f;
-                float angle = std::atan2(player.getPosition().y - (position.y - 50), player.getPosition().x - position.x) * 180.0f / M_PI;
+                float angle = std::atan2(player.getPosition().y - 4 - (position.y - 50), player.getPosition().x - position.x) * 180.0f / M_PI;
                 enemyProjectileManager.addProjectile(std::make_unique<Projectile>(position - sf::Vector2f(0, 50), angle,
                     ToolDataLoader::getProjectileTypeFromName("Serpent Venom"), 1.0f, 1.0f));
             }
@@ -145,6 +153,11 @@ void BossSandSerpent::update(Game& game, ProjectileManager& projectileManager, P
 
             break;
         }
+    }
+
+    if (!player.isAlive())
+    {
+        behaviourState = BossSandSerpentState::Leaving;
     }
 
     // Update animations
@@ -258,22 +271,6 @@ void BossSandSerpent::applyKnockback(Projectile& projectile)
     // static constexpr float KNOCKBACK_STRENGTH = 7.0f;
 
     // velocity -= Helper::normaliseVector(-relativePos) * KNOCKBACK_STRENGTH;
-}
-
-void BossSandSerpent::giveItemDrops(InventoryData& inventory)
-{
-    // static const std::vector<ItemCount> itemDrops = {
-    //     {ItemDataLoader::getItemTypeFromName("Feather"), 10},
-    //     {ItemDataLoader::getItemTypeFromName("Bone"), 5},
-    //     {ItemDataLoader::getItemTypeFromName("Crow Claw"), 2},
-    //     {ItemDataLoader::getItemTypeFromName("Crow Skull"), 1}
-    // };
-
-    // for (const ItemCount& itemDrop : itemDrops)
-    // {
-    //     inventory.addItem(itemDrop.first, itemDrop.second);
-    //     InventoryGUI::pushItemPopup(itemDrop);
-    // }
 }
 
 bool BossSandSerpent::isAlive()

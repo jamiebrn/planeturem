@@ -67,8 +67,6 @@ private:
     void takeBodyDamage(int damage, InventoryData& inventory, sf::Vector2f damagePosition);
     void applyKnockback(Projectile& projectile);
 
-    void giveItemDrops(InventoryData& inventory);
-
 private:
     enum class BossSandSerpentState
     {
@@ -78,8 +76,8 @@ private:
     };
 
 private:
-    static constexpr int MAX_HEAD_HEALTH = 1500;
-    static constexpr int MAX_BODY_HEALTH = 3500;
+    static constexpr int MAX_HEAD_HEALTH = 800;
+    static constexpr int MAX_BODY_HEALTH = 1500;
     int headHealth;
     int bodyHealth;
     bool dead;

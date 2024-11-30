@@ -25,6 +25,7 @@ void BossManager::update(Game& game, ProjectileManager& projectileManager, Proje
         }
         else
         {
+            boss->giveItemDrops(inventory);
             iter = bosses.erase(iter);
 
             // Stop boss music if required

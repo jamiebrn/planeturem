@@ -62,8 +62,6 @@ private:
     void takeDamage(int damage, InventoryData& inventory, sf::Vector2f damagePosition);
     void applyKnockback(Projectile& projectile);
 
-    void giveItemDrops(InventoryData& inventory);
-
     bool isProjectileColliding(Projectile& projectile);
 
     void addDashGhostEffect();

@@ -23,5 +23,30 @@
         "wear-textures": [[768, 48], [784, 48], [800, 48], [816, 48], [832, 48], [848, 48], [864, 48], [880, 48]],
         "defence": 2,
         "sell-value": 3
+    },
+    {
+        "name": "Serpent Mask",
+        "type": "Head",
+        "texture": [752, 64, 16, 16],
+        "wear-textures": [[768, 64], [784, 64], [800, 64], [816, 64], [832, 64], [848, 64], [864, 64], [880, 64]],
+        "wear-texture-offset": [1, -3],
+        "defence": 6,
+        "sell-value": 10
+    },
+    {
+        "name": "Sandscale Chestpiece",
+        "type": "Chest",
+        "texture": [752, 80, 16, 16],
+        "wear-textures": [[768, 80], [784, 80], [800, 80], [816, 80], [832, 80], [848, 80], [864, 80], [880, 80]],
+        "defence": 8,
+        "sell-value": 12
+    },
+    {
+        "name": "Sandscale Boots",
+        "type": "Feet",
+        "texture": [752, 96, 16, 16],
+        "wear-textures": [[768, 96], [784, 96], [800, 96], [816, 96], [832, 96], [848, 96], [864, 96], [880, 96]],
+        "defence": 6,
+        "sell-value": 10
     }
 ]

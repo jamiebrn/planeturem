@@ -43,7 +43,12 @@ public:
     // Test for despawn
     bool inPlayerRange(Player& player);
 
+    void giveItemDrops(InventoryData& inventory);
+
 protected:
     float playerMaxRange = 1000.0f;
+
+    // Item drops and respective chances
+    std::vector<std::pair<ItemCount, float>> itemDrops;
     
 };

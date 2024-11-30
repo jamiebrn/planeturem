@@ -61,16 +61,25 @@
     {
         "name": "Fish",
         "texture": [0, 112, 16, 16],
+        "consumable-data": {
+            "cooldown-time": 20,
+            "health-increase": 25
+        },
         "sell-value": 1
     },
     {
         "name": "Rockfish",
         "texture": [16, 96, 16, 16],
+        "description": "\"Too rough to eat\"",
         "sell-value": 1
     },
     {
         "name": "Sandfish",
         "texture": [16, 112, 16, 16],
+        "consumable-data": {
+            "cooldown-time": 20,
+            "health-increase": 10
+        },
         "sell-value": 1
     },
     {
@@ -138,6 +147,16 @@
         },
         "description": "\"He watches when sun falls for his prey\"",
         "sell-value": 3
+    },
+    {
+        "name": "Sandscale",
+        "texture": [96, 112, 16, 16],
+        "sell-value": 2
+    },
+    {
+        "name": "Serpent Tongue",
+        "texture": [80, 112, 16, 16],
+        "sell-value": 5
     },
 
     {

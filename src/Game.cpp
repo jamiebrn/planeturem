@@ -390,6 +390,7 @@ void Game::runInGame(float dt)
                     if (event.key.code == sf::Keyboard::E || event.key.code == sf::Keyboard::Escape)
                     {
                         handleInventoryClose();
+                        player.setCanMove(true);
                     }
                     break;
                 }
