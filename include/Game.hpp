@@ -263,7 +263,7 @@ private:
 
     bool isDay;
 
-    static constexpr float MUSIC_GAP_MIN = 5.0f;
+    static constexpr float MUSIC_GAP_MIN = 20.0f;
     float musicGapTimer;
     float musicGap;
 

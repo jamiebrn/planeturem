@@ -236,6 +236,52 @@
         "crafting-station": "anvil",
         "crafting-station-level": 1
     },
+
+    {
+        "product": "Sandscale Chestpiece",
+        "item-requirements": {
+            "Sandscale": 4,
+            "Serpent Tongue": 1,
+            "Wood Fibres": 4,
+            "Sewing Needle": 2
+        },
+        "key-items": ["Sandscale", "Serpent Tongue"],
+        "crafting-station": "anvil",
+        "crafting-station-level": 1
+    },
+    {
+        "product": "Sandscale Boots",
+        "item-requirements": {
+            "Sandscale": 3,
+            "Wood Fibres": 3,
+            "Sewing Needle": 1
+        },
+        "key-items": ["Sandscale"],
+        "crafting-station": "anvil",
+        "crafting-station-level": 1
+    },
+    {
+        "product": "Rocket Launch Pad",
+        "item-requirements": {
+            "Iron Bar": 10,
+            "Stone": 25,
+            "Red Scale Fabric": 1
+        },
+        "key-items": ["Iron Bar", "Red Scale Fabric"],
+        "crafting-station": "anvil",
+        "crafting-station-level": 1
+    },
+    {
+        "product": "Red Scale Fabric",
+        "item-requirements": {
+            "Sandscale": 2,
+            "Serpent Tongue": 1
+        },
+        "key-items": ["Sandscale"],
+        "crafting-station": "bench",
+        "crafting-station-level": 1
+    },
+
     {
         "product": "Torch",
         "item-requirements": {

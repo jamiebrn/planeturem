@@ -71,13 +71,14 @@ private:
     enum class BossSandSerpentState
     {
         IdleStage1,
+        ShootingStage1,
         MovingToPlayer,
         Leaving
     };
 
 private:
-    static constexpr int MAX_HEAD_HEALTH = 800;
-    static constexpr int MAX_BODY_HEALTH = 1500;
+    static constexpr int MAX_HEAD_HEALTH = 750;
+    static constexpr int MAX_BODY_HEALTH = 300;
     int headHealth;
     int bodyHealth;
     bool dead;
@@ -100,12 +101,17 @@ private:
     sf::Vector2f pathfindStepTargetPosition;
     int pathfindStepIndex;
 
-    static constexpr float MAX_SHOOT_COOLDOWN_TIME = 0.2f;
+    static constexpr float MAX_SHOOT_COOLDOWN_TIME = 4.0f;
+    static constexpr float MAX_SHOOT_PROJECTILE_COOLDOWN_TIME = 0.15f;
+    static constexpr float MAX_IDLE_COOLDOWN_TIME = 3.0f;
     float shootCooldownTime;
+    float shootProjectileCooldownTime;
+    float idleCooldownTime;
 
     std::unordered_map<BossSandSerpentState, AnimatedTexture> animations;
 
     static const std::array<sf::IntRect, 4> HEAD_FRAMES;
+    static const sf::IntRect SHOOTING_HEAD_FRAME;
     AnimatedTextureMinimal headAnimation;
     // forward = 0, left = -1, right = 1
     int headDirection;

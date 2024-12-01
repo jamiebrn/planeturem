@@ -18,6 +18,8 @@ const std::array<sf::IntRect, 4> BossSandSerpent::HEAD_FRAMES = {
     sf::IntRect(144, 384, 48, 32),
 };
 
+const sf::IntRect BossSandSerpent::SHOOTING_HEAD_FRAME = sf::IntRect(192, 416, 48, 32);
+
 BossSandSerpent::BossSandSerpent(sf::Vector2f playerPosition, Game& game)
 {
     // Sounds::playSound(SoundType::Crow);
@@ -25,9 +27,9 @@ BossSandSerpent::BossSandSerpent(sf::Vector2f playerPosition, Game& game)
 
     itemDrops = {
         {{ItemDataLoader::getItemTypeFromName("Serpent Venom"), 75}, 1.0},
-        {{ItemDataLoader::getItemTypeFromName("Sandscale"), 3}, 0.9},
+        {{ItemDataLoader::getItemTypeFromName("Sandscale"), 3}, 1.0},
         {{ItemDataLoader::getItemTypeFromName("Serpent Tongue"), 1}, 0.4},
-        {{ItemDataLoader::getItemTypeFromName("Serpent Mask"), 1}, 0.1},
+        {{ItemDataLoader::getItemTypeFromName("Serpent Mask"), 1}, 0.2},
         {{ItemDataLoader::getItemTypeFromName("Serpent Sceptre"), 1}, 0.1}
     };
 
@@ -41,7 +43,9 @@ BossSandSerpent::BossSandSerpent(sf::Vector2f playerPosition, Game& game)
     pathfindStepIndex = 0;
 
     animations[BossSandSerpentState::IdleStage1] = AnimatedTexture(4, 80, 51, 0, 301, 0.1);
+    animations[BossSandSerpentState::ShootingStage1] = AnimatedTexture(3, 80, 51, 0, 301, 0.1, false);
     animations[BossSandSerpentState::MovingToPlayer] = AnimatedTexture(4, 16, 32, 192, 384, 0.1);
+    animations[BossSandSerpentState::Leaving] = animations[BossSandSerpentState::MovingToPlayer];
 
     headHealth = MAX_HEAD_HEALTH;
     bodyHealth = MAX_BODY_HEALTH;
@@ -51,6 +55,8 @@ BossSandSerpent::BossSandSerpent(sf::Vector2f playerPosition, Game& game)
     bodyFlashTime = 0.0f;
 
     shootCooldownTime = 0.0f;
+    shootProjectileCooldownTime = 0.0f;
+    idleCooldownTime = 0.0f;
 
     behaviourState = BossSandSerpentState::IdleStage1;
 
@@ -64,13 +70,12 @@ void BossSandSerpent::update(Game& game, ProjectileManager& projectileManager, P
         case BossSandSerpentState::IdleStage1:
         {
             // Update shooting
-            shootCooldownTime += dt;
-            if (shootCooldownTime >= MAX_SHOOT_COOLDOWN_TIME)
+            idleCooldownTime += dt;
+            if (idleCooldownTime >= MAX_IDLE_COOLDOWN_TIME && headHealth > 0)
             {
-                shootCooldownTime = 0.0f;
-                float angle = std::atan2(player.getPosition().y - 4 - (position.y - 50), player.getPosition().x - position.x) * 180.0f / M_PI;
-                enemyProjectileManager.addProjectile(std::make_unique<Projectile>(position - sf::Vector2f(0, 50), angle,
-                    ToolDataLoader::getProjectileTypeFromName("Serpent Venom"), 1.0f, 1.0f));
+                idleCooldownTime = 0.0f;
+                shootProjectileCooldownTime = 0.0f;
+                behaviourState = BossSandSerpentState::ShootingStage1;
             }
 
             float playerDistance = Helper::getVectorLength(player.getPosition() - position);
@@ -99,24 +104,25 @@ void BossSandSerpent::update(Game& game, ProjectileManager& projectileManager, P
                     behaviourState = BossSandSerpentState::Leaving;
                 }
             }
-
-            // Test Collision
-            for (auto& projectile : projectileManager.getProjectiles())
+            break;
+        }
+        case BossSandSerpentState::ShootingStage1:
+        {
+            shootCooldownTime += dt;
+            if (shootCooldownTime >= MAX_SHOOT_COOLDOWN_TIME || headHealth <= 0)
             {
-                sf::Vector2f projectilePos = projectile->getPosition();
-                if (headCollision.isPointColliding(projectilePos.x, projectilePos.y))
-                {
-                    if (takeHeadDamage(projectile->getDamage(), inventory, projectile->getPosition()))
-                    {
-                        projectile->onCollision();
-                        continue;
-                    }
-                }
-                if (bodyCollision.isPointInRect(projectilePos.x, projectilePos.y))
-                {
-                    takeBodyDamage(projectile->getDamage(), inventory, projectile->getPosition());
-                    projectile->onCollision();
-                }
+                shootCooldownTime = 0.0f;
+                behaviourState = BossSandSerpentState::IdleStage1;
+                break;
+            }
+
+            shootProjectileCooldownTime += dt;
+            if (shootProjectileCooldownTime >= MAX_SHOOT_PROJECTILE_COOLDOWN_TIME)
+            {
+                shootProjectileCooldownTime = 0.0f;
+                float angle = std::atan2(player.getPosition().y - 4 - (position.y - 50), player.getPosition().x - position.x) * 180.0f / M_PI;
+                enemyProjectileManager.addProjectile(std::make_unique<Projectile>(position - sf::Vector2f(0, 50), angle,
+                    ToolDataLoader::getProjectileTypeFromName("Serpent Venom"), 1.0f, 1.0f));
             }
             break;
         }
@@ -158,6 +164,28 @@ void BossSandSerpent::update(Game& game, ProjectileManager& projectileManager, P
     if (!player.isAlive())
     {
         behaviourState = BossSandSerpentState::Leaving;
+    }
+
+    if (behaviourState == BossSandSerpentState::IdleStage1 || behaviourState == BossSandSerpentState::ShootingStage1)
+    {
+        // Test Collision
+        for (auto& projectile : projectileManager.getProjectiles())
+        {
+            sf::Vector2f projectilePos = projectile->getPosition();
+            if (headCollision.isPointColliding(projectilePos.x, projectilePos.y))
+            {
+                if (takeHeadDamage(projectile->getDamage(), inventory, projectile->getPosition()))
+                {
+                    projectile->onCollision();
+                    continue;
+                }
+            }
+            if (bodyCollision.isPointInRect(projectilePos.x, projectilePos.y))
+            {
+                takeBodyDamage(projectile->getDamage(), inventory, projectile->getPosition());
+                projectile->onCollision();
+            }
+        }
     }
 
     // Update animations
@@ -229,21 +257,6 @@ bool BossSandSerpent::takeHeadDamage(int damage, InventoryData& inventory, sf::V
     HitMarkers::addHitMarker(damagePosition, damage);
 
     return true;
-
-    // if (health <= HEALTH_SECOND_STAGE_THRESHOLD)
-    // {
-    //     stage = 1;
-    // }
-
-    // if (health <= 0)
-    // {
-    //     // TODO: Manage item drops in boss manager on boss removal
-    //     giveItemDrops(inventory);
-    //     behaviourState = BossBenjaminState::Killed;
-
-    //     // Start falling tween
-    //     fallingTweenID = floatTween.startTween(&flyingHeight, flyingHeight, 0.0f, TWEEN_DEAD_FALLING_TIME, TweenTransition::Sine, TweenEasing::EaseIn);
-    // }
 }
 
 void BossSandSerpent::takeBodyDamage(int damage, InventoryData& inventory, sf::Vector2f damagePosition)
@@ -275,6 +288,12 @@ void BossSandSerpent::applyKnockback(Projectile& projectile)
 
 bool BossSandSerpent::isAlive()
 {
+    if (bodyHealth <= 0)
+    {
+        // Unlock achievement
+        Achievements::attemptAchievementUnlock("KILLED_SANDSERPENT");
+    }
+
     return (bodyHealth > 0);
 }
 
@@ -293,7 +312,8 @@ void BossSandSerpent::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, G
 
     switch (behaviourState)
     {
-        case BossSandSerpentState::IdleStage1:
+        case BossSandSerpentState::IdleStage1: // fallthrough
+        case BossSandSerpentState::ShootingStage1:
         {
             TextureDrawData drawData;
             drawData.type = TextureType::Entities;
@@ -325,10 +345,17 @@ void BossSandSerpent::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, G
 
             sf::IntRect headTextureRect = HEAD_FRAMES[headAnimation.getFrame()];
 
-            if (headDirection != 0)
+            if (behaviourState == BossSandSerpentState::ShootingStage1)
             {
-                drawData.scale.x *= headDirection;
-                headTextureRect.top += HEAD_TEXTURE_Y_OFFSET;
+                headTextureRect = SHOOTING_HEAD_FRAME;
+            }
+            else
+            {
+                if (headDirection != 0)
+                {
+                    drawData.scale.x *= headDirection;
+                    headTextureRect.top += HEAD_TEXTURE_Y_OFFSET;
+                }
             }
 
             shader = std::nullopt;
@@ -351,7 +378,7 @@ void BossSandSerpent::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, G
             drawData.scale = sf::Vector2f(scale, scale);
 
             // Draw tail
-            spriteBatch.draw(window, drawData, animations.at(BossSandSerpentState::MovingToPlayer).getTextureRect());
+            spriteBatch.draw(window, drawData, animations.at(behaviourState).getTextureRect());
             break;
         }
     }
@@ -359,7 +386,7 @@ void BossSandSerpent::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, G
 
 void BossSandSerpent::getHoverStats(sf::Vector2f mouseWorldPos, std::vector<std::string>& hoverStats)
 {
-    if (behaviourState != BossSandSerpentState::IdleStage1)
+    if (behaviourState == BossSandSerpentState::Leaving || behaviourState == BossSandSerpentState::MovingToPlayer)
     {
         return;
     }

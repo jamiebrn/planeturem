@@ -158,6 +158,11 @@
         "texture": [80, 112, 16, 16],
         "sell-value": 5
     },
+    {
+        "name": "Red Scale Fabric",
+        "texture": [64, 112, 16, 16],
+        "sell-value": 5
+    },
 
     {
         "name": "Land",

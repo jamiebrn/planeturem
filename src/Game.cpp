@@ -1,8 +1,5 @@
 #include "Game.hpp"
 
-// TODO: NOVEMBER CHECKLIST
-    // TODO: Finish sand serpent boss fight, including some new armour / weapons
-
 // TODO: DECEMBER CHECKLIST
     // TODO: Working demo
     // TODO: New original planet instead of moon
@@ -681,6 +678,7 @@ void Game::runInGame(float dt)
                         rocketObject->triggerBehaviour(*this, ObjectBehaviourTrigger::RocketFlyUp);
                         // Fade out music
                         Sounds::stopMusic(0.5f);
+                        musicGap = MUSIC_GAP_MIN;
                     }
                 }
                 break;
@@ -702,6 +700,7 @@ void Game::runInGame(float dt)
                         case NPCInteractionGUIEventType::Exit:
                         {
                             npcInteractionGUI.close();
+                            player.setCanMove(true);
                             worldMenuState = WorldMenuState::Main;
                             break;
                         }
@@ -740,6 +739,7 @@ void Game::runInGame(float dt)
                     currentSaveFileSummary.name = "";
                     startChangeStateTransition(GameState::MainMenu);
                     mainMenuGUI.initialise();
+                    Sounds::stopMusic();
                     break;
                 }
             }
@@ -1904,6 +1904,8 @@ void Game::startNewGame(int seed)
 {
     // setWorldSeedFromInput();
 
+    player = Player(sf::Vector2f(0, 0), &armourInventory);
+
     chunkManager.setSeed(seed);
 
     initialiseNewPlanet(PlanetGenDataLoader::getPlanetTypeFromName("Earthlike"));
@@ -1923,6 +1925,7 @@ void Game::startNewGame(int seed)
     lightingTick = LIGHTING_TICK;
 
     worldMenuState = WorldMenuState::Main;
+    musicGap = MUSIC_GAP_MIN;
     startChangeStateTransition(GameState::OnPlanet);
 }
 
@@ -2022,6 +2025,8 @@ bool Game::loadGame(const SaveFileSummary& saveFileSummary)
         return false;
     }
 
+    player = Player(sf::Vector2f(0, 0), &armourInventory);
+
     closeChest();
     
     chunkManager.setSeed(playerGameSave.seed);
@@ -2034,6 +2039,7 @@ bool Game::loadGame(const SaveFileSummary& saveFileSummary)
 
     GameState nextGameState = GameState::OnPlanet;
     worldMenuState = WorldMenuState::Main;
+    musicGap = MUSIC_GAP_MIN;
 
     // Load planet
     if (playerGameSave.planetType >= 0)

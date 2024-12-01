@@ -2,7 +2,7 @@
 
 AnimatedTexture::AnimatedTexture(int frameCount, int frameWidth, int frameHeight, int xStart, int y, float maxFrameTick, bool looping)
 {
-    create(frameCount, frameWidth, frameHeight, xStart, y, maxFrameTick);
+    create(frameCount, frameWidth, frameHeight, xStart, y, maxFrameTick, looping);
 }
 
 void AnimatedTexture::create(int frameCount, int frameWidth, int frameHeight, int xStart, int y, float maxFrameTick, bool looping)
