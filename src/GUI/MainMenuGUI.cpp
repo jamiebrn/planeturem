@@ -180,7 +180,7 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
             {
                 TextDrawData textDrawData;
                 textDrawData.text = "No save files found";
-                textDrawData.position = sf::Vector2f(scaledPanelPaddingX * intScale, elementYPos);
+                textDrawData.position = sf::Vector2f((scaledPanelPaddingX + panelWidth / 2) * intScale, elementYPos);
                 textDrawData.size = 24 * intScale;
                 textDrawData.centeredX = true;
                 textDrawData.centeredY = true;

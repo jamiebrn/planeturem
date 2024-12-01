@@ -383,7 +383,7 @@ void Game::runInGame(float dt)
             {
                 case WorldMenuState::PauseMenu:
                 {
-                    if (event.key.code = sf::Keyboard::Escape)
+                    if (event.key.code == sf::Keyboard::Escape)
                     {
                         worldMenuState = WorldMenuState::Main;
                     }
@@ -1905,6 +1905,8 @@ void Game::startNewGame(int seed)
     // setWorldSeedFromInput();
 
     player = Player(sf::Vector2f(0, 0), &armourInventory);
+    inventory = InventoryData(32);
+    armourInventory = InventoryData(3);
 
     chunkManager.setSeed(seed);
 
