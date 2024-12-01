@@ -3,7 +3,7 @@
 #include <string>
 
 static const std::string GAME_TITLE = "Planeturem";
-static const std::string GAME_VERSION = "prealpha-v0.7";
+static const std::string GAME_VERSION = "alpha-v1.0";
 
 static constexpr float TILE_SIZE_PIXELS_UNSCALED = 16;
 static constexpr float CHUNK_TILE_SIZE = 8;

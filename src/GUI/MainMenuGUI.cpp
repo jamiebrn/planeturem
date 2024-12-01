@@ -16,6 +16,8 @@ void MainMenuGUI::initialise()
     ChunkPosition worldViewChunk = backgroundChunkManager.findValidSpawnChunk(2);
     worldViewPosition.x = worldViewChunk.x * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
     worldViewPosition.y = worldViewChunk.y * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
+
+    backgroundCamera.instantUpdate(worldViewPosition);
 }
 
 void MainMenuGUI::update(float dt, sf::Vector2f mouseScreenPos, Game& game, ProjectileManager& projectileManager, InventoryData& inventory)
@@ -33,14 +35,8 @@ void MainMenuGUI::update(float dt, sf::Vector2f mouseScreenPos, Game& game, Proj
 
 std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, float dt, float gameTime)
 {
-    // Drawing
-    window.clear();
-
     float intScale = ResolutionHandler::getResolutionIntegerScale();
     sf::Vector2f resolution = static_cast<sf::Vector2f>(ResolutionHandler::getResolution());
-
-    const int panelPaddingX = 250 * resolution.x / 1920.0f;
-    const int panelWidth = 500;
     
     // Draw background chunks / world
     std::vector<WorldObject*> worldObjects = backgroundChunkManager.getChunkObjects();
@@ -253,6 +249,7 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
                 menuEvent = MainMenuEvent();
                 menuEvent->type = MainMenuEventType::SaveOptions;
 
+
                 nextUIState = MainMenuState::Main;
             }
             break;
@@ -265,6 +262,59 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
     {
         changeUIState(nextUIState);
     }
+
+    guiContext.draw(window);
+
+    guiContext.endGUI();
+
+    // Version number text
+    TextDrawData versionTextDrawData;
+    versionTextDrawData.text = GAME_VERSION;
+    versionTextDrawData.colour = sf::Color(255, 255, 255);
+    versionTextDrawData.size = 24 * intScale;
+    versionTextDrawData.position = sf::Vector2f(10 * intScale, resolution.y - (24 + 10 ) * intScale);
+
+    TextDraw::drawText(window, versionTextDrawData);
+
+    return menuEvent;
+}
+
+std::optional<PauseMenuEventType> MainMenuGUI::createAndDrawPauseMenu(sf::RenderTarget& window, float dt, float gameTime)
+{
+    float intScale = ResolutionHandler::getResolutionIntegerScale();
+    sf::Vector2f resolution = static_cast<sf::Vector2f>(ResolutionHandler::getResolution());
+    
+    drawPanel(window);
+
+    // Draw title
+    TextureDrawData titleDrawData;
+    titleDrawData.type = TextureType::UI;
+    titleDrawData.scale = sf::Vector2f(3, 3) * intScale;
+    titleDrawData.position = sf::Vector2f((panelPaddingX + panelWidth / 2) * intScale, std::round((140 + std::sin(gameTime) * 20) * intScale));
+    titleDrawData.centerRatio = sf::Vector2f(0.5f, 0.5f);
+
+    TextureManager::drawSubTexture(window, titleDrawData, sf::IntRect(21, 160, 212, 32));
+
+    const int startElementYPos = resolution.y * 0.37f;
+    int elementYPos = startElementYPos;
+
+    int scaledPanelPaddingX = getScaledPanelPaddingX();
+
+    std::optional<PauseMenuEventType> menuEvent = std::nullopt;
+
+    if (guiContext.createButton(scaledPanelPaddingX * intScale, elementYPos, panelWidth * intScale, 75 * intScale, "Resume", buttonStyle).isClicked())
+    {
+        menuEvent = PauseMenuEventType::Resume;
+    }
+
+    elementYPos += 100 * intScale;
+
+    if (guiContext.createButton(scaledPanelPaddingX * intScale, elementYPos, panelWidth * intScale, 75 * intScale, "Quit", buttonStyle).isClicked())
+    {
+        menuEvent = PauseMenuEventType::Quit;
+    }
+
+    updateAndDrawSelectionHoverRect(window, dt);
 
     guiContext.draw(window);
 

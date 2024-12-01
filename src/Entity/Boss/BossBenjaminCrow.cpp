@@ -19,7 +19,7 @@ BossBenjaminCrow::BossBenjaminCrow(sf::Vector2f playerPosition)
     itemDrops = {
         {{ItemDataLoader::getItemTypeFromName("Feather"), 10}, 1.0},
         {{ItemDataLoader::getItemTypeFromName("Bone"), 5}, 1.0},
-        {{ItemDataLoader::getItemTypeFromName("Crow Claw"), 2}, 0.7},
+        {{ItemDataLoader::getItemTypeFromName("Crow Claw"), 2}, 0.5},
         {{ItemDataLoader::getItemTypeFromName("Crow Skull"), 1}, 0.4}
     };
 
@@ -217,8 +217,6 @@ void BossBenjaminCrow::takeDamage(int damage, InventoryData& inventory, sf::Vect
 
     if (health <= 0)
     {
-        // TODO: Manage item drops in boss manager on boss removal
-        giveItemDrops(inventory);
         behaviourState = BossBenjaminState::Killed;
 
         // Start falling tween

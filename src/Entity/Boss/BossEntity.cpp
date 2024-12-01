@@ -8,9 +8,9 @@ bool BossEntity::inPlayerRange(Player& player)
 
 void BossEntity::giveItemDrops(InventoryData& inventory)
 {
-    float randChance = (rand() % 10000) / 10000.0f;
     for (const auto& itemDropChance : itemDrops)
     {
+        float randChance = (rand() % 10000) / 10000.0f;
         if (randChance > itemDropChance.second)
         {
             continue;

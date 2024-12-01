@@ -2,6 +2,7 @@
 
 enum WorldMenuState
 {
+    PauseMenu,
     Main,
     Inventory,
     TravelSelect,

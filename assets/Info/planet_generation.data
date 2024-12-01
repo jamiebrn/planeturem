@@ -46,7 +46,7 @@
                         ["Pig", 0.002]
                     ],
                     "structures": [
-                        ["Stone Dungeon", 0.05]
+                        ["Stone Dungeon", 0.02]
                     ],
                     "fish-catches": [
                         ["Fish", 1, 0.8],
@@ -67,7 +67,7 @@
                         ["Coal Rock", 0.015]
                     ],
                     "structures": [
-                        ["Stone Dungeon", 0.05]
+                        ["Stone Dungeon", 0.02]
                     ],
                     "fish-catches": [
                         ["Rockfish", 1, 0.6],

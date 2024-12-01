@@ -16,7 +16,13 @@
 #include "GUI/Base/GUIContext.hpp"
 #include "GUI/DefaultGUIPanel.hpp"
 
-#include "Types/GameState.hpp"
+enum class MainMenuState
+{
+    Main,
+    StartingNew,
+    SelectingLoad,
+    Options
+};
 
 enum class MainMenuEventType
 {
@@ -33,6 +39,12 @@ struct MainMenuEvent
     int worldSeed;
 };
 
+enum class PauseMenuEventType
+{
+    Resume,
+    Quit
+};
+
 class Game;
 class ProjectileManager;
 class InventoryData;
@@ -47,6 +59,8 @@ public:
     void update(float dt, sf::Vector2f mouseScreenPos, Game& game, ProjectileManager& projectileManager, InventoryData& inventory);
 
     std::optional<MainMenuEvent> createAndDraw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, float dt, float gameTime);
+
+    std::optional<PauseMenuEventType> createAndDrawPauseMenu(sf::RenderTarget& window, float dt, float gameTime);
 
     void setCanInteract(bool value);
 

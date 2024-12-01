@@ -7,11 +7,3 @@ enum GameState
     InStructure,
     InRoomDestination
 };
-
-enum class MainMenuState
-{
-    Main,
-    StartingNew,
-    SelectingLoad,
-    Options
-};

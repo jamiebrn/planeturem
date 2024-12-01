@@ -132,12 +132,12 @@ void Entity::damage(int amount, InventoryData& inventory)
 
     HitMarkers::addHitMarker(position, amount);
 
-    SoundType hitSound = SoundType::HitObject;
-    int soundChance = rand() % 3;
-    if (soundChance == 1) hitSound = SoundType::HitObject2;
-    else if (soundChance == 2) hitSound = SoundType::HitObject3;
+    // SoundType hitSound = SoundType::HitObject;
+    // int soundChance = rand() % 3;
+    // if (soundChance == 1) hitSound = SoundType::HitObject2;
+    // else if (soundChance == 2) hitSound = SoundType::HitObject3;
 
-    Sounds::playSound(hitSound, 60.0f);
+    // Sounds::playSound(hitSound, 60.0f);
 
     if (!isAlive())
     {

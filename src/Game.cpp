@@ -3,6 +3,13 @@
 // TODO: NOVEMBER CHECKLIST
     // TODO: Finish sand serpent boss fight, including some new armour / weapons
 
+// TODO: DECEMBER CHECKLIST
+    // TODO: Working demo
+    // TODO: New original planet instead of moon
+    // TODO: At least 1 new boss, including armour + weapons
+    // TODO: At least 1 new soundtrack
+    // TODO: Make rooms save as types using metadata for chests etc, rather than saving as if were chunk
+
 // TODO: Night and menu music
 
 // PRIORITY: LOW
@@ -285,12 +292,13 @@ void Game::runMainMenu(float dt)
         handleEventsWindow(event);
 
         mainMenuGUI.handleEvent(event);
-        // guiContext.processEvent(event);
     }
 
     sf::Vector2f mouseScreenPos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
 
     mainMenuGUI.update(dt, mouseScreenPos, *this, projectileManager, inventory);
+
+    window.clear();
 
     std::optional<MainMenuEvent> menuEvent = mainMenuGUI.createAndDraw(window, spriteBatch, *this, dt, gameTime);
 
@@ -360,6 +368,7 @@ void Game::runInGame(float dt)
         // Prevents previous state being retained
         travelSelectGUI.handleEvent(event);
         npcInteractionGUI.handleEvent(event);
+        mainMenuGUI.handleEvent(event);
 
         if (isStateTransitioning() || !player.isAlive())
         {
@@ -375,12 +384,24 @@ void Game::runInGame(float dt)
         {
             switch (worldMenuState)
             {
+                case WorldMenuState::PauseMenu:
+                {
+                    if (event.key.code = sf::Keyboard::Escape)
+                    {
+                        worldMenuState = WorldMenuState::Main;
+                    }
+                    break;
+                }
                 case WorldMenuState::Main:
                 {
                     if (event.key.code == sf::Keyboard::E)
                     {
                         worldMenuState = WorldMenuState::Inventory;
                         closeChest();
+                    }
+                    if (event.key.code == sf::Keyboard::Escape)
+                    {
+                        worldMenuState = WorldMenuState::PauseMenu;
                     }
                     break;
                 }
@@ -518,74 +539,77 @@ void Game::runInGame(float dt)
     // -- UPDATING --
     //
 
-    saveSessionPlayTime += dt;
-
-    updateMusic(dt);
-
-    // Update tweens
-    floatTween.update(dt);
-
-    // Update particles
-    particleSystem.update(dt);
-
-    HitMarkers::update(dt);
-
-    camera.update(player.getPosition(), mouseScreenPos, dt);
-
-    dayCycleManager.update(dt);
-    isDay = dayCycleManager.isDay();
-    // updateDayNightCycle(dt);
-
-    if (travelTrigger)
+    if (worldMenuState != WorldMenuState::PauseMenu)
     {
-        travelToDestination();
-    }
+        saveSessionPlayTime += dt;
 
-    // Update depending on game state
-    switch (gameState)
-    {
-        case GameState::OnPlanet:
-            updateOnPlanet(dt);
-            break;
-        case GameState::InStructure:
+        updateMusic(dt);
+
+        // Update tweens
+        floatTween.update(dt);
+
+        // Update particles
+        particleSystem.update(dt);
+
+        HitMarkers::update(dt);
+
+        camera.update(player.getPosition(), mouseScreenPos, dt);
+
+        dayCycleManager.update(dt);
+        isDay = dayCycleManager.isDay();
+        // updateDayNightCycle(dt);
+
+        if (travelTrigger)
         {
-            Room& structureRoom = structureRoomPool.getRoom(structureEnteredID);
-            updateInRoom(dt, structureRoom, true);
-            break;
+            travelToDestination();
         }
-        case GameState::InRoomDestination:
+
+        // Update depending on game state
+        switch (gameState)
         {
-            updateInRoom(dt, roomDestination, false);
-            break;
-        }
-    }
-
-    Cursor::setCursorHidden(!player.canReachPosition(Cursor::getMouseWorldPos(window, camera)));
-    Cursor::setCursorHidden((worldMenuState != WorldMenuState::Main && worldMenuState != WorldMenuState::Inventory) ||
-                            !player.isAlive());
-
-    // Close chest if out of range
-    checkChestOpenInRange();
-
-    // Inventory GUI updating
-    InventoryGUI::updateItemPopups(dt);
-
-    if (player.isAlive())
-    {
-        switch (worldMenuState)
-        {
-            case WorldMenuState::Main:
+            case GameState::OnPlanet:
+                updateOnPlanet(dt);
+                break;
+            case GameState::InStructure:
             {
-                InventoryGUI::updateHotbar(dt, mouseScreenPos);
+                Room& structureRoom = structureRoomPool.getRoom(structureEnteredID);
+                updateInRoom(dt, structureRoom, true);
                 break;
             }
-            case WorldMenuState::NPCShop: // fallthrough
-            case WorldMenuState::Inventory:
+            case GameState::InRoomDestination:
             {
-                // Update inventory GUI available recipes if required, and animations
-                InventoryGUI::updateAvailableRecipes(inventory, nearbyCraftingStationLevels);
-                InventoryGUI::updateInventory(mouseScreenPos, dt, inventory, armourInventory, chestDataPool.getChestDataPtr(openedChestID));
+                updateInRoom(dt, roomDestination, false);
                 break;
+            }
+        }
+
+        Cursor::setCursorHidden(!player.canReachPosition(Cursor::getMouseWorldPos(window, camera)));
+        Cursor::setCursorHidden((worldMenuState != WorldMenuState::Main && worldMenuState != WorldMenuState::Inventory) ||
+                                !player.isAlive());
+
+        // Close chest if out of range
+        checkChestOpenInRange();
+
+        // Inventory GUI updating
+        InventoryGUI::updateItemPopups(dt);
+
+        if (player.isAlive())
+        {
+            switch (worldMenuState)
+            {
+                case WorldMenuState::Main:
+                {
+                    InventoryGUI::updateHotbar(dt, mouseScreenPos);
+                    break;
+                }
+                case WorldMenuState::NPCShop: // fallthrough
+                case WorldMenuState::Inventory:
+                {
+                    // Update inventory GUI available recipes if required, and animations
+                    InventoryGUI::updateAvailableRecipes(inventory, nearbyCraftingStationLevels);
+                    InventoryGUI::updateInventory(mouseScreenPos, dt, inventory, armourInventory, chestDataPool.getChestDataPtr(openedChestID));
+                    break;
+                }
             }
         }
     }
@@ -695,6 +719,31 @@ void Game::runInGame(float dt)
     else
     {
         HealthGUI::drawDeadPrompt(window);
+    }
+
+    if (worldMenuState == WorldMenuState::PauseMenu)
+    {
+        std::optional<PauseMenuEventType> pauseMenuEvent = mainMenuGUI.createAndDrawPauseMenu(window, dt, gameTime);
+
+        if (pauseMenuEvent.has_value())
+        {
+            switch (pauseMenuEvent.value())
+            {
+                case PauseMenuEventType::Resume:
+                {
+                    worldMenuState = WorldMenuState::Main;
+                    break;
+                }
+                case PauseMenuEventType::Quit:
+                {
+                    saveGame();
+                    currentSaveFileSummary.name = "";
+                    startChangeStateTransition(GameState::MainMenu);
+                    mainMenuGUI.initialise();
+                    break;
+                }
+            }
+        }
     }
 
     spriteBatch.endDrawing(window);
@@ -1873,12 +1922,18 @@ void Game::startNewGame(int seed)
     chunkManager.updateChunks(*this, camera);
     lightingTick = LIGHTING_TICK;
 
+    worldMenuState = WorldMenuState::Main;
     startChangeStateTransition(GameState::OnPlanet);
 }
 
 bool Game::saveGame(bool gettingInRocket)
 {
     if (gameState == GameState::MainMenu)
+    {
+        return false;
+    }
+
+    if (currentSaveFileSummary.name.empty())
     {
         return false;
     }
@@ -1978,6 +2033,7 @@ bool Game::loadGame(const SaveFileSummary& saveFileSummary)
     changePlayerTool();
 
     GameState nextGameState = GameState::OnPlanet;
+    worldMenuState = WorldMenuState::Main;
 
     // Load planet
     if (playerGameSave.planetType >= 0)
