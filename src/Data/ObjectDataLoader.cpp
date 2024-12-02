@@ -21,7 +21,7 @@ bool ObjectDataLoader::loadData(std::string objectDataPath)
 
         objectNameToTypeMap[minimalObjectData.name] = objectIdx;
 
-        int sellValue = 0;
+        float sellValue = 0;
         if (iter.value().contains("sell-value")) sellValue = iter.value().at("sell-value");
 
         ItemDataLoader::createItemFromObject(objectIdx, minimalObjectData, sellValue);

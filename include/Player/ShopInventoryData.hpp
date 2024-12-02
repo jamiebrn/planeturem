@@ -16,10 +16,10 @@ public:
         const std::unordered_map<ItemType, float>& sellItemPriceMult);
 
     // Get price of item to buy from inventory
-    int getItemBuyPrice(ItemType itemType);
+    float getItemBuyPrice(ItemType itemType);
 
     // Get currency given if an item is sold to inventory
-    int getItemSellPrice(ItemType itemType);
+    float getItemSellPrice(ItemType itemType);
 
 private:
     std::unordered_map<ItemType, float> buyItemPriceMult;

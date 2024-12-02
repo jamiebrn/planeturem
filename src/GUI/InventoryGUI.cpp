@@ -1674,7 +1674,7 @@ bool InventoryGUI::attemptPurchaseItem(InventoryData& inventory, int shopIndex)
     // Ensure can afford
     int currencyTotal = inventory.getCurrencyValueTotal();
 
-    int price = openShopData->getItemBuyPrice(shopItemSlot->first) * shopItemSlot->second;
+    int price = std::floor(openShopData->getItemBuyPrice(shopItemSlot->first) * shopItemSlot->second);
 
     if (currencyTotal < price)
     {
@@ -1689,7 +1689,7 @@ bool InventoryGUI::attemptPurchaseItem(InventoryData& inventory, int shopIndex)
 
 bool InventoryGUI::attemptSellItemHeld(InventoryData& inventory)
 {
-    int currencyToGive = openShopData->getItemSellPrice(pickedUpItem) * pickedUpItemCount;
+    int currencyToGive = std::floor(openShopData->getItemSellPrice(pickedUpItem) * pickedUpItemCount);
 
     if (inventory.addCurrencyValueItems(currencyToGive) >= currencyToGive)
     {

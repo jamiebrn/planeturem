@@ -105,7 +105,7 @@ ItemType ItemDataLoader::getItemTypeFromName(const std::string& itemName)
     return itemNameToTypeMap[itemName];
 }
 
-void ItemDataLoader::createItemFromObject(ObjectType objectType, const ObjectData& objectData, int sellValue)
+void ItemDataLoader::createItemFromObject(ObjectType objectType, const ObjectData& objectData, float sellValue)
 {
     ItemData objectItemData;
     objectItemData.name = objectData.name;
@@ -126,7 +126,7 @@ void ItemDataLoader::createItemFromObject(ObjectType objectType, const ObjectDat
     itemNameToTypeMap[objectItemData.name] = itemIndex;
 }
 
-void ItemDataLoader::createItemFromTool(const std::string& toolName, ToolType toolType, int sellValue)
+void ItemDataLoader::createItemFromTool(const std::string& toolName, ToolType toolType, float sellValue)
 {
     ItemData toolItemData;
     toolItemData.name = toolName;
@@ -141,7 +141,7 @@ void ItemDataLoader::createItemFromTool(const std::string& toolName, ToolType to
     itemNameToTypeMap[toolItemData.name] = itemIndex;
 }
 
-void ItemDataLoader::createItemFromArmour(ArmourType armourType, const ArmourData& armourData, int sellValue)
+void ItemDataLoader::createItemFromArmour(ArmourType armourType, const ArmourData& armourData, float sellValue)
 {
     ItemData armourItemData;
     armourItemData.name = armourData.name;
@@ -156,7 +156,7 @@ void ItemDataLoader::createItemFromArmour(ArmourType armourType, const ArmourDat
     itemNameToTypeMap[armourItemData.name] = itemIndex;
 }
 
-ItemType ItemDataLoader::createItemFromProjectile(ProjectileType projectileType, const ProjectileData& projectileData, int sellValue)
+ItemType ItemDataLoader::createItemFromProjectile(ProjectileType projectileType, const ProjectileData& projectileData, float sellValue)
 {
     ItemData projectileItemData;
     projectileItemData.name = projectileData.name;

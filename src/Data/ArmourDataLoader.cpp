@@ -43,7 +43,7 @@ bool ArmourDataLoader::loadData(std::string armourDataPath)
             armourData.wearTextureOffset = jsonArmourData.at("wear-texture-offset");
         }
 
-        int sellValue = 0;
+        float sellValue = 0;
         if (jsonArmourData.contains("sell-value")) sellValue = jsonArmourData.at("sell-value");
 
         armourData.defence = jsonArmourData.at("defence");

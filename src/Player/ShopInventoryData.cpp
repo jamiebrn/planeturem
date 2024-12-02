@@ -14,7 +14,7 @@ ShopInventoryData::ShopInventoryData(const std::vector<ItemCount>& items, const 
 }
 
 // Get price of item to buy from inventory
-int ShopInventoryData::getItemBuyPrice(ItemType itemType)
+float ShopInventoryData::getItemBuyPrice(ItemType itemType)
 {
     const ItemData& itemData = ItemDataLoader::getItemData(itemType);
 
@@ -29,7 +29,7 @@ int ShopInventoryData::getItemBuyPrice(ItemType itemType)
 }
 
 // Get currency given if an item is sold to inventory
-int ShopInventoryData::getItemSellPrice(ItemType itemType)
+float ShopInventoryData::getItemSellPrice(ItemType itemType)
 {
     const ItemData& itemData = ItemDataLoader::getItemData(itemType);
 

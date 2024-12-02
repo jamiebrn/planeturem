@@ -24,14 +24,14 @@ public:
 
     static ItemType getItemTypeFromName(const std::string& itemName);
 
-    static void createItemFromObject(ObjectType objectType, const ObjectData& objectData, int sellValue);
+    static void createItemFromObject(ObjectType objectType, const ObjectData& objectData, float sellValue);
 
-    static void createItemFromTool(const std::string& toolName, ToolType toolType, int sellValue);
+    static void createItemFromTool(const std::string& toolName, ToolType toolType, float sellValue);
 
-    static void createItemFromArmour(ArmourType armourType, const ArmourData& armourData, int sellValue);
+    static void createItemFromArmour(ArmourType armourType, const ArmourData& armourData, float sellValue);
 
     // Returns the item type corresponding to the added projectile
-    static ItemType createItemFromProjectile(ProjectileType projectileType, const ProjectileData& projectileData, int sellValue);
+    static ItemType createItemFromProjectile(ProjectileType projectileType, const ProjectileData& projectileData, float sellValue);
 
     static void setItemIsMaterial(ItemType item, bool isMaterial = true);
 
