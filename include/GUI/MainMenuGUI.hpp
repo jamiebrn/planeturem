@@ -81,6 +81,11 @@ private:
     std::string saveNameInput;
     std::string worldSeedInput;
 
+    static constexpr float DELETE_SAVE_MAX_HOLD_TIME = 3.0f;
+    float deleteSaveHoldTime;
+    int deletingSaveIndex;
+    sf::FloatRect deletingRect;
+
     bool canInteract;
 
     ChunkManager backgroundChunkManager;

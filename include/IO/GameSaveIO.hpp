@@ -158,8 +158,11 @@ public:
 
     std::vector<SaveFileSummary> getSaveFiles();
 
+    bool attemptDeleteSave();
+
     bool writeOptionsSave(const OptionsSave& optionsSave);
     bool loadOptionsSave(OptionsSave& optionsSave);
+
 
 private:
     void createSaveDirectoryIfRequired();

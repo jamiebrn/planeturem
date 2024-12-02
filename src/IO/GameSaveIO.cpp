@@ -5,42 +5,6 @@ GameSaveIO::GameSaveIO(std::string fileName)
     this->fileName = fileName;
 }
 
-// bool GameSaveIO::load(PlayerGameSave& playerGameSave, PlanetGameSave& planetGameSave)
-// {
-//     createSaveDirectoryIfRequired();
-
-//     std::filesystem::path dir(getRootDir() + "Saves/" + fileName + "/");
-
-//     if (!std::filesystem::exists(dir))
-//     {
-//         return false;
-//     }
-
-//     try
-//     {
-//         // Load player file
-//         if (!loadPlayerSave(playerGameSave))
-//         {
-//             return false;
-//         }
-
-//         // Load planet file
-//         if (!loadPlanet(playerGameSave.planetType, planetGameSave))
-//         {
-//             throw std::invalid_argument("Could not open planet file for \"" + fileName + "\"");
-//         }
-
-//         return true;
-//     }
-//     catch(const std::exception& e)
-//     {
-//         std::cerr << e.what() << '\n';
-//         return false;
-//     }
-
-//     return false;
-// }
-
 bool GameSaveIO::loadPlayerSave(PlayerGameSave& playerGameSave)
 {
     createSaveDirectoryIfRequired();
@@ -82,13 +46,6 @@ bool GameSaveIO::loadPlayerSave(PlayerGameSave& playerGameSave)
             std::cout << "Error: Player file \"" + fileName + "\" has no previous location. Defaulting to planet \"" + defaultPlanetName + "\"\n";
             playerGameSave.planetType = 0;
         }
-
-        // if (json.contains("in-room"))
-        // {
-        //     playerGameSave.isInRoom = true;
-        //     playerGameSave.inRoomID = json.at("room-id");
-        //     playerGameSave.positionInRoom = json.at("room-player-pos");
-        // }
 
         if (json.contains("time-played"))
         {
@@ -180,45 +137,6 @@ bool GameSaveIO::loadRoomDestinationSave(RoomType roomDestinationType, RoomDesti
     return false;
 }
 
-// bool GameSaveIO::write(const PlayerGameSave& playerGameSave, const PlanetGameSave& planetGameSave)
-// {
-    // createSaveDirectoryIfRequired();
-
-    // try
-    // {
-    //     // Save player file
-    //     if (!writePlayerSave(playerGameSave))
-    //     {
-    //         throw std::invalid_argument("Could not open player file for \"" + fileName + "\"");
-    //     }
-
-        // Save planet file
-    //     {
-    //         const std::string& planetName = PlanetGenDataLoader::getPlanetGenData(playerGameSave.planetType).name;
-
-    //         std::fstream out(getRootDir() + "Saves/" + fileName + "/" + planetName + ".dat", std::ios::out | std::ios::binary);
-
-    //         if (!out || !createAndWriteGameDataVersionMapping(getPlanetGameDataVersionMappingFileName(playerGameSave.planetType)))
-    //         {
-    //             throw std::invalid_argument("Could not open planet file for \"" + fileName + "\"");
-    //         }
-
-    //         cereal::BinaryOutputArchive archive(out);
-
-    //         archive(planetGameSave);
-    //     }
-
-    //     return true;
-    // }
-    // catch(const std::exception& e)
-    // {
-    //     std::cerr << e.what() << '\n';
-    //     return false;
-    // }
-    
-    // return false;
-// }
-
 bool GameSaveIO::writePlayerSave(const PlayerGameSave& playerGameSave)
 {
     createSaveDirectoryIfRequired();
@@ -247,13 +165,6 @@ bool GameSaveIO::writePlayerSave(const PlayerGameSave& playerGameSave)
         {
             json["roomdest"] = StructureDataLoader::getRoomData(playerGameSave.roomDestinationType).name;
         }
-        
-        // if (playerGameSave.isInRoom)
-        // {
-        //     json["in-room"] = true;
-        //     json["room-id"] = playerGameSave.inRoomID;
-        //     json["room-player-pos"] = playerGameSave.positionInRoom;
-        // }
 
         json["time-played"] = playerGameSave.timePlayed;
 
@@ -342,6 +253,34 @@ bool GameSaveIO::loadPlayerSaveFromName(std::string fileName, PlayerGameSave& pl
     this->fileName = previousFileName;
 
     return success;
+}
+
+bool GameSaveIO::attemptDeleteSave()
+{
+    try
+    {
+        std::error_code ec;
+        std::filesystem::permissions(getRootDir() + "Saves/" + fileName + "/",
+            std::filesystem::perms::owner_all,
+            std::filesystem::perm_options::add,
+            ec);
+        if (ec) {
+            std::cerr << "Failed to modify permissions: " << ec.message() << '\n';
+        }
+        std::filesystem::remove_all(getRootDir() + "Saves/" + fileName + "/", ec);
+        if (ec) {
+            std::cerr << ec.message() << '\n';
+        }
+        std::filesystem::remove(getRootDir() + "Saves/" + fileName + "/");
+        return true;
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+        return false;
+    }
+
+    return false;
 }
 
 std::vector<SaveFileSummary> GameSaveIO::getSaveFiles()

@@ -115,7 +115,7 @@ bool Game::initialise()
     // player.setPosition(spawnPos);
 
     // Initialise inventory
-    giveStartingInventory();
+    // giveStartingInventory();
 
     camera.instantUpdate(player.getPosition());
 
@@ -399,6 +399,7 @@ void Game::runInGame(float dt)
                     if (event.key.code == sf::Keyboard::Escape)
                     {
                         worldMenuState = WorldMenuState::PauseMenu;
+                        mainMenuGUI.resetHoverRect();
                     }
                     break;
                 }
@@ -1907,6 +1908,7 @@ void Game::startNewGame(int seed)
     player = Player(sf::Vector2f(0, 0), &armourInventory);
     inventory = InventoryData(32);
     armourInventory = InventoryData(3);
+    giveStartingInventory();
 
     chunkManager.setSeed(seed);
 

@@ -13,12 +13,13 @@ public:
 
     void handleEvent(sf::Event& event);
 
+    void resetHoverRect();
+    
 protected:
     void drawPanel(sf::RenderTarget& window);
 
     void updateAndDrawSelectionHoverRect(sf::RenderTarget& window, float dt);
     void updateSelectionHoverRectDestination(sf::IntRect destinationRect);
-    void resetHoverRect();
 
     int getScaledPanelPaddingX();
 

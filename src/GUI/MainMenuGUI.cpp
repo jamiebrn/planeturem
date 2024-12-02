@@ -6,6 +6,9 @@ void MainMenuGUI::initialise()
     canInteract = true;
     mainMenuState = MainMenuState::Main;
 
+    deleteSaveHoldTime = 0.0f;
+    deletingSaveIndex = -1;
+
     deferHoverRectReset = false;
 
     // static const std::string backgroundWorldSeed = "Planeturem";
@@ -134,10 +137,23 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
             {
                 if (!saveNameInput.empty())
                 {
-                    menuEvent = MainMenuEvent();
-                    menuEvent->type = MainMenuEventType::StartNew;
-                    menuEvent->saveFileSummary.name = saveNameInput;
-                    menuEvent->worldSeed = getWorldSeedFromString(worldSeedInput);
+                    // Check save name does not already exist
+                    bool nameExists = false;
+                    for (const auto& saveFile : saveFileSummaries)
+                    {
+                        if (saveFile.name == saveNameInput)
+                        {
+                            nameExists = true;
+                            break;
+                        }
+                    }
+                    if (!nameExists)
+                    {
+                        menuEvent = MainMenuEvent();
+                        menuEvent->type = MainMenuEventType::StartNew;
+                        menuEvent->saveFileSummary.name = saveNameInput;
+                        menuEvent->worldSeed = getWorldSeedFromString(worldSeedInput);
+                    }
                 }
             }
 
@@ -175,6 +191,45 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
                 elementYPos += 100 * intScale;
             }
 
+            // Test deletion of save
+            if (guiContext.getInputState().rightMouseJustDown)
+            {
+                deleteSaveHoldTime = 0.0f;
+                if (const GUIElement* hoveredElement = guiContext.getHoveredElement();
+                    hoveredElement != nullptr)
+                {
+                    deletingSaveIndex = hoveredElement->getElementID() + saveFilesPerPage * saveFilePage;
+                }
+            }
+            else if (guiContext.getInputState().rightMouseJustUp && deletingSaveIndex >= 0)
+            {
+                deletingSaveIndex = -1;
+            }
+
+            if (deletingSaveIndex >= 0)
+            {
+                const GUIElement* deletingSaveElement = guiContext.getElementByID(deletingSaveIndex % saveFilesPerPage);
+                if (deletingSaveElement)
+                {
+                    deleteSaveHoldTime += dt;
+                    deletingRect = static_cast<sf::FloatRect>(deletingSaveElement->getBoundingBox());
+                    deletingRect.width *= deleteSaveHoldTime / DELETE_SAVE_MAX_HOLD_TIME;
+                }
+                else
+                {
+                    deletingSaveIndex = -1;
+                }
+
+                if (deleteSaveHoldTime >= DELETE_SAVE_MAX_HOLD_TIME)
+                {
+                    GameSaveIO io(saveFileSummaries[deletingSaveIndex].name);
+                    io.attemptDeleteSave();
+                    saveFileSummaries = io.getSaveFiles();
+                    deletingSaveIndex = -1;
+                    deleteSaveHoldTime = 0.0f;
+                }
+            }
+
             // Text if no save files
             if (saveFileSummaries.size() <= 0)
             {
@@ -191,7 +246,7 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
 
             elementYPos = startElementYPos + (100 * intScale) * saveFilesPerPage;
 
-            // Create page scroll buttons if 
+            // Create page scroll buttons if required
             if (saveFileSummaries.size() > saveFilesPerPage)
             {
                 // Create page back button
@@ -203,6 +258,7 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
                     {
                         saveFilePage--;
                         deferHoverRectReset = true; // ui may change
+                        deletingSaveIndex = -1;
                     }
                 }
 
@@ -215,6 +271,7 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
                     {
                         saveFilePage++;
                         deferHoverRectReset = true; // ui may change
+                        deletingSaveIndex = -1;
                     }
                 }
 
@@ -227,6 +284,7 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
                 if (canInteract)
                 {
                     nextUIState = MainMenuState::Main;
+                    deletingSaveIndex = -1;
                 }
             }
             break;
@@ -257,6 +315,16 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
     }
 
     updateAndDrawSelectionHoverRect(window, dt);
+
+    if (mainMenuState == MainMenuState::SelectingLoad && deletingSaveIndex >= 0)
+    {
+        sf::RectangleShape deleteRectDraw;
+        deleteRectDraw.setPosition(sf::Vector2f(deletingRect.left, deletingRect.top));
+        deleteRectDraw.setSize(sf::Vector2f(deletingRect.width, deletingRect.height));
+        deleteRectDraw.setFillColor(sf::Color(230, 20, 20, 150));
+
+        window.draw(deleteRectDraw);
+    }
 
     if (nextUIState != mainMenuState)
     {

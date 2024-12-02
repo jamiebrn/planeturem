@@ -40,7 +40,9 @@ public:
 
     const GUIElement* getHoveredElement() const;
 
-    const inline GUIInputState getInputState() const {return inputState;}
+    const GUIElement* getElementByID(ElementID id) const;
+
+    const inline GUIInputState& getInputState() const {return inputState;}
 
 private:
     std::vector<std::unique_ptr<GUIElement>> elements;

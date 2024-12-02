@@ -9,6 +9,11 @@ void GUIContext::processEvent(const sf::Event& event)
             inputState.leftMouseJustDown = true;
             inputState.leftMousePressed = true;
         }
+        if (event.mouseButton.button == sf::Mouse::Right)
+        {
+            inputState.rightMouseJustDown = true;
+            inputState.rightMousePressed = true;
+        }
     }
 
     if (event.type == sf::Event::MouseButtonReleased)
@@ -19,6 +24,11 @@ void GUIContext::processEvent(const sf::Event& event)
             inputState.leftMousePressed = false;
 
             // activeElementRequiresReset = true;
+        }
+        if (event.mouseButton.button == sf::Mouse::Right)
+        {
+            inputState.rightMouseJustUp = true;
+            inputState.rightMousePressed = false;
         }
     }
 
@@ -57,6 +67,9 @@ void GUIContext::endGUI()
 {
     inputState.leftMouseJustDown = false;
     inputState.leftMouseJustUp = false;
+
+    inputState.rightMouseJustDown = false;
+    inputState.rightMouseJustUp = false;
 
     inputState.charEnterBuffer.clear();
     inputState.backspaceJustPressed = false;
@@ -167,6 +180,16 @@ const GUIElement* GUIContext::getHoveredElement() const
         {
             return element.get();
         }
+    }
+
+    return nullptr;
+}
+
+const GUIElement* GUIContext::getElementByID(ElementID id) const
+{
+    if (id < elements.size())
+    {
+        return elements[id].get();
     }
 
     return nullptr;

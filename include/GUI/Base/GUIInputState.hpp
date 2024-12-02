@@ -15,6 +15,10 @@ struct GUIInputState
     bool leftMouseJustDown = false;
     bool leftMousePressed = false;
 
+    bool rightMouseJustUp = false;
+    bool rightMouseJustDown = false;
+    bool rightMousePressed = false;
+
     int mouseX = 0;
     int mouseY = 0;
 
