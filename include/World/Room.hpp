@@ -72,6 +72,7 @@ public:
     template<class Archive>
     void save(Archive& archive, const std::uint32_t version) const
     {
+        // PODs only used for object metadata, e.g. chests etc
         std::vector<std::vector<std::optional<BuildableObjectPOD>>> pods = getObjectPODs();
         archive(roomType, pods);
     }
@@ -79,19 +80,62 @@ public:
     template<class Archive>
     void load(Archive& archive, const std::uint32_t version)
     {
-        loadingObjectPodsTemp = std::make_unique<std::vector<std::vector<std::optional<BuildableObjectPOD>>>>();
+        if (version == 1)
+        {
+            loadingObjectPodsTemp = std::make_unique<std::vector<std::vector<std::optional<BuildableObjectPOD>>>>();
 
-        archive(roomType, *loadingObjectPodsTemp);
+            archive(roomType, *loadingObjectPodsTemp);
+        }
+        else if (version == 2)
+        {
+            std::vector<std::vector<std::optional<BuildableObjectPOD>>> podMetadatas;
+
+            archive(roomType, podMetadatas);
+
+            createObjects(nullptr);
+
+            for (int y = 0; y < objectGrid.size(); y++)
+            {
+                for (int x = 0; x < objectGrid[y].size(); x++)
+                {
+                    BuildableObject* object = objectGrid[y][x].get();
+
+                    bool usedMetadata = false;
+
+                    if (!podMetadatas[y][x].has_value())
+                    {
+                        continue;
+                    }
+
+                    if (object != nullptr)
+                    {
+                        usedMetadata = object->injectPODMetadata(podMetadatas[y][x].value());
+                    }
+
+                    if (!usedMetadata && podMetadatas[y][x]->chestID != 0xFFFF)
+                    {
+                        if (unusedMetadataChestIDs == nullptr)
+                        {
+                            unusedMetadataChestIDs = std::make_unique<std::vector<uint16_t>>();
+                        }
+
+                        unusedMetadataChestIDs->push_back(podMetadatas[y][x]->chestID);
+                    }
+                }
+            }
+
+            createCollisionRects();
+        }
 
         // loadObjectPODs();
     }
 
     // Also initialises objects from pods and therefore creates collisions etc
-    void mapVersions(const std::unordered_map<ObjectType, ObjectType>& objectVersionMap)
+    // Used in legacy room save handling
+    inline void mapVersions(const std::unordered_map<ObjectType, ObjectType>& objectVersionMap)
     {
         if (loadingObjectPodsTemp == nullptr)
         {
-            std::cout << "Error: attempted to map object versions to room with null object POD\n";
             return;
         }
 
@@ -113,9 +157,24 @@ public:
         loadingObjectPodsTemp.reset();
     }
 
+    inline void clearUnusedChestIDs(ChestDataPool& chestDataPool)
+    {
+        if (unusedMetadataChestIDs == nullptr)
+        {
+            return;
+        }
+
+        for (uint16_t chestID : *unusedMetadataChestIDs)
+        {
+            chestDataPool.destroyChest(chestID);
+        }
+
+        unusedMetadataChestIDs = nullptr;
+    }
+
 private:
-    void createObjects(ChestDataPool& chestDataPool);
-    void setObjectFromBitmask(sf::Vector2i tile, uint8_t bitmaskValue, ChestDataPool& chestDataPool);
+    void createObjects(ChestDataPool* chestDataPool);
+    void setObjectFromBitmask(sf::Vector2i tile, uint8_t bitmaskValue, ChestDataPool* chestDataPool);
 
     void createCollisionRects();
     
@@ -132,7 +191,8 @@ private:
     std::vector<std::vector<std::unique_ptr<BuildableObject>>> objectGrid;
 
     std::unique_ptr<std::vector<std::vector<std::optional<BuildableObjectPOD>>>> loadingObjectPodsTemp = nullptr;
+    std::unique_ptr<std::vector<uint16_t>> unusedMetadataChestIDs = nullptr;
 
 };
 
-CEREAL_CLASS_VERSION(Room, 1);
+CEREAL_CLASS_VERSION(Room, 2);

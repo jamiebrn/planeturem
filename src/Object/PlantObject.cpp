@@ -171,3 +171,9 @@ void PlantObject::loadFromPOD(const BuildableObjectPOD& pod)
     BuildableObject::loadFromPOD(pod);
     dayPlanted = pod.plantDayPlanted;
 }
+
+bool PlantObject::injectPODMetadata(const BuildableObjectPOD& pod)
+{
+    dayPlanted = pod.plantDayPlanted;
+    return true;
+}

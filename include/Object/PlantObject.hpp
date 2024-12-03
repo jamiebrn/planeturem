@@ -32,6 +32,8 @@ public:
     BuildableObjectPOD getPOD() const override;
     void loadFromPOD(const BuildableObjectPOD& pod) override;
 
+    virtual bool injectPODMetadata(const BuildableObjectPOD& pod) override;
+
 private:
     int getPlantStage(int currentDay) const;
     const PlantStageObjectData* getPlantStageData(int currentDay) const;

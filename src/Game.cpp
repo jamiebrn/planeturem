@@ -5,7 +5,6 @@
     // TODO: New original planet instead of moon
     // TODO: At least 1 new boss, including armour + weapons
     // TODO: At least 1 new soundtrack
-    // TODO: Make rooms save as types using metadata for chests etc, rather than saving as if were chunk
 
 // TODO: Night and menu music
 

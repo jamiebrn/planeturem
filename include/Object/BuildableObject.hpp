@@ -83,6 +83,8 @@ public:
     virtual BuildableObjectPOD getPOD() const;
     virtual void loadFromPOD(const BuildableObjectPOD& pod);
 
+    virtual inline bool injectPODMetadata(const BuildableObjectPOD& pod) {return false;}
+
     void mapVersions(const std::unordered_map<ObjectType, ObjectType>& objectVersionMap)
     {
         if (isDummyObject() || isObjectReference())

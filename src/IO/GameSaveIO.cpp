@@ -125,6 +125,7 @@ bool GameSaveIO::loadRoomDestinationSave(RoomType roomDestinationType, RoomDesti
 
         // Map loaded room destination data to new types to prevent saves breaking
         roomDestinationGameSave.mapVersions(gameDataVersionMapping);
+        roomDestinationGameSave.roomDestination.clearUnusedChestIDs(roomDestinationGameSave.chestDataPool);
 
         return true;
     }

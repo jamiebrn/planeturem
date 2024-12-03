@@ -38,6 +38,8 @@ public:
     BuildableObjectPOD getPOD() const override;
     void loadFromPOD(const BuildableObjectPOD& pod) override;
 
+    virtual bool injectPODMetadata(const BuildableObjectPOD& pod) override;
+
 private:
     void removeChestFromPool(Game& game);
 

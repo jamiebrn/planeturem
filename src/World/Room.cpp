@@ -9,7 +9,7 @@ Room::Room(RoomType roomType, ChestDataPool& chestDataPool)
 {
     this->roomType = roomType;
 
-    createObjects(chestDataPool);
+    createObjects(&chestDataPool);
 
     createCollisionRects();
 }
@@ -72,7 +72,7 @@ bool Room::handleStaticCollisionY(CollisionRect& collisionRect, float dy) const
     return collision;
 }
 
-void Room::createObjects(ChestDataPool& chestDataPool)
+void Room::createObjects(ChestDataPool* chestDataPool)
 {
     const sf::Image& bitmaskImage = TextureManager::getBitmask(BitmaskType::Structures);
 
@@ -209,7 +209,7 @@ void Room::updateObjects(Game& game, float dt)
 //     return getObject(selectedTile);
 // }
 
-void Room::setObjectFromBitmask(sf::Vector2i tile, uint8_t bitmaskValue, ChestDataPool& chestDataPool)
+void Room::setObjectFromBitmask(sf::Vector2i tile, uint8_t bitmaskValue, ChestDataPool* chestDataPool)
 {
     const RoomData& roomData = StructureDataLoader::getRoomData(roomType);
 
@@ -233,7 +233,7 @@ void Room::setObjectFromBitmask(sf::Vector2i tile, uint8_t bitmaskValue, ChestDa
     
     std::unique_ptr<BuildableObject> object = BuildableObjectFactory::create(objectPos, objectTypeToSpawn);
 
-    if (roomObjectData.chestContents.has_value())
+    if (roomObjectData.chestContents.has_value() && chestDataPool != nullptr)
     {
         if (roomObjectData.chestContents->size() > 0)
         {
@@ -241,7 +241,7 @@ void Room::setObjectFromBitmask(sf::Vector2i tile, uint8_t bitmaskValue, ChestDa
             {
                 const InventoryData& randomChestContents = roomObjectData.chestContents.value()[rand() % roomObjectData.chestContents->size()];
 
-                uint16_t chestID = chestDataPool.createChest(randomChestContents);
+                uint16_t chestID = chestDataPool->createChest(randomChestContents);
 
                 chest->setChestID(chestID);
             }

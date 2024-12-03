@@ -128,3 +128,9 @@ void ChestObject::loadFromPOD(const BuildableObjectPOD& pod)
     BuildableObject::loadFromPOD(pod);
     chestID = pod.chestID;
 }
+
+bool ChestObject::injectPODMetadata(const BuildableObjectPOD& pod)
+{
+    chestID = pod.chestID;
+    return true;
+}
