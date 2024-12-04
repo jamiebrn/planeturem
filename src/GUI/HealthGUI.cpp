@@ -1,15 +1,16 @@
 #include "GUI/HealthGUI.hpp"
+#include "Player/Player.hpp"
 
-void HealthGUI::drawHealth(sf::RenderTarget& window, SpriteBatch& spriteBatch, int health, int maxHealth, float gameTime, const std::vector<std::string>& extraInfo)
+void HealthGUI::drawHealth(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Player& player, float gameTime, const std::vector<std::string>& extraInfo)
 {
     sf::Vector2u resolution = ResolutionHandler::getResolution();
     float intScale = ResolutionHandler::getResolutionIntegerScale();
 
-    const sf::IntRect heartEmptyRect = sf::IntRect(192, 16, 16, 16);
-    const sf::IntRect heartRect = sf::IntRect(176, 16, 16, 16);
+    static const sf::IntRect heartEmptyRect = sf::IntRect(192, 16, 16, 16);
+    static const sf::IntRect heartRect = sf::IntRect(176, 16, 16, 16);
 
-    int maxHearts = std::ceil(static_cast<float>(maxHealth) / HEALTH_PER_HEART);
-    int fullHearts = std::ceil(static_cast<float>(health) / HEALTH_PER_HEART);
+    int maxHearts = std::ceil(static_cast<float>(player.getMaxHealth()) / HEALTH_PER_HEART);
+    int fullHearts = std::ceil(player.getHealth() / HEALTH_PER_HEART);
 
     // Draw hearts
     for (int i = 1; i <= maxHearts; i++)
@@ -43,7 +44,7 @@ void HealthGUI::drawHealth(sf::RenderTarget& window, SpriteBatch& spriteBatch, i
         {
             if (useProgressShader)
             {
-                float heartProgress = static_cast<float>(health % HEALTH_PER_HEART) / HEALTH_PER_HEART;
+                float heartProgress = static_cast<float>(static_cast<int>(player.getHealth()) % HEALTH_PER_HEART) / HEALTH_PER_HEART;
                 if (heartProgress == 0.0f)
                 {
                     heartProgress = 1.0f;
@@ -64,7 +65,7 @@ void HealthGUI::drawHealth(sf::RenderTarget& window, SpriteBatch& spriteBatch, i
 
     // Draw text showing health
     TextDrawData textDrawData;
-    textDrawData.text = std::to_string(health) + " / " + std::to_string(maxHealth);
+    textDrawData.text = std::to_string(static_cast<int>(player.getHealth())) + " / " + std::to_string(player.getMaxHealth());
     textDrawData.position = sf::Vector2f(resolution.x, (HEART_Y_PADDING * 1.5f + HEART_SIZE * 3) * intScale);
     textDrawData.size = 24 * intScale;
     textDrawData.colour = sf::Color(255, 255, 255);
@@ -79,6 +80,42 @@ void HealthGUI::drawHealth(sf::RenderTarget& window, SpriteBatch& spriteBatch, i
         textDrawData.text = string;
 
         TextDraw::drawText(window, textDrawData);
+    }
+
+    static constexpr int statPadding = 6;
+    static constexpr int statInfoSpacing = 16 * 3 + 10;
+
+    sf::Vector2f statPosition(resolution.x - (statPadding + 16 * 3) * intScale, textDrawData.position.y + 40 * intScale);
+
+    TextureDrawData statDrawData;
+    statDrawData.position = statPosition;
+    statDrawData.type = TextureType::UI;
+    statDrawData.scale = sf::Vector2f(3, 3) * intScale;
+
+    textDrawData.position.y = statPosition.y + 16 / 2 * 3 * intScale;
+    textDrawData.centeredY = true;
+    textDrawData.containPaddingRight = (statPadding + 16 * 3 + 10) * intScale;
+
+    sf::Shader* progressCircleShader = Shaders::getShader(ShaderType::ProgressCircle);
+    progressCircleShader->setUniform("cropOption", 1);
+    progressCircleShader->setUniform("spriteSheetSize", static_cast<sf::Glsl::Vec2>(TextureManager::getTextureSize(TextureType::UI)));
+
+    if (player.getHealthConsumableTimer() > 0)
+    {
+        static const sf::IntRect healthRegenTextureRect(192, 48, 16, 16);
+
+        float progress = 1.0f - (player.getHealthConsumableTimer() / player.getHealthConsumableTimerMax());
+        progressCircleShader->setUniform("progress", progress);
+        progressCircleShader->setUniform("textureRect", sf::Glsl::Vec4(healthRegenTextureRect.left, healthRegenTextureRect.top,
+            healthRegenTextureRect.width, healthRegenTextureRect.height));
+        
+        spriteBatch.draw(window, statDrawData, healthRegenTextureRect, ShaderType::ProgressCircle);
+
+        textDrawData.text = std::to_string(static_cast<int>(player.getHealthConsumableTimer()));
+        TextDraw::drawText(window, textDrawData);
+
+        statDrawData.position.y += statInfoSpacing * intScale;
+        textDrawData.position.y += statInfoSpacing * intScale;
     }
 }
 

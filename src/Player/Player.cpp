@@ -24,7 +24,7 @@ Player::Player(sf::Vector2f position, InventoryData* armourInventory)
     healthRegenCooldownTimer = 0.0f;
     damageCooldownTimer = 0.0f;
     respawnTimer = 0.0f;
-    consumableTimer = 0.0f;
+    healthConsumableTimer = 0.0f;
 
     equippedTool = -1;
     toolRotation = 0;
@@ -231,7 +231,7 @@ void Player::updateTimers(float dt)
         }
     }
 
-    consumableTimer = std::max(consumableTimer - dt, 0.0f);
+    healthConsumableTimer = std::max(healthConsumableTimer - dt, 0.0f);
 }
 
 bool Player::testWorldWrap(int worldSize, sf::Vector2f& wrapPositionDelta)
@@ -271,6 +271,7 @@ bool Player::testWorldWrap(int worldSize, sf::Vector2f& wrapPositionDelta)
 void Player::respawn()
 {
     health = maxHealth;
+    healthConsumableTimer = 0.0f;
 }
 
 void Player::updateFishingRodCatch(float dt)
@@ -653,25 +654,18 @@ bool Player::testHitCollision(const HitRect& hitRect)
 
 bool Player::useConsumable(const ConsumableData& consumable)
 {
-    if (consumableTimer > 0)
-    {
-        return false;
-    }
-
     bool usedConsumable = false;
 
-    if (consumable.healthIncrease > 0 && health < maxHealth)
+    if (consumable.healthIncrease > 0 && health < maxHealth && healthConsumableTimer <= 0)
     {
         int healthIncrease = std::min(static_cast<float>(consumable.healthIncrease), maxHealth - health);
         health += healthIncrease;;
         HitMarkers::addHitMarker(position, healthIncrease, sf::Color(30, 188, 28));
 
-        usedConsumable = true;
-    }
+        healthConsumableTimerMax = consumable.cooldownTime;
+        healthConsumableTimer = healthConsumableTimerMax;
 
-    if (usedConsumable)
-    {
-        consumableTimer = consumable.cooldownTime;
+        usedConsumable = true;
     }
 
     return usedConsumable;

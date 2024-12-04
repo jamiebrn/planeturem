@@ -649,12 +649,12 @@ void Game::runInGame(float dt)
             case WorldMenuState::Main:
                 InventoryGUI::drawHotbar(window, mouseScreenPos, inventory);
                 InventoryGUI::drawItemPopups(window);
-                HealthGUI::drawHealth(window, spriteBatch, player.getHealth(), player.getMaxHealth(), gameTime, extraInfoStrings);
+                HealthGUI::drawHealth(window, spriteBatch, player, gameTime, extraInfoStrings);
                 break;
             
             case WorldMenuState::Inventory:
                 InventoryGUI::draw(window, gameTime, mouseScreenPos, inventory, armourInventory, chestDataPool.getChestDataPtr(openedChestID));
-                HealthGUI::drawHealth(window, spriteBatch, player.getHealth(), player.getMaxHealth(), gameTime, extraInfoStrings);
+                HealthGUI::drawHealth(window, spriteBatch, player, gameTime, extraInfoStrings);
                 break;
             
             case WorldMenuState::TravelSelect:

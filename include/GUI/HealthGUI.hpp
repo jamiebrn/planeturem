@@ -11,6 +11,8 @@
 #include "Core/TextDraw.hpp"
 #include "Core/ResolutionHandler.hpp"
 
+class Player;
+
 namespace HealthGUI
 {
 
@@ -21,7 +23,7 @@ static constexpr int HEART_SIZE = 16;
 
 static constexpr int HEALTH_PER_HEART = 50;
 
-void drawHealth(sf::RenderTarget& window, SpriteBatch& spriteBatch, int health, int maxHealth, float gameTime, const std::vector<std::string>& extraInfo);
+void drawHealth(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Player& player, float gameTime, const std::vector<std::string>& extraInfo);
 
 void drawDeadPrompt(sf::RenderTarget& window);
 

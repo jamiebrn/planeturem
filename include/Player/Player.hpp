@@ -91,7 +91,9 @@ public:
 
     bool isAlive() const;
     inline int getMaxHealth() const {return maxHealth;}
-    inline int getHealth() const {return health;}
+    inline float getHealth() const {return health;}
+    inline float getHealthConsumableTimerMax() const {return healthConsumableTimerMax;}
+    inline float getHealthConsumableTimer() const {return healthConsumableTimer;}
 
 private:
     void updateDirection(sf::Vector2f mouseWorldPos);
@@ -152,7 +154,8 @@ private:
     sf::Vector2i fishingRodBobWorldTile;
 
     // Consumable
-    float consumableTimer;
+    float healthConsumableTimerMax;
+    float healthConsumableTimer;
 
     // In rocket state
     bool inRocket;
