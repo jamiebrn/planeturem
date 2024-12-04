@@ -15,10 +15,6 @@
 
 // -- Public methods / entry point -- //
 
-Game::Game()
-    : player(sf::Vector2f(0, 0), &armourInventory), window()
-{}
-
 bool Game::initialise()
 {
     // Get screen resolution
@@ -96,6 +92,7 @@ bool Game::initialise()
     musicGapTimer = 0.0f;
     musicGap = 0.0f;
 
+    player = Player(sf::Vector2f(0, 0), &armourInventory);
     inventory = InventoryData(32);
     armourInventory = InventoryData(3);
 

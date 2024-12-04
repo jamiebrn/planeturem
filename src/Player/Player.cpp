@@ -455,6 +455,11 @@ void Player::drawFishingRodCast(sf::RenderTarget& window, const Camera& camera, 
 
 void Player::drawArmour(sf::RenderTarget& window, const Camera& camera, float waterYOffset) const
 {
+    if (!armourInventory)
+    {
+        return;
+    }
+
     float scale = ResolutionHandler::getScale();
 
     int xScaleMult = 1;
@@ -622,7 +627,11 @@ bool Player::testHitCollision(const HitRect& hitRect)
     // Calculate defence to modify damage
     if (damageCooldownTimer <= 0)
     {
-        int defence = PlayerStats::calculateDefence(*armourInventory);
+        int defence = 0;
+        if (armourInventory)
+        {
+            defence = PlayerStats::calculateDefence(*armourInventory);
+        }
 
         int damageAmount = std::max(std::round(hitRect.damage * (1.0f - defence / 70.0f)), 0.0f);
         

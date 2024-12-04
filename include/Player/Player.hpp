@@ -45,6 +45,7 @@ class Game;
 class Player : public WorldObject
 {
 public:
+    Player() = default;
     Player(sf::Vector2f position, InventoryData* armourInventory);
 
     void update(float dt, sf::Vector2f mouseWorldPos, ChunkManager& chunkManager, ProjectileManager& enemyProjectileManager,
@@ -133,7 +134,7 @@ private:
     float respawnTimer;
 
     ToolType equippedTool;
-    InventoryData* armourInventory;
+    InventoryData* armourInventory = nullptr;
 
     // Tool animation
     float toolRotation;

@@ -1,10 +1,11 @@
 #include "Core/Shaders.hpp"
 
 const std::unordered_map<ShaderType, ShaderFilePath> Shaders::shaderFilePaths = {
-    {ShaderType::Flash, {"", "Data/shaders/flash.frag"}},
-    {ShaderType::Water, {"", "Data/shaders/water.frag"}},
-    {ShaderType::Lighting, {"", "Data/shaders/lighting.frag"}},
-    {ShaderType::Progress, {"", "Data/shaders/progress.frag"}}
+    {ShaderType::Flash, {"", "Data/Shaders/flash.frag"}},
+    {ShaderType::Water, {"", "Data/Shaders/water.frag"}},
+    {ShaderType::Lighting, {"", "Data/Shaders/lighting.frag"}},
+    {ShaderType::Progress, {"", "Data/Shaders/progress.frag"}},
+    {ShaderType::ProgressCircle, {"", "Data/Shaders/progress_circle.frag"}}
 };
 std::unordered_map<ShaderType, std::unique_ptr<sf::Shader>> Shaders::loadedShaders;
 

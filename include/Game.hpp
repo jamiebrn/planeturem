@@ -85,8 +85,6 @@
 class Game
 {
 public:
-    Game();
-
     bool initialise();
 
     void run();
