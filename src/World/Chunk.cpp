@@ -576,11 +576,13 @@ void Chunk::drawChunkTerrain(sf::RenderTarget& window, const Camera& camera, flo
     }
 }
 
-void Chunk::drawChunkTerrainVisual(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Camera& camera, float time)
+void Chunk::drawChunkTerrainVisual(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Camera& camera, PlanetType planetType, float time)
 {
     // Get tile size and scale
     float scale = ResolutionHandler::getScale();
     // float tileSize = ResolutionHandler::getTileSize();
+
+    const PlanetGenData& planetGenData = PlanetGenDataLoader::getPlanetGenData(planetType);
 
     // Draw visual stuff (edge of tiles/cliffs etc)
     for (int y = 0; y < 8; y++)
@@ -600,19 +602,19 @@ void Chunk::drawChunkTerrainVisual(sf::RenderTarget& window, SpriteBatch& sprite
             switch (visualTileType)
             {
                 case TileType::Visual_Cliff:
-                    textureRect = sf::IntRect(64 + cliffWaterFrame * 16, 0, 16, 16);
+                    textureRect = sf::IntRect(planetGenData.cliffTextureOffset.x + cliffWaterFrame * 16, planetGenData.cliffTextureOffset.y, 16, 16);
                     tileWorldPosition.y -= 2;
                     break;
                 case TileType::Visual_LCliff:
-                    textureRect = sf::IntRect(64 + cliffWaterFrame * 16, 16, 16, 16);
+                    textureRect = sf::IntRect(planetGenData.cliffTextureOffset.x + cliffWaterFrame * 16, planetGenData.cliffTextureOffset.y + 16, 16, 16);
                     tileWorldPosition.y -= 2;
                     break;
                 case TileType::Visual_RCliff:
-                    textureRect = sf::IntRect(64 + cliffWaterFrame * 16, 32, 16, 16);
+                    textureRect = sf::IntRect(planetGenData.cliffTextureOffset.x + cliffWaterFrame * 16, planetGenData.cliffTextureOffset.y + 32, 16, 16);
                     tileWorldPosition.y -= 2;
                     break;
                 case TileType::Visual_LRCliff:
-                    textureRect = sf::IntRect(64 + cliffWaterFrame * 16, 48, 16, 16);
+                    textureRect = sf::IntRect(planetGenData.cliffTextureOffset.x + cliffWaterFrame * 16, planetGenData.cliffTextureOffset.y + 48, 16, 16);
                     tileWorldPosition.y -= 2;
                     break;
             }

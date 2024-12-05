@@ -42,12 +42,19 @@ bool PlanetGenDataLoader::loadPlanet(nlohmann::ordered_json::iterator& planetDat
         planetGenData.displayName = planetGenData.name;
     }
 
-    if (!planetData->contains("water-colour"))
-        return false;
-    
-    planetGenData.waterColour.r = planetData->at("water-colour")[0];
-    planetGenData.waterColour.g = planetData->at("water-colour")[1];
-    planetGenData.waterColour.b = planetData->at("water-colour")[2];
+    if (planetData->contains("water-colour"))
+    {
+        planetGenData.waterColour.r = planetData->at("water-colour")[0];
+        planetGenData.waterColour.g = planetData->at("water-colour")[1];
+        planetGenData.waterColour.b = planetData->at("water-colour")[2];
+    }
+    else
+    {
+        planetGenData.waterColour = sf::Color(255, 255, 255);
+    }
+
+    planetGenData.waterTextureOffset = planetData->at("water-texture-offset");
+    planetGenData.cliffTextureOffset = planetData->at("cliff-texture-offset");
 
     if (!planetData->contains("size"))
         return false;

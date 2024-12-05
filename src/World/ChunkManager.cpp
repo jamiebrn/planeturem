@@ -211,7 +211,7 @@ void ChunkManager::drawChunkTerrain(sf::RenderTarget& window, SpriteBatch& sprit
         ChunkPosition chunkPos = chunkPair.first;
         std::unique_ptr<Chunk>& chunk = chunkPair.second;
         
-        chunk->drawChunkTerrainVisual(window, spriteBatch, camera, time);
+        chunk->drawChunkTerrainVisual(window, spriteBatch, camera, planetType, time);
     }
 }
 
@@ -224,6 +224,8 @@ void ChunkManager::drawChunkWater(sf::RenderTarget& window, const Camera& camera
     // Set water colour
     const PlanetGenData& planetGenData = PlanetGenDataLoader::getPlanetGenData(planetType);
     waterShader->setUniform("waterColor", sf::Glsl::Vec4(planetGenData.waterColour));
+    waterShader->setUniform("spriteSheetSize", sf::Glsl::Vec2(TextureManager::getTextureSize(TextureType::Water)));
+    waterShader->setUniform("textureRect", sf::Glsl::Vec4(planetGenData.waterTextureOffset.x, planetGenData.waterTextureOffset.y, 32, 32));
 
     for (auto& chunkPair : loadedChunks)
     {
