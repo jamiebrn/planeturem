@@ -5,6 +5,7 @@
     // TODO: New original planet instead of moon
     // TODO: At least 1 new boss, including armour + weapons
     // TODO: At least 1 new soundtrack
+    // TODO: Waypoints
 
 // TODO: Night and menu music
 
@@ -1532,7 +1533,7 @@ void Game::drawGhostPlaceLandAtCursor()
 
     // Change color depending on whether can place land or not
     sf::Color landGhostColor(255, 0, 0, 180);
-    if (chunkManager.canPlaceLand(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile()))
+    if (chunkManager.canPlaceLand(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile()) && player.canReachPosition(Cursor::getMouseWorldPos(window, camera)))
     {
         landGhostColor = sf::Color(0, 255, 0, 180);
     }

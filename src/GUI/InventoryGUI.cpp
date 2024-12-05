@@ -1080,7 +1080,7 @@ sf::Vector2f InventoryGUI::drawItemInfoBox(sf::RenderTarget& window, float gameT
         infoStrings.push_back({"Equippable", 20});
         infoStrings.push_back({std::to_string(armourData.defence) + " defence", 20});
     }
-    else if (itemData.placesObjectType >= 0 || itemData.placesLand)
+    else if (itemData.placesObjectType >= 0)
     {
         infoStrings.push_back({"Can be placed", 20});
 
@@ -1110,6 +1110,10 @@ sf::Vector2f InventoryGUI::drawItemInfoBox(sf::RenderTarget& window, float gameT
         {
             infoStrings.push_back({"How have you obtained this..?", 20});
         }
+    }
+    else if (itemData.placesLand)
+    {
+        infoStrings.push_back({"Can be placed", 20});
     }
     else if (itemData.toolType >= 0)
     {

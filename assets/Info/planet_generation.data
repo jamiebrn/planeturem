@@ -4,12 +4,11 @@
         "Dark Grass": [256, 256, 3],
         "Sand": [32, 64, 2],
         "Rock": [32, 272, 1],
-        "Gold": [96, 272, 1],
-        "MoonRock": [32, 336, 1],
-        "MoonRockLow": [96, 336, 1]
+        "Ice": [256, 336, 2]
     },
     "planets": {
         "Earthlike": {
+            "display-name": "Airean",
             "biomes": [
                 {
                     "name": "Oasis",
@@ -82,28 +81,23 @@
             "cliff-texture-offset": [64, 0],
             "size": 240
         },
-        "Moon": {
+        "Cryslan": {
             "biomes": [
                 {
-                    "name": "Main",
+                    "name": "Ice",
                     "tiles": [
-                        ["MoonRockLow", 5, 0.4, 0.55],
-                        ["MoonRock", 6, 0.55, 1]
+                        ["Ice", 5, 0.4, 1.0]
                     ],
                     "objects": [
-                        ["Rock", 0.05]
+                        ["Icicle", 0.1]
                     ],
-                    "fish-catches": [
-                        ["Moonrock", 1, 0.3],
-                        ["Stone", 1, 0.4],
-                        ["Stone", 2, 0.1],
-                        ["Rockfish", 1, 0.2]
-                    ],
+                    "fish-catches": [],
                     "noise-range": [0, 1]
                 }
             ],
-            "water-texture-offset": [32, 0],
-            "cliff-texture-offset": [128, 0],
+            "water-colour": [77, 155, 230],
+            "water-texture-offset": [0, 0],
+            "cliff-texture-offset": [192, 0],
             "size": 100
         }
     }
