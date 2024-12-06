@@ -233,6 +233,18 @@ bool ObjectDataLoader::loadData(std::string objectDataPath)
             objectData.npcObjectData = npcObjectData;
         }
         
+        // Load data if is landmark
+        if (jsonObjectData.contains("landmark-data"))
+        {
+            LandmarkObjectData landmarkObjectData;
+            auto jsonLandmarkData = jsonObjectData.at("landmark-data");
+
+            landmarkObjectData.colour = jsonLandmarkData.at("colour");
+            landmarkObjectData.bloomBitmaskOffset = jsonLandmarkData.at("bloom-bitmask-offset");
+
+            objectData.landmarkObjectData = landmarkObjectData;
+        }
+
         loaded_objectData.push_back(objectData);
     }
 

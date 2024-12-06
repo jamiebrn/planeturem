@@ -422,12 +422,16 @@ BuildableObject* ChunkManager::getChunkObject(ChunkPosition chunk, sf::Vector2i 
     // // Empty object to return if chunk / object does not exist
     // static std::optional<BuildableObject> null = std::nullopt;
 
+    Chunk* chunkPtr = getChunk(chunk);
+
     // Chunk does not exist
-    if (loadedChunks.count(chunk) <= 0)
+    if (!chunkPtr)
+    {
         return nullptr;
+    }
     
     // Get object from chunk
-    BuildableObject* selectedObject = loadedChunks[chunk]->getObject(sf::Vector2i(tile.x, tile.y));
+    BuildableObject* selectedObject = chunkPtr->getObject(sf::Vector2i(tile.x, tile.y));
 
     if (!selectedObject)
         return nullptr;

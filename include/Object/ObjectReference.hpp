@@ -17,4 +17,13 @@ struct ObjectReference
     }
 };
 
+template<>
+struct std::hash<ObjectReference>
+{
+    std::size_t operator()(const ObjectReference& objectReference) const
+    {
+        return std::hash<ChunkPosition>()(objectReference.chunk) ^ std::hash<int>()(objectReference.tile.x) ^ std::hash<int>()(objectReference.tile.y);
+    }
+};
+
 CEREAL_CLASS_VERSION(ObjectReference, 1);
