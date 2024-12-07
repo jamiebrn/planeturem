@@ -5,7 +5,9 @@ const std::unordered_map<ShaderType, ShaderFilePath> Shaders::shaderFilePaths = 
     {ShaderType::Water, {"", "Data/Shaders/water.frag"}},
     {ShaderType::Lighting, {"", "Data/Shaders/lighting.frag"}},
     {ShaderType::Progress, {"", "Data/Shaders/progress.frag"}},
-    {ShaderType::ProgressCircle, {"", "Data/Shaders/progress_circle.frag"}}
+    {ShaderType::ProgressCircle, {"", "Data/Shaders/progress_circle.frag"}},
+    {ShaderType::Blur, {"", "Data/Shaders/blur.frag"}},
+    {ShaderType::ReplaceColour, {"", "Data/Shaders/replace_colour.frag"}}
 };
 std::unordered_map<ShaderType, std::unique_ptr<sf::Shader>> Shaders::loadedShaders;
 

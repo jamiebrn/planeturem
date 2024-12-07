@@ -48,8 +48,6 @@ public:
 
     virtual void createLightSource(LightingEngine& lightingEngine, sf::Vector2f topLeftChunkPos) const = 0;
 
-    virtual inline void drawBloom(sf::RenderTarget& bloomRenderTarget, SpriteBatch& spriteBatch, const Camera& camera) const {};
-
 protected:
     sf::Vector2f position;
     int drawLayer = 0;

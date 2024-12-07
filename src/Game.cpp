@@ -952,6 +952,7 @@ void Game::drawLighting(float dt, std::vector<WorldObject*>& worldObjects)
     worldTexture.display();
 
     sf::Sprite worldTextureSprite(worldTexture.getTexture());
+
     window.draw(worldTextureSprite);
 }
 

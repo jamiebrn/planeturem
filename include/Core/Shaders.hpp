@@ -11,7 +11,9 @@ enum class ShaderType
     Water,
     Lighting,
     Progress,
-    ProgressCircle
+    ProgressCircle,
+    Blur,
+    ReplaceColour
 };
 
 struct ShaderFilePath
