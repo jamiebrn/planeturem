@@ -6,6 +6,7 @@
 #include "Object/RocketObject.hpp"
 #include "Object/PlantObject.hpp"
 #include "Object/NPCObject.hpp"
+#include "Object/LandmarkObject.hpp"
 
 class Game;
 

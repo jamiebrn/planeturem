@@ -21,6 +21,7 @@
 #include "World/ChunkPOD.hpp"
 #include "World/ChestDataPool.hpp"
 #include "World/RoomPool.hpp"
+#include "World/LandmarkManager.hpp"
 #include "Player/InventoryData.hpp"
 
 #include "Object/ObjectReference.hpp"
@@ -80,6 +81,7 @@ struct PlanetGameSave
 
     ChestDataPool chestDataPool;
     RoomPool structureRoomPool;
+    LandmarkManager landmarkManager;
 
     template <class Archive>
     void serialize(Archive& ar, const std::uint32_t version)
@@ -87,6 +89,11 @@ struct PlanetGameSave
         if (version == 1)
         {
             ar(playerLastPlanetPos.x, playerLastPlanetPos.y, isInRoom, inRoomID, positionInRoom.x, positionInRoom.y, rocketObjectUsed, chunks, chestDataPool, structureRoomPool);
+        }
+        else if (version == 2)
+        {
+            ar(playerLastPlanetPos.x, playerLastPlanetPos.y, isInRoom, inRoomID, positionInRoom.x, positionInRoom.y, rocketObjectUsed, chunks, chestDataPool, structureRoomPool,
+                landmarkManager);
         }
     }
 
@@ -125,7 +132,7 @@ struct RoomDestinationGameSave
     }
 };
 
-CEREAL_CLASS_VERSION(PlanetGameSave, 1);
+CEREAL_CLASS_VERSION(PlanetGameSave, 2);
 CEREAL_CLASS_VERSION(RoomDestinationGameSave, 1);
 
 struct SaveFileSummary

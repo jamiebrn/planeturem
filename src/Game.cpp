@@ -850,6 +850,14 @@ void Game::drawOnPlanet(float dt)
     HitMarkers::draw(window, camera);
 
     bossManager.drawStatsAtCursor(window, camera, mouseScreenPos);
+
+    for (sf::Vector2f pos : landmarkManager.getLandmarkWorldPositions(player, chunkManager.getWorldSize()))
+    {
+        sf::Vertex line[2];
+        line[0] = sf::Vertex(camera.worldToScreenTransform(player.getPosition()));
+        line[1] = sf::Vertex(camera.worldToScreenTransform(pos));
+        window.draw(line, 2, sf::Lines);
+    }
 }
 
 void Game::drawWorld(sf::RenderTexture& renderTexture, float dt, std::vector<WorldObject*>& worldObjects, ChunkManager& chunkManagerArg, const Camera& cameraArg)
@@ -1081,6 +1089,17 @@ void Game::interactWithNPC(NPCObject& npc)
 
     npcInteractionGUI.initialise(npc);
     worldMenuState = WorldMenuState::NPCInteract;
+}
+
+// Landmark
+void Game::landmarkPlaced(const LandmarkObject& landmark)
+{
+    landmarkManager.addLandmark(ObjectReference{landmark.getChunkInside(chunkManager.getWorldSize()), landmark.getChunkTileInside(chunkManager.getWorldSize())});
+}
+
+void Game::landmarkDestroyed(const LandmarkObject& landmark)
+{
+    landmarkManager.removeLandmark(ObjectReference{landmark.getChunkInside(chunkManager.getWorldSize()), landmark.getChunkTileInside(chunkManager.getWorldSize())});
 }
 
 // -- In Room -- //
@@ -1780,6 +1799,10 @@ void Game::initialiseNewPlanet(PlanetType planetType, bool placeRocket)
     playerSpawnPos.x = playerSpawnChunk.x * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED + 0.5f * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
     playerSpawnPos.y = playerSpawnChunk.y * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED + 0.5f * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
     player.setPosition(playerSpawnPos);
+
+    chestDataPool = ChestDataPool();
+    structureRoomPool = RoomPool();
+    landmarkManager = LandmarkManager();
     
     camera.instantUpdate(player.getPosition());
 
@@ -1974,6 +1997,7 @@ bool Game::saveGame(bool gettingInRocket)
             planetGameSave.chunks = chunkManager.getChunkPODs();
             planetGameSave.chestDataPool = chestDataPool;
             planetGameSave.structureRoomPool = structureRoomPool;
+            planetGameSave.landmarkManager = landmarkManager;
             
             playerGameSave.planetType = chunkManager.getPlanetType();
             planetGameSave.playerLastPlanetPos = player.getPosition();
@@ -2058,6 +2082,7 @@ bool Game::loadGame(const SaveFileSummary& saveFileSummary)
         chunkManager.loadFromChunkPODs(planetGameSave.chunks, *this);
         chestDataPool = planetGameSave.chestDataPool;
         structureRoomPool = planetGameSave.structureRoomPool;
+        landmarkManager = planetGameSave.landmarkManager;
 
         nextGameState = GameState::OnPlanet;
 
@@ -2146,6 +2171,7 @@ bool Game::loadPlanet(PlanetType planetType)
     chunkManager.loadFromChunkPODs(planetGameSave.chunks, *this);
     chestDataPool = planetGameSave.chestDataPool;
     structureRoomPool = planetGameSave.structureRoomPool;
+    landmarkManager = planetGameSave.landmarkManager;
 
     // assert(planetGameSave.rocketObjectUsed.has_value());
 

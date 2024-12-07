@@ -15,6 +15,11 @@ struct ObjectReference
     {
         ar(chunk.x, chunk.y, tile.x, tile.y);
     }
+
+    bool operator==(const ObjectReference& other) const
+    {
+        return (chunk.x == other.chunk.x && chunk.y == other.chunk.y && tile.x == other.tile.x && tile.y == other.tile.y);
+    }
 };
 
 template<>

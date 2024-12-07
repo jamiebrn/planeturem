@@ -4,17 +4,12 @@
 LandmarkObject::LandmarkObject(sf::Vector2f position, ObjectType objectType, Game& game)
     : BuildableObject(position, objectType)
 {
-
+    game.landmarkPlaced(*this);
 }
 
 BuildableObject* LandmarkObject::clone()
 {
     return new LandmarkObject(*this);
-}
-
-void LandmarkObject::update(Game& game, float dt, bool onWater, bool loopAnimation)
-{
-    BuildableObject::update(game, dt, onWater, loopAnimation);
 }
 
 bool LandmarkObject::damage(int amount, Game& game, InventoryData& inventory, bool giveItems)
@@ -23,7 +18,7 @@ bool LandmarkObject::damage(int amount, Game& game, InventoryData& inventory, bo
 
     if (destroyed)
     {
-        // Alert game that landmark has been destroyed
+        game.landmarkDestroyed(*this);
     }
 
     return destroyed;

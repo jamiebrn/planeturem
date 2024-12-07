@@ -33,6 +33,7 @@
 #include "World/DayCycleManager.hpp"
 #include "World/LightingEngine.hpp"
 #include "World/PathfindingEngine.hpp"
+#include "World/LandmarkManager.hpp"
 
 #include "Player/Player.hpp"
 #include "Player/Cursor.hpp"
@@ -44,6 +45,7 @@
 #include "Object/ChestObject.hpp"
 #include "Object/RocketObject.hpp"
 #include "Object/NPCObject.hpp"
+#include "Object/LandmarkObject.hpp"
 #include "Object/StructureObject.hpp"
 #include "Object/ParticleSystem.hpp"
 
@@ -105,6 +107,10 @@ public:
 
     // NPC
     void interactWithNPC(NPCObject& npc);
+
+    // Landmark
+    void landmarkPlaced(const LandmarkObject& landmark);
+    void landmarkDestroyed(const LandmarkObject& landmark);
 
     void drawWorld(sf::RenderTexture& renderTexture, float dt, std::vector<WorldObject*>& worldObjects, ChunkManager& chunkManagerArg, const Camera& cameraArg);
 
@@ -279,6 +285,7 @@ private:
     ProjectileManager projectileManager;
     ProjectileManager enemyProjectileManager;
     BossManager bossManager;
+    LandmarkManager landmarkManager;
     ParticleSystem particleSystem;
     DayCycleManager dayCycleManager;
     Room roomDestination;

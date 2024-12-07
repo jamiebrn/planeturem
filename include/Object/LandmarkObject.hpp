@@ -14,7 +14,5 @@ public:
 
     BuildableObject* clone() override;
 
-    void update(Game& game, float dt, bool onWater, bool loopAnimation) override;
-
     bool damage(int amount, Game& game, InventoryData& inventory, bool giveItems = true) override;
 };
