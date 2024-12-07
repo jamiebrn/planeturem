@@ -22,7 +22,7 @@ std::unique_ptr<BuildableObject> BuildableObjectFactory::create(sf::Vector2f pos
         {
             return std::make_unique<NPCObject>(position, objectType);
         }
-        if (objectData.landmarkObjectData.has_value() && game)
+        if (objectData.isLandmark && game)
         {
             return std::make_unique<LandmarkObject>(position, objectType, *game);
         }

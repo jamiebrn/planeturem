@@ -234,15 +234,9 @@ bool ObjectDataLoader::loadData(std::string objectDataPath)
         }
         
         // Load data if is landmark
-        if (jsonObjectData.contains("landmark-data"))
+        if (jsonObjectData.contains("is-landmark"))
         {
-            LandmarkObjectData landmarkObjectData;
-            auto jsonLandmarkData = jsonObjectData.at("landmark-data");
-
-            landmarkObjectData.colour = jsonLandmarkData.at("colour");
-            landmarkObjectData.bloomBitmaskOffset = jsonLandmarkData.at("bloom-bitmask-offset");
-
-            objectData.landmarkObjectData = landmarkObjectData;
+            objectData.isLandmark = jsonObjectData.at("is-landmark");
         }
 
         loaded_objectData.push_back(objectData);

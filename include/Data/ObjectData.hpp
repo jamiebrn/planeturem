@@ -48,12 +48,6 @@ struct NPCObjectData
     std::unordered_map<ItemType, float> sellPriceMults;
 };
 
-struct LandmarkObjectData
-{
-    sf::Color colour;
-    sf::Vector2i bloomBitmaskOffset;    
-};
-
 struct ObjectData
 {
     std::string name;
@@ -92,7 +86,7 @@ struct ObjectData
     std::optional<NPCObjectData> npcObjectData = std::nullopt;
 
     // If is landmark
-    std::optional<LandmarkObjectData> landmarkObjectData = std::nullopt;
+    bool isLandmark = false;
 
     bool mythicalItem = false;
 };

@@ -322,17 +322,15 @@
         "texture-y-origin": 0.9375
     },
     {
-        "name": "Purple Landmark",
+        "name": "Landmark",
         "health": 8,
-        "textures": [[128, 96]],
+        "textures": [[128, 80], [144, 80], [160, 80], [176, 80], [192, 80], [208, 80]],
+        "texture-frame-delay": 0.1,
         "texture-width": 16,
-        "texture-height": 16,
+        "texture-height": 32,
         "texture-x-origin": 0.5,
         "texture-y-origin": 1,
-        "landmark-data": {
-            "colour": [168, 49, 243],
-            "bloom-bitmask-offset": [144, 96]
-        }
+        "is-landmark": true
     },
     {
         "name": "AlienHostage",
