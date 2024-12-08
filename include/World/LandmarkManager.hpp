@@ -27,6 +27,8 @@ public:
     // given as a negative value from top of world
     std::vector<sf::Vector2f> getLandmarkWorldPositions(const Player& player, int worldSize);
 
+    void clear();
+
     template <class Archive>
     void serialize(Archive& ar, const std::uint32_t version)
     {

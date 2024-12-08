@@ -69,7 +69,7 @@ void BuildableObject::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, G
 }
 
 void BuildableObject::drawObject(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Camera& camera, float gameTime, int worldSize, const sf::Color& color,
-    std::optional<std::vector<sf::IntRect>> textureRectsOverride, std::optional<sf::Vector2f> textureOriginOverride) const
+    std::optional<std::vector<sf::IntRect>> textureRectsOverride, std::optional<sf::Vector2f> textureOriginOverride, const sf::Texture* textureOverride) const
 {
     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
 
@@ -111,7 +111,29 @@ void BuildableObject::drawObject(sf::RenderTarget& window, SpriteBatch& spriteBa
         shader->setUniform("flash_amount", flash_amount);
     }
 
-    spriteBatch.draw(window, drawData, *textureRect, shaderType);
+    if (textureOverride)
+    {
+        spriteBatch.endDrawing(window);
+
+        sf::Sprite textureSprite;
+        textureSprite.setTexture(*textureOverride);
+        textureSprite.setPosition(drawData.position);
+        textureSprite.setScale(drawData.scale);
+        textureSprite.setOrigin(sf::Vector2f(textureOverride->getSize().x * drawData.centerRatio.x, textureOverride->getSize().y * drawData.centerRatio.y));
+        textureSprite.setColor(drawData.colour);
+
+        sf::Shader* shader = nullptr;
+        if (shaderType.has_value())
+        {
+            shader = Shaders::getShader(shaderType.value());
+        }
+
+        window.draw(textureSprite, shader);
+    }
+    else
+    {
+        spriteBatch.draw(window, drawData, *textureRect, shaderType);
+    }
 }
 
 void BuildableObject::createLightSource(LightingEngine& lightingEngine, sf::Vector2f topLeftChunkPos) const

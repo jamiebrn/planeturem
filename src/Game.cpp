@@ -361,6 +361,7 @@ void Game::runInGame(float dt)
         // Always process events even when GUI is not drawn
         // Prevents previous state being retained
         travelSelectGUI.handleEvent(event);
+        landmarkSetGUI.handleEvent(event);
         npcInteractionGUI.handleEvent(event);
         mainMenuGUI.handleEvent(event);
 
@@ -378,11 +379,13 @@ void Game::runInGame(float dt)
         {
             switch (worldMenuState)
             {
+                case WorldMenuState::SettingLandmark: // fallthrough
                 case WorldMenuState::PauseMenu:
                 {
                     if (event.key.code == sf::Keyboard::Escape)
                     {
                         worldMenuState = WorldMenuState::Main;
+                        player.setCanMove(true);
                     }
                     break;
                 }
@@ -658,6 +661,7 @@ void Game::runInGame(float dt)
                 HealthGUI::drawHealth(window, spriteBatch, player, gameTime, extraInfoStrings);
                 break;
             
+            
             case WorldMenuState::TravelSelect:
             {
                 // std::vector<PlanetType> availableDestinations = getRocketAvailableDestinations();
@@ -681,6 +685,26 @@ void Game::runInGame(float dt)
                 }
                 break;
             }
+
+            case WorldMenuState::SettingLandmark:
+            {
+                LandmarkSetGUIEvent landmarkSetGUIEvent = landmarkSetGUI.createAndDraw(window, dt);
+
+                if (landmarkSetGUIEvent.selected)
+                {
+                    BuildableObject* landmarkObject = getObjectFromChunkOrRoom(landmarkSetGUIEvent.landmarkObjectReference);
+                    if (landmarkObject)
+                    {
+                        landmarkObject->setLandmarkColour(landmarkSetGUIEvent.colourA, landmarkSetGUIEvent.colourB);
+                    }
+
+                    player.setCanMove(true);
+                    worldMenuState = WorldMenuState::Main;
+                }
+
+                break;
+            }
+
             case WorldMenuState::NPCInteract:
             {
                 std::optional<NPCInteractionGUIEvent> npcInteractionGUIEvent = npcInteractionGUI.createAndDraw(window, spriteBatch, dt, gameTime);
@@ -831,7 +855,7 @@ void Game::drawOnPlanet(float dt)
 
     Cursor::drawCursor(window, camera);
 
-    if (player.getTool() < 0)
+    if (player.getTool() < 0 && (worldMenuState == WorldMenuState::Main || worldMenuState == WorldMenuState::Inventory))
     {
         ObjectType placeObject = InventoryGUI::getHeldObjectType(inventory);
 
@@ -1093,9 +1117,20 @@ void Game::interactWithNPC(NPCObject& npc)
 }
 
 // Landmark
-void Game::landmarkPlaced(const LandmarkObject& landmark)
+void Game::landmarkPlaced(const LandmarkObject& landmark, bool createGUI)
 {
-    landmarkManager.addLandmark(ObjectReference{landmark.getChunkInside(chunkManager.getWorldSize()), landmark.getChunkTileInside(chunkManager.getWorldSize())});
+    ObjectReference landmarkObjectReference = ObjectReference{landmark.getChunkInside(chunkManager.getWorldSize()), landmark.getChunkTileInside(chunkManager.getWorldSize())};
+
+    landmarkManager.addLandmark(landmarkObjectReference);
+
+    if (createGUI)
+    {
+        handleInventoryClose();
+        worldMenuState = WorldMenuState::SettingLandmark;
+        landmarkSetGUI.initialise(landmarkObjectReference);
+
+        player.setCanMove(false);
+    }
 }
 
 void Game::landmarkDestroyed(const LandmarkObject& landmark)
@@ -1998,7 +2033,6 @@ bool Game::saveGame(bool gettingInRocket)
             planetGameSave.chunks = chunkManager.getChunkPODs();
             planetGameSave.chestDataPool = chestDataPool;
             planetGameSave.structureRoomPool = structureRoomPool;
-            planetGameSave.landmarkManager = landmarkManager;
             
             playerGameSave.planetType = chunkManager.getPlanetType();
             planetGameSave.playerLastPlanetPos = player.getPosition();
@@ -2083,7 +2117,6 @@ bool Game::loadGame(const SaveFileSummary& saveFileSummary)
         chunkManager.loadFromChunkPODs(planetGameSave.chunks, *this);
         chestDataPool = planetGameSave.chestDataPool;
         structureRoomPool = planetGameSave.structureRoomPool;
-        landmarkManager = planetGameSave.landmarkManager;
 
         nextGameState = GameState::OnPlanet;
 
@@ -2172,7 +2205,6 @@ bool Game::loadPlanet(PlanetType planetType)
     chunkManager.loadFromChunkPODs(planetGameSave.chunks, *this);
     chestDataPool = planetGameSave.chestDataPool;
     structureRoomPool = planetGameSave.structureRoomPool;
-    landmarkManager = planetGameSave.landmarkManager;
 
     // assert(planetGameSave.rocketObjectUsed.has_value());
 
@@ -2488,6 +2520,13 @@ void Game::drawDebugMenu(float dt)
     }
 
     ImGui::Text(("Light level: " + std::to_string(dayCycleManager.getLightLevel())).c_str());
+
+    ImGui::Spacing();
+
+    if (ImGui::Button("Clear Landmarks"))
+    {
+        landmarkManager.clear();
+    }
 
     ImGui::Spacing();
 

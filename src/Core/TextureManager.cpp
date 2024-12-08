@@ -125,16 +125,6 @@ void TextureManager::drawTexture(sf::RenderTarget& window, TextureDrawData drawD
     applyTextureData(drawData);
 
     window.draw(sprite, renderState);
-
-    // Draw with shader if required
-    // if (shader)
-    // {
-    //     window.draw(sprite, shader);
-    //     return;
-    // }
-
-    // // Draw sprite
-    // window.draw(sprite);
 }
 
 // Draw texture using a subrectangle, useful for spritesheets and tiling textures (subrectangle bigger than texture, texture repeats)
@@ -187,5 +177,4 @@ void TextureManager::applyTextureData(TextureDrawData drawData)
 
     // Set colour from draw data
     sprite.setColor(drawData.colour);
-
 }

@@ -59,3 +59,8 @@ std::vector<sf::Vector2f> LandmarkManager::getLandmarkWorldPositions(const Playe
 
     return landmarkWorldPositions;
 }
+
+void LandmarkManager::clear()
+{
+    landmarks.clear();
+}

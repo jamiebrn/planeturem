@@ -74,6 +74,9 @@ public:
 
     inline const std::optional<ObjectReference>& getObjectReference() const {return objectReference;}
 
+    // Landmark interface
+    virtual inline void setLandmarkColour(const sf::Color& colourA, const sf::Color& colourB) {}
+
     // -- Dummy object -- //
     bool isDummyObject();
 
@@ -99,7 +102,8 @@ protected:
     void giveItemDrops(InventoryData& inventory, const std::vector<ItemDrop>& itemDrops);
 
     void drawObject(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Camera& camera, float gameTime, int worldSize, const sf::Color& color,
-        std::optional<std::vector<sf::IntRect>> textureRectsOverride = std::nullopt, std::optional<sf::Vector2f> textureOriginOverride = std::nullopt) const;
+        std::optional<std::vector<sf::IntRect>> textureRectsOverride = std::nullopt, std::optional<sf::Vector2f> textureOriginOverride = std::nullopt,
+        const sf::Texture* textureOverride = nullptr) const;
 
 protected:
     ObjectType objectType = 0;

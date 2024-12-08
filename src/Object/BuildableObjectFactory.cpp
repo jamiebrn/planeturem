@@ -1,6 +1,6 @@
 #include "Object/BuildableObjectFactory.hpp"
 
-std::unique_ptr<BuildableObject> BuildableObjectFactory::create(sf::Vector2f position, ObjectType objectType, Game* game, bool randomisePlantAge)
+std::unique_ptr<BuildableObject> BuildableObjectFactory::create(sf::Vector2f position, ObjectType objectType, Game* game, bool placedByPlayer)
 {
     if (objectType >= 0)
     {
@@ -16,7 +16,7 @@ std::unique_ptr<BuildableObject> BuildableObjectFactory::create(sf::Vector2f pos
         }
         if (objectData.plantStageObjectData.has_value() && game)
         {
-            return std::make_unique<PlantObject>(position, objectType, *game, randomisePlantAge);
+            return std::make_unique<PlantObject>(position, objectType, *game, !placedByPlayer);
         }
         if (objectData.npcObjectData.has_value())
         {
@@ -24,7 +24,7 @@ std::unique_ptr<BuildableObject> BuildableObjectFactory::create(sf::Vector2f pos
         }
         if (objectData.isLandmark && game)
         {
-            return std::make_unique<LandmarkObject>(position, objectType, *game);
+            return std::make_unique<LandmarkObject>(position, objectType, *game, placedByPlayer);
         }
     }
 

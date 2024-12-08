@@ -731,10 +731,8 @@ void Chunk::setObject(sf::Vector2i position, ObjectType objectType, Game& game, 
         objectSize = ObjectDataLoader::getObjectData(objectType).size;
     }
 
-    bool randomisePlantAge = calledWhileGenerating;
-
     // Set object in chunk
-    objectGrid[position.y][position.x] = BuildableObjectFactory::create(objectPos, objectType, &game, randomisePlantAge);
+    objectGrid[position.y][position.x] = BuildableObjectFactory::create(objectPos, objectType, &game, !calledWhileGenerating);
 
     // Create object reference objects if object is larger than one tile
     if (objectSize != sf::Vector2i(1, 1))

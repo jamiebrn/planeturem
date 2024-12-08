@@ -324,13 +324,16 @@
     {
         "name": "Landmark",
         "health": 8,
-        "textures": [[128, 80], [144, 80], [160, 80], [176, 80], [192, 80], [208, 80]],
+        "textures": [[128, 92], [144, 92], [160, 92], [176, 92], [192, 92], [208, 92]],
         "texture-frame-delay": 0.1,
         "texture-width": 16,
-        "texture-height": 32,
+        "texture-height": 20,
         "texture-x-origin": 0.5,
         "texture-y-origin": 1,
-        "is-landmark": true
+        "is-landmark": true,
+        "item-drops": {
+            "Landmark": [1, 1, 1]
+        }
     },
     {
         "name": "AlienHostage",

@@ -77,6 +77,7 @@
 #include "GUI/InventoryGUI.hpp"
 #include "GUI/HealthGUI.hpp"
 #include "GUI/TravelSelectGUI.hpp"
+#include "GUI/LandmarkSetGUI.hpp"
 #include "GUI/NPCInteractionGUI.hpp"
 #include "GUI/HitMarkers.hpp"
 
@@ -109,7 +110,7 @@ public:
     void interactWithNPC(NPCObject& npc);
 
     // Landmark
-    void landmarkPlaced(const LandmarkObject& landmark);
+    void landmarkPlaced(const LandmarkObject& landmark, bool createGUI);
     void landmarkDestroyed(const LandmarkObject& landmark);
 
     void drawWorld(sf::RenderTexture& renderTexture, float dt, std::vector<WorldObject*>& worldObjects, ChunkManager& chunkManagerArg, const Camera& cameraArg);
@@ -275,6 +276,7 @@ private:
     MainMenuGUI mainMenuGUI;
     NPCInteractionGUI npcInteractionGUI;
     TravelSelectGUI travelSelectGUI;
+    LandmarkSetGUI landmarkSetGUI;
 
     // Game general data
     Player player;
