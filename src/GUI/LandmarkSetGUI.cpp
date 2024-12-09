@@ -42,8 +42,11 @@ LandmarkSetGUIEvent LandmarkSetGUI::createAndDraw(sf::RenderWindow& window, floa
 
     for (int i = 0; i < 3; i++)
     {
-        guiContext.createSlider(scaledPanelPaddingX * intScale, yPos, panelWidth * intScale, 75 * intScale,
-            0.0f, 255.0f, &aColour[i], colourStrings[i], panelWidth / 2 * intScale, panelWidth / 10 * intScale, 40 * intScale);
+        if (guiContext.createSlider(scaledPanelPaddingX * intScale, yPos, panelWidth * intScale, 75 * intScale,
+            0.0f, 255.0f, &aColour[i], colourStrings[i], panelWidth / 2 * intScale, panelWidth / 10 * intScale, 40 * intScale).isHeld())
+        {
+            setGUIEvent.modified = true;
+        }
 
         yPos += 100;
     }
@@ -57,8 +60,11 @@ LandmarkSetGUIEvent LandmarkSetGUI::createAndDraw(sf::RenderWindow& window, floa
 
     for (int i = 0; i < 3; i++)
     {
-        guiContext.createSlider(scaledPanelPaddingX * intScale, yPos, panelWidth * intScale, 75 * intScale,
-            0.0f, 255.0f, &bColour[i], colourStrings[i], panelWidth / 2 * intScale, panelWidth / 10 * intScale, 40 * intScale);
+        if (guiContext.createSlider(scaledPanelPaddingX * intScale, yPos, panelWidth * intScale, 75 * intScale,
+            0.0f, 255.0f, &bColour[i], colourStrings[i], panelWidth / 2 * intScale, panelWidth / 10 * intScale, 40 * intScale).isHeld())
+        {
+            setGUIEvent.modified = true;
+        }
 
         yPos += 100;
     }
@@ -66,10 +72,7 @@ LandmarkSetGUIEvent LandmarkSetGUI::createAndDraw(sf::RenderWindow& window, floa
     if (guiContext.createButton(scaledPanelPaddingX * intScale, yPos, panelWidth * intScale, 75 * intScale, "Set Colour", buttonStyle)
         .isClicked())
     {
-        setGUIEvent.selected = true;
-        setGUIEvent.colourA = sf::Color(aColour[0], aColour[1], aColour[2]);
-        setGUIEvent.colourB = sf::Color(bColour[0], bColour[1], bColour[2]);
-        setGUIEvent.landmarkObjectReference = landmarkSettingObjectReference;
+        setGUIEvent.closed = true;
     }
 
     updateAndDrawSelectionHoverRect(window, dt);
@@ -79,4 +82,19 @@ LandmarkSetGUIEvent LandmarkSetGUI::createAndDraw(sf::RenderWindow& window, floa
     guiContext.endGUI();
 
     return setGUIEvent;
+}
+
+sf::Color LandmarkSetGUI::getColourA() const
+{
+    return sf::Color(aColour[0], aColour[1], aColour[2]);
+}
+
+sf::Color LandmarkSetGUI::getColourB() const
+{
+    return sf::Color(bColour[0], bColour[1], bColour[2]);
+}
+
+const ObjectReference& LandmarkSetGUI::getLandmarkObjectReference() const
+{
+    return landmarkSettingObjectReference;
 }

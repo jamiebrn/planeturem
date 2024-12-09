@@ -19,9 +19,8 @@
 
 struct LandmarkSetGUIEvent
 {
-    bool selected = false;
-    sf::Color colourA, colourB;
-    ObjectReference landmarkObjectReference;
+    bool modified = false;
+    bool closed = false;
 };
 
 class LandmarkSetGUI : public DefaultGUIPanel
@@ -32,6 +31,10 @@ public:
     void initialise(ObjectReference landmarkObject);
 
     LandmarkSetGUIEvent createAndDraw(sf::RenderWindow& window, float dt);
+
+    sf::Color getColourA() const;
+    sf::Color getColourB() const;
+    const ObjectReference& getLandmarkObjectReference() const;
 
 private:
     float aColour[3];

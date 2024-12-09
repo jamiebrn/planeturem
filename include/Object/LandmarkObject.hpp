@@ -6,6 +6,7 @@
 
 #include "Object/WorldObject.hpp"
 #include "Object/BuildableObject.hpp"
+#include "Object/BuildableObjectPOD.hpp"
 
 #include "Data/ObjectData.hpp"
 #include "Data/ObjectDataLoader.hpp"
@@ -25,6 +26,9 @@ public:
     bool damage(int amount, Game& game, InventoryData& inventory, bool giveItems = true) override;
 
     virtual void setLandmarkColour(const sf::Color& colourA, const sf::Color& colourB);
+
+    virtual BuildableObjectPOD getPOD() const override;
+    virtual void loadFromPOD(const BuildableObjectPOD& pod) override;
 
 private:
     sf::Color colourA, colourB;

@@ -690,14 +690,16 @@ void Game::runInGame(float dt)
             {
                 LandmarkSetGUIEvent landmarkSetGUIEvent = landmarkSetGUI.createAndDraw(window, dt);
 
-                if (landmarkSetGUIEvent.selected)
+                if (landmarkSetGUIEvent.modified)
                 {
-                    BuildableObject* landmarkObject = getObjectFromChunkOrRoom(landmarkSetGUIEvent.landmarkObjectReference);
+                    BuildableObject* landmarkObject = getObjectFromChunkOrRoom(landmarkSetGUI.getLandmarkObjectReference());
                     if (landmarkObject)
                     {
-                        landmarkObject->setLandmarkColour(landmarkSetGUIEvent.colourA, landmarkSetGUIEvent.colourB);
+                        landmarkObject->setLandmarkColour(landmarkSetGUI.getColourA(), landmarkSetGUI.getColourB());
                     }
-
+                }
+                if (landmarkSetGUIEvent.closed)
+                {
                     player.setCanMove(true);
                     worldMenuState = WorldMenuState::Main;
                 }

@@ -1194,8 +1194,8 @@ void Chunk::loadFromChunkPOD(const ChunkPOD& pod, Game& game)
             if (objectPOD.has_value())
             {
                 sf::Vector2f objectPos;
-                objectPos.x = worldPosition.x + (x + 0.5f) * CHUNK_TILE_SIZE;
-                objectPos.y = worldPosition.y + (y + 0.5f) * CHUNK_TILE_SIZE;
+                objectPos.x = worldPosition.x + (x + 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
+                objectPos.y = worldPosition.y + (y + 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
 
                 std::unique_ptr<BuildableObject> object = BuildableObjectFactory::create(objectPos, objectPOD->objectType, &game);
 

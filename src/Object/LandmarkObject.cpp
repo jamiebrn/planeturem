@@ -56,3 +56,18 @@ void LandmarkObject::setLandmarkColour(const sf::Color& colourA, const sf::Color
     this->colourA = colourA;
     this->colourB = colourB;
 }
+
+BuildableObjectPOD LandmarkObject::getPOD() const
+{
+    BuildableObjectPOD pod = BuildableObject::getPOD();
+    pod.landmarkColourA = colourA;
+    pod.landmarkColourB = colourB;
+    return pod;
+}
+
+void LandmarkObject::loadFromPOD(const BuildableObjectPOD& pod)
+{
+    BuildableObject::loadFromPOD(pod);
+    colourA = pod.landmarkColourA;
+    colourB = pod.landmarkColourB;
+}

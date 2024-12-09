@@ -7,6 +7,8 @@
 #include <extlib/cereal/archives/binary.hpp>
 #include <extlib/cereal/types/optional.hpp>
 
+#include <SFML/Graphics/Color.hpp>
+
 #include "Data/typedefs.hpp"
 #include "Object/ObjectReference.hpp"
 
@@ -18,10 +20,21 @@ struct BuildableObjectPOD
 
     std::optional<ObjectReference> objectReference;
 
+    sf::Color landmarkColourA, landmarkColourB;
+
     template <class Archive>
     void serialize(Archive& ar, const std::uint32_t version)
     {
-        ar(objectType, chestID, objectReference, plantDayPlanted);
+        if (version == 1)
+        {
+            ar(objectType, chestID, objectReference, plantDayPlanted);
+        }
+        else if (version == 2)
+        {
+            ar(objectType, chestID, objectReference, plantDayPlanted,
+                landmarkColourA.r, landmarkColourA.g, landmarkColourA.b,
+                landmarkColourB.r, landmarkColourB.g, landmarkColourB.b);
+        }
     }
 
     void mapVersions(const std::unordered_map<ObjectType, ObjectType>& objectVersionMap)
@@ -35,4 +48,4 @@ struct BuildableObjectPOD
     }
 };
 
-CEREAL_CLASS_VERSION(BuildableObjectPOD, 1);
+CEREAL_CLASS_VERSION(BuildableObjectPOD, 2);
