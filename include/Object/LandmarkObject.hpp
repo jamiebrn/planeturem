@@ -25,7 +25,9 @@ public:
     
     bool damage(int amount, Game& game, InventoryData& inventory, bool giveItems = true) override;
 
-    virtual void setLandmarkColour(const sf::Color& colourA, const sf::Color& colourB);
+    void setLandmarkColour(const sf::Color& colourA, const sf::Color& colourB);
+    const sf::Color& getColourA() const;
+    const sf::Color& getColourB() const;
 
     virtual BuildableObjectPOD getPOD() const override;
     virtual void loadFromPOD(const BuildableObjectPOD& pod) override;

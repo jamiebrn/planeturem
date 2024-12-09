@@ -143,6 +143,7 @@ private:
     void drawOnPlanet(float dt);
 
     void drawLighting(float dt, std::vector<WorldObject*>& worldObjects);
+    void drawLandmarks();
 
     void testEnterStructure();
     void testExitStructure();

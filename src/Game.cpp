@@ -692,10 +692,10 @@ void Game::runInGame(float dt)
 
                 if (landmarkSetGUIEvent.modified)
                 {
-                    BuildableObject* landmarkObject = getObjectFromChunkOrRoom(landmarkSetGUI.getLandmarkObjectReference());
-                    if (landmarkObject)
+                    BuildableObject* objectPtr = getObjectFromChunkOrRoom(landmarkSetGUI.getLandmarkObjectReference());
+                    if (LandmarkObject* landmarkObjectPtr = dynamic_cast<LandmarkObject*>(objectPtr); landmarkObjectPtr != nullptr)
                     {
-                        landmarkObject->setLandmarkColour(landmarkSetGUI.getColourA(), landmarkSetGUI.getColourB());
+                        landmarkObjectPtr->setLandmarkColour(landmarkSetGUI.getColourA(), landmarkSetGUI.getColourB());
                     }
                 }
                 if (landmarkSetGUIEvent.closed)
@@ -875,15 +875,9 @@ void Game::drawOnPlanet(float dt)
 
     HitMarkers::draw(window, camera);
 
-    bossManager.drawStatsAtCursor(window, camera, mouseScreenPos);
+    drawLandmarks();
 
-    for (sf::Vector2f pos : landmarkManager.getLandmarkWorldPositions(player, chunkManager.getWorldSize()))
-    {
-        sf::Vertex line[2];
-        line[0] = sf::Vertex(camera.worldToScreenTransform(player.getPosition()));
-        line[1] = sf::Vertex(camera.worldToScreenTransform(pos));
-        window.draw(line, 2, sf::Lines);
-    }
+    bossManager.drawStatsAtCursor(window, camera, mouseScreenPos);
 }
 
 void Game::drawWorld(sf::RenderTexture& renderTexture, float dt, std::vector<WorldObject*>& worldObjects, ChunkManager& chunkManagerArg, const Camera& cameraArg)
@@ -980,6 +974,46 @@ void Game::drawLighting(float dt, std::vector<WorldObject*>& worldObjects)
     sf::Sprite worldTextureSprite(worldTexture.getTexture());
 
     window.draw(worldTextureSprite);
+}
+
+void Game::drawLandmarks()
+{
+    AnimatedTexture landmarkUIAnimation(6, 16, 16, 96, 112, 0.1);
+
+    landmarkUIAnimation.setFrame(static_cast<int>(gameTime / 0.1) % 6);
+
+    for (const LandmarkSummaryData& landmarkSummary : landmarkManager.getLandmarkSummaryDatas(player, chunkManager))
+    {
+        if (camera.isInView(landmarkSummary.worldPos))
+        {
+            continue;
+        }
+
+        static const int PADDING = 40;
+        float intScale = ResolutionHandler::getResolutionIntegerScale();
+        sf::Vector2u resolution = ResolutionHandler::getResolution();
+
+        sf::Vector2f screenPos = camera.worldToScreenTransform(landmarkSummary.worldPos);
+        screenPos.x = std::clamp(screenPos.x, PADDING * intScale, resolution.x - PADDING * intScale);
+        screenPos.y = std::clamp(screenPos.y, PADDING * intScale, resolution.y - PADDING * intScale);
+
+        TextureDrawData drawData;
+        drawData.type = TextureType::UI;
+        drawData.position = screenPos;
+        drawData.scale = sf::Vector2f(3, 3) * intScale;
+        drawData.centerRatio = sf::Vector2f(0.5f, 0.5f);
+        drawData.colour = sf::Color(255, 255, 255, 150);
+
+        sf::Glsl::Vec4 replaceKeys[2] = {sf::Glsl::Vec4(sf::Color(255, 255, 255)), sf::Glsl::Vec4(sf::Color(0, 0, 0))};
+        sf::Glsl::Vec4 replaceValues[2] = {sf::Glsl::Vec4(landmarkSummary.colourA), sf::Glsl::Vec4(landmarkSummary.colourB)};
+
+        sf::Shader* replaceColourShader = Shaders::getShader(ShaderType::ReplaceColour);
+        replaceColourShader->setUniform("replaceKeyCount", 2);
+        replaceColourShader->setUniformArray("replaceKeys", replaceKeys, 2);
+        replaceColourShader->setUniformArray("replaceValues", replaceValues, 2);
+
+        TextureManager::drawSubTexture(window, drawData, landmarkUIAnimation.getTextureRect(), replaceColourShader);
+    }
 }
 
 

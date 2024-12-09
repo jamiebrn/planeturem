@@ -43,8 +43,7 @@ public:
     // Set offset of camera
     void setOffset(sf::Vector2f newOffset);
 
-    // Returns whether a specific world position with dimensions is in the camera view
-    bool isInView(sf::Vector2f position, sf::Vector2f size) const;
+    bool isInView(sf::Vector2f position) const;
 
 // Private member variables
 private:

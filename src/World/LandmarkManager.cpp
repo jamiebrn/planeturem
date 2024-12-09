@@ -1,5 +1,6 @@
 #include "World/LandmarkManager.hpp"
 #include "Player/Player.hpp"
+#include "World/ChunkManager.hpp"
 
 void LandmarkManager::addLandmark(ObjectReference objectReference)
 {
@@ -11,53 +12,73 @@ void LandmarkManager::removeLandmark(ObjectReference objectReference)
     landmarks.erase(objectReference);
 }
 
-std::vector<sf::Vector2f> LandmarkManager::getLandmarkWorldPositions(const Player& player, int worldSize)
+std::vector<LandmarkSummaryData> LandmarkManager::getLandmarkSummaryDatas(const Player& player, ChunkManager& chunkManager)
 {
-    int worldPixelSize = worldSize * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
+    int worldPixelSize = chunkManager.getWorldSize() * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
     float halfWorldPixelSize = worldPixelSize / 2.0f;
 
-    std::vector<sf::Vector2f> landmarkWorldPositions;
+    std::vector<LandmarkSummaryData> landmarkSummaryDatas;
 
-    for (auto iter = landmarks.begin(); iter != landmarks.end(); iter++)
+    for (auto iter = landmarks.begin(); iter != landmarks.end();)
     {
-        sf::Vector2f landmarkWorldPos;
-        landmarkWorldPos.x = (iter->chunk.x * CHUNK_TILE_SIZE + iter->tile.x) * TILE_SIZE_PIXELS_UNSCALED;
-        landmarkWorldPos.y = (iter->chunk.y * CHUNK_TILE_SIZE + iter->tile.y) * TILE_SIZE_PIXELS_UNSCALED;
+        LandmarkSummaryData landmarkSummary;
 
-        if (player.getPosition().x >= halfWorldPixelSize)
+        BuildableObject* objectPtr = chunkManager.getChunkObject(iter->chunk, iter->tile);
+
+        LandmarkObject* landmarkObjectPtr = dynamic_cast<LandmarkObject*>(objectPtr);
+
+        if (!landmarkObjectPtr)
         {
-            if (landmarkWorldPos.x < halfWorldPixelSize)
-            {
-                landmarkWorldPos.x += worldPixelSize;
-            }
-        }
-        else
-        {
-            if (landmarkWorldPos.x >= halfWorldPixelSize)
-            {
-                landmarkWorldPos.x -= worldPixelSize;
-            }
+            iter = landmarks.erase(iter);
+            continue;
         }
 
-        if (player.getPosition().y >= halfWorldPixelSize)
+        landmarkSummary.worldPos = landmarkObjectPtr->getPosition();
+        landmarkSummary.colourA = landmarkObjectPtr->getColourA();
+        landmarkSummary.colourB = landmarkObjectPtr->getColourB();
+
+        if (std::abs(player.getPosition().x - landmarkSummary.worldPos.x) >= halfWorldPixelSize)
         {
-            if (landmarkWorldPos.y < halfWorldPixelSize)
+            if (player.getPosition().x >= halfWorldPixelSize)
             {
-                landmarkWorldPos.y += worldPixelSize;
+                if (landmarkSummary.worldPos.x < halfWorldPixelSize)
+                {
+                    landmarkSummary.worldPos.x += worldPixelSize;
+                }
             }
-        }
-        else
-        {
-            if (landmarkWorldPos.y >= halfWorldPixelSize)
+            else
             {
-                landmarkWorldPos.y -= worldPixelSize;
+                if (landmarkSummary.worldPos.x >= halfWorldPixelSize)
+                {
+                    landmarkSummary.worldPos.x -= worldPixelSize;
+                }
             }
         }
 
-        landmarkWorldPositions.push_back(landmarkWorldPos);
+        if (std::abs(player.getPosition().y - landmarkSummary.worldPos.y) >= halfWorldPixelSize)
+        {
+            if (player.getPosition().y >= halfWorldPixelSize)
+            {
+                if (landmarkSummary.worldPos.y < halfWorldPixelSize)
+                {
+                    landmarkSummary.worldPos.y += worldPixelSize;
+                }
+            }
+            else
+            {
+                if (landmarkSummary.worldPos.y >= halfWorldPixelSize)
+                {
+                    landmarkSummary.worldPos.y -= worldPixelSize;
+                }
+            }
+        }
+
+        landmarkSummaryDatas.push_back(landmarkSummary);
+
+        iter++;
     }
 
-    return landmarkWorldPositions;
+    return landmarkSummaryDatas;
 }
 
 void LandmarkManager::clear()

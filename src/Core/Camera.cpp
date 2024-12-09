@@ -97,14 +97,10 @@ void Camera::setOffset(sf::Vector2f newOffset)
 }
 
 // Returns whether a specific world position with dimensions is in the camera view
-bool Camera::isInView(sf::Vector2f position, sf::Vector2f size) const
+bool Camera::isInView(sf::Vector2f position) const
 {
-    // Calculate camera view world bounds (with object size)
-    float minX = offset.x - size.x;
-    float minY = offset.y - size.y;
-    float maxX = offset.x + 1280 + size.x;
-    float maxY = offset.y + 720 + size.y;
+    sf::Vector2f screenPos = worldToScreenTransform(position);
 
-    // Return whether position is within bounds
-    return (position.x >= minX && position.y >= minY && position.x <= maxX && position.y <= maxY);
+    return (screenPos.x >= 0 && screenPos.x <= ResolutionHandler::getResolution().x &&
+            screenPos.y >= 0 && screenPos.y <= ResolutionHandler::getResolution().y);
 }

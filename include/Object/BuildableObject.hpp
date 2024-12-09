@@ -74,9 +74,6 @@ public:
 
     inline const std::optional<ObjectReference>& getObjectReference() const {return objectReference;}
 
-    // Landmark interface
-    virtual inline void setLandmarkColour(const sf::Color& colourA, const sf::Color& colourB) {}
-
     // -- Dummy object -- //
     bool isDummyObject();
 
