@@ -322,6 +322,33 @@
         "texture-y-origin": 0.9375
     },
     {
+        "name": "Large Icicle",
+        "health": 18,
+        "textures": [[336, 203]],
+        "texture-width": 16,
+        "texture-height": 21,
+        "texture-x-origin": 0.5,
+        "texture-y-origin": 0.9375
+    },
+    {
+        "name": "Large Icicle Left",
+        "health": 18,
+        "textures": [[320, 203]],
+        "texture-width": 16,
+        "texture-height": 21,
+        "texture-x-origin": 0.5625,
+        "texture-y-origin": 0.9375
+    },
+    {
+        "name": "Large Icicle Right",
+        "health": 18,
+        "textures": [[352, 203]],
+        "texture-width": 16,
+        "texture-height": 21,
+        "texture-x-origin": 0.4375,
+        "texture-y-origin": 0.9375
+    },
+    {
         "name": "Landmark",
         "health": 8,
         "textures": [[128, 92], [144, 92], [160, 92], [176, 92], [192, 92], [208, 92]],

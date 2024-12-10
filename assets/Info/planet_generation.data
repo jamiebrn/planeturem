@@ -4,7 +4,8 @@
         "Dark Grass": [256, 256, 3],
         "Sand": [32, 64, 2],
         "Rock": [32, 272, 1],
-        "Ice": [256, 336, 2]
+        "Ice": [256, 336, 2],
+        "Snow": [256, 400, 2]
     },
     "planets": {
         "Earthlike": {
@@ -90,10 +91,25 @@
                         ["Ice", 5, 0.4, 1.0]
                     ],
                     "objects": [
-                        ["Icicle", 0.1]
+                        ["Icicle", 0.06],
+                        ["Large Icicle", 0.02],
+                        ["Large Icicle Left", 0.01],
+                        ["Large Icicle Right", 0.01]
                     ],
                     "fish-catches": [],
-                    "noise-range": [0, 1]
+                    "noise-range": [0, 0.5]
+                },
+                {
+                    "name": "Tundra",
+                    "tiles": [
+                        ["Ice", 5, 0.4, 0.55],
+                        ["Snow", 6, 0.55, 1.0]
+                    ],
+                    "objects": [
+                        ["Icicle", 0.02]
+                    ],
+                    "fish-catches": [],
+                    "noise-range": [0.5, 1]
                 }
             ],
             "water-colour": [77, 155, 230],
