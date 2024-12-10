@@ -20,7 +20,16 @@ void BossManager::update(Game& game, ProjectileManager& projectileManager, Proje
         BossEntity* boss = iter->get();
         if (boss->isAlive() && boss->inPlayerRange(player))
         {
-            boss->update(game, projectileManager, enemyProjectileManager, inventory, player, dt);
+            boss->update(game, enemyProjectileManager, player, dt);
+
+            for (auto& projectile : projectileManager.getProjectiles())
+            {
+                if (!projectile->isAlive())
+                {
+                    continue;
+                }
+                boss->testProjectileCollision(*projectile, inventory);
+            }
             iter++;
         }
         else

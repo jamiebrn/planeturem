@@ -45,7 +45,7 @@ BossBenjaminCrow::BossBenjaminCrow(sf::Vector2f playerPosition)
     updateCollision();
 }
 
-void BossBenjaminCrow::update(Game& game, ProjectileManager& projectileManager, ProjectileManager& enemyProjectileManager, InventoryData& inventory, Player& player, float dt)
+void BossBenjaminCrow::update(Game& game, ProjectileManager& enemyProjectileManager, Player& player, float dt)
 {
     // Update animation
     idleAnims[stage].update(dt);
@@ -164,17 +164,6 @@ void BossBenjaminCrow::update(Game& game, ProjectileManager& projectileManager, 
         velocity.y = Helper::lerp(velocity.y, direction.y * currentMoveSpeed * speedMult, VELOCITY_LERP_WEIGHT * dt);
 
         position += velocity * dt;
-        
-        // Check projectile collisions   
-        for (auto& projectile : projectileManager.getProjectiles())
-        {
-            if (isProjectileColliding(*projectile))
-            {
-                takeDamage(projectile->getDamage(), inventory, projectile->getPosition());
-                applyKnockback(*projectile);
-                projectile->onCollision();
-            }
-        }
     }
     else
     {
@@ -397,6 +386,21 @@ void BossBenjaminCrow::testCollisionWithPlayer(Player& player)
     hitRect.damage = damageValues[stage];
 
     player.testHitCollision(hitRect);
+}
+
+void BossBenjaminCrow::testProjectileCollision(Projectile& projectile, InventoryData& inventory)
+{
+    if (behaviourState == BossBenjaminState::Killed)
+    {    
+        return;
+    }
+    
+    if (isProjectileColliding(projectile))
+    {
+        takeDamage(projectile.getDamage(), inventory, projectile.getPosition());
+        applyKnockback(projectile);
+        projectile.onCollision();
+    }
 }
 
 void BossBenjaminCrow::getWorldObjects(std::vector<WorldObject*>& worldObjects)

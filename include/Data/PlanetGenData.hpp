@@ -3,6 +3,7 @@
 #include <string>
 #include <map>
 #include <vector>
+#include <unordered_set>
 
 #include <SFML/System/Vector2.hpp>
 #include <SFML/Graphics/Color.hpp>
@@ -63,6 +64,8 @@ struct BiomeGenData
 
     float noiseRangeMin;
     float noiseRangeMax;
+
+    std::unordered_set<std::string> bossesSpawnAllowedNames;
 };
 
 struct PlanetGenData
@@ -78,4 +81,6 @@ struct PlanetGenData
     sf::Vector2i cliffTextureOffset;
 
     int worldSize;
+
+    std::unordered_set<std::string> bossesSpawnAllowedNames;
 };

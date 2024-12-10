@@ -60,7 +60,12 @@ bool PlanetGenDataLoader::loadPlanet(nlohmann::ordered_json::iterator& planetDat
         return false;
     
     planetGenData.worldSize = planetData->at("size");
-    
+
+    if (planetData->contains("bosses-spawn-allowed"))
+    {
+        planetGenData.bossesSpawnAllowedNames = planetData->at("bosses-spawn-allowed");
+    }
+
     if (!planetData->contains("biomes"))
         return false;
     
@@ -191,6 +196,11 @@ bool PlanetGenDataLoader::loadPlanet(nlohmann::ordered_json::iterator& planetDat
 
                 biomeGenData.fishCatchDatas.push_back(fishCatchData);
             }
+        }
+
+        if (biomeIter->contains("bosses-spawn-allowed"))
+        {
+            biomeGenData.bossesSpawnAllowedNames = biomeIter->at("bosses-spawn-allowed");
         }
 
         planetGenData.biomeGenDatas.push_back(biomeGenData);

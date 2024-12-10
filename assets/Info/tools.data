@@ -26,7 +26,16 @@
             "texture-width": 16,
             "texture-height": 16,
             "origin": [0.5, 0.5],
-            "damage-range": [20, 25],
+            "damage-range": [12, 15],
+            "speed": 240
+        },
+        {
+            "name": "Serpent Venom BOSS",
+            "texture": [64, 96],
+            "texture-width": 16,
+            "texture-height": 16,
+            "origin": [0.5, 0.5],
+            "damage-range": [23, 26],
             "speed": 240
         }
     ],
@@ -106,7 +115,7 @@
             "pivot-y": 0.8125,
             "hold-offset": [3, -4],
             "projectile-damage-mult": 1.0,
-            "shoot-power": 1.5,
+            "shoot-power": 1.0,
             "projectiles": ["Serpent Venom"],
             "sell-value": 18
         }

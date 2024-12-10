@@ -286,7 +286,7 @@
             "texture": [32, 343, 16, 41],
             "texture-origin": [0.5, 1],
             "launch-position": [16, 14],
-            "available-destinations": ["Earthlike", "Cryslan"],
+            "available-destinations": ["Earthlike", "Frozen"],
             "available-room-destinations": ["SpaceStation"]
         },
         "item-drops": {

@@ -296,5 +296,13 @@
         },
         "crafting-station": "bench",
         "crafting-station-level": 1
+    },
+    {
+        "product": "Landmark",
+        "item-requirements": {
+            "Iron Bar": 10
+        },
+        "crafting-station": "anvil",
+        "crafting-station-level": 1
     }
 ]

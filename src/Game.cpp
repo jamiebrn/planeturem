@@ -5,7 +5,6 @@
     // TODO: New original planet instead of moon
     // TODO: At least 1 new boss, including armour + weapons
     // TODO: At least 1 new soundtrack
-    // TODO: Waypoints
 
 // TODO: Night and menu music
 
@@ -989,7 +988,7 @@ void Game::drawLandmarks()
             continue;
         }
 
-        static const int PADDING = 40;
+        static const int PADDING = 0;
         float intScale = ResolutionHandler::getResolutionIntegerScale();
         sf::Vector2u resolution = ResolutionHandler::getResolution();
 
@@ -1557,6 +1556,21 @@ void Game::attemptUseBossSpawn()
         return;
     }
 
+    const PlanetGenData& planetGenData = PlanetGenDataLoader::getPlanetGenData(chunkManager.getPlanetType());
+    const BiomeGenData* biomeGenData = Chunk::getBiomeGenAtWorldTile(player.getWorldTileInside(chunkManager.getWorldSize()), chunkManager.getWorldSize(),
+        chunkManager.getBiomeNoise(), chunkManager.getPlanetType());
+    
+    std::unordered_set<std::string> bossesSpawnAllowedNames = planetGenData.bossesSpawnAllowedNames;
+    if (biomeGenData)
+    {
+        bossesSpawnAllowedNames.insert(biomeGenData->bossesSpawnAllowedNames.begin(), biomeGenData->bossesSpawnAllowedNames.end());
+    }
+
+    if (!bossesSpawnAllowedNames.contains(itemData.bossSummonData->bossName))
+    {
+        return;
+    }
+
     // Take boss summon item
     InventoryGUI::subtractHeldItem(inventory);
 
@@ -1783,6 +1797,8 @@ void Game::travelToDestination()
     bossManager.clearBosses();
     projectileManager.clear();
     enemyProjectileManager.clear();
+    landmarkManager.clear();
+    nearbyCraftingStationLevels.clear();
 
     if (destinationPlanet >= 0)
     {
@@ -2014,6 +2030,7 @@ void Game::startNewGame(int seed)
     bossManager.clearBosses();
     projectileManager.clear();
     enemyProjectileManager.clear();
+    landmarkManager.clear();
 
     camera.instantUpdate(player.getPosition());
 
@@ -2136,6 +2153,8 @@ bool Game::loadGame(const SaveFileSummary& saveFileSummary)
     GameState nextGameState = GameState::OnPlanet;
     worldMenuState = WorldMenuState::Main;
     musicGap = MUSIC_GAP_MIN;
+
+    landmarkManager.clear();
 
     // Load planet
     if (playerGameSave.planetType >= 0)
@@ -2558,11 +2577,6 @@ void Game::drawDebugMenu(float dt)
     ImGui::Text(("Light level: " + std::to_string(dayCycleManager.getLightLevel())).c_str());
 
     ImGui::Spacing();
-
-    if (ImGui::Button("Clear Landmarks"))
-    {
-        landmarkManager.clear();
-    }
 
     ImGui::Spacing();
 

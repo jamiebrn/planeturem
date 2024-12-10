@@ -39,7 +39,7 @@ class BossBenjaminCrow : public BossEntity
 public:
     BossBenjaminCrow(sf::Vector2f playerPosition);
 
-    void update(Game& game, ProjectileManager& projectileManager, ProjectileManager& enemyProjectileManager, InventoryData& inventory, Player& player, float dt) override;
+    void update(Game& game, ProjectileManager& enemyProjectileManager, Player& player, float dt) override;
 
     bool isAlive() override;
 
@@ -53,6 +53,8 @@ public:
     void getHoverStats(sf::Vector2f mouseWorldPos, std::vector<std::string>& hoverStats) override;
 
     void testCollisionWithPlayer(Player& player) override;
+
+    void testProjectileCollision(Projectile& projectile, InventoryData& inventory) override;
 
     void getWorldObjects(std::vector<WorldObject*>& worldObjects) override;
 

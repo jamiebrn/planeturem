@@ -8,7 +8,6 @@
     },
     "planets": {
         "Earthlike": {
-            "display-name": "Airean",
             "biomes": [
                 {
                     "name": "Oasis",
@@ -24,7 +23,8 @@
                         ["Wood", 1, 0.1],
                         ["Stone", 1, 0.1]
                     ],
-                    "noise-range": [0, 0.3]
+                    "noise-range": [0, 0.3],
+                    "bosses-spawn-allowed": ["The Sand Serpent"]
                 },
                 {
                     "name": "Grassland",
@@ -79,9 +79,10 @@
             "water-colour": [77, 155, 230],
             "water-texture-offset": [0, 0],
             "cliff-texture-offset": [64, 0],
-            "size": 240
+            "size": 240,
+            "bosses-spawn-allowed": ["Benjamin"]
         },
-        "Cryslan": {
+        "Frozen": {
             "biomes": [
                 {
                     "name": "Ice",

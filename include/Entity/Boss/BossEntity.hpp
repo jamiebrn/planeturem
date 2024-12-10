@@ -22,7 +22,7 @@ class BossEntity : public WorldObject
 public:
     BossEntity() = default;
 
-    virtual void update(Game& game, ProjectileManager& projectileManager, ProjectileManager& enemyProjectileManager, InventoryData& inventory, Player& player, float dt) = 0;
+    virtual void update(Game& game, ProjectileManager& enemyProjectileManager, Player& player, float dt) = 0;
 
     virtual bool isAlive() = 0;
 
@@ -37,6 +37,8 @@ public:
     virtual void getHoverStats(sf::Vector2f mouseWorldPos, std::vector<std::string>& hoverStats) = 0;
 
     virtual void testCollisionWithPlayer(Player& player) = 0;
+
+    virtual void testProjectileCollision(Projectile& projectile, InventoryData& inventory) = 0;
 
     virtual void getWorldObjects(std::vector<WorldObject*>& worldObjects) = 0;
 
