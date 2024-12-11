@@ -106,7 +106,8 @@
                         ["Snow", 6, 0.55, 1.0]
                     ],
                     "objects": [
-                        ["Icicle", 0.02]
+                        ["Icicle", 0.02],
+                        ["Snowy Rock", 0.01]
                     ],
                     "fish-catches": [],
                     "noise-range": [0.5, 1]

@@ -106,7 +106,7 @@
         "texture-width": 16,
         "texture-height": 16,
         "texture-x-origin": 0.5,
-        "texture-y-origin": 0.81,
+        "texture-y-origin": 0.9375,
         "item-drops": {
             "Stone": [2, 4, 1.0],
             "Coal": [1, 1, 0.3]
@@ -347,6 +347,19 @@
         "texture-height": 21,
         "texture-x-origin": 0.4375,
         "texture-y-origin": 0.9375
+    },
+    {
+        "name": "Snowy Rock",
+        "health": 18,
+        "textures": [[384, 208]],
+        "texture-width": 16,
+        "texture-height": 16,
+        "texture-x-origin": 0.5,
+        "texture-y-origin": 0.9375,
+        "item-drops": {
+            "Stone": [2, 4, 1.0],
+            "Coal": [1, 1, 0.3]
+        }
     },
     {
         "name": "Landmark",
