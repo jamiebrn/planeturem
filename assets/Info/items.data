@@ -118,6 +118,15 @@
         "sell-value": 5
     },
     {
+        "name": "Cheap Camera",
+        "texture": [112, 96, 16, 16],
+        "boss-summon-data": {
+            "boss-name": "The Glacial Brute"
+        },
+        "description": "\"Nobody will believe you\"",
+        "sell-value": 7
+    },
+    {
         "name": "Crow Claw",
         "texture": [80, 80, 16, 16],
         "sell-value": 2

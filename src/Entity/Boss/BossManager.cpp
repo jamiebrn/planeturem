@@ -1,4 +1,7 @@
 #include "Entity/Boss/BossManager.hpp"
+#include "Entity/Boss/BossBenjaminCrow.hpp"
+#include "Entity/Boss/BossSandSerpent.hpp"
+#include "Entity/Boss/BossGlacialBrute.hpp"
 
 void BossManager::createBoss(const std::string& name, sf::Vector2f playerPosition, Game& game)
 {
@@ -10,6 +13,10 @@ void BossManager::createBoss(const std::string& name, sf::Vector2f playerPositio
     else if (name == "The Sand Serpent")
     {
         bosses.push_back(std::make_unique<BossSandSerpent>(playerPosition, game));
+    }
+    else if (name == "The Glacial Brute")
+    {
+        bosses.push_back(std::make_unique<BossGlacialBrute>(playerPosition, game));
     }
 }
 

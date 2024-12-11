@@ -14,8 +14,6 @@
 #include "Player/Cursor.hpp"
 
 #include "BossEntity.hpp"
-#include "BossBenjaminCrow.hpp"
-#include "BossSandSerpent.hpp"
 
 class Player;
 class Game;

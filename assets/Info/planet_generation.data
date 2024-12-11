@@ -115,7 +115,8 @@
             "water-colour": [77, 155, 230],
             "water-texture-offset": [0, 0],
             "cliff-texture-offset": [192, 0],
-            "size": 100
+            "size": 100,
+            "bosses-spawn-allowed": ["The Glacial Brute"]
         }
     }
 }
