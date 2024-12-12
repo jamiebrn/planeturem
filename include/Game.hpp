@@ -203,9 +203,6 @@ private:
 
     void initialiseNewPlanet(PlanetType planetType, bool placeRocket = false);
 
-    void resetChestDataPool();
-    void resetStructureRoomPool();
-
 
     // -- Game State / Transition -- //
 

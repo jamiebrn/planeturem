@@ -64,9 +64,9 @@ void PlantObject::changePlantStage(int newStage)
     health = objectData.plantStageObjectData->at(currentStage).health;
 }
 
-bool PlantObject::damage(int amount, Game& game, InventoryData& inventory, bool giveItems)
+bool PlantObject::damage(int amount, Game& game, InventoryData& inventory, ParticleSystem& particleSystem, bool giveItems)
 {
-    bool destroyed = BuildableObject::damage(amount, game, inventory, false);
+    bool destroyed = BuildableObject::damage(amount, game, inventory, particleSystem, false);
 
     if (destroyed)
     {

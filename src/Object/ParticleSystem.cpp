@@ -43,6 +43,11 @@ bool Particle::isAlive()
     return (currentFrame < textureRects.size());
 }
 
+void Particle::handleWorldWrap(sf::Vector2f positionDelta)
+{
+    position += positionDelta;
+}
+
 void ParticleSystem::addParticle(const Particle& particle)
 {
     particles.push_back(particle);
@@ -68,4 +73,17 @@ void ParticleSystem::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, co
     {
         iter->draw(window, spriteBatch, camera);
     }
+}
+
+void ParticleSystem::handleWorldWrap(sf::Vector2f positionDelta)
+{
+    for (auto& particle : particles)
+    {
+        particle.handleWorldWrap(positionDelta);
+    }
+}
+
+void ParticleSystem::clear()
+{
+    particles.clear();
 }

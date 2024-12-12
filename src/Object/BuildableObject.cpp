@@ -200,7 +200,7 @@ void BuildableObject::createLightSource(LightingEngine& lightingEngine, sf::Vect
     //     }, lightMaskRect, sf::BlendAdd);
 }
 
-bool BuildableObject::damage(int amount, Game& game, InventoryData& inventory, bool giveItems)
+bool BuildableObject::damage(int amount, Game& game, InventoryData& inventory, ParticleSystem& particleSystem, bool giveItems)
 {
     if (objectType < 0)
         return false;
@@ -221,6 +221,8 @@ bool BuildableObject::damage(int amount, Game& game, InventoryData& inventory, b
 
     Sounds::playSound(hitSound, 60.0f);
 
+    createHitParticles(particleSystem);
+
     if (!isAlive())
     {
         if (giveItems)
@@ -234,6 +236,56 @@ bool BuildableObject::damage(int amount, Game& game, InventoryData& inventory, b
     }
 
     return false;
+}
+
+void BuildableObject::createHitParticles(ParticleSystem& particleSystem)
+{
+    if (objectType < 0)
+    {
+        return;
+    }
+
+    ParticleStyle style;
+    style.textureRects = {sf::IntRect(0, 384, 16, 16), sf::IntRect(16, 384, 16, 16), sf::IntRect(32, 384, 16, 16), sf::IntRect(48, 384, 16, 16)};
+    style.timePerFrame = 0.08f;
+
+    const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
+
+    // sf::Vector2f objectCentre = position + sf::Vector2f(objectData.size.x / 2.0f - 0.5f, objectData.size.y / 2.0f - 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
+
+    static const float PARTICLE_SPEED = 60.0f;
+
+    // Create particles on edges
+    for (int x = 0; x < objectData.size.x; x++)
+    {
+        static constexpr float upRotation = 0.75f * 2 * M_PI;
+        static constexpr float downRotation = 0.25f * 2 * M_PI;
+
+        particleSystem.addParticle(Particle(position + sf::Vector2f(x, 0) * TILE_SIZE_PIXELS_UNSCALED,
+            sf::Vector2f(std::cos(upRotation), std::sin(upRotation)) * PARTICLE_SPEED, sf::Vector2f(0, 0), style));
+        particleSystem.addParticle(Particle(position + sf::Vector2f(x, objectData.size.y - 1) * TILE_SIZE_PIXELS_UNSCALED,
+            sf::Vector2f(std::cos(downRotation), std::sin(downRotation)) * PARTICLE_SPEED, sf::Vector2f(0, 0), style));
+    }
+
+    for (int y = 0; y < objectData.size.y; y++)
+    {
+        static constexpr float leftRotation = 0.5f * 2 * M_PI;
+        static constexpr float rightRotation = 1.0f * 2 * M_PI;
+
+        particleSystem.addParticle(Particle(position + sf::Vector2f(0, y) * TILE_SIZE_PIXELS_UNSCALED,
+            sf::Vector2f(std::cos(leftRotation), std::sin(leftRotation)) * PARTICLE_SPEED, sf::Vector2f(0, 0), style));
+        particleSystem.addParticle(Particle(position + sf::Vector2f(objectData.size.x - 1, y) * TILE_SIZE_PIXELS_UNSCALED,
+            sf::Vector2f(std::cos(rightRotation), std::sin(rightRotation)) * PARTICLE_SPEED, sf::Vector2f(0, 0), style));
+    }
+
+    // Create particles on corners
+    particleSystem.addParticle(Particle(position, sf::Vector2f(std::cos(5 / 8.0f * 2 * M_PI), std::sin(5 / 8.0f * 2 * M_PI)) * PARTICLE_SPEED, sf::Vector2f(0, 0), style));
+    particleSystem.addParticle(Particle(position + sf::Vector2f(objectData.size.x - 1, 0) * TILE_SIZE_PIXELS_UNSCALED,
+        sf::Vector2f(std::cos(7 / 8.0f * 2 * M_PI), std::sin(7 / 8.0f * 2 * M_PI)) * PARTICLE_SPEED, sf::Vector2f(0, 0), style));
+    particleSystem.addParticle(Particle(position + sf::Vector2f(objectData.size.x - 1, objectData.size.y - 1) * TILE_SIZE_PIXELS_UNSCALED,
+        sf::Vector2f(std::cos(1 / 8.0f * 2 * M_PI), std::sin(1 / 8.0f * 2 * M_PI)) * PARTICLE_SPEED, sf::Vector2f(0, 0), style));
+    particleSystem.addParticle(Particle(position + sf::Vector2f(0, objectData.size.y - 1) * TILE_SIZE_PIXELS_UNSCALED,
+        sf::Vector2f(std::cos(3 / 8.0f * 2 * M_PI), std::sin(3 / 8.0f * 2 * M_PI)) * PARTICLE_SPEED, sf::Vector2f(0, 0), style));
 }
 
 void BuildableObject::giveItemDrops(InventoryData& inventory, const std::vector<ItemDrop>& itemDrops)

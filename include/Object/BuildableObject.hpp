@@ -1,5 +1,7 @@
 #pragma once
 
+#define _USE_MATH_DEFINES
+#include <cmath>
 #include <SFML/Graphics.hpp>
 #include <optional>
 #include <iostream>
@@ -15,6 +17,7 @@
 #include "Object/WorldObject.hpp"
 #include "Object/ObjectReference.hpp"
 #include "Object/BuildableObjectPOD.hpp"
+#include "Object/ParticleSystem.hpp"
 #include "Player/InventoryData.hpp"
 #include "Data/ObjectData.hpp"
 #include "Data/ObjectDataLoader.hpp"
@@ -54,7 +57,9 @@ public:
     void createLightSource(LightingEngine& lightingEngine, sf::Vector2f topLeftChunkPos) const override;
 
     // Returns true if destroyed
-    virtual bool damage(int amount, Game& game, InventoryData& inventory, bool giveItems = true);
+    virtual bool damage(int amount, Game& game, InventoryData& inventory, ParticleSystem& particleSystem, bool giveItems = true);
+
+    void createHitParticles(ParticleSystem& particleSystem);
     
     void setWorldPosition(sf::Vector2f position);
 

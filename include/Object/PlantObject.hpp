@@ -24,7 +24,7 @@ public:
 
     void update(Game& game, float dt, bool onWater, bool loopAnimation) override;
 
-    bool damage(int amount, Game& game, InventoryData& inventory, bool giveItems = true) override;
+    bool damage(int amount, Game& game, InventoryData& inventory, ParticleSystem& particleSystem, bool giveItems = true) override;
 
     void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const sf::Color& color) const override;
 

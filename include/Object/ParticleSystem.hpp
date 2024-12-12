@@ -26,6 +26,8 @@ public:
 
     bool isAlive();
 
+    void handleWorldWrap(sf::Vector2f positionDelta);
+
 private:
     sf::Vector2f position;
     sf::Vector2f velocity;
@@ -47,6 +49,10 @@ public:
     void update(float dt);
 
     void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Camera& camera) const;
+
+    void handleWorldWrap(sf::Vector2f positionDelta);
+
+    void clear();
 
 private:
     std::vector<Particle> particles;

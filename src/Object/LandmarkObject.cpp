@@ -39,9 +39,9 @@ void LandmarkObject::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Ga
     drawObject(window, spriteBatch, camera, gameTime, worldSize, color, std::nullopt, std::nullopt, &colouredTexture.getTexture());
 }
 
-bool LandmarkObject::damage(int amount, Game& game, InventoryData& inventory, bool giveItems)
+bool LandmarkObject::damage(int amount, Game& game, InventoryData& inventory, ParticleSystem& particleSystem, bool giveItems)
 {
-    bool destroyed = BuildableObject::damage(amount, game, inventory);
+    bool destroyed = BuildableObject::damage(amount, game, inventory, particleSystem);
 
     if (destroyed)
     {

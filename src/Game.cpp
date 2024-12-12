@@ -810,6 +810,9 @@ void Game::updateOnPlanet(float dt)
 
         // Wrap hit markers
         HitMarkers::handleWorldWrap(wrapPositionDelta);
+
+        // Wrap particles
+        particleSystem.handleWorldWrap(wrapPositionDelta);
     }
 
     // Update (loaded) chunks
@@ -899,6 +902,9 @@ void Game::drawWorld(sf::RenderTexture& renderTexture, float dt, std::vector<Wor
 
     // Draw terrain
     chunkManagerArg.drawChunkTerrain(renderTexture, spriteBatch, cameraArg, gameTime);
+
+    // Draw particles
+    particleSystem.draw(renderTexture, spriteBatch, cameraArg);
 
     // Draw objects
     for (WorldObject* worldObject : worldObjects)
@@ -1318,7 +1324,7 @@ void Game::attemptUseToolPickaxe()
 
     if (selectedObject)
     {
-        selectedObject->damage(toolData.damage, *this, inventory);
+        selectedObject->damage(toolData.damage, *this, inventory, particleSystem);
     }
     // }
 }
@@ -1795,11 +1801,12 @@ void Game::travelToDestination()
 
     player.exitRocket();
 
-    resetChestDataPool();
-    resetStructureRoomPool();
+    chestDataPool = ChestDataPool();
+    structureRoomPool = RoomPool();
     bossManager.clearBosses();
     projectileManager.clear();
     enemyProjectileManager.clear();
+    particleSystem.clear();
     landmarkManager.clear();
     nearbyCraftingStationLevels.clear();
 
@@ -1894,6 +1901,7 @@ void Game::initialiseNewPlanet(PlanetType planetType, bool placeRocket)
     chestDataPool = ChestDataPool();
     structureRoomPool = RoomPool();
     landmarkManager = LandmarkManager();
+    particleSystem.clear();
     
     camera.instantUpdate(player.getPosition());
 
@@ -1909,16 +1917,6 @@ void Game::initialiseNewPlanet(PlanetType planetType, bool placeRocket)
         rocketEnteredReference.chunk = playerSpawnChunk;
         rocketEnteredReference.tile = sf::Vector2i(0, 0);
     }
-}
-
-void Game::resetChestDataPool()
-{
-    chestDataPool = ChestDataPool();
-}
-
-void Game::resetStructureRoomPool()
-{
-    structureRoomPool = RoomPool();
 }
 
 
@@ -2219,6 +2217,7 @@ bool Game::loadGame(const SaveFileSummary& saveFileSummary)
     bossManager.clearBosses();
     projectileManager.clear();
     enemyProjectileManager.clear();
+    particleSystem.clear();
 
     camera.instantUpdate(player.getPosition());
 
