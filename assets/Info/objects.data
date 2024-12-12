@@ -362,6 +362,36 @@
         }
     },
     {
+        "name": "Titanium Rock",
+        "health": 24,
+        "textures": [[416, 208]],
+        "texture-width": 16,
+        "texture-height": 16,
+        "texture-x-origin": 0.5,
+        "texture-y-origin": 0.9375,
+        "item-drops": {
+            "Titanium Scraps": [1, 4, 1.0],
+            "Stone": [2, 4, 0.5]
+        }
+    },
+    {
+        "name": "Titanium Anvil",
+        "health": 20,
+        "textures": [[416, 240]],
+        "texture-width": 32,
+        "texture-height": 16,
+        "texture-x-origin": 0.25,
+        "texture-y-origin": 0.75,
+        "size-x": 2,
+        "has-collision": true,
+        "crafting-station": "anvil",
+        "crafting-station-level": 2,
+        "item-drops": {
+            "Titanium Anvil": [1, 1, 1]
+        },
+        "sell-value": 20
+    },
+    {
         "name": "Landmark",
         "health": 8,
         "textures": [[128, 92], [144, 92], [160, 92], [176, 92], [192, 92], [208, 92]],

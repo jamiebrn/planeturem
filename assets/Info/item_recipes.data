@@ -117,6 +117,15 @@
         "crafting-station-level": 1
     },
     {
+        "product": "Gold Pickaxe",
+        "item-requirements": {
+            "Gold Bar": 5,
+            "Wood": 3
+        },
+        "crafting-station": "anvil",
+        "crafting-station-level": 1
+    },
+    {
         "product": "Wooden Bow",
         "item-requirements": {
             "Wood": 15
@@ -278,6 +287,16 @@
             "Serpent Tongue": 1
         },
         "key-items": ["Sandscale"],
+        "crafting-station": "bench",
+        "crafting-station-level": 1
+    },
+    {
+        "product": "Titanium Anvil",
+        "item-requirements": {
+            "Titanium Scraps": 25,
+            "Anvil": 1
+        },
+        "key-items": ["Titanium Scraps"],
         "crafting-station": "bench",
         "crafting-station-level": 1
     },

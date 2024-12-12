@@ -127,6 +127,11 @@
         "sell-value": 7
     },
     {
+        "name": "Titanium Scraps",
+        "texture": [144, 64, 16, 16],
+        "sell-value": 1
+    },
+    {
         "name": "Crow Claw",
         "texture": [80, 80, 16, 16],
         "sell-value": 2
