@@ -1571,11 +1571,14 @@ void Game::attemptUseBossSpawn()
         return;
     }
 
+    // Summon boss
+    if (!bossManager.createBoss(itemData.bossSummonData->bossName, player.getPosition(), *this))
+    {
+        return;
+    }
+
     // Take boss summon item
     InventoryGUI::subtractHeldItem(inventory);
-
-    // Summon boss
-    bossManager.createBoss(itemData.bossSummonData->bossName, player.getPosition(), *this);
 }
 
 void Game::attemptUseConsumable()

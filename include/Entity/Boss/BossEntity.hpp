@@ -47,10 +47,15 @@ public:
 
     void giveItemDrops(InventoryData& inventory);
 
+    void setName(const std::string& name);
+    const std::string& getName();
+
 protected:
     float playerMaxRange = 1000.0f;
 
     // Item drops and respective chances
     std::vector<std::pair<ItemCount, float>> itemDrops;
-    
+
+    std::string name;
+
 };

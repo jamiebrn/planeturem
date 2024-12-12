@@ -121,7 +121,7 @@
         "texture-height": 16,
         "texture-x-origin": 0.5,
         "texture-y-origin": 0.8125,
-        "light-emission": [0.9, 0.9, 0.9, 0.8],
+        "light-emission": [0.9, 0.9, 0.9, 0.85],
         "item-drops": {
             "Torch": [1, 1, 1]
         },

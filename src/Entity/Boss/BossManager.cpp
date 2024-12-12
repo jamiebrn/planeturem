@@ -3,21 +3,40 @@
 #include "Entity/Boss/BossSandSerpent.hpp"
 #include "Entity/Boss/BossGlacialBrute.hpp"
 
-void BossManager::createBoss(const std::string& name, sf::Vector2f playerPosition, Game& game)
+bool BossManager::createBoss(const std::string& name, sf::Vector2f playerPosition, Game& game)
 {
+    if (bossAliveNames.contains(name))
+    {
+        return false;
+    }
+
+    std::string addedBossName;
+
     // Create boss class depending on name
-    if (name == "Benjamin")
+    if (std::string bossName = "Benjamin"; name == bossName)
     {
         bosses.push_back(std::make_unique<BossBenjaminCrow>(playerPosition));
+        addedBossName = bossName;
     }
-    else if (name == "The Sand Serpent")
+    else if (std::string bossName = "The Sand Serpent"; name == bossName)
     {
         bosses.push_back(std::make_unique<BossSandSerpent>(playerPosition, game));
+        addedBossName = bossName;
     }
-    else if (name == "The Glacial Brute")
+    else if (std::string bossName = "The Glacial Brute"; name == bossName)
     {
         bosses.push_back(std::make_unique<BossGlacialBrute>(playerPosition, game));
+        addedBossName = bossName;
     }
+
+    if (!addedBossName.empty())
+    {
+        bosses.back()->setName(addedBossName);
+        bossAliveNames.insert(addedBossName);
+        return true;
+    }
+
+    return false;
 }
 
 void BossManager::update(Game& game, ProjectileManager& projectileManager, ProjectileManager& enemyProjectileManager, InventoryData& inventory, Player& player, float dt)
@@ -45,6 +64,8 @@ void BossManager::update(Game& game, ProjectileManager& projectileManager, Proje
             {
                 boss->giveItemDrops(inventory);
             }
+
+            bossAliveNames.erase(boss->getName());
             iter = bosses.erase(iter);
 
             // Stop boss music if required
@@ -101,6 +122,7 @@ bool BossManager::isPlayingMusicBossMusic()
 void BossManager::clearBosses()
 {
     bosses.clear();
+    bossAliveNames.clear();
 }
 
 // void BossManager::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch)
@@ -133,12 +155,14 @@ void BossManager::drawStatsAtCursor(sf::RenderTarget& window, const Camera& came
         textDrawData.position = statPos;
         textDrawData.colour = sf::Color(255, 255, 255, 255);
         textDrawData.size = STATS_DRAW_SIZE;
+        textDrawData.outlineColour = sf::Color(46, 34, 47);
+        textDrawData.outlineThickness = STATS_DRAW_OUTLINE_THICKNESS * intScale;
         textDrawData.containOnScreenX = true;
         textDrawData.containOnScreenY = true;
 
         TextDraw::drawText(window, textDrawData);
 
-        statPos.y += (STATS_DRAW_SIZE + STATS_DRAW_PADDING) * intScale;
+        statPos.y += (STATS_DRAW_SIZE + STATS_DRAW_OUTLINE_THICKNESS * 2 + STATS_DRAW_PADDING) * intScale;
     }
 }
 

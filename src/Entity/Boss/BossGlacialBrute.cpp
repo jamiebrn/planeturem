@@ -88,6 +88,9 @@ void BossGlacialBrute::testProjectileCollision(Projectile& projectile, Inventory
     if (hitCollision.isPointInRect(projectile.getPosition().x, projectile.getPosition().y))
     {
         health -= projectile.getDamage();
+        flashTime = MAX_FLASH_TIME;
+        HitMarkers::addHitMarker(projectile.getPosition(), projectile.getDamage());
+        projectile.onCollision();
     }
 }
 

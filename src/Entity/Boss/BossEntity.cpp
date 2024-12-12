@@ -20,3 +20,13 @@ void BossEntity::giveItemDrops(InventoryData& inventory)
         InventoryGUI::pushItemPopup(itemDropChance.first);
     }
 }
+
+void BossEntity::setName(const std::string& name)
+{
+    this->name = name;
+}
+
+const std::string& BossEntity::getName()
+{
+    return name;
+}
