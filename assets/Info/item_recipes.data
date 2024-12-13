@@ -291,14 +291,33 @@
         "crafting-station-level": 1
     },
     {
-        "product": "Titanium Anvil",
+        "product": "Titanium Furnace",
         "item-requirements": {
             "Titanium Scraps": 25,
-            "Anvil": 1
+            "Furnace": 2
         },
         "key-items": ["Titanium Scraps"],
         "crafting-station": "bench",
         "crafting-station-level": 1
+    },
+    {
+        "product": "Titanium Anvil",
+        "item-requirements": {
+            "Titanium Bar": 5,
+            "Anvil": 1
+        },
+        "key-items": ["Titanium Bar"],
+        "crafting-station": "bench",
+        "crafting-station-level": 1
+    },
+    {
+        "product": "Titanium Bar",
+        "item-requirements": {
+            "Titanium Scraps": 3,
+            "Coal": 1
+        },
+        "crafting-station": "furnace",
+        "crafting-station-level": 2
     },
 
     {

@@ -375,8 +375,28 @@
         }
     },
     {
+        "name": "Titanium Furnace",
+        "health": 25,
+        "textures": [[304, 256], [336, 256], [368, 256], [400, 256]],
+        "texture-frame-delay": 0.1,
+        "texture-width": 32,
+        "texture-height": 32,
+        "texture-x-origin": 0.25,
+        "texture-y-origin": 0.75,
+        "size-x": 2,
+        "size-y": 1,
+        "light-emission": [0.4, 0.4, 0.4, 0.4],
+        "has-collision": true,
+        "crafting-station": "furnace",
+        "crafting-station-level": 2,
+        "item-drops": {
+            "Titanium Furnace": [1, 1, 1]
+        },
+        "sell-value": 20
+    },
+    {
         "name": "Titanium Anvil",
-        "health": 20,
+        "health": 25,
         "textures": [[416, 240]],
         "texture-width": 32,
         "texture-height": 16,
