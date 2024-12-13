@@ -47,6 +47,8 @@ struct ItemInfoString
     sf::Color color = sf::Color(255, 255, 255);
 
     std::optional<ItemCount> itemCount = std::nullopt;
+
+    bool drawItemCountNumberWhenOne = true;
 };
 
 struct ItemPopup

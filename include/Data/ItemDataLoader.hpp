@@ -4,6 +4,7 @@
 #include <fstream>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "Core/json.hpp"
 #include "Data/Serialise/IntRectSerialise.hpp"
@@ -35,6 +36,8 @@ public:
 
     static void setItemIsMaterial(ItemType item, bool isMaterial = true);
 
+    static const std::vector<ItemType>& getCraftingStationLevelItems(const std::string& craftingStationName, int craftingStationLevel);
+
     inline static const std::unordered_map<std::string, ItemType>& getItemNameToTypeMap() {return itemNameToTypeMap;}
 
     // Highest value is at lowest index
@@ -49,5 +52,7 @@ private:
     static std::unordered_map<std::string, ItemType> itemNameToTypeMap;
 
     static std::vector<ItemType> currencyItemOrder;
+
+    static std::unordered_map<std::string, std::unordered_map<int, std::vector<ItemType>>> craftingStationItemMap;
 
 };

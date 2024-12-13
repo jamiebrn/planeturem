@@ -3,6 +3,7 @@
 std::vector<ItemData> ItemDataLoader::loaded_itemData;
 std::unordered_map<std::string, ItemType> ItemDataLoader::itemNameToTypeMap;
 std::vector<ItemType> ItemDataLoader::currencyItemOrder;
+std::unordered_map<std::string, std::unordered_map<int, std::vector<ItemType>>> ItemDataLoader::craftingStationItemMap;
 
 bool ItemDataLoader::loadData(std::string itemDataPath)
 {
@@ -121,6 +122,11 @@ void ItemDataLoader::createItemFromObject(ObjectType objectType, const ObjectDat
 
     int itemIndex = loaded_itemData.size();
 
+    if (!objectData.craftingStation.empty())
+    {
+        craftingStationItemMap[objectData.craftingStation][objectData.craftingStationLevel].push_back(itemIndex);
+    }
+
     loaded_itemData.push_back(objectItemData);
 
     itemNameToTypeMap[objectItemData.name] = itemIndex;
@@ -181,4 +187,12 @@ void ItemDataLoader::setItemIsMaterial(ItemType item, bool isMaterial)
     ItemData& itemData = loaded_itemData[item];
 
     itemData.isMaterial = isMaterial;
+}
+
+const std::vector<ItemType>& ItemDataLoader::getCraftingStationLevelItems(const std::string& craftingStationName, int craftingStationLevel)
+{
+    assert(craftingStationItemMap.contains(craftingStationName));
+    assert(craftingStationItemMap.at(craftingStationName).contains(craftingStationLevel));
+
+    return (craftingStationItemMap.at(craftingStationName).at(craftingStationLevel));
 }

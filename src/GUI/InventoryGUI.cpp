@@ -1238,6 +1238,26 @@ sf::Vector2f InventoryGUI::drawItemInfoBoxRecipe(sf::RenderTarget& window, float
         infoStrings.push_back(itemRequirement);
     }
 
+    if (!recipeData.craftingStationRequired.empty())
+    {
+        infoStrings.push_back({"", 20});
+        infoStrings.push_back({"Crafted in", 20});
+
+        for (ItemType craftingStationItem : ItemDataLoader::getCraftingStationLevelItems(recipeData.craftingStationRequired, recipeData.craftingStationLevelRequired))
+        {
+            ItemInfoString craftingStationRequirement;
+            craftingStationRequirement.itemCount = ItemCount(craftingStationItem, 1);
+
+            const ItemData& itemData = ItemDataLoader::getItemData(craftingStationItem);
+            craftingStationRequirement.string = itemData.name;
+            craftingStationRequirement.size = 20;
+
+            craftingStationRequirement.drawItemCountNumberWhenOne = false;
+
+            infoStrings.push_back(craftingStationRequirement);
+        }
+    }
+
     sf::Vector2f recipeInfoBoxSize = drawInfoBox(window, mouseScreenPos + sf::Vector2f(8, 8 + 6) * 3.0f * intScale + sf::Vector2f(0, itemInfoBoxSize.y), infoStrings);
 
     return (itemInfoBoxSize + recipeInfoBoxSize + sf::Vector2f(0, 8 + 6 + 5) * 3.0f * intScale);
@@ -1347,16 +1367,19 @@ sf::Vector2f InventoryGUI::drawInfoBox(sf::RenderTarget& window, sf::Vector2f po
             ItemSlot::drawItem(window, itemCount.first, textDrawData.position + sf::Vector2f(itemSize, itemSize) * 0.5f * static_cast<float>(intScale), 1.0f, true, alpha);
 
             // Draw item amount
-            TextDrawData itemAmountText = {
-                .text = std::to_string(itemCount.second),
-                .position = textDrawData.position + sf::Vector2f(itemSize, itemSize) * 0.85f * static_cast<float>(intScale),
-                .colour = sf::Color(textDrawData.colour.r, textDrawData.colour.g, textDrawData.colour.b, alpha),
-                .size = textDrawData.size,
-                .centeredX = true,
-                .centeredY = true
-            };
+            if (infoString.drawItemCountNumberWhenOne || !infoString.drawItemCountNumberWhenOne && itemCount.second > 1)
+            {
+                TextDrawData itemAmountText = {
+                    .text = std::to_string(itemCount.second),
+                    .position = textDrawData.position + sf::Vector2f(itemSize, itemSize) * 0.85f * static_cast<float>(intScale),
+                    .colour = sf::Color(textDrawData.colour.r, textDrawData.colour.g, textDrawData.colour.b, alpha),
+                    .size = textDrawData.size,
+                    .centeredX = true,
+                    .centeredY = true
+                };
 
-            TextDraw::drawText(window, itemAmountText);
+                TextDraw::drawText(window, itemAmountText);
+            }
 
             // Offset text draw data
             textDrawData.position.x += (itemSize + textXPadding * 2) * intScale;

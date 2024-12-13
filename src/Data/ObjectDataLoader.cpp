@@ -24,6 +24,9 @@ bool ObjectDataLoader::loadData(std::string objectDataPath)
         float sellValue = 0;
         if (iter.value().contains("sell-value")) sellValue = iter.value().at("sell-value");
 
+        if (iter.value().contains("crafting-station")) minimalObjectData.craftingStation = iter.value().at("crafting-station");
+        if (iter.value().contains("crafting-station-level")) minimalObjectData.craftingStationLevel = iter.value().at("crafting-station-level");
+
         ItemDataLoader::createItemFromObject(objectIdx, minimalObjectData, sellValue);
 
         objectIdx++;
