@@ -342,5 +342,13 @@
         },
         "crafting-station": "anvil",
         "crafting-station-level": 1
+    },
+    {
+        "product": "Crate",
+        "item-requirements": {
+            "Wood": 5
+        },
+        "crafting-station": "bench",
+        "crafting-station-level": 1
     }
 ]

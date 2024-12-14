@@ -1273,7 +1273,7 @@ void Game::attemptUseTool()
     // Get tool data for tool behaviour, to choose which tool use function
     const ToolData& toolData = ToolDataLoader::getToolData(player.getTool());
 
-    switch(toolData.toolBehaviourType)
+    switch (toolData.toolBehaviourType)
     {
         case ToolBehaviourType::Pickaxe:
             attemptUseToolPickaxe();
@@ -1470,8 +1470,17 @@ void Game::attemptBuildObject()
 
         Sounds::playSound(buildSound, 60.0f);
 
+        ObjectReference placeObjectReference = {Cursor::getSelectedChunk(chunkManager.getWorldSize()), Cursor::getSelectedChunkTile()};
+
         // Build object
-        chunkManager.setObject(Cursor::getSelectedChunk(chunkManager.getWorldSize()), Cursor::getSelectedChunkTile(), objectType, *this);
+        chunkManager.setObject(placeObjectReference.chunk, placeObjectReference.tile, objectType, *this);
+
+        // Create build particles
+        BuildableObject* placedObject = chunkManager.getChunkObject(placeObjectReference.chunk, placeObjectReference.tile);
+        if (placedObject)
+        {
+            placedObject->createHitParticles(particleSystem);
+        }
     }
 }
 

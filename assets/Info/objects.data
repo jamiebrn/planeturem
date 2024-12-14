@@ -458,5 +458,20 @@
             "buy-prices": {"Insane Bow": 1.5, "Wood": 3, "Crow Claw": 5},
             "portrait-texture-offset": [32, 32]
         }
+    },
+    {
+        "name": "Crate",
+        "health": 6,
+        "textures": [[192, 16]],
+        "texture-width": 16,
+        "texture-height": 16,
+        "texture-x-origin": 0.5,
+        "texture-y-origin": 0.5,
+        "chest-capacity": 2,
+        "has-collision": true,
+        "item-drops": {
+            "Crate": [1, 1, 1]
+        },
+        "sell-value": 1
     }
 ]

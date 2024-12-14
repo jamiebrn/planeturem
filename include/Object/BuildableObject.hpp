@@ -26,13 +26,6 @@
 
 class Game;
 
-// enum ObjectInteractionType
-// {
-//     NoAction,
-//     Chest,
-//     Rocket
-// };
-
 enum ObjectBehaviourTrigger
 {
     RocketFlyUp, RocketFlyDown,
