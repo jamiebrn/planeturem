@@ -319,7 +319,10 @@
         "texture-width": 16,
         "texture-height": 16,
         "texture-x-origin": 0.5,
-        "texture-y-origin": 0.9375
+        "texture-y-origin": 0.9375,
+        "item-drops": {
+            "Slush Ice": [1, 4, 0.8]
+        }
     },
     {
         "name": "Large Icicle",
@@ -328,7 +331,10 @@
         "texture-width": 16,
         "texture-height": 21,
         "texture-x-origin": 0.5,
-        "texture-y-origin": 0.9375
+        "texture-y-origin": 0.9375,
+        "item-drops": {
+            "Slush Ice": [2, 5, 0.8]
+        }
     },
     {
         "name": "Large Icicle Left",
@@ -337,7 +343,10 @@
         "texture-width": 16,
         "texture-height": 21,
         "texture-x-origin": 0.5625,
-        "texture-y-origin": 0.9375
+        "texture-y-origin": 0.9375,
+        "item-drops": {
+            "Slush Ice": [2, 5, 0.8]
+        }
     },
     {
         "name": "Large Icicle Right",
@@ -346,7 +355,10 @@
         "texture-width": 16,
         "texture-height": 21,
         "texture-x-origin": 0.4375,
-        "texture-y-origin": 0.9375
+        "texture-y-origin": 0.9375,
+        "item-drops": {
+            "Slush Ice": [2, 5, 0.8]
+        }
     },
     {
         "name": "Snowy Rock",

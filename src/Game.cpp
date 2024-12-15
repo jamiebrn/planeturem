@@ -2,7 +2,6 @@
 
 // TODO: DECEMBER CHECKLIST
     // TODO: Working demo
-    // TODO: New original planet instead of moon
     // TODO: At least 1 new boss, including armour + weapons
     // TODO: At least 1 new soundtrack
 

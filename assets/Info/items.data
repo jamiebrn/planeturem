@@ -137,6 +137,11 @@
         "sell-value": 4
     },
     {
+        "name": "Slush Ice",
+        "texture": [144, 48, 16, 16],
+        "sell-value": 0.2
+    },
+    {
         "name": "Crow Claw",
         "texture": [80, 80, 16, 16],
         "sell-value": 2

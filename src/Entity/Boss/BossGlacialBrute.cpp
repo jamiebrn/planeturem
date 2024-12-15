@@ -3,6 +3,10 @@
 
 BossGlacialBrute::BossGlacialBrute(sf::Vector2f playerPosition, Game& game)
 {
+    itemDrops = {
+        {{ItemDataLoader::getItemTypeFromName("Snowball Slingshot"), 1}, 1.0}
+    };
+
     position = playerPosition;
     behaviourState = BossGlacialBruteState::WalkingToPlayer;
 

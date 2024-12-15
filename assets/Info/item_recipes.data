@@ -350,5 +350,13 @@
         },
         "crafting-station": "bench",
         "crafting-station-level": 1
+    },
+    {
+        "product": "Snowball",
+        "item-requirements": {
+            "Slush Ice": 3
+        },
+        "crafting-station": "bench",
+        "crafting-station-level": 1
     }
 ]
