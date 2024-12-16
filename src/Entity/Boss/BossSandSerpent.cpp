@@ -29,9 +29,6 @@ BossSandSerpent::BossSandSerpent(sf::Vector2f playerPosition, Game& game)
 
     position = sf::Vector2f(playerTile.x + spawnTileRelative.x + 0.5f, playerTile.y + spawnTileRelative.y + 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
 
-    pathfindLastStepPosition = position;
-    pathfindStepIndex = 0;
-
     animations[BossSandSerpentState::IdleStage1] = AnimatedTexture(4, 80, 51, 0, 301, 0.1);
     animations[BossSandSerpentState::ShootingStage1] = AnimatedTexture(3, 80, 51, 0, 301, 0.1, false);
     animations[BossSandSerpentState::MovingToPlayer] = AnimatedTexture(4, 16, 32, 192, 384, 0.1);
@@ -82,10 +79,7 @@ void BossSandSerpent::update(Game& game, ProjectileManager& enemyProjectileManag
                 std::vector<PathfindGridCoordinate> pathfindResult;
                 if (pathfindingEngine.findPath(tile.x, tile.y, playerTile.x, playerTile.y, pathfindResult, false, 50))
                 {
-                    pathfindStepSequence = pathfindingEngine.createStepSequenceFromPath(pathfindResult);
-
-                    pathfindLastStepPosition = position;
-                    setPathfindStepIndex(0);  
+                    pathFollower.beginPath(position, pathfindingEngine.createStepSequenceFromPath(pathfindResult));
 
                     behaviourState = BossSandSerpentState::MovingToPlayer;
                 }
@@ -118,22 +112,13 @@ void BossSandSerpent::update(Game& game, ProjectileManager& enemyProjectileManag
         }
         case BossSandSerpentState::MovingToPlayer:
         {
-            if (pathfindStepIndex < pathfindStepSequence.size())
-            {
-                if (Helper::getVectorLength(pathfindStepTargetPosition - position) <= 2.0f)
-                {
-                    // Move to next pathfinding step
-                    pathfindLastStepPosition = pathfindStepTargetPosition;
-                    setPathfindStepIndex(pathfindStepIndex + 1);
-                }
-            }
-            else
+            if (!pathFollower.isActive())
             {
                 behaviourState = BossSandSerpentState::IdleStage1;
             }
 
             // Move towards
-            position += Helper::normaliseVector(pathfindStepTargetPosition - position) * 250.0f * dt;
+            position = pathFollower.updateFollower(250.0f * dt);
 
             break;
         }
@@ -198,20 +183,6 @@ void BossSandSerpent::updateCollision()
     bodyCollision = CollisionRect(position.x - BODY_HITBOX_WIDTH / 2, position.y - BODY_HITBOX_HEIGHT, BODY_HITBOX_WIDTH, BODY_HITBOX_HEIGHT);
 }
 
-void BossSandSerpent::setPathfindStepIndex(int index)
-{
-    pathfindStepIndex = index;
-
-    if (pathfindStepIndex >= pathfindStepSequence.size())
-    {
-        return;
-    }
-
-    PathfindGridCoordinate target = pathfindStepSequence[pathfindStepIndex];
-    sf::Vector2i tilePosition = getTileInside(pathfindLastStepPosition);
-    pathfindStepTargetPosition = sf::Vector2f(target.x + tilePosition.x + 0.5f, target.y + tilePosition.y + 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
-}
-
 bool BossSandSerpent::takeHeadDamage(int damage, InventoryData& inventory, sf::Vector2f damagePosition)
 {
     if (headHealth <= 0)
@@ -259,8 +230,7 @@ void BossSandSerpent::handleWorldWrap(sf::Vector2f positionDelta)
 {
     position += positionDelta;
 
-    pathfindLastStepPosition += positionDelta;
-    pathfindStepTargetPosition += positionDelta;
+    pathFollower.handleWorldWrap(positionDelta);
 }
 
 void BossSandSerpent::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,

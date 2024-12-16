@@ -63,7 +63,7 @@ public:
 private:
     void updateCollision();
 
-    void setPathfindStepIndex(int index);
+    // void setPathfindStepIndex(int index);
 
     bool takeHeadDamage(int damage, InventoryData& inventory, sf::Vector2f damagePosition);
     void takeBodyDamage(int damage, InventoryData& inventory, sf::Vector2f damagePosition);
@@ -98,10 +98,11 @@ private:
     float bodyFlashTime;
 
     static constexpr int START_MOVE_PLAYER_DISTANCE = 300;
-    std::vector<PathfindGridCoordinate> pathfindStepSequence;
-    sf::Vector2f pathfindLastStepPosition;
-    sf::Vector2f pathfindStepTargetPosition;
-    int pathfindStepIndex;
+    PathFollower pathFollower;
+    // std::vector<PathfindGridCoordinate> pathfindStepSequence;
+    // sf::Vector2f pathfindLastStepPosition;
+    // sf::Vector2f pathfindStepTargetPosition;
+    // int pathfindStepIndex;
 
     static constexpr float MAX_SHOOT_COOLDOWN_TIME = 4.0f;
     static constexpr float MAX_SHOOT_PROJECTILE_COOLDOWN_TIME = 0.15f;

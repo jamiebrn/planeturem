@@ -303,3 +303,53 @@ PathfindGridCoordinate PathfindingEngine::findFurthestOpenTile(int x, int y, int
 
     return gridCoord;
 }
+
+void PathFollower::beginPath(sf::Vector2f startPos, const std::vector<PathfindGridCoordinate>& pathfindStepSequence)
+{
+    stepSequence = pathfindStepSequence;
+    lastStepPosition = startPos;
+    position = lastStepPosition;
+    setPathfindStepIndex(0);
+}
+
+sf::Vector2f PathFollower::updateFollower(float speed)
+{
+    if (isActive())
+    {
+        position += Helper::normaliseVector(stepTargetPosition - position) * speed;
+
+        if (Helper::getVectorLength(stepTargetPosition - position) <= TARGET_REACH_THRESHOLD)
+        {
+            // Move to next pathfinding step
+            lastStepPosition = stepTargetPosition;
+            setPathfindStepIndex(stepIndex + 1);
+        }
+    }
+
+    return position;
+}
+
+bool PathFollower::isActive()
+{
+    return (stepIndex < stepSequence.size());
+}
+
+void PathFollower::handleWorldWrap(sf::Vector2f positionDelta)
+{
+    lastStepPosition += positionDelta;
+    stepTargetPosition += positionDelta;
+}
+
+void PathFollower::setPathfindStepIndex(int index)
+{
+    stepIndex = index;
+
+    if (stepIndex >= stepSequence.size())
+    {
+        return;
+    }
+
+    PathfindGridCoordinate target = stepSequence[stepIndex];
+    sf::Vector2i tilePosition = WorldObject::getTileInside(lastStepPosition);
+    stepTargetPosition = sf::Vector2f(target.x + tilePosition.x + 0.5f, target.y + tilePosition.y + 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
+}

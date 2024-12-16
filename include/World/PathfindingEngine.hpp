@@ -8,6 +8,7 @@
 #include <optional>
 
 #include "Core/Helper.hpp"
+#include "Object/WorldObject.hpp"
 
 #include <SFML/Graphics.hpp>
 
@@ -86,5 +87,32 @@ private:
 
     int width = 0;
     int height = 0;
+
+};
+
+class PathFollower
+{
+public:
+    PathFollower() = default;
+
+    void beginPath(sf::Vector2f startPos, const std::vector<PathfindGridCoordinate>& pathfindStepSequence);
+
+    sf::Vector2f updateFollower(float speed);
+
+    bool isActive();
+
+    void handleWorldWrap(sf::Vector2f positionDelta);
+
+private:
+    void setPathfindStepIndex(int index);
+
+private:
+    std::vector<PathfindGridCoordinate> stepSequence;
+    sf::Vector2f position;
+    sf::Vector2f lastStepPosition;
+    sf::Vector2f stepTargetPosition;
+    int stepIndex = 0;
+
+    static constexpr float TARGET_REACH_THRESHOLD = 2.0f;
 
 };
