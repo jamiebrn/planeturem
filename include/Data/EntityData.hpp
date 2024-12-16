@@ -26,4 +26,6 @@ struct EntityData
     sf::Vector2f size;
 
     std::vector<ItemDrop> itemDrops;
+
+    std::string behaviour;
 };

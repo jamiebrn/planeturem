@@ -11,7 +11,8 @@
         "size": [1, 0.6],
         "item-drops": {
             "Meat": [0, 2, 1.0]
-        }
+        },
+        "behaviour": "wander"
     },
     {
         "name": "Horse",
@@ -25,6 +26,7 @@
         "size": [1, 0.7],
         "item-drops": {
             "Meat": [0, 2, 1.0]
-        }
+        },
+        "behaviour": "wander"
     }
 ]

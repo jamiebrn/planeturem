@@ -73,6 +73,8 @@ bool EntityDataLoader::loadData(std::string objectDataPath)
             }
         }
 
+        entityData.behaviour = jsonEntityData.at("behaviour");
+
         loaded_entityData.push_back(entityData);
 
         entityNameToTypeMap[entityData.name] = entityIdx;

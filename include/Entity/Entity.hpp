@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+
 #include <SFML/Graphics.hpp>
 
 #include "Core/TextureManager.hpp"
@@ -19,6 +21,7 @@
 #include "Entity/EntityPOD.hpp"
 #include "Entity/HitRect.hpp"
 #include "Entity/Projectile/ProjectileManager.hpp"
+#include "Entity/EntityBehaviour/EntityBehaviour.hpp"
 
 #include "GUI/InventoryGUI.hpp"
 #include "GUI/HitMarkers.hpp"
@@ -50,6 +53,10 @@ public:
     sf::Vector2f getSize();
 
     const CollisionRect& getCollisionRect();
+    void setCollisionRect(const CollisionRect& rect);
+
+    sf::Vector2f getVelocity();
+    void setVelocity(sf::Vector2f velocity);
 
     inline bool isAlive() {return health > 0;}
 
@@ -59,10 +66,14 @@ public:
 private:
     bool isProjectileColliding(Projectile& projectile);
 
+    void initialiseBehaviour(const std::string& behaviour);
+
 private:
     EntityType entityType;
     int health;
     float flash_amount;
+
+    std::unique_ptr<EntityBehaviour> behaviour;
 
     CollisionRect collisionRect;
     sf::Vector2f velocity;

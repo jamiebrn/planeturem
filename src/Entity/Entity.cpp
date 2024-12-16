@@ -1,6 +1,8 @@
 #include "Entity/Entity.hpp"
 #include "Game.hpp"
 
+#include "Entity/EntityBehaviour/EntityWanderBehaviour.hpp"
+
 Entity::Entity(sf::Vector2f position, EntityType entityType)
     : WorldObject(position)
 {
@@ -10,9 +12,7 @@ Entity::Entity(sf::Vector2f position, EntityType entityType)
 
     health = entityData.health;
 
-    float velocityAngle = rand() % 360;
-    velocity.x = std::cos(velocityAngle * 2 * 3.14 / 180) * 23.0f;
-    velocity.y = std::sin(velocityAngle * 2 * 3.14 / 180) * 23.0f;
+    initialiseBehaviour(entityData.behaviour);
 
     collisionRect.width = TILE_SIZE_PIXELS_UNSCALED * entityData.size.x;
     collisionRect.height = TILE_SIZE_PIXELS_UNSCALED * entityData.size.y;
@@ -28,19 +28,20 @@ Entity::Entity(sf::Vector2f position, EntityType entityType)
     walkAnim.setFrame(rand() % entityData.walkTextureRects.size());
 }
 
+void Entity::initialiseBehaviour(const std::string& behaviour)
+{
+    if (behaviour == "wander")
+    {
+        this->behaviour = std::make_unique<EntityWanderBehaviour>(*this);
+    }
+}
+
 void Entity::update(float dt, ProjectileManager& projectileManager, InventoryData& inventory, ChunkManager& chunkManager, bool onWater)
 {
-    // Handle collision with world (tiles, object)
-
-    // Test collision after x movement
-    collisionRect.x += velocity.x * dt;
-    if (chunkManager.collisionRectChunkStaticCollisionX(collisionRect, velocity.x))
-        velocity.x *= -1;
-
-    // Test collision after y movement
-    collisionRect.y += velocity.y * dt;
-    if (chunkManager.collisionRectChunkStaticCollisionY(collisionRect, velocity.y))
-        velocity.y *= -1;
+    if (behaviour)
+    {
+        behaviour->update(*this, chunkManager, dt);
+    }
 
     // Update position using collision rect after collision has been handled
     position.x = collisionRect.x + collisionRect.width / 2.0f;
@@ -49,7 +50,7 @@ void Entity::update(float dt, ProjectileManager& projectileManager, InventoryDat
     // Test collision with projectiles
     for (auto& projectile : projectileManager.getProjectiles())
     {
-        if (isProjectileColliding(*projectile))
+        if (isProjectileColliding(*projectile) && projectile->isAlive())
         {
             damage(projectile->getDamage(), inventory);
             projectile->onCollision();
@@ -191,6 +192,21 @@ sf::Vector2f Entity::getSize()
 const CollisionRect& Entity::getCollisionRect()
 {
     return collisionRect;
+}
+
+void Entity::setCollisionRect(const CollisionRect& rect)
+{
+    collisionRect = rect;
+}
+
+sf::Vector2f Entity::getVelocity()
+{
+    return velocity;
+}
+
+void Entity::setVelocity(sf::Vector2f velocity)
+{
+    this->velocity = velocity;
 }
 
 EntityPOD Entity::getPOD(sf::Vector2f chunkPosition)
