@@ -7,12 +7,17 @@ BossGlacialBrute::BossGlacialBrute(sf::Vector2f playerPosition, Game& game)
         {{ItemDataLoader::getItemTypeFromName("Snowball Slingshot"), 1}, 1.0}
     };
 
-    position = playerPosition;
+    sf::Vector2i playerTile = getWorldTileInside(playerPosition, game.getChunkManager().getWorldSize());
+
+    PathfindGridCoordinate spawnTileRelative = game.getChunkManager().getPathfindingEngine().findFurthestOpenTile(playerTile.x, playerTile.y, 40, true);
+
+    position = sf::Vector2f(playerTile.x + spawnTileRelative.x + 0.5f, playerTile.y + spawnTileRelative.y + 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
+
     behaviourState = BossGlacialBruteState::WalkingToPlayer;
 
     health = MAX_HEALTH;
 
-    walkAnimation.create(4, 48, 67, 288, 381, 0.2);
+    walkAnimation.create(1, 48, 64, 496, 384, 0.2);
 
     updateCollision();
 }
@@ -23,7 +28,26 @@ void BossGlacialBrute::update(Game& game, ProjectileManager& enemyProjectileMana
     {
         case BossGlacialBruteState::WalkingToPlayer:
         {
-            position += Helper::normaliseVector(player.getPosition() - position) * 75.0f * dt;
+            if (!pathFollower.isActive())
+            {
+                const PathfindingEngine& pathfindingEngine = game.getChunkManager().getPathfindingEngine();
+
+                int worldSize = game.getChunkManager().getWorldSize();
+
+                sf::Vector2i tile = getWorldTileInside(worldSize);
+                sf::Vector2i playerTile = player.getWorldTileInside(worldSize);
+
+                std::vector<PathfindGridCoordinate> pathfindResult;
+                if (pathfindingEngine.findPath(tile.x, tile.y, playerTile.x, playerTile.y, pathfindResult, false, 50))
+                {
+                    pathFollower.beginPath(position, pathfindingEngine.createStepSequenceFromPath(pathfindResult));
+                }
+            }
+            else
+            {
+                position = pathFollower.updateFollower(75.0f * dt);
+            }
+
             walkAnimation.update(dt);
             break;
         }
@@ -42,6 +66,7 @@ bool BossGlacialBrute::isAlive()
 void BossGlacialBrute::handleWorldWrap(sf::Vector2f positionDelta)
 {
     position += positionDelta;
+    pathFollower.handleWorldWrap(positionDelta);
 }
 
 void BossGlacialBrute::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
@@ -67,7 +92,7 @@ void BossGlacialBrute::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, 
     {
         case BossGlacialBruteState::WalkingToPlayer:
         {
-            drawData.centerRatio = sf::Vector2f(27 / 48.0f, 63 / 67.0f);
+            drawData.centerRatio = sf::Vector2f(25 / 48.0f, 62 / 67.0f);
             spriteBatch.draw(window, drawData, walkAnimation.getTextureRect(), shaderType);
             break;
         }

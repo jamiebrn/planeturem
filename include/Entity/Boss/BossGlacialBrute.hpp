@@ -81,4 +81,6 @@ private:
     float flashTime = 0.0f;
 
     CollisionRect hitCollision;
+
+    PathFollower pathFollower;
 };
