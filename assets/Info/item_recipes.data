@@ -358,5 +358,16 @@
         },
         "crafting-station": "bench",
         "crafting-station-level": 1
+    },
+    {
+        "product": "Glacial Brute Statue",
+        "item-requirements": {
+            "Iron Bar": 10,
+            "Large Glacial Head": 1,
+            "Slush Ice": 50
+        },
+        "key-items": ["Large Glacial Head"],
+        "crafting-station": "bench",
+        "crafting-station-level": 1
     }
 ]

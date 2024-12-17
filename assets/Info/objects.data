@@ -438,6 +438,21 @@
         }
     },
     {
+        "name": "Glacial Brute Statue",
+        "health": 20,
+        "textures": [[315, 326]],
+        "texture-width": 41,
+        "texture-height": 74,
+        "texture-x-origin": 0.31707,
+        "texture-y-origin": 0.68919,
+        "size-x": 2,
+        "size-y": 2,
+        "has-collision": true,
+        "item-drops": {
+            "Glacial Brute Statue": [1, 1, 1]
+        }
+    },
+    {
         "name": "AlienHostage",
         "health": 10,
         "textures": [[368, 400], [368, 400], [384, 400], [400, 400], [368, 400], [416, 400], [432, 400]],

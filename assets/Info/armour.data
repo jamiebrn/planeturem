@@ -48,5 +48,15 @@
         "wear-textures": [[768, 96], [784, 96], [800, 96], [816, 96], [832, 96], [848, 96], [864, 96], [880, 96]],
         "defence": 6,
         "sell-value": 10
+    },
+    {
+        "name": "Large Glacial Head",
+        "type": "Head",
+        "texture": [544, 32, 32, 32],
+        "wear-textures": [[576, 32], [594, 32], [612, 32], [630, 32], [648, 32], [666, 32], [684, 32], [702, 32]],
+        "wear-texture-offset": [0, -10],
+        "wear-texture-size": [18, 26],
+        "defence": 10,
+        "sell-value": 20
     }
 ]
