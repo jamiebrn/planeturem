@@ -154,10 +154,7 @@ void Entity::damage(int amount, InventoryData& inventory)
                 if (itemAmount <= 0)
                     continue;
 
-                inventory.addItem(itemDrop.item, itemAmount);
-
-                // Create item popup
-                InventoryGUI::pushItemPopup(ItemCount(itemDrop.item, itemAmount));
+                inventory.addItem(itemDrop.item, itemAmount, true);
             }
         }
     }

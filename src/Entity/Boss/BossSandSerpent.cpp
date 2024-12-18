@@ -16,11 +16,11 @@ BossSandSerpent::BossSandSerpent(sf::Vector2f playerPosition, Game& game)
     Sounds::playMusic(MusicType::BossTheme1);
 
     itemDrops = {
-        {{ItemDataLoader::getItemTypeFromName("Serpent Venom"), 75}, 1.0},
-        {{ItemDataLoader::getItemTypeFromName("Sandscale"), 3}, 1.0},
-        {{ItemDataLoader::getItemTypeFromName("Serpent Tongue"), 1}, 0.4},
-        {{ItemDataLoader::getItemTypeFromName("Serpent Mask"), 1}, 0.2},
-        {{ItemDataLoader::getItemTypeFromName("Serpent Sceptre"), 1}, 0.1}
+        {{ItemDataLoader::getItemTypeFromName("Serpent Venom"), 55, 90}, 1.0},
+        {{ItemDataLoader::getItemTypeFromName("Sandscale"), 2, 5}, 1.0},
+        {{ItemDataLoader::getItemTypeFromName("Serpent Tongue"), 1, 1}, 0.4},
+        {{ItemDataLoader::getItemTypeFromName("Serpent Mask"), 1, 1}, 0.2},
+        {{ItemDataLoader::getItemTypeFromName("Serpent Sceptre"), 1, 1}, 0.1}
     };
 
     sf::Vector2i playerTile = getWorldTileInside(playerPosition, game.getChunkManager().getWorldSize());

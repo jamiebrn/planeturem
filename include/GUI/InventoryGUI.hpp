@@ -55,6 +55,7 @@ struct ItemPopup
 {
     ItemCount itemCount;
     float timeAlive = 0;
+    bool notEnoughSpace = false;
 };
 
 enum class InventoryShopInfoMode
@@ -145,7 +146,7 @@ public:
     // -- Popups -- //
     static void updateItemPopups(float dt);
 
-    static void pushItemPopup(const ItemCount& itemCount);
+    static void pushItemPopup(const ItemCount& itemCount, bool notEnoughSpace = false);
 
     static void drawItemPopups(sf::RenderTarget& window);
 

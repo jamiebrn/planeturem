@@ -3,13 +3,14 @@
 #include "Data/ObjectDataLoader.hpp"
 #include "Data/ToolData.hpp"
 #include "Data/ToolDataLoader.hpp"
+#include "GUI/InventoryGUI.hpp"
 
 InventoryData::InventoryData(int size)
 {
     inventoryData = std::vector<std::optional<ItemCount>>(size, std::nullopt);
 }
 
-int InventoryData::addItem(ItemType item, int amount)
+int InventoryData::addItem(ItemType item, int amount, bool createPopup)
 {
     if (amount <= 0)
     {
@@ -41,29 +42,44 @@ int InventoryData::addItem(ItemType item, int amount)
         itemCount.second += amountAddedToStack;
 
         if (amountToAdd <= 0)
-            return amount;
+            break;
     }
 
     // Attempt to put remaining items in empty slot
-    for (std::optional<ItemCount>& itemSlot : inventoryData)
+    if (amountToAdd > 0)
     {
-        if (itemSlot.has_value())
-            continue;
-        
-        const ItemData& itemData = ItemDataLoader::getItemData(item);
-        
-        int amountPutInSlot = std::min(amountToAdd, static_cast<int>(itemData.maxStackSize));
+        for (std::optional<ItemCount>& itemSlot : inventoryData)
+        {
+            if (itemSlot.has_value())
+                continue;
+            
+            const ItemData& itemData = ItemDataLoader::getItemData(item);
+            
+            int amountPutInSlot = std::min(amountToAdd, static_cast<int>(itemData.maxStackSize));
 
-        amountToAdd -= amountPutInSlot;
+            amountToAdd -= amountPutInSlot;
 
-        itemSlot = ItemCount(item, amountPutInSlot);
+            itemSlot = ItemCount(item, amountPutInSlot);
 
-        if (amountToAdd <= 0)
-            return amount;
+            if (amountToAdd <= 0)
+                break;
+        }
+    }
+
+    int amountAdded = amount - amountToAdd;
+
+    // Create popup if required
+    if (createPopup)
+    {
+        InventoryGUI::pushItemPopup(ItemCount{item, amountAdded});
+        if (amountAdded < amount)
+        {
+            InventoryGUI::pushItemPopup(ItemCount{item, amount - amountAdded}, true);
+        }
     }
 
     // Return total items added
-    return amount - amountToAdd;
+    return amountAdded;
 
     // Doesn't exist so add as new item
     // inventoryData.push_back({item, amount});

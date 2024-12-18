@@ -1395,8 +1395,7 @@ void Game::catchRandomFish(sf::Vector2i fishedTile)
         if (cumulativeChance >= randomChance)
         {
             // Add fish / catch
-            inventory.addItem(fishCatchData.itemCatch, fishCatchData.count);
-            InventoryGUI::pushItemPopup(ItemCount(fishCatchData.itemCatch, fishCatchData.count));
+            inventory.addItem(fishCatchData.itemCatch, fishCatchData.count, true);
             break;
         }
     }

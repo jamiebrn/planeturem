@@ -53,8 +53,15 @@ public:
 protected:
     float playerMaxRange = 1000.0f;
 
+    struct ItemDropDistribution
+    {
+        ItemType itemType = 0;
+        int minAmount = 0;
+        int maxAmount= 0;
+    };
+
     // Item drops and respective chances
-    std::vector<std::pair<ItemCount, float>> itemDrops;
+    std::vector<std::pair<ItemDropDistribution, float>> itemDrops;
 
     std::string name;
 

@@ -4,7 +4,8 @@
 BossGlacialBrute::BossGlacialBrute(sf::Vector2f playerPosition, Game& game)
 {
     itemDrops = {
-        {{ItemDataLoader::getItemTypeFromName("Snowball Slingshot"), 1}, 1.0}
+        {{ItemDataLoader::getItemTypeFromName("Snowball Slingshot"), 1, 1}, 1.0},
+        {{ItemDataLoader::getItemTypeFromName("Large Glacial Head"), 1, 1}, 0.4}
     };
 
     sf::Vector2i playerTile = getWorldTileInside(playerPosition, game.getChunkManager().getWorldSize());

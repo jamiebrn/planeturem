@@ -1751,9 +1751,14 @@ void InventoryGUI::updateItemPopups(float dt)
     }
 }
 
-void InventoryGUI::pushItemPopup(const ItemCount& itemCount)
+void InventoryGUI::pushItemPopup(const ItemCount& itemCount, bool notEnoughSpace)
 {
-    if (itemPopups.size() > 0)
+    if (itemCount.second <= 0)
+    {
+        return;
+    }
+
+    if (itemPopups.size() > 0 && !notEnoughSpace)
     {
         ItemCount& frontItemCount = itemPopups.back().itemCount;
 
@@ -1772,6 +1777,7 @@ void InventoryGUI::pushItemPopup(const ItemCount& itemCount)
     // Item type popup is not the same as front, so add new popup
     ItemPopup itemPopup;
     itemPopup.itemCount = itemCount;
+    itemPopup.notEnoughSpace = notEnoughSpace;
 
     itemPopups.push_back(itemPopup);
 
@@ -1801,6 +1807,13 @@ void InventoryGUI::drawItemPopups(sf::RenderTarget& window)
         ItemInfoString infoString;
         infoString.itemCount = itemPopup.itemCount;
         infoString.string = itemData.name;
+
+        if (itemPopup.notEnoughSpace)
+        {
+            infoString.string += " - Inventory Full";
+            infoString.color = sf::Color(232, 59, 59);
+        }
+
         infoString.size = 20;
 
         // Calculate alpha

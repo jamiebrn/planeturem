@@ -17,10 +17,10 @@ BossBenjaminCrow::BossBenjaminCrow(sf::Vector2f playerPosition)
     Sounds::playMusic(MusicType::BossTheme1);
 
     itemDrops = {
-        {{ItemDataLoader::getItemTypeFromName("Feather"), 10}, 1.0},
-        {{ItemDataLoader::getItemTypeFromName("Bone"), 5}, 1.0},
-        {{ItemDataLoader::getItemTypeFromName("Crow Claw"), 2}, 0.5},
-        {{ItemDataLoader::getItemTypeFromName("Crow Skull"), 1}, 0.4}
+        {{ItemDataLoader::getItemTypeFromName("Feather"), 7, 12}, 1.0},
+        {{ItemDataLoader::getItemTypeFromName("Bone"), 3, 7}, 1.0},
+        {{ItemDataLoader::getItemTypeFromName("Crow Claw"), 1, 2}, 0.5},
+        {{ItemDataLoader::getItemTypeFromName("Crow Skull"), 1, 1}, 0.4}
     };
 
     this->position = playerPosition - sf::Vector2f(400, 400);

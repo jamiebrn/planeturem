@@ -16,8 +16,9 @@ void BossEntity::giveItemDrops(InventoryData& inventory)
             continue;
         }
 
-        inventory.addItem(itemDropChance.first.first, itemDropChance.first.second);
-        InventoryGUI::pushItemPopup(itemDropChance.first);
+        int amount = Helper::randInt(itemDropChance.first.minAmount, itemDropChance.first.maxAmount);
+
+        inventory.addItem(itemDropChance.first.itemType, amount, true);
     }
 }
 
