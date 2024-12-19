@@ -110,6 +110,9 @@
                         ["Snowy Rock", 0.01],
                         ["Titanium Rock", 0.01]
                     ],
+                    "structures": [
+                        ["Igloo", 0.02]
+                    ],
                     "fish-catches": [],
                     "noise-range": [0.5, 1]
                 }

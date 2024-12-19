@@ -43,7 +43,7 @@ void BossGlacialBrute::update(Game& game, ProjectileManager& enemyProjectileMana
                 sf::Vector2i playerTile = player.getWorldTileInside(worldSize);
 
                 std::vector<PathfindGridCoordinate> pathfindResult;
-                if (pathfindingEngine.findPath(tile.x, tile.y, playerTile.x, playerTile.y, pathfindResult, false, 50))
+                if (pathfindingEngine.findPath(tile.x, tile.y, playerTile.x, playerTile.y, pathfindResult, true, 50))
                 {
                     pathFollower.beginPath(position, pathfindingEngine.createStepSequenceFromPath(pathfindResult));
                 }
