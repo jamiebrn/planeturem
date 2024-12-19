@@ -1,7 +1,6 @@
 #include "Game.hpp"
 
 // TODO: DECEMBER CHECKLIST
-    // TODO: Working demo
     // TODO: At least 1 new boss, including armour + weapons
     // TODO: At least 1 new soundtrack
 

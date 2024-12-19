@@ -336,6 +336,7 @@ bool PathFollower::isActive()
 
 void PathFollower::handleWorldWrap(sf::Vector2f positionDelta)
 {
+    position += positionDelta;
     lastStepPosition += positionDelta;
     stepTargetPosition += positionDelta;
 }

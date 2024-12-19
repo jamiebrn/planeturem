@@ -1,12 +1,16 @@
 #include "Entity/Boss/BossGlacialBrute.hpp"
 #include "Game.hpp"
 
+const sf::IntRect BossGlacialBrute::shadowTextureRect = sf::IntRect(64, 208, 48, 16);
+
 BossGlacialBrute::BossGlacialBrute(sf::Vector2f playerPosition, Game& game)
 {
     itemDrops = {
         {{ItemDataLoader::getItemTypeFromName("Snowball Slingshot"), 1, 1}, 1.0},
         {{ItemDataLoader::getItemTypeFromName("Large Glacial Head"), 1, 1}, 0.4}
     };
+
+    Sounds::playMusic(MusicType::BossTheme1);
 
     sf::Vector2i playerTile = getWorldTileInside(playerPosition, game.getChunkManager().getWorldSize());
 
@@ -18,7 +22,7 @@ BossGlacialBrute::BossGlacialBrute(sf::Vector2f playerPosition, Game& game)
 
     health = MAX_HEALTH;
 
-    walkAnimation.create(1, 48, 64, 496, 384, 0.2);
+    walkAnimation.create(8, 48, 64, 496, 448, 0.1);
 
     updateCollision();
 }
@@ -46,7 +50,9 @@ void BossGlacialBrute::update(Game& game, ProjectileManager& enemyProjectileMana
             }
             else
             {
+                sf::Vector2f beforePos = position;
                 position = pathFollower.updateFollower(75.0f * dt);
+                velocity = (position - beforePos) / dt;
             }
 
             walkAnimation.update(dt);
@@ -75,10 +81,17 @@ void BossGlacialBrute::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, 
 {
     float scale = ResolutionHandler::getScale();
 
+    // Draw shadow
     TextureDrawData drawData;
-    drawData.position = camera.worldToScreenTransform(position);
     drawData.type = TextureType::Entities;
+    drawData.position = camera.worldToScreenTransform(position);
     drawData.scale = sf::Vector2f(scale, scale);
+    drawData.centerRatio = sf::Vector2f(0.5f, 0.5f);
+
+    spriteBatch.draw(window, drawData, shadowTextureRect);
+
+    // Draw brute
+    drawData.centerRatio = sf::Vector2f(0.5f, 1.0f);
 
     std::optional<ShaderType> shaderType = std::nullopt;
 
@@ -87,6 +100,12 @@ void BossGlacialBrute::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, 
         shaderType = ShaderType::Flash;
         sf::Shader* flashShader = Shaders::getShader(shaderType.value());
         flashShader->setUniform("flash_amount", flashTime / MAX_FLASH_TIME);
+    }
+
+    // Flip if required
+    if (velocity.x < 0)
+    {
+        drawData.scale.x *= -1;
     }
 
     switch (behaviourState)

@@ -72,7 +72,11 @@ private:
 private:
     BossGlacialBruteState behaviourState;
 
+    sf::Vector2f velocity;
+
     AnimatedTexture walkAnimation;
+
+    static const sf::IntRect shadowTextureRect;
 
     static constexpr int MAX_HEALTH = 3500;
     int health;
