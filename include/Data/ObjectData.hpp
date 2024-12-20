@@ -73,6 +73,8 @@ struct ObjectData
 
     int chestCapacity = 0;
 
+    int minimumDamage = 1;
+
     // std::unordered_map<ItemType, > itemDrops;
     std::vector<ItemDrop> itemDrops;
 

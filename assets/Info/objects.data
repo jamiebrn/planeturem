@@ -315,6 +315,7 @@
     {
         "name": "Icicle",
         "health": 9,
+        "minimum-damage": 2,
         "textures": [[304, 208]],
         "texture-width": 16,
         "texture-height": 16,
@@ -327,6 +328,7 @@
     {
         "name": "Large Icicle",
         "health": 18,
+        "minimum-damage": 3,
         "textures": [[336, 203]],
         "texture-width": 16,
         "texture-height": 21,
@@ -339,6 +341,7 @@
     {
         "name": "Large Icicle Left",
         "health": 18,
+        "minimum-damage": 3,
         "textures": [[320, 203]],
         "texture-width": 16,
         "texture-height": 21,
@@ -351,6 +354,7 @@
     {
         "name": "Large Icicle Right",
         "health": 18,
+        "minimum-damage": 3,
         "textures": [[352, 203]],
         "texture-width": 16,
         "texture-height": 21,

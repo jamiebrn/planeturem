@@ -126,6 +126,15 @@
         "crafting-station-level": 1
     },
     {
+        "product": "Titanium Pickhammer",
+        "item-requirements": {
+            "Titanium Bar": 5,
+            "Iron Bar": 3
+        },
+        "crafting-station": "anvil",
+        "crafting-station-level": 2
+    },
+    {
         "product": "Wooden Bow",
         "item-requirements": {
             "Wood": 15

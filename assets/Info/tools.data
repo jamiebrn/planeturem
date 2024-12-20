@@ -18,7 +18,7 @@
             "origin": [0.5, 0.5],
             "damage-range": [2, 6],
             "speed": 240,
-            "sell-value": 1
+            "sell-value": 0.5
         },
         {
             "name": "Serpent Venom",
@@ -84,6 +84,18 @@
             "hold-offset": [-2, -3],
             "damage": 2,
             "sell-value": 2
+        },
+        {
+            "name": "Titanium Pickhammer",
+            "behaviour-type": "Pickaxe",
+            "textures": [[16, 16]],
+            "texture-width": 16,
+            "texture-height": 16,
+            "pivot-x": 0.8125,
+            "pivot-y": 0.8125,
+            "hold-offset": [-2, -3],
+            "damage": 3,
+            "sell-value": 5
         },
         {
             "name": "Wooden Fishing Rod",

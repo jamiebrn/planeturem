@@ -204,9 +204,12 @@ bool BuildableObject::damage(int amount, Game& game, InventoryData& inventory, P
 {
     if (objectType < 0)
         return false;
-    
-    if (amount <= 0)
+
+    const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
+
+    if (amount < objectData.minimumDamage)
     {
+        createHitMarker(0);
         return false;
     }
 
@@ -222,13 +225,13 @@ bool BuildableObject::damage(int amount, Game& game, InventoryData& inventory, P
     Sounds::playSound(hitSound, 60.0f);
 
     createHitParticles(particleSystem);
+    createHitMarker(amount);
 
     if (!isAlive())
     {
         if (giveItems)
         {
             // Give item drops
-            const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
             giveItemDrops(inventory, objectData.itemDrops);
         }
 
@@ -286,6 +289,23 @@ void BuildableObject::createHitParticles(ParticleSystem& particleSystem)
         sf::Vector2f(std::cos(1 / 8.0f * 2 * M_PI), std::sin(1 / 8.0f * 2 * M_PI)) * PARTICLE_SPEED, sf::Vector2f(0, 0), style));
     particleSystem.addParticle(Particle(position + sf::Vector2f(0, objectData.size.y - 1) * TILE_SIZE_PIXELS_UNSCALED,
         sf::Vector2f(std::cos(3 / 8.0f * 2 * M_PI), std::sin(3 / 8.0f * 2 * M_PI)) * PARTICLE_SPEED, sf::Vector2f(0, 0), style));
+}
+
+void BuildableObject::createHitMarker(int amount)
+{
+    const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
+
+    sf::Vector2f spawnPos = position - sf::Vector2f(0.5f, 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
+    spawnPos.x += Helper::randFloat(0.0f, objectData.size.x * TILE_SIZE_PIXELS_UNSCALED);
+    spawnPos.y += Helper::randFloat(0.0f, objectData.size.y * TILE_SIZE_PIXELS_UNSCALED);
+
+    sf::Color hitColour = sf::Color(247, 150, 23);
+    if (amount <= 0)
+    {
+        hitColour = sf::Color(208, 15, 30);
+    }
+
+    HitMarkers::addHitMarker(spawnPos, amount, hitColour);
 }
 
 void BuildableObject::giveItemDrops(InventoryData& inventory, const std::vector<ItemDrop>& itemDrops)

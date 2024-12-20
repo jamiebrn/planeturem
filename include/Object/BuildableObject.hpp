@@ -23,6 +23,7 @@
 #include "Data/ObjectDataLoader.hpp"
 
 #include "GUI/InventoryGUI.hpp"
+#include "GUI/HitMarkers.hpp"
 
 class Game;
 
@@ -53,6 +54,8 @@ public:
     virtual bool damage(int amount, Game& game, InventoryData& inventory, ParticleSystem& particleSystem, bool giveItems = true);
 
     void createHitParticles(ParticleSystem& particleSystem);
+
+    void createHitMarker(int amount);
     
     void setWorldPosition(sf::Vector2f position);
 

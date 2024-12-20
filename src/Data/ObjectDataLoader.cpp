@@ -88,6 +88,8 @@ bool ObjectDataLoader::loadData(std::string objectDataPath)
 
         if (jsonObjectData.contains("chest-capacity")) objectData.chestCapacity = jsonObjectData.at("chest-capacity");
 
+        if (jsonObjectData.contains("minimum-damage")) objectData.minimumDamage = jsonObjectData.at("minimum-damage");
+
         if (jsonObjectData.contains("mythical-item")) objectData.mythicalItem = jsonObjectData.at("mythical-item");
 
         if (jsonObjectData.contains("item-drops"))
