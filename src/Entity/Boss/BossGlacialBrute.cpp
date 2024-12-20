@@ -67,6 +67,12 @@ void BossGlacialBrute::update(Game& game, ProjectileManager& enemyProjectileMana
 
 bool BossGlacialBrute::isAlive()
 {
+    if (health <= 0)
+    {
+        // Unlock achievement
+        Achievements::attemptAchievementUnlock("KILLED_GLACIAL_BRUTE");
+    }
+
     return (health > 0);
 }
 

@@ -26,6 +26,17 @@
                 ["AlienHostage", 3],
                 ["BusinessAlien", 4]
             ]
+        },
+        "Igloo": {
+            "texture": [384, 16],
+            "tile-size": [5, 7],
+            "collision-bitmask": [0, 21],
+            "objects": [
+                ["Crate", 1, [
+                    [[0, "Slush Ice", 5]]
+                    ]],
+                ["AlienHostage", 2]
+            ]
         }
     },
     "structures": [
@@ -46,8 +57,8 @@
             "texture": [224, 384, 48, 48],
             "texture-origin": [0.167, 0.833],
             "collision-bitmask": [0, 0],
-            "light-bitmask": [3, 0],
-            "room": "Stone"
+            "light-bitmask": [5, 22],
+            "room": "Igloo"
         }
     ]
 }
