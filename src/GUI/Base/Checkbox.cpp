@@ -1,7 +1,7 @@
 #include "GUI/Base/Checkbox.hpp"
 
-Checkbox::Checkbox(const GUIInputState& inputState, ElementID id, int x, int y, int width, int height, const std::string& label, bool* value)
-    : Button(inputState, id, x, y, width, height, label)
+Checkbox::Checkbox(const GUIInputState& inputState, ElementID id, int x, int y, int width, int height, int textSize, const std::string& label, bool* value)
+    : Button(inputState, id, x, y, width, height, textSize, label)
 {
     this->value = value;
 
@@ -48,7 +48,7 @@ void Checkbox::draw(sf::RenderTarget& window)
     // Draw text
     TextDrawData textDrawData;
     textDrawData.text = text;
-    textDrawData.size = 24;
+    textDrawData.size = textSize;
     textDrawData.colour = sf::Color(0, 0, 0);
     textDrawData.position = sf::Vector2f(x, y) + sf::Vector2f(width * 1.2f, height / 2.0f);
     textDrawData.centeredY = true;

@@ -14,7 +14,7 @@
 class Checkbox : public Button
 {
 public:
-    Checkbox(const GUIInputState& inputState, ElementID id, int x, int y, int width, int height, const std::string& label, bool* value);
+    Checkbox(const GUIInputState& inputState, ElementID id, int x, int y, int width, int height, int textSize, const std::string& label, bool* value);
 
     void draw(sf::RenderTarget& window) override;
 

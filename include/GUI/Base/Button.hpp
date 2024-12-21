@@ -24,7 +24,8 @@ struct ButtonStyle
 class Button : public GUIElement
 {
 public:
-    Button(const GUIInputState& inputState, ElementID id, int x, int y, int width, int height, const std::string& text, std::optional<ButtonStyle> style = std::nullopt);
+    Button(const GUIInputState& inputState, ElementID id, int x, int y, int width, int height, int textSize, const std::string& text,
+            std::optional<ButtonStyle> style = std::nullopt);
 
     bool isClicked() const;
     bool isHeld() const;

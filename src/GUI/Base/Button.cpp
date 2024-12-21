@@ -1,7 +1,7 @@
 #include "GUI/Base/Button.hpp"
 
-Button::Button(const GUIInputState& inputState, ElementID id, int x, int y, int width, int height, const std::string& text, std::optional<ButtonStyle> style)
-    : GUIElement(id)
+Button::Button(const GUIInputState& inputState, ElementID id, int x, int y, int width, int height, int textSize, const std::string& text, std::optional<ButtonStyle> style)
+    : GUIElement(id, textSize)
 {
     this->x = x;
     this->y = y;
@@ -74,7 +74,7 @@ void Button::draw(sf::RenderTarget& window)
     // Draw text
     TextDrawData textDrawData;
     textDrawData.text = text;
-    textDrawData.size = 24;
+    textDrawData.size = textSize;
     textDrawData.colour = style.textColour;
     textDrawData.position = sf::Vector2f(x, y) + sf::Vector2f(width, height) / 2.0f;
     textDrawData.centeredX = true;

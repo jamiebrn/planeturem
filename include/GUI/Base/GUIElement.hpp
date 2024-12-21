@@ -7,7 +7,7 @@
 class GUIElement
 {
 public:
-    inline GUIElement(ElementID id) {this->id = id;};
+    inline GUIElement(ElementID id, int textSize) : id(id), textSize(textSize) {}
     
     virtual void draw(sf::RenderTarget& window) = 0;
 
@@ -19,6 +19,8 @@ public:
 
 protected:
     ElementID id;
+
+    int textSize = 0;
 
     bool hovered = false;
 

@@ -43,7 +43,7 @@ LandmarkSetGUIEvent LandmarkSetGUI::createAndDraw(sf::RenderWindow& window, floa
     for (int i = 0; i < 3; i++)
     {
         if (guiContext.createSlider(scaledPanelPaddingX, yPos * intScale, panelWidth * intScale, 75 * intScale,
-            0.0f, 255.0f, &aColour[i], colourStrings[i], panelWidth / 2 * intScale, panelWidth / 10 * intScale, 40 * intScale).isHeld())
+            0.0f, 255.0f, &aColour[i], 20 * intScale, colourStrings[i], panelWidth / 2 * intScale, panelWidth / 10 * intScale, 40 * intScale).isHeld())
         {
             setGUIEvent.modified = true;
         }
@@ -61,7 +61,7 @@ LandmarkSetGUIEvent LandmarkSetGUI::createAndDraw(sf::RenderWindow& window, floa
     for (int i = 0; i < 3; i++)
     {
         if (guiContext.createSlider(scaledPanelPaddingX, yPos * intScale, panelWidth * intScale, 75 * intScale,
-            0.0f, 255.0f, &bColour[i], colourStrings[i], panelWidth / 2 * intScale, panelWidth / 10 * intScale, 40 * intScale).isHeld())
+            0.0f, 255.0f, &bColour[i], 20 * intScale, colourStrings[i], panelWidth / 2 * intScale, panelWidth / 10 * intScale, 40 * intScale).isHeld())
         {
             setGUIEvent.modified = true;
         }
@@ -69,7 +69,7 @@ LandmarkSetGUIEvent LandmarkSetGUI::createAndDraw(sf::RenderWindow& window, floa
         yPos += 100;
     }
 
-    if (guiContext.createButton(scaledPanelPaddingX, yPos * intScale, panelWidth * intScale, 75 * intScale, "Set Colour", buttonStyle)
+    if (guiContext.createButton(scaledPanelPaddingX, yPos * intScale, panelWidth * intScale, 75 * intScale, 24 * intScale, "Set Colour", buttonStyle)
         .isClicked())
     {
         setGUIEvent.closed = true;

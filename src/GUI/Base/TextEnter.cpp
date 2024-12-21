@@ -1,8 +1,8 @@
 #include "GUI/Base/TextEnter.hpp"
 
-TextEnter::TextEnter(const GUIInputState& inputState, ElementID id, int x, int y, int width, int height, const std::string& text, std::string* textPtr,
+TextEnter::TextEnter(const GUIInputState& inputState, ElementID id, int x, int y, int width, int height, int textSize, const std::string& text, std::string* textPtr,
                      int paddingX, int paddingY, int maxLength)
-    : GUIElement(id)
+    : GUIElement(id, textSize)
 {
     this->x = x + paddingX / 2;
     this->y = y + paddingY / 2;
@@ -88,7 +88,7 @@ void TextEnter::draw(sf::RenderTarget& window)
     {
         TextDrawData textDrawData;
         textDrawData.position = sf::Vector2f(x + 10, y + height / 2.0f);
-        textDrawData.size = 20;
+        textDrawData.size = textSize;
         textDrawData.centeredY = true;
         
         if (textPtr->empty())

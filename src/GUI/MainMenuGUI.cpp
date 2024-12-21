@@ -72,13 +72,15 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
 
     std::optional<MainMenuEvent> menuEvent = std::nullopt;
 
+    int buttonTextSize = 24 * intScale;
+
     // Buttons / UI
     switch (mainMenuState)
     {
         case MainMenuState::Main:
         {
             if (const Button& button = guiContext.createButton(
-                scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale, "New", buttonStyle);
+                scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale, buttonTextSize, "New", buttonStyle);
                 button.isClicked())
             {
                 saveNameInput = "";
@@ -89,7 +91,7 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
             elementYPos += 100 * intScale;
 
             if (const Button& button = guiContext.createButton(
-                scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale, "Load", buttonStyle);
+                scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale, buttonTextSize, "Load", buttonStyle);
                 button.isClicked())
             {
                 nextUIState = MainMenuState::SelectingLoad;
@@ -103,7 +105,7 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
             elementYPos += 100 * intScale;
 
             if (const Button& button = guiContext.createButton(
-                scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale, "Options", buttonStyle);
+                scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale, buttonTextSize, "Options", buttonStyle);
                 button.isClicked())
             {
                 nextUIState = MainMenuState::Options;
@@ -112,7 +114,7 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
             elementYPos += 100 * intScale;
 
             if (const Button& button = guiContext.createButton(
-                scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale, "Exit", buttonStyle);
+                scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale, buttonTextSize, "Exit", buttonStyle);
                 button.isClicked())
             {
                 menuEvent = MainMenuEvent();
@@ -123,16 +125,16 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
         case MainMenuState::StartingNew:
         {
             guiContext.createTextEnter(scaledPanelPaddingX, elementYPos,
-                panelWidth * intScale, 75 * intScale, "Name", &saveNameInput, panelWidth / 5 * intScale, 30 * intScale, 30);
+                panelWidth * intScale, 75 * intScale, 20 * intScale, "Name", &saveNameInput, panelWidth / 5 * intScale, 30 * intScale, 30);
 
             elementYPos += 150 * intScale;
 
             guiContext.createTextEnter(scaledPanelPaddingX, elementYPos,
-                panelWidth * intScale, 75 * intScale, "Seed", &worldSeedInput, panelWidth / 5 * intScale, 30 * intScale, 30);
+                panelWidth * intScale, 75 * intScale, 20 * intScale, "Seed", &worldSeedInput, panelWidth / 5 * intScale, 30 * intScale, 30);
 
             elementYPos += 200 * intScale;
 
-            if (guiContext.createButton(scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale, "Start", buttonStyle)
+            if (guiContext.createButton(scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale, buttonTextSize, "Start", buttonStyle)
                 .isClicked())
             {
                 if (!saveNameInput.empty())
@@ -159,7 +161,7 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
 
             elementYPos += 100 * intScale;
             
-            if (guiContext.createButton(scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale, "Back", buttonStyle)
+            if (guiContext.createButton(scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale, buttonTextSize, "Back", buttonStyle)
                 .isClicked())
             {
                 if (canInteract)
@@ -180,7 +182,7 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
                 std::string saveSummaryString = saveFileSummary.name + " - (" + saveFileSummary.timePlayedString + ")";
 
                 if (guiContext.createButton(scaledPanelPaddingX, elementYPos,
-                    panelWidth * intScale, 75 * intScale, saveSummaryString, buttonStyle)
+                    panelWidth * intScale, 75 * intScale, buttonTextSize, saveSummaryString, buttonStyle)
                         .isClicked())
                 {
                     menuEvent = MainMenuEvent();
@@ -253,7 +255,7 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
                 if (saveFilePage > 0)
                 {
                     if (guiContext.createButton(scaledPanelPaddingX, elementYPos,
-                        panelWidth / 2 * intScale, 50 * intScale, "<", buttonStyle)
+                        panelWidth / 2 * intScale, 50 * intScale, buttonTextSize, "<", buttonStyle)
                             .isClicked())
                     {
                         saveFilePage--;
@@ -266,7 +268,7 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
                 if (saveFilePage < std::ceil(saveFileSummaries.size() / saveFilesPerPage))
                 {
                     if (guiContext.createButton((scaledPanelPaddingX + panelWidth / 2) * intScale, elementYPos,
-                        panelWidth / 2 * intScale, 50 * intScale, ">", buttonStyle)
+                        panelWidth / 2 * intScale, 50 * intScale, buttonTextSize, ">", buttonStyle)
                             .isClicked())
                     {
                         saveFilePage++;
@@ -278,7 +280,7 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
                 elementYPos += 100 * intScale;
             }
 
-            if (guiContext.createButton(scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale, "Back", buttonStyle)
+            if (guiContext.createButton(scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale, buttonTextSize, "Back", buttonStyle)
                 .isClicked())
             {
                 if (canInteract)
@@ -293,7 +295,7 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
         {
             float musicVolume = Sounds::getMusicVolume();
             if (guiContext.createSlider(scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale,
-                0.0f, 100.0f, &musicVolume, "Music Volume", panelWidth / 2 * intScale, panelWidth / 10 * intScale, 40 * intScale)
+                0.0f, 100.0f, &musicVolume, 20 * intScale, "Music Volume", panelWidth / 2 * intScale, panelWidth / 10 * intScale, 40 * intScale)
                 .isHeld())
             {
                 Sounds::setMusicVolume(musicVolume);
@@ -301,7 +303,7 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
 
             elementYPos += 300 * intScale;
 
-            if (guiContext.createButton(scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale, "Back", buttonStyle)
+            if (guiContext.createButton(scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale, buttonTextSize, "Back", buttonStyle)
                 .isClicked())
             {
                 menuEvent = MainMenuEvent();
@@ -370,14 +372,14 @@ std::optional<PauseMenuEventType> MainMenuGUI::createAndDrawPauseMenu(sf::Render
 
     std::optional<PauseMenuEventType> menuEvent = std::nullopt;
 
-    if (guiContext.createButton(scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale, "Resume", buttonStyle).isClicked())
+    if (guiContext.createButton(scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale, 24 * intScale, "Resume", buttonStyle).isClicked())
     {
         menuEvent = PauseMenuEventType::Resume;
     }
 
     elementYPos += 100 * intScale;
 
-    if (guiContext.createButton(scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale, "Quit", buttonStyle).isClicked())
+    if (guiContext.createButton(scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale, 24 * intScale, "Quit", buttonStyle).isClicked())
     {
         menuEvent = PauseMenuEventType::Quit;
     }
