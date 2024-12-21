@@ -4,6 +4,8 @@
     // TODO: At least 1 new boss, including armour + weapons
     // TODO: At least 1 new soundtrack
 
+// FIX: UI scaling elements (text etc)
+
 // TODO: Night and menu music
 
 // PRIORITY: LOW
@@ -654,6 +656,7 @@ void Game::runInGame(float dt)
                 break;
             
             case WorldMenuState::Inventory:
+                InventoryGUI::drawItemPopups(window);
                 InventoryGUI::draw(window, gameTime, mouseScreenPos, inventory, armourInventory, chestDataPool.getChestDataPtr(openedChestID));
                 HealthGUI::drawHealth(window, spriteBatch, player, gameTime, extraInfoStrings);
                 break;

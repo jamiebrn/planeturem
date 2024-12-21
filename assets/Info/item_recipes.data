@@ -126,10 +126,19 @@
         "crafting-station-level": 1
     },
     {
-        "product": "Titanium Pickhammer",
+        "product": "Titanium Pickaxe",
         "item-requirements": {
             "Titanium Bar": 5,
             "Iron Bar": 3
+        },
+        "crafting-station": "anvil",
+        "crafting-station-level": 2
+    },
+    {
+        "product": "Titanium Fishing Rod",
+        "item-requirements": {
+            "Titanium Bar": 4,
+            "Wooden Fishing Rod": 1
         },
         "crafting-station": "anvil",
         "crafting-station-level": 2

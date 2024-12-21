@@ -21,8 +21,8 @@ bool TravelSelectGUI::createAndDraw(sf::RenderWindow& window, float dt, PlanetTy
     int yPos = 100;
 
     TextDrawData titleTextDrawData;
-    titleTextDrawData.position = sf::Vector2f(scaledPanelPaddingX + panelWidth / 2, yPos) * intScale;
-    titleTextDrawData.size = 36;
+    titleTextDrawData.position = sf::Vector2f(scaledPanelPaddingX + panelWidth / 2 * intScale, yPos * intScale);
+    titleTextDrawData.size = 36 * intScale;
     titleTextDrawData.colour = sf::Color(255, 255, 255);
     titleTextDrawData.centeredX = true;
     titleTextDrawData.centeredY = true;
@@ -40,7 +40,7 @@ bool TravelSelectGUI::createAndDraw(sf::RenderWindow& window, float dt, PlanetTy
         {
             const PlanetGenData& planetData = PlanetGenDataLoader::getPlanetGenData(planetDestination);
 
-            if (guiContext.createButton(scaledPanelPaddingX * intScale, yPos * intScale, panelWidth * intScale, 75 * intScale, planetData.displayName, buttonStyle).isClicked())
+            if (guiContext.createButton(scaledPanelPaddingX, yPos * intScale, panelWidth * intScale, 75 * intScale, planetData.displayName, buttonStyle).isClicked())
             {
                 if (!clicked)
                 {
@@ -67,7 +67,7 @@ bool TravelSelectGUI::createAndDraw(sf::RenderWindow& window, float dt, PlanetTy
         {
             const RoomData& roomData = StructureDataLoader::getRoomData(roomDestination);
 
-            if (guiContext.createButton(scaledPanelPaddingX * intScale, yPos * intScale, panelWidth * intScale, 75 * intScale, roomData.displayName, buttonStyle).isClicked())
+            if (guiContext.createButton(scaledPanelPaddingX, yPos * intScale, panelWidth * intScale, 75 * intScale, roomData.displayName, buttonStyle).isClicked())
             {
                 if (!clicked)
                 {

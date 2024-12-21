@@ -86,13 +86,13 @@
             "sell-value": 2
         },
         {
-            "name": "Titanium Pickhammer",
+            "name": "Titanium Pickaxe",
             "behaviour-type": "Pickaxe",
-            "textures": [[16, 16]],
+            "textures": [[32, 16]],
             "texture-width": 16,
             "texture-height": 16,
-            "pivot-x": 0.8125,
-            "pivot-y": 0.8125,
+            "pivot-x": 0.75,
+            "pivot-y": 0.75,
             "hold-offset": [-2, -3],
             "damage": 3,
             "sell-value": 5
@@ -109,6 +109,19 @@
             "fishing-rod-line-offset": [8, -8],
             "fishing-efficiency": 1.0,
             "sell-value": 1
+        },
+        {
+            "name": "Titanium Fishing Rod",
+            "behaviour-type": "Fishing Rod",
+            "textures": [[0, 64], [16, 64]],
+            "texture-width": 16,
+            "texture-height": 16,
+            "pivot-x": 0.25,
+            "pivot-y": 0.75,
+            "hold-offset": [3, -2],
+            "fishing-rod-line-offset": [8, -8],
+            "fishing-efficiency": 1.75,
+            "sell-value": 5
         },
         {
             "name": "Wooden Bow",

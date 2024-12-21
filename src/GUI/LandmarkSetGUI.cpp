@@ -26,8 +26,8 @@ LandmarkSetGUIEvent LandmarkSetGUI::createAndDraw(sf::RenderWindow& window, floa
     int yPos = 100;
 
     TextDrawData textDrawData;
-    textDrawData.position = sf::Vector2f(scaledPanelPaddingX + panelWidth / 2, yPos) * intScale;
-    textDrawData.size = 36;
+    textDrawData.position = sf::Vector2f(scaledPanelPaddingX + panelWidth / 2 * intScale, yPos * intScale);
+    textDrawData.size = 36 * intScale;
     textDrawData.colour = sf::Color(255, 255, 255);
     textDrawData.centeredX = true;
     textDrawData.centeredY = true;
@@ -42,7 +42,7 @@ LandmarkSetGUIEvent LandmarkSetGUI::createAndDraw(sf::RenderWindow& window, floa
 
     for (int i = 0; i < 3; i++)
     {
-        if (guiContext.createSlider(scaledPanelPaddingX * intScale, yPos, panelWidth * intScale, 75 * intScale,
+        if (guiContext.createSlider(scaledPanelPaddingX, yPos * intScale, panelWidth * intScale, 75 * intScale,
             0.0f, 255.0f, &aColour[i], colourStrings[i], panelWidth / 2 * intScale, panelWidth / 10 * intScale, 40 * intScale).isHeld())
         {
             setGUIEvent.modified = true;
@@ -60,7 +60,7 @@ LandmarkSetGUIEvent LandmarkSetGUI::createAndDraw(sf::RenderWindow& window, floa
 
     for (int i = 0; i < 3; i++)
     {
-        if (guiContext.createSlider(scaledPanelPaddingX * intScale, yPos, panelWidth * intScale, 75 * intScale,
+        if (guiContext.createSlider(scaledPanelPaddingX, yPos * intScale, panelWidth * intScale, 75 * intScale,
             0.0f, 255.0f, &bColour[i], colourStrings[i], panelWidth / 2 * intScale, panelWidth / 10 * intScale, 40 * intScale).isHeld())
         {
             setGUIEvent.modified = true;
@@ -69,7 +69,7 @@ LandmarkSetGUIEvent LandmarkSetGUI::createAndDraw(sf::RenderWindow& window, floa
         yPos += 100;
     }
 
-    if (guiContext.createButton(scaledPanelPaddingX * intScale, yPos, panelWidth * intScale, 75 * intScale, "Set Colour", buttonStyle)
+    if (guiContext.createButton(scaledPanelPaddingX, yPos * intScale, panelWidth * intScale, 75 * intScale, "Set Colour", buttonStyle)
         .isClicked())
     {
         setGUIEvent.closed = true;

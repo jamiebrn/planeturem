@@ -276,15 +276,22 @@ void Player::respawn()
 
 void Player::updateFishingRodCatch(float dt)
 {
+    if (equippedTool < 0)
+    {
+        return;
+    }
+
     fishingRodCastedTime += dt;
     if (fishingRodCastedTime >= 1)
     {
         fishingRodCastedTime = 0;
         fishBitingLine = false;
 
+        const ToolData& fishingRodToolData = ToolDataLoader::getToolData(equippedTool);
+
         // Chance for fish to bite line
-        int fishBiteChance = Helper::randInt(0, 5);
-        if (fishBiteChance == 0)
+        int fishBiteChance = Helper::randFloat(0.0f, 5.0f / fishingRodToolData.fishingEfficiency);
+        if (fishBiteChance < 1)
         {
             fishBitingLine = true;
         }

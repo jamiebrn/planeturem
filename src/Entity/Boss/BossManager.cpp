@@ -146,7 +146,7 @@ void BossManager::drawStatsAtCursor(sf::RenderTarget& window, const Camera& came
 
     float intScale = ResolutionHandler::getResolutionIntegerScale();
 
-    sf::Vector2f statPos = mouseScreenPos + sf::Vector2f(STATS_DRAW_OFFSET_X * intScale, STATS_DRAW_OFFSET_Y * intScale);
+    sf::Vector2f statPos = mouseScreenPos + sf::Vector2f(STATS_DRAW_OFFSET_X, STATS_DRAW_OFFSET_Y) * intScale;
 
     for (const std::string& bossStat : hoverStats)
     {
@@ -154,7 +154,7 @@ void BossManager::drawStatsAtCursor(sf::RenderTarget& window, const Camera& came
         textDrawData.text = bossStat;
         textDrawData.position = statPos;
         textDrawData.colour = sf::Color(255, 255, 255, 255);
-        textDrawData.size = STATS_DRAW_SIZE;
+        textDrawData.size = STATS_DRAW_SIZE * intScale;
         textDrawData.outlineColour = sf::Color(46, 34, 47);
         textDrawData.outlineThickness = STATS_DRAW_OUTLINE_THICKNESS * intScale;
         textDrawData.containOnScreenX = true;

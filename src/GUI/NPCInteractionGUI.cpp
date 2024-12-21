@@ -35,7 +35,7 @@ std::optional<NPCInteractionGUIEvent> NPCInteractionGUI::createAndDraw(sf::Rende
         drawDialogueBox(window, spriteBatch, dt, gameTime);
 
         // Create talk button by default
-        if (guiContext.createButton(scaledPanelPaddingX * intScale, elementYPos, panelWidth * intScale, 75 * intScale, "Talk", buttonStyle).isClicked())
+        if (guiContext.createButton(scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale, "Talk", buttonStyle).isClicked())
         {
             const std::string& currentDialogue = currentNPCObjectData->dialogueLines.at(currentDiagloueIndex);
 
@@ -62,7 +62,7 @@ std::optional<NPCInteractionGUIEvent> NPCInteractionGUI::createAndDraw(sf::Rende
         {
             case NPCObjectBehaviour::Shop:
             {
-                if (guiContext.createButton(scaledPanelPaddingX * intScale, elementYPos, panelWidth * intScale, 75 * intScale, "Shop", buttonStyle).isClicked())
+                if (guiContext.createButton(scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale, "Shop", buttonStyle).isClicked())
                 {
                     npcInteractionGUIEvent = NPCInteractionGUIEvent();
                     npcInteractionGUIEvent->type = NPCInteractionGUIEventType::Shop;
@@ -76,7 +76,7 @@ std::optional<NPCInteractionGUIEvent> NPCInteractionGUI::createAndDraw(sf::Rende
         }
     }
 
-    if (guiContext.createButton(scaledPanelPaddingX * intScale, elementYPos, panelWidth * intScale, 75 * intScale, "Exit", buttonStyle).isClicked())
+    if (guiContext.createButton(scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale, "Exit", buttonStyle).isClicked())
     {
         npcInteractionGUIEvent = NPCInteractionGUIEvent();
         npcInteractionGUIEvent->type = NPCInteractionGUIEventType::Exit;
