@@ -387,5 +387,29 @@
         "key-items": ["Large Glacial Head"],
         "crafting-station": "bench",
         "crafting-station-level": 1
+    },
+    {
+        "product": "Wooden Headgear",
+        "item-requirements": {
+            "Wood": 30
+        },
+        "crafting-station": "bench",
+        "crafting-station-level": 1
+    },
+    {
+        "product": "Wooden Chestpiece",
+        "item-requirements": {
+            "Wood": 40
+        },
+        "crafting-station": "bench",
+        "crafting-station-level": 1
+    },
+    {
+        "product": "Wooden Boots",
+        "item-requirements": {
+            "Wood": 20
+        },
+        "crafting-station": "bench",
+        "crafting-station-level": 1
     }
 ]

@@ -1,5 +1,30 @@
 [
     {
+        "name": "Wooden Headgear",
+        "type": "Head",
+        "texture": [752, 112, 16, 16],
+        "wear-textures": [[768, 112], [784, 112], [800, 112], [816, 112], [832, 112], [848, 112], [864, 112], [880, 112]],
+        "wear-texture-offset": [0, -3],
+        "defence": 1,
+        "sell-value": 2
+    },
+    {
+        "name": "Wooden Chestpiece",
+        "type": "Chest",
+        "texture": [752, 128, 16, 16],
+        "wear-textures": [[768, 128], [784, 128], [800, 128], [816, 128], [832, 128], [848, 128], [864, 128], [880, 128]],
+        "defence": 1,
+        "sell-value": 2
+    },
+    {
+        "name": "Wooden Boots",
+        "type": "Feet",
+        "texture": [752, 144, 16, 16],
+        "wear-textures": [[768, 144], [784, 144], [800, 144], [816, 144], [832, 144], [848, 144], [864, 144], [880, 144]],
+        "defence": 1,
+        "sell-value": 2
+    },
+    {
         "name": "Black Feather Headgear",
         "type": "Head",
         "texture": [752, 16, 16, 16],
