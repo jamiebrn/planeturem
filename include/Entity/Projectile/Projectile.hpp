@@ -10,6 +10,7 @@
 #include "Core/ResolutionHandler.hpp"
 #include "Core/Camera.hpp"
 #include "Core/Helper.hpp"
+#include "Core/CollisionCircle.hpp"
 
 #include "Data/typedefs.hpp"
 #include "Data/ToolData.hpp"
@@ -35,6 +36,8 @@ public:
     void handleWorldWrap(sf::Vector2f positionDelta);
 
     bool isAlive();
+
+    const CollisionCircle getCollisionCircle() const;
 
 private:
     ProjectileType projectileType;

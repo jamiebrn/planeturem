@@ -9,6 +9,8 @@
 #include "Core/ResolutionHandler.hpp"
 #include "Core/Camera.hpp"
 
+class CollisionCircle;
+
 struct CollisionRect
 {
     float x = 0, y = 0;
@@ -22,6 +24,7 @@ struct CollisionRect
     bool handleStaticCollisionY(const CollisionRect& staticRect, float dy);
 
     bool isColliding(const CollisionRect& otherRect) const;
+    bool isColliding(const CollisionCircle& circle) const;
     bool isPointInRect(float x, float y) const;
 
     void debugDraw(sf::RenderTarget& window, const Camera& camera, sf::Color color = {255, 0, 0, 120}) const;

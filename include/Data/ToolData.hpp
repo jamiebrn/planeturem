@@ -31,6 +31,9 @@ struct ProjectileData
 
     float speed = 0.0f;
 
+    float collisionRadius = 1.0f;
+    sf::Vector2f collisionOffset;
+
     // Double link with item data, as projectiles are required to be dynamically taken from inventory
     // based on projectile type, not item type
     ItemType itemType;

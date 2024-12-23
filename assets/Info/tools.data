@@ -27,7 +27,9 @@
             "texture-height": 16,
             "origin": [0.5, 0.5],
             "damage-range": [12, 15],
-            "speed": 240
+            "speed": 240,
+            "collision-radius": 35,
+            "collision-offset": [2, 0]
         },
         {
             "name": "Serpent Venom BOSS",
@@ -36,7 +38,9 @@
             "texture-height": 16,
             "origin": [0.5, 0.5],
             "damage-range": [23, 26],
-            "speed": 240
+            "speed": 240,
+            "collision-radius": 5,
+            "collision-offset": [2, 0]
         },
         {
             "name": "Snowball",
@@ -45,7 +49,8 @@
             "texture-height": 16,
             "origin": [0.46875, 0.46875],
             "damage-range": [23, 26],
-            "speed": 260
+            "speed": 260,
+            "collision-radius": 4
         }
     ],
     "tools": [

@@ -341,8 +341,7 @@ void BossSandSerpent::testProjectileCollision(Projectile& projectile, InventoryD
     }
 
     // Test Collision
-    sf::Vector2f projectilePos = projectile.getPosition();
-    if (headCollision.isPointColliding(projectilePos.x, projectilePos.y))
+    if (headCollision.isColliding(projectile.getCollisionCircle()))
     {
         if (takeHeadDamage(projectile.getDamage(), inventory, projectile.getPosition()))
         {
@@ -351,7 +350,7 @@ void BossSandSerpent::testProjectileCollision(Projectile& projectile, InventoryD
         }
     }
 
-    if (bodyCollision.isPointInRect(projectilePos.x, projectilePos.y))
+    if (bodyCollision.isColliding(projectile.getCollisionCircle()))
     {
         takeBodyDamage(projectile.getDamage(), inventory, projectile.getPosition());
         projectile.onCollision();

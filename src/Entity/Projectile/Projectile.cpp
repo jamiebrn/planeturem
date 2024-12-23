@@ -79,3 +79,14 @@ bool Projectile::isAlive()
 {
     return alive;
 }
+
+const CollisionCircle Projectile::getCollisionCircle() const
+{
+    const ProjectileData& projectileData = ToolDataLoader::getProjectileData(projectileType);
+
+    sf::Vector2f collisionPos = position;
+    collisionPos.x += projectileData.collisionOffset.x * std::cos(angle / M_PI) * 180.0f;
+    collisionPos.y += projectileData.collisionOffset.y * std::sin(angle / M_PI) * 180.0f;
+
+    return CollisionCircle(collisionPos.x, collisionPos.y, projectileData.collisionRadius);
+}

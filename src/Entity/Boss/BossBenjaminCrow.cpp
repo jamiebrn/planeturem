@@ -229,9 +229,7 @@ void BossBenjaminCrow::applyKnockback(Projectile& projectile)
 
 bool BossBenjaminCrow::isProjectileColliding(Projectile& projectile)
 {
-    sf::Vector2f projectilePos = projectile.getPosition();
-
-    return collision.isPointColliding(projectilePos.x, projectilePos.y);
+    return collision.isColliding(projectile.getCollisionCircle());
 }
 
 void BossBenjaminCrow::addDashGhostEffect()

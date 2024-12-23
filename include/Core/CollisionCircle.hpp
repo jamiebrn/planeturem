@@ -5,6 +5,8 @@
 
 #include "Core/Helper.hpp"
 
+class CollisionRect;
+
 struct CollisionCircle
 {
     float x = 0.0f, y = 0.0f;
@@ -13,5 +15,7 @@ struct CollisionCircle
     CollisionCircle() = default;
     CollisionCircle(float x, float y, float radius);
 
-    bool isPointColliding(float x, float y);
+    bool isColliding(const CollisionCircle& otherCircle) const;
+    bool isColliding(const CollisionRect& rect) const;
+    bool isPointColliding(float x, float y) const;
 };

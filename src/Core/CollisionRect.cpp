@@ -1,4 +1,5 @@
 #include "Core/CollisionRect.hpp"
+#include "Core/CollisionCircle.hpp"
 
 CollisionRect::CollisionRect(float x, float y, float width, float height)
 {
@@ -69,6 +70,12 @@ bool CollisionRect::isColliding(const CollisionRect& otherRect) const
     x + width > otherRect.x &&
     y < otherRect.y + otherRect.height &&
     y + height > otherRect.y);
+}
+
+bool CollisionRect::isColliding(const CollisionCircle& circle) const
+{
+    return (circle.isPointColliding(x, y) || circle.isPointColliding(x + width, y) ||
+            circle.isPointColliding(x, y + height) || circle.isPointColliding(x + width, y + height));
 }
 
 bool CollisionRect::isPointInRect(float x, float y) const

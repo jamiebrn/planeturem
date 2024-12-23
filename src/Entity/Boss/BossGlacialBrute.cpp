@@ -140,7 +140,7 @@ void BossGlacialBrute::testCollisionWithPlayer(Player& player)
 
 void BossGlacialBrute::testProjectileCollision(Projectile& projectile, InventoryData& inventory)
 {
-    if (hitCollision.isPointInRect(projectile.getPosition().x, projectile.getPosition().y))
+    if (hitCollision.isColliding(projectile.getCollisionCircle()))
     {
         health -= projectile.getDamage();
         flashTime = MAX_FLASH_TIME;

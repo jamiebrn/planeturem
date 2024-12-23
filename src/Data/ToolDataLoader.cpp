@@ -43,6 +43,9 @@ bool ToolDataLoader::loadData(std::string toolDataPath)
         float sellValue = 0;
         if (jsonProjectileData.contains("sell-value")) sellValue = jsonProjectileData.at("sell-value");
 
+        if (jsonProjectileData.contains("collision-radius")) projectileData.collisionRadius = jsonProjectileData.at("collision-radius");
+        if (jsonProjectileData.contains("collision-offset")) projectileData.collisionOffset = jsonProjectileData.at("collision-offset");
+
         // Link with item data
         projectileData.itemType = ItemDataLoader::createItemFromProjectile(projectileIdx, projectileData, sellValue);
 
