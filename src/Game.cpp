@@ -656,9 +656,10 @@ void Game::runInGame(float dt)
                 break;
             
             case WorldMenuState::Inventory:
+                HealthGUI::drawHealth(window, spriteBatch, player, gameTime, extraInfoStrings);
+                spriteBatch.endDrawing(window);
                 InventoryGUI::drawItemPopups(window);
                 InventoryGUI::draw(window, gameTime, mouseScreenPos, inventory, armourInventory, chestDataPool.getChestDataPtr(openedChestID));
-                HealthGUI::drawHealth(window, spriteBatch, player, gameTime, extraInfoStrings);
                 break;
             
             
@@ -2394,6 +2395,12 @@ void Game::handleWindowResize(sf::Vector2u newSize)
     ResolutionHandler::setResolution({newWidth, newHeight});
 
     camera.instantUpdate(player.getPosition());
+
+    // Resize chest item slots
+    if (worldMenuState == WorldMenuState::Inventory && openedChestID != 0xFFFF)
+    {
+        InventoryGUI::chestOpened(chestDataPool.getChestDataPtr(openedChestID));
+    }
 
     // float afterScale = ResolutionHandler::getScale();
 

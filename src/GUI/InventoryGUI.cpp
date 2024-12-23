@@ -1400,7 +1400,8 @@ sf::Vector2f InventoryGUI::drawInfoBox(sf::RenderTarget& window, sf::Vector2f po
         }
     }
 
-    float totalWidth = (sides[3].width + sides[1].width) * 3 * intScale + width;
+    static constexpr float boxXPadding = 28.0f;
+    float totalWidth = ((sides[3].width + sides[1].width) * 3 + boxXPadding) * intScale + width;
     float totalHeight = (sides[0].width + sides[2].width) * 3 * intScale + height;
 
     return sf::Vector2f(totalWidth, totalHeight);
@@ -1601,6 +1602,8 @@ void InventoryGUI::createChestItemSlots(InventoryData* chestData)
     
     chestItemSlots.clear();
 
+    sf::Vector2f resolution = static_cast<sf::Vector2f>(ResolutionHandler::getResolution());
+
     static const float xStart = itemBoxPadding + (ITEM_BOX_PER_ROW + 4) * itemBoxSize;
 
     sf::Vector2f chestItemBoxPosition = sf::Vector2f(xStart, itemBoxPadding);
@@ -1616,7 +1619,7 @@ void InventoryGUI::createChestItemSlots(InventoryData* chestData)
         chestItemBoxPosition.x += itemBoxSize + itemBoxSpacing;
 
         currentRowIndex++;
-        if (currentRowIndex >= CHEST_BOX_PER_ROW)
+        if (currentRowIndex >= CHEST_BOX_PER_ROW || chestItemBoxPosition.x + itemBoxSize + itemBoxSpacing >= resolution.x)
         {
             // Increment to next row
             currentRowIndex = 0;
