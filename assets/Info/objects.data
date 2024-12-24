@@ -367,6 +367,7 @@
     {
         "name": "Snowy Rock",
         "health": 18,
+        "minimum-damage": 2,
         "textures": [[384, 208]],
         "texture-width": 16,
         "texture-height": 16,
@@ -380,6 +381,7 @@
     {
         "name": "Titanium Rock",
         "health": 24,
+        "minimum-damage": 2,
         "textures": [[416, 208]],
         "texture-width": 16,
         "texture-height": 16,
@@ -393,6 +395,7 @@
     {
         "name": "Titanium Furnace",
         "health": 25,
+        "minimum-damage": 2,
         "textures": [[304, 256], [336, 256], [368, 256], [400, 256]],
         "texture-frame-delay": 0.1,
         "texture-width": 32,

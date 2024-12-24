@@ -9,7 +9,7 @@
 #include "Core/ResolutionHandler.hpp"
 #include "Core/Camera.hpp"
 
-class CollisionCircle;
+struct CollisionCircle;
 
 struct CollisionRect
 {

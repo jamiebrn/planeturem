@@ -28,8 +28,8 @@
             "origin": [0.5, 0.5],
             "damage-range": [12, 15],
             "speed": 240,
-            "collision-radius": 35,
-            "collision-offset": [2, 0]
+            "collision-radius": 4,
+            "collision-offset": [3, 0]
         },
         {
             "name": "Serpent Venom BOSS",
@@ -39,8 +39,8 @@
             "origin": [0.5, 0.5],
             "damage-range": [23, 26],
             "speed": 240,
-            "collision-radius": 5,
-            "collision-offset": [2, 0]
+            "collision-radius": 4,
+            "collision-offset": [3, 0]
         },
         {
             "name": "Snowball",

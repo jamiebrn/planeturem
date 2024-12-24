@@ -1,11 +1,12 @@
 #pragma once
 
 #include <cmath>
-#include <SFML/System/Vector2.hpp>
+#include <SFML/Graphics.hpp>
 
 #include "Core/Helper.hpp"
+#include "Core/Camera.hpp"
 
-class CollisionRect;
+struct CollisionRect;
 
 struct CollisionCircle
 {
@@ -18,4 +19,6 @@ struct CollisionCircle
     bool isColliding(const CollisionCircle& otherCircle) const;
     bool isColliding(const CollisionRect& rect) const;
     bool isPointColliding(float x, float y) const;
+
+    void debugDraw(sf::RenderTarget& window, const Camera& camera, sf::Color color = {255, 0, 0, 120}) const;
 };

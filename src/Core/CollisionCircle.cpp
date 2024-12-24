@@ -24,3 +24,13 @@ bool CollisionCircle::isPointColliding(float x, float y) const
     float distance = Helper::getVectorLength(sf::Vector2f(this->x, this->y) - sf::Vector2f(x, y));
     return (distance <= radius);
 }
+
+void CollisionCircle::debugDraw(sf::RenderTarget& window, const Camera& camera, sf::Color color) const
+{
+    float scale = ResolutionHandler::getScale();
+    sf::CircleShape circle(radius * scale);
+    circle.setPosition(camera.worldToScreenTransform(sf::Vector2f(x, y)));
+    circle.setOrigin(sf::Vector2f(radius * scale, radius * scale));
+    circle.setFillColor(color);
+    window.draw(circle);
+}

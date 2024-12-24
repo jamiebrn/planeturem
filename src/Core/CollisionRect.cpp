@@ -74,8 +74,32 @@ bool CollisionRect::isColliding(const CollisionRect& otherRect) const
 
 bool CollisionRect::isColliding(const CollisionCircle& circle) const
 {
-    return (circle.isPointColliding(x, y) || circle.isPointColliding(x + width, y) ||
-            circle.isPointColliding(x, y + height) || circle.isPointColliding(x + width, y + height));
+    float testX = circle.x;
+    float testY = circle.y;
+
+    if (circle.x < x)
+    {
+        testX = x;
+    }
+    else if (circle.x > x + width)
+    {
+        testX = x + width;
+    }
+
+    if (circle.y < y)
+    {
+        testY = y;
+    }
+    else if (circle.y > y + height)
+    {
+        testY = y + height;
+    }
+
+    float distX = circle.x-testX;
+    float distY = circle.y-testY;
+    float distance = std::sqrt(distX * distX + distY * distY);
+
+    return (distance <= circle.radius);
 }
 
 bool CollisionRect::isPointInRect(float x, float y) const
