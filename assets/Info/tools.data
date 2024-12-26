@@ -51,6 +51,16 @@
             "damage-range": [23, 26],
             "speed": 260,
             "collision-radius": 4
+        },
+        {
+            "name": "Large Snowball",
+            "texture": [16, 144],
+            "texture-width": 32,
+            "texture-height": 32,
+            "origin": [0.5, 0.5],
+            "damage-range": [45, 65],
+            "speed": 260,
+            "collision-radius": 8
         }
     ],
     "tools": [

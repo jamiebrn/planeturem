@@ -52,10 +52,69 @@ void BossGlacialBrute::update(Game& game, ProjectileManager& enemyProjectileMana
             {
                 sf::Vector2f beforePos = position;
                 position = pathFollower.updateFollower(75.0f * dt);
-                velocity = (position - beforePos) / dt;
+                direction = (position - beforePos) / dt;
+            }
+
+            if (!player.isAlive())
+            {
+                behaviourState = BossGlacialBruteState::LeavingPlayer;
+                pathFollower = PathFollower();
+                break;
+            }
+
+            throwSnowballCooldown -= dt;
+
+            if (Helper::getVectorLength(position - player.getPosition()) <= SNOWBALL_THROW_DISTANCE_THRESHOLD && throwSnowballCooldown <= 0.0f)
+            {
+                throwSnowballCooldown = MAX_SNOWBALL_THROW_COOLDOWN;
+                throwSnowballTimer = Helper::randFloat(0.3f, 1.5f);
+                behaviourState = BossGlacialBruteState::ThrowSnowball;
+                break;
             }
 
             walkAnimation.update(dt);
+            break;
+        }
+        case BossGlacialBruteState::LeavingPlayer:
+        {
+            if (!pathFollower.isActive())
+            {
+                sf::Vector2i tile = getWorldTileInside(game.getChunkManager().getWorldSize());
+                PathfindGridCoordinate furthestTile = game.getChunkManager().getPathfindingEngine().findFurthestOpenTile(tile.x, tile.y, 80);
+
+                std::vector<PathfindGridCoordinate> pathfindResult;
+                if (game.getChunkManager().getPathfindingEngine().findPath(tile.x, tile.y, furthestTile.x, furthestTile.y, pathfindResult, true, 150))
+                {
+                    pathFollower.beginPath(position, game.getChunkManager().getPathfindingEngine().createStepSequenceFromPath(pathfindResult));
+                }
+            }
+            else
+            {
+                sf::Vector2f beforePos = position;
+                position = pathFollower.updateFollower(75.0f * dt);
+                direction = (position - beforePos) / dt;
+            }
+
+            if (player.isAlive())
+            {
+                behaviourState = BossGlacialBruteState::WalkingToPlayer;
+                pathFollower = PathFollower();
+            }
+
+            walkAnimation.update(dt);
+            break;
+        }
+        case BossGlacialBruteState::ThrowSnowball:
+        {
+            direction = Helper::normaliseVector(player.getPosition() - position);
+
+            throwSnowballTimer -= dt;
+
+            if (throwSnowballTimer <= 0)
+            {
+                throwSnowball(enemyProjectileManager, player);
+                behaviourState = BossGlacialBruteState::WalkingToPlayer;
+            }
             break;
         }
     }
@@ -63,6 +122,13 @@ void BossGlacialBrute::update(Game& game, ProjectileManager& enemyProjectileMana
     flashTime = std::max(flashTime - dt, 0.0f);
 
     updateCollision();
+}
+
+void BossGlacialBrute::throwSnowball(ProjectileManager& enemyProjectileManager, Player& player)
+{
+    float angle = std::atan2(player.getPosition().y - 4 - (position.y - 50), player.getPosition().x - position.x) * 180.0f / M_PI;
+    enemyProjectileManager.addProjectile(std::make_unique<Projectile>(position - sf::Vector2f(0, 50), angle,
+        ToolDataLoader::getProjectileTypeFromName("Large Snowball"), 1.0f, 1.0f));
 }
 
 bool BossGlacialBrute::isAlive()
@@ -109,17 +175,24 @@ void BossGlacialBrute::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, 
     }
 
     // Flip if required
-    if (velocity.x < 0)
+    if (direction.x < 0)
     {
         drawData.scale.x *= -1;
     }
 
     switch (behaviourState)
     {
-        case BossGlacialBruteState::WalkingToPlayer:
+        case BossGlacialBruteState::WalkingToPlayer: // fallthrough
+        case BossGlacialBruteState::LeavingPlayer:
         {
             drawData.centerRatio = sf::Vector2f(25 / 48.0f, 62 / 67.0f);
             spriteBatch.draw(window, drawData, walkAnimation.getTextureRect(), shaderType);
+            break;
+        }
+        case BossGlacialBruteState::ThrowSnowball:
+        {
+            drawData.centerRatio = sf::Vector2f(25 / 48.0f, 62 / 67.0f);
+            spriteBatch.draw(window, drawData, sf::IntRect(496, 512, 48, 80), shaderType);
             break;
         }
     }

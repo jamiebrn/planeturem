@@ -63,16 +63,20 @@ public:
 private:
     void updateCollision();
 
+    void throwSnowball(ProjectileManager& enemyProjectileManager, Player& player);
+
 private:
     enum class BossGlacialBruteState
     {
-        WalkingToPlayer
+        WalkingToPlayer,
+        LeavingPlayer,
+        ThrowSnowball
     };
 
 private:
     BossGlacialBruteState behaviourState;
 
-    sf::Vector2f velocity;
+    sf::Vector2f direction;
 
     AnimatedTexture walkAnimation;
 
@@ -83,6 +87,11 @@ private:
 
     static constexpr float MAX_FLASH_TIME = 0.3f;
     float flashTime = 0.0f;
+
+    static constexpr float SNOWBALL_THROW_DISTANCE_THRESHOLD = 300.0f;
+    static constexpr float MAX_SNOWBALL_THROW_COOLDOWN = 2.0f;
+    float throwSnowballCooldown = 0.0f;
+    float throwSnowballTimer = 0.0f;
 
     CollisionRect hitCollision;
 
