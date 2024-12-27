@@ -67,7 +67,7 @@ void BossGlacialBrute::update(Game& game, ProjectileManager& enemyProjectileMana
             if (Helper::getVectorLength(position - player.getPosition()) <= SNOWBALL_THROW_DISTANCE_THRESHOLD && throwSnowballCooldown <= 0.0f)
             {
                 throwSnowballCooldown = MAX_SNOWBALL_THROW_COOLDOWN;
-                throwSnowballTimer = Helper::randFloat(0.3f, 1.5f);
+                throwSnowballTimer = Helper::randFloat(MIN_SNOWBALL_CHARGE_TIME, MAX_SNOWBALL_CHARGE_TIME);
                 behaviourState = BossGlacialBruteState::ThrowSnowball;
                 break;
             }
@@ -91,7 +91,7 @@ void BossGlacialBrute::update(Game& game, ProjectileManager& enemyProjectileMana
             else
             {
                 sf::Vector2f beforePos = position;
-                position = pathFollower.updateFollower(75.0f * dt);
+                position = pathFollower.updateFollower(75.0f * LEAVE_SPEED_MULT * dt);
                 direction = (position - beforePos) / dt;
             }
 

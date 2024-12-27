@@ -609,12 +609,9 @@ void Player::setCanMove(bool value)
 
 bool Player::testHitCollision(const Projectile& projectile)
 {
-    HitRect hitRect;
-    hitRect.x = projectile.getPosition().x;
-    hitRect.y = projectile.getPosition().y;
-    hitRect.damage = projectile.getDamage();
-
-    return testHitCollision(hitRect);
+    HitCircle hitCircle(projectile.getCollisionCircle());
+    hitCircle.damage = projectile.getDamage();
+    return testHitCollision(hitCircle);
 }
 
 bool Player::testHitCollision(const HitRect& hitRect)
@@ -629,8 +626,26 @@ bool Player::testHitCollision(const HitRect& hitRect)
         return false;
     }
 
-    // Collision
+    return takeDamage(hitRect.damage);
+}
 
+bool Player::testHitCollision(const HitCircle& hitCircle)
+{
+    if (!isAlive())
+    {
+        return false;
+    }
+
+    if (!collisionRect.isColliding(hitCircle))
+    {
+        return false;
+    }
+
+    return takeDamage(hitCircle.damage);
+}
+
+bool Player::takeDamage(float rawAmount)
+{
     // Calculate defence to modify damage
     if (damageCooldownTimer <= 0)
     {
@@ -640,7 +655,7 @@ bool Player::testHitCollision(const HitRect& hitRect)
             defence = PlayerStats::calculateDefence(*armourInventory);
         }
 
-        int damageAmount = std::max(std::round(hitRect.damage * (1.0f - defence / 70.0f)), 0.0f);
+        int damageAmount = std::max(std::round(rawAmount * (1.0f - defence / 70.0f)), 0.0f);
         
         health -= damageAmount;
 

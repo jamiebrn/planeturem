@@ -255,14 +255,14 @@ PathfindGridCoordinate PathfindingEngine::findFurthestOpenTile(int x, int y, int
         int nextIdx = node.index - 1;
         if (xIndex - 1 < 0)
         {
-            nextIdx += width;
+            nextIdx = node.index - width;
         }
         indexQueue.push(TileSearchNode{nextIdx, node.distanceTravelled + 1});
 
         nextIdx = node.index + 1;
         if (xIndex + 1 > width - 1)
         {
-            nextIdx -= width;
+            nextIdx = node.index + width;
         }
         indexQueue.push(TileSearchNode{nextIdx, node.distanceTravelled + 1});
 

@@ -4,7 +4,6 @@
     // TODO: At least 1 new boss, including armour + weapons
     // TODO: At least 1 new soundtrack
 
-// TODO: Collision types on player (collision circle etc)
 // FIX: Improve UI scaling elements (text etc)
 
 // TODO: Night and menu music

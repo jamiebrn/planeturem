@@ -90,8 +90,12 @@ private:
 
     static constexpr float SNOWBALL_THROW_DISTANCE_THRESHOLD = 300.0f;
     static constexpr float MAX_SNOWBALL_THROW_COOLDOWN = 2.0f;
+    static constexpr float MAX_SNOWBALL_CHARGE_TIME = 0.8f;
+    static constexpr float MIN_SNOWBALL_CHARGE_TIME = 0.2f;
     float throwSnowballCooldown = 0.0f;
     float throwSnowballTimer = 0.0f;
+
+    static constexpr float LEAVE_SPEED_MULT = 1.8f;
 
     CollisionRect hitCollision;
 

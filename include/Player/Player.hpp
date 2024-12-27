@@ -66,6 +66,7 @@ public:
     // Damage
     bool testHitCollision(const Projectile& projectile);
     bool testHitCollision(const HitRect& hitRect);
+    bool testHitCollision(const HitCircle& hitCircle);
 
     // Consumable
     bool useConsumable(const ConsumableData& consumable);
@@ -102,6 +103,8 @@ private:
     void updateTimers(float dt);
 
     bool testWorldWrap(int worldSize, sf::Vector2f& wrapPositionDelta);
+
+    bool takeDamage(float rawAmount);
 
     void respawn();
 
