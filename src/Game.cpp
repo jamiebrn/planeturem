@@ -2601,6 +2601,7 @@ void Game::drawDebugMenu(float dt)
     static const int inputMaxLength = 100;
     static bool resetInputString = false;
     static char* itemToGive = new char[inputMaxLength];
+    static int itemGiveAmount = 1;
     if (!resetInputString)
     {
         strcpy(itemToGive, "");
@@ -2609,9 +2610,10 @@ void Game::drawDebugMenu(float dt)
     }
 
     ImGui::InputText("Give item", itemToGive, 100);
+    ImGui::InputInt("Give item amount", &itemGiveAmount);
     if (ImGui::Button("Give Item"))
     {
-        inventory.addItem(ItemDataLoader::getItemTypeFromName(itemToGive), 1);
+        inventory.addItem(ItemDataLoader::getItemTypeFromName(itemToGive), itemGiveAmount, true);
     }
 
     if (ImGui::Checkbox("God Mode", &DebugOptions::godMode))

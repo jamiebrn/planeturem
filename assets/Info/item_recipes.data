@@ -411,5 +411,32 @@
         },
         "crafting-station": "bench",
         "crafting-station-level": 1
+    },
+    {
+        "product": "Titanium Headgear",
+        "item-requirements": {
+            "Titanium Bar": 12,
+            "Iron Bar": 3
+        },
+        "crafting-station": "anvil",
+        "crafting-station-level": 2
+    },
+    {
+        "product": "Titanium Chestpiece",
+        "item-requirements": {
+            "Titanium Bar": 15,
+            "Iron Bar": 5
+        },
+        "crafting-station": "anvil",
+        "crafting-station-level": 2
+    },
+    {
+        "product": "Titanium Boots",
+        "item-requirements": {
+            "Titanium Bar": 10,
+            "Iron Bar": 2
+        },
+        "crafting-station": "anvil",
+        "crafting-station-level": 2
     }
 ]

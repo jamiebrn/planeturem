@@ -835,6 +835,8 @@ void InventoryGUI::drawArmourInventory(sf::RenderTarget& window, InventoryData& 
     defenceTextDrawData.position = defenceDisplayPos + sf::Vector2f(itemBoxSize, itemBoxSize) * 0.25f * intScale;
     defenceTextDrawData.size = 24 * static_cast<unsigned int>(intScale);
     defenceTextDrawData.colour = sf::Color(255, 255, 255);
+    defenceTextDrawData.outlineColour = sf::Color(46, 34, 47);
+    defenceTextDrawData.outlineThickness = 2 * intScale;
     defenceTextDrawData.text = std::to_string(defence);
     defenceTextDrawData.centeredX = true;
     defenceTextDrawData.centeredY = true;

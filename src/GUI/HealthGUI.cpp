@@ -68,6 +68,8 @@ void HealthGUI::drawHealth(sf::RenderTarget& window, SpriteBatch& spriteBatch, c
     textDrawData.text = std::to_string(static_cast<int>(player.getHealth())) + " / " + std::to_string(player.getMaxHealth());
     textDrawData.position = sf::Vector2f(resolution.x, (HEART_Y_PADDING * 1.5f + HEART_SIZE * 3) * intScale);
     textDrawData.size = 24 * intScale;
+    textDrawData.outlineColour = sf::Color(46, 34, 47);
+    textDrawData.outlineThickness = 2 * intScale;
     textDrawData.colour = sf::Color(255, 255, 255);
     textDrawData.containOnScreenX = true;
     textDrawData.containPaddingRight = HEART_X_PADDING * intScale;
@@ -127,6 +129,8 @@ void HealthGUI::drawDeadPrompt(sf::RenderTarget& window)
     TextDrawData drawData;
     drawData.text = "You have been killed";
     drawData.size = 42 * intScale;
+    drawData.outlineColour = sf::Color(46, 34, 47);
+    drawData.outlineThickness = 3 * intScale;
     drawData.colour = sf::Color(220, 30, 55);
     drawData.position = static_cast<sf::Vector2f>(resolution) / 2.0f;
     drawData.centeredX = true;
