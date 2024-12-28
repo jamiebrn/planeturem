@@ -32,7 +32,8 @@ inline float roundTo(float number, int decimalPoints)
     return std::round(number * exp) / exp;
 }
 
-inline std::string floatToString(float value, int decimalPlaces) {
+inline std::string floatToString(float value, int decimalPlaces)
+{
     return std::format("{:.{}f}", value, decimalPlaces);
 }
 

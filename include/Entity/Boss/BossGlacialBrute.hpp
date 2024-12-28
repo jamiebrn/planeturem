@@ -95,7 +95,7 @@ private:
     float throwSnowballCooldown = 0.0f;
     float throwSnowballTimer = 0.0f;
 
-    static constexpr float LEAVE_SPEED_MULT = 1.8f;
+    static constexpr float LEAVE_SPEED_MULT = 2.4f;
 
     CollisionRect hitCollision;
 

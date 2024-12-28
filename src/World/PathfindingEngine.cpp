@@ -255,14 +255,14 @@ PathfindGridCoordinate PathfindingEngine::findFurthestOpenTile(int x, int y, int
         int nextIdx = node.index - 1;
         if (xIndex - 1 < 0)
         {
-            nextIdx = node.index - width;
+            nextIdx += width;
         }
         indexQueue.push(TileSearchNode{nextIdx, node.distanceTravelled + 1});
 
         nextIdx = node.index + 1;
         if (xIndex + 1 > width - 1)
         {
-            nextIdx = node.index + width;
+            nextIdx -= width;
         }
         indexQueue.push(TileSearchNode{nextIdx, node.distanceTravelled + 1});
 
@@ -290,11 +290,11 @@ PathfindGridCoordinate PathfindingEngine::findFurthestOpenTile(int x, int y, int
 
         if (std::abs(dx) > width / 2)
         {
-            dx = width - dx * Helper::sign(dx);
+            dx = (std::abs(dx) - width) * Helper::sign(dx);
         }
         if (std::abs(dy) > height / 2)
         {
-            dy = height - dy * Helper::sign(dy);
+            dy = (std::abs(dy) - height) * Helper::sign(dy);
         }
 
         gridCoord.x = dx;

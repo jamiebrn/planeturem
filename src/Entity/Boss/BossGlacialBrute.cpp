@@ -43,7 +43,7 @@ void BossGlacialBrute::update(Game& game, ProjectileManager& enemyProjectileMana
                 sf::Vector2i playerTile = player.getWorldTileInside(worldSize);
 
                 std::vector<PathfindGridCoordinate> pathfindResult;
-                if (pathfindingEngine.findPath(tile.x, tile.y, playerTile.x, playerTile.y, pathfindResult, true, 50))
+                if (pathfindingEngine.findPath(tile.x, tile.y, playerTile.x, playerTile.y, pathfindResult, true, 200))
                 {
                     pathFollower.beginPath(position, pathfindingEngine.createStepSequenceFromPath(pathfindResult));
                 }
@@ -80,10 +80,10 @@ void BossGlacialBrute::update(Game& game, ProjectileManager& enemyProjectileMana
             if (!pathFollower.isActive())
             {
                 sf::Vector2i tile = getWorldTileInside(game.getChunkManager().getWorldSize());
-                PathfindGridCoordinate furthestTile = game.getChunkManager().getPathfindingEngine().findFurthestOpenTile(tile.x, tile.y, 80);
+                PathfindGridCoordinate furthestTile = game.getChunkManager().getPathfindingEngine().findFurthestOpenTile(tile.x, tile.y, 200);
 
                 std::vector<PathfindGridCoordinate> pathfindResult;
-                if (game.getChunkManager().getPathfindingEngine().findPath(tile.x, tile.y, furthestTile.x, furthestTile.y, pathfindResult, true, 150))
+                if (game.getChunkManager().getPathfindingEngine().findPath(tile.x, tile.y, furthestTile.x, furthestTile.y, pathfindResult, true, 250))
                 {
                     pathFollower.beginPath(position, game.getChunkManager().getPathfindingEngine().createStepSequenceFromPath(pathfindResult));
                 }
