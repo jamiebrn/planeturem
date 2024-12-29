@@ -29,7 +29,8 @@
             "damage-range": [12, 15],
             "speed": 240,
             "collision-radius": 4,
-            "collision-offset": [3, 0]
+            "collision-offset": [3, 0],
+            "sell-value": 0.3
         },
         {
             "name": "Serpent Venom BOSS",
@@ -50,7 +51,8 @@
             "origin": [0.46875, 0.46875],
             "damage-range": [23, 26],
             "speed": 260,
-            "collision-radius": 4
+            "collision-radius": 4,
+            "sell-value": 0.5
         },
         {
             "name": "Large Snowball",

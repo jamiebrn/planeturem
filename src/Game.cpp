@@ -1375,6 +1375,9 @@ void Game::attemptUseToolFishingRod()
 
 void Game::attemptUseToolWeapon()
 {
+    if (gameState != GameState::OnPlanet)
+        return;
+
     sf::Vector2f mouseWorldPos = Cursor::getMouseWorldPos(window, camera);
 
     player.useTool(projectileManager, inventory, mouseWorldPos);

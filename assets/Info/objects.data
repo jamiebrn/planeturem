@@ -494,6 +494,25 @@
         }
     },
     {
+        "name": "ColdAlien",
+        "health": 10,
+        "textures": [[272, 464], [289, 464], [306, 464], [323, 464]],
+        "texture-frame-delay": 0.1,
+        "texture-width": 17,
+        "texture-height": 32,
+        "texture-x-origin": 0.5,
+        "texture-y-origin": 1.0,
+        "npc-data": {
+            "npc-name": "Igloo Inhabitant",
+            "behaviour": "shop",
+            "dialogue": ["Give me your goods :)", "I source my items locally...", "I built this ice house myself", "...It's quite cold though"],
+            "shop-items": [["Slush Ice", 5], ["Snowball", 20], ["Titanium Scraps", 10], ["Stone", 10]],
+            "buy-prices": {"Snowball": 1.5, "Stone": 4},
+            "sell-prices": {"Slush Ice": 0},
+            "portrait-texture-offset": [32, 64]
+        }
+    },
+    {
         "name": "Crate",
         "health": 6,
         "textures": [[192, 16]],
