@@ -51,6 +51,16 @@ bool LandmarkObject::damage(int amount, Game& game, InventoryData& inventory, Pa
     return destroyed;
 }
 
+void LandmarkObject::interact(Game& game)
+{
+    game.landmarkPlaced(*this, true);
+}
+
+bool LandmarkObject::isInteractable() const
+{
+    return true;
+}
+
 void LandmarkObject::setLandmarkColour(const sf::Color& colourA, const sf::Color& colourB)
 {
     this->colourA = colourA;
@@ -78,6 +88,6 @@ BuildableObjectPOD LandmarkObject::getPOD() const
 void LandmarkObject::loadFromPOD(const BuildableObjectPOD& pod)
 {
     BuildableObject::loadFromPOD(pod);
-    colourA = pod.landmarkColourA;
-    colourB = pod.landmarkColourB;
+    colourA = pod.landmarkColourA.value();
+    colourB = pod.landmarkColourB.value();
 }

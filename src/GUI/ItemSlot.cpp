@@ -186,10 +186,17 @@ void ItemSlot::drawItem(sf::RenderTarget& window, ItemType itemType, sf::Vector2
 
         const ObjectData& objectData = ObjectDataLoader::getObjectData(itemData.placesObjectType);
 
-        float objectScale = (16.0f * 3) / std::max(objectData.textureRects[0].width, objectData.textureRects[0].height) * scaleMult;
-        scale = sf::Vector2f(objectScale * intScale, objectScale * intScale);
+        if (objectData.rocketObjectData.has_value())
+        {
+            textureRect = objectData.rocketObjectData->textureRect;
+        }
+        else
+        {
+            textureRect = objectData.textureRects[0];
+        }
 
-        textureRect = objectData.textureRects[0];
+        float objectScale = (16.0f * 3) / std::max(textureRect.width, textureRect.height) * scaleMult;
+        scale = sf::Vector2f(objectScale * intScale, objectScale * intScale);
     }
     else if (itemData.toolType >= 0)
     {

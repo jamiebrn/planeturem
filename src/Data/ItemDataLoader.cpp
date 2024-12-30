@@ -106,10 +106,11 @@ ItemType ItemDataLoader::getItemTypeFromName(const std::string& itemName)
     return itemNameToTypeMap[itemName];
 }
 
-void ItemDataLoader::createItemFromObject(ObjectType objectType, const ObjectData& objectData, float sellValue)
+void ItemDataLoader::createItemFromObject(ObjectType objectType, const ObjectData& objectData, float sellValue, std::optional<std::string> displayName)
 {
     ItemData objectItemData;
     objectItemData.name = objectData.name;
+    objectItemData.displayName = displayName;
     objectItemData.placesObjectType = objectType;
     objectItemData.maxStackSize = 50;
     objectItemData.sellValue = sellValue;

@@ -272,6 +272,7 @@
     },
     {
         "name": "Rocket Launch Pad",
+        "display-name": "Makeshift Rocket",
         "health": 5,
         "textures": [[0, 352]],
         "texture-width": 32,

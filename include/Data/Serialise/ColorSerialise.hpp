@@ -3,6 +3,8 @@
 #include <Core/json.hpp>
 #include <SFML/Graphics/Color.hpp>
 
+#include <extlib/cereal/archives/binary.hpp>
+
 namespace sf
 {
 
@@ -18,6 +20,12 @@ inline void to_json(nlohmann::json& json, const sf::Color& colour)
     json[0] = colour.r;
     json[1] = colour.g;
     json[2] = colour.b;
+}
+
+template <class Archive>
+void serialize(Archive& ar, sf::Color colour)
+{
+    ar(colour.r, colour.g, colour.b);
 }
 
 };

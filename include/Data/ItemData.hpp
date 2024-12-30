@@ -22,6 +22,7 @@ struct ConsumableData
 struct ItemData
 {
     std::string name;
+    std::optional<std::string> displayName;
     std::string description;
     sf::IntRect textureRect;
 
@@ -43,4 +44,13 @@ struct ItemData
 
     // 0, 0, 0 reserved for rainbow effect
     sf::Color nameColor = sf::Color(255, 255, 255);
+
+    inline const std::string& getDisplayName() const
+    {
+        if (displayName.has_value())
+        {
+            return displayName.value();
+        }
+        return name;
+    }
 };

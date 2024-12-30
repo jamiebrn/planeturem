@@ -28,7 +28,7 @@ class LandmarkSetGUI : public DefaultGUIPanel
 public:
     LandmarkSetGUI() = default;
 
-    void initialise(ObjectReference landmarkObject);
+    void initialise(ObjectReference landmarkObject, sf::Color colourA, sf::Color colourB);
 
     LandmarkSetGUIEvent createAndDraw(sf::RenderWindow& window, float dt);
 

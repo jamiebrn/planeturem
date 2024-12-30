@@ -25,7 +25,7 @@ public:
 
     static ItemType getItemTypeFromName(const std::string& itemName);
 
-    static void createItemFromObject(ObjectType objectType, const ObjectData& objectData, float sellValue);
+    static void createItemFromObject(ObjectType objectType, const ObjectData& objectData, float sellValue, std::optional<std::string> displayName);
 
     static void createItemFromTool(const std::string& toolName, ToolType toolType, float sellValue);
 

@@ -17,6 +17,10 @@ bool ObjectDataLoader::loadData(std::string objectDataPath)
         ObjectData minimalObjectData;
 
         minimalObjectData.name = iter.value().at("name");
+
+        std::optional<std::string> displayName;
+        if (iter.value().contains("display-name")) displayName = iter.value().at("display-name");
+        
         if (iter.value().contains("mythical-item")) minimalObjectData.mythicalItem = iter.value().at("mythical-item");
 
         objectNameToTypeMap[minimalObjectData.name] = objectIdx;
@@ -27,7 +31,7 @@ bool ObjectDataLoader::loadData(std::string objectDataPath)
         if (iter.value().contains("crafting-station")) minimalObjectData.craftingStation = iter.value().at("crafting-station");
         if (iter.value().contains("crafting-station-level")) minimalObjectData.craftingStationLevel = iter.value().at("crafting-station-level");
 
-        ItemDataLoader::createItemFromObject(objectIdx, minimalObjectData, sellValue);
+        ItemDataLoader::createItemFromObject(objectIdx, minimalObjectData, sellValue, displayName);
 
         objectIdx++;
     }

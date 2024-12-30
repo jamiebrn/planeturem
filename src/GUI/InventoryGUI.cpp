@@ -1073,7 +1073,7 @@ sf::Vector2f InventoryGUI::drawItemInfoBox(sf::RenderTarget& window, float gameT
         itemNameColor.b = 255.0f * (std::sin(gameTime * 2.0f + 3 * 3.14 / 2) + 1) / 2.0f;
     }
 
-    infoStrings.push_back({itemData.name, 24, itemNameColor});
+    infoStrings.push_back({itemData.getDisplayName(), 24, itemNameColor});
 
     if (itemData.armourType >= 0)
     {
@@ -1225,7 +1225,7 @@ sf::Vector2f InventoryGUI::drawItemInfoBoxRecipe(sf::RenderTarget& window, float
         itemRequirement.itemCount = ItemCount(item.first, item.second);
 
         const ItemData& itemData = ItemDataLoader::getItemData(item.first);
-        itemRequirement.string = itemData.name;
+        itemRequirement.string = itemData.getDisplayName();
         itemRequirement.size = 20;
 
         itemRequirement.color = sf::Color(232, 59, 59);
@@ -1251,7 +1251,7 @@ sf::Vector2f InventoryGUI::drawItemInfoBoxRecipe(sf::RenderTarget& window, float
             craftingStationRequirement.itemCount = ItemCount(craftingStationItem, 1);
 
             const ItemData& itemData = ItemDataLoader::getItemData(craftingStationItem);
-            craftingStationRequirement.string = itemData.name;
+            craftingStationRequirement.string = itemData.getDisplayName();
             craftingStationRequirement.size = 20;
 
             craftingStationRequirement.drawItemCountNumberWhenOne = false;
@@ -1811,7 +1811,7 @@ void InventoryGUI::drawItemPopups(sf::RenderTarget& window)
 
         ItemInfoString infoString;
         infoString.itemCount = itemPopup.itemCount;
-        infoString.string = itemData.name;
+        infoString.string = itemData.getDisplayName();
 
         if (itemPopup.notEnoughSpace)
         {

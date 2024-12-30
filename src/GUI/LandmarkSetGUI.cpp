@@ -1,13 +1,13 @@
 #include "GUI/LandmarkSetGUI.hpp"
 
-void LandmarkSetGUI::initialise(ObjectReference landmarkObject)
+void LandmarkSetGUI::initialise(ObjectReference landmarkObject, sf::Color colourA, sf::Color colourB)
 {
-    aColour[0] = 0.0f;
-    aColour[1] = 0.0f;
-    aColour[2] = 0.0f;
-    bColour[0] = 0.0f;
-    bColour[1] = 0.0f;
-    bColour[2] = 0.0f;
+    aColour[0] = colourA.r;
+    aColour[1] = colourA.g;
+    aColour[2] = colourA.b;
+    bColour[0] = colourB.r;
+    bColour[1] = colourB.g;
+    bColour[2] = colourB.b;
 
     landmarkSettingObjectReference = landmarkObject;
 }

@@ -1170,7 +1170,7 @@ void Game::landmarkPlaced(const LandmarkObject& landmark, bool createGUI)
     {
         handleInventoryClose();
         worldMenuState = WorldMenuState::SettingLandmark;
-        landmarkSetGUI.initialise(landmarkObjectReference);
+        landmarkSetGUI.initialise(landmarkObjectReference, landmark.getColourA(), landmark.getColourB());
 
         player.setCanMove(false);
     }
