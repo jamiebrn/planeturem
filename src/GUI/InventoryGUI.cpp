@@ -1580,7 +1580,9 @@ void InventoryGUI::drawHotbar(sf::RenderTarget& window, sf::Vector2f mouseScreen
             .text = selectedItemName,
             .position = (hotbarItemSlots[0].getPosition() + sf::Vector2f(0, itemBoxSize)) * intScale,
             .colour = sf::Color(255, 255, 255, alpha),
-            .size = 24 * static_cast<unsigned int>(intScale)
+            .size = 24 * static_cast<unsigned int>(intScale),
+            .outlineColour = sf::Color(46, 34, 47),
+            .outlineThickness = 2 * intScale
         });
     }
 }

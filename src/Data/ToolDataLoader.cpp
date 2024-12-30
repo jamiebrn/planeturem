@@ -110,6 +110,8 @@ bool ToolDataLoader::loadData(std::string toolDataPath)
             toolData.projectileDamageMult = jsonToolData.at("projectile-damage-mult");
             toolData.shootPower = jsonToolData.at("shoot-power");
 
+            if (jsonToolData.contains("shoot-offset")) toolData.shootOffset = jsonToolData.at("shoot-offset");
+
             // Load projectile types
             auto projectiles = jsonToolData.at("projectiles");
             for (auto iter = projectiles.begin(); iter != projectiles.end(); ++iter)

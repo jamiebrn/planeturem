@@ -179,6 +179,7 @@
             "hold-offset": [3, -4],
             "projectile-damage-mult": 1.0,
             "shoot-power": 1.0,
+            "shoot-offset": [0, -10],
             "projectiles": ["Serpent Venom"],
             "sell-value": 18
         },

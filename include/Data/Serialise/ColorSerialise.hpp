@@ -22,10 +22,15 @@ inline void to_json(nlohmann::json& json, const sf::Color& colour)
     json[2] = colour.b;
 }
 
+}
+
+namespace cereal
+{
+
 template <class Archive>
-void serialize(Archive& ar, sf::Color colour)
+void serialize(Archive& ar, sf::Color& colour)
 {
     ar(colour.r, colour.g, colour.b);
 }
 
-};
+}

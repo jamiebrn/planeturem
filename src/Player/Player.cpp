@@ -575,7 +575,7 @@ void Player::useTool(ProjectileManager& projectileManager, InventoryData& invent
             // Calculate projectile position and angle
             float angle = 180.0f * std::atan2(mouseWorldPos.y - position.y, mouseWorldPos.x - position.x) / M_PI;
 
-            sf::Vector2f spawnPos = static_cast<sf::Vector2f>(toolData.holdOffset);
+            sf::Vector2f spawnPos = static_cast<sf::Vector2f>(toolData.holdOffset) + Helper::rotateVector(static_cast<sf::Vector2f>(toolData.shootOffset), toolRotation);
 
             if (flippedTexture)
             {

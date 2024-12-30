@@ -59,4 +59,5 @@ struct ToolData
     std::vector<ProjectileType> projectileShootTypes;
     float shootPower = 1.0f;
     float projectileDamageMult = 1.0f;
+    sf::Vector2i shootOffset;
 };
