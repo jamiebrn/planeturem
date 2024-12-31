@@ -649,11 +649,11 @@ std::vector<WorldObject*> ChunkManager::getChunkObjects()
     return objects;
 }
 
-void ChunkManager::updateChunksEntities(float dt, ProjectileManager& projectileManager, InventoryData& inventory)
+void ChunkManager::updateChunksEntities(float dt, ProjectileManager& projectileManager, InventoryData& inventory, Game& game)
 {
     for (auto& chunkPair : loadedChunks)
     {
-        chunkPair.second->updateChunkEntities(dt, worldSize, projectileManager, inventory, *this);
+        chunkPair.second->updateChunkEntities(dt, worldSize, projectileManager, inventory, *this, game);
     }
 }
 
@@ -704,7 +704,7 @@ std::vector<WorldObject*> ChunkManager::getChunkEntities()
     return entities;
 }
 
-bool ChunkManager::collisionRectChunkStaticCollisionX(CollisionRect& collisionRect, float dx)
+bool ChunkManager::collisionRectChunkStaticCollisionX(CollisionRect& collisionRect, float dx) const
 {
     bool collision = false;
     for (auto& chunkPair : loadedChunks)
@@ -715,7 +715,7 @@ bool ChunkManager::collisionRectChunkStaticCollisionX(CollisionRect& collisionRe
     return collision;
 }
 
-bool ChunkManager::collisionRectChunkStaticCollisionY(CollisionRect& collisionRect, float dy)
+bool ChunkManager::collisionRectChunkStaticCollisionY(CollisionRect& collisionRect, float dy) const
 {
     bool collision = false;
     for (auto& chunkPair : loadedChunks)

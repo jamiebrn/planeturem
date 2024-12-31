@@ -2,6 +2,7 @@
 #include "Game.hpp"
 
 #include "Entity/EntityBehaviour/EntityWanderBehaviour.hpp"
+#include "Entity/EntityBehaviour/EntityFollowAttackBehaviour.hpp"
 
 Entity::Entity(sf::Vector2f position, EntityType entityType)
     : WorldObject(position)
@@ -34,13 +35,17 @@ void Entity::initialiseBehaviour(const std::string& behaviour)
     {
         this->behaviour = std::make_unique<EntityWanderBehaviour>(*this);
     }
+    else if (behaviour == "followattack")
+    {
+        this->behaviour = std::make_unique<EntityFollowAttackBehaviour>(*this);
+    }
 }
 
-void Entity::update(float dt, ProjectileManager& projectileManager, InventoryData& inventory, ChunkManager& chunkManager, bool onWater)
+void Entity::update(float dt, ProjectileManager& projectileManager, InventoryData& inventory, ChunkManager& chunkManager, Game& game, bool onWater)
 {
     if (behaviour)
     {
-        behaviour->update(*this, chunkManager, dt);
+        behaviour->update(*this, chunkManager, game, dt);
     }
 
     // Update position using collision rect after collision has been handled

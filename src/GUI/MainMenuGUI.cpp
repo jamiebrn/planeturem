@@ -33,7 +33,7 @@ void MainMenuGUI::update(float dt, sf::Vector2f mouseScreenPos, Game& game, Proj
 
     backgroundChunkManager.updateChunks(game, backgroundCamera);
     backgroundChunkManager.updateChunksObjects(game, dt);
-    backgroundChunkManager.updateChunksEntities(dt, projectileManager, inventory);
+    backgroundChunkManager.updateChunksEntities(dt, projectileManager, inventory, game);
 }
 
 std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, float dt, float gameTime)

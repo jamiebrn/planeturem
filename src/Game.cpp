@@ -820,7 +820,7 @@ void Game::updateOnPlanet(float dt)
     // Update (loaded) chunks
     bool modifiedChunks = chunkManager.updateChunks(*this, camera);
     chunkManager.updateChunksObjects(*this, dt);
-    chunkManager.updateChunksEntities(dt, projectileManager, inventory);
+    chunkManager.updateChunksEntities(dt, projectileManager, inventory, *this);
 
     // If modified chunks, force a lighting recalculation
     if (modifiedChunks)
@@ -1203,7 +1203,7 @@ void Game::updateInRoom(float dt, Room& room, bool inStructure)
     {
         // Continue to update objects and entities in world
         chunkManager.updateChunksObjects(*this, dt);
-        chunkManager.updateChunksEntities(dt, projectileManager, inventory);
+        chunkManager.updateChunksEntities(dt, projectileManager, inventory, *this);
 
         if (!isStateTransitioning())
         {

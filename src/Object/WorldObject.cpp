@@ -50,7 +50,7 @@ sf::Vector2i WorldObject::getTileInside(sf::Vector2f position)
     return tile;
 }
 
-sf::Vector2i WorldObject::getTileInside()
+sf::Vector2i WorldObject::getTileInside() const
 {
     return getTileInside(position);
 }
@@ -64,7 +64,7 @@ sf::Vector2i WorldObject::getWorldTileInside(sf::Vector2f position, int worldSiz
     return tile;
 }
 
-sf::Vector2i WorldObject::getWorldTileInside(int worldSize)
+sf::Vector2i WorldObject::getWorldTileInside(int worldSize) const
 {
     return getWorldTileInside(position, worldSize);
 }

@@ -2,13 +2,14 @@
 
 #include <SFML/Graphics.hpp>
 
-class ChunkManager;
+class Game;
 class Entity;
+class ChunkManager;
 
 class EntityBehaviour
 {
 public:
     EntityBehaviour() = default;
 
-    virtual void update(Entity& entity, ChunkManager& chunkManager, float dt) = 0;
+    virtual void update(Entity& entity, ChunkManager& chunkManager, Game& game, float dt) = 0;
 };

@@ -9,5 +9,5 @@ class EntityWanderBehaviour : public EntityBehaviour
 public:
     EntityWanderBehaviour(Entity& entity);
 
-    void update(Entity& entity, ChunkManager& chunkManager, float dt) override;
+    void update(Entity& entity, ChunkManager& chunkManager, Game& game, float dt) override;
 };

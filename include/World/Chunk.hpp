@@ -142,7 +142,7 @@ public:
 
 
     // -- Entity handling -- //
-    void updateChunkEntities(float dt, int worldSize, ProjectileManager& projectileManager, InventoryData& inventory, ChunkManager& chunkManager);
+    void updateChunkEntities(float dt, int worldSize, ProjectileManager& projectileManager, InventoryData& inventory, ChunkManager& chunkManager, Game& game);
     void moveEntityToChunk(std::unique_ptr<Entity> entity);
 
     // Cursor position IS IN WORLD SPACE

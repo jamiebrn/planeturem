@@ -122,6 +122,8 @@ public:
 
     inline const Camera& getCamera() {return camera;}
 
+    inline const Player& getPlayer() {return player;}
+
 private:
 
     // test

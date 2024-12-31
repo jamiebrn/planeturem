@@ -28,7 +28,7 @@
 
 #include "DebugOptions.hpp"
 
-class ChunkManager;
+class Game;
 
 class Entity : public WorldObject
 {
@@ -36,7 +36,7 @@ public:
     Entity(sf::Vector2f position, EntityType entityType);
     Entity();
 
-    void update(float dt, ProjectileManager& projectileManager, InventoryData& inventory, ChunkManager& chunkManager, bool onWater);
+    void update(float dt, ProjectileManager& projectileManager, InventoryData& inventory, ChunkManager& chunkManager, Game& game, bool onWater);
 
     void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const sf::Color& color) const override;
     void createLightSource(LightingEngine& lightingEngine, sf::Vector2f topLeftChunkPos) const override;

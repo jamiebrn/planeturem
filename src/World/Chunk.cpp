@@ -847,7 +847,7 @@ bool Chunk::canPlaceObject(sf::Vector2i position, ObjectType objectType, int wor
     return true;
 }
 
-void Chunk::updateChunkEntities(float dt, int worldSize, ProjectileManager& projectileManager, InventoryData& inventory, ChunkManager& chunkManager)
+void Chunk::updateChunkEntities(float dt, int worldSize, ProjectileManager& projectileManager, InventoryData& inventory, ChunkManager& chunkManager, Game& game)
 {
     for (std::vector<std::unique_ptr<Entity>>::iterator entityIter = entities.begin(); entityIter != entities.end();)
     {
@@ -856,7 +856,7 @@ void Chunk::updateChunkEntities(float dt, int worldSize, ProjectileManager& proj
         // Determine whether on water
         bool onWater = (getTileType(entity->getChunkTileInside(worldSize)) == 0);
 
-        entity->update(dt, projectileManager, inventory, chunkManager, onWater);
+        entity->update(dt, projectileManager, inventory, chunkManager, game, onWater);
 
         // Check if requires deleting (not alive)
         if (!entity->isAlive())

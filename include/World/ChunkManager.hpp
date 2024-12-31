@@ -142,7 +142,7 @@ public:
 
     // -- Entities -- //
     // Update all entities in loaded chunks
-    void updateChunksEntities(float dt, ProjectileManager& projectileManager, InventoryData& inventory);
+    void updateChunksEntities(float dt, ProjectileManager& projectileManager, InventoryData& inventory, Game& game);
 
     // Handle moving of entity from one chunk to another chunk
     void moveEntityToChunkFromChunk(std::unique_ptr<Entity> entity, ChunkPosition newChunk);
@@ -157,8 +157,8 @@ public:
     // -- Collision -- //
     // Collision test functions for player, entity etc
     // against collision rects in all loaded chunks
-    bool collisionRectChunkStaticCollisionX(CollisionRect& collisionRect, float dx);
-    bool collisionRectChunkStaticCollisionY(CollisionRect& collisionRect, float dy);
+    bool collisionRectChunkStaticCollisionX(CollisionRect& collisionRect, float dx) const;
+    bool collisionRectChunkStaticCollisionY(CollisionRect& collisionRect, float dy) const;
 
     // Gets all collision rects from loaded chunks
     // DONT USE FOR GENERAL COLLISION CHECKING - use collisionRectChunkStaticCollision functions

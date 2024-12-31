@@ -1,5 +1,6 @@
 #include "Entity/EntityBehaviour/EntityWanderBehaviour.hpp"
 #include "Entity/Entity.hpp"
+#include "Game.hpp"
 
 EntityWanderBehaviour::EntityWanderBehaviour(Entity& entity)
 {
@@ -11,7 +12,7 @@ EntityWanderBehaviour::EntityWanderBehaviour(Entity& entity)
     entity.setVelocity(velocity);
 }
 
-void EntityWanderBehaviour::update(Entity& entity, ChunkManager& chunkManager, float dt)
+void EntityWanderBehaviour::update(Entity& entity, ChunkManager& chunkManager, Game& game, float dt)
 {
     CollisionRect collisionRect = entity.getCollisionRect();
     sf::Vector2f velocity = entity.getVelocity();
