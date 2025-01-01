@@ -18,7 +18,8 @@ std::vector<ItemSlot> InventoryGUI::hotbarItemSlots;
 std::vector<ItemSlot> InventoryGUI::recipeItemSlots;
 std::vector<ItemSlot> InventoryGUI::chestItemSlots;
 
-int InventoryGUI::selectedRecipe = 0;
+// int InventoryGUI::selectedRecipe = 0;
+int InventoryGUI::recipeCurrentPage = 0;
 
 int InventoryGUI::selectedHotbarIndex = 0;
 
@@ -105,7 +106,8 @@ void InventoryGUI::createRecipeItemSlots(InventoryData& inventory)
     int rowIndex = 0;
 
     // Create recipe item slots
-    for (int i = 0; i < availableRecipes.size(); i++)
+    for (int i = recipeCurrentPage * RECIPE_MAX_ROWS * ITEM_BOX_PER_ROW;
+         i < std::min(static_cast<int>(availableRecipes.size()), (recipeCurrentPage + 1) * RECIPE_MAX_ROWS * ITEM_BOX_PER_ROW); i++)
     {
         ItemSlot recipeItemSlot(sf::Vector2f(xPos, yPos), itemBoxSize);
 
@@ -168,9 +170,10 @@ void InventoryGUI::updateInventory(sf::Vector2f mouseScreenPos, float dt, Invent
     {
         ItemSlot& itemSlot = recipeItemSlots[i];
 
-        bool selected = (i == selectedRecipe);
+        // bool selected = (i == selectedRecipe);
 
-        itemSlot.update(mouseScreenPos, dt, selected);
+        // itemSlot.update(mouseScreenPos, dt, selected);
+        itemSlot.update(mouseScreenPos, dt);
     }
 
     // Update chest item slots
@@ -229,19 +232,21 @@ void InventoryGUI::handleLeftClick(sf::Vector2f mouseScreenPos, bool shiftMode, 
         }
     }
 
-    int recipeClicked = getHoveredItemSlotIndex(recipeItemSlots, mouseScreenPos);
-    if (recipeClicked >= 0)
+    int recipeSlotClicked = getHoveredItemSlotIndex(recipeItemSlots, mouseScreenPos);
+    if (recipeSlotClicked >= 0)
     {
         // If clicked on recipe is selected, attempt to craft item
-        if (recipeClicked == selectedRecipe)
-        {
-            craftSelectedRecipe(inventory);
-        }
-        else
-        {
-            // Change selected recipe to recipe clicked on
-            selectedRecipe = recipeClicked;
-        }
+        // if (recipeClicked == selectedRecipe)
+        // {
+        //     craftSelectedRecipe(inventory);
+        // }
+        // else
+        // {
+        //     // Change selected recipe to recipe clicked on
+        //     selectedRecipe = recipeClicked;
+        // }
+        int recipeClicked = recipeSlotClicked + recipeCurrentPage * RECIPE_MAX_ROWS * ITEM_BOX_PER_ROW;
+        craftRecipe(inventory, recipeClicked);
     }
 }
 
@@ -262,16 +267,20 @@ void InventoryGUI::handleRightClick(sf::Vector2f mouseScreenPos, bool shiftMode,
     }
 }
 
-bool InventoryGUI::handleScroll(sf::Vector2f mouseScreenPos, int direction)
+bool InventoryGUI::handleScroll(sf::Vector2f mouseScreenPos, int direction, InventoryData& inventory)
 {
-    if (!isMouseOverUI(mouseScreenPos))
+    // Mouse must be over recipe slots
+    if (getHoveredItemSlotIndex(recipeItemSlots, mouseScreenPos) < 0)
         return false;
     
-    if (availableRecipes.size() > 0)
-    {
-        int recipeCount = availableRecipes.size();
-        selectedRecipe = ((selectedRecipe + direction) % recipeCount + recipeCount) % recipeCount;
-    }
+    // if (availableRecipes.size() > 0)
+    // {
+    //     int recipeCount = availableRecipes.size();
+    //     selectedRecipe = ((selectedRecipe + direction) % recipeCount + recipeCount) % recipeCount;
+    // }
+    recipeCurrentPage = std::clamp(recipeCurrentPage + direction, 0, static_cast<int>(std::floor((availableRecipes.size() - 1) / (RECIPE_MAX_ROWS * ITEM_BOX_PER_ROW))));
+
+    createRecipeItemSlots(inventory);
 
     return true;
 }
@@ -502,7 +511,7 @@ bool InventoryGUI::isCraftingSelected(sf::Vector2f mouseScreenPos)
     return (getHoveredItemSlotIndex(recipeItemSlots, mouseScreenPos) >= 0);
 }
 
-void InventoryGUI::craftSelectedRecipe(InventoryData& inventory)
+void InventoryGUI::craftRecipe(InventoryData& inventory, int selectedRecipe)
 {
     // Get recipe data
     int recipeIdx = availableRecipes[selectedRecipe];
@@ -669,14 +678,15 @@ void InventoryGUI::updateAvailableRecipes(InventoryData& inventory, std::unorder
     // Update UI if required
     if (availableRecipes != previous_availableRecipes)
     {
-        if (availableRecipes.size() > 0)
-        {
-            selectedRecipe = (selectedRecipe % availableRecipes.size() + availableRecipes.size()) % availableRecipes.size();
-        }
-        else
-        {
-            selectedRecipe = 0;
-        }
+        // if (availableRecipes.size() > 0)
+        // {
+        //     selectedRecipe = (selectedRecipe % availableRecipes.size() + availableRecipes.size()) % availableRecipes.size();
+        // }
+        // else
+        // {
+        //     selectedRecipe = 0;
+        // }
+        recipeCurrentPage = std::clamp(recipeCurrentPage, 0, static_cast<int>(std::floor((availableRecipes.size() - 1) / (RECIPE_MAX_ROWS * ITEM_BOX_PER_ROW))));
 
         createRecipeItemSlots(inventory);
     }
@@ -890,22 +900,24 @@ void InventoryGUI::drawRecipes(sf::RenderTarget& window)
         // int hoveredRecipeIdx = -1;
 
         // Draw recipes
-        for (int i = 0; i < recipeItemSlots.size(); i++)
+        for (int i = recipeCurrentPage * RECIPE_MAX_ROWS * ITEM_BOX_PER_ROW;
+             i < std::min(static_cast<int>(availableRecipes.size()), (recipeCurrentPage + 1) * RECIPE_MAX_ROWS * ITEM_BOX_PER_ROW); i++)
         {
             // Get recipe index
-            int recipeIdx = availableRecipes[i % recipeItemSlots.size()];
+            int recipeIdx = availableRecipes[i];
 
             // Get recipe data
             const RecipeData& recipeData = RecipeDataLoader::getRecipeData()[recipeIdx];
 
             // Get item slot
-            ItemSlot& itemSlot = recipeItemSlots[i];
+            ItemSlot& itemSlot = recipeItemSlots[i % (RECIPE_MAX_ROWS * ITEM_BOX_PER_ROW)];
 
             // If recipe is selected, draw requirements
-            bool selected = i == selectedRecipe;
+            // bool selected = i == selectedRecipe;
 
             // Draw item box for product
-            itemSlot.draw(window, recipeData.product, recipeData.productAmount, false, selected);
+            // itemSlot.draw(window, recipeData.product, recipeData.productAmount, false, selected);
+            itemSlot.draw(window, recipeData.product, recipeData.productAmount);
             
             // Test whether mouse is over - if so, store recipe index for drawing info later
             // if (itemSlot.isHovered())
@@ -921,6 +933,22 @@ void InventoryGUI::drawRecipes(sf::RenderTarget& window)
             0,
             {3 * intScale, 3 * intScale},
         }, sf::IntRect(80, 16, 16, 16));
+
+        static constexpr int RECIPE_PAGE_COUNT_HAMMMER_OFFSET_Y = 45;
+
+        int recipePageCount = static_cast<int>(std::floor((availableRecipes.size() - 1) / (RECIPE_MAX_ROWS * ITEM_BOX_PER_ROW))) + 1;
+        if (recipePageCount > 1)
+        {
+            // Draw recipe page index
+            TextDrawData textDrawData;
+            textDrawData.text = std::to_string(recipeCurrentPage + 1) + "/" + std::to_string(recipePageCount);
+            textDrawData.position = (recipeItemSlots.back().getPosition() + sf::Vector2f(itemBoxSize + itemBoxSpacing + 10, RECIPE_PAGE_COUNT_HAMMMER_OFFSET_Y)) * intScale;
+            textDrawData.colour = sf::Color(255, 255, 255);
+            textDrawData.size = 24 * intScale;
+            textDrawData.outlineColour = sf::Color(46, 34, 47);
+            textDrawData.outlineThickness = 2 * intScale;
+            TextDraw::drawText(window, textDrawData);
+        }
 
         // Draw info of recipe hovered over (if any)
         // if (hoveredRecipeIdx >= 0 && !isItemPickedUp)
@@ -994,7 +1022,7 @@ void InventoryGUI::drawHoveredItemInfoBox(sf::RenderTarget& window, float gameTi
     int hoveredArmourIndex = getHoveredItemSlotIndex(armourItemSlots, mouseScreenPos);
 
     // Get currently hovered recipe
-    int hoveredRecipeIndex = getHoveredItemSlotIndex(recipeItemSlots, mouseScreenPos);
+    int hoveredRecipeSlotIndex = getHoveredItemSlotIndex(recipeItemSlots, mouseScreenPos);
 
     // If an item is hovered over, draw item info box
     if (hoveredItemIndex >= 0)
@@ -1005,8 +1033,9 @@ void InventoryGUI::drawHoveredItemInfoBox(sf::RenderTarget& window, float gameTi
     {
         infoBoxSize = drawItemInfoBox(infoBoxTexture, gameTime, hoveredArmourIndex, armourInventory, sf::Vector2f(0, 0), InventoryShopInfoMode::Sell);
     }
-    else if (hoveredRecipeIndex >= 0)
+    else if (hoveredRecipeSlotIndex >= 0)
     {
+        int hoveredRecipeIndex = hoveredRecipeSlotIndex + recipeCurrentPage * RECIPE_MAX_ROWS * ITEM_BOX_PER_ROW;
         infoBoxSize = drawItemInfoBoxRecipe(infoBoxTexture, gameTime, availableRecipes[hoveredRecipeIndex], sf::Vector2f(0, 0));
     }
     else if (chestData != nullptr || openShopData.has_value())

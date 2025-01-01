@@ -81,7 +81,7 @@ public:
     // May pick up single item
     static void handleRightClick(sf::Vector2f mouseScreenPos, bool shiftMode, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData = nullptr);
 
-    static bool handleScroll(sf::Vector2f mouseScreenPos, int direction);
+    static bool handleScroll(sf::Vector2f mouseScreenPos, int direction, InventoryData& inventory);
 
     // Pickup max stack size to pickup whole stack (may be less than whole stack)
     // Pickup less (e.g 1) to limit pickup amount
@@ -167,7 +167,7 @@ private:
     static bool isCraftingSelected(sf::Vector2f mouseScreenPos);
 
     // Attempt to craft recipe selected
-    static void craftSelectedRecipe(InventoryData& inventory);
+    static void craftRecipe(InventoryData& inventory, int selectedRecipe);
 
     static void drawInventory(sf::RenderTarget& window, InventoryData& inventory);
     static void drawArmourInventory(sf::RenderTarget& window, InventoryData& armourInventory);
@@ -226,7 +226,9 @@ private:
     static std::vector<ItemSlot> chestItemSlots;
 
     // Index of selected recipe in available recipes
-    static int selectedRecipe;
+    // static int selectedRecipe;
+    static int recipeCurrentPage;
+    static constexpr int RECIPE_MAX_ROWS = 3;
 
     // Hotbar
     static int selectedHotbarIndex;

@@ -328,9 +328,16 @@ void Player::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game
     TextureManager::drawTexture(window, {
         TextureType::Shadow, camera.worldToScreenTransform(position + sf::Vector2f(0, waterYOffset)), 0, playerScale * shadowScale, {0.5, 0.85}
         });
+    
+    sf::Shader* flashShader = nullptr;
+    if (damageCooldownTimer > 0.0f)
+    {
+        flashShader = Shaders::getShader(ShaderType::Flash);
+        flashShader->setUniform("flash_amount", damageCooldownTimer / MAX_DAMAGE_COOLDOWN_TIMER);
+    }
 
     TextureManager::drawSubTexture(window, {TextureType::Player, camera.worldToScreenTransform(position + sf::Vector2f(0, waterYOffset)), 0, playerScale, {0.5, 1}}, 
-        animationRect);
+        animationRect, flashShader);
     
     // Draw armour
     drawArmour(window, camera, waterYOffset);
@@ -478,6 +485,13 @@ void Player::drawArmour(sf::RenderTarget& window, const Camera& camera, float wa
 
     sf::Vector2f armourOrigin = position - sf::Vector2f(8 * xScaleMult, 16);
 
+    sf::Shader* flashShader = nullptr;
+    if (damageCooldownTimer > 0.0f)
+    {
+        flashShader = Shaders::getShader(ShaderType::Flash);
+        flashShader->setUniform("flash_amount", damageCooldownTimer / MAX_DAMAGE_COOLDOWN_TIMER);
+    }
+
     // Draw headpiece, chest, and boots
     for (int i = 2; i >= 0; i--)
     {
@@ -511,7 +525,7 @@ void Player::drawArmour(sf::RenderTarget& window, const Camera& camera, float wa
         drawData.position = camera.worldToScreenTransform(armourOrigin + sf::Vector2f(armourData.wearTextureOffset.x * xScaleMult, armourData.wearTextureOffset.y + waterYOffset));
         drawData.scale = sf::Vector2f(scale * xScaleMult, scale);
         
-        TextureManager::drawSubTexture(window, drawData, armourTextureRect);
+        TextureManager::drawSubTexture(window, drawData, armourTextureRect, flashShader);
     }
 }
 

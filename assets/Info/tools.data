@@ -60,7 +60,7 @@
             "texture-width": 32,
             "texture-height": 32,
             "origin": [0.5, 0.5],
-            "damage-range": [45, 65],
+            "damage-range": [90, 125],
             "speed": 260,
             "collision-radius": 8
         }

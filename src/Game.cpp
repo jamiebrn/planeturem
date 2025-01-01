@@ -519,7 +519,7 @@ void Game::runInGame(float dt)
             {
                 case WorldMenuState::NPCShop: // fallthrough
                 case WorldMenuState::Inventory:
-                    if (!InventoryGUI::handleScroll(mouseScreenPos, -event.mouseWheelScroll.delta))
+                    if (!InventoryGUI::handleScroll(mouseScreenPos, -event.mouseWheelScroll.delta, inventory))
                         handleZoom(event.mouseWheelScroll.delta);
                     break;
                 case WorldMenuState::Main:

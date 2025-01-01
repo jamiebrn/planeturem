@@ -418,6 +418,7 @@
             "Titanium Bar": 12,
             "Iron Bar": 3
         },
+        "key-items": ["Titanium Bar"],
         "crafting-station": "anvil",
         "crafting-station-level": 2
     },
@@ -427,6 +428,7 @@
             "Titanium Bar": 15,
             "Iron Bar": 5
         },
+        "key-items": ["Titanium Bar"],
         "crafting-station": "anvil",
         "crafting-station-level": 2
     },
@@ -436,7 +438,19 @@
             "Titanium Bar": 10,
             "Iron Bar": 2
         },
+        "key-items": ["Titanium Bar"],
         "crafting-station": "anvil",
         "crafting-station-level": 2
+    },
+    {
+        "product": "Cheap Camera",
+        "item-requirements": {
+            "Titanium Bar": 5,
+            "Iron Bar": 2,
+            "Slush Ice": 20
+        },
+        "key-items": ["Titanium Bar"],
+        "crafting-station": "bench",
+        "crafting-station-level": 1
     }
 ]
