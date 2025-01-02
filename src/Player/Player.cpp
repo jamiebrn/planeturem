@@ -142,8 +142,8 @@ void Player::updateDirection(sf::Vector2f mouseWorldPos)
     }
 
     // Handle movement input
-    direction.x = sf::Keyboard::isKeyPressed(sf::Keyboard::D) - sf::Keyboard::isKeyPressed(sf::Keyboard::A);
-    direction.y = sf::Keyboard::isKeyPressed(sf::Keyboard::S) - sf::Keyboard::isKeyPressed(sf::Keyboard::W);
+    direction.x = InputManager::getActionAxisActivation(InputAction::WALK_LEFT, InputAction::WALK_RIGHT);
+    direction.y = InputManager::getActionAxisActivation(InputAction::WALK_UP, InputAction::WALK_DOWN);
 
     float length = std::sqrt(direction.x * direction.x + direction.y * direction.y);
     if (length > 0)

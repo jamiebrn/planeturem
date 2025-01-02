@@ -74,6 +74,24 @@ bool Game::initialise()
 
     loadOptions();
 
+    // Create key bindings
+    InputManager::bindKey(InputAction::WALK_UP, sf::Keyboard::W);
+    InputManager::bindKey(InputAction::WALK_DOWN, sf::Keyboard::S);
+    InputManager::bindKey(InputAction::WALK_LEFT, sf::Keyboard::A);
+    InputManager::bindKey(InputAction::WALK_RIGHT, sf::Keyboard::D);
+    InputManager::bindKey(InputAction::OPEN_INVENTORY, sf::Keyboard::E);
+    InputManager::bindKey(InputAction::UI_BACK, sf::Keyboard::Escape);
+
+    InputManager::bindControllerAxis(InputAction::WALK_UP, JoystickAxisWithDirection{sf::Joystick::Axis::Y, JoystickAxisDirection::NEGATIVE});
+    InputManager::bindControllerAxis(InputAction::WALK_DOWN, JoystickAxisWithDirection{sf::Joystick::Axis::Y, JoystickAxisDirection::POSITIVE});
+    InputManager::bindControllerAxis(InputAction::WALK_LEFT, JoystickAxisWithDirection{sf::Joystick::Axis::X, JoystickAxisDirection::NEGATIVE});
+    InputManager::bindControllerAxis(InputAction::WALK_RIGHT, JoystickAxisWithDirection{sf::Joystick::Axis::X, JoystickAxisDirection::POSITIVE});
+
+    InputManager::bindControllerButton(InputAction::OPEN_INVENTORY, 1);
+    InputManager::bindControllerButton(InputAction::UI_BACK, 1);
+
+    InputManager::setControllerAxisDeadzone(0.1f);
+
     // Initialise values
     gameTime = 0;
     //mainMenuState = MainMenuState::Main;
@@ -131,6 +149,8 @@ void Game::run()
 
         Sounds::update(dt);
 
+        InputManager::update();
+
         window.setView(view);
 
         // runFeatureTest();
@@ -153,7 +173,10 @@ void Game::run()
             drawStateTransition();
         }
 
-        drawMouseCursor();
+        if (!InputManager::isControllerActive())
+        {
+            drawMouseCursor();
+        }
 
         drawDebugMenu(dt);
 
@@ -373,73 +396,6 @@ void Game::runInGame(float dt)
         {
             continue;
         }
-        
-        if (event.type == sf::Event::KeyPressed)
-        {
-            switch (worldMenuState)
-            {
-                case WorldMenuState::SettingLandmark: // fallthrough
-                case WorldMenuState::PauseMenu:
-                {
-                    if (event.key.code == sf::Keyboard::Escape)
-                    {
-                        worldMenuState = WorldMenuState::Main;
-                        player.setCanMove(true);
-                    }
-                    break;
-                }
-                case WorldMenuState::Main:
-                {
-                    if (event.key.code == sf::Keyboard::E)
-                    {
-                        worldMenuState = WorldMenuState::Inventory;
-                        closeChest();
-                    }
-                    if (event.key.code == sf::Keyboard::Escape)
-                    {
-                        worldMenuState = WorldMenuState::PauseMenu;
-                        mainMenuGUI.resetHoverRect();
-                    }
-                    break;
-                }
-                case WorldMenuState::NPCShop: // fallthrough
-                case WorldMenuState::Inventory:
-                {
-                    if (event.key.code == sf::Keyboard::E || event.key.code == sf::Keyboard::Escape)
-                    {
-                        handleInventoryClose();
-                        player.setCanMove(true);
-                    }
-                    break;
-                }
-            }
-
-            if (event.key.code == sf::Keyboard::Escape)
-            {
-                switch (worldMenuState)
-                {
-                    case WorldMenuState::TravelSelect:
-                    {
-                        exitRocket();
-                        break;
-                    }
-                    case WorldMenuState::NPCInteract:
-                    {
-                        npcInteractionGUI.close();
-                        worldMenuState = WorldMenuState::Main;
-                        player.setCanMove(true);
-                        break;
-                    }
-                    case WorldMenuState::NPCShop:
-                    {
-                        InventoryGUI::shopClosed();
-                        worldMenuState = WorldMenuState::Main;
-                        player.setCanMove(true);
-                        break;
-                    }
-                }
-            }
-        }
 
         if (event.type == sf::Event::MouseButtonPressed)
         {
@@ -531,6 +487,67 @@ void Game::runInGame(float dt)
         }
     }
 
+    // Input testing
+    if (InputManager::isActionJustActivated(InputAction::UI_BACK))
+    {
+        switch (worldMenuState)
+        {
+            case WorldMenuState::SettingLandmark: // fallthrough
+            case WorldMenuState::PauseMenu:
+            {
+                worldMenuState = WorldMenuState::Main;
+                player.setCanMove(true);
+                break;
+            }
+            case WorldMenuState::Main:
+            {
+                worldMenuState = WorldMenuState::PauseMenu;
+                mainMenuGUI.resetHoverRect();
+                break;
+            }
+            case WorldMenuState::NPCShop:
+            {
+                InventoryGUI::shopClosed(); // fallthrough
+            }
+            case WorldMenuState::Inventory:
+            {
+                handleInventoryClose();
+                player.setCanMove(true);
+                break;
+            }
+            case WorldMenuState::TravelSelect:
+            {
+                exitRocket();
+                break;
+            }
+            case WorldMenuState::NPCInteract:
+            {
+                npcInteractionGUI.close();
+                worldMenuState = WorldMenuState::Main;
+                player.setCanMove(true);
+                break;
+            }
+        }
+    }
+    else if (InputManager::isActionJustActivated(InputAction::OPEN_INVENTORY))
+    {
+        switch (worldMenuState)
+        {
+            case WorldMenuState::Main:
+            {
+                worldMenuState = WorldMenuState::Inventory;
+                closeChest();
+                break;
+            }
+            case WorldMenuState::NPCShop: // fallthrough
+            case WorldMenuState::Inventory:
+            {
+                handleInventoryClose();
+                player.setCanMove(true);
+                break;
+            }
+        }
+    }
 
     //
     // -- UPDATING --
@@ -2352,6 +2369,8 @@ void Game::handleEventsWindow(sf::Event& event)
             return;
         }
     }
+
+    InputManager::processEvent(event);
 
     // ImGui
     ImGui::SFML::ProcessEvent(window, event);

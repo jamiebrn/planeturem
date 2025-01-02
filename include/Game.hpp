@@ -22,6 +22,7 @@
 #include "Core/Helper.hpp"
 #include "Core/Tween.hpp"
 #include "Core/SpriteBatch.hpp"
+#include "Core/InputManager.hpp"
 
 #include "World/ChunkManager.hpp"
 #include "World/ChestDataPool.hpp"

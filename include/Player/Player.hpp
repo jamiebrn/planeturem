@@ -16,6 +16,7 @@
 #include "Core/TextureManager.hpp"
 #include "Core/TextDraw.hpp"
 #include "Core/SpriteBatch.hpp"
+#include "Core/InputManager.hpp"
 #include "Object/WorldObject.hpp"
 #include "World/ChunkManager.hpp"
 #include "World/Room.hpp"
