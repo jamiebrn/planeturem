@@ -32,6 +32,12 @@ TextEnter::TextEnter(const GUIInputState& inputState, ElementID id, int x, int y
         if (hovered)
         {
             active = true;
+
+            // Just activated, open keyboard if required
+            if (InputManager::isControllerActive())
+            {
+                SteamUtils()->ShowFloatingGamepadTextInput(EFloatingGamepadTextInputMode::k_EFloatingGamepadTextInputModeModeSingleLine, x, y, width, height);
+            }
         }
         else if (active)
         {

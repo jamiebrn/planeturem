@@ -81,6 +81,11 @@ bool Game::initialise()
     InputManager::bindKey(InputAction::WALK_RIGHT, sf::Keyboard::D);
     InputManager::bindKey(InputAction::OPEN_INVENTORY, sf::Keyboard::E);
     InputManager::bindKey(InputAction::UI_BACK, sf::Keyboard::Escape);
+    InputManager::bindKey(InputAction::PAUSE_GAME, sf::Keyboard::Escape);
+    InputManager::bindMouseWheel(InputAction::ZOOM_IN, MouseWheelScroll::Up);
+    InputManager::bindMouseWheel(InputAction::ZOOM_OUT, MouseWheelScroll::Down);
+    InputManager::bindMouseWheel(InputAction::UI_TAB_LEFT, MouseWheelScroll::Down);
+    InputManager::bindMouseWheel(InputAction::UI_TAB_RIGHT, MouseWheelScroll::Up);
 
     InputManager::bindControllerAxis(InputAction::WALK_UP, JoystickAxisWithDirection{sf::Joystick::Axis::Y, JoystickAxisDirection::NEGATIVE});
     InputManager::bindControllerAxis(InputAction::WALK_DOWN, JoystickAxisWithDirection{sf::Joystick::Axis::Y, JoystickAxisDirection::POSITIVE});
@@ -89,6 +94,11 @@ bool Game::initialise()
 
     InputManager::bindControllerButton(InputAction::OPEN_INVENTORY, 1);
     InputManager::bindControllerButton(InputAction::UI_BACK, 1);
+    InputManager::bindControllerButton(InputAction::PAUSE_GAME, 7);
+    InputManager::bindControllerAxis(InputAction::ZOOM_IN, JoystickAxisWithDirection{sf::Joystick::Axis::PovY, JoystickAxisDirection::POSITIVE});
+    InputManager::bindControllerAxis(InputAction::ZOOM_OUT, JoystickAxisWithDirection{sf::Joystick::Axis::PovY, JoystickAxisDirection::NEGATIVE});
+    InputManager::bindControllerButton(InputAction::UI_TAB_LEFT, 4);
+    InputManager::bindControllerButton(InputAction::UI_TAB_RIGHT, 5);
 
     InputManager::setControllerAxisDeadzone(0.1f);
 
@@ -468,26 +478,44 @@ void Game::runInGame(float dt)
                 }
             }
         }
-
-        if (event.type == sf::Event::MouseWheelScrolled)
-        {
-            switch (worldMenuState)
-            {
-                case WorldMenuState::NPCShop: // fallthrough
-                case WorldMenuState::Inventory:
-                    if (!InventoryGUI::handleScroll(mouseScreenPos, -event.mouseWheelScroll.delta, inventory))
-                        handleZoom(event.mouseWheelScroll.delta);
-                    break;
-                case WorldMenuState::Main:
-                    // handleZoom(event.mouseWheelScroll.delta);
-                    InventoryGUI::handleScrollHotbar(-event.mouseWheelScroll.delta);
-                    changePlayerTool();
-                    break;
-            }
-        }
     }
 
     // Input testing
+    if (float zoom = InputManager::getActionAxisImmediateActivation(InputAction::ZOOM_IN, InputAction::ZOOM_OUT);
+        std::abs(zoom) >= 0.5f)
+    {
+        if ((worldMenuState == WorldMenuState::Inventory || worldMenuState == WorldMenuState::NPCShop) &&
+            !InventoryGUI::isMouseOverUI(mouseScreenPos))
+        {
+            handleZoom(zoom);
+        }
+    }
+
+    if (InputManager::isActionJustActivated(InputAction::PAUSE_GAME))
+    {
+        if (worldMenuState == WorldMenuState::Main)
+        {
+            worldMenuState = WorldMenuState::PauseMenu;
+            mainMenuGUI.resetHoverRect();
+        }
+    }
+
+    if (float tabDelta = InputManager::getActionAxisImmediateActivation(InputAction::UI_TAB_LEFT, InputAction::UI_TAB_RIGHT);
+        std::abs(tabDelta) >= 0.5f)
+    {
+        switch (worldMenuState)
+        {
+            case WorldMenuState::NPCShop: // fallthrough
+            case WorldMenuState::Inventory:
+                InventoryGUI::handleScroll(mouseScreenPos, tabDelta, inventory);
+                break;
+            case WorldMenuState::Main:
+                InventoryGUI::handleScrollHotbar(tabDelta);
+                changePlayerTool();
+                break;
+        }
+    }
+
     if (InputManager::isActionJustActivated(InputAction::UI_BACK))
     {
         switch (worldMenuState)
@@ -497,12 +525,6 @@ void Game::runInGame(float dt)
             {
                 worldMenuState = WorldMenuState::Main;
                 player.setCanMove(true);
-                break;
-            }
-            case WorldMenuState::Main:
-            {
-                worldMenuState = WorldMenuState::PauseMenu;
-                mainMenuGUI.resetHoverRect();
                 break;
             }
             case WorldMenuState::NPCShop:

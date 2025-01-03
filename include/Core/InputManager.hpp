@@ -29,6 +29,11 @@ enum class InputAction
     INTERACT,
     OPEN_INVENTORY,
 
+    ZOOM_IN,
+    ZOOM_OUT,
+
+    PAUSE_GAME,
+
     DIRECT_UP, // Controller specfic
     DIRECT_DOWN,
     DIRECT_LEFT,
@@ -39,6 +44,12 @@ enum class JoystickAxisDirection
 {
     POSITIVE,
     NEGATIVE
+};
+
+enum class MouseWheelScroll
+{
+    Up,
+    Down
 };
 
 struct JoystickAxisWithDirection
@@ -54,6 +65,7 @@ class InputManager
 public:
     static void bindKey(InputAction action, std::optional<sf::Keyboard::Key> key);
     static void bindMouseButton(InputAction action, std::optional<sf::Mouse::Button> button);
+    static void bindMouseWheel(InputAction action, std::optional<MouseWheelScroll> wheelDirection);
     static void bindControllerAxis(InputAction action, std::optional<JoystickAxisWithDirection> axisWithDirection);
     static void bindControllerButton(InputAction action, std::optional<unsigned int> button);
 
@@ -70,8 +82,13 @@ public:
 
     static float getActionActivation(InputAction action);
     static float getActionAxisActivation(InputAction negativeAction, InputAction positionAction);
+    static float getActionAxisImmediateActivation(InputAction negativeAction, InputAction positionAction);
 
     static bool isControllerActive();
+
+private:
+    template <typename InputType>
+    static void bindInput(InputAction action, std::optional<InputType> input, std::unordered_map<InputAction, InputType>& bindMap);
 
 private:
     static float controllerAxisDeadzone;
@@ -79,6 +96,7 @@ private:
 
     static std::unordered_map<InputAction, sf::Keyboard::Key> keyBindings;
     static std::unordered_map<InputAction, sf::Mouse::Button> mouseBindings;
+    static std::unordered_map<InputAction, MouseWheelScroll> mouseWheelBindings;
     static std::unordered_map<InputAction, JoystickAxisWithDirection> controllerAxisBindings;
     static std::unordered_map<InputAction, unsigned int> controllerButtonBindings;
 

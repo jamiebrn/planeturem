@@ -5,66 +5,51 @@ bool InputManager::controllerIsActive = false;
 
 std::unordered_map<InputAction, sf::Keyboard::Key> InputManager::keyBindings;
 std::unordered_map<InputAction, sf::Mouse::Button> InputManager::mouseBindings;
+std::unordered_map<InputAction, MouseWheelScroll> InputManager::mouseWheelBindings;
 std::unordered_map<InputAction, JoystickAxisWithDirection> InputManager::controllerAxisBindings;
 std::unordered_map<InputAction, unsigned int> InputManager::controllerButtonBindings;
 
 std::unordered_map<InputAction, float> InputManager::inputActivation;
 std::unordered_map<InputAction, float> InputManager::inputActivationLastFrame;
 
-void InputManager::bindKey(InputAction action, std::optional<sf::Keyboard::Key> key)
+template <typename InputType>
+void InputManager::bindInput(InputAction action, std::optional<InputType> input, std::unordered_map<InputAction, InputType>& bindMap)
 {
-    if (!key.has_value())
+    if (!input.has_value())
     {
-        if (keyBindings.count(action) > 0)
+        if (bindMap.count(action) > 0)
         {
-            keyBindings.erase(action);
+            bindMap.erase(action);
         }
         return;
     }
     
-    keyBindings[action] = key.value();
+    bindMap[action] = input.value();
+}
+
+void InputManager::bindKey(InputAction action, std::optional<sf::Keyboard::Key> key)
+{
+    bindInput<sf::Keyboard::Key>(action, key, keyBindings);
 }
 
 void InputManager::bindMouseButton(InputAction action, std::optional<sf::Mouse::Button> button)
 {
-    if (!button.has_value())
-    {
-        if (mouseBindings.count(action) > 0)
-        {
-            mouseBindings.erase(action);
-        }
-        return;
-    }
+    bindInput<sf::Mouse::Button>(action, button, mouseBindings);
+}
 
-    mouseBindings[action] = button.value();
+void InputManager::bindMouseWheel(InputAction action, std::optional<MouseWheelScroll> wheelDirection)
+{
+    bindInput<MouseWheelScroll>(action, wheelDirection, mouseWheelBindings);
 }
 
 void InputManager::bindControllerAxis(InputAction action, std::optional<JoystickAxisWithDirection> axisWithDirection)
 {
-    if (!axisWithDirection.has_value())
-    {
-        if (controllerAxisBindings.count(action) > 0)
-        {
-            controllerAxisBindings.erase(action);
-        }
-        return;
-    }
-
-    controllerAxisBindings[action] = axisWithDirection.value();
+    bindInput<JoystickAxisWithDirection>(action, axisWithDirection, controllerAxisBindings);
 }
 
 void InputManager::bindControllerButton(InputAction action, std::optional<unsigned int> button)
 {
-    if (!button.has_value())
-    {
-        if (controllerButtonBindings.count(action) > 0)
-        {
-            controllerButtonBindings.erase(action);
-        }
-        return;
-    }
-
-    controllerButtonBindings[action] = button.value();
+    bindInput<unsigned int>(action, button, controllerButtonBindings);
 }
 
 void InputManager::setControllerAxisDeadzone(float deadzone)
@@ -104,46 +89,51 @@ void InputManager::update()
         inputActivation[iter->first] = std::max(inputActivation[iter->first], activation);
     }
 
-    // Check controller axis bindings
-    for (auto iter = controllerAxisBindings.begin(); iter != controllerAxisBindings.end(); iter++)
+    // Check input from all controllers
+    for (int controllerId = 0; sf::Joystick::getIdentification(controllerId).productId != 0; controllerId++)
     {
-        float activation = 0.0f;
-        float axisPosition = sf::Joystick::getAxisPosition(1, iter->second.axis) / 100.0f;
-
-        if (std::abs(axisPosition) >= controllerAxisDeadzone)
+        // Check controller axis bindings
+        for (auto iter = controllerAxisBindings.begin(); iter != controllerAxisBindings.end(); iter++)
         {
-            switch (iter->second.direction)
+            float activation = 0.0f;
+            float axisPosition = sf::Joystick::getAxisPosition(controllerId, iter->second.axis) / 100.0f;
+
+            if (std::abs(axisPosition) >= controllerAxisDeadzone)
             {
-                case JoystickAxisDirection::POSITIVE:
+                switch (iter->second.direction)
                 {
-                    activation = std::max(axisPosition, 0.0f);
-                    break;
+                    case JoystickAxisDirection::POSITIVE:
+                    {
+                        activation = std::max(axisPosition, 0.0f);
+                        break;
+                    }
+                    case JoystickAxisDirection::NEGATIVE:
+                    {
+                        activation = std::min(axisPosition, 0.0f);
+                        break;
+                    }
                 }
-                case JoystickAxisDirection::NEGATIVE:
-                {
-                    activation = std::min(axisPosition, 0.0f);
-                    break;
-                }
+
+                controllerIsActive = true;
             }
 
-            controllerIsActive = true;
+            inputActivation[iter->first] = std::max(inputActivation[iter->first], std::abs(activation));
         }
 
-        inputActivation[iter->first] = std::max(inputActivation[iter->first], std::abs(activation));
-    }
-
-    // Check controller button bindings
-    for (auto iter = controllerButtonBindings.begin(); iter != controllerButtonBindings.end(); iter++)
-    {
-        float activation = 0.0f;
-        if (sf::Joystick::isButtonPressed(1, iter->second))
+        // Check controller button bindings
+        for (auto iter = controllerButtonBindings.begin(); iter != controllerButtonBindings.end(); iter++)
         {
-            activation = 1.0f;
-            controllerIsActive = true;
-        }
+            float activation = 0.0f;
+            if (sf::Joystick::isButtonPressed(controllerId, iter->second))
+            {
+                activation = 1.0f;
+                controllerIsActive = true;
+            }
 
-        inputActivation[iter->first] = std::max(inputActivation[iter->first], activation);
+            inputActivation[iter->first] = std::max(inputActivation[iter->first], activation);
+        }
     }
+
 }
 
 void InputManager::processEvent(const sf::Event& event)
@@ -154,6 +144,23 @@ void InputManager::processEvent(const sf::Event& event)
         event.type == sf::Event::MouseWheelScrolled)
     {
         controllerIsActive = false;
+    }
+
+    if (event.type == sf::Event::MouseWheelMoved)
+    {
+        MouseWheelScroll wheelDirection = (event.mouseWheel.delta < 0) ? MouseWheelScroll::Up : MouseWheelScroll::Down;
+
+        for (auto iter = mouseWheelBindings.begin(); iter != mouseWheelBindings.end(); iter++)
+        {
+            float activation = 0.0f;
+            if (iter->second == wheelDirection)
+            {
+                activation = 1.0f;
+                controllerIsActive = false;
+            }
+
+            inputActivation[iter->first] = std::max(inputActivation[iter->first], activation);
+        }
     }
 }
 
@@ -182,6 +189,13 @@ float InputManager::getActionActivation(InputAction action)
 float InputManager::getActionAxisActivation(InputAction negativeAction, InputAction positionAction)
 {
     return (inputActivation[positionAction] - inputActivation[negativeAction]);
+}
+
+float InputManager::getActionAxisImmediateActivation(InputAction negativeAction, InputAction positionAction)
+{
+    float negativeImmediateActivation = std::max(inputActivation[negativeAction] - inputActivationLastFrame[negativeAction], 0.0f);
+    float positiveImmediateActivation = std::max(inputActivation[positionAction] - inputActivationLastFrame[positionAction], 0.0f);
+    return (positiveImmediateActivation - negativeImmediateActivation);
 }
 
 bool InputManager::isControllerActive()

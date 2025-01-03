@@ -3,8 +3,11 @@
 #include <SFML/Graphics.hpp>
 #include <string>
 
+#include <extlib/steam/steam_api.h>
+
 #include "Core/TextDraw.hpp"
 #include "Core/CollisionRect.hpp"
+#include "Core/InputManager.hpp"
 
 #include "GUIInputState.hpp"
 #include "GUIElement.hpp"
