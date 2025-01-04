@@ -39,11 +39,18 @@ public:
 
     void draw(sf::RenderTarget& window);
 
+    // Used with other control methods, e.g. controller
+    void forceElementActivation(ElementID element);
+
     const GUIElement* getHoveredElement() const;
 
     const GUIElement* getElementByID(ElementID id) const;
 
     const inline GUIInputState& getInputState() const {return inputState;}
+
+    const inline bool isElementActive() const {return (inputState.activeElement != std::numeric_limits<uint64_t>::max());}
+
+    const inline int getMaxElementID() const {return std::max(static_cast<int>(elements.size()) - 1, 0);}
 
 private:
     std::vector<std::unique_ptr<GUIElement>> elements;

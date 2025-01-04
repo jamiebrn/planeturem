@@ -1,10 +1,13 @@
 #pragma once
 
 #include <SFML/Graphics.hpp>
+#include <limits>
 
 #include "Core/ResolutionHandler.hpp"
+#include "Core/InputManager.hpp"
 
 #include "GUI/Base/GUIContext.hpp"
+#include "GUI/Base/GUIInputState.hpp"
 
 class DefaultGUIPanel
 {
@@ -19,7 +22,7 @@ protected:
     void drawPanel(sf::RenderTarget& window);
 
     void updateAndDrawSelectionHoverRect(sf::RenderTarget& window, float dt);
-    void updateSelectionHoverRectDestination(sf::IntRect destinationRect);
+    void setSelectedElement(ElementID selected);
 
     int getScaledPanelPaddingX();
 
@@ -31,8 +34,10 @@ protected:
 
     GUIContext guiContext;
 
+    ElementID selectedElementId = std::numeric_limits<uint64_t>::max();
     sf::FloatRect selectionHoverRect;
-    sf::FloatRect selectionHoverRectDestination;
+    // sf::FloatRect selectionHoverRectDestination;
 
     bool deferHoverRectReset = false;
+    bool deferForceElementActivation = false;
 };

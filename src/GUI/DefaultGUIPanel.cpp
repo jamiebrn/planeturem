@@ -26,6 +26,12 @@ void DefaultGUIPanel::drawPanel(sf::RenderTarget& window)
     panelRect.setFillColor(sf::Color(30, 30, 30, 180));
 
     window.draw(panelRect);
+
+    if (deferForceElementActivation)
+    {
+        deferForceElementActivation = false;
+        guiContext.forceElementActivation(selectedElementId);
+    }
 }
 
 int DefaultGUIPanel::getScaledPanelPaddingX()
@@ -41,24 +47,85 @@ void DefaultGUIPanel::updateAndDrawSelectionHoverRect(sf::RenderTarget& window, 
 
     int scaledPanelPaddingX = getScaledPanelPaddingX();
 
-    if (const GUIElement* hoveredElement = guiContext.getHoveredElement();
-        hoveredElement != nullptr)
+    // If element is active, set as selected
+    // Otherwise set hovered element as selected
+    if (guiContext.isElementActive())
     {
-        updateSelectionHoverRectDestination(hoveredElement->getBoundingBox());
+        setSelectedElement(guiContext.getInputState().activeElement);
+    }
+    else
+    {
+        if (InputManager::isControllerActive())
+        {
+            if (InputManager::isActionJustActivated(InputAction::UI_UP))
+            {
+                if (selectedElementId == std::numeric_limits<uint64_t>::max())
+                {
+                    setSelectedElement(0);
+                }
+                else
+                {
+                    setSelectedElement(std::clamp(static_cast<int>(selectedElementId) - 1, 0, guiContext.getMaxElementID()));
+                }
+                guiContext.resetActiveElement();
+            }
+            if (InputManager::isActionJustActivated(InputAction::UI_DOWN))
+            {
+                if (selectedElementId == std::numeric_limits<uint64_t>::max())
+                {
+                    setSelectedElement(0);
+                }
+                else
+                {
+                    setSelectedElement(std::clamp(static_cast<int>(selectedElementId + 1), 0, guiContext.getMaxElementID()));
+                }
+                guiContext.resetActiveElement();
+            }
+            if (InputManager::isActionJustActivated(InputAction::UI_CONFIRM))
+            {
+                deferForceElementActivation = true;
+            }
+            if (InputManager::isActionJustActivated(InputAction::UI_BACK))
+            {
+                guiContext.resetActiveElement();
+                resetHoverRect();
+            }
+        }
+        else
+        {
+            if (const GUIElement* hoveredElement = guiContext.getHoveredElement();
+            hoveredElement != nullptr)
+            {
+                // updateSelectionHoverRectDestination(hoveredElement->getBoundingBox());
+                setSelectedElement(hoveredElement->getElementID());
+            }
+        }
     }
 
     CollisionRect panelCollisionRect(scaledPanelPaddingX * intScale, 0, panelWidth * intScale, resolution.y);
 
-    if (deferHoverRectReset || !panelCollisionRect.isPointInRect(guiContext.getInputState().mouseX, guiContext.getInputState().mouseY))
+
+    if (deferHoverRectReset || (!panelCollisionRect.isPointInRect(guiContext.getInputState().mouseX, guiContext.getInputState().mouseY) &&
+        !guiContext.isElementActive() && !InputManager::isControllerActive()))
     {
         resetHoverRect();
     }
 
     // Update
-    selectionHoverRect.left = Helper::lerp(selectionHoverRect.left, selectionHoverRectDestination.left, 15.0f * dt);
-    selectionHoverRect.top = Helper::lerp(selectionHoverRect.top, selectionHoverRectDestination.top, 15.0f * dt);
-    selectionHoverRect.width = Helper::lerp(selectionHoverRect.width, selectionHoverRectDestination.width, 15.0f * dt);
-    selectionHoverRect.height = Helper::lerp(selectionHoverRect.height, selectionHoverRectDestination.height, 15.0f * dt);
+    const GUIElement* selectedElement = guiContext.getElementByID(selectedElementId);
+    if (selectedElement)
+    {
+        sf::FloatRect selectionHoverRectDestination = static_cast<sf::FloatRect>(selectedElement->getBoundingBox());
+
+        selectionHoverRect.left = Helper::lerp(selectionHoverRect.left, selectionHoverRectDestination.left, 15.0f * dt);
+        selectionHoverRect.top = Helper::lerp(selectionHoverRect.top, selectionHoverRectDestination.top, 15.0f * dt);
+        selectionHoverRect.width = Helper::lerp(selectionHoverRect.width, selectionHoverRectDestination.width, 15.0f * dt);
+        selectionHoverRect.height = Helper::lerp(selectionHoverRect.height, selectionHoverRectDestination.height, 15.0f * dt);
+    }
+    else
+    {
+        resetHoverRect();
+    }
 
     // Draw
     sf::RectangleShape selectionRect;
@@ -69,20 +136,25 @@ void DefaultGUIPanel::updateAndDrawSelectionHoverRect(sf::RenderTarget& window, 
     window.draw(selectionRect);
 }
 
-void DefaultGUIPanel::updateSelectionHoverRectDestination(sf::IntRect destinationRect)
+void DefaultGUIPanel::setSelectedElement(ElementID selected)
 {
-    selectionHoverRectDestination = static_cast<sf::FloatRect>(destinationRect);
-
-    // If hover rect is 0, 0, 0, 0 (i.e. null), do not lerp, immediately set to destination
-    if (selectionHoverRect == sf::FloatRect(0, 0, 0, 0))
+    if (selectedElementId == std::numeric_limits<uint64_t>::max() &&
+        selected != std::numeric_limits<uint64_t>::max())
     {
-        selectionHoverRect = selectionHoverRectDestination;
+        const GUIElement* selectedElement = guiContext.getElementByID(selected);
+        if (selectedElement)
+        {
+            selectionHoverRect = static_cast<sf::FloatRect>(selectedElement->getBoundingBox());
+        }
     }
+
+    selectedElementId = selected;
 }
 
 void DefaultGUIPanel::resetHoverRect()
 {
-    selectionHoverRectDestination = sf::FloatRect(0, 0, 0, 0);
-    selectionHoverRect = selectionHoverRectDestination;
+    // selectionHoverRectDestination = sf::FloatRect(0, 0, 0, 0);
+    selectedElementId = std::numeric_limits<uint64_t>::max();
+    selectionHoverRect = sf::FloatRect(0, 0, 0, 0);
     deferHoverRectReset = false;
 }

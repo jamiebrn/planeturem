@@ -96,16 +96,21 @@ bool Game::initialise()
     InputManager::bindControllerAxis(InputAction::WALK_RIGHT, JoystickAxisWithDirection{sf::Joystick::Axis::X, JoystickAxisDirection::POSITIVE});
 
     InputManager::bindControllerButton(InputAction::OPEN_INVENTORY, 1);
+    InputManager::bindControllerButton(InputAction::UI_CONFIRM, 0);
     InputManager::bindControllerButton(InputAction::UI_BACK, 1);
     InputManager::bindControllerButton(InputAction::PAUSE_GAME, 7);
     InputManager::bindControllerAxis(InputAction::USE_TOOL, JoystickAxisWithDirection{sf::Joystick::Axis::Z, JoystickAxisDirection::NEGATIVE});
     InputManager::bindControllerAxis(InputAction::INTERACT, JoystickAxisWithDirection{sf::Joystick::Axis::Z, JoystickAxisDirection::POSITIVE});
-    InputManager::bindControllerAxis(InputAction::ZOOM_IN, JoystickAxisWithDirection{sf::Joystick::Axis::PovY, JoystickAxisDirection::NEGATIVE});
-    InputManager::bindControllerAxis(InputAction::ZOOM_OUT, JoystickAxisWithDirection{sf::Joystick::Axis::PovY, JoystickAxisDirection::POSITIVE});
+    InputManager::bindControllerAxis(InputAction::UI_UP, JoystickAxisWithDirection{sf::Joystick::Axis::PovY, JoystickAxisDirection::POSITIVE});
+    InputManager::bindControllerAxis(InputAction::UI_DOWN, JoystickAxisWithDirection{sf::Joystick::Axis::PovY, JoystickAxisDirection::NEGATIVE});
+    InputManager::bindControllerAxis(InputAction::UI_LEFT, JoystickAxisWithDirection{sf::Joystick::Axis::PovX, JoystickAxisDirection::NEGATIVE});
+    InputManager::bindControllerAxis(InputAction::UI_RIGHT, JoystickAxisWithDirection{sf::Joystick::Axis::PovX, JoystickAxisDirection::POSITIVE});
+    InputManager::bindControllerButton(InputAction::ZOOM_IN, 5);
+    InputManager::bindControllerButton(InputAction::ZOOM_OUT, 4);
     InputManager::bindControllerButton(InputAction::UI_TAB_LEFT, 4);
     InputManager::bindControllerButton(InputAction::UI_TAB_RIGHT, 5);
 
-    InputManager::setControllerAxisDeadzone(0.1f);
+    InputManager::setControllerAxisDeadzone(0.3f);
 
     // Initialise values
     gameTime = 0;

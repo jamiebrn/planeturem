@@ -173,6 +173,14 @@ void GUIContext::draw(sf::RenderTarget& window)
     }
 }
 
+void GUIContext::forceElementActivation(ElementID element)
+{
+    inputState.activeElement = element;
+
+    // Simulate press of active element
+    inputState.leftMouseJustUp = true;
+}
+
 const GUIElement* GUIContext::getHoveredElement() const
 {
     for (auto& element : elements)

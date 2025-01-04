@@ -686,7 +686,7 @@ void InventoryGUI::updateAvailableRecipes(InventoryData& inventory, std::unorder
         // {
         //     selectedRecipe = 0;
         // }
-        recipeCurrentPage = std::clamp(recipeCurrentPage, 0, static_cast<int>(std::floor((availableRecipes.size() - 1) / (RECIPE_MAX_ROWS * ITEM_BOX_PER_ROW))));
+        recipeCurrentPage = std::clamp(recipeCurrentPage, 0, static_cast<int>(std::floor(std::max(static_cast<int>(availableRecipes.size() - 1) / (RECIPE_MAX_ROWS * ITEM_BOX_PER_ROW), 0))));
 
         createRecipeItemSlots(inventory);
     }
