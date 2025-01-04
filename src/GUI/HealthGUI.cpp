@@ -45,10 +45,10 @@ void HealthGUI::drawHealth(sf::RenderTarget& window, SpriteBatch& spriteBatch, c
             if (useProgressShader)
             {
                 float heartProgress = static_cast<float>(static_cast<int>(player.getHealth()) % HEALTH_PER_HEART) / HEALTH_PER_HEART;
-                if (heartProgress == 0.0f)
-                {
-                    heartProgress = 1.0f;
-                }
+                // if (heartProgress == 0.0f)
+                // {
+                //     heartProgress = 1.0f;
+                // }
 
                 sf::Shader* progressShader = Shaders::getShader(ShaderType::Progress);
                 progressShader->setUniform("progress", heartProgress);

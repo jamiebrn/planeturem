@@ -140,15 +140,14 @@ void InputManager::processEvent(const sf::Event& event)
 {
     if (event.type == sf::Event::KeyPressed || event.type == sf::Event::KeyReleased ||
         event.type == sf::Event::MouseButtonPressed || event.type == sf::Event::MouseButtonReleased ||
-        event.type == sf::Event::MouseMoved || event.type == sf::Event::MouseWheelMoved ||
-        event.type == sf::Event::MouseWheelScrolled)
+        event.type == sf::Event::MouseMoved || event.type == sf::Event::MouseWheelScrolled)
     {
         controllerIsActive = false;
     }
 
-    if (event.type == sf::Event::MouseWheelMoved)
+    if (event.type == sf::Event::MouseWheelScrolled)
     {
-        MouseWheelScroll wheelDirection = (event.mouseWheel.delta < 0) ? MouseWheelScroll::Up : MouseWheelScroll::Down;
+        MouseWheelScroll wheelDirection = (event.mouseWheelScroll.delta < 0) ? MouseWheelScroll::Up : MouseWheelScroll::Down;
 
         for (auto iter = mouseWheelBindings.begin(); iter != mouseWheelBindings.end(); iter++)
         {
@@ -201,4 +200,39 @@ float InputManager::getActionAxisImmediateActivation(InputAction negativeAction,
 bool InputManager::isControllerActive()
 {
     return controllerIsActive;
+}
+
+void InputManager::consumeInputAction(InputAction action)
+{
+    consumeInput<sf::Keyboard::Key>(action, keyBindings);
+    consumeInput<sf::Mouse::Button>(action, mouseBindings);
+    consumeInput<MouseWheelScroll>(action, mouseWheelBindings);
+    consumeInput<JoystickAxisWithDirection>(action, controllerAxisBindings);
+    consumeInput<unsigned int>(action, controllerButtonBindings);
+}
+
+template<typename InputType>
+void InputManager::consumeInput(InputAction action, std::unordered_map<InputAction, InputType>& bindMap)
+{
+    std::vector<InputAction> actionsToConsume;
+
+    if (bindMap.count(action) > 0)
+    {
+        InputType input = bindMap.at(action);
+
+        // Get other actions with same input
+        for (auto iter = bindMap.begin(); iter != bindMap.end(); iter++)
+        {
+            if (iter->second == input)
+            {
+                actionsToConsume.push_back(iter->first);
+            }
+        }
+    }
+
+    // Consume inputs
+    for (InputAction action : actionsToConsume)
+    {
+        inputActivationLastFrame[action] = inputActivation[action];
+    }
 }

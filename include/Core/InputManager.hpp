@@ -5,6 +5,7 @@
 #include <SFML/Window/Joystick.hpp>
 #include <SFML/Window/Event.hpp>
 
+#include <vector>
 #include <unordered_map>
 #include <optional>
 
@@ -56,6 +57,11 @@ struct JoystickAxisWithDirection
 {
     sf::Joystick::Axis axis;
     JoystickAxisDirection direction;
+
+    bool operator==(const JoystickAxisWithDirection& other)
+    {
+        return (axis == other.axis && direction == other.direction);
+    }
 };
 
 class InputManager
@@ -86,9 +92,16 @@ public:
 
     static bool isControllerActive();
 
+    // Consumes input for bindings of given action
+    // Disables other actions with same key bindings
+    static void consumeInputAction(InputAction action);
+
 private:
     template <typename InputType>
     static void bindInput(InputAction action, std::optional<InputType> input, std::unordered_map<InputAction, InputType>& bindMap);
+
+    template<typename InputType>
+    static void consumeInput(InputAction action, std::unordered_map<InputAction, InputType>& bindMap);
 
 private:
     static float controllerAxisDeadzone;

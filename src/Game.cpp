@@ -5,6 +5,7 @@
     // TODO: At least 1 new soundtrack
 
 // FIX: Improve UI scaling elements (text etc)
+// FIX: Rounding error on heart (maybe fixed)
 
 // TODO: Night and menu music
 
@@ -82,6 +83,8 @@ bool Game::initialise()
     InputManager::bindKey(InputAction::OPEN_INVENTORY, sf::Keyboard::E);
     InputManager::bindKey(InputAction::UI_BACK, sf::Keyboard::Escape);
     InputManager::bindKey(InputAction::PAUSE_GAME, sf::Keyboard::Escape);
+    InputManager::bindMouseButton(InputAction::USE_TOOL, sf::Mouse::Button::Left);
+    InputManager::bindMouseButton(InputAction::INTERACT, sf::Mouse::Button::Right);
     InputManager::bindMouseWheel(InputAction::ZOOM_IN, MouseWheelScroll::Up);
     InputManager::bindMouseWheel(InputAction::ZOOM_OUT, MouseWheelScroll::Down);
     InputManager::bindMouseWheel(InputAction::UI_TAB_LEFT, MouseWheelScroll::Down);
@@ -95,8 +98,10 @@ bool Game::initialise()
     InputManager::bindControllerButton(InputAction::OPEN_INVENTORY, 1);
     InputManager::bindControllerButton(InputAction::UI_BACK, 1);
     InputManager::bindControllerButton(InputAction::PAUSE_GAME, 7);
-    InputManager::bindControllerAxis(InputAction::ZOOM_IN, JoystickAxisWithDirection{sf::Joystick::Axis::PovY, JoystickAxisDirection::POSITIVE});
-    InputManager::bindControllerAxis(InputAction::ZOOM_OUT, JoystickAxisWithDirection{sf::Joystick::Axis::PovY, JoystickAxisDirection::NEGATIVE});
+    InputManager::bindControllerAxis(InputAction::USE_TOOL, JoystickAxisWithDirection{sf::Joystick::Axis::Z, JoystickAxisDirection::NEGATIVE});
+    InputManager::bindControllerAxis(InputAction::INTERACT, JoystickAxisWithDirection{sf::Joystick::Axis::Z, JoystickAxisDirection::POSITIVE});
+    InputManager::bindControllerAxis(InputAction::ZOOM_IN, JoystickAxisWithDirection{sf::Joystick::Axis::PovY, JoystickAxisDirection::NEGATIVE});
+    InputManager::bindControllerAxis(InputAction::ZOOM_OUT, JoystickAxisWithDirection{sf::Joystick::Axis::PovY, JoystickAxisDirection::POSITIVE});
     InputManager::bindControllerButton(InputAction::UI_TAB_LEFT, 4);
     InputManager::bindControllerButton(InputAction::UI_TAB_RIGHT, 5);
 
@@ -396,177 +401,176 @@ void Game::runInGame(float dt)
         landmarkSetGUI.handleEvent(event);
         npcInteractionGUI.handleEvent(event);
         mainMenuGUI.handleEvent(event);
-
-        if (isStateTransitioning() || !player.isAlive())
-        {
-            continue;
-        }
-
-        if (ImGui::GetIO().WantCaptureKeyboard || ImGui::GetIO().WantCaptureMouse)
-        {
-            continue;
-        }
-
-        if (event.type == sf::Event::MouseButtonPressed)
-        {
-            if (event.mouseButton.button == sf::Mouse::Left)
-            {
-                switch (worldMenuState)
-                {
-                    case WorldMenuState::Main:
-                    {
-                        bool hotbarInteracted = InventoryGUI::handleLeftClickHotbar(mouseScreenPos);
-                        if (!hotbarInteracted)
-                        {
-                            attemptUseTool();
-                            attemptBuildObject();
-                            attemptPlaceLand();
-                            attemptUseBossSpawn();
-                            attemptUseConsumable();
-                        }
-                        else
-                        {
-                            changePlayerTool();
-                        }
-                        break;
-                    }
-                    case WorldMenuState::NPCShop: // fallthrough
-                    case WorldMenuState::Inventory:
-                    {
-                        ItemType itemHeldBefore = InventoryGUI::getHeldItemType(inventory);
-                        
-                        if (InventoryGUI::isMouseOverUI(mouseScreenPos))
-                        {
-                            InventoryGUI::handleLeftClick(mouseScreenPos, shiftMode, inventory, armourInventory, chestDataPool.getChestDataPtr(openedChestID));
-                        }
-                        else
-                        {
-                            attemptUseTool();
-                            attemptBuildObject();
-                            attemptPlaceLand();
-                            attemptUseBossSpawn();
-                            attemptUseConsumable();
-                        }
-
-                        if (itemHeldBefore != InventoryGUI::getHeldItemType(inventory))
-                        {
-                            changePlayerTool();
-                        }
-                        break;
-                    }
-                }
-            }
-            else if (event.mouseButton.button == sf::Mouse::Right)
-            {
-                switch (worldMenuState)
-                {
-                    case WorldMenuState::Main:
-                        attemptObjectInteract();
-                        break;
-                    case WorldMenuState::NPCShop: // fallthrough
-                    case WorldMenuState::Inventory:
-                        if (InventoryGUI::isMouseOverUI(mouseScreenPos))
-                        {
-                            InventoryGUI::handleRightClick(mouseScreenPos, shiftMode, inventory, armourInventory, chestDataPool.getChestDataPtr(openedChestID));
-                            changePlayerTool();
-                        }
-                        else
-                        {
-                            attemptObjectInteract();
-                        }
-                        break;
-                }
-            }
-        }
     }
 
     // Input testing
-    if (float zoom = InputManager::getActionAxisImmediateActivation(InputAction::ZOOM_IN, InputAction::ZOOM_OUT);
-        std::abs(zoom) >= 0.5f)
+    if (!isStateTransitioning() && player.isAlive() && !(ImGui::GetIO().WantCaptureKeyboard || ImGui::GetIO().WantCaptureMouse))
     {
-        if ((worldMenuState == WorldMenuState::Inventory || worldMenuState == WorldMenuState::NPCShop) &&
-            !InventoryGUI::isMouseOverUI(mouseScreenPos))
+        if (InputManager::isActionJustActivated(InputAction::USE_TOOL))
         {
-            handleZoom(zoom);
-        }
-    }
+            switch (worldMenuState)
+            {
+                case WorldMenuState::Main:
+                {
+                    bool hotbarInteracted = InventoryGUI::handleLeftClickHotbar(mouseScreenPos);
+                    if (!hotbarInteracted)
+                    {
+                        attemptUseTool();
+                        attemptBuildObject();
+                        attemptPlaceLand();
+                        attemptUseBossSpawn();
+                        attemptUseConsumable();
+                    }
+                    else
+                    {
+                        changePlayerTool();
+                    }
+                    break;
+                }
+                case WorldMenuState::NPCShop: // fallthrough
+                case WorldMenuState::Inventory:
+                {
+                    ItemType itemHeldBefore = InventoryGUI::getHeldItemType(inventory);
+                    
+                    if (InventoryGUI::isMouseOverUI(mouseScreenPos))
+                    {
+                        InventoryGUI::handleLeftClick(mouseScreenPos, shiftMode, inventory, armourInventory, chestDataPool.getChestDataPtr(openedChestID));
+                    }
+                    else
+                    {
+                        attemptUseTool();
+                        attemptBuildObject();
+                        attemptPlaceLand();
+                        attemptUseBossSpawn();
+                        attemptUseConsumable();
+                    }
 
-    if (InputManager::isActionJustActivated(InputAction::PAUSE_GAME))
-    {
-        if (worldMenuState == WorldMenuState::Main)
-        {
-            worldMenuState = WorldMenuState::PauseMenu;
-            mainMenuGUI.resetHoverRect();
+                    if (itemHeldBefore != InventoryGUI::getHeldItemType(inventory))
+                    {
+                        changePlayerTool();
+                    }
+                    break;
+                }
+            }
         }
-    }
 
-    if (float tabDelta = InputManager::getActionAxisImmediateActivation(InputAction::UI_TAB_LEFT, InputAction::UI_TAB_RIGHT);
-        std::abs(tabDelta) >= 0.5f)
-    {
-        switch (worldMenuState)
+        if (InputManager::isActionJustActivated(InputAction::INTERACT))
         {
-            case WorldMenuState::NPCShop: // fallthrough
-            case WorldMenuState::Inventory:
-                InventoryGUI::handleScroll(mouseScreenPos, tabDelta, inventory);
-                break;
-            case WorldMenuState::Main:
-                InventoryGUI::handleScrollHotbar(tabDelta);
-                changePlayerTool();
-                break;
+            switch (worldMenuState)
+            {
+                case WorldMenuState::Main:
+                    attemptObjectInteract();
+                    break;
+                case WorldMenuState::NPCShop: // fallthrough
+                case WorldMenuState::Inventory:
+                    if (InventoryGUI::isMouseOverUI(mouseScreenPos))
+                    {
+                        InventoryGUI::handleRightClick(mouseScreenPos, shiftMode, inventory, armourInventory, chestDataPool.getChestDataPtr(openedChestID));
+                        changePlayerTool();
+                    }
+                    else
+                    {
+                        attemptObjectInteract();
+                    }
+                    break;
+            }
         }
-    }
 
-    if (InputManager::isActionJustActivated(InputAction::UI_BACK))
-    {
-        switch (worldMenuState)
+        if (float zoom = InputManager::getActionAxisImmediateActivation(InputAction::ZOOM_IN, InputAction::ZOOM_OUT);
+            std::abs(zoom) >= 0.5f)
         {
-            case WorldMenuState::SettingLandmark: // fallthrough
-            case WorldMenuState::PauseMenu:
+            if ((worldMenuState == WorldMenuState::Inventory || worldMenuState == WorldMenuState::NPCShop) &&
+                !InventoryGUI::isMouseOverUI(mouseScreenPos))
             {
-                worldMenuState = WorldMenuState::Main;
-                player.setCanMove(true);
-                break;
-            }
-            case WorldMenuState::NPCShop:
-            {
-                InventoryGUI::shopClosed(); // fallthrough
-            }
-            case WorldMenuState::Inventory:
-            {
-                handleInventoryClose();
-                player.setCanMove(true);
-                break;
-            }
-            case WorldMenuState::TravelSelect:
-            {
-                exitRocket();
-                break;
-            }
-            case WorldMenuState::NPCInteract:
-            {
-                npcInteractionGUI.close();
-                worldMenuState = WorldMenuState::Main;
-                player.setCanMove(true);
-                break;
+                handleZoom(zoom);
             }
         }
-    }
-    else if (InputManager::isActionJustActivated(InputAction::OPEN_INVENTORY))
-    {
-        switch (worldMenuState)
+
+        if (float tabDelta = InputManager::getActionAxisImmediateActivation(InputAction::UI_TAB_LEFT, InputAction::UI_TAB_RIGHT);
+            std::abs(tabDelta) >= 0.5f)
         {
-            case WorldMenuState::Main:
+            switch (worldMenuState)
             {
-                worldMenuState = WorldMenuState::Inventory;
-                closeChest();
-                break;
+                case WorldMenuState::NPCShop: // fallthrough
+                case WorldMenuState::Inventory:
+                    InventoryGUI::handleScroll(mouseScreenPos, tabDelta, inventory);
+                    break;
+                case WorldMenuState::Main:
+                    InventoryGUI::handleScrollHotbar(tabDelta);
+                    changePlayerTool();
+                    break;
             }
-            case WorldMenuState::NPCShop: // fallthrough
-            case WorldMenuState::Inventory:
+        }
+
+        if (InputManager::isActionJustActivated(InputAction::OPEN_INVENTORY))
+        {
+            switch (worldMenuState)
             {
-                handleInventoryClose();
-                player.setCanMove(true);
-                break;
+                case WorldMenuState::Main:
+                {
+                    worldMenuState = WorldMenuState::Inventory;
+                    closeChest();
+                    InputManager::consumeInputAction(InputAction::OPEN_INVENTORY);
+                    break;
+                }
+                case WorldMenuState::NPCShop: // fallthrough
+                case WorldMenuState::Inventory:
+                {
+                    handleInventoryClose();
+                    player.setCanMove(true);
+                    InputManager::consumeInputAction(InputAction::OPEN_INVENTORY);
+                    break;
+                }
+            }
+        }
+        
+        if (InputManager::isActionJustActivated(InputAction::PAUSE_GAME))
+        {
+            if (worldMenuState == WorldMenuState::Main)
+            {
+                worldMenuState = WorldMenuState::PauseMenu;
+                mainMenuGUI.resetHoverRect();
+                InputManager::consumeInputAction(InputAction::PAUSE_GAME);
+            }
+        }
+        
+        if (InputManager::isActionJustActivated(InputAction::UI_BACK))
+        {
+            switch (worldMenuState)
+            {
+                case WorldMenuState::SettingLandmark: // fallthrough
+                case WorldMenuState::PauseMenu:
+                {
+                    worldMenuState = WorldMenuState::Main;
+                    player.setCanMove(true);
+                    InputManager::consumeInputAction(InputAction::UI_BACK);
+                    break;
+                }
+                case WorldMenuState::NPCShop:
+                {
+                    InventoryGUI::shopClosed(); // fallthrough
+                }
+                case WorldMenuState::Inventory:
+                {
+                    handleInventoryClose();
+                    player.setCanMove(true);
+                    InputManager::consumeInputAction(InputAction::UI_BACK);
+                    break;
+                }
+                case WorldMenuState::TravelSelect:
+                {
+                    exitRocket();
+                    InputManager::consumeInputAction(InputAction::UI_BACK);
+                    break;
+                }
+                case WorldMenuState::NPCInteract:
+                {
+                    npcInteractionGUI.close();
+                    worldMenuState = WorldMenuState::Main;
+                    player.setCanMove(true);
+                    InputManager::consumeInputAction(InputAction::UI_BACK);
+                    break;
+                }
             }
         }
     }
