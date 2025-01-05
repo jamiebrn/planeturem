@@ -33,6 +33,8 @@ public:
 
     sf::Vector2f getPosition();
 
+    inline int getItemBoxSize() {return boxSize;}
+
     void overrideItemScaleMult(float scale);
 
     void draw(sf::RenderTarget& window,

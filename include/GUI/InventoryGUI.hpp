@@ -15,6 +15,7 @@
 #include "Core/AnimatedTexture.hpp"
 #include "Core/Helper.hpp"
 #include "Core/SpriteBatch.hpp"
+#include "Core/InputManager.hpp"
 
 #include "Player/PlayerStats.hpp"
 #include "Player/InventoryData.hpp"
@@ -150,6 +151,9 @@ public:
 
     static void drawItemPopups(sf::RenderTarget& window);
 
+    // -- Controller navigation -- //
+    static void handleControllerInput();
+
     // -- Misc -- //
     static bool canQuickTransfer(sf::Vector2f mouseScreenPos, bool shiftMode, InventoryData& inventory, InventoryData* chestData);
 
@@ -254,5 +258,9 @@ private:
     static float hotbarItemStringTimer;
     static constexpr float HOTBAR_ITEM_STRING_OPAQUE_TIME = 2.5f;
     static constexpr float HOTBAR_ITEM_STRING_FADE_TIME = 0.6f;
+
+    // Controller navigation
+    static int controllerSelectedSlotIndex;
+    static std::vector<ItemSlot>* controllerSelectedItemSlots;
 
 };

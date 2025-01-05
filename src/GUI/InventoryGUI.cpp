@@ -32,6 +32,9 @@ float InventoryGUI::binScale = 1.0f;
 
 float InventoryGUI::hotbarItemStringTimer = 0.0f;
 
+int InventoryGUI::controllerSelectedSlotIndex = 0;
+std::vector<ItemSlot>* InventoryGUI::controllerSelectedItemSlots = nullptr;
+
 void InventoryGUI::initialise(InventoryData& inventory)
 {
     binAnimation.create(4, 16, 20, 96, 12, 0.04f, false);
@@ -146,7 +149,13 @@ void InventoryGUI::updateInventory(sf::Vector2f mouseScreenPos, float dt, Invent
     // Update inventory item slots
     for (int i = 0; i < std::min(inventory.getSize(), static_cast<int>(inventoryItemSlots.size())); i++)
     {
-        inventoryItemSlots[i].update(mouseScreenPos, dt);
+        bool selectedByController = false;
+        if (controllerSelectedItemSlots == &inventoryItemSlots)
+        {
+            selectedByController = i == controllerSelectedSlotIndex;
+        }
+
+        inventoryItemSlots[i].update(mouseScreenPos, dt, selectedByController);
         
         if (!inventory.getItemSlotData(i).has_value())
         {
@@ -157,7 +166,13 @@ void InventoryGUI::updateInventory(sf::Vector2f mouseScreenPos, float dt, Invent
     // Update armour item slots
     for (int i = 0; i < std::min(armourInventory.getSize(), static_cast<int>(armourItemSlots.size())); i++)
     {
-        armourItemSlots[i].update(mouseScreenPos, dt);
+        bool selectedByController = false;
+        if (controllerSelectedItemSlots == &armourItemSlots)
+        {
+            selectedByController = i == controllerSelectedSlotIndex;
+        }
+
+        armourItemSlots[i].update(mouseScreenPos, dt, selectedByController);
 
         if (!armourInventory.getItemSlotData(i).has_value())
         {
@@ -179,7 +194,13 @@ void InventoryGUI::updateInventory(sf::Vector2f mouseScreenPos, float dt, Invent
     // Update chest item slots
     for (int i = 0; i < chestItemSlots.size(); i++)
     {
-        chestItemSlots[i].update(mouseScreenPos, dt);
+        bool selectedByController = false;
+        if (controllerSelectedItemSlots == &chestItemSlots)
+        {
+            selectedByController = i == controllerSelectedSlotIndex;
+        }
+
+        chestItemSlots[i].update(mouseScreenPos, dt, selectedByController);
         
         if (chestData)
         {
@@ -467,6 +488,11 @@ void InventoryGUI::putDownItem(sf::Vector2f mouseScreenPos, InventoryData& inven
 
 int InventoryGUI::getHoveredItemSlotIndex(const std::vector<ItemSlot>& itemSlots, sf::Vector2f mouseScreenPos)
 {
+    if (controllerSelectedItemSlots == &itemSlots)
+    {
+        return controllerSelectedSlotIndex;
+    }
+
     for (int itemIndex = 0; itemIndex < itemSlots.size(); itemIndex++)
     {
         const ItemSlot& itemSlot = itemSlots[itemIndex];
@@ -799,16 +825,22 @@ void InventoryGUI::drawInventory(sf::RenderTarget& window, InventoryData& invent
 
         ItemSlot& itemSlot = inventoryItemSlots[itemIdx];
 
+        bool selectedByController = false;
+        if (controllerSelectedItemSlots == &inventoryItemSlots)
+        {
+            selectedByController = itemIdx == controllerSelectedSlotIndex;
+        }
+
         if (itemSlotData.has_value())
         {
             const ItemCount& itemCount = itemSlotData.value();
 
-            itemSlot.draw(window, itemCount.first, itemCount.second, false, false, std::nullopt, &inventory);
+            itemSlot.draw(window, itemCount.first, itemCount.second, false, selectedByController, std::nullopt, &inventory);
         }
         else
         {
             // Draw blank item box
-            itemSlot.draw(window);
+            itemSlot.draw(window, std::nullopt, std::nullopt, false, selectedByController);
         }
     }
 }
@@ -860,15 +892,21 @@ void InventoryGUI::drawArmourInventory(sf::RenderTarget& window, InventoryData& 
 
         ItemSlot& itemSlot = armourItemSlots[i];
 
+        bool selectedByController = false;
+        if (controllerSelectedItemSlots == &armourItemSlots)
+        {
+            selectedByController = i == controllerSelectedSlotIndex;
+        }
+
         if (itemSlotData.has_value())
         {
             const ItemCount& itemCount = itemSlotData.value();
 
-            itemSlot.draw(window, itemCount.first, itemCount.second);
+            itemSlot.draw(window, itemCount.first, itemCount.second, false, selectedByController);
         }
         else
         {
-            armourItemSlots[i].draw(window, std::nullopt, std::nullopt, false, false, emptyArmourSlotIcons[i]);
+            itemSlot.draw(window, std::nullopt, std::nullopt, false, selectedByController, emptyArmourSlotIcons[i]);
         }
     }
 }
@@ -971,16 +1009,22 @@ void InventoryGUI::drawChest(sf::RenderTarget& window, InventoryData* chestData)
 
         ItemSlot& itemSlot = chestItemSlots[itemIdx];
 
+        bool selectedByController = false;
+        if (controllerSelectedItemSlots == &chestItemSlots)
+        {
+            selectedByController = itemIdx == controllerSelectedSlotIndex;
+        }
+
         if (itemSlotData.has_value())
         {
             const ItemCount& itemCount = itemSlotData.value();
 
-            itemSlot.draw(window, itemCount.first, itemCount.second);
+            itemSlot.draw(window, itemCount.first, itemCount.second, false, selectedByController);
         }
         else
         {
             // Draw blank item box
-            itemSlot.draw(window);
+            itemSlot.draw(window, std::nullopt, std::nullopt, false, selectedByController);
         }
     }
 }
@@ -1023,6 +1067,15 @@ void InventoryGUI::drawHoveredItemInfoBox(sf::RenderTarget& window, float gameTi
 
     // Get currently hovered recipe
     int hoveredRecipeSlotIndex = getHoveredItemSlotIndex(recipeItemSlots, mouseScreenPos);
+
+    float intScale = ResolutionHandler::getResolutionIntegerScale();
+
+    // If using controller, override mouse position to centre of selected box
+    if (InputManager::isControllerActive() && controllerSelectedItemSlots != nullptr)
+    {
+        ItemSlot& itemSlot = controllerSelectedItemSlots->at(controllerSelectedSlotIndex);
+        mouseScreenPos = (itemSlot.getPosition() + sf::Vector2f(itemSlot.getItemBoxSize(), itemSlot.getItemBoxSize())) * intScale;
+    }
 
     // If an item is hovered over, draw item info box
     if (hoveredItemIndex >= 0)
@@ -1626,6 +1679,13 @@ void InventoryGUI::chestClosed()
 {
     // Delete chest item slots GUI elements
     chestItemSlots.clear();
+
+    // Handle controller navigation
+    if (controllerSelectedItemSlots = &chestItemSlots)
+    {
+        controllerSelectedItemSlots = nullptr;
+        controllerSelectedSlotIndex = 0;
+    }
 }
 
 void InventoryGUI::createChestItemSlots(InventoryData* chestData)
@@ -1865,6 +1925,92 @@ void InventoryGUI::drawItemPopups(sf::RenderTarget& window)
     popupTextureSprite.setPosition(sf::Vector2f(0, window.getSize().y - popupPos.y - 9 * intScale));
 
     window.draw(popupTextureSprite);
+}
+
+
+// -- Controller navigation -- //
+void InventoryGUI::handleControllerInput()
+{
+    if (!InputManager::isControllerActive())
+    {
+        return;
+    }
+
+    if (controllerSelectedItemSlots == nullptr)
+    {
+        controllerSelectedItemSlots = &inventoryItemSlots;
+    }
+
+    if (controllerSelectedSlotIndex >= controllerSelectedItemSlots->size())
+    {
+        controllerSelectedSlotIndex = 0;
+    }
+
+    if (InputManager::isActionJustActivated(InputAction::UI_RIGHT))
+    {
+        bool transferredSlots = false;
+        if (controllerSelectedItemSlots == &inventoryItemSlots)
+        {
+            if (controllerSelectedSlotIndex % ITEM_BOX_PER_ROW >= ITEM_BOX_PER_ROW - 1)
+            {
+                controllerSelectedItemSlots = &armourItemSlots;
+                controllerSelectedSlotIndex = 0;
+                transferredSlots = true;
+            }
+        }
+        else if (controllerSelectedItemSlots = &armourItemSlots)
+        {
+            if (chestItemSlots.size() > 0)
+            {
+                controllerSelectedItemSlots = &chestItemSlots;
+                controllerSelectedSlotIndex = 0;
+                transferredSlots = true;
+            }
+        }
+
+        if (!transferredSlots)
+        {
+            controllerSelectedSlotIndex = std::min(controllerSelectedSlotIndex + 1, static_cast<int>(controllerSelectedItemSlots->size()) - 1);
+        }
+    }
+    if (InputManager::isActionJustActivated(InputAction::UI_LEFT))
+    {
+        bool transferredSlots = false;
+        if (controllerSelectedItemSlots == &armourItemSlots)
+        {
+            controllerSelectedItemSlots = &inventoryItemSlots;
+            controllerSelectedSlotIndex = ITEM_BOX_PER_ROW - 1;
+            transferredSlots = true;
+        }
+        else if (controllerSelectedItemSlots == &chestItemSlots)
+        {
+            if (controllerSelectedSlotIndex % ITEM_BOX_PER_ROW == 0)
+            {
+                controllerSelectedItemSlots = &armourItemSlots;
+                controllerSelectedSlotIndex = 0;
+                transferredSlots = true;
+            }
+        }
+
+        if (!transferredSlots)
+        {
+            controllerSelectedSlotIndex = std::max(controllerSelectedSlotIndex - 1, 0);
+        }
+    }
+    if (InputManager::isActionJustActivated(InputAction::UI_UP))
+    {
+        if (controllerSelectedSlotIndex - ITEM_BOX_PER_ROW >= 0)
+        {
+            controllerSelectedSlotIndex -= ITEM_BOX_PER_ROW;
+        }
+    }
+    if (InputManager::isActionJustActivated(InputAction::UI_DOWN))
+    {
+        if (controllerSelectedSlotIndex + ITEM_BOX_PER_ROW < controllerSelectedItemSlots->size())
+        {
+            controllerSelectedSlotIndex += ITEM_BOX_PER_ROW;
+        }
+    }
 }
 
 

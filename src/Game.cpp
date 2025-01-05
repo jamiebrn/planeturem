@@ -704,6 +704,7 @@ void Game::runInGame(float dt)
                 break;
             
             case WorldMenuState::Inventory:
+                InventoryGUI::handleControllerInput();
                 HealthGUI::drawHealth(window, spriteBatch, player, gameTime, extraInfoStrings);
                 spriteBatch.endDrawing(window);
                 InventoryGUI::drawItemPopups(window);
