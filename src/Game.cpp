@@ -168,7 +168,7 @@ void Game::run()
         ImGui::SFML::Update(window, sf::seconds(dt));
 
         Sounds::update(dt);
-
+        
         InputManager::update();
 
         window.setView(view);

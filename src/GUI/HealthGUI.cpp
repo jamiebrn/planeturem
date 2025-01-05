@@ -34,7 +34,10 @@ void HealthGUI::drawHealth(sf::RenderTarget& window, SpriteBatch& spriteBatch, c
             drawData.scale.x *= scaleMult;
             drawData.scale.y *= scaleMult;
             
-            useProgressShader = true;
+            if ((maxHearts - i + 1) * HEALTH_PER_HEART > player.getHealth())
+            {
+                useProgressShader = true;
+            }
         }
 
         spriteBatch.draw(window, drawData, heartEmptyRect);

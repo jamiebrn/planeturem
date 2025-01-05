@@ -29,7 +29,7 @@ TextEnter::TextEnter(const GUIInputState& inputState, ElementID id, int x, int y
 
     if (inputState.leftMouseJustDown)
     {
-        if (hovered)
+        if (hovered || (InputManager::isControllerActive() && active))
         {
             active = true;
 

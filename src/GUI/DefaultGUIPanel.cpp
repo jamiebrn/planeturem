@@ -47,15 +47,9 @@ void DefaultGUIPanel::updateAndDrawSelectionHoverRect(sf::RenderTarget& window, 
 
     int scaledPanelPaddingX = getScaledPanelPaddingX();
 
-    // If element is active, set as selected
-    // Otherwise set hovered element as selected
-    if (guiContext.isElementActive())
+    if (InputManager::isControllerActive())
     {
-        setSelectedElement(guiContext.getInputState().activeElement);
-    }
-    else
-    {
-        if (InputManager::isControllerActive())
+        if (!guiContext.isElementActive())
         {
             if (InputManager::isActionJustActivated(InputAction::UI_UP))
             {
@@ -81,24 +75,30 @@ void DefaultGUIPanel::updateAndDrawSelectionHoverRect(sf::RenderTarget& window, 
                 }
                 guiContext.resetActiveElement();
             }
-            if (InputManager::isActionJustActivated(InputAction::UI_CONFIRM))
-            {
-                deferForceElementActivation = true;
-            }
-            if (InputManager::isActionJustActivated(InputAction::UI_BACK))
-            {
-                guiContext.resetActiveElement();
-                resetHoverRect();
-            }
         }
-        else
+        if (InputManager::isActionJustActivated(InputAction::UI_CONFIRM))
         {
-            if (const GUIElement* hoveredElement = guiContext.getHoveredElement();
-            hoveredElement != nullptr)
-            {
-                // updateSelectionHoverRectDestination(hoveredElement->getBoundingBox());
-                setSelectedElement(hoveredElement->getElementID());
-            }
+            deferForceElementActivation = true;
+        }
+        if (InputManager::isActionJustActivated(InputAction::UI_BACK))
+        {
+            guiContext.resetActiveElement();
+            resetHoverRect();
+        }
+    }
+    else
+    {
+        // If element is active, set as selected
+        // Otherwise set hovered element as selected
+        if (guiContext.isElementActive())
+        {
+            setSelectedElement(guiContext.getInputState().activeElement);
+        }
+        else if (const GUIElement* hoveredElement = guiContext.getHoveredElement();
+                hoveredElement != nullptr)
+        {
+            // updateSelectionHoverRectDestination(hoveredElement->getBoundingBox());
+            setSelectedElement(hoveredElement->getElementID());
         }
     }
 

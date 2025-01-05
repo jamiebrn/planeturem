@@ -179,6 +179,7 @@ void GUIContext::forceElementActivation(ElementID element)
 
     // Simulate press of active element
     inputState.leftMouseJustUp = true;
+    inputState.leftMouseJustDown = true;
 }
 
 const GUIElement* GUIContext::getHoveredElement() const
