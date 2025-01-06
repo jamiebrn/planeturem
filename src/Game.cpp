@@ -97,6 +97,7 @@ bool Game::initialise()
 
     InputManager::bindControllerButton(InputAction::OPEN_INVENTORY, 1);
     InputManager::bindControllerButton(InputAction::UI_CONFIRM, 0);
+    InputManager::bindControllerButton(InputAction::UI_CONFIRM_OTHER, 2);
     InputManager::bindControllerButton(InputAction::UI_BACK, 1);
     InputManager::bindControllerButton(InputAction::PAUSE_GAME, 7);
     InputManager::bindControllerAxis(InputAction::USE_TOOL, JoystickAxisWithDirection{sf::Joystick::Axis::Z, JoystickAxisDirection::NEGATIVE});
@@ -105,8 +106,8 @@ bool Game::initialise()
     InputManager::bindControllerAxis(InputAction::UI_DOWN, JoystickAxisWithDirection{sf::Joystick::Axis::PovY, JoystickAxisDirection::NEGATIVE});
     InputManager::bindControllerAxis(InputAction::UI_LEFT, JoystickAxisWithDirection{sf::Joystick::Axis::PovX, JoystickAxisDirection::NEGATIVE});
     InputManager::bindControllerAxis(InputAction::UI_RIGHT, JoystickAxisWithDirection{sf::Joystick::Axis::PovX, JoystickAxisDirection::POSITIVE});
-    InputManager::bindControllerButton(InputAction::ZOOM_IN, 5);
-    InputManager::bindControllerButton(InputAction::ZOOM_OUT, 4);
+    InputManager::bindControllerButton(InputAction::ZOOM_IN, 4);
+    InputManager::bindControllerButton(InputAction::ZOOM_OUT, 5);
     InputManager::bindControllerButton(InputAction::UI_TAB_LEFT, 4);
     InputManager::bindControllerButton(InputAction::UI_TAB_RIGHT, 5);
 
@@ -485,7 +486,7 @@ void Game::runInGame(float dt)
             std::abs(zoom) >= 0.5f)
         {
             if ((worldMenuState == WorldMenuState::Inventory || worldMenuState == WorldMenuState::NPCShop) &&
-                !InventoryGUI::isMouseOverUI(mouseScreenPos))
+                (!InventoryGUI::isMouseOverUI(mouseScreenPos) || InputManager::isControllerActive()))
             {
                 handleZoom(zoom);
             }
@@ -498,7 +499,10 @@ void Game::runInGame(float dt)
             {
                 case WorldMenuState::NPCShop: // fallthrough
                 case WorldMenuState::Inventory:
-                    InventoryGUI::handleScroll(mouseScreenPos, tabDelta, inventory);
+                    if (!InputManager::isControllerActive())
+                    {
+                        InventoryGUI::handleScroll(mouseScreenPos, tabDelta, inventory);
+                    }
                     break;
                 case WorldMenuState::Main:
                     InventoryGUI::handleScrollHotbar(tabDelta);
@@ -704,7 +708,7 @@ void Game::runInGame(float dt)
                 break;
             
             case WorldMenuState::Inventory:
-                InventoryGUI::handleControllerInput();
+                InventoryGUI::handleControllerInput(inventory, armourInventory, chestDataPool.getChestDataPtr(openedChestID));
                 HealthGUI::drawHealth(window, spriteBatch, player, gameTime, extraInfoStrings);
                 spriteBatch.endDrawing(window);
                 InventoryGUI::drawItemPopups(window);

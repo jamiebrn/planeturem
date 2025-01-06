@@ -152,7 +152,7 @@ public:
     static void drawItemPopups(sf::RenderTarget& window);
 
     // -- Controller navigation -- //
-    static void handleControllerInput();
+    static void handleControllerInput(InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData);
 
     // -- Misc -- //
     static bool canQuickTransfer(sf::Vector2f mouseScreenPos, bool shiftMode, InventoryData& inventory, InventoryData* chestData);
@@ -239,6 +239,7 @@ private:
 
     // Chest 
     static constexpr int CHEST_BOX_PER_ROW = 6;
+    static int currentChestBoxPerRow;
 
     // Shop
     static std::optional<ShopInventoryData> openShopData;

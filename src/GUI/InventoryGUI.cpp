@@ -23,6 +23,8 @@ int InventoryGUI::recipeCurrentPage = 0;
 
 int InventoryGUI::selectedHotbarIndex = 0;
 
+int InventoryGUI::currentChestBoxPerRow = CHEST_BOX_PER_ROW;
+
 std::optional<ShopInventoryData> InventoryGUI::openShopData;
 
 std::vector<ItemPopup> InventoryGUI::itemPopups;
@@ -127,6 +129,12 @@ void InventoryGUI::createRecipeItemSlots(InventoryData& inventory)
             xPos = itemBoxPadding;
         }
     }
+
+    if (controllerSelectedItemSlots == &recipeItemSlots && recipeItemSlots.size() == 0)
+    {
+        controllerSelectedItemSlots = &inventoryItemSlots;
+        controllerSelectedSlotIndex = 0;
+    }
 }
 
 void InventoryGUI::updateInventory(sf::Vector2f mouseScreenPos, float dt, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData)
@@ -185,10 +193,16 @@ void InventoryGUI::updateInventory(sf::Vector2f mouseScreenPos, float dt, Invent
     {
         ItemSlot& itemSlot = recipeItemSlots[i];
 
+        bool selectedByController = false;
+        if (controllerSelectedItemSlots == &recipeItemSlots)
+        {
+            selectedByController = i == controllerSelectedSlotIndex;
+        }
+
         // bool selected = (i == selectedRecipe);
 
         // itemSlot.update(mouseScreenPos, dt, selected);
-        itemSlot.update(mouseScreenPos, dt);
+        itemSlot.update(mouseScreenPos, dt, selectedByController);
     }
 
     // Update chest item slots
@@ -210,6 +224,13 @@ void InventoryGUI::updateInventory(sf::Vector2f mouseScreenPos, float dt, Invent
                 chestItemSlots[i].overrideItemScaleMult(1.0f);
             }
         }
+    }
+
+    // Update controller navigation
+    if (!InputManager::isControllerActive())
+    {
+        controllerSelectedItemSlots = nullptr;
+        controllerSelectedSlotIndex = 0;
     }
 }
 
@@ -488,7 +509,7 @@ void InventoryGUI::putDownItem(sf::Vector2f mouseScreenPos, InventoryData& inven
 
 int InventoryGUI::getHoveredItemSlotIndex(const std::vector<ItemSlot>& itemSlots, sf::Vector2f mouseScreenPos)
 {
-    if (controllerSelectedItemSlots == &itemSlots)
+    if (InputManager::isControllerActive() && controllerSelectedItemSlots == &itemSlots)
     {
         return controllerSelectedSlotIndex;
     }
@@ -947,15 +968,23 @@ void InventoryGUI::drawRecipes(sf::RenderTarget& window)
             // Get recipe data
             const RecipeData& recipeData = RecipeDataLoader::getRecipeData()[recipeIdx];
 
+            int recipeSlotIdx = i % (RECIPE_MAX_ROWS * ITEM_BOX_PER_ROW);
+
             // Get item slot
-            ItemSlot& itemSlot = recipeItemSlots[i % (RECIPE_MAX_ROWS * ITEM_BOX_PER_ROW)];
+            ItemSlot& itemSlot = recipeItemSlots[recipeSlotIdx];
+
+            bool selectedByController = false;
+            if (controllerSelectedItemSlots == &recipeItemSlots)
+            {
+                selectedByController = recipeSlotIdx == controllerSelectedSlotIndex;
+            }
 
             // If recipe is selected, draw requirements
             // bool selected = i == selectedRecipe;
 
             // Draw item box for product
             // itemSlot.draw(window, recipeData.product, recipeData.productAmount, false, selected);
-            itemSlot.draw(window, recipeData.product, recipeData.productAmount);
+            itemSlot.draw(window, recipeData.product, recipeData.productAmount, false, selectedByController);
             
             // Test whether mouse is over - if so, store recipe index for drawing info later
             // if (itemSlot.isHovered())
@@ -1036,6 +1065,15 @@ void InventoryGUI::drawPickedUpItem(sf::RenderTarget& window, float gameTime, sf
         return;
     }
 
+    // Override mouse screen pos if using controller
+    if (InputManager::isControllerActive() && controllerSelectedItemSlots != nullptr)
+    {
+        float intScale = ResolutionHandler::getResolutionIntegerScale();
+        ItemSlot& itemSlot = controllerSelectedItemSlots->at(controllerSelectedSlotIndex);
+        int itemBoxOffset = itemSlot.getItemBoxSize() * 0.75f;
+        mouseScreenPos = (itemSlot.getPosition() + sf::Vector2f(itemBoxOffset, itemBoxOffset)) * intScale;
+    }
+
     // Create dummy item slot at cursor
     ItemSlot pickedUpItemSlot(mouseScreenPos, itemBoxSize, false);
     pickedUpItemSlot.overrideItemScaleMult(1.0f + std::pow(std::sin(gameTime * 3.5f), 2) / 8.0f);
@@ -1074,7 +1112,8 @@ void InventoryGUI::drawHoveredItemInfoBox(sf::RenderTarget& window, float gameTi
     if (InputManager::isControllerActive() && controllerSelectedItemSlots != nullptr)
     {
         ItemSlot& itemSlot = controllerSelectedItemSlots->at(controllerSelectedSlotIndex);
-        mouseScreenPos = (itemSlot.getPosition() + sf::Vector2f(itemSlot.getItemBoxSize(), itemSlot.getItemBoxSize())) * intScale;
+        int itemBoxOffset = itemSlot.getItemBoxSize() * 0.75f;
+        mouseScreenPos = (itemSlot.getPosition() + sf::Vector2f(itemBoxOffset, itemBoxOffset)) * intScale;
     }
 
     // If an item is hovered over, draw item info box
@@ -1702,6 +1741,7 @@ void InventoryGUI::createChestItemSlots(InventoryData* chestData)
     sf::Vector2f chestItemBoxPosition = sf::Vector2f(xStart, itemBoxPadding);
 
     int currentRowIndex = 0;
+    int currentColumnIndex = 0;
     for (int itemIndex = 0; itemIndex < chestData->getSize(); itemIndex++)
     {
         ItemSlot chestItemSlot(chestItemBoxPosition, itemBoxSize);
@@ -1712,8 +1752,14 @@ void InventoryGUI::createChestItemSlots(InventoryData* chestData)
         chestItemBoxPosition.x += itemBoxSize + itemBoxSpacing;
 
         currentRowIndex++;
+        currentColumnIndex++;
         if (currentRowIndex >= CHEST_BOX_PER_ROW || chestItemBoxPosition.x + itemBoxSize + itemBoxSpacing >= resolution.x)
         {
+            // Store current width / count of chest slot row
+            currentChestBoxPerRow = currentColumnIndex;
+
+            currentColumnIndex = 0;
+
             // Increment to next row
             currentRowIndex = 0;
             chestItemBoxPosition.x = xStart;
@@ -1929,7 +1975,7 @@ void InventoryGUI::drawItemPopups(sf::RenderTarget& window)
 
 
 // -- Controller navigation -- //
-void InventoryGUI::handleControllerInput()
+void InventoryGUI::handleControllerInput(InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData)
 {
     if (!InputManager::isControllerActive())
     {
@@ -1954,16 +2000,30 @@ void InventoryGUI::handleControllerInput()
             if (controllerSelectedSlotIndex % ITEM_BOX_PER_ROW >= ITEM_BOX_PER_ROW - 1)
             {
                 controllerSelectedItemSlots = &armourItemSlots;
-                controllerSelectedSlotIndex = 0;
+                controllerSelectedSlotIndex = std::clamp(controllerSelectedSlotIndex / ITEM_BOX_PER_ROW - 1, 0, static_cast<int>(armourItemSlots.size()) - 1);
                 transferredSlots = true;
             }
         }
-        else if (controllerSelectedItemSlots = &armourItemSlots)
+        else if (controllerSelectedItemSlots == &armourItemSlots)
         {
             if (chestItemSlots.size() > 0)
             {
                 controllerSelectedItemSlots = &chestItemSlots;
                 controllerSelectedSlotIndex = 0;
+            }
+            transferredSlots = true;
+        }
+        else if (controllerSelectedItemSlots == &recipeItemSlots)
+        {
+            if (controllerSelectedSlotIndex % ITEM_BOX_PER_ROW == ITEM_BOX_PER_ROW - 1 || controllerSelectedSlotIndex == recipeItemSlots.size() - 1)
+            {
+                int recipePageCount = static_cast<int>(std::floor((availableRecipes.size() - 1) / (RECIPE_MAX_ROWS * ITEM_BOX_PER_ROW))) + 1;
+                if (recipePageCount > 1)
+                {
+                    recipeCurrentPage = ((recipeCurrentPage + 1) % recipePageCount + recipePageCount) % recipePageCount;
+                    createRecipeItemSlots(inventory);
+                    controllerSelectedSlotIndex = std::clamp(controllerSelectedSlotIndex - (ITEM_BOX_PER_ROW - 1), 0, static_cast<int>(recipeItemSlots.size()) - 1);
+                }
                 transferredSlots = true;
             }
         }
@@ -1979,15 +2039,29 @@ void InventoryGUI::handleControllerInput()
         if (controllerSelectedItemSlots == &armourItemSlots)
         {
             controllerSelectedItemSlots = &inventoryItemSlots;
-            controllerSelectedSlotIndex = ITEM_BOX_PER_ROW - 1;
+            controllerSelectedSlotIndex = std::clamp((controllerSelectedSlotIndex + 2) * ITEM_BOX_PER_ROW - 1, 0, static_cast<int>(inventoryItemSlots.size()) - 1);
             transferredSlots = true;
         }
         else if (controllerSelectedItemSlots == &chestItemSlots)
         {
-            if (controllerSelectedSlotIndex % ITEM_BOX_PER_ROW == 0)
+            if (controllerSelectedSlotIndex % currentChestBoxPerRow == 0)
             {
                 controllerSelectedItemSlots = &armourItemSlots;
                 controllerSelectedSlotIndex = 0;
+                transferredSlots = true;
+            }
+        }
+        else if (controllerSelectedItemSlots == &recipeItemSlots)
+        {
+            if (controllerSelectedSlotIndex % ITEM_BOX_PER_ROW == 0)
+            {
+                int recipePageCount = static_cast<int>(std::floor((availableRecipes.size() - 1) / (RECIPE_MAX_ROWS * ITEM_BOX_PER_ROW))) + 1;
+                if (recipePageCount > 1)
+                {
+                    recipeCurrentPage = ((recipeCurrentPage - 1) % recipePageCount + recipePageCount) % recipePageCount;
+                    createRecipeItemSlots(inventory);
+                    controllerSelectedSlotIndex = std::min(controllerSelectedSlotIndex + ITEM_BOX_PER_ROW - 1, static_cast<int>(recipeItemSlots.size()) - 1);
+                }
                 transferredSlots = true;
             }
         }
@@ -1999,17 +2073,79 @@ void InventoryGUI::handleControllerInput()
     }
     if (InputManager::isActionJustActivated(InputAction::UI_UP))
     {
-        if (controllerSelectedSlotIndex - ITEM_BOX_PER_ROW >= 0)
+        if (controllerSelectedItemSlots == &inventoryItemSlots)
         {
-            controllerSelectedSlotIndex -= ITEM_BOX_PER_ROW;
+            if (controllerSelectedSlotIndex - ITEM_BOX_PER_ROW >= 0)
+            {
+                controllerSelectedSlotIndex -= ITEM_BOX_PER_ROW;
+            }
+        }
+        else if (controllerSelectedItemSlots == &armourItemSlots)
+        {
+            controllerSelectedSlotIndex = std::max(controllerSelectedSlotIndex - 1, 0);
+        }
+        else if (controllerSelectedItemSlots == &chestItemSlots)
+        {
+            if (controllerSelectedSlotIndex - currentChestBoxPerRow >= 0)
+            {
+                controllerSelectedSlotIndex -= currentChestBoxPerRow;
+            }
+        }
+        else if (controllerSelectedItemSlots == &recipeItemSlots)
+        {
+            if (controllerSelectedSlotIndex - ITEM_BOX_PER_ROW < 0)
+            {
+                controllerSelectedItemSlots = &inventoryItemSlots;
+                controllerSelectedSlotIndex = inventoryItemSlots.size() - (ITEM_BOX_PER_ROW - controllerSelectedSlotIndex);
+            }
+            else
+            {
+                controllerSelectedSlotIndex -= ITEM_BOX_PER_ROW;
+            }
         }
     }
     if (InputManager::isActionJustActivated(InputAction::UI_DOWN))
     {
-        if (controllerSelectedSlotIndex + ITEM_BOX_PER_ROW < controllerSelectedItemSlots->size())
+        if (controllerSelectedItemSlots == &inventoryItemSlots)
         {
-            controllerSelectedSlotIndex += ITEM_BOX_PER_ROW;
+            if (controllerSelectedSlotIndex + ITEM_BOX_PER_ROW < controllerSelectedItemSlots->size())
+            {
+                controllerSelectedSlotIndex += ITEM_BOX_PER_ROW;
+            }
+            else
+            {
+                controllerSelectedItemSlots = &recipeItemSlots;
+                int recipePageCount = static_cast<int>(std::floor((availableRecipes.size() - 1) / (RECIPE_MAX_ROWS * ITEM_BOX_PER_ROW))) + 1;
+                controllerSelectedSlotIndex = std::min(controllerSelectedSlotIndex % ITEM_BOX_PER_ROW, static_cast<int>(recipeItemSlots.size()) - 1);
+            }
         }
+        else if (controllerSelectedItemSlots == &armourItemSlots)
+        {
+            controllerSelectedSlotIndex = std::min(controllerSelectedSlotIndex + 1, static_cast<int>(controllerSelectedItemSlots->size()) - 1);
+        }
+        else if (controllerSelectedItemSlots == &chestItemSlots)
+        {
+            if (controllerSelectedSlotIndex + currentChestBoxPerRow < controllerSelectedItemSlots->size())
+            {
+                controllerSelectedSlotIndex += currentChestBoxPerRow;
+            }
+        }
+        else if (controllerSelectedItemSlots == &recipeItemSlots)
+        {
+            if (controllerSelectedSlotIndex + ITEM_BOX_PER_ROW < controllerSelectedItemSlots->size())
+            {
+                controllerSelectedSlotIndex += ITEM_BOX_PER_ROW;
+            }
+        }
+    }
+
+    if (InputManager::isActionJustActivated(InputAction::UI_CONFIRM))
+    {
+        handleLeftClick(sf::Vector2f(0, 0), false, inventory, armourInventory, chestData);
+    }
+    if (InputManager::isActionJustActivated(InputAction::UI_CONFIRM_OTHER))
+    {
+        handleRightClick(sf::Vector2f(0, 0), false, inventory, armourInventory, chestData);
     }
 }
 
