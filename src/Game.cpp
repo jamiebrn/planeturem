@@ -1,11 +1,9 @@
 #include "Game.hpp"
 
-// TODO: DECEMBER CHECKLIST
-    // TODO: At least 1 new boss, including armour + weapons
-    // TODO: At least 1 new soundtrack
+// TODO: Controller support for using tools + building
+// TODO: Controller glyphs
 
 // FIX: Improve UI scaling elements (text etc)
-// FIX: Rounding error on heart (maybe fixed)
 
 // TODO: Night and menu music
 
