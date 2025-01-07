@@ -1,6 +1,5 @@
 #include "Game.hpp"
 
-// TODO: Controller support for using tools + building
 // TODO: Controller glyphs
 
 // FIX: Improve UI scaling elements (text etc)
@@ -80,6 +79,7 @@ bool Game::initialise()
     InputManager::bindKey(InputAction::WALK_RIGHT, sf::Keyboard::D);
     InputManager::bindKey(InputAction::OPEN_INVENTORY, sf::Keyboard::E);
     InputManager::bindKey(InputAction::UI_BACK, sf::Keyboard::Escape);
+    InputManager::bindKey(InputAction::UI_SHIFT, sf::Keyboard::LShift);
     InputManager::bindKey(InputAction::PAUSE_GAME, sf::Keyboard::Escape);
     InputManager::bindMouseButton(InputAction::USE_TOOL, sf::Mouse::Button::Left);
     InputManager::bindMouseButton(InputAction::INTERACT, sf::Mouse::Button::Right);
@@ -101,6 +101,7 @@ bool Game::initialise()
     InputManager::bindControllerButton(InputAction::UI_CONFIRM, 0);
     InputManager::bindControllerButton(InputAction::UI_CONFIRM_OTHER, 2);
     InputManager::bindControllerButton(InputAction::UI_BACK, 1);
+    InputManager::bindControllerButton(InputAction::UI_SHIFT, 8);
     InputManager::bindControllerButton(InputAction::PAUSE_GAME, 7);
     InputManager::bindControllerAxis(InputAction::USE_TOOL, JoystickAxisWithDirection{sf::Joystick::Axis::Z, JoystickAxisDirection::NEGATIVE});
     InputManager::bindControllerAxis(InputAction::INTERACT, JoystickAxisWithDirection{sf::Joystick::Axis::Z, JoystickAxisDirection::POSITIVE});
@@ -197,10 +198,7 @@ void Game::run()
             drawStateTransition();
         }
 
-        if ((InputManager::isControllerActive() && InputManager::isControllerMovingMouse()) || !InputManager::isControllerActive())
-        {
-            drawMouseCursor();
-        }
+        drawMouseCursor();
 
         drawDebugMenu(dt);
 
@@ -397,7 +395,7 @@ void Game::runInGame(float dt)
 {
     // sf::Vector2f mouseScreenPos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
 
-    bool shiftMode = sf::Keyboard::isKeyPressed(sf::Keyboard::LShift);
+    bool shiftMode = InputManager::isActionActive(InputAction::UI_SHIFT);
 
     // Handle events
     for (auto event = sf::Event{}; window.pollEvent(event);)
@@ -421,8 +419,12 @@ void Game::runInGame(float dt)
             {
                 case WorldMenuState::Main:
                 {
-                    bool hotbarInteracted = InventoryGUI::handleLeftClickHotbar(mouseScreenPos);
-                    if (!hotbarInteracted)
+                    bool hotbarInteracted = false;
+                    if (!InputManager::isControllerActive())
+                    {
+                        hotbarInteracted = InventoryGUI::handleLeftClickHotbar(mouseScreenPos);
+                    }
+                    if (!hotbarInteracted || InputManager::isControllerActive())
                     {
                         attemptUseTool();
                         attemptBuildObject();
@@ -441,7 +443,7 @@ void Game::runInGame(float dt)
                 {
                     ItemType itemHeldBefore = InventoryGUI::getHeldItemType(inventory);
                     
-                    if (InventoryGUI::isMouseOverUI(mouseScreenPos))
+                    if (InventoryGUI::isMouseOverUI(mouseScreenPos) && !InputManager::isControllerActive())
                     {
                         InventoryGUI::handleLeftClick(mouseScreenPos, shiftMode, inventory, armourInventory, chestDataPool.getChestDataPtr(openedChestID));
                     }
@@ -472,7 +474,7 @@ void Game::runInGame(float dt)
                     break;
                 case WorldMenuState::NPCShop: // fallthrough
                 case WorldMenuState::Inventory:
-                    if (InventoryGUI::isMouseOverUI(mouseScreenPos))
+                    if (InventoryGUI::isMouseOverUI(mouseScreenPos) && !InputManager::isControllerActive())
                     {
                         InventoryGUI::handleRightClick(mouseScreenPos, shiftMode, inventory, armourInventory, chestDataPool.getChestDataPtr(openedChestID));
                         changePlayerTool();
@@ -526,6 +528,9 @@ void Game::runInGame(float dt)
                     break;
                 }
                 case WorldMenuState::NPCShop: // fallthrough
+                {
+                    InventoryGUI::shopClosed();
+                }
                 case WorldMenuState::Inventory:
                 {
                     handleInventoryClose();
@@ -710,13 +715,31 @@ void Game::runInGame(float dt)
                 HealthGUI::drawHealth(window, spriteBatch, player, gameTime, extraInfoStrings);
                 break;
             
+            case WorldMenuState::NPCShop: // fallthrough
             case WorldMenuState::Inventory:
-                InventoryGUI::handleControllerInput(inventory, armourInventory, chestDataPool.getChestDataPtr(openedChestID));
+            {
+                ItemType itemHeldBefore = InventoryGUI::getHeldItemType(inventory);
+                if (InventoryGUI::handleControllerInput(inventory, armourInventory, chestDataPool.getChestDataPtr(openedChestID)))
+                {
+                    if (itemHeldBefore != InventoryGUI::getHeldItemType(inventory))
+                    {
+                        changePlayerTool();
+                    }
+                }
                 HealthGUI::drawHealth(window, spriteBatch, player, gameTime, extraInfoStrings);
                 spriteBatch.endDrawing(window);
                 InventoryGUI::drawItemPopups(window);
-                InventoryGUI::draw(window, gameTime, mouseScreenPos, inventory, armourInventory, chestDataPool.getChestDataPtr(openedChestID));
+
+                InventoryData* chestDataPtr = nullptr;
+
+                if (worldMenuState == WorldMenuState::Inventory)
+                {
+                    chestDataPtr = chestDataPool.getChestDataPtr(openedChestID);
+                }
+
+                InventoryGUI::draw(window, gameTime, mouseScreenPos, inventory, armourInventory, chestDataPtr);
                 break;
+            }
             
             
             case WorldMenuState::TravelSelect:
@@ -787,11 +810,6 @@ void Game::runInGame(float dt)
                         }
                     }
                 }
-                break;
-            }
-            case WorldMenuState::NPCShop:
-            {
-                InventoryGUI::draw(window, gameTime, mouseScreenPos, inventory, armourInventory, nullptr);
                 break;
             }
         }
@@ -2567,23 +2585,48 @@ void Game::updateMusic(float dt)
 
 void Game::drawMouseCursor()
 {
-    // sf::Vector2f mouseScreenPos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
+    sf::IntRect textureRect(80, 32, 8, 8);
+    sf::Vector2f textureCentreRatio;
+
+    bool shiftMode = InputManager::isActionActive(InputAction::UI_SHIFT);
+
+    bool canQuickTransfer = InventoryGUI::canQuickTransfer(mouseScreenPos, shiftMode, inventory, chestDataPool.getChestDataPtr(openedChestID));
+
+    if (InputManager::isControllerActive())
+    {
+        if (gameState != GameState::MainMenu && worldMenuState == WorldMenuState::Main ||
+            worldMenuState == WorldMenuState::Inventory || worldMenuState == WorldMenuState::NPCShop)
+        {
+            if (canQuickTransfer)
+            {
+                textureRect = sf::IntRect(96, 48, 15, 15);
+            }
+            else
+            {
+                textureRect = sf::IntRect(80, 48, 15, 15);
+            }
+            textureCentreRatio = sf::Vector2f(1.0f / 3.0f, 1.0f / 3.0f);
+        }
+        else
+        {
+            return;
+        }
+    }
+    else
+    {
+        mouseScreenPos.x = std::max(std::min(mouseScreenPos.x, static_cast<float>(window.getSize().x)), 0.0f);
+        mouseScreenPos.y = std::max(std::min(mouseScreenPos.y, static_cast<float>(window.getSize().y)), 0.0f);
+
+        // Switch mouse cursor mode
+        if (canQuickTransfer)
+        {
+            textureRect = sf::IntRect(96, 32, 12, 12);
+        }
+    }
 
     float intScale = ResolutionHandler::getResolutionIntegerScale();
 
-    mouseScreenPos.x = std::max(std::min(mouseScreenPos.x, static_cast<float>(window.getSize().x)), 0.0f);
-    mouseScreenPos.y = std::max(std::min(mouseScreenPos.y, static_cast<float>(window.getSize().y)), 0.0f);
-
-    // Switch mouse cursor mode
-    sf::IntRect textureRect(80, 32, 8, 8);
-    bool shiftMode = sf::Keyboard::isKeyPressed(sf::Keyboard::LShift);
-
-    if (InventoryGUI::canQuickTransfer(mouseScreenPos, shiftMode, inventory, chestDataPool.getChestDataPtr(openedChestID)))
-    {
-        textureRect = sf::IntRect(96, 32, 12, 12);
-    }
-
-    TextureManager::drawSubTexture(window, {TextureType::UI, mouseScreenPos, 0, {3 * intScale, 3 * intScale}}, textureRect);
+    TextureManager::drawSubTexture(window, {TextureType::UI, mouseScreenPos, 0, {3 * intScale, 3 * intScale}, textureCentreRatio}, textureRect);
 }
 
 void Game::drawDebugMenu(float dt)

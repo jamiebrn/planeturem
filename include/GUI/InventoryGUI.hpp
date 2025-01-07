@@ -152,7 +152,9 @@ public:
     static void drawItemPopups(sf::RenderTarget& window);
 
     // -- Controller navigation -- //
-    static void handleControllerInput(InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData);
+
+    // Returns true if any inventory is modified
+    static bool handleControllerInput(InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData);
 
     // -- Misc -- //
     static bool canQuickTransfer(sf::Vector2f mouseScreenPos, bool shiftMode, InventoryData& inventory, InventoryData* chestData);

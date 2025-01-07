@@ -1,7 +1,7 @@
 #include "Core/InputManager.hpp"
 
 float InputManager::controllerAxisDeadzone = 0.0f;
-float InputManager::controllerMouseSens = 400.0f;
+float InputManager::controllerMouseSens = 600.0f;
 bool InputManager::controllerMovedMouseThisFrame = false;
 sf::Vector2f InputManager::controllerMousePos;
 bool InputManager::controllerIsActive = false;
@@ -261,6 +261,8 @@ sf::Vector2f InputManager::getMousePosition(const sf::Window& window, float dt)
             controllerMouseMovement.y = getActionAxisActivation(InputAction::DIRECT_UP, InputAction::DIRECT_DOWN);
             controllerMouseMovement *= controllerMouseSens * dt;
             controllerMousePos += controllerMouseMovement;
+            controllerMousePos.x = std::clamp(controllerMousePos.x, 0.0f, static_cast<float>(window.getSize().x));
+            controllerMousePos.y = std::clamp(controllerMousePos.y, 0.0f, static_cast<float>(window.getSize().y));
         }
         return controllerMousePos;
     }

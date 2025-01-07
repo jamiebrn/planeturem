@@ -139,6 +139,18 @@ void InventoryGUI::createRecipeItemSlots(InventoryData& inventory)
 
 void InventoryGUI::updateInventory(sf::Vector2f mouseScreenPos, float dt, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData)
 {
+    // Update controller navigation
+    if (!InputManager::isControllerActive())
+    {
+        controllerSelectedItemSlots = nullptr;
+        controllerSelectedSlotIndex = 0;
+    }
+    else
+    {
+        // If controller is being used, do not update item slots based on mouse position
+        mouseScreenPos = sf::Vector2f(0, 0);
+    }
+
     // Update bin animation
     int binAnimationUpdateDirection = 0;
     if (isBinSelected(mouseScreenPos) && isItemPickedUp)
@@ -224,13 +236,6 @@ void InventoryGUI::updateInventory(sf::Vector2f mouseScreenPos, float dt, Invent
                 chestItemSlots[i].overrideItemScaleMult(1.0f);
             }
         }
-    }
-
-    // Update controller navigation
-    if (!InputManager::isControllerActive())
-    {
-        controllerSelectedItemSlots = nullptr;
-        controllerSelectedSlotIndex = 0;
     }
 }
 
@@ -1559,6 +1564,12 @@ bool InventoryGUI::canPutDownItemInArmourInventory(int hoveredIndex)
 
 void InventoryGUI::updateHotbar(float dt, sf::Vector2f mouseScreenPos)
 {
+    if (InputManager::isControllerActive())
+    {
+        // If controller is being used, do not update item slots based on mouse position
+        mouseScreenPos = sf::Vector2f(0, 0);
+    }
+
     for (int i = 0; i < hotbarItemSlots.size(); i++)
     {
         ItemSlot& hotbarItemSlot = hotbarItemSlots[i];
@@ -1975,11 +1986,11 @@ void InventoryGUI::drawItemPopups(sf::RenderTarget& window)
 
 
 // -- Controller navigation -- //
-void InventoryGUI::handleControllerInput(InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData)
+bool InventoryGUI::handleControllerInput(InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData)
 {
     if (!InputManager::isControllerActive())
     {
-        return;
+        return false;
     }
 
     if (controllerSelectedItemSlots == nullptr)
@@ -2141,12 +2152,16 @@ void InventoryGUI::handleControllerInput(InventoryData& inventory, InventoryData
 
     if (InputManager::isActionJustActivated(InputAction::UI_CONFIRM))
     {
-        handleLeftClick(sf::Vector2f(0, 0), false, inventory, armourInventory, chestData);
+        handleLeftClick(sf::Vector2f(0, 0), InputManager::isActionActive(InputAction::UI_SHIFT), inventory, armourInventory, chestData);
+        return true;
     }
     if (InputManager::isActionJustActivated(InputAction::UI_CONFIRM_OTHER))
     {
-        handleRightClick(sf::Vector2f(0, 0), false, inventory, armourInventory, chestData);
+        handleRightClick(sf::Vector2f(0, 0), InputManager::isActionActive(InputAction::UI_SHIFT), inventory, armourInventory, chestData);
+        return true;
     }
+
+    return false;
 }
 
 
