@@ -21,6 +21,21 @@ bool Game::initialise()
     // Create window
     window.create(sf::VideoMode(videoMode.width, videoMode.height), GAME_TITLE, sf::Style::None);
 
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) != 0)
+    {
+        std::cerr << "Failed to initialize SDL: " << SDL_GetError() << std::endl;
+        return false;
+    }
+
+    sdlWindow = SDL_CreateWindowFrom(reinterpret_cast<void*>(window.getSystemHandle()));
+    if (!sdlWindow)
+    {
+        std::cerr << "Failed to create SDL window from handle: " << SDL_GetError() << std::endl;
+        window.close();
+        SDL_Quit();
+        return false;
+    }
+
     // Enable VSync and frame limit
     window.setFramerateLimit(165);
     window.setVerticalSyncEnabled(true);
@@ -208,6 +223,9 @@ void Game::run()
 
         window.display();
     }
+
+    SDL_DestroyWindow(sdlWindow);
+    SDL_Quit();
 }
 
 
