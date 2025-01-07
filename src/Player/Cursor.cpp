@@ -12,8 +12,7 @@ sf::Vector2f Cursor::selectPos = {0, 0};
 sf::Vector2i Cursor::selectPosTile = {0, 0};
 sf::Vector2i Cursor::selectSize = {1, 1};
 
-void Cursor::updateTileCursor(sf::RenderWindow& window,
-                              const Camera& camera,
+void Cursor::updateTileCursor(sf::Vector2f mouseWorldPos,
                               float dt,
                               ChunkManager& chunkManager,
                               const CollisionRect& playerCollisionRect,
@@ -21,7 +20,7 @@ void Cursor::updateTileCursor(sf::RenderWindow& window,
                               ToolType toolType)
 {
     // Get mouse position in screen space and world space
-    sf::Vector2f mouseWorldPos = getMouseWorldPos(window, camera);
+    // sf::Vector2f mouseWorldPos = getMouseWorldPos(window, camera);
 
     // Get selected tile position from mouse position
     selectPosTile.x = std::floor(mouseWorldPos.x / TILE_SIZE_PIXELS_UNSCALED);
@@ -47,7 +46,7 @@ void Cursor::updateTileCursor(sf::RenderWindow& window,
         }
         else if (itemData.placesLand)
         {
-            updateTileCursorOnPlanetPlaceLand(window);
+            updateTileCursorOnPlanetPlaceLand();
         }
         else if (toolType >= 0)
         {
@@ -57,10 +56,10 @@ void Cursor::updateTileCursor(sf::RenderWindow& window,
             switch (toolData.toolBehaviourType)
             {
                 case ToolBehaviourType::Pickaxe:
-                    updateTileCursorOnPlanetToolPickaxe(window, camera, dt, chunkManager, playerCollisionRect);
+                    updateTileCursorOnPlanetToolPickaxe(mouseWorldPos, dt, chunkManager, playerCollisionRect);
                     break;
                 case ToolBehaviourType::FishingRod:
-                    updateTileCursorOnPlanetToolFishingRod(window, dt, chunkManager);
+                    updateTileCursorOnPlanetToolFishingRod(dt, chunkManager);
                     break;
                 default:
                     updateTileCursorOnPlanetNoItem(dt, chunkManager);
@@ -102,7 +101,7 @@ void Cursor::updateTileCursorOnPlanetPlaceObject(ObjectType objectType)
     drawState = CursorDrawState::Tile;
 }
 
-void Cursor::updateTileCursorOnPlanetPlaceLand(sf::RenderWindow& window)
+void Cursor::updateTileCursorOnPlanetPlaceLand()
 {
     // Set cursor animation to freeze at index 0
     for (int cursorCornerIdx = 0; cursorCornerIdx < cursorAnimatedTextures.size(); cursorCornerIdx++)
@@ -113,10 +112,10 @@ void Cursor::updateTileCursorOnPlanetPlaceLand(sf::RenderWindow& window)
     drawState = CursorDrawState::Tile;
 }
 
-void Cursor::updateTileCursorOnPlanetToolPickaxe(sf::RenderWindow& window, const Camera& camera, float dt, ChunkManager& chunkManager, const CollisionRect& playerCollisionRect)
+void Cursor::updateTileCursorOnPlanetToolPickaxe(sf::Vector2f mouseWorldPos, float dt, ChunkManager& chunkManager, const CollisionRect& playerCollisionRect)
 {
     int worldSize = chunkManager.getWorldSize();
-    sf::Vector2f mouseWorldPos = getMouseWorldPos(window, camera);
+    // sf::Vector2f mouseWorldPos = getMouseWorldPos(window, camera);
 
     // Get entity selected at cursor position (if any)
     // Entity* selectedEntity = chunkManager.getSelectedEntity(Cursor::getSelectedChunk(worldSize), mouseWorldPos);
@@ -185,7 +184,7 @@ void Cursor::updateTileCursorOnPlanetToolPickaxe(sf::RenderWindow& window, const
     updateTileCursorOnPlanetNoItem(dt, chunkManager);
 }
 
-void Cursor::updateTileCursorOnPlanetToolFishingRod(sf::RenderWindow& window, float dt, ChunkManager& chunkManager)
+void Cursor::updateTileCursorOnPlanetToolFishingRod(float dt, ChunkManager& chunkManager)
 {
     ChunkPosition selectedChunk = getSelectedChunk(chunkManager.getWorldSize());
     sf::Vector2i selectedTile = getSelectedChunkTile();
@@ -252,15 +251,14 @@ void Cursor::updateTileCursorNoItem(float dt, BuildableObject* selectedObject)
     drawState = CursorDrawState::Hidden;
 }
 
-void Cursor::updateTileCursorInRoom(sf::RenderWindow& window,
-                                    const Camera& camera,
+void Cursor::updateTileCursorInRoom(sf::Vector2f mouseWorldPos,
                                     float dt,
                                     const Room& room,
                                     ItemType heldItemType,
                                     ToolType toolType)
 {
     // Get mouse position in screen space and world space
-    sf::Vector2f mouseWorldPos = getMouseWorldPos(window, camera);
+    // sf::Vector2f mouseWorldPos = getMouseWorldPos(window, camera);
 
     // Get selected tile position from mouse position
     selectPosTile.x = std::floor(mouseWorldPos.x / TILE_SIZE_PIXELS_UNSCALED);
@@ -393,11 +391,11 @@ sf::Vector2i Cursor::getSelectedTile()
     return selectPosTile;
 }
 
-sf::Vector2f Cursor::getMouseWorldPos(sf::RenderWindow& window, const Camera& camera)
-{
-    sf::Vector2f mousePos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
-    return camera.screenToWorldTransform(mousePos);
-}
+// sf::Vector2f Cursor::getMouseWorldPos(sf::RenderWindow& window, const Camera& camera)
+// {
+//     sf::Vector2f mousePos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
+//     return camera.screenToWorldTransform(mousePos);
+// }
 
 void Cursor::setCursorHidden(bool hidden)
 {

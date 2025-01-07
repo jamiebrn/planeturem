@@ -278,6 +278,7 @@ private:
     NPCInteractionGUI npcInteractionGUI;
     TravelSelectGUI travelSelectGUI;
     LandmarkSetGUI landmarkSetGUI;
+    sf::Vector2f mouseScreenPos;
 
     // Game general data
     Player player;

@@ -46,16 +46,14 @@ class Cursor
     Cursor() = delete;
 
 public:
-    static void updateTileCursor(sf::RenderWindow& window,
-                                 const Camera& camera,
+    static void updateTileCursor(sf::Vector2f mouseWorldPos,
                                  float dt,
                                  ChunkManager& chunkManager,
                                  const CollisionRect& playerCollisionRect,
                                  ItemType heldItemType,
                                  ToolType toolType);
 
-    static void updateTileCursorInRoom(sf::RenderWindow& window,
-                                       const Camera& camera,
+    static void updateTileCursorInRoom(sf::Vector2f mouseWorldPos,
                                        float dt,
                                        const Room& room,
                                        ItemType heldItemType,
@@ -66,7 +64,7 @@ public:
     static sf::Vector2i getSelectedWorldTile(int worldSize);
     static sf::Vector2i getSelectedTile();
 
-    static sf::Vector2f getMouseWorldPos(sf::RenderWindow& window, const Camera& camera);
+    // static sf::Vector2f getMouseWorldPos(sf::RenderWindow& window, const Camera& camera);
 
     static inline const sf::Vector2f& getSelectPos() {return selectPos;}
     static inline const sf::Vector2f& getLerpedSelectPos() {return cursorCornerPositions[0].worldPosition;}
@@ -81,10 +79,10 @@ public:
 
 private:
     static void updateTileCursorOnPlanetPlaceObject(ObjectType objectType);
-    static void updateTileCursorOnPlanetPlaceLand(sf::RenderWindow& window);
+    static void updateTileCursorOnPlanetPlaceLand();
     
-    static void updateTileCursorOnPlanetToolPickaxe(sf::RenderWindow& window, const Camera& camera, float dt, ChunkManager& chunkManager, const CollisionRect& playerCollisionRect);
-    static void updateTileCursorOnPlanetToolFishingRod(sf::RenderWindow& window, float dt, ChunkManager& chunkManager);
+    static void updateTileCursorOnPlanetToolPickaxe(sf::Vector2f mouseWorldPos, float dt, ChunkManager& chunkManager, const CollisionRect& playerCollisionRect);
+    static void updateTileCursorOnPlanetToolFishingRod(float dt, ChunkManager& chunkManager);
 
     static void updateTileCursorOnPlanetNoItem(float dt, ChunkManager& chunkManager);
     static void updateTileCursorNoItem(float dt, BuildableObject* selectedObject);

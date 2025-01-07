@@ -1,6 +1,9 @@
 #include "Core/InputManager.hpp"
 
 float InputManager::controllerAxisDeadzone = 0.0f;
+float InputManager::controllerMouseSens = 400.0f;
+bool InputManager::controllerMovedMouseThisFrame = false;
+sf::Vector2f InputManager::controllerMousePos;
 bool InputManager::controllerIsActive = false;
 
 std::unordered_map<InputAction, sf::Keyboard::Key> InputManager::keyBindings;
@@ -89,6 +92,8 @@ void InputManager::update()
         inputActivation[iter->first] = std::max(inputActivation[iter->first], activation);
     }
 
+    controllerMovedMouseThisFrame = false;
+
     // Check input from all controllers
     for (int controllerId = 0; sf::Joystick::getIdentification(controllerId).productId != 0; controllerId++)
     {
@@ -140,7 +145,7 @@ void InputManager::processEvent(const sf::Event& event)
 {
     if (event.type == sf::Event::KeyPressed || event.type == sf::Event::KeyReleased ||
         event.type == sf::Event::MouseButtonPressed || event.type == sf::Event::MouseButtonReleased ||
-        event.type == sf::Event::MouseMoved || event.type == sf::Event::MouseWheelScrolled)
+        event.type == sf::Event::MouseWheelScrolled)
     {
         controllerIsActive = false;
     }
@@ -202,6 +207,11 @@ bool InputManager::isControllerActive()
     return controllerIsActive;
 }
 
+bool InputManager::isControllerMovingMouse()
+{
+    return controllerMovedMouseThisFrame;
+}
+
 void InputManager::consumeInputAction(InputAction action)
 {
     consumeInput<sf::Keyboard::Key>(action, keyBindings);
@@ -235,4 +245,25 @@ void InputManager::consumeInput(InputAction action, std::unordered_map<InputActi
     {
         inputActivationLastFrame[action] = inputActivation[action];
     }
+}
+
+sf::Vector2f InputManager::getMousePosition(const sf::Window& window, float dt)
+{
+    sf::Vector2f mouseScreenPos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
+
+    if (InputManager::isControllerActive())
+    {
+        if (!controllerMovedMouseThisFrame)
+        {
+            controllerMovedMouseThisFrame = true;
+            sf::Vector2f controllerMouseMovement;
+            controllerMouseMovement.x = getActionAxisActivation(InputAction::DIRECT_LEFT, InputAction::DIRECT_RIGHT);
+            controllerMouseMovement.y = getActionAxisActivation(InputAction::DIRECT_UP, InputAction::DIRECT_DOWN);
+            controllerMouseMovement *= controllerMouseSens * dt;
+            controllerMousePos += controllerMouseMovement;
+        }
+        return controllerMousePos;
+    }
+
+    return mouseScreenPos;
 }

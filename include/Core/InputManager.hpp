@@ -4,6 +4,7 @@
 #include <SFML/Window/Mouse.hpp>
 #include <SFML/Window/Joystick.hpp>
 #include <SFML/Window/Event.hpp>
+#include <SFML/Window/Window.hpp>
 
 #include <vector>
 #include <unordered_map>
@@ -92,10 +93,13 @@ public:
     static float getActionAxisImmediateActivation(InputAction negativeAction, InputAction positionAction);
 
     static bool isControllerActive();
+    static bool isControllerMovingMouse();
 
     // Consumes input for bindings of given action
     // Disables other actions with same key bindings
     static void consumeInputAction(InputAction action);
+
+    static sf::Vector2f getMousePosition(const sf::Window& window, float dt);
 
 private:
     template <typename InputType>
@@ -106,6 +110,9 @@ private:
 
 private:
     static float controllerAxisDeadzone;
+    static float controllerMouseSens;
+    static bool controllerMovedMouseThisFrame;
+    static sf::Vector2f controllerMousePos;
     static bool controllerIsActive;
 
     static std::unordered_map<InputAction, sf::Keyboard::Key> keyBindings;

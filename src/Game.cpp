@@ -92,6 +92,10 @@ bool Game::initialise()
     InputManager::bindControllerAxis(InputAction::WALK_DOWN, JoystickAxisWithDirection{sf::Joystick::Axis::Y, JoystickAxisDirection::POSITIVE});
     InputManager::bindControllerAxis(InputAction::WALK_LEFT, JoystickAxisWithDirection{sf::Joystick::Axis::X, JoystickAxisDirection::NEGATIVE});
     InputManager::bindControllerAxis(InputAction::WALK_RIGHT, JoystickAxisWithDirection{sf::Joystick::Axis::X, JoystickAxisDirection::POSITIVE});
+    InputManager::bindControllerAxis(InputAction::DIRECT_UP, JoystickAxisWithDirection{sf::Joystick::Axis::V, JoystickAxisDirection::NEGATIVE});
+    InputManager::bindControllerAxis(InputAction::DIRECT_DOWN, JoystickAxisWithDirection{sf::Joystick::Axis::V, JoystickAxisDirection::POSITIVE});
+    InputManager::bindControllerAxis(InputAction::DIRECT_LEFT, JoystickAxisWithDirection{sf::Joystick::Axis::U, JoystickAxisDirection::NEGATIVE});
+    InputManager::bindControllerAxis(InputAction::DIRECT_RIGHT, JoystickAxisWithDirection{sf::Joystick::Axis::U, JoystickAxisDirection::POSITIVE});
 
     InputManager::bindControllerButton(InputAction::OPEN_INVENTORY, 1);
     InputManager::bindControllerButton(InputAction::UI_CONFIRM, 0);
@@ -169,6 +173,7 @@ void Game::run()
         Sounds::update(dt);
         
         InputManager::update();
+        mouseScreenPos = InputManager::getMousePosition(window, dt);
 
         window.setView(view);
 
@@ -192,7 +197,7 @@ void Game::run()
             drawStateTransition();
         }
 
-        if (!InputManager::isControllerActive())
+        if ((InputManager::isControllerActive() && InputManager::isControllerMovingMouse()) || !InputManager::isControllerActive())
         {
             drawMouseCursor();
         }
@@ -329,7 +334,7 @@ void Game::runMainMenu(float dt)
         mainMenuGUI.handleEvent(event);
     }
 
-    sf::Vector2f mouseScreenPos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
+    // sf::Vector2f mouseScreenPos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
 
     mainMenuGUI.update(dt, mouseScreenPos, *this, projectileManager, inventory);
 
@@ -390,7 +395,7 @@ void Game::runMainMenu(float dt)
 
 void Game::runInGame(float dt)
 {
-    sf::Vector2f mouseScreenPos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
+    // sf::Vector2f mouseScreenPos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
 
     bool shiftMode = sf::Keyboard::isKeyPressed(sf::Keyboard::LShift);
 
@@ -630,7 +635,7 @@ void Game::runInGame(float dt)
             }
         }
 
-        Cursor::setCursorHidden(!player.canReachPosition(Cursor::getMouseWorldPos(window, camera)));
+        Cursor::setCursorHidden(!player.canReachPosition(camera.screenToWorldTransform(mouseScreenPos)));
         Cursor::setCursorHidden((worldMenuState != WorldMenuState::Main && worldMenuState != WorldMenuState::Inventory) ||
                                 !player.isAlive());
 
@@ -830,12 +835,13 @@ void Game::runInGame(float dt)
 
 void Game::updateOnPlanet(float dt)
 {
-    sf::Vector2f mouseScreenPos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
+    // sf::Vector2f mouseScreenPos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
 
     int worldSize = chunkManager.getWorldSize();
 
     // Update cursor
-    Cursor::updateTileCursor(window, camera, dt, chunkManager, player.getCollisionRect(), InventoryGUI::getHeldItemType(inventory), player.getTool());
+    Cursor::updateTileCursor(camera.screenToWorldTransform(mouseScreenPos), dt, chunkManager, player.getCollisionRect(), InventoryGUI::getHeldItemType(inventory),
+        player.getTool());
 
     // Update player
     bool wrappedAroundWorld = false;
@@ -843,7 +849,7 @@ void Game::updateOnPlanet(float dt)
 
     if (!isStateTransitioning())
     {
-        player.update(dt, Cursor::getMouseWorldPos(window, camera), chunkManager, enemyProjectileManager, wrappedAroundWorld, wrapPositionDelta);
+        player.update(dt, camera.screenToWorldTransform(mouseScreenPos), chunkManager, enemyProjectileManager, wrappedAroundWorld, wrapPositionDelta);
     }
 
     // Handle world wrapping for camera and cursor, if player wrapped around
@@ -908,7 +914,7 @@ void Game::drawOnPlanet(float dt)
     drawLighting(dt, worldObjects);
 
     // UI
-    sf::Vector2f mouseScreenPos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
+    // sf::Vector2f mouseScreenPos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
 
     Cursor::drawCursor(window, camera);
 
@@ -1236,15 +1242,15 @@ void Game::landmarkDestroyed(const LandmarkObject& landmark)
 
 void Game::updateInRoom(float dt, Room& room, bool inStructure)
 {
-    sf::Vector2f mouseScreenPos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
+    // sf::Vector2f mouseScreenPos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
 
     // Room& structureRoom = structureRoomPool.getRoom(structureEnteredID);
 
-    Cursor::updateTileCursorInRoom(window, camera, dt, room, InventoryGUI::getHeldItemType(inventory), player.getTool());
+    Cursor::updateTileCursorInRoom(camera.screenToWorldTransform(mouseScreenPos), dt, room, InventoryGUI::getHeldItemType(inventory), player.getTool());
 
     if (!isStateTransitioning())
     {
-        player.updateInRoom(dt, Cursor::getMouseWorldPos(window, camera), room);
+        player.updateInRoom(dt, camera.screenToWorldTransform(mouseScreenPos), room);
     }
 
     // Update room objects
@@ -1342,7 +1348,7 @@ void Game::attemptUseTool()
 
 void Game::attemptUseToolPickaxe()
 {
-    sf::Vector2f mouseWorldPos = Cursor::getMouseWorldPos(window, camera);
+    sf::Vector2f mouseWorldPos = camera.screenToWorldTransform(mouseScreenPos);
     
     // Swing pickaxe
     player.useTool(projectileManager, inventory, mouseWorldPos);
@@ -1395,7 +1401,7 @@ void Game::attemptUseToolFishingRod()
         return;
     }
 
-    sf::Vector2f mouseWorldPos = Cursor::getMouseWorldPos(window, camera);
+    sf::Vector2f mouseWorldPos = camera.screenToWorldTransform(mouseScreenPos);
 
     if (!player.canReachPosition(mouseWorldPos))
     {
@@ -1429,7 +1435,7 @@ void Game::attemptUseToolWeapon()
     if (gameState != GameState::OnPlanet)
         return;
 
-    sf::Vector2f mouseWorldPos = Cursor::getMouseWorldPos(window, camera);
+    sf::Vector2f mouseWorldPos = camera.screenToWorldTransform(mouseScreenPos);
 
     player.useTool(projectileManager, inventory, mouseWorldPos);
 }
@@ -1466,7 +1472,7 @@ void Game::attemptObjectInteract()
     }
 
     // Get mouse position in screen space and world space
-    sf::Vector2f mouseWorldPos = Cursor::getMouseWorldPos(window, camera);
+    sf::Vector2f mouseWorldPos = camera.screenToWorldTransform(mouseScreenPos);
 
     if (!player.canReachPosition(mouseWorldPos))
         return;
@@ -1504,7 +1510,7 @@ void Game::attemptBuildObject()
                                                 objectType,
                                                 player.getCollisionRect());
 
-    bool inRange = player.canReachPosition(Cursor::getMouseWorldPos(window, camera));
+    bool inRange = player.canReachPosition(camera.screenToWorldTransform(mouseScreenPos));
 
     if (canPlace && inRange)
     {
@@ -1571,7 +1577,7 @@ void Game::attemptPlaceLand()
     if (!chunkManager.canPlaceLand(Cursor::getSelectedChunk(chunkManager.getWorldSize()), Cursor::getSelectedChunkTile()))
         return;
     
-    if (!player.canReachPosition(Cursor::getMouseWorldPos(window, camera)))
+    if (!player.canReachPosition(camera.screenToWorldTransform(mouseScreenPos)))
         return;
     
     // Place land
@@ -1691,7 +1697,7 @@ void Game::drawGhostPlaceObjectAtCursor(ObjectType object)
                                                 object,
                                                 player.getCollisionRect());
 
-    bool inRange = player.canReachPosition(Cursor::getMouseWorldPos(window, camera));
+    bool inRange = player.canReachPosition(camera.screenToWorldTransform(mouseScreenPos));
 
     sf::Color drawColor(255, 0, 0, 180);
     if (canPlace && inRange)
@@ -1711,7 +1717,7 @@ void Game::drawGhostPlaceLandAtCursor()
 
     // Change color depending on whether can place land or not
     sf::Color landGhostColor(255, 0, 0, 180);
-    if (chunkManager.canPlaceLand(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile()) && player.canReachPosition(Cursor::getMouseWorldPos(window, camera)))
+    if (chunkManager.canPlaceLand(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile()) && player.canReachPosition(camera.screenToWorldTransform(mouseScreenPos)))
     {
         landGhostColor = sf::Color(0, 255, 0, 180);
     }
@@ -1744,7 +1750,7 @@ void Game::drawGhostPlaceLandAtCursor()
 
 BuildableObject* Game::getSelectedObjectFromChunkOrRoom()
 {
-    sf::Vector2f mouseWorldPos = Cursor::getMouseWorldPos(window, camera);
+    sf::Vector2f mouseWorldPos = camera.screenToWorldTransform(mouseScreenPos);
 
     switch (gameState)
     {
@@ -2464,7 +2470,6 @@ void Game::handleWindowResize(sf::Vector2u newSize)
         // camera.handleScaleChange(beforeScale, afterScale, player.getPosition());
 }
 
-
 // -- Misc -- //
 
 const DayCycleManager& Game::getDayCycleManager()
@@ -2562,7 +2567,7 @@ void Game::updateMusic(float dt)
 
 void Game::drawMouseCursor()
 {
-    sf::Vector2f mouseScreenPos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
+    // sf::Vector2f mouseScreenPos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
 
     float intScale = ResolutionHandler::getResolutionIntegerScale();
 
