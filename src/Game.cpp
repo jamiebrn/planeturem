@@ -21,12 +21,12 @@ bool Game::initialise()
     // Create window
     window.create(sf::VideoMode(videoMode.width, videoMode.height), GAME_TITLE, sf::Style::None);
 
-    // Disable SFML errors
-    sf::err().rdbuf(NULL);
+    // Disable joystick events (using SDL for input)
+    window.setJoystickSensorEventsEnabled(false);
 
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_GAMECONTROLLER) != 0)
     {
-        std::cerr << "Failed to initialize SDL: " << SDL_GetError() << std::endl;
+        std::cerr << "Failed to initialise SDL: " << SDL_GetError() << std::endl;
         return false;
     }
 
@@ -2454,7 +2454,7 @@ void Game::handleEventsWindow(sf::Event& event)
     }
 
     // ImGui
-    ImGui::SFML::ProcessEvent(window, event);
+    // ImGui::SFML::ProcessEvent(window, event);
 }
 
 void Game::handleSDLEvents()
@@ -2486,6 +2486,7 @@ void Game::toggleFullScreen()
     window.setFramerateLimit(165);
     window.setVerticalSyncEnabled(true);
     window.setMouseCursorVisible(false);
+    window.setJoystickSensorEventsEnabled(false);
 
     handleWindowResize(sf::Vector2u(videoMode.width, videoMode.height));
 }
