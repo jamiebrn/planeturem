@@ -235,6 +235,7 @@ private:
     void handleZoom(int zoomChange);
 
     void handleEventsWindow(sf::Event& event);
+    void handleSDLEvents();
 
     void toggleFullScreen();
     void handleWindowResize(sf::Vector2u newSize);

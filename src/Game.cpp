@@ -21,7 +21,10 @@ bool Game::initialise()
     // Create window
     window.create(sf::VideoMode(videoMode.width, videoMode.height), GAME_TITLE, sf::Style::None);
 
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) != 0)
+    // Disable SFML errors
+    sf::err().rdbuf(NULL);
+
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_GAMECONTROLLER) != 0)
     {
         std::cerr << "Failed to initialize SDL: " << SDL_GetError() << std::endl;
         return false;
@@ -87,47 +90,49 @@ bool Game::initialise()
 
     loadOptions();
 
+    InputManager::initialise();
+
     // Create key bindings
-    InputManager::bindKey(InputAction::WALK_UP, sf::Keyboard::W);
-    InputManager::bindKey(InputAction::WALK_DOWN, sf::Keyboard::S);
-    InputManager::bindKey(InputAction::WALK_LEFT, sf::Keyboard::A);
-    InputManager::bindKey(InputAction::WALK_RIGHT, sf::Keyboard::D);
-    InputManager::bindKey(InputAction::OPEN_INVENTORY, sf::Keyboard::E);
-    InputManager::bindKey(InputAction::UI_BACK, sf::Keyboard::Escape);
-    InputManager::bindKey(InputAction::UI_SHIFT, sf::Keyboard::LShift);
-    InputManager::bindKey(InputAction::PAUSE_GAME, sf::Keyboard::Escape);
-    InputManager::bindMouseButton(InputAction::USE_TOOL, sf::Mouse::Button::Left);
-    InputManager::bindMouseButton(InputAction::INTERACT, sf::Mouse::Button::Right);
+    InputManager::bindKey(InputAction::WALK_UP, SDL_Scancode::SDL_SCANCODE_W);
+    InputManager::bindKey(InputAction::WALK_DOWN, SDL_Scancode::SDL_SCANCODE_S);
+    InputManager::bindKey(InputAction::WALK_LEFT, SDL_Scancode::SDL_SCANCODE_A);
+    InputManager::bindKey(InputAction::WALK_RIGHT, SDL_Scancode::SDL_SCANCODE_D);
+    InputManager::bindKey(InputAction::OPEN_INVENTORY, SDL_Scancode::SDL_SCANCODE_E);
+    InputManager::bindKey(InputAction::UI_BACK, SDL_Scancode::SDL_SCANCODE_ESCAPE);
+    InputManager::bindKey(InputAction::UI_SHIFT, SDL_Scancode::SDL_SCANCODE_LSHIFT);
+    InputManager::bindKey(InputAction::PAUSE_GAME, SDL_Scancode::SDL_SCANCODE_ESCAPE);
+    InputManager::bindMouseButton(InputAction::USE_TOOL, SDL_BUTTON_LEFT);
+    InputManager::bindMouseButton(InputAction::INTERACT, SDL_BUTTON_RIGHT);
     InputManager::bindMouseWheel(InputAction::ZOOM_IN, MouseWheelScroll::Up);
     InputManager::bindMouseWheel(InputAction::ZOOM_OUT, MouseWheelScroll::Down);
     InputManager::bindMouseWheel(InputAction::UI_TAB_LEFT, MouseWheelScroll::Down);
     InputManager::bindMouseWheel(InputAction::UI_TAB_RIGHT, MouseWheelScroll::Up);
 
-    InputManager::bindControllerAxis(InputAction::WALK_UP, JoystickAxisWithDirection{sf::Joystick::Axis::Y, JoystickAxisDirection::NEGATIVE});
-    InputManager::bindControllerAxis(InputAction::WALK_DOWN, JoystickAxisWithDirection{sf::Joystick::Axis::Y, JoystickAxisDirection::POSITIVE});
-    InputManager::bindControllerAxis(InputAction::WALK_LEFT, JoystickAxisWithDirection{sf::Joystick::Axis::X, JoystickAxisDirection::NEGATIVE});
-    InputManager::bindControllerAxis(InputAction::WALK_RIGHT, JoystickAxisWithDirection{sf::Joystick::Axis::X, JoystickAxisDirection::POSITIVE});
-    InputManager::bindControllerAxis(InputAction::DIRECT_UP, JoystickAxisWithDirection{sf::Joystick::Axis::V, JoystickAxisDirection::NEGATIVE});
-    InputManager::bindControllerAxis(InputAction::DIRECT_DOWN, JoystickAxisWithDirection{sf::Joystick::Axis::V, JoystickAxisDirection::POSITIVE});
-    InputManager::bindControllerAxis(InputAction::DIRECT_LEFT, JoystickAxisWithDirection{sf::Joystick::Axis::U, JoystickAxisDirection::NEGATIVE});
-    InputManager::bindControllerAxis(InputAction::DIRECT_RIGHT, JoystickAxisWithDirection{sf::Joystick::Axis::U, JoystickAxisDirection::POSITIVE});
+    InputManager::bindControllerAxis(InputAction::WALK_UP, JoystickAxisWithDirection{SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_LEFTY, JoystickAxisDirection::NEGATIVE});
+    InputManager::bindControllerAxis(InputAction::WALK_DOWN, JoystickAxisWithDirection{SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_LEFTY, JoystickAxisDirection::POSITIVE});
+    InputManager::bindControllerAxis(InputAction::WALK_LEFT, JoystickAxisWithDirection{SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_LEFTX, JoystickAxisDirection::NEGATIVE});
+    InputManager::bindControllerAxis(InputAction::WALK_RIGHT, JoystickAxisWithDirection{SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_LEFTX, JoystickAxisDirection::POSITIVE});
+    InputManager::bindControllerAxis(InputAction::DIRECT_UP, JoystickAxisWithDirection{SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_RIGHTY, JoystickAxisDirection::NEGATIVE});
+    InputManager::bindControllerAxis(InputAction::DIRECT_DOWN, JoystickAxisWithDirection{SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_RIGHTY, JoystickAxisDirection::POSITIVE});
+    InputManager::bindControllerAxis(InputAction::DIRECT_LEFT, JoystickAxisWithDirection{SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_RIGHTX, JoystickAxisDirection::NEGATIVE});
+    InputManager::bindControllerAxis(InputAction::DIRECT_RIGHT, JoystickAxisWithDirection{SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_RIGHTX, JoystickAxisDirection::POSITIVE});
 
-    InputManager::bindControllerButton(InputAction::OPEN_INVENTORY, 1);
-    InputManager::bindControllerButton(InputAction::UI_CONFIRM, 0);
-    InputManager::bindControllerButton(InputAction::UI_CONFIRM_OTHER, 2);
-    InputManager::bindControllerButton(InputAction::UI_BACK, 1);
-    InputManager::bindControllerButton(InputAction::UI_SHIFT, 8);
-    InputManager::bindControllerButton(InputAction::PAUSE_GAME, 7);
-    InputManager::bindControllerAxis(InputAction::USE_TOOL, JoystickAxisWithDirection{sf::Joystick::Axis::Z, JoystickAxisDirection::NEGATIVE});
-    InputManager::bindControllerAxis(InputAction::INTERACT, JoystickAxisWithDirection{sf::Joystick::Axis::Z, JoystickAxisDirection::POSITIVE});
-    InputManager::bindControllerAxis(InputAction::UI_UP, JoystickAxisWithDirection{sf::Joystick::Axis::PovY, JoystickAxisDirection::POSITIVE});
-    InputManager::bindControllerAxis(InputAction::UI_DOWN, JoystickAxisWithDirection{sf::Joystick::Axis::PovY, JoystickAxisDirection::NEGATIVE});
-    InputManager::bindControllerAxis(InputAction::UI_LEFT, JoystickAxisWithDirection{sf::Joystick::Axis::PovX, JoystickAxisDirection::NEGATIVE});
-    InputManager::bindControllerAxis(InputAction::UI_RIGHT, JoystickAxisWithDirection{sf::Joystick::Axis::PovX, JoystickAxisDirection::POSITIVE});
-    InputManager::bindControllerButton(InputAction::ZOOM_IN, 4);
-    InputManager::bindControllerButton(InputAction::ZOOM_OUT, 5);
-    InputManager::bindControllerButton(InputAction::UI_TAB_LEFT, 4);
-    InputManager::bindControllerButton(InputAction::UI_TAB_RIGHT, 5);
+    InputManager::bindControllerButton(InputAction::OPEN_INVENTORY, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_B);
+    InputManager::bindControllerButton(InputAction::UI_CONFIRM, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_A);
+    InputManager::bindControllerButton(InputAction::UI_CONFIRM_OTHER, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_X);
+    InputManager::bindControllerButton(InputAction::UI_BACK, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_B);
+    InputManager::bindControllerButton(InputAction::UI_SHIFT, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_LEFTSTICK);
+    InputManager::bindControllerButton(InputAction::PAUSE_GAME, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_START);
+    InputManager::bindControllerAxis(InputAction::USE_TOOL, JoystickAxisWithDirection{SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_TRIGGERRIGHT, JoystickAxisDirection::POSITIVE});
+    InputManager::bindControllerAxis(InputAction::INTERACT, JoystickAxisWithDirection{SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_TRIGGERLEFT, JoystickAxisDirection::POSITIVE});
+    InputManager::bindControllerButton(InputAction::UI_UP, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_DPAD_UP);
+    InputManager::bindControllerButton(InputAction::UI_DOWN, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_DPAD_DOWN);
+    InputManager::bindControllerButton(InputAction::UI_LEFT, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_DPAD_LEFT);
+    InputManager::bindControllerButton(InputAction::UI_RIGHT, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_DPAD_RIGHT);
+    InputManager::bindControllerButton(InputAction::ZOOM_IN, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_LEFTSHOULDER);
+    InputManager::bindControllerButton(InputAction::ZOOM_OUT, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_RIGHTSHOULDER);
+    InputManager::bindControllerButton(InputAction::UI_TAB_LEFT, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_LEFTSHOULDER);
+    InputManager::bindControllerButton(InputAction::UI_TAB_RIGHT, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_RIGHTSHOULDER);
 
     InputManager::setControllerAxisDeadzone(0.3f);
 
@@ -189,9 +194,11 @@ void Game::run()
         Sounds::update(dt);
         
         InputManager::update();
-        mouseScreenPos = InputManager::getMousePosition(window, dt);
+        mouseScreenPos = InputManager::getMousePosition(sdlWindow, dt);
 
         window.setView(view);
+
+        handleSDLEvents();
 
         // runFeatureTest();
         switch (gameState)
@@ -2446,10 +2453,17 @@ void Game::handleEventsWindow(sf::Event& event)
         }
     }
 
-    InputManager::processEvent(event);
-
     // ImGui
     ImGui::SFML::ProcessEvent(window, event);
+}
+
+void Game::handleSDLEvents()
+{
+    SDL_Event event;
+    while (SDL_PollEvent(&event))
+    {
+        InputManager::processEvent(event);
+    }
 }
 
 void Game::toggleFullScreen()
@@ -2460,8 +2474,12 @@ void Game::toggleFullScreen()
 
     unsigned int windowStyle = sf::Style::Default;
     if (fullScreen) windowStyle = sf::Style::None;
+
+    SDL_DestroyWindow(sdlWindow);
     
     window.create(videoMode, GAME_TITLE, windowStyle);
+
+    sdlWindow = SDL_CreateWindowFrom(reinterpret_cast<void*>(window.getSystemHandle()));
 
     // Set window stuff
     window.setIcon(256, 256, icon.getPixelsPtr());

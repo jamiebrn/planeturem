@@ -1,19 +1,50 @@
 #include "Core/InputManager.hpp"
 
+const Uint8* InputManager::sdlKeyboardState = nullptr;
+std::vector<SDL_GameController*> InputManager::sdlGameControllers;
+
 float InputManager::controllerAxisDeadzone = 0.0f;
 float InputManager::controllerMouseSens = 600.0f;
 bool InputManager::controllerMovedMouseThisFrame = false;
-sf::Vector2f InputManager::controllerMousePos;
+int InputManager::controllerMousePosX = 0;
+int InputManager::controllerMousePosY = 0;
 bool InputManager::controllerIsActive = false;
 
-std::unordered_map<InputAction, sf::Keyboard::Key> InputManager::keyBindings;
-std::unordered_map<InputAction, sf::Mouse::Button> InputManager::mouseBindings;
+std::unordered_map<InputAction, SDL_Scancode> InputManager::keyBindings;
+std::unordered_map<InputAction, int> InputManager::mouseBindings;
 std::unordered_map<InputAction, MouseWheelScroll> InputManager::mouseWheelBindings;
 std::unordered_map<InputAction, JoystickAxisWithDirection> InputManager::controllerAxisBindings;
-std::unordered_map<InputAction, unsigned int> InputManager::controllerButtonBindings;
+std::unordered_map<InputAction, SDL_GameControllerButton> InputManager::controllerButtonBindings;
 
 std::unordered_map<InputAction, float> InputManager::inputActivation;
 std::unordered_map<InputAction, float> InputManager::inputActivationLastFrame;
+
+void InputManager::initialise()
+{
+    sdlKeyboardState = SDL_GetKeyboardState(NULL);
+
+    openGameControllers();
+}
+
+void InputManager::openGameControllers()
+{
+    // Close any open game controllers
+    for (SDL_GameController* controller : sdlGameControllers)
+    {
+        SDL_GameControllerClose(controller);
+    }
+
+    sdlGameControllers.clear();
+
+    // Open all valid game controllers
+    for (int i = 0; i < SDL_NumJoysticks(); i++)
+    {
+        if (SDL_IsGameController(i))
+        {
+            sdlGameControllers.push_back(SDL_GameControllerOpen(i));
+        }
+    }
+}
 
 template <typename InputType>
 void InputManager::bindInput(InputAction action, std::optional<InputType> input, std::unordered_map<InputAction, InputType>& bindMap)
@@ -30,14 +61,14 @@ void InputManager::bindInput(InputAction action, std::optional<InputType> input,
     bindMap[action] = input.value();
 }
 
-void InputManager::bindKey(InputAction action, std::optional<sf::Keyboard::Key> key)
+void InputManager::bindKey(InputAction action, std::optional<SDL_Scancode> key)
 {
-    bindInput<sf::Keyboard::Key>(action, key, keyBindings);
+    bindInput<SDL_Scancode>(action, key, keyBindings);
 }
 
-void InputManager::bindMouseButton(InputAction action, std::optional<sf::Mouse::Button> button)
+void InputManager::bindMouseButton(InputAction action, std::optional<int> button)
 {
-    bindInput<sf::Mouse::Button>(action, button, mouseBindings);
+    bindInput<int>(action, button, mouseBindings);
 }
 
 void InputManager::bindMouseWheel(InputAction action, std::optional<MouseWheelScroll> wheelDirection)
@@ -50,9 +81,9 @@ void InputManager::bindControllerAxis(InputAction action, std::optional<Joystick
     bindInput<JoystickAxisWithDirection>(action, axisWithDirection, controllerAxisBindings);
 }
 
-void InputManager::bindControllerButton(InputAction action, std::optional<unsigned int> button)
+void InputManager::bindControllerButton(InputAction action, std::optional<SDL_GameControllerButton> button)
 {
-    bindInput<unsigned int>(action, button, controllerButtonBindings);
+    bindInput<SDL_GameControllerButton>(action, button, controllerButtonBindings);
 }
 
 void InputManager::setControllerAxisDeadzone(float deadzone)
@@ -70,7 +101,7 @@ void InputManager::update()
     for (auto iter = keyBindings.begin(); iter != keyBindings.end(); iter++)
     {
         float activation = 0.0f;
-        if (sf::Keyboard::isKeyPressed(iter->second))
+        if (sdlKeyboardState[iter->second])
         {
             activation = 1.0f;
             controllerIsActive = false;
@@ -80,10 +111,12 @@ void InputManager::update()
     }
 
     // Check mouse bindings
+    Uint32 mouseButtonState = SDL_GetMouseState(NULL, NULL);
+
     for (auto iter = mouseBindings.begin(); iter != mouseBindings.end(); iter++)
     {
         float activation = 0.0f;
-        if (sf::Mouse::isButtonPressed(iter->second))
+        if (mouseButtonState & SDL_BUTTON(iter->second))
         {
             activation = 1.0f;
             controllerIsActive = false;
@@ -95,13 +128,14 @@ void InputManager::update()
     controllerMovedMouseThisFrame = false;
 
     // Check input from all controllers
-    for (int controllerId = 0; sf::Joystick::getIdentification(controllerId).productId != 0; controllerId++)
+    for (SDL_GameController* controller : sdlGameControllers)
     {
         // Check controller axis bindings
         for (auto iter = controllerAxisBindings.begin(); iter != controllerAxisBindings.end(); iter++)
         {
             float activation = 0.0f;
-            float axisPosition = sf::Joystick::getAxisPosition(controllerId, iter->second.axis) / 100.0f;
+            // float axisPosition = sf::Joystick::getAxisPosition(controllerId, iter->second.axis) / 100.0f;
+            float axisPosition = (SDL_GameControllerGetAxis(controller, iter->second.axis) + 0.5f) / 32767.5f;
 
             if (std::abs(axisPosition) >= controllerAxisDeadzone)
             {
@@ -129,7 +163,7 @@ void InputManager::update()
         for (auto iter = controllerButtonBindings.begin(); iter != controllerButtonBindings.end(); iter++)
         {
             float activation = 0.0f;
-            if (sf::Joystick::isButtonPressed(controllerId, iter->second))
+            if (SDL_GameControllerGetButton(controller, iter->second))
             {
                 activation = 1.0f;
                 controllerIsActive = true;
@@ -141,18 +175,18 @@ void InputManager::update()
 
 }
 
-void InputManager::processEvent(const sf::Event& event)
+void InputManager::processEvent(const SDL_Event& event)
 {
-    if (event.type == sf::Event::KeyPressed || event.type == sf::Event::KeyReleased ||
-        event.type == sf::Event::MouseButtonPressed || event.type == sf::Event::MouseButtonReleased ||
-        event.type == sf::Event::MouseWheelScrolled)
+    if (event.type == SDL_EventType::SDL_KEYDOWN || event.type == SDL_EventType::SDL_KEYUP ||
+        event.type == SDL_EventType::SDL_MOUSEBUTTONDOWN || event.type == SDL_EventType::SDL_MOUSEBUTTONUP ||
+        event.type == SDL_EventType::SDL_MOUSEWHEEL || event.type == SDL_EventType::SDL_MOUSEMOTION)
     {
         controllerIsActive = false;
     }
 
-    if (event.type == sf::Event::MouseWheelScrolled)
+    if (event.type == SDL_EventType::SDL_MOUSEWHEEL)
     {
-        MouseWheelScroll wheelDirection = (event.mouseWheelScroll.delta < 0) ? MouseWheelScroll::Up : MouseWheelScroll::Down;
+        MouseWheelScroll wheelDirection = (event.wheel.y < 0) ? MouseWheelScroll::Up : MouseWheelScroll::Down;
 
         for (auto iter = mouseWheelBindings.begin(); iter != mouseWheelBindings.end(); iter++)
         {
@@ -165,6 +199,12 @@ void InputManager::processEvent(const sf::Event& event)
 
             inputActivation[iter->first] = std::max(inputActivation[iter->first], activation);
         }
+    }
+
+    if (event.type == SDL_EventType::SDL_CONTROLLERDEVICEADDED ||
+        event.type == SDL_EventType::SDL_CONTROLLERDEVICEREMOVED)
+    {
+        openGameControllers();
     }
 }
 
@@ -214,11 +254,11 @@ bool InputManager::isControllerMovingMouse()
 
 void InputManager::consumeInputAction(InputAction action)
 {
-    consumeInput<sf::Keyboard::Key>(action, keyBindings);
-    consumeInput<sf::Mouse::Button>(action, mouseBindings);
+    consumeInput<SDL_Scancode>(action, keyBindings);
+    consumeInput<int>(action, mouseBindings);
     consumeInput<MouseWheelScroll>(action, mouseWheelBindings);
     consumeInput<JoystickAxisWithDirection>(action, controllerAxisBindings);
-    consumeInput<unsigned int>(action, controllerButtonBindings);
+    consumeInput<SDL_GameControllerButton>(action, controllerButtonBindings);
 }
 
 template<typename InputType>
@@ -247,25 +287,37 @@ void InputManager::consumeInput(InputAction action, std::unordered_map<InputActi
     }
 }
 
-sf::Vector2f InputManager::getMousePosition(const sf::Window& window, float dt)
+sf::Vector2f InputManager::getMousePosition(SDL_Window* window, float dt)
 {
-    sf::Vector2f mouseScreenPos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
+    int mouseX = 0;
+    int mouseY = 0;
+
+    SDL_GetMouseState(&mouseX, &mouseY);
 
     if (InputManager::isControllerActive())
     {
         if (!controllerMovedMouseThisFrame)
         {
             controllerMovedMouseThisFrame = true;
+
             sf::Vector2f controllerMouseMovement;
             controllerMouseMovement.x = getActionAxisActivation(InputAction::DIRECT_LEFT, InputAction::DIRECT_RIGHT);
             controllerMouseMovement.y = getActionAxisActivation(InputAction::DIRECT_UP, InputAction::DIRECT_DOWN);
             controllerMouseMovement *= controllerMouseSens * dt;
-            controllerMousePos += controllerMouseMovement;
-            controllerMousePos.x = std::clamp(controllerMousePos.x, 0.0f, static_cast<float>(window.getSize().x));
-            controllerMousePos.y = std::clamp(controllerMousePos.y, 0.0f, static_cast<float>(window.getSize().y));
+
+            controllerMousePosX += controllerMouseMovement.x;
+            controllerMousePosY += controllerMouseMovement.y;
+
+            int windowWidth = 0;
+            int windowHeight = 0;
+            SDL_GetWindowSize(window, &windowWidth, &windowHeight);
+            
+            controllerMousePosX = std::clamp(controllerMousePosX, 0, windowWidth);
+            controllerMousePosY = std::clamp(controllerMousePosY, 0, windowHeight);
         }
-        return controllerMousePos;
+
+        return sf::Vector2f(controllerMousePosX, controllerMousePosY);
     }
 
-    return mouseScreenPos;
+    return sf::Vector2f(mouseX, mouseY);
 }
