@@ -1,11 +1,14 @@
 #pragma once
 
-#include <SFML/Window/Keyboard.hpp>
-#include <SFML/Window/Mouse.hpp>
-#include <SFML/Window/Joystick.hpp>
-#include <SFML/Window/Event.hpp>
-#include <SFML/Window/Window.hpp>
+// #include <SFML/Window/Keyboard.hpp>
+// #include <SFML/Window/Mouse.hpp>
+// #include <SFML/Window/Joystick.hpp>
+// #include <SFML/Window/Event.hpp>
+// #include <SFML/Window/Window.hpp>
+#include <SFML/System/Vector2.hpp>
+#include <SDL2/SDL_events.h>
 
+#include <algorithm>
 #include <vector>
 #include <unordered_map>
 #include <optional>
@@ -58,10 +61,10 @@ enum class MouseWheelScroll
 
 struct JoystickAxisWithDirection
 {
-    sf::Joystick::Axis axis;
+    SDL_GameControllerAxis axis;
     JoystickAxisDirection direction;
 
-    bool operator==(const JoystickAxisWithDirection& other)
+    bool operator==(const JoystickAxisWithDirection& other) const
     {
         return (axis == other.axis && direction == other.direction);
     }
@@ -72,17 +75,19 @@ class InputManager
     InputManager() = delete;
 
 public:
-    static void bindKey(InputAction action, std::optional<sf::Keyboard::Key> key);
-    static void bindMouseButton(InputAction action, std::optional<sf::Mouse::Button> button);
+    static void initialise();
+
+    static void bindKey(InputAction action, std::optional<SDL_Scancode> key);
+    static void bindMouseButton(InputAction action, std::optional<int> button);
     static void bindMouseWheel(InputAction action, std::optional<MouseWheelScroll> wheelDirection);
     static void bindControllerAxis(InputAction action, std::optional<JoystickAxisWithDirection> axisWithDirection);
-    static void bindControllerButton(InputAction action, std::optional<unsigned int> button);
+    static void bindControllerButton(InputAction action, std::optional<SDL_GameControllerButton> button);
 
     static void setControllerAxisDeadzone(float deadzone);
 
     static void update();
 
-    static void processEvent(const sf::Event& event);
+    static void processEvent(const SDL_Event& event);
 
     // Returns whether action is non-zero
     static bool isActionActive(InputAction action);
@@ -100,7 +105,7 @@ public:
     // Disables other actions with same key bindings
     static void consumeInputAction(InputAction action);
 
-    static sf::Vector2f getMousePosition(const sf::Window& window, float dt);
+    static sf::Vector2f getMousePosition(SDL_Window* window, float dt);
 
 private:
     template <typename InputType>
@@ -109,18 +114,24 @@ private:
     template<typename InputType>
     static void consumeInput(InputAction action, std::unordered_map<InputAction, InputType>& bindMap);
 
+    static void openGameControllers();
+
 private:
+    static const Uint8* sdlKeyboardState;
+    static std::vector<SDL_GameController*> sdlGameControllers;
+
     static float controllerAxisDeadzone;
     static float controllerMouseSens;
     static bool controllerMovedMouseThisFrame;
-    static sf::Vector2f controllerMousePos;
+    static int controllerMousePosX;
+    static int controllerMousePosY;
     static bool controllerIsActive;
 
-    static std::unordered_map<InputAction, sf::Keyboard::Key> keyBindings;
-    static std::unordered_map<InputAction, sf::Mouse::Button> mouseBindings;
+    static std::unordered_map<InputAction, SDL_Scancode> keyBindings;
+    static std::unordered_map<InputAction, int> mouseBindings;
     static std::unordered_map<InputAction, MouseWheelScroll> mouseWheelBindings;
     static std::unordered_map<InputAction, JoystickAxisWithDirection> controllerAxisBindings;
-    static std::unordered_map<InputAction, unsigned int> controllerButtonBindings;
+    static std::unordered_map<InputAction, SDL_GameControllerButton> controllerButtonBindings;
 
     static std::unordered_map<InputAction, float> inputActivation;
     static std::unordered_map<InputAction, float> inputActivationLastFrame;

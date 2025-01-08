@@ -6,9 +6,18 @@ option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 
 include(FetchContent)
 FetchContent_Declare(SFML
-    GIT_REPOSITORY https://github.com/SFML/SFML.git
+    GIT_REPOSITORY https://github.com/jamiebrn/SFML.git
     GIT_TAG 2.6.x)
 FetchContent_MakeAvailable(SFML)
+
+FetchContent_Declare(
+    SDL2
+    GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
+    GIT_TAG release-2.30.5
+    GIT_SHALLOW TRUE
+    GIT_PROGRESS TRUE
+)
+FetchContent_MakeAvailable(SDL2)
 
 FetchContent_Declare(imgui
   GIT_REPOSITORY https://github.com/ocornut/imgui
@@ -46,6 +55,8 @@ link_directories(include/extlib/steam/lib/win64)
 add_executable(Planeturem ${SRC_FILES} ${IMGUI_FILES})
 target_link_libraries(Planeturem PRIVATE sfml-graphics)
 target_link_libraries(Planeturem PRIVATE sfml-audio)
+target_link_libraries(Planeturem PRIVATE SDL2::SDL2main)
+target_link_libraries(Planeturem PRIVATE SDL2::SDL2)
 target_link_libraries(Planeturem PRIVATE ImGui-SFML::ImGui-SFML)
 target_link_libraries(Planeturem PRIVATE platform_folders)
 target_link_libraries(Planeturem PRIVATE steam_api64)

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <SFML/Graphics.hpp>
+#include <SDL2/SDL.h>
 #include <imgui.h>
 #include <imgui-SFML.h>
 #include <extlib/steam/steam_api.h>
@@ -234,6 +235,7 @@ private:
     void handleZoom(int zoomChange);
 
     void handleEventsWindow(sf::Event& event);
+    void handleSDLEvents();
 
     void toggleFullScreen();
     void handleWindowResize(sf::Vector2u newSize);
@@ -252,6 +254,7 @@ private:
 
 private:
     sf::RenderWindow window;
+    SDL_Window* sdlWindow = nullptr;
     sf::View view;
     sf::Image icon;
     bool fullScreen = true;
