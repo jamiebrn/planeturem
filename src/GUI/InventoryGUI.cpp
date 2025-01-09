@@ -1691,7 +1691,7 @@ void InventoryGUI::drawHotbar(sf::RenderTarget& window, sf::Vector2f mouseScreen
             if (selected)
             {
                 ItemType itemType = itemCount.first;
-                selectedItemName = ItemDataLoader::getItemData(itemType).name;
+                selectedItemName = ItemDataLoader::getItemData(itemType).getDisplayName();
             }
         }
         else
