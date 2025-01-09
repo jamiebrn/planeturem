@@ -118,15 +118,6 @@
         "sell-value": 5
     },
     {
-        "name": "Cheap Camera",
-        "texture": [112, 96, 16, 16],
-        "boss-summon-data": {
-            "boss-name": "The Glacial Brute"
-        },
-        "description": "\"Nobody will believe you\"",
-        "sell-value": 7
-    },
-    {
         "name": "Titanium Scraps",
         "texture": [144, 64, 16, 16],
         "sell-value": 1
@@ -135,11 +126,6 @@
         "name": "Titanium Bar",
         "texture": [144, 80, 16, 16],
         "sell-value": 4
-    },
-    {
-        "name": "Slush Ice",
-        "texture": [144, 48, 16, 16],
-        "sell-value": 0.2
     },
     {
         "name": "Crow Claw",

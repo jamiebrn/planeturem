@@ -25,31 +25,6 @@
         "sell-value": 2
     },
     {
-        "name": "Titanium Headgear",
-        "type": "Head",
-        "texture": [752, 160, 16, 16],
-        "wear-textures": [[768, 160], [784, 160], [800, 160], [816, 160], [832, 160], [848, 160], [864, 160], [880, 160]],
-        "wear-texture-offset": [0, -3],
-        "defence": 7,
-        "sell-value": 10
-    },
-    {
-        "name": "Titanium Chestpiece",
-        "type": "Chest",
-        "texture": [752, 176, 16, 16],
-        "wear-textures": [[768, 176], [784, 176], [800, 176], [816, 176], [832, 176], [848, 176], [864, 176], [880, 176]],
-        "defence": 9,
-        "sell-value": 12
-    },
-    {
-        "name": "Titanium Boots",
-        "type": "Feet",
-        "texture": [752, 192, 16, 16],
-        "wear-textures": [[768, 192], [784, 192], [800, 192], [816, 192], [832, 192], [848, 192], [864, 192], [880, 192]],
-        "defence": 6,
-        "sell-value": 10
-    },
-    {
         "name": "Black Feather Headgear",
         "type": "Head",
         "texture": [752, 16, 16, 16],

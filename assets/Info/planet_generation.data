@@ -110,9 +110,6 @@
                         ["Snowy Rock", 0.01],
                         ["Titanium Rock", 0.01]
                     ],
-                    "structures": [
-                        ["Igloo", 0.02]
-                    ],
                     "fish-catches": [],
                     "noise-range": [0.5, 1]
                 }
@@ -120,8 +117,7 @@
             "water-colour": [77, 155, 230],
             "water-texture-offset": [0, 0],
             "cliff-texture-offset": [192, 0],
-            "size": 100,
-            "bosses-spawn-allowed": ["The Glacial Brute"]
+            "size": 100
         }
     }
 }

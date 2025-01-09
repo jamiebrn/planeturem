@@ -83,7 +83,14 @@ bool Game::initialise()
     // TODO: ugly
     Achievements::steamInitialised = steamInitialised;
     if (steamInitialised)
+    {
         SteamUserStats()->RequestCurrentStats();
+    }
+    else
+    {
+        // Steam must be initialised for demo license check
+        return false;
+    }
 
     // Randomise
     srand(time(NULL));

@@ -126,24 +126,6 @@
         "crafting-station-level": 1
     },
     {
-        "product": "Titanium Pickaxe",
-        "item-requirements": {
-            "Titanium Bar": 5,
-            "Iron Bar": 3
-        },
-        "crafting-station": "anvil",
-        "crafting-station-level": 2
-    },
-    {
-        "product": "Titanium Fishing Rod",
-        "item-requirements": {
-            "Titanium Bar": 4,
-            "Wooden Fishing Rod": 1
-        },
-        "crafting-station": "anvil",
-        "crafting-station-level": 2
-    },
-    {
         "product": "Wooden Bow",
         "item-requirements": {
             "Wood": 15
@@ -362,33 +344,6 @@
         "crafting-station-level": 1
     },
     {
-        "product": "Crate",
-        "item-requirements": {
-            "Wood": 5
-        },
-        "crafting-station": "bench",
-        "crafting-station-level": 1
-    },
-    {
-        "product": "Snowball",
-        "item-requirements": {
-            "Slush Ice": 3
-        },
-        "crafting-station": "bench",
-        "crafting-station-level": 1
-    },
-    {
-        "product": "Glacial Brute Statue",
-        "item-requirements": {
-            "Iron Bar": 10,
-            "Large Glacial Head": 1,
-            "Slush Ice": 50
-        },
-        "key-items": ["Large Glacial Head"],
-        "crafting-station": "bench",
-        "crafting-station-level": 1
-    },
-    {
         "product": "Wooden Headgear",
         "item-requirements": {
             "Wood": 30
@@ -409,47 +364,6 @@
         "item-requirements": {
             "Wood": 20
         },
-        "crafting-station": "bench",
-        "crafting-station-level": 1
-    },
-    {
-        "product": "Titanium Headgear",
-        "item-requirements": {
-            "Titanium Bar": 12,
-            "Iron Bar": 3
-        },
-        "key-items": ["Titanium Bar"],
-        "crafting-station": "anvil",
-        "crafting-station-level": 2
-    },
-    {
-        "product": "Titanium Chestpiece",
-        "item-requirements": {
-            "Titanium Bar": 15,
-            "Iron Bar": 5
-        },
-        "key-items": ["Titanium Bar"],
-        "crafting-station": "anvil",
-        "crafting-station-level": 2
-    },
-    {
-        "product": "Titanium Boots",
-        "item-requirements": {
-            "Titanium Bar": 10,
-            "Iron Bar": 2
-        },
-        "key-items": ["Titanium Bar"],
-        "crafting-station": "anvil",
-        "crafting-station-level": 2
-    },
-    {
-        "product": "Cheap Camera",
-        "item-requirements": {
-            "Titanium Bar": 5,
-            "Iron Bar": 2,
-            "Slush Ice": 20
-        },
-        "key-items": ["Titanium Bar"],
         "crafting-station": "bench",
         "crafting-station-level": 1
     }

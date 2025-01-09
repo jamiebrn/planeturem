@@ -446,21 +446,6 @@
         }
     },
     {
-        "name": "Glacial Brute Statue",
-        "health": 20,
-        "textures": [[315, 326]],
-        "texture-width": 41,
-        "texture-height": 74,
-        "texture-x-origin": 0.31707,
-        "texture-y-origin": 0.68919,
-        "size-x": 2,
-        "size-y": 2,
-        "has-collision": true,
-        "item-drops": {
-            "Glacial Brute Statue": [1, 1, 1]
-        }
-    },
-    {
         "name": "AlienHostage",
         "health": 10,
         "textures": [[368, 400], [368, 400], [384, 400], [400, 400], [368, 400], [416, 400], [432, 400]],
@@ -493,39 +478,5 @@
             "buy-prices": {"Insane Bow": 1.5, "Wood": 3, "Crow Claw": 5},
             "portrait-texture-offset": [32, 32]
         }
-    },
-    {
-        "name": "ColdAlien",
-        "health": 10,
-        "textures": [[272, 464], [289, 464], [306, 464], [323, 464]],
-        "texture-frame-delay": 0.1,
-        "texture-width": 17,
-        "texture-height": 32,
-        "texture-x-origin": 0.5,
-        "texture-y-origin": 1.0,
-        "npc-data": {
-            "npc-name": "Igloo Inhabitant",
-            "behaviour": "shop",
-            "dialogue": ["Give me your goods :)", "I source my items locally...", "I built this ice house myself", "...It's quite cold though"],
-            "shop-items": [["Slush Ice", 5], ["Snowball", 20], ["Titanium Scraps", 10], ["Stone", 10]],
-            "buy-prices": {"Snowball": 1.5, "Stone": 4},
-            "sell-prices": {"Slush Ice": 0},
-            "portrait-texture-offset": [32, 64]
-        }
-    },
-    {
-        "name": "Crate",
-        "health": 6,
-        "textures": [[192, 16]],
-        "texture-width": 16,
-        "texture-height": 16,
-        "texture-x-origin": 0.5,
-        "texture-y-origin": 0.5,
-        "chest-capacity": 2,
-        "has-collision": true,
-        "item-drops": {
-            "Crate": [1, 1, 1]
-        },
-        "sell-value": 1
     }
 ]
