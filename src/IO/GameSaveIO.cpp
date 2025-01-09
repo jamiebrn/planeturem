@@ -376,6 +376,7 @@ bool GameSaveIO::writeOptionsSave(const OptionsSave& optionsSave)
     {
         nlohmann::json json;
         json["music-volume"] = optionsSave.musicVolume;
+        json["controller-glyph-type"] = optionsSave.controllerGlyphType;
 
         out << json;
         out.close();
@@ -404,6 +405,11 @@ bool GameSaveIO::loadOptionsSave(OptionsSave& optionsSave)
     {
         nlohmann::json json = nlohmann::json::parse(in);
         optionsSave.musicVolume = json["music-volume"];
+
+        if (json.contains("controller-glyph-type"))
+        {
+            optionsSave.controllerGlyphType = json.at("controller-glyph-type");
+        }
     }
     catch(const std::exception& e)
     {

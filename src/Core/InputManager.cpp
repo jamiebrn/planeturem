@@ -10,6 +10,8 @@ int InputManager::controllerMousePosX = 0;
 int InputManager::controllerMousePosY = 0;
 bool InputManager::controllerIsActive = false;
 
+int InputManager::controllerGlyphType = 0;
+
 std::unordered_map<InputAction, SDL_Scancode> InputManager::keyBindings;
 std::unordered_map<InputAction, int> InputManager::mouseBindings;
 std::unordered_map<InputAction, MouseWheelScroll> InputManager::mouseWheelBindings;
@@ -19,9 +21,11 @@ std::unordered_map<InputAction, SDL_GameControllerButton> InputManager::controll
 std::unordered_map<InputAction, float> InputManager::inputActivation;
 std::unordered_map<InputAction, float> InputManager::inputActivationLastFrame;
 
-void InputManager::initialise()
+void InputManager::initialise(SDL_Window* window)
 {
     sdlKeyboardState = SDL_GetKeyboardState(NULL);
+
+    recentreControllerCursor(window);
 
     openGameControllers();
 }
@@ -320,4 +324,71 @@ sf::Vector2f InputManager::getMousePosition(SDL_Window* window, float dt)
     }
 
     return sf::Vector2f(mouseX, mouseY);
+}
+
+void InputManager::recentreControllerCursor(SDL_Window* window)
+{
+    int windowW = 0;
+    int windowH = 0;
+
+    SDL_GetWindowSize(window, &windowW, &windowH);
+
+    controllerMousePosX = windowW / 2;
+    controllerMousePosY = windowH / 2;
+}
+
+std::optional<ControllerGlyph> InputManager::getBoundActionControllerGlyph(InputAction action)
+{
+    if (!controllerButtonBindings.contains(action))
+    {
+        if (!controllerAxisBindings.contains(action))
+        {
+            return std::nullopt;
+        }
+        else
+        {
+            if (controllerAxisBindings.at(action).axis == SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_TRIGGERLEFT)
+            {
+                return ControllerGlyph::LEFTTRIGGER;
+            }
+            else if (controllerAxisBindings.at(action).axis == SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_TRIGGERRIGHT)
+            {
+                return ControllerGlyph::RIGHTTRIGGER;
+            }
+            else
+            {
+                return std::nullopt;
+            }
+        }
+    }
+
+    static const std::unordered_map<SDL_GameControllerButton, ControllerGlyph> buttonToGlyph = {
+        {SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_A, ControllerGlyph::BUTTON_A},
+        {SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_B, ControllerGlyph::BUTTON_B},
+        {SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_X, ControllerGlyph::BUTTON_X},
+        {SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_Y, ControllerGlyph::BUTTON_Y},
+        {SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_RIGHTSHOULDER, ControllerGlyph::RIGHTSHOULDER},
+        {SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_LEFTSHOULDER, ControllerGlyph::LEFTSHOULDER},
+        {SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_RIGHTSTICK, ControllerGlyph::RIGHTSTICK},
+        {SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_LEFTSTICK, ControllerGlyph::LEFTSTICK},
+        {SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_GUIDE, ControllerGlyph::SELECT},
+        {SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_START, ControllerGlyph::START},
+    };
+
+    return buttonToGlyph.at(controllerButtonBindings.at(action));
+}
+
+void InputManager::setGlyphType(int type)
+{
+    controllerGlyphType = (type % CONTROLLER_MAX_GLYPH_TYPE_COUNT + CONTROLLER_MAX_GLYPH_TYPE_COUNT) % CONTROLLER_MAX_GLYPH_TYPE_COUNT;
+}
+
+int InputManager::getGlyphType()
+{
+    return controllerGlyphType;
+}
+
+int InputManager::getGlyphTypeCount()
+{
+    return CONTROLLER_MAX_GLYPH_TYPE_COUNT;
 }

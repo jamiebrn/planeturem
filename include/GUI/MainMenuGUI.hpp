@@ -8,6 +8,7 @@
 #include "Core/TextureManager.hpp"
 #include "Core/Camera.hpp"
 #include "Core/SpriteBatch.hpp"
+#include "Core/InputManager.hpp"
 
 #include "IO/GameSaveIO.hpp"
 

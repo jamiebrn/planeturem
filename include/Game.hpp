@@ -249,6 +249,8 @@ private:
 
     void drawMouseCursor();
 
+    void drawControllerGlyphs(const std::vector<std::pair<InputAction, std::string>>& actionStrings);
+
     void drawDebugMenu(float dt);
 
 

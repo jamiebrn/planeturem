@@ -138,6 +138,7 @@ struct SaveFileSummary
 struct OptionsSave
 {
     int musicVolume = 100;
+    int controllerGlyphType = 0;
 };
 
 class GameSaveIO

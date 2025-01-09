@@ -301,7 +301,36 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
                 Sounds::setMusicVolume(musicVolume);
             }
 
-            elementYPos += 300 * intScale;
+            elementYPos += 100 * intScale;
+
+            // Create button glyph switch buttons
+            if (guiContext.createButton(scaledPanelPaddingX, elementYPos,
+                panelWidth / 6 * intScale, 50 * intScale, buttonTextSize, "<", buttonStyle)
+                    .isClicked())
+            {
+                int glyphType = InputManager::getGlyphType();
+                InputManager::setGlyphType(glyphType - 1);
+            }
+
+            if (guiContext.createButton((scaledPanelPaddingX + panelWidth / 6 * 5) * intScale, elementYPos,
+                panelWidth / 6 * intScale, 50 * intScale, buttonTextSize, ">", buttonStyle)
+                    .isClicked())
+            {
+                int glyphType = InputManager::getGlyphType();
+                InputManager::setGlyphType(glyphType + 1);
+            }
+
+            // Text showing current controller glyph type
+            TextDrawData glyphTypeDrawData;
+            glyphTypeDrawData.text = "Button Glyph " + std::to_string(InputManager::getGlyphType() + 1);
+            glyphTypeDrawData.position = sf::Vector2f(scaledPanelPaddingX + panelWidth / 2 * intScale, elementYPos + 50 * 0.5f * intScale);
+            glyphTypeDrawData.centeredX = true;
+            glyphTypeDrawData.centeredY = true;
+            glyphTypeDrawData.size = 24 * intScale;
+            glyphTypeDrawData.colour = sf::Color(255, 255, 255);
+            TextDraw::drawText(window, glyphTypeDrawData);
+
+            elementYPos += 200 * intScale;
 
             if (guiContext.createButton(scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale, buttonTextSize, "Back", buttonStyle)
                 .isClicked())

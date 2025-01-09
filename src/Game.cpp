@@ -1,6 +1,6 @@
 #include "Game.hpp"
 
-// TODO: Controller glyphs
+// TODO: Make world gen more interesting (rivers, more structure variety etc)
 
 // FIX: Improve UI scaling elements (text etc)
 
@@ -90,7 +90,7 @@ bool Game::initialise()
 
     loadOptions();
 
-    InputManager::initialise();
+    InputManager::initialise(sdlWindow);
 
     // Create key bindings
     InputManager::bindKey(InputAction::WALK_UP, SDL_Scancode::SDL_SCANCODE_W);
@@ -122,6 +122,7 @@ bool Game::initialise()
     InputManager::bindControllerButton(InputAction::UI_CONFIRM_OTHER, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_X);
     InputManager::bindControllerButton(InputAction::UI_BACK, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_B);
     InputManager::bindControllerButton(InputAction::UI_SHIFT, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_LEFTSTICK);
+    InputManager::bindControllerButton(InputAction::RECENTRE_CONTROLLER_CURSOR, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_RIGHTSTICK);
     InputManager::bindControllerButton(InputAction::PAUSE_GAME, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_START);
     InputManager::bindControllerAxis(InputAction::USE_TOOL, JoystickAxisWithDirection{SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_TRIGGERRIGHT, JoystickAxisDirection::POSITIVE});
     InputManager::bindControllerAxis(InputAction::INTERACT, JoystickAxisWithDirection{SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_TRIGGERLEFT, JoystickAxisDirection::POSITIVE});
@@ -129,8 +130,8 @@ bool Game::initialise()
     InputManager::bindControllerButton(InputAction::UI_DOWN, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_DPAD_DOWN);
     InputManager::bindControllerButton(InputAction::UI_LEFT, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_DPAD_LEFT);
     InputManager::bindControllerButton(InputAction::UI_RIGHT, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_DPAD_RIGHT);
-    InputManager::bindControllerButton(InputAction::ZOOM_IN, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_LEFTSHOULDER);
-    InputManager::bindControllerButton(InputAction::ZOOM_OUT, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_RIGHTSHOULDER);
+    InputManager::bindControllerButton(InputAction::ZOOM_IN, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_RIGHTSHOULDER);
+    InputManager::bindControllerButton(InputAction::ZOOM_OUT, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_LEFTSHOULDER);
     InputManager::bindControllerButton(InputAction::UI_TAB_LEFT, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_LEFTSHOULDER);
     InputManager::bindControllerButton(InputAction::UI_TAB_RIGHT, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_RIGHTSHOULDER);
 
@@ -518,7 +519,14 @@ void Game::runInGame(float dt)
             if ((worldMenuState == WorldMenuState::Inventory || worldMenuState == WorldMenuState::NPCShop) &&
                 (!InventoryGUI::isMouseOverUI(mouseScreenPos) || InputManager::isControllerActive()))
             {
-                handleZoom(zoom);
+                if (InputManager::isControllerActive())
+                {
+                    handleZoom(-zoom);
+                }
+                else
+                {
+                    handleZoom(zoom);
+                }
             }
         }
 
@@ -614,6 +622,11 @@ void Game::runInGame(float dt)
                     break;
                 }
             }
+        }
+
+        if (InputManager::isActionJustActivated(InputAction::RECENTRE_CONTROLLER_CURSOR))
+        {
+            InputManager::recentreControllerCursor(sdlWindow);
         }
     }
 
@@ -735,10 +748,24 @@ void Game::runInGame(float dt)
         switch (worldMenuState)
         {
             case WorldMenuState::Main:
+            {
                 InventoryGUI::drawHotbar(window, mouseScreenPos, inventory);
                 InventoryGUI::drawItemPopups(window);
                 HealthGUI::drawHealth(window, spriteBatch, player, gameTime, extraInfoStrings);
+
+                // Controller glyphs
+                if (InputManager::isControllerActive())
+                {
+                    std::vector<std::pair<InputAction, std::string>> actionStrings = {
+                        {InputAction::RECENTRE_CONTROLLER_CURSOR, "Recentre Cursor"},
+                        {InputAction::OPEN_INVENTORY, "Inventory"} 
+                    };
+
+                    drawControllerGlyphs(actionStrings);
+                }
+
                 break;
+            }
             
             case WorldMenuState::NPCShop: // fallthrough
             case WorldMenuState::Inventory:
@@ -763,6 +790,20 @@ void Game::runInGame(float dt)
                 }
 
                 InventoryGUI::draw(window, gameTime, mouseScreenPos, inventory, armourInventory, chestDataPtr);
+
+                // Controller glyphs
+                if (InputManager::isControllerActive())
+                {
+                    std::vector<std::pair<InputAction, std::string>> actionStrings = {
+                        {InputAction::UI_SHIFT, "Quick Transfer"},
+                        {InputAction::ZOOM_OUT, "Zoom Out"},  
+                        {InputAction::ZOOM_IN, "Zoom In"},  
+                        {InputAction::UI_CONFIRM_OTHER, "Select 1"},  
+                        {InputAction::UI_CONFIRM, "Select All"},  
+                    };
+
+                    drawControllerGlyphs(actionStrings);
+                }
                 break;
             }
             
@@ -2396,6 +2437,7 @@ void Game::saveOptions()
 {
     OptionsSave optionsSave;
     optionsSave.musicVolume = Sounds::getMusicVolume();
+    optionsSave.controllerGlyphType = InputManager::getGlyphType();
 
     GameSaveIO optionsIO;
     optionsIO.writeOptionsSave(optionsSave);
@@ -2409,6 +2451,7 @@ void Game::loadOptions()
     optionsIO.loadOptionsSave(optionsSave);
 
     Sounds::setMusicVolume(optionsSave.musicVolume);
+    InputManager::setGlyphType(optionsSave.controllerGlyphType);
 }
 
 // -- Window -- //
@@ -2454,7 +2497,7 @@ void Game::handleEventsWindow(sf::Event& event)
     }
 
     // ImGui
-    // ImGui::SFML::ProcessEvent(window, event);
+    ImGui::SFML::ProcessEvent(window, event);
 }
 
 void Game::handleSDLEvents()
@@ -2631,18 +2674,29 @@ void Game::drawMouseCursor()
 
     if (InputManager::isControllerActive())
     {
-        if (gameState != GameState::MainMenu && worldMenuState == WorldMenuState::Main ||
-            worldMenuState == WorldMenuState::Inventory || worldMenuState == WorldMenuState::NPCShop)
+        if (gameState != GameState::MainMenu && (worldMenuState == WorldMenuState::Main ||
+            worldMenuState == WorldMenuState::Inventory || worldMenuState == WorldMenuState::NPCShop))
         {
             if (canQuickTransfer)
             {
                 textureRect = sf::IntRect(96, 48, 15, 15);
+                textureCentreRatio = sf::Vector2f(1.0f / 3.0f, 1.0f / 3.0f);
+            }
+            else if (InputManager::isActionActive(InputAction::USE_TOOL))
+            {
+                textureRect = sf::IntRect(80, 64, 8, 8);
+                textureCentreRatio = sf::Vector2f(0.5f, 0.5f);
+            }
+            else if (InputManager::isActionActive(InputAction::INTERACT))
+            {
+                textureRect = sf::IntRect(96, 64, 10, 10);
+                textureCentreRatio = sf::Vector2f(0.5f, 0.5f);
             }
             else
             {
-                textureRect = sf::IntRect(80, 48, 15, 15);
+                textureRect = sf::IntRect(80, 48, 10, 10);
+                textureCentreRatio = sf::Vector2f(0.5f, 0.5f);
             }
-            textureCentreRatio = sf::Vector2f(1.0f / 3.0f, 1.0f / 3.0f);
         }
         else
         {
@@ -2664,6 +2718,69 @@ void Game::drawMouseCursor()
     float intScale = ResolutionHandler::getResolutionIntegerScale();
 
     TextureManager::drawSubTexture(window, {TextureType::UI, mouseScreenPos, 0, {3 * intScale, 3 * intScale}, textureCentreRatio}, textureRect);
+}
+
+void Game::drawControllerGlyphs(const std::vector<std::pair<InputAction, std::string>>& actionStrings)
+{
+    static const std::unordered_map<ControllerGlyph, int> buttonGlyphXOffset = {
+        {ControllerGlyph::BUTTON_A, 0 * 16},
+        {ControllerGlyph::BUTTON_B, 1 * 16},
+        {ControllerGlyph::BUTTON_X, 2 * 16},
+        {ControllerGlyph::BUTTON_Y, 3 * 16},
+        {ControllerGlyph::RIGHTSHOULDER, 4 * 16},
+        {ControllerGlyph::LEFTSHOULDER, 5 * 16},
+        {ControllerGlyph::RIGHTTRIGGER, 6 * 16},
+        {ControllerGlyph::LEFTTRIGGER, 7 * 16},
+        {ControllerGlyph::RIGHTSTICK, 8 * 16},
+        {ControllerGlyph::LEFTSTICK, 9 * 16},
+        {ControllerGlyph::SELECT, 10 * 16},
+        {ControllerGlyph::START, 11 * 16}
+    };
+
+    sf::Vector2f resolution = static_cast<sf::Vector2f>(ResolutionHandler::getResolution());
+    float intScale = ResolutionHandler::getResolutionIntegerScale();
+
+    static constexpr int GLPYH_SPACING = 50;
+    static constexpr int GLYPH_X_PADDING = 70;
+
+    for (int i = 0; i < actionStrings.size(); i++)
+    {
+        auto actionString = actionStrings[i];
+
+        std::optional<ControllerGlyph> glyph = InputManager::getBoundActionControllerGlyph(actionString.first);
+
+        // Set to no bind glyph by default
+        sf::IntRect glyphTextureRect(192, 192, 16, 16);
+
+        if (glyph.has_value())
+        {
+            glyphTextureRect.left = buttonGlyphXOffset.at(glyph.value());
+            glyphTextureRect.top = 192 + InputManager::getGlyphType() * 16;
+        }
+
+        // Draw button glyph
+        TextureDrawData glyphDrawData;
+        glyphDrawData.type = TextureType::UI;
+        glyphDrawData.position = sf::Vector2f(resolution.x - GLYPH_X_PADDING / 2.0f * intScale, resolution.y - (i + 1) * GLPYH_SPACING * intScale);
+        glyphDrawData.centerRatio = sf::Vector2f(0.5f, 0.5f);
+        glyphDrawData.scale = sf::Vector2f(3, 3) * intScale;
+
+        spriteBatch.draw(window, glyphDrawData, glyphTextureRect);
+
+        // Draw action text
+        TextDrawData textDrawData;
+        textDrawData.text = actionString.second;
+        textDrawData.position = sf::Vector2f(resolution.x, resolution.y - (i + 1) * GLPYH_SPACING * intScale);
+        textDrawData.size = 24 * intScale;
+        textDrawData.colour = sf::Color(255, 255, 255);
+        textDrawData.outlineColour = sf::Color(46, 34, 47);
+        textDrawData.outlineThickness = 2 * intScale;
+        textDrawData.containOnScreenX = true;
+        textDrawData.containPaddingRight = GLYPH_X_PADDING * intScale;
+        textDrawData.centeredY = true;
+
+        TextDraw::drawText(window, textDrawData);
+    }
 }
 
 void Game::drawDebugMenu(float dt)

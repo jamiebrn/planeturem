@@ -44,7 +44,25 @@ enum class InputAction
     DIRECT_UP, // Controller specfic
     DIRECT_DOWN,
     DIRECT_LEFT,
-    DIRECT_RIGHT
+    DIRECT_RIGHT,
+
+    RECENTRE_CONTROLLER_CURSOR
+};
+
+enum class ControllerGlyph
+{
+    BUTTON_A,
+    BUTTON_B,
+    BUTTON_X,
+    BUTTON_Y,
+    RIGHTSHOULDER,
+    LEFTSHOULDER,
+    RIGHTTRIGGER,
+    LEFTTRIGGER,
+    RIGHTSTICK,
+    LEFTSTICK,
+    SELECT,
+    START
 };
 
 enum class JoystickAxisDirection
@@ -75,7 +93,7 @@ class InputManager
     InputManager() = delete;
 
 public:
-    static void initialise();
+    static void initialise(SDL_Window* window);
 
     static void bindKey(InputAction action, std::optional<SDL_Scancode> key);
     static void bindMouseButton(InputAction action, std::optional<int> button);
@@ -107,6 +125,15 @@ public:
 
     static sf::Vector2f getMousePosition(SDL_Window* window, float dt);
 
+    static void recentreControllerCursor(SDL_Window* window);
+
+    static std::optional<ControllerGlyph> getBoundActionControllerGlyph(InputAction action);
+
+    static void setGlyphType(int type);
+    static int getGlyphType();
+
+    static int getGlyphTypeCount();
+
 private:
     template <typename InputType>
     static void bindInput(InputAction action, std::optional<InputType> input, std::unordered_map<InputAction, InputType>& bindMap);
@@ -126,6 +153,9 @@ private:
     static int controllerMousePosX;
     static int controllerMousePosY;
     static bool controllerIsActive;
+
+    static constexpr int CONTROLLER_MAX_GLYPH_TYPE_COUNT = 4;
+    static int controllerGlyphType;
 
     static std::unordered_map<InputAction, SDL_Scancode> keyBindings;
     static std::unordered_map<InputAction, int> mouseBindings;
