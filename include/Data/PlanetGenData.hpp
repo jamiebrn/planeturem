@@ -82,5 +82,12 @@ struct PlanetGenData
 
     int worldSize;
 
+    float heightNoiseFrequency = 0.1f;
+    float biomeNoiseFrequency = 0.1f;
+    float riverNoiseFrequency = 0.1f;
+
+    float riverNoiseRangeMin = 0.0f;
+    float riverNoiseRangeMax = 0.0f;
+
     std::unordered_set<std::string> bossesSpawnAllowedNames;
 };

@@ -80,6 +80,8 @@
             "water-colour": [77, 155, 230],
             "water-texture-offset": [0, 0],
             "cliff-texture-offset": [64, 0],
+            "river-noise-frequency": 0.05,
+            "river-noise-range": [0.49, 0.52],
             "size": 240,
             "bosses-spawn-allowed": ["Benjamin"]
         },

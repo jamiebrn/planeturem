@@ -50,6 +50,11 @@ inline int sign(int value)
     return 0;
 }
 
+inline int wrap(int value, int max)
+{
+    return (value % max + max) % max;
+};
+
 // Angle in radians
 inline sf::Vector2f rotateVector(sf::Vector2f vector, float angle)
 {

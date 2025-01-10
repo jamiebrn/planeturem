@@ -228,6 +228,7 @@ private:
 
     FastNoise heightNoise;
     FastNoise biomeNoise;
+    FastNoise riverNoise;
 
     int worldSize = 1;
     PlanetType planetType = 0;

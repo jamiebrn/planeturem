@@ -56,6 +56,17 @@ bool PlanetGenDataLoader::loadPlanet(nlohmann::ordered_json::iterator& planetDat
     planetGenData.waterTextureOffset = planetData->at("water-texture-offset");
     planetGenData.cliffTextureOffset = planetData->at("cliff-texture-offset");
 
+    if (planetData->contains("height-noise-frequency")) planetGenData.heightNoiseFrequency = planetData->at("height-noise-frequency");
+    if (planetData->contains("biome-noise-frequency")) planetGenData.biomeNoiseFrequency = planetData->at("biome-noise-frequency");
+    if (planetData->contains("river-noise-frequency")) planetGenData.riverNoiseFrequency = planetData->at("river-noise-frequency");
+
+    if (planetData->contains("river-noise-range"))
+    {
+        planetGenData.riverNoiseRangeMin = planetData->at("river-noise-range")[0];
+        planetGenData.riverNoiseRangeMax = planetData->at("river-noise-range")[1];
+    }
+
+
     if (!planetData->contains("size"))
         return false;
     

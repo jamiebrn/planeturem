@@ -4,13 +4,18 @@ void ChunkManager::setSeed(int seed)
 {
     this->seed = seed;
 
+    const PlanetGenData& planetGenData = PlanetGenDataLoader::getPlanetGenData(planetType);
+
     heightNoise.SetNoiseType(FastNoise::NoiseType::SimplexFractal);
     biomeNoise.SetNoiseType(FastNoise::NoiseType::SimplexFractal);
-    heightNoise.SetFrequency(0.1);
-    biomeNoise.SetFrequency(0.1);
+    riverNoise.SetNoiseType(FastNoise::NoiseType::SimplexFractal);
+    heightNoise.SetFrequency(planetGenData.heightNoiseFrequency);
+    biomeNoise.SetFrequency(planetGenData.biomeNoiseFrequency);
+    riverNoise.SetFrequency(planetGenData.riverNoiseFrequency);
 
     heightNoise.SetSeed(seed + planetType);
     biomeNoise.SetSeed(seed + planetType + 1);
+    riverNoise.SetSeed(seed + planetType + 2);
 }
 
 int ChunkManager::getSeed() const
@@ -108,7 +113,7 @@ bool ChunkManager::updateChunks(Game& game, const Camera& camera)
                 // Therefore must initialise
                 if (chunk->wasGeneratedFromPOD())
                 {
-                    chunk->generateTilemapsAndInit(heightNoise, biomeNoise, planetType, *this, pathfindingEngine);
+                    chunk->generateTilemapsAndInit(*this, pathfindingEngine);
                 }
 
                 continue;
@@ -191,7 +196,7 @@ void ChunkManager::regenerateChunkWithoutStructure(ChunkPosition chunk, Game& ga
     chunkPtr->reset(true);
 
     // Regenerate without structure
-    chunkPtr->generateChunk(heightNoise, biomeNoise, planetType, game, *this, pathfindingEngine, false);
+    chunkPtr->generateChunk(heightNoise, biomeNoise, riverNoise, planetType, game, *this, pathfindingEngine, false);
 }
 
 void ChunkManager::drawChunkTerrain(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Camera& camera, float time)
@@ -484,7 +489,7 @@ int ChunkManager::getChunkTileTypeOrPredicted(ChunkPosition chunk, sf::Vector2i 
     worldTile.x = chunk.x * CHUNK_TILE_SIZE + tile.x;
     worldTile.y = chunk.y * CHUNK_TILE_SIZE + tile.y;
 
-    const TileGenData* tileGenData = Chunk::getTileGenAtWorldTile(worldTile, worldSize, heightNoise, biomeNoise, planetType);
+    const TileGenData* tileGenData = Chunk::getTileGenAtWorldTile(worldTile, worldSize, heightNoise, biomeNoise, riverNoise, planetType);
     if (!tileGenData)
     {
         return 0;
@@ -773,7 +778,7 @@ void ChunkManager::placeLand(ChunkPosition chunk, sf::Vector2i tile)
             int wrappedX = (x % worldSize + worldSize) % worldSize;
             int wrappedY = (y % worldSize + worldSize) % worldSize;
 
-            loadedChunks[ChunkPosition(wrappedX, wrappedY)]->generateVisualEffectTiles(heightNoise, biomeNoise, planetType, *this);
+            loadedChunks[ChunkPosition(wrappedX, wrappedY)]->generateVisualEffectTiles(*this);
         }
     }
 }
@@ -848,7 +853,7 @@ ChunkPosition ChunkManager::findValidSpawnChunk(int waterlessAreaSize)
 
                     // Generate minimal version of chunk (tile grid and structure) to check against
                     Chunk chunk(ChunkPosition(wrappedX, wrappedY));
-                    chunk.generateTilesAndStructure(heightNoise, biomeNoise, planetType, *this);
+                    chunk.generateTilesAndStructure(heightNoise, biomeNoise, riverNoise, planetType, *this);
 
                     // Check against chunk
                     if (!chunk.getContainsWater())
@@ -976,7 +981,7 @@ void ChunkManager::generateChunk(const ChunkPosition& chunkPosition, Game& game,
     chunkPtr->setWorldPosition(chunkWorldPos, *this);
 
     // Generate
-    chunkPtr->generateChunk(heightNoise, biomeNoise, planetType, game, *this, pathfindingEngine);
+    chunkPtr->generateChunk(heightNoise, biomeNoise, riverNoise, planetType, game, *this, pathfindingEngine);
 }
 
 void ChunkManager::clearUnmodifiedStoredChunks()
