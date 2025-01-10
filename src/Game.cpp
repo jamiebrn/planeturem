@@ -83,7 +83,9 @@ bool Game::initialise()
     // TODO: ugly
     Achievements::steamInitialised = steamInitialised;
     if (steamInitialised)
+    {
         SteamUserStats()->RequestCurrentStats();
+    }
 
     // Randomise
     srand(time(NULL));
@@ -579,7 +581,7 @@ void Game::runInGame(float dt)
             if (worldMenuState == WorldMenuState::Main)
             {
                 worldMenuState = WorldMenuState::PauseMenu;
-                mainMenuGUI.resetHoverRect();
+                mainMenuGUI.initialisePauseMenu();
                 InputManager::consumeInputAction(InputAction::PAUSE_GAME);
             }
         }
@@ -896,6 +898,11 @@ void Game::runInGame(float dt)
                 case PauseMenuEventType::Resume:
                 {
                     worldMenuState = WorldMenuState::Main;
+                    break;
+                }
+                case PauseMenuEventType::SaveOptions:
+                {
+                    saveOptions();
                     break;
                 }
                 case PauseMenuEventType::Quit:

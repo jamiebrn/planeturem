@@ -23,6 +23,12 @@ void MainMenuGUI::initialise()
     backgroundCamera.instantUpdate(worldViewPosition);
 }
 
+void MainMenuGUI::initialisePauseMenu()
+{
+    pauseMenuState = PauseMenuState::Main;
+    resetHoverRect();
+}
+
 void MainMenuGUI::update(float dt, sf::Vector2f mouseScreenPos, Game& game, ProjectileManager& projectileManager, InventoryData& inventory)
 {
     // Update background world / chunk manager
@@ -293,51 +299,10 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
         }
         case MainMenuState::Options:
         {
-            float musicVolume = Sounds::getMusicVolume();
-            if (guiContext.createSlider(scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale,
-                0.0f, 100.0f, &musicVolume, 20 * intScale, "Music Volume", panelWidth / 2 * intScale, panelWidth / 10 * intScale, 40 * intScale)
-                .isHeld())
-            {
-                Sounds::setMusicVolume(musicVolume);
-            }
-
-            elementYPos += 100 * intScale;
-
-            // Create button glyph switch buttons
-            if (guiContext.createButton(scaledPanelPaddingX, elementYPos,
-                panelWidth / 6 * intScale, 50 * intScale, buttonTextSize, "<", buttonStyle)
-                    .isClicked())
-            {
-                int glyphType = InputManager::getGlyphType();
-                InputManager::setGlyphType(glyphType - 1);
-            }
-
-            if (guiContext.createButton((scaledPanelPaddingX + panelWidth / 6 * 5) * intScale, elementYPos,
-                panelWidth / 6 * intScale, 50 * intScale, buttonTextSize, ">", buttonStyle)
-                    .isClicked())
-            {
-                int glyphType = InputManager::getGlyphType();
-                InputManager::setGlyphType(glyphType + 1);
-            }
-
-            // Text showing current controller glyph type
-            TextDrawData glyphTypeDrawData;
-            glyphTypeDrawData.text = "Button Glyph " + std::to_string(InputManager::getGlyphType() + 1);
-            glyphTypeDrawData.position = sf::Vector2f(scaledPanelPaddingX + panelWidth / 2 * intScale, elementYPos + 50 * 0.5f * intScale);
-            glyphTypeDrawData.centeredX = true;
-            glyphTypeDrawData.centeredY = true;
-            glyphTypeDrawData.size = 24 * intScale;
-            glyphTypeDrawData.colour = sf::Color(255, 255, 255);
-            TextDraw::drawText(window, glyphTypeDrawData);
-
-            elementYPos += 200 * intScale;
-
-            if (guiContext.createButton(scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale, buttonTextSize, "Back", buttonStyle)
-                .isClicked())
+            if (createOptionsMenu(window, elementYPos))
             {
                 menuEvent = MainMenuEvent();
                 menuEvent->type = MainMenuEventType::SaveOptions;
-
 
                 nextUIState = MainMenuState::Main;
             }
@@ -359,7 +324,7 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
 
     if (nextUIState != mainMenuState)
     {
-        changeUIState(nextUIState);
+        changeUIState<MainMenuState>(nextUIState, mainMenuState);
     }
 
     guiContext.draw(window);
@@ -376,6 +341,62 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
     TextDraw::drawText(window, versionTextDrawData);
 
     return menuEvent;
+}
+
+bool MainMenuGUI::createOptionsMenu(sf::RenderTarget& window, int startElementYPos)
+{
+    float intScale = ResolutionHandler::getResolutionIntegerScale();
+
+    int scaledPanelPaddingX = getScaledPanelPaddingX();
+
+    int buttonTextSize = 24 * intScale;
+
+    float musicVolume = Sounds::getMusicVolume();
+    if (guiContext.createSlider(scaledPanelPaddingX, startElementYPos, panelWidth * intScale, 75 * intScale,
+        0.0f, 100.0f, &musicVolume, 20 * intScale, "Music Volume", panelWidth / 2 * intScale, panelWidth / 10 * intScale, 40 * intScale)
+        .isHeld())
+    {
+        Sounds::setMusicVolume(musicVolume);
+    }
+
+    startElementYPos += 100 * intScale;
+
+    // Create button glyph switch buttons
+    if (guiContext.createButton(scaledPanelPaddingX, startElementYPos,
+        panelWidth / 6 * intScale, 50 * intScale, buttonTextSize, "<", buttonStyle)
+            .isClicked())
+    {
+        int glyphType = InputManager::getGlyphType();
+        InputManager::setGlyphType(glyphType - 1);
+    }
+
+    if (guiContext.createButton((scaledPanelPaddingX + panelWidth / 6 * 5) * intScale, startElementYPos,
+        panelWidth / 6 * intScale, 50 * intScale, buttonTextSize, ">", buttonStyle)
+            .isClicked())
+    {
+        int glyphType = InputManager::getGlyphType();
+        InputManager::setGlyphType(glyphType + 1);
+    }
+
+    // Text showing current controller glyph type
+    TextDrawData glyphTypeDrawData;
+    glyphTypeDrawData.text = "Button Glyph " + std::to_string(InputManager::getGlyphType() + 1);
+    glyphTypeDrawData.position = sf::Vector2f(scaledPanelPaddingX + panelWidth / 2 * intScale, startElementYPos + 50 * 0.5f * intScale);
+    glyphTypeDrawData.centeredX = true;
+    glyphTypeDrawData.centeredY = true;
+    glyphTypeDrawData.size = 24 * intScale;
+    glyphTypeDrawData.colour = sf::Color(255, 255, 255);
+    TextDraw::drawText(window, glyphTypeDrawData);
+
+    startElementYPos += 200 * intScale;
+
+    if (guiContext.createButton(scaledPanelPaddingX, startElementYPos, panelWidth * intScale, 75 * intScale, buttonTextSize, "Back", buttonStyle)
+        .isClicked())
+    {
+        return true;
+    }
+
+    return false;
 }
 
 std::optional<PauseMenuEventType> MainMenuGUI::createAndDrawPauseMenu(sf::RenderTarget& window, float dt, float gameTime)
@@ -399,21 +420,52 @@ std::optional<PauseMenuEventType> MainMenuGUI::createAndDrawPauseMenu(sf::Render
     const int startElementYPos = resolution.y * 0.37f;
     int elementYPos = startElementYPos;
 
+    PauseMenuState nextUIState = pauseMenuState;
+
     std::optional<PauseMenuEventType> menuEvent = std::nullopt;
 
-    if (guiContext.createButton(scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale, 24 * intScale, "Resume", buttonStyle).isClicked())
+    switch (pauseMenuState)
     {
-        menuEvent = PauseMenuEventType::Resume;
-    }
+        case PauseMenuState::Main:
+        {
+            if (guiContext.createButton(scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale, 24 * intScale, "Resume", buttonStyle).isClicked())
+            {
+                menuEvent = PauseMenuEventType::Resume;
+            }
 
-    elementYPos += 100 * intScale;
+            elementYPos += 100 * intScale;
+            
+            if (guiContext.createButton(scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale, 24 * intScale, "Options", buttonStyle).isClicked())
+            {
+                nextUIState = PauseMenuState::Options;
+            }
 
-    if (guiContext.createButton(scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale, 24 * intScale, "Quit", buttonStyle).isClicked())
-    {
-        menuEvent = PauseMenuEventType::Quit;
+            elementYPos += 100 * intScale;
+
+            if (guiContext.createButton(scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale, 24 * intScale, "Quit", buttonStyle).isClicked())
+            {
+                menuEvent = PauseMenuEventType::Quit;
+            }
+
+            break;
+        }
+        case PauseMenuState::Options:
+        {
+            if (createOptionsMenu(window, elementYPos))
+            {
+                menuEvent = PauseMenuEventType::SaveOptions;
+
+                nextUIState = PauseMenuState::Main;
+            }
+        }
     }
 
     updateAndDrawSelectionHoverRect(window, dt);
+
+    if (nextUIState != pauseMenuState)
+    {
+        changeUIState<PauseMenuState>(nextUIState, pauseMenuState);
+    }
 
     guiContext.draw(window);
 
@@ -444,9 +496,10 @@ int MainMenuGUI::getWorldSeedFromString(std::string string)
     return seed;
 }
 
-void MainMenuGUI::changeUIState(MainMenuState newState)
+template <typename StateType>
+void MainMenuGUI::changeUIState(StateType newState, StateType& currentState)
 {
-    mainMenuState = newState;
+    currentState = newState;
     resetHoverRect();
     deferHoverRectReset = false;
 }

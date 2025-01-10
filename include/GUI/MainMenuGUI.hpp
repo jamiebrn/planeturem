@@ -40,9 +40,16 @@ struct MainMenuEvent
     int worldSeed;
 };
 
+enum class PauseMenuState
+{
+    Main,
+    Options
+};
+
 enum class PauseMenuEventType
 {
     Resume,
+    SaveOptions,
     Quit
 };
 
@@ -57,6 +64,8 @@ public:
 
     void initialise();
 
+    void initialisePauseMenu();
+
     void update(float dt, sf::Vector2f mouseScreenPos, Game& game, ProjectileManager& projectileManager, InventoryData& inventory);
 
     std::optional<MainMenuEvent> createAndDraw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, float dt, float gameTime);
@@ -67,14 +76,19 @@ public:
 
 private:
     int getWorldSeedFromString(std::string string);
-    
-    void changeUIState(MainMenuState newState);
+
+    template <typename StateType>
+    void changeUIState(StateType newState, StateType& currentState);
+
+    // Returns true if back is pressed
+    bool createOptionsMenu(sf::RenderTarget& window, int startElementYPos);
 
 private:
     std::string menuErrorMessage;
 
     // Menu
     MainMenuState mainMenuState;
+    PauseMenuState pauseMenuState;
 
     std::vector<SaveFileSummary> saveFileSummaries;
     int saveFilePage;
