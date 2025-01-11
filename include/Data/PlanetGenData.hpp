@@ -62,6 +62,8 @@ struct BiomeGenData
     std::vector<StructureGenData> structureGenDatas;
     std::vector<FishCatchData> fishCatchDatas;
 
+    sf::Color waterColour;
+
     float noiseRangeMin;
     float noiseRangeMax;
 
@@ -75,7 +77,7 @@ struct PlanetGenData
 
     std::vector<BiomeGenData> biomeGenDatas;
 
-    sf::Color waterColour;
+    // sf::Color waterColour;
     sf::Vector2i waterTextureOffset;
 
     sf::Vector2i cliffTextureOffset;

@@ -50,6 +50,8 @@ void ChunkManager::deleteAllChunks()
 {
     loadedChunks.clear();
     storedChunks.clear();
+
+    chunkBiomeCache.clear();
 }
 
 bool ChunkManager::updateChunks(Game& game, const Camera& camera)
@@ -226,18 +228,12 @@ void ChunkManager::drawChunkWater(sf::RenderTarget& window, const Camera& camera
     sf::Shader* waterShader = Shaders::getShader(ShaderType::Water);
     waterShader->setUniform("time", time);
 
-    // Set water colour
-    const PlanetGenData& planetGenData = PlanetGenDataLoader::getPlanetGenData(planetType);
-    waterShader->setUniform("waterColor", sf::Glsl::Vec4(planetGenData.waterColour));
-    waterShader->setUniform("spriteSheetSize", sf::Glsl::Vec2(TextureManager::getTextureSize(TextureType::Water)));
-    waterShader->setUniform("textureRect", sf::Glsl::Vec4(planetGenData.waterTextureOffset.x, planetGenData.waterTextureOffset.y, 32, 32));
-
     for (auto& chunkPair : loadedChunks)
     {
         ChunkPosition chunkPos = chunkPair.first;
         std::unique_ptr<Chunk>& chunk = chunkPair.second;
         
-        chunk->drawChunkWater(window, camera);
+        chunk->drawChunkWater(window, camera, *this);
     }
 }
 
@@ -501,6 +497,25 @@ int ChunkManager::getChunkTileTypeOrPredicted(ChunkPosition chunk, sf::Vector2i 
 bool ChunkManager::isChunkGenerated(ChunkPosition chunk) const
 {
     return (loadedChunks.count(chunk) + storedChunks.count(chunk)) > 0;
+}
+
+const BiomeGenData* ChunkManager::getChunkBiome(ChunkPosition chunk)
+{
+    if (chunkBiomeCache.contains(chunk))
+    {
+        return chunkBiomeCache.at(chunk);
+    }
+
+    // Biome for chunk has not been stored
+    // Get chunk biome using top left chunk tile
+    sf::Vector2i chunkTopLeft(chunk.x * CHUNK_TILE_SIZE, chunk.y * CHUNK_TILE_SIZE);
+
+    const BiomeGenData* biomeGenData = Chunk::getBiomeGenAtWorldTile(chunkTopLeft, worldSize, biomeNoise, planetType);
+
+    // Store in cache
+    chunkBiomeCache[chunk] = biomeGenData;
+
+    return biomeGenData;
 }
 
 void ChunkManager::setObject(ChunkPosition chunk, sf::Vector2i tile, ObjectType objectType, Game& game)

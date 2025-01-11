@@ -70,6 +70,8 @@ public:
     // Whether chunk has been generated: stored or loaded
     bool isChunkGenerated(ChunkPosition chunk) const;
 
+    const BiomeGenData* getChunkBiome(ChunkPosition chunk);
+
 
     // -- Tilemap -- //
     TileMap* getChunkTileMap(ChunkPosition chunk, int tileMap);
@@ -225,6 +227,8 @@ private:
 private:
     std::unordered_map<ChunkPosition, std::unique_ptr<Chunk>> storedChunks;
     std::unordered_map<ChunkPosition, std::unique_ptr<Chunk>> loadedChunks;
+
+    std::unordered_map<ChunkPosition, const BiomeGenData*> chunkBiomeCache;
 
     FastNoise heightNoise;
     FastNoise biomeNoise;

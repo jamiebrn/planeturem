@@ -667,16 +667,45 @@ void Chunk::drawChunkTerrainVisual(sf::RenderTarget& window, SpriteBatch& sprite
     }
 }
 
-void Chunk::drawChunkWater(sf::RenderTarget& window, const Camera& camera)
+void Chunk::drawChunkWater(sf::RenderTarget& window, const Camera& camera, ChunkManager& chunkManager)
 {
     // Get scale
     float scale = ResolutionHandler::getScale();
 
+    // Set water colour
+    const BiomeGenData* chunkBiome = chunkManager.getChunkBiome(chunkPosition);
+    const BiomeGenData* upChunkBiome = chunkManager.getChunkBiome(ChunkPosition{chunkPosition.x, Helper::wrap(chunkPosition.y - 1, chunkManager.getWorldSize())});
+    const BiomeGenData* rightChunkBiome = chunkManager.getChunkBiome(ChunkPosition{Helper::wrap(chunkPosition.x + 1, chunkManager.getWorldSize()), chunkPosition.y});
+    const BiomeGenData* downChunkBiome = chunkManager.getChunkBiome(ChunkPosition{chunkPosition.x, Helper::wrap(chunkPosition.y + 1, chunkManager.getWorldSize())});
+    const BiomeGenData* leftChunkBiome = chunkManager.getChunkBiome(ChunkPosition{Helper::wrap(chunkPosition.x - 1, chunkManager.getWorldSize()), chunkPosition.y});
+    const BiomeGenData* upLeftChunkBiome = chunkManager.getChunkBiome(
+        ChunkPosition{Helper::wrap(chunkPosition.x - 1, chunkManager.getWorldSize()), Helper::wrap(chunkPosition.y - 1, chunkManager.getWorldSize())});
+    const BiomeGenData* upRightChunkBiome = chunkManager.getChunkBiome(
+        ChunkPosition{Helper::wrap(chunkPosition.x + 1, chunkManager.getWorldSize()), Helper::wrap(chunkPosition.y - 1, chunkManager.getWorldSize())});
+    const BiomeGenData* downRightChunkBiome = chunkManager.getChunkBiome(
+        ChunkPosition{Helper::wrap(chunkPosition.x + 1, chunkManager.getWorldSize()), Helper::wrap(chunkPosition.y + 1, chunkManager.getWorldSize())});
+    const BiomeGenData* downLeftChunkBiome = chunkManager.getChunkBiome(
+        ChunkPosition{Helper::wrap(chunkPosition.x - 1, chunkManager.getWorldSize()), Helper::wrap(chunkPosition.y + 1, chunkManager.getWorldSize())});
+    
+    // TODO: Check for biome nullptr
+
+    sf::Glsl::Vec4 surroundingWaterColors[8] = {sf::Glsl::Vec4(upChunkBiome->waterColour), sf::Glsl::Vec4(rightChunkBiome->waterColour),
+        sf::Glsl::Vec4(downChunkBiome->waterColour), sf::Glsl::Vec4(leftChunkBiome->waterColour), sf::Glsl::Vec4(upLeftChunkBiome->waterColour),
+        sf::Glsl::Vec4(upRightChunkBiome->waterColour), sf::Glsl::Vec4(downRightChunkBiome->waterColour), sf::Glsl::Vec4(downLeftChunkBiome->waterColour)};
+    
+    sf::Shader* waterShader = Shaders::getShader(ShaderType::Water);
+
+    waterShader->setUniform("waterColor", sf::Glsl::Vec4(chunkBiome->waterColour));
+    waterShader->setUniformArray("surroundingWaterColors", surroundingWaterColors, 8);
+    waterShader->setUniform("spriteSheetSize", sf::Glsl::Vec2(TextureManager::getTextureSize(TextureType::Water)));
+
+    const PlanetGenData& planetGenData = PlanetGenDataLoader::getPlanetGenData(chunkManager.getPlanetType());
+
+    waterShader->setUniform("textureRect", sf::Glsl::Vec4(planetGenData.waterTextureOffset.x, planetGenData.waterTextureOffset.y, 32, 32));
+
     // Draw water
     sf::Vector2f waterPos = camera.worldToScreenTransform(worldPosition);
     sf::IntRect waterRect(0, 0, TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE, TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE);
-
-    sf::Shader* waterShader = Shaders::getShader(ShaderType::Water);
 
     TextureManager::drawSubTexture(window, {TextureType::Water, waterPos, 0, {scale, scale}}, waterRect, waterShader);
 }

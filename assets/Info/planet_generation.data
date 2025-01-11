@@ -24,6 +24,7 @@
                         ["Wood", 1, 0.1],
                         ["Stone", 1, 0.1]
                     ],
+                    "water-colour": [173, 152, 93],
                     "noise-range": [0, 0.3],
                     "bosses-spawn-allowed": ["The Sand Serpent"]
                 },
@@ -53,6 +54,7 @@
                         ["Coal", 1, 0.1],
                         ["Wood", 2, 0.1]
                     ],
+                    "water-colour": [77, 155, 230],
                     "noise-range": [0.3, 0.6]
                 },
                 {
@@ -74,10 +76,10 @@
                         ["Fish", 1, 0.2],
                         ["Stone", 1, 0.2]
                     ],
+                    "water-colour": [82, 113, 151],
                     "noise-range": [0.6, 1]
                 }
             ],
-            "water-colour": [77, 155, 230],
             "water-texture-offset": [0, 0],
             "cliff-texture-offset": [64, 0],
             "river-noise-frequency": 0.05,
@@ -99,6 +101,7 @@
                         ["Large Icicle Right", 0.01]
                     ],
                     "fish-catches": [],
+                    "water-colour": [77, 155, 230],
                     "noise-range": [0, 0.5]
                 },
                 {
@@ -116,10 +119,10 @@
                         ["Igloo", 0.02]
                     ],
                     "fish-catches": [],
+                    "water-colour": [77, 155, 230],
                     "noise-range": [0.5, 1]
                 }
             ],
-            "water-colour": [77, 155, 230],
             "water-texture-offset": [0, 0],
             "cliff-texture-offset": [192, 0],
             "size": 100,

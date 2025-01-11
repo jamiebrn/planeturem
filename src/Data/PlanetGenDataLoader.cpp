@@ -42,16 +42,16 @@ bool PlanetGenDataLoader::loadPlanet(nlohmann::ordered_json::iterator& planetDat
         planetGenData.displayName = planetGenData.name;
     }
 
-    if (planetData->contains("water-colour"))
-    {
-        planetGenData.waterColour.r = planetData->at("water-colour")[0];
-        planetGenData.waterColour.g = planetData->at("water-colour")[1];
-        planetGenData.waterColour.b = planetData->at("water-colour")[2];
-    }
-    else
-    {
-        planetGenData.waterColour = sf::Color(255, 255, 255);
-    }
+    // if (planetData->contains("water-colour"))
+    // {
+    //     planetGenData.waterColour.r = planetData->at("water-colour")[0];
+    //     planetGenData.waterColour.g = planetData->at("water-colour")[1];
+    //     planetGenData.waterColour.b = planetData->at("water-colour")[2];
+    // }
+    // else
+    // {
+    //     planetGenData.waterColour = sf::Color(255, 255, 255);
+    // }
 
     planetGenData.waterTextureOffset = planetData->at("water-texture-offset");
     planetGenData.cliffTextureOffset = planetData->at("cliff-texture-offset");
@@ -102,6 +102,17 @@ bool PlanetGenDataLoader::loadPlanet(nlohmann::ordered_json::iterator& planetDat
         auto noiseRange = biomeIter->at("noise-range");
         biomeGenData.noiseRangeMin = noiseRange[0];
         biomeGenData.noiseRangeMax = noiseRange[1];
+
+        if (biomeIter->contains("water-colour"))
+        {
+            biomeGenData.waterColour.r = biomeIter->at("water-colour")[0];
+            biomeGenData.waterColour.g = biomeIter->at("water-colour")[1];
+            biomeGenData.waterColour.b = biomeIter->at("water-colour")[2];
+        }
+        else
+        {
+            biomeGenData.waterColour = sf::Color(255, 255, 255);
+        }
 
         // Load biome tilemaps
         if (!biomeIter->contains("tiles"))
