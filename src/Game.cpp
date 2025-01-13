@@ -2122,6 +2122,11 @@ void Game::changeState(GameState newState)
 {
     switch (newState)
     {
+        case GameState::MainMenu:
+        {
+            ResolutionHandler::overrideZoom(0);
+            break;
+        }
         case GameState::InStructure:
         {
             closeChest();

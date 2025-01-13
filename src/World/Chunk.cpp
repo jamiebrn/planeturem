@@ -674,24 +674,38 @@ void Chunk::drawChunkWater(sf::RenderTarget& window, const Camera& camera, Chunk
 
     // Set water colour
     const BiomeGenData* chunkBiome = chunkManager.getChunkBiome(chunkPosition);
-    const BiomeGenData* upChunkBiome = chunkManager.getChunkBiome(ChunkPosition{chunkPosition.x, Helper::wrap(chunkPosition.y - 1, chunkManager.getWorldSize())});
-    const BiomeGenData* rightChunkBiome = chunkManager.getChunkBiome(ChunkPosition{Helper::wrap(chunkPosition.x + 1, chunkManager.getWorldSize()), chunkPosition.y});
-    const BiomeGenData* downChunkBiome = chunkManager.getChunkBiome(ChunkPosition{chunkPosition.x, Helper::wrap(chunkPosition.y + 1, chunkManager.getWorldSize())});
-    const BiomeGenData* leftChunkBiome = chunkManager.getChunkBiome(ChunkPosition{Helper::wrap(chunkPosition.x - 1, chunkManager.getWorldSize()), chunkPosition.y});
-    const BiomeGenData* upLeftChunkBiome = chunkManager.getChunkBiome(
-        ChunkPosition{Helper::wrap(chunkPosition.x - 1, chunkManager.getWorldSize()), Helper::wrap(chunkPosition.y - 1, chunkManager.getWorldSize())});
-    const BiomeGenData* upRightChunkBiome = chunkManager.getChunkBiome(
-        ChunkPosition{Helper::wrap(chunkPosition.x + 1, chunkManager.getWorldSize()), Helper::wrap(chunkPosition.y - 1, chunkManager.getWorldSize())});
-    const BiomeGenData* downRightChunkBiome = chunkManager.getChunkBiome(
-        ChunkPosition{Helper::wrap(chunkPosition.x + 1, chunkManager.getWorldSize()), Helper::wrap(chunkPosition.y + 1, chunkManager.getWorldSize())});
-    const BiomeGenData* downLeftChunkBiome = chunkManager.getChunkBiome(
-        ChunkPosition{Helper::wrap(chunkPosition.x - 1, chunkManager.getWorldSize()), Helper::wrap(chunkPosition.y + 1, chunkManager.getWorldSize())});
     
-    // TODO: Check for biome nullptr
+    const BiomeGenData* surroundingChunkBiomes[8] = {
+        chunkManager.getChunkBiome(ChunkPosition{chunkPosition.x, Helper::wrap(chunkPosition.y - 1, chunkManager.getWorldSize())}),
+        chunkManager.getChunkBiome(ChunkPosition{Helper::wrap(chunkPosition.x + 1, chunkManager.getWorldSize()), chunkPosition.y}),
+        chunkManager.getChunkBiome(ChunkPosition{chunkPosition.x, Helper::wrap(chunkPosition.y + 1, chunkManager.getWorldSize())}),
+        chunkManager.getChunkBiome(ChunkPosition{Helper::wrap(chunkPosition.x - 1, chunkManager.getWorldSize()), chunkPosition.y}),
+        chunkManager.getChunkBiome(
+        ChunkPosition{Helper::wrap(chunkPosition.x - 1, chunkManager.getWorldSize()), Helper::wrap(chunkPosition.y - 1, chunkManager.getWorldSize())}),
+        chunkManager.getChunkBiome(
+        ChunkPosition{Helper::wrap(chunkPosition.x + 1, chunkManager.getWorldSize()), Helper::wrap(chunkPosition.y - 1, chunkManager.getWorldSize())}),
+        chunkManager.getChunkBiome(
+        ChunkPosition{Helper::wrap(chunkPosition.x + 1, chunkManager.getWorldSize()), Helper::wrap(chunkPosition.y + 1, chunkManager.getWorldSize())}),
+        chunkManager.getChunkBiome(
+        ChunkPosition{Helper::wrap(chunkPosition.x - 1, chunkManager.getWorldSize()), Helper::wrap(chunkPosition.y + 1, chunkManager.getWorldSize())})
+    };
 
-    sf::Glsl::Vec4 surroundingWaterColors[8] = {sf::Glsl::Vec4(upChunkBiome->waterColour), sf::Glsl::Vec4(rightChunkBiome->waterColour),
-        sf::Glsl::Vec4(downChunkBiome->waterColour), sf::Glsl::Vec4(leftChunkBiome->waterColour), sf::Glsl::Vec4(upLeftChunkBiome->waterColour),
-        sf::Glsl::Vec4(upRightChunkBiome->waterColour), sf::Glsl::Vec4(downRightChunkBiome->waterColour), sf::Glsl::Vec4(downLeftChunkBiome->waterColour)};
+    if (chunkBiome == nullptr)
+    {
+        return;
+    }
+
+    sf::Glsl::Vec4 surroundingWaterColors[8];
+    
+    for (int i = 0; i < 8; i++)
+    {
+        if (surroundingChunkBiomes[i] == nullptr)
+        {
+            return;
+        }
+
+        surroundingWaterColors[i] = surroundingChunkBiomes[i]->waterColour;
+    }
     
     sf::Shader* waterShader = Shaders::getShader(ShaderType::Water);
 

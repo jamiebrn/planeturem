@@ -58,50 +58,27 @@ void main()
 
     vec4 texColor = texture2D(texture, texCoord);
 
-    // Mix with surrounding water
-    // vec4 adjustedWaterColor = mix(waterColor, surroundingWaterColors[0], max(0.5 - (normalizedTexY / noiseSampleDivide), 0.0)); // mix with up
-    // adjustedWaterColor = mix(adjustedWaterColor, surroundingWaterColors[1], max((normalizedTexX / noiseSampleDivide) - 0.5, 0.0)); // mix with right
-    // adjustedWaterColor = mix(adjustedWaterColor, surroundingWaterColors[2], max((normalizedTexY / noiseSampleDivide) - 0.5, 0.0)); // mix with down
-    // adjustedWaterColor = mix(adjustedWaterColor, surroundingWaterColors[3], max(0.5 - (normalizedTexX / noiseSampleDivide), 0.0)); // mix with left
+    const float edgeBlend = 0.3;
 
-    // adjustedWaterColor = mix(adjustedWaterColor, surroundingWaterColors[4], max((sqrt(0.5) - sqrt(pow(max(normalizedTexX / noiseSampleDivide, 0.5), 2) + pow(max(normalizedTexY / noiseSampleDivide, 0.5), 2))) / sqrt(0.5) * 0.5, 0.0)); // mix with up-left
-    // adjustedWaterColor = mix(adjustedWaterColor, surroundingWaterColors[5], max((sqrt(0.5) - sqrt(pow(max(1.0 - normalizedTexX / noiseSampleDivide, 0.5), 2) + pow(max(normalizedTexY / noiseSampleDivide, 0.5), 2))) / sqrt(0.5) * 0.5, 0.0)); // mix with up-right
-    // adjustedWaterColor = mix(adjustedWaterColor, surroundingWaterColors[6], max((sqrt(0.5) - sqrt(pow(max(1.0 - normalizedTexX / noiseSampleDivide, 0.5), 2) + pow(max(1.0 - normalizedTexY / noiseSampleDivide, 0.5), 2))) / sqrt(0.5) * 0.5, 0.0)); // mix with down-right
-    // adjustedWaterColor = mix(adjustedWaterColor, surroundingWaterColors[7], max((sqrt(0.5) - sqrt(pow(max(normalizedTexX / noiseSampleDivide, 0.5), 2) + pow(max(1.0 - normalizedTexY / noiseSampleDivide, 0.5), 2))) / sqrt(0.5) * 0.5, 0.0)); // mix with down-left
+    float centreWeight = min((1.0 - abs(normalizedTexX / noiseSampleDivide - 0.5)), (1.0 - abs(normalizedTexY / noiseSampleDivide - 0.5)));
+    float upWeight = max((edgeBlend - (normalizedTexY / noiseSampleDivide)) / edgeBlend * 0.5, 0.0);
+    float rightWeight = max(((normalizedTexX / noiseSampleDivide) - (1.0 - edgeBlend)) / edgeBlend * 0.5, 0.0);
+    float downWeight = max(((normalizedTexY / noiseSampleDivide) - (1.0 - edgeBlend)) / edgeBlend * 0.5, 0.0);
+    float leftWeight = max((edgeBlend - (normalizedTexX / noiseSampleDivide)) / edgeBlend * 0.5, 0.0);
+    float upLeftWeight = max((edgeBlend - sqrt(pow(max(normalizedTexX / noiseSampleDivide, 0.0), 2) + pow(max(normalizedTexY / noiseSampleDivide, 0.0), 2))) / edgeBlend * 0.5, 0.0);
+    float upRightWeight = max((edgeBlend - sqrt(pow(max(1.0 - normalizedTexX / noiseSampleDivide, 0.0), 2) + pow(max(normalizedTexY / noiseSampleDivide, 0.0), 2))) / edgeBlend * 0.5, 0.0);
+    float downRightWeight = max((edgeBlend - sqrt(pow(max(1.0 - normalizedTexX / noiseSampleDivide, 0.0), 2) + pow(max(1.0 - normalizedTexY / noiseSampleDivide, 0.0), 2))) / edgeBlend * 0.5, 0.0);
+    float downLeftWeight = max((edgeBlend - sqrt(pow(max(normalizedTexX / noiseSampleDivide, 0.0), 2) + pow(max(1.0 - normalizedTexY / noiseSampleDivide, 0.0), 2))) / edgeBlend * 0.5, 0.0);
 
-    // vec4 blendedColor = waterColor;
+    float totalWeight = centreWeight + upWeight + rightWeight + downWeight + leftWeight + upLeftWeight + upRightWeight + downRightWeight + downLeftWeight;
 
-    float weightCenter = (1.0 - abs(normalizedTexX / noiseSampleDivide - 0.5)) * (1.0 - abs(normalizedTexY / noiseSampleDivide - 0.5));
-
-    float weightUp = max(0.0, 1.0 - normalizedTexY / noiseSampleDivide);
-    float weightDown = max(0.0, normalizedTexY / noiseSampleDivide);
-    float weightLeft = max(0.0, 1.0 - normalizedTexX / noiseSampleDivide);
-    float weightRight = max(0.0, normalizedTexX / noiseSampleDivide);
-
-    float weightUpLeft = weightUp * weightLeft * 1.0 / sqrt(2);
-    float weightUpRight = weightUp * weightRight * 1.0 / sqrt(2);
-    float weightDownLeft = weightDown * weightLeft * 1.0 / sqrt(2);
-    float weightDownRight = weightDown * weightRight * 1.0 / sqrt(2);
-
-    // Normalize weights
-    float totalWeight = weightCenter + weightUp + weightDown + weightLeft + weightRight;
-                    //   + weightUpLeft + weightUpRight + weightDownLeft + weightDownRight;
-
-    // Blend colors based on weights
-    vec4 blendedColor =
-          waterColor * (weightCenter / totalWeight)
-        + surroundingWaterColors[0] * (weightUp / totalWeight)
-        + surroundingWaterColors[1] * (weightRight / totalWeight)
-        + surroundingWaterColors[2] * (weightDown / totalWeight)
-        + surroundingWaterColors[3] * (weightLeft / totalWeight);
-        // + surroundingWaterColors[4] * (weightUpLeft / totalWeight)
-        // + surroundingWaterColors[5] * (weightUpRight / totalWeight)
-        // + surroundingWaterColors[6] * (weightDownRight / totalWeight)
-        // + surroundingWaterColors[7] * (weightDownLeft / totalWeight);
-
+    vec4 adjustedWaterColor = (waterColor * centreWeight + surroundingWaterColors[0] * upWeight + surroundingWaterColors[1] * rightWeight
+        + surroundingWaterColors[2] * downWeight + surroundingWaterColors[3] * leftWeight + surroundingWaterColors[4] * upLeftWeight + surroundingWaterColors[5] * upRightWeight
+        + surroundingWaterColors[6] * downRightWeight + surroundingWaterColors[7] * downLeftWeight) / totalWeight;
+    
     vec4 color = texColor;
-    if (texColor.a == 0.0) color = blendedColor;
-    else if (waterColor != vec4(1.0, 1.0, 1.0, 1.0)) color = mix(texColor, blendedColor, 0.7);
+    if (texColor.a == 0.0) color = adjustedWaterColor;
+    else if (waterColor != vec4(1.0, 1.0, 1.0, 1.0)) color = mix(texColor, adjustedWaterColor, 0.7);
 
     gl_FragColor = color * gl_Color;
 }

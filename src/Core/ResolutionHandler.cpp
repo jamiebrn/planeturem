@@ -32,6 +32,11 @@ void ResolutionHandler::changeZoom(int amount)
     currentZoom = std::min(std::max(currentZoom + amount, lowLimit), highLimit);
 }
 
+void ResolutionHandler::overrideZoom(int zoom)
+{
+    currentZoom = zoom;
+}
+
 int ResolutionHandler::getResolutionIntegerScale()
 {
     float resolutionXScale = currentResolution.x / 1920.0f;

@@ -16,6 +16,8 @@ public:
     // static void changeScale(int amount);
     static void changeZoom(int amount);
 
+    static void overrideZoom(int zoom);
+
     static inline int getScale() {return (scale + currentZoom) * getResolutionIntegerScale();}
 
     static inline float getTileSize() {return getScale() * TILE_SIZE_PIXELS_UNSCALED;}
