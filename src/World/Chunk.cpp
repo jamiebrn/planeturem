@@ -43,11 +43,11 @@ void Chunk::reset(bool fullReset)
 }
 
 void Chunk::generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNoise, const FastNoise& riverNoise, PlanetType planetType, Game& game, ChunkManager& chunkManager,
-    PathfindingEngine& pathfindingEngine, bool allowStructureGen)
+    PathfindingEngine& pathfindingEngine, bool allowStructureGen, bool spawnEntities)
 {
     RandInt randGen = generateTilesAndStructure(heightNoise, biomeNoise, riverNoise, planetType, chunkManager, allowStructureGen);
 
-    generateObjectsAndEntities(heightNoise, biomeNoise, riverNoise, planetType, randGen, game, chunkManager);
+    generateObjectsAndEntities(heightNoise, biomeNoise, riverNoise, planetType, randGen, game, chunkManager, spawnEntities);
 
     generateTilemapsAndInit(chunkManager, pathfindingEngine);
 }
@@ -96,7 +96,7 @@ RandInt Chunk::generateTilesAndStructure(const FastNoise& heightNoise, const Fas
 }
 
 void Chunk::generateObjectsAndEntities(const FastNoise& heightNoise, const FastNoise& biomeNoise, const FastNoise& riverNoise, PlanetType planetType, RandInt& randGen,
-    Game& game, ChunkManager& chunkManager)
+    Game& game, ChunkManager& chunkManager, bool spawnEntities)
 {
     sf::Vector2i worldNoisePosition = sf::Vector2i(chunkPosition.x, chunkPosition.y) * static_cast<int>(CHUNK_TILE_SIZE);
 
@@ -128,10 +128,26 @@ void Chunk::generateObjectsAndEntities(const FastNoise& heightNoise, const FastN
             {
                 objectGrid[y][x] = nullptr;
             }
+        }
+    }
 
+    if (spawnEntities)
+    {
+        spawnChunkEntities(chunkManager.getWorldSize(), heightNoise, biomeNoise, riverNoise, planetType);
+    }
+}
+
+void Chunk::spawnChunkEntities(int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise, const FastNoise& riverNoise, PlanetType planetType)
+{
+    sf::Vector2i worldNoisePosition = sf::Vector2i(chunkPosition.x, chunkPosition.y) * static_cast<int>(CHUNK_TILE_SIZE);
+
+    for (int y = 0; y < CHUNK_TILE_SIZE; y++)
+    {
+        for (int x = 0; x < CHUNK_TILE_SIZE; x++)
+        {
             // Create random entity
             EntityType entitySpawnType = getRandomEntityToSpawnAtWorldTile(sf::Vector2i(worldNoisePosition.x + x, worldNoisePosition.y + y),
-                chunkManager.getWorldSize(), heightNoise, biomeNoise, riverNoise, randGen, planetType);
+                worldSize, heightNoise, biomeNoise, riverNoise, planetType);
             
             if (entitySpawnType >= 0)
             {
@@ -377,9 +393,14 @@ ObjectType Chunk::getRandomObjectToSpawnAtWorldTile(sf::Vector2i worldTile, int 
 }
 
 EntityType Chunk::getRandomEntityToSpawnAtWorldTile(sf::Vector2i worldTile, int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise,
-    const FastNoise& riverNoise, RandInt& randGen, PlanetType planetType)
+    const FastNoise& riverNoise, PlanetType planetType)
 {
     const TileGenData* tileGenData = getTileGenAtWorldTile(worldTile, worldSize, heightNoise, biomeNoise, riverNoise, planetType);
+
+    if (tileGenData == nullptr)
+    {
+        return -1;
+    }
 
     if (!tileGenData->objectsCanSpawn)
         return -1;
@@ -387,7 +408,7 @@ EntityType Chunk::getRandomEntityToSpawnAtWorldTile(sf::Vector2i worldTile, int 
     const BiomeGenData* biomeGenData = getBiomeGenAtWorldTile(worldTile, worldSize, biomeNoise, planetType);
 
     float cumulativeChance = 0;
-    float randomSpawn = static_cast<float>(randGen.generate(0, 10000)) / 10000.0f;
+    float randomSpawn = Helper::randFloat(0.0f, 1.0f);
     for (const EntityGenData& entityGenData : biomeGenData->entityGenDatas)
     {
         cumulativeChance += entityGenData.spawnChance;

@@ -68,7 +68,7 @@ public:
 
     // Initialisation / generation
     void generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNoise, const FastNoise& riverNoise, PlanetType planetType, Game& game, ChunkManager& chunkManager,
-        PathfindingEngine& pathfindingEngine, bool allowStructureGen = true);
+        PathfindingEngine& pathfindingEngine, bool allowStructureGen = true, bool spawnEntities = true);
 
     // Tiles meaning tile grid, not tilemaps
     // Returns random int generator to continue to be used in generation
@@ -76,7 +76,9 @@ public:
         ChunkManager& chunkManager, bool allowStructureGen = true);
 
     void generateObjectsAndEntities(const FastNoise& heightNoise, const FastNoise& biomeNoise, const FastNoise& riverNoise, PlanetType planetType, RandInt& randGen,
-        Game& game, ChunkManager& chunkManager);
+        Game& game, ChunkManager& chunkManager, bool spawnEntities = true);
+    
+    void spawnChunkEntities(int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise, const FastNoise& riverNoise, PlanetType planetType);
 
     // Generates tilemaps and calls functions to generate visual tiles and calculate collision rects
     // Called during chunk generation
@@ -207,7 +209,7 @@ public:
         const FastNoise& riverNoise, RandInt& randGen, PlanetType planetType);
 
     static EntityType getRandomEntityToSpawnAtWorldTile(sf::Vector2i worldTile, int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise,
-        const FastNoise& riverNoise, RandInt& randGen, PlanetType planetType);
+        const FastNoise& riverNoise, PlanetType planetType);
 
 private:
     void generateRandomStructure(int worldSize, const FastNoise& biomeNoise, RandInt& randGen, PlanetType planetType, bool allowStructureGen);

@@ -13,7 +13,7 @@ Slider::Slider(const GUIInputState& inputState, ElementID id, int x, int y, int 
     this->paddingY = paddingY;
     this->minValue = minValue;
     this->maxValue = maxValue;
-    this->value = value;
+    this->value = *value;
     this->label = label;
 
     held = false;
@@ -74,11 +74,8 @@ void Slider::draw(sf::RenderTarget& window)
 
     window.draw(sliderRect);
 
-    if (!value)
-        return;
-
     sf::RectangleShape valueRect;
-    int sliderXPos = ((*value - minValue) / (maxValue - minValue)) * (width - height) + x + height / 2;
+    int sliderXPos = ((value - minValue) / (maxValue - minValue)) * (width - height) + x + height / 2;
     valueRect.setPosition(sf::Vector2f(sliderXPos, y + height / 2.0f));
     valueRect.setSize(sf::Vector2f(height, height));
     valueRect.setFillColor(sf::Color(110, 183, 219));
@@ -92,7 +89,7 @@ void Slider::draw(sf::RenderTarget& window)
     window.draw(valueRect);
 
     TextDrawData textDrawData;
-    textDrawData.text = std::to_string(static_cast<int>(*value));
+    textDrawData.text = std::to_string(static_cast<int>(value));
     textDrawData.position = sf::Vector2f(x, y) + sf::Vector2f(width, height) / 2.0f;
     textDrawData.size = textSize;
     textDrawData.centeredX = true;

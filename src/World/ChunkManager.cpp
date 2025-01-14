@@ -87,8 +87,10 @@ bool ChunkManager::updateChunks(Game& game, const Camera& camera)
             int wrappedX = ((x % worldSize) + worldSize) % worldSize;
             int wrappedY = ((y % worldSize) + worldSize) % worldSize;
 
+            ChunkPosition chunkPos(wrappedX, wrappedY);
+
             // Chunk already loaded
-            if (loadedChunks.count(ChunkPosition(wrappedX, wrappedY)))
+            if (loadedChunks.count(chunkPos))
                 continue;
             
             // Chunk not loaded
@@ -100,13 +102,13 @@ bool ChunkManager::updateChunks(Game& game, const Camera& camera)
             chunkWorldPos.y = y * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
 
             // Check if chunk is in memory, and load if so
-            if (storedChunks.count(ChunkPosition(wrappedX, wrappedY)))
+            if (storedChunks.count(chunkPos))
             {
                 // Move chunk into loaded chunks for rendering
-                loadedChunks[ChunkPosition(wrappedX, wrappedY)] = std::move(storedChunks[ChunkPosition(wrappedX, wrappedY)]);
-                storedChunks.erase(ChunkPosition(wrappedX, wrappedY));
+                loadedChunks[chunkPos] = std::move(storedChunks[chunkPos]);
+                storedChunks.erase(chunkPos);
 
-                auto& chunk = loadedChunks[ChunkPosition(wrappedX, wrappedY)];
+                auto& chunk = loadedChunks[chunkPos];
 
                 // Update chunk position
                 chunk->setWorldPosition(chunkWorldPos, *this);
@@ -116,6 +118,19 @@ bool ChunkManager::updateChunks(Game& game, const Camera& camera)
                 if (chunk->wasGeneratedFromPOD())
                 {
                     chunk->generateTilemapsAndInit(*this, pathfindingEngine);
+                }
+                else
+                {
+                    // Spawn entities if enough time has passed
+
+                    // Only attempt if chunk was not generated / loaded from POD, otherwise each time save is loaded
+                    // more entities will spawn in player view (meaning previous state is not retained from player perspective)
+
+                    if (getChunkEntitySpawnCooldown(chunkPos) >= MAX_CHUNK_ENTITY_SPAWN_COOLDOWN)
+                    {
+                        chunk->spawnChunkEntities(worldSize, heightNoise, biomeNoise, riverNoise, planetType);
+                        resetChunkEntitySpawnCooldown(chunkPos);
+                    }
                 }
 
                 continue;
@@ -508,7 +523,7 @@ const BiomeGenData* ChunkManager::getChunkBiome(ChunkPosition chunk)
 
     // Biome for chunk has not been stored
     // Get chunk biome using top left chunk tile
-    sf::Vector2i chunkTopLeft(chunk.x * CHUNK_TILE_SIZE, chunk.y * CHUNK_TILE_SIZE);
+    sf::Vector2i chunkTopLeft((chunk.x + 0.5f) * CHUNK_TILE_SIZE, (chunk.y + 0.5f) * CHUNK_TILE_SIZE);
 
     const BiomeGenData* biomeGenData = Chunk::getBiomeGenAtWorldTile(chunkTopLeft, worldSize, biomeNoise, planetType);
 
@@ -722,6 +737,24 @@ std::vector<WorldObject*> ChunkManager::getChunkEntities()
         entities.insert(entities.end(), chunkEntities.begin(), chunkEntities.end());
     }
     return entities;
+}
+
+int ChunkManager::getChunkEntitySpawnCooldown(ChunkPosition chunk)
+{
+    uint64_t time = std::chrono::system_clock::now().time_since_epoch() / std::chrono::milliseconds(1);
+
+    if (!chunkLastEntitySpawnTime.contains(chunk))
+    {
+        chunkLastEntitySpawnTime[chunk] = time;
+    }
+
+    return (time - chunkLastEntitySpawnTime.at(chunk));
+}
+
+void ChunkManager::resetChunkEntitySpawnCooldown(ChunkPosition chunk)
+{
+    uint64_t time = std::chrono::system_clock::now().time_since_epoch() / std::chrono::milliseconds(1);
+    chunkLastEntitySpawnTime[chunk] = time;
 }
 
 bool ChunkManager::collisionRectChunkStaticCollisionX(CollisionRect& collisionRect, float dx) const
@@ -995,8 +1028,10 @@ void ChunkManager::generateChunk(const ChunkPosition& chunkPosition, Game& game,
     // Set chunk position
     chunkPtr->setWorldPosition(chunkWorldPos, *this);
 
+    resetChunkEntitySpawnCooldown(chunkPosition);
+
     // Generate
-    chunkPtr->generateChunk(heightNoise, biomeNoise, riverNoise, planetType, game, *this, pathfindingEngine);
+    chunkPtr->generateChunk(heightNoise, biomeNoise, riverNoise, planetType, game, *this, pathfindingEngine, true, true);
 }
 
 void ChunkManager::clearUnmodifiedStoredChunks()

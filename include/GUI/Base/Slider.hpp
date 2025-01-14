@@ -31,7 +31,7 @@ private:
     int x, y, width, height;
     int paddingLeft, paddingRight, paddingY;
     float minValue, maxValue;
-    float* value;
+    float value;
     std::optional<std::string> label;
 
 };

@@ -5,6 +5,7 @@
 #include <vector>
 #include <optional>
 #include <set>
+#include <chrono>
 
 #include <World/FastNoise.h>
 
@@ -155,6 +156,10 @@ public:
     // Get all entities in loaded chunks (used for drawing)
     std::vector<WorldObject*> getChunkEntities();
 
+    int getChunkEntitySpawnCooldown(ChunkPosition chunk);
+
+    void resetChunkEntitySpawnCooldown(ChunkPosition chunk);
+
 
     // -- Collision -- //
     // Collision test functions for player, entity etc
@@ -229,6 +234,9 @@ private:
     std::unordered_map<ChunkPosition, std::unique_ptr<Chunk>> loadedChunks;
 
     std::unordered_map<ChunkPosition, const BiomeGenData*> chunkBiomeCache;
+
+    static constexpr int MAX_CHUNK_ENTITY_SPAWN_COOLDOWN = 60;
+    std::unordered_map<ChunkPosition, uint64_t> chunkLastEntitySpawnTime;
 
     FastNoise heightNoise;
     FastNoise biomeNoise;
