@@ -6,7 +6,7 @@ bool BossEntity::inPlayerRange(Player& player)
     return (playerMaxRange >= Helper::getVectorLength(player.getPosition() - position));
 }
 
-void BossEntity::giveItemDrops(InventoryData& inventory)
+void BossEntity::createItemPickups(ChunkManager& chunkManager, float gameTime)
 {
     for (const auto& itemDropChance : itemDrops)
     {
@@ -16,9 +16,18 @@ void BossEntity::giveItemDrops(InventoryData& inventory)
             continue;
         }
 
-        int amount = Helper::randInt(itemDropChance.first.minAmount, itemDropChance.first.maxAmount);
+        int itemAmount = Helper::randInt(itemDropChance.first.minAmount, itemDropChance.first.maxAmount);
 
-        inventory.addItem(itemDropChance.first.itemType, amount, true);
+        for (int i = 0; i < itemAmount; i++)
+        {
+            sf::Vector2f spawnPos = position - sf::Vector2f(0.5f, 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
+            spawnPos.x += Helper::randFloat(-itemPickupDropRadius, itemPickupDropRadius);
+            spawnPos.y += Helper::randFloat(-itemPickupDropRadius, itemPickupDropRadius);
+
+            chunkManager.addItemPickup(ItemPickup(spawnPos, itemDropChance.first.itemType, gameTime));
+        }
+
+        // inventory.addItem(itemDropChance.first.itemType, amount, true);
     }
 }
 

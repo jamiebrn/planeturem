@@ -16,6 +16,7 @@
 
 class Game;
 class Player;
+class ChunkManager;
 
 class BossEntity : public WorldObject
 {
@@ -38,20 +39,21 @@ public:
 
     virtual void testCollisionWithPlayer(Player& player) = 0;
 
-    virtual void testProjectileCollision(Projectile& projectile, InventoryData& inventory) = 0;
+    virtual void testProjectileCollision(Projectile& projectile) = 0;
 
     virtual void getWorldObjects(std::vector<WorldObject*>& worldObjects) = 0;
 
     // Test for despawn
     bool inPlayerRange(Player& player);
 
-    void giveItemDrops(InventoryData& inventory);
+    void createItemPickups(ChunkManager& chunkManager, float gameTime);
 
     void setName(const std::string& name);
     const std::string& getName();
 
 protected:
     float playerMaxRange = 1000.0f;
+    float itemPickupDropRadius = 32.0f;
 
     struct ItemDropDistribution
     {

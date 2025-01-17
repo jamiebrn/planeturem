@@ -20,6 +20,7 @@
 #include "Entity/Entity.hpp"
 #include "Types/TileType.hpp"
 #include "Player/InventoryData.hpp"
+#include "Player/ItemPickup.hpp"
 
 #include "World/ChunkPOD.hpp"
 #include "World/PathfindingEngine.hpp"
@@ -145,7 +146,7 @@ public:
 
     // -- Entities -- //
     // Update all entities in loaded chunks
-    void updateChunksEntities(float dt, ProjectileManager& projectileManager, InventoryData& inventory, Game& game);
+    void updateChunksEntities(float dt, ProjectileManager& projectileManager, Game& game);
 
     // Handle moving of entity from one chunk to another chunk
     void moveEntityToChunkFromChunk(std::unique_ptr<Entity> entity, ChunkPosition newChunk);
@@ -159,6 +160,18 @@ public:
     int getChunkEntitySpawnCooldown(ChunkPosition chunk);
 
     void resetChunkEntitySpawnCooldown(ChunkPosition chunk);
+
+
+    // -- Item pickups -- //
+    // Adds item pickup automatically to correct chunk
+    // If chunk is not loaded / generated, item pickup will be discarded
+    void addItemPickup(const ItemPickup& itemPickup);
+
+    // Check chunks in 3x3 area around player for colliding item pickups
+    // Returns first item pickup collided with (if any) and deletes the collided pickup from world
+    std::optional<ItemPickup> getCollidingItemPickup(const CollisionRect& playerCollision, float gameTime);
+
+    std::vector<WorldObject*> getItemPickups();
 
 
     // -- Collision -- //

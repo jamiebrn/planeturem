@@ -29,6 +29,7 @@
 #include "Object/StructureObject.hpp"
 
 #include "Player/InventoryData.hpp"
+#include "Player/ItemPickup.hpp"
 
 #include "Entity/Entity.hpp"
 #include "World/ChunkManager.hpp"
@@ -143,11 +144,20 @@ public:
 
 
     // -- Entity handling -- //
-    void updateChunkEntities(float dt, int worldSize, ProjectileManager& projectileManager, InventoryData& inventory, ChunkManager& chunkManager, Game& game);
+    void updateChunkEntities(float dt, int worldSize, ProjectileManager& projectileManager, ChunkManager& chunkManager, Game& game);
     void moveEntityToChunk(std::unique_ptr<Entity> entity);
 
     // Cursor position IS IN WORLD SPACE
     Entity* getSelectedEntity(sf::Vector2f cursorPos);
+
+
+    // -- Item pickups -- //
+    void addItemPickup(const ItemPickup& itemPickup);
+
+    std::optional<ItemPickup> getCollidingItemPickup(const CollisionRect& playerCollision, float gameTime);
+
+    std::vector<WorldObject*> getItemPickups();
+
 
     // -- Collision -- //
     // Calculate all collision rects (should be called after modifying terrain/objects etc)
@@ -226,6 +236,8 @@ private:
     // std::array<std::array<std::optional<BuildableObject>, 8>, 8> objectGrid;
     std::array<std::array<std::unique_ptr<BuildableObject>, 8>, 8> objectGrid;
     std::vector<std::unique_ptr<Entity>> entities;
+
+    std::vector<ItemPickup> itemPickups;
 
     // Stores collision rects for terrain and objects (NOT ENTITIES)
     // TODO: Stop using uniqueptr

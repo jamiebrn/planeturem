@@ -64,9 +64,9 @@ void PlantObject::changePlantStage(int newStage)
     health = objectData.plantStageObjectData->at(currentStage).health;
 }
 
-bool PlantObject::damage(int amount, Game& game, InventoryData& inventory, ParticleSystem& particleSystem, bool giveItems)
+bool PlantObject::damage(int amount, Game& game, ChunkManager& chunkManager, ParticleSystem& particleSystem, bool giveItems)
 {
-    bool destroyed = BuildableObject::damage(amount, game, inventory, particleSystem, false);
+    bool destroyed = BuildableObject::damage(amount, game, chunkManager, particleSystem, false);
 
     if (destroyed)
     {
@@ -87,7 +87,7 @@ bool PlantObject::damage(int amount, Game& game, InventoryData& inventory, Parti
         }
 
         // Give item drops
-        giveItemDrops(inventory, plantStageData->itemDrops);
+        createItemPickups(chunkManager, plantStageData->itemDrops, game.getGameTime());
 
         return true;
     }

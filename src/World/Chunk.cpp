@@ -1,4 +1,5 @@
 #include "World/Chunk.hpp"
+#include "Game.hpp"
 
 Chunk::Chunk(ChunkPosition chunkPosition)
 {
@@ -949,7 +950,7 @@ bool Chunk::canPlaceObject(sf::Vector2i position, ObjectType objectType, int wor
     return true;
 }
 
-void Chunk::updateChunkEntities(float dt, int worldSize, ProjectileManager& projectileManager, InventoryData& inventory, ChunkManager& chunkManager, Game& game)
+void Chunk::updateChunkEntities(float dt, int worldSize, ProjectileManager& projectileManager, ChunkManager& chunkManager, Game& game)
 {
     for (std::vector<std::unique_ptr<Entity>>::iterator entityIter = entities.begin(); entityIter != entities.end();)
     {
@@ -958,7 +959,7 @@ void Chunk::updateChunkEntities(float dt, int worldSize, ProjectileManager& proj
         // Determine whether on water
         bool onWater = (getTileType(entity->getChunkTileInside(worldSize)) == 0);
 
-        entity->update(dt, projectileManager, inventory, chunkManager, game, onWater);
+        entity->update(dt, projectileManager, chunkManager, game, onWater, game.getGameTime());
 
         // Check if requires deleting (not alive)
         if (!entity->isAlive())
@@ -1018,6 +1019,40 @@ Entity* Chunk::getSelectedEntity(sf::Vector2f cursorPos)
             return entity.get();
     }
     return nullptr;
+}
+
+void Chunk::addItemPickup(const ItemPickup& itemPickup)
+{
+    itemPickups.push_back(itemPickup);
+}
+    
+std::optional<ItemPickup> Chunk::getCollidingItemPickup(const CollisionRect& playerCollision, float gameTime)
+{
+    for (auto iter = itemPickups.begin(); iter != itemPickups.end();)
+    {
+        if (iter->isBeingPickedUp(playerCollision, gameTime))
+        {
+            ItemPickup pickupCollided = *iter;
+            iter = itemPickups.erase(iter);
+            return pickupCollided;
+        }
+
+        iter++;
+    }
+
+    return std::nullopt;
+}
+
+std::vector<WorldObject*> Chunk::getItemPickups()
+{
+    std::vector<WorldObject*> itemPickupWorldObjects;
+
+    for (ItemPickup& itemPickup : itemPickups)
+    {
+        itemPickupWorldObjects.push_back(&itemPickup);
+    }
+
+    return itemPickupWorldObjects;
 }
 
 void Chunk::recalculateCollisionRects(ChunkManager& chunkManager, PathfindingEngine* pathfindingEngine)
@@ -1341,6 +1376,15 @@ void Chunk::setWorldPosition(sf::Vector2f position, ChunkManager& chunkManager)
         sf::Vector2f relativePosition = entity->getPosition() - worldPosition;
         // Set entity position to new chunk position + relative
         entity->setWorldPosition(position + relativePosition);
+    }
+
+    // Update all item pickup positions
+    for (auto& itemPickup : itemPickups)
+    {
+        // Get position relative to chunk before updating chunk position
+        sf::Vector2f relativePosition = itemPickup.getPosition() - worldPosition;
+        // Set entity position to new chunk position + relative
+        itemPickup.setPosition(position + relativePosition);
     }
 
     // Update structure position if necessary

@@ -56,7 +56,7 @@ public:
 
     void testCollisionWithPlayer(Player& player) override;
 
-    void testProjectileCollision(Projectile& projectile, InventoryData& inventory) override;
+    void testProjectileCollision(Projectile& projectile) override;
 
     void getWorldObjects(std::vector<WorldObject*>& worldObjects) override;
 

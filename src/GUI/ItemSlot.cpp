@@ -161,7 +161,7 @@ void ItemSlot::drawEmptyIconTexture(sf::RenderTarget& window, sf::IntRect emptyI
     TextureManager::drawSubTexture(window, drawData, emptyIconTexture);
 }
 
-void ItemSlot::drawItem(sf::RenderTarget& window, ItemType itemType, sf::Vector2f position, float scaleMult, bool centred, int alpha)
+void ItemSlot::drawItem(sf::RenderTarget& window, ItemType itemType, sf::Vector2f position, float scaleMult, bool centred, int alpha, float flashAmount)
 {
     float intScale = ResolutionHandler::getResolutionIntegerScale();
 
@@ -229,7 +229,14 @@ void ItemSlot::drawItem(sf::RenderTarget& window, ItemType itemType, sf::Vector2
 
         textureRect = projectileData.textureRect;
     }
+
+    sf::Shader* shader = nullptr;
+    if (flashAmount > 0.0f)
+    {
+        shader = Shaders::getShader(ShaderType::Flash);
+        shader->setUniform("flash_amount", flashAmount);
+    }
     
     // Draw item / tool / object
-    TextureManager::drawSubTexture(window, {textureType, position, 0, scale, origin, colour}, textureRect);
+    TextureManager::drawSubTexture(window, {textureType, position, 0, scale, origin, colour}, textureRect, shader);
 }

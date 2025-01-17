@@ -46,7 +46,7 @@ public:
     virtual void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
         const sf::Color& color) const = 0;
 
-    virtual void createLightSource(LightingEngine& lightingEngine, sf::Vector2f topLeftChunkPos) const = 0;
+    virtual void createLightSource(LightingEngine& lightingEngine, sf::Vector2f topLeftChunkPos) const {};
 
 protected:
     sf::Vector2f position;

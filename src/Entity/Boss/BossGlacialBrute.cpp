@@ -211,7 +211,7 @@ void BossGlacialBrute::testCollisionWithPlayer(Player& player)
 
 }
 
-void BossGlacialBrute::testProjectileCollision(Projectile& projectile, InventoryData& inventory)
+void BossGlacialBrute::testProjectileCollision(Projectile& projectile)
 {
     if (hitCollision.isColliding(projectile.getCollisionCircle()))
     {

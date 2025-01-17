@@ -684,11 +684,11 @@ std::vector<WorldObject*> ChunkManager::getChunkObjects()
     return objects;
 }
 
-void ChunkManager::updateChunksEntities(float dt, ProjectileManager& projectileManager, InventoryData& inventory, Game& game)
+void ChunkManager::updateChunksEntities(float dt, ProjectileManager& projectileManager, Game& game)
 {
     for (auto& chunkPair : loadedChunks)
     {
-        chunkPair.second->updateChunkEntities(dt, worldSize, projectileManager, inventory, *this, game);
+        chunkPair.second->updateChunkEntities(dt, worldSize, projectileManager, *this, game);
     }
 }
 
@@ -755,6 +755,63 @@ void ChunkManager::resetChunkEntitySpawnCooldown(ChunkPosition chunk)
 {
     uint64_t time = std::chrono::system_clock::now().time_since_epoch() / std::chrono::milliseconds(1);
     chunkLastEntitySpawnTime[chunk] = time;
+}
+
+void ChunkManager::addItemPickup(const ItemPickup& itemPickup)
+{
+    Chunk* chunkInside = getChunk(itemPickup.getChunkInside(worldSize));
+
+    if (chunkInside == nullptr)
+    {
+        return;
+    }
+
+    chunkInside->addItemPickup(itemPickup);
+}
+
+std::optional<ItemPickup> ChunkManager::getCollidingItemPickup(const CollisionRect& playerCollision, float gameTime)
+{
+    // Get chunk player is in
+    ChunkPosition chunk = WorldObject::getChunkInside(sf::Vector2f(playerCollision.x, playerCollision.y), worldSize);
+
+    // Check for pickups colliding in 3x3 chunk area around player
+    for (int x = chunk.x - 1; x <= chunk.x + 1; x++)
+    {
+        for (int y = chunk.y - 1; y <= chunk.y + 1; y++)
+        {
+            Chunk* chunkPtr = getChunk(ChunkPosition(Helper::wrap(x, worldSize), Helper::wrap(y, worldSize)));
+
+            if (chunkPtr == nullptr)
+            {
+                continue;
+            }
+
+            std::optional<ItemPickup> pickupCollided = chunkPtr->getCollidingItemPickup(playerCollision, gameTime);
+
+            if (pickupCollided.has_value())
+            {
+                return pickupCollided;
+            }
+        }
+    }
+
+    return std::nullopt;
+}
+
+std::vector<WorldObject*> ChunkManager::getItemPickups()
+{
+    std::vector<WorldObject*> itemPickupWorldObjects;
+
+    for (auto iter = loadedChunks.begin(); iter != loadedChunks.end(); iter++)
+    {
+        Chunk* chunkPtr = iter->second.get();
+
+        std::vector<WorldObject*> itemPickupChunkWorldObjects = chunkPtr->getItemPickups();
+
+        itemPickupWorldObjects.insert(itemPickupWorldObjects.end(), itemPickupChunkWorldObjects.begin(), itemPickupChunkWorldObjects.end());
+    }
+
+    return itemPickupWorldObjects;
 }
 
 bool ChunkManager::collisionRectChunkStaticCollisionX(CollisionRect& collisionRect, float dx) const

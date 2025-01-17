@@ -40,6 +40,7 @@
 #include "Player/Player.hpp"
 #include "Player/Cursor.hpp"
 #include "Player/InventoryData.hpp"
+#include "Player/ItemPickup.hpp"
 #include "Player/Achievements.hpp"
 
 #include "Object/WorldObject.hpp"
@@ -125,6 +126,8 @@ public:
     inline const Camera& getCamera() {return camera;}
 
     inline const Player& getPlayer() {return player;}
+
+    inline float getGameTime() {return gameTime;}
 
 private:
 

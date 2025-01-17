@@ -1,4 +1,6 @@
 #include "Object/BuildableObject.hpp"
+#include "World/ChunkManager.hpp"
+#include "Game.hpp"
 
 BuildableObject::BuildableObject(sf::Vector2f position, ObjectType objectType, bool randomiseAnimation)
     : WorldObject(position)
@@ -200,7 +202,7 @@ void BuildableObject::createLightSource(LightingEngine& lightingEngine, sf::Vect
     //     }, lightMaskRect, sf::BlendAdd);
 }
 
-bool BuildableObject::damage(int amount, Game& game, InventoryData& inventory, ParticleSystem& particleSystem, bool giveItems)
+bool BuildableObject::damage(int amount, Game& game, ChunkManager& chunkManager, ParticleSystem& particleSystem, bool giveItems)
 {
     if (objectType < 0)
         return false;
@@ -232,7 +234,7 @@ bool BuildableObject::damage(int amount, Game& game, InventoryData& inventory, P
         if (giveItems)
         {
             // Give item drops
-            giveItemDrops(inventory, objectData.itemDrops);
+            createItemPickups(chunkManager, objectData.itemDrops, game.getGameTime());
         }
 
         return true;
@@ -308,9 +310,11 @@ void BuildableObject::createHitMarker(int amount)
     HitMarkers::addHitMarker(spawnPos, amount, hitColour);
 }
 
-void BuildableObject::giveItemDrops(InventoryData& inventory, const std::vector<ItemDrop>& itemDrops)
+void BuildableObject::createItemPickups(ChunkManager& chunkManager, const std::vector<ItemDrop>& itemDrops, float gameTime)
 {
     float dropChance = (rand() % 1000) / 1000.0f;
+
+    const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
 
     for (const ItemDrop& itemDrop : itemDrops)
     {
@@ -318,7 +322,17 @@ void BuildableObject::giveItemDrops(InventoryData& inventory, const std::vector<
         {
             // Give items
             unsigned int itemAmount = rand() % std::max(itemDrop.maxAmount - itemDrop.minAmount + 1, 1U) + itemDrop.minAmount;
-            inventory.addItem(itemDrop.item, itemAmount, true);
+
+            for (int i = 0; i < itemAmount; i++)
+            {
+                sf::Vector2f spawnPos = position - sf::Vector2f(0.5f, 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
+                spawnPos.x += Helper::randFloat(0.0f, objectData.size.x * TILE_SIZE_PIXELS_UNSCALED);
+                spawnPos.y += Helper::randFloat(0.0f, objectData.size.y * TILE_SIZE_PIXELS_UNSCALED);
+
+                chunkManager.addItemPickup(ItemPickup(spawnPos, itemDrop.item, gameTime));
+            }
+
+            // inventory.addItem(itemDrop.item, itemAmount, true);
         }
     }
 }

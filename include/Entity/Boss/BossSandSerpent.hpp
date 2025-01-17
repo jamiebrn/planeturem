@@ -56,7 +56,7 @@ public:
 
     void testCollisionWithPlayer(Player& player) override;
 
-    void testProjectileCollision(Projectile& projectile, InventoryData& inventory) override;
+    void testProjectileCollision(Projectile& projectile) override;
 
     void getWorldObjects(std::vector<WorldObject*>& worldObjects) override;
 
@@ -65,8 +65,8 @@ private:
 
     // void setPathfindStepIndex(int index);
 
-    bool takeHeadDamage(int damage, InventoryData& inventory, sf::Vector2f damagePosition);
-    void takeBodyDamage(int damage, InventoryData& inventory, sf::Vector2f damagePosition);
+    bool takeHeadDamage(int damage, sf::Vector2f damagePosition);
+    void takeBodyDamage(int damage, sf::Vector2f damagePosition);
     void applyKnockback(Projectile& projectile);
 
 private:

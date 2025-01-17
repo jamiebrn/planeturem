@@ -1,4 +1,5 @@
 #include "Entity/Boss/BossManager.hpp"
+#include "World/ChunkManager.hpp"
 #include "Entity/Boss/BossBenjaminCrow.hpp"
 #include "Entity/Boss/BossSandSerpent.hpp"
 #include "Entity/Boss/BossGlacialBrute.hpp"
@@ -39,7 +40,8 @@ bool BossManager::createBoss(const std::string& name, sf::Vector2f playerPositio
     return false;
 }
 
-void BossManager::update(Game& game, ProjectileManager& projectileManager, ProjectileManager& enemyProjectileManager, InventoryData& inventory, Player& player, float dt)
+void BossManager::update(Game& game, ProjectileManager& projectileManager, ProjectileManager& enemyProjectileManager, ChunkManager& chunkManager, Player& player, float dt,
+    float gameTime)
 {
     for (auto iter = bosses.begin(); iter != bosses.end();)
     {
@@ -54,7 +56,7 @@ void BossManager::update(Game& game, ProjectileManager& projectileManager, Proje
                 {
                     continue;
                 }
-                boss->testProjectileCollision(*projectile, inventory);
+                boss->testProjectileCollision(*projectile);
             }
             iter++;
         }
@@ -62,7 +64,7 @@ void BossManager::update(Game& game, ProjectileManager& projectileManager, Proje
         {
             if (!boss->isAlive())
             {
-                boss->giveItemDrops(inventory);
+                boss->createItemPickups(chunkManager, gameTime);
             }
 
             bossAliveNames.erase(boss->getName());

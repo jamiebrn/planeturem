@@ -29,7 +29,7 @@ void MainMenuGUI::initialisePauseMenu()
     resetHoverRect();
 }
 
-void MainMenuGUI::update(float dt, sf::Vector2f mouseScreenPos, Game& game, ProjectileManager& projectileManager, InventoryData& inventory)
+void MainMenuGUI::update(float dt, sf::Vector2f mouseScreenPos, Game& game, ProjectileManager& projectileManager)
 {
     // Update background world / chunk manager
     worldViewPosition.x += 20.0f * dt;
@@ -39,7 +39,7 @@ void MainMenuGUI::update(float dt, sf::Vector2f mouseScreenPos, Game& game, Proj
 
     backgroundChunkManager.updateChunks(game, backgroundCamera);
     backgroundChunkManager.updateChunksObjects(game, dt);
-    backgroundChunkManager.updateChunksEntities(dt, projectileManager, inventory, game);
+    backgroundChunkManager.updateChunksEntities(dt, projectileManager, game);
 }
 
 std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, float dt, float gameTime)

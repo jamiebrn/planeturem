@@ -183,7 +183,7 @@ void BossSandSerpent::updateCollision()
     bodyCollision = CollisionRect(position.x - BODY_HITBOX_WIDTH / 2, position.y - BODY_HITBOX_HEIGHT, BODY_HITBOX_WIDTH, BODY_HITBOX_HEIGHT);
 }
 
-bool BossSandSerpent::takeHeadDamage(int damage, InventoryData& inventory, sf::Vector2f damagePosition)
+bool BossSandSerpent::takeHeadDamage(int damage, sf::Vector2f damagePosition)
 {
     if (headHealth <= 0)
     {
@@ -198,7 +198,7 @@ bool BossSandSerpent::takeHeadDamage(int damage, InventoryData& inventory, sf::V
     return true;
 }
 
-void BossSandSerpent::takeBodyDamage(int damage, InventoryData& inventory, sf::Vector2f damagePosition)
+void BossSandSerpent::takeBodyDamage(int damage, sf::Vector2f damagePosition)
 {
     if (headHealth > 0)
     {
@@ -333,7 +333,7 @@ void BossSandSerpent::testCollisionWithPlayer(Player& player)
 {
 }
 
-void BossSandSerpent::testProjectileCollision(Projectile& projectile, InventoryData& inventory)
+void BossSandSerpent::testProjectileCollision(Projectile& projectile)
 {
     if (behaviourState != BossSandSerpentState::IdleStage1 && behaviourState != BossSandSerpentState::ShootingStage1)
     {
@@ -343,7 +343,7 @@ void BossSandSerpent::testProjectileCollision(Projectile& projectile, InventoryD
     // Test Collision
     if (headCollision.isColliding(projectile.getCollisionCircle()))
     {
-        if (takeHeadDamage(projectile.getDamage(), inventory, projectile.getPosition()))
+        if (takeHeadDamage(projectile.getDamage(), projectile.getPosition()))
         {
             projectile.onCollision();
             return;
@@ -352,7 +352,7 @@ void BossSandSerpent::testProjectileCollision(Projectile& projectile, InventoryD
 
     if (bodyCollision.isColliding(projectile.getCollisionCircle()))
     {
-        takeBodyDamage(projectile.getDamage(), inventory, projectile.getPosition());
+        takeBodyDamage(projectile.getDamage(), projectile.getPosition());
         projectile.onCollision();
     }
 }

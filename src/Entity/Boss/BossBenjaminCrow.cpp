@@ -192,7 +192,7 @@ void BossBenjaminCrow::updateCollision()
     collision = CollisionCircle(position.x, position.y - flyingHeight, HITBOX_SIZE);
 }
 
-void BossBenjaminCrow::takeDamage(int damage, InventoryData& inventory, sf::Vector2f damagePosition)
+void BossBenjaminCrow::takeDamage(int damage, sf::Vector2f damagePosition)
 {
     flashTime = MAX_FLASH_TIME;
 
@@ -386,7 +386,7 @@ void BossBenjaminCrow::testCollisionWithPlayer(Player& player)
     player.testHitCollision(hitRect);
 }
 
-void BossBenjaminCrow::testProjectileCollision(Projectile& projectile, InventoryData& inventory)
+void BossBenjaminCrow::testProjectileCollision(Projectile& projectile)
 {
     if (behaviourState == BossBenjaminState::Killed)
     {    
@@ -395,7 +395,7 @@ void BossBenjaminCrow::testProjectileCollision(Projectile& projectile, Inventory
     
     if (isProjectileColliding(projectile))
     {
-        takeDamage(projectile.getDamage(), inventory, projectile.getPosition());
+        takeDamage(projectile.getDamage(), projectile.getPosition());
         applyKnockback(projectile);
         projectile.onCollision();
     }

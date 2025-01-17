@@ -1926,28 +1926,44 @@ void InventoryGUI::pushItemPopup(const ItemCount& itemCount, bool notEnoughSpace
         return;
     }
 
-    if (itemPopups.size() > 0 && !notEnoughSpace)
+    bool addedToExisting = false;
+
+    // Add to item popup if same item is already in popups
+    for (auto iter = itemPopups.begin(); iter != itemPopups.end();)
     {
-        ItemCount& frontItemCount = itemPopups.back().itemCount;
-
-        // Add to item popup if same item is at front of popups
-        if (itemCount.first == frontItemCount.first)
+        if (iter->notEnoughSpace != notEnoughSpace)
         {
-            // Reset time and add item count
-            itemPopups.back().timeAlive = 0;
-
-            frontItemCount.second += itemCount.second;
-
-            return;
+            // Do not add to popup if "not enough space" labels are different
+            continue;
         }
+
+        if (itemCount.first == iter->itemCount.first)
+        {
+            // Popup of same item type found
+            ItemPopup popupToAddTo = *iter;
+            popupToAddTo.itemCount.second += itemCount.second;
+            popupToAddTo.timeAlive = 0.0f;
+
+            iter = itemPopups.erase(iter);
+            itemPopups.push_back(popupToAddTo);
+
+            addedToExisting = true;
+
+            break;
+        }
+
+        iter++;
     }
 
-    // Item type popup is not the same as front, so add new popup
-    ItemPopup itemPopup;
-    itemPopup.itemCount = itemCount;
-    itemPopup.notEnoughSpace = notEnoughSpace;
+    if (!addedToExisting)
+    {
+        // Item type popup is not in popups, so add new
+        ItemPopup itemPopup;
+        itemPopup.itemCount = itemCount;
+        itemPopup.notEnoughSpace = notEnoughSpace;
 
-    itemPopups.push_back(itemPopup);
+        itemPopups.push_back(itemPopup);
+    }
 
     if (itemPopups.size() > POPUP_MAX_COUNT)
     {

@@ -22,7 +22,7 @@ void ChestObject::update(Game& game, float dt, bool onWater, bool loopAnimation)
     }
 }
 
-bool ChestObject::damage(int amount, Game& game, InventoryData& inventory, ParticleSystem& particleSystem, bool giveItems)
+bool ChestObject::damage(int amount, Game& game, ChunkManager& chunkManager, ParticleSystem& particleSystem, bool giveItems)
 {
     // Check if chest contains items - if it does, set damage amount to 0
     if (chestID != 0xFFFF)
@@ -33,7 +33,7 @@ bool ChestObject::damage(int amount, Game& game, InventoryData& inventory, Parti
         }
     }
 
-    bool destroyed = BuildableObject::damage(amount, game, inventory, particleSystem);
+    bool destroyed = BuildableObject::damage(amount, game, chunkManager, particleSystem);
 
     if (destroyed)
     {

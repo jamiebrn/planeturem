@@ -1,5 +1,6 @@
 #include "Entity/Entity.hpp"
 #include "Game.hpp"
+#include "World/ChunkManager.hpp"
 
 #include "Entity/EntityBehaviour/EntityWanderBehaviour.hpp"
 #include "Entity/EntityBehaviour/EntityFollowAttackBehaviour.hpp"
@@ -41,7 +42,7 @@ void Entity::initialiseBehaviour(const std::string& behaviour)
     }
 }
 
-void Entity::update(float dt, ProjectileManager& projectileManager, InventoryData& inventory, ChunkManager& chunkManager, Game& game, bool onWater)
+void Entity::update(float dt, ProjectileManager& projectileManager, ChunkManager& chunkManager, Game& game, bool onWater, float gameTime)
 {
     if (behaviour)
     {
@@ -57,7 +58,7 @@ void Entity::update(float dt, ProjectileManager& projectileManager, InventoryDat
     {
         if (isProjectileColliding(*projectile) && projectile->isAlive())
         {
-            damage(projectile->getDamage(), inventory);
+            damage(projectile->getDamage(), chunkManager, gameTime);
             projectile->onCollision();
         }
     }
@@ -131,10 +132,12 @@ void Entity::createLightSource(LightingEngine& lightingEngine, sf::Vector2f topL
 }
 
 
-void Entity::damage(int amount, InventoryData& inventory)
+void Entity::damage(int amount, ChunkManager& chunkManager, float gameTime)
 {
     flash_amount = 1.0f;
     health -= amount;
+
+    const EntityData& entityData = EntityDataLoader::getEntityData(entityType);
 
     HitMarkers::addHitMarker(position, amount);
 
@@ -156,10 +159,17 @@ void Entity::damage(int amount, InventoryData& inventory)
             {
                 // Give items
                 unsigned int itemAmount = rand() % std::max(itemDrop.maxAmount - itemDrop.minAmount + 1, 1U) + itemDrop.minAmount;
-                if (itemAmount <= 0)
-                    continue;
 
-                inventory.addItem(itemDrop.item, itemAmount, true);
+                for (int i = 0; i < itemAmount; i++)
+                {
+                    sf::Vector2f spawnPos = position - sf::Vector2f(0.5f, 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
+                    spawnPos.x += Helper::randFloat(0.0f, entityData.size.x * TILE_SIZE_PIXELS_UNSCALED);
+                    spawnPos.y += Helper::randFloat(0.0f, entityData.size.y * TILE_SIZE_PIXELS_UNSCALED);
+
+                    chunkManager.addItemPickup(ItemPickup(spawnPos, itemDrop.item, gameTime));
+                }
+
+                // inventory.addItem(itemDrop.item, itemAmount, true);
             }
         }
     }

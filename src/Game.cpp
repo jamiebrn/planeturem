@@ -370,7 +370,7 @@ void Game::runMainMenu(float dt)
 
     // sf::Vector2f mouseScreenPos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
 
-    mainMenuGUI.update(dt, mouseScreenPos, *this, projectileManager, inventory);
+    mainMenuGUI.update(dt, mouseScreenPos, *this, projectileManager);
 
     window.clear();
 
@@ -985,7 +985,7 @@ void Game::updateOnPlanet(float dt)
     // Update (loaded) chunks
     bool modifiedChunks = chunkManager.updateChunks(*this, camera);
     chunkManager.updateChunksObjects(*this, dt);
-    chunkManager.updateChunksEntities(dt, projectileManager, inventory, *this);
+    chunkManager.updateChunksEntities(dt, projectileManager, *this);
 
     // If modified chunks, force a lighting recalculation
     if (modifiedChunks)
@@ -997,11 +997,18 @@ void Game::updateOnPlanet(float dt)
     nearbyCraftingStationLevels = chunkManager.getNearbyCraftingStationLevels(player.getChunkInside(worldSize), player.getChunkTileInside(worldSize), 4);
 
     // Update bosses
-    bossManager.update(*this, projectileManager, enemyProjectileManager, inventory, player, dt);
+    bossManager.update(*this, projectileManager, enemyProjectileManager, chunkManager, player, dt, gameTime);
 
     // Update projectiles
     projectileManager.update(dt);
     enemyProjectileManager.update(dt);
+
+    // Test item pickups colliding
+    std::optional<ItemPickup> itemPickupColliding = chunkManager.getCollidingItemPickup(player.getCollisionRect(), gameTime);
+    if (itemPickupColliding.has_value())
+    {
+        inventory.addItem(itemPickupColliding->getItemType(), 1, true);
+    }
 
     if (!isStateTransitioning() && !player.isInRocket() && player.isAlive())
     {
@@ -1014,7 +1021,9 @@ void Game::drawOnPlanet(float dt)
     // Get world objects
     std::vector<WorldObject*> worldObjects = chunkManager.getChunkObjects();
     std::vector<WorldObject*> entities = chunkManager.getChunkEntities();
+    std::vector<WorldObject*> itemPickups = chunkManager.getItemPickups();
     worldObjects.insert(worldObjects.end(), entities.begin(), entities.end());
+    worldObjects.insert(worldObjects.end(), itemPickups.begin(), itemPickups.end());
     worldObjects.push_back(&player);
     bossManager.getBossWorldObjects(worldObjects);
 
@@ -1368,7 +1377,7 @@ void Game::updateInRoom(float dt, Room& room, bool inStructure)
     {
         // Continue to update objects and entities in world
         chunkManager.updateChunksObjects(*this, dt);
-        chunkManager.updateChunksEntities(dt, projectileManager, inventory, *this);
+        chunkManager.updateChunksEntities(dt, projectileManager, *this);
 
         if (!isStateTransitioning())
         {
@@ -1491,7 +1500,7 @@ void Game::attemptUseToolPickaxe()
 
     if (selectedObject)
     {
-        selectedObject->damage(toolData.damage, *this, inventory, particleSystem);
+        selectedObject->damage(toolData.damage, *this, chunkManager, particleSystem);
     }
     // }
 }

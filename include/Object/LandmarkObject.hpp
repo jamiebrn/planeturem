@@ -23,7 +23,7 @@ public:
     virtual void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
         const sf::Color& color) const override;
     
-    bool damage(int amount, Game& game, InventoryData& inventory, ParticleSystem& particleSystem, bool giveItems = true) override;
+    bool damage(int amount, Game& game, ChunkManager& chunkManager, ParticleSystem& particleSystem, bool giveItems = true) override;
 
     virtual void interact(Game& game) override;
     virtual bool isInteractable() const override;

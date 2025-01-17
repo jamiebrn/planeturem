@@ -18,6 +18,7 @@
 
 class Player;
 class Game;
+class ChunkManager;
 
 class BossManager
 {
@@ -26,7 +27,7 @@ public:
 
     bool createBoss(const std::string& name, sf::Vector2f playerPosition, Game& game);
 
-    void update(Game& game, ProjectileManager& projectileManager, ProjectileManager& enemyProjectileManager, InventoryData& inventory, Player& player, float dt);
+    void update(Game& game, ProjectileManager& projectileManager, ProjectileManager& enemyProjectileManager, ChunkManager& chunkManager, Player& player, float dt, float gameTime);
 
     void handleWorldWrap(sf::Vector2f positionDelta);
 

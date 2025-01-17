@@ -7,6 +7,7 @@
 #include "Core/TextureManager.hpp"
 #include "Core/TextDraw.hpp"
 #include "Core/CollisionRect.hpp"
+#include "Core/Shaders.hpp"
 
 #include "Player/InventoryData.hpp"
 
@@ -46,7 +47,8 @@ public:
               InventoryData* inventory = nullptr // give pointer to inventory if amount of projectiles etc required to be drawn
               );
     
-    static void drawItem(sf::RenderTarget& window, ItemType itemType, sf::Vector2f position, float scaleMult = 1.0f, bool centred = true, int alpha = 255);
+    static void drawItem(sf::RenderTarget& window, ItemType itemType, sf::Vector2f position, float scaleMult = 1.0f, bool centred = true, int alpha = 255,
+        float flashAmount = 0.0f);
 
 private:
     void drawEmptyIconTexture(sf::RenderTarget& window, sf::IntRect emptyIconTexture);

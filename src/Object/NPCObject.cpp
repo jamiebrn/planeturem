@@ -17,7 +17,7 @@ void NPCObject::update(Game& game, float dt, bool onWater, bool loopAnimation)
     BuildableObject::update(game, dt, onWater, true);
 }
 
-bool NPCObject::damage(int amount, Game& game, InventoryData& inventory, ParticleSystem& particleSystem, bool giveItems)
+bool NPCObject::damage(int amount, Game& game, ChunkManager& chunkManager, ParticleSystem& particleSystem, bool giveItems)
 {
     // Cannot damage NPC
     return false;

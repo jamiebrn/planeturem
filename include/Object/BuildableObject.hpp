@@ -26,6 +26,7 @@
 #include "GUI/HitMarkers.hpp"
 
 class Game;
+class ChunkManager;
 
 enum ObjectBehaviourTrigger
 {
@@ -51,7 +52,7 @@ public:
     void createLightSource(LightingEngine& lightingEngine, sf::Vector2f topLeftChunkPos) const override;
 
     // Returns true if destroyed
-    virtual bool damage(int amount, Game& game, InventoryData& inventory, ParticleSystem& particleSystem, bool giveItems = true);
+    virtual bool damage(int amount, Game& game, ChunkManager& chunkManager, ParticleSystem& particleSystem, bool giveItems = true);
 
     void createHitParticles(ParticleSystem& particleSystem);
 
@@ -97,7 +98,7 @@ public:
     }
 
 protected:
-    void giveItemDrops(InventoryData& inventory, const std::vector<ItemDrop>& itemDrops);
+    void createItemPickups(ChunkManager& chunkManager, const std::vector<ItemDrop>& itemDrops, float gameTime);
 
     void drawObject(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Camera& camera, float gameTime, int worldSize, const sf::Color& color,
         std::optional<std::vector<sf::IntRect>> textureRectsOverride = std::nullopt, std::optional<sf::Vector2f> textureOriginOverride = std::nullopt,

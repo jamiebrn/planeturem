@@ -29,6 +29,7 @@
 #include "DebugOptions.hpp"
 
 class Game;
+class ChunkManager;
 
 class Entity : public WorldObject
 {
@@ -36,12 +37,12 @@ public:
     Entity(sf::Vector2f position, EntityType entityType);
     Entity();
 
-    void update(float dt, ProjectileManager& projectileManager, InventoryData& inventory, ChunkManager& chunkManager, Game& game, bool onWater);
+    void update(float dt, ProjectileManager& projectileManager, ChunkManager& chunkManager, Game& game, bool onWater, float gameTime);
 
     void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const sf::Color& color) const override;
     void createLightSource(LightingEngine& lightingEngine, sf::Vector2f topLeftChunkPos) const override;
 
-    void damage(int amount, InventoryData& inventory);
+    void damage(int amount, ChunkManager& chunkManager, float gameTime);
     void interact();
 
     bool isSelectedWithCursor(sf::Vector2f cursorWorldPos);

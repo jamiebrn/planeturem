@@ -66,7 +66,7 @@ public:
 
     void initialisePauseMenu();
 
-    void update(float dt, sf::Vector2f mouseScreenPos, Game& game, ProjectileManager& projectileManager, InventoryData& inventory);
+    void update(float dt, sf::Vector2f mouseScreenPos, Game& game, ProjectileManager& projectileManager);
 
     std::optional<MainMenuEvent> createAndDraw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, float dt, float gameTime);
 
