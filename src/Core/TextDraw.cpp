@@ -72,7 +72,7 @@ void TextDraw::drawText(sf::RenderTarget& window, TextDrawData drawData)
     }
 
     // Set position
-    text.setPosition(drawData.position);
+    text.setPosition(sf::Vector2f(static_cast<int>(drawData.position.x), static_cast<int>(drawData.position.y)));
 
     // Set text centre to top left by default
     sf::Vector2f textCentre(0, 0);
