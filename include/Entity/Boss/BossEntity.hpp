@@ -53,7 +53,7 @@ public:
 
 protected:
     float playerMaxRange = 1000.0f;
-    float itemPickupDropRadius = 32.0f;
+    float itemPickupDropRadius = 16.0f;
 
     struct ItemDropDistribution
     {

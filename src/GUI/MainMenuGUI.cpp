@@ -131,12 +131,12 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
         case MainMenuState::StartingNew:
         {
             guiContext.createTextEnter(scaledPanelPaddingX, elementYPos,
-                panelWidth * intScale, 75 * intScale, 20 * intScale, "Name", &saveNameInput, panelWidth / 5 * intScale, 30 * intScale, 30);
+                panelWidth * intScale, 75 * intScale, 20 * intScale, "Save Name", &saveNameInput, panelWidth / 5 * intScale, 30 * intScale, 30);
 
             elementYPos += 150 * intScale;
 
             guiContext.createTextEnter(scaledPanelPaddingX, elementYPos,
-                panelWidth * intScale, 75 * intScale, 20 * intScale, "Seed", &worldSeedInput, panelWidth / 5 * intScale, 30 * intScale, 30);
+                panelWidth * intScale, 75 * intScale, 20 * intScale, "World Seed", &worldSeedInput, panelWidth / 5 * intScale, 30 * intScale, 30);
 
             elementYPos += 200 * intScale;
 
@@ -380,7 +380,7 @@ bool MainMenuGUI::createOptionsMenu(sf::RenderTarget& window, int startElementYP
 
     // Text showing current controller glyph type
     TextDrawData glyphTypeDrawData;
-    glyphTypeDrawData.text = "Button Glyph " + std::to_string(InputManager::getGlyphType() + 1);
+    glyphTypeDrawData.text = "Controller Glyph " + std::to_string(InputManager::getGlyphType() + 1);
     glyphTypeDrawData.position = sf::Vector2f(scaledPanelPaddingX + panelWidth / 2 * intScale, startElementYPos + 50 * 0.5f * intScale);
     glyphTypeDrawData.centeredX = true;
     glyphTypeDrawData.centeredY = true;

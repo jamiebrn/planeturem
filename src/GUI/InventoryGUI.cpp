@@ -1931,25 +1931,24 @@ void InventoryGUI::pushItemPopup(const ItemCount& itemCount, bool notEnoughSpace
     // Add to item popup if same item is already in popups
     for (auto iter = itemPopups.begin(); iter != itemPopups.end();)
     {
-        if (iter->notEnoughSpace != notEnoughSpace)
+        if (iter->notEnoughSpace == notEnoughSpace)
         {
-            // Do not add to popup if "not enough space" labels are different
-            continue;
-        }
+            // Only add to popup if "not enough space" labels are the same
 
-        if (itemCount.first == iter->itemCount.first)
-        {
-            // Popup of same item type found
-            ItemPopup popupToAddTo = *iter;
-            popupToAddTo.itemCount.second += itemCount.second;
-            popupToAddTo.timeAlive = 0.0f;
+            if (itemCount.first == iter->itemCount.first)
+            {
+                // Popup of same item type found
+                ItemPopup popupToAddTo = *iter;
+                popupToAddTo.itemCount.second += itemCount.second;
+                popupToAddTo.timeAlive = 0.0f;
 
-            iter = itemPopups.erase(iter);
-            itemPopups.push_back(popupToAddTo);
+                iter = itemPopups.erase(iter);
+                itemPopups.push_back(popupToAddTo);
 
-            addedToExisting = true;
+                addedToExisting = true;
 
-            break;
+                break;
+            }
         }
 
         iter++;

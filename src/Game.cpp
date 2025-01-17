@@ -1,6 +1,6 @@
 #include "Game.hpp"
 
-// TODO: Make world gen more interesting (rivers, more structure variety etc)
+// TODO: Prevent item pickups when inventory is full
 
 // FIX: Improve UI scaling elements (text etc)
 
@@ -24,7 +24,7 @@ bool Game::initialise()
     // Disable joystick events (using SDL for input)
     window.setJoystickSensorEventsEnabled(false);
 
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_GAMECONTROLLER) != 0)
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER) != 0)
     {
         std::cerr << "Failed to initialise SDL: " << SDL_GetError() << std::endl;
         return false;
