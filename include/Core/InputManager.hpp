@@ -26,6 +26,15 @@ enum class InputAction
     UI_TAB_LEFT,
     UI_TAB_RIGHT,
 
+    HOTBAR_0,
+    HOTBAR_1,
+    HOTBAR_2,
+    HOTBAR_3,
+    HOTBAR_4,
+    HOTBAR_5,
+    HOTBAR_6,
+    HOTBAR_7,
+
     WALK_UP,
     WALK_DOWN,
     WALK_LEFT,

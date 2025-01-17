@@ -103,6 +103,14 @@ bool Game::initialise()
     InputManager::bindKey(InputAction::UI_BACK, SDL_Scancode::SDL_SCANCODE_ESCAPE);
     InputManager::bindKey(InputAction::UI_SHIFT, SDL_Scancode::SDL_SCANCODE_LSHIFT);
     InputManager::bindKey(InputAction::PAUSE_GAME, SDL_Scancode::SDL_SCANCODE_ESCAPE);
+    InputManager::bindKey(InputAction::HOTBAR_0, SDL_Scancode::SDL_SCANCODE_1);
+    InputManager::bindKey(InputAction::HOTBAR_1, SDL_Scancode::SDL_SCANCODE_2);
+    InputManager::bindKey(InputAction::HOTBAR_2, SDL_Scancode::SDL_SCANCODE_3);
+    InputManager::bindKey(InputAction::HOTBAR_3, SDL_Scancode::SDL_SCANCODE_4);
+    InputManager::bindKey(InputAction::HOTBAR_4, SDL_Scancode::SDL_SCANCODE_5);
+    InputManager::bindKey(InputAction::HOTBAR_5, SDL_Scancode::SDL_SCANCODE_6);
+    InputManager::bindKey(InputAction::HOTBAR_6, SDL_Scancode::SDL_SCANCODE_7);
+    InputManager::bindKey(InputAction::HOTBAR_7, SDL_Scancode::SDL_SCANCODE_8);
     InputManager::bindMouseButton(InputAction::USE_TOOL, SDL_BUTTON_LEFT);
     InputManager::bindMouseButton(InputAction::INTERACT, SDL_BUTTON_RIGHT);
     InputManager::bindMouseWheel(InputAction::ZOOM_IN, MouseWheelScroll::Up);
@@ -514,6 +522,15 @@ void Game::runInGame(float dt)
                     break;
             }
         }
+
+        if (InputManager::isActionJustActivated(InputAction::HOTBAR_0)) InventoryGUI::setHotbarSelectedIndex(0);
+        if (InputManager::isActionJustActivated(InputAction::HOTBAR_1)) InventoryGUI::setHotbarSelectedIndex(1);
+        if (InputManager::isActionJustActivated(InputAction::HOTBAR_2)) InventoryGUI::setHotbarSelectedIndex(2);
+        if (InputManager::isActionJustActivated(InputAction::HOTBAR_3)) InventoryGUI::setHotbarSelectedIndex(3);
+        if (InputManager::isActionJustActivated(InputAction::HOTBAR_4)) InventoryGUI::setHotbarSelectedIndex(4);
+        if (InputManager::isActionJustActivated(InputAction::HOTBAR_5)) InventoryGUI::setHotbarSelectedIndex(5);
+        if (InputManager::isActionJustActivated(InputAction::HOTBAR_6)) InventoryGUI::setHotbarSelectedIndex(6);
+        if (InputManager::isActionJustActivated(InputAction::HOTBAR_7)) InventoryGUI::setHotbarSelectedIndex(7);
 
         if (float zoom = InputManager::getActionAxisImmediateActivation(InputAction::ZOOM_IN, InputAction::ZOOM_OUT);
             std::abs(zoom) >= 0.5f)

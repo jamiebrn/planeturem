@@ -1617,6 +1617,13 @@ void InventoryGUI::handleScrollHotbar(int direction)
     handleHotbarItemChange();
 }
 
+void InventoryGUI::setHotbarSelectedIndex(int index)
+{
+    selectedHotbarIndex = (index % ITEM_BOX_PER_ROW + ITEM_BOX_PER_ROW) % ITEM_BOX_PER_ROW;
+
+    handleHotbarItemChange();   
+}
+
 ObjectType InventoryGUI::getHotbarSelectedObject(InventoryData& inventory)
 {
     // Get item

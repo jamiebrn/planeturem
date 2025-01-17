@@ -126,6 +126,7 @@ public:
     static bool handleLeftClickHotbar(sf::Vector2f mouseScreenPos);
 
     static void handleScrollHotbar(int direction);
+    static void setHotbarSelectedIndex(int index);
 
     static ObjectType getHotbarSelectedObject(InventoryData& inventory);
     static ToolType getHotbarSelectedTool(InventoryData& inventory);
