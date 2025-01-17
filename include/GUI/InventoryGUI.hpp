@@ -191,7 +191,7 @@ private:
     static sf::Vector2f drawItemInfoBoxRecipe(sf::RenderTarget& window, float gameTime, int recipeIdx, sf::Vector2f mouseScreenPos);
 
     // Returns size of drawn info box
-    static sf::Vector2f drawInfoBox(sf::RenderTarget& window, sf::Vector2f position, const std::vector<ItemInfoString>& infoStrings, int alpha = 255);
+    static sf::Vector2f drawInfoBox(sf::RenderTarget& window, sf::Vector2f position, const std::vector<ItemInfoString>& infoStrings, int alpha = 255, float flashAmount = 0.0f);
 
     // Armour inventory helper
     static bool canPutDownItemInArmourInventory(int hoveredIndex);
@@ -250,6 +250,7 @@ private:
     static std::vector<ItemPopup> itemPopups;
     static constexpr float POPUP_LIFETIME = 7.0f;
     static constexpr float POPUP_FADE_TIME = 0.8f;
+    static constexpr float POPUP_FLASH_TIME = 0.4f;
     static constexpr int POPUP_MAX_COUNT = 5;
 
     // Animation

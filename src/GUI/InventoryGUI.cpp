@@ -1391,7 +1391,7 @@ sf::Vector2f InventoryGUI::drawItemInfoBoxRecipe(sf::RenderTarget& window, float
     return (itemInfoBoxSize + recipeInfoBoxSize + sf::Vector2f(0, 8 + 6 + 5) * 3.0f * intScale);
 }
 
-sf::Vector2f InventoryGUI::drawInfoBox(sf::RenderTarget& window, sf::Vector2f position, const std::vector<ItemInfoString>& infoStrings, int alpha)
+sf::Vector2f InventoryGUI::drawInfoBox(sf::RenderTarget& window, sf::Vector2f position, const std::vector<ItemInfoString>& infoStrings, int alpha, float flashAmount)
 {
     static const std::array<sf::IntRect, 4> sides = {
         sf::IntRect(20, 80, 1, 3), // top
@@ -1439,31 +1439,39 @@ sf::Vector2f InventoryGUI::drawInfoBox(sf::RenderTarget& window, sf::Vector2f po
     // Draw box
     SpriteBatch spriteBatch;
 
+    std::optional<ShaderType> shader = std::nullopt;
+    if (flashAmount > 0.0f)
+    {
+        shader = ShaderType::Flash;
+        sf::Shader* flashShader = Shaders::getShader(shader.value());
+        flashShader->setUniform("flash_amount", flashAmount);
+    }
+
     sf::Vector2f scale(3 * intScale, 3 * intScale);
 
     sf::Color colour(255, 255, 255, alpha);
 
     // Draw corners
-    spriteBatch.draw(window, {TextureType::UI, position, 0, scale, {0, 0}, colour}, corners[0]);
-    spriteBatch.draw(window, {TextureType::UI, position + sf::Vector2f(width + sides[1].width * scale.y, 0), 0, scale, {0, 0}, colour}, corners[1]);
+    spriteBatch.draw(window, {TextureType::UI, position, 0, scale, {0, 0}, colour}, corners[0], shader);
+    spriteBatch.draw(window, {TextureType::UI, position + sf::Vector2f(width + sides[1].width * scale.y, 0), 0, scale, {0, 0}, colour}, corners[1], shader);
     spriteBatch.draw(window, {TextureType::UI,
-        position + sf::Vector2f(width + sides[1].width * scale.x, height + sides[0].height * scale.y), 0, scale, {0, 0}, colour}, corners[2]);
-    spriteBatch.draw(window, {TextureType::UI, position + sf::Vector2f(0, height + sides[0].height * scale.y), 0, scale, {0, 0}, colour}, corners[3]);
+        position + sf::Vector2f(width + sides[1].width * scale.x, height + sides[0].height * scale.y), 0, scale, {0, 0}, colour}, corners[2], shader);
+    spriteBatch.draw(window, {TextureType::UI, position + sf::Vector2f(0, height + sides[0].height * scale.y), 0, scale, {0, 0}, colour}, corners[3], shader);
 
     // Draw sides
     spriteBatch.draw(window, {TextureType::UI,
-        position + sf::Vector2f(sides[3].width * scale.x, 0), 0, sf::Vector2f(width, scale.y), {0, 0}, colour}, sides[0]);
+        position + sf::Vector2f(sides[3].width * scale.x, 0), 0, sf::Vector2f(width, scale.y), {0, 0}, colour}, sides[0], shader);
     spriteBatch.draw(window, {TextureType::UI,
-        position + sf::Vector2f(sides[3].width * scale.x + width, sides[0].height * scale.y), 0, sf::Vector2f(scale.x, height), {0, 0}, colour}, sides[1]);
+        position + sf::Vector2f(sides[3].width * scale.x + width, sides[0].height * scale.y), 0, sf::Vector2f(scale.x, height), {0, 0}, colour}, sides[1], shader);
     spriteBatch.draw(window, {TextureType::UI,
-        position + sf::Vector2f(sides[3].width * scale.x, sides[0].height * scale.y + height), 0, sf::Vector2f(width, scale.y), {0, 0}, colour}, sides[2]);
+        position + sf::Vector2f(sides[3].width * scale.x, sides[0].height * scale.y + height), 0, sf::Vector2f(width, scale.y), {0, 0}, colour}, sides[2], shader);
     spriteBatch.draw(window, {TextureType::UI,
-        position + sf::Vector2f(0, sides[0].height * scale.x), 0, sf::Vector2f(scale.x, height), {0, 0}, colour}, sides[3]);
+        position + sf::Vector2f(0, sides[0].height * scale.x), 0, sf::Vector2f(scale.x, height), {0, 0}, colour}, sides[3], shader);
 
     // Draw centre
     spriteBatch.draw(window, {TextureType::UI,
         position + sf::Vector2f(sides[3].width * scale.x, sides[0].height * scale.y), 0,
-        sf::Vector2f(width,  height), {0, 0}, colour}, centre);
+        sf::Vector2f(width,  height), {0, 0}, colour}, centre, shader);
 
     spriteBatch.endDrawing(window);
 
@@ -1972,7 +1980,9 @@ void InventoryGUI::drawItemPopups(sf::RenderTarget& window)
         // Calculate alpha
         int alpha = std::max(std::min((POPUP_LIFETIME - itemPopup.timeAlive) / POPUP_FADE_TIME, 1.0f), 0.0f) * 255;
 
-        sf::Vector2f boxSize = drawInfoBox(popupTexture, popupPos, {infoString}, alpha);
+        float flashAmount = std::max(POPUP_FLASH_TIME - itemPopup.timeAlive, 0.0f) / POPUP_FLASH_TIME;
+
+        sf::Vector2f boxSize = drawInfoBox(popupTexture, popupPos, {infoString}, alpha, flashAmount);
         popupPos.y += boxSize.y + (itemBoxSpacing + 6) * intScale;
     }
 
