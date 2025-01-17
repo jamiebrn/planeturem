@@ -62,6 +62,9 @@ public:
     void useTool(ProjectileManager& projectileManager, InventoryData& inventory, sf::Vector2f mouseWorldPos);
     bool isUsingTool();
 
+    void startUseToolTimer();
+    bool isUseToolTimerFinished();
+
     void setCanMove(bool value);
 
     // Damage
@@ -148,6 +151,9 @@ private:
     TweenID rotationTweenID;
     // bool swingingTool;
     bool usingTool;
+
+    static constexpr float MAX_USE_TOOL_COOLDOWN = 0.3f;
+    float useToolCooldown;
 
     // Fishing rod
     bool fishingRodCasted;

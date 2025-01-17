@@ -30,6 +30,8 @@ Player::Player(sf::Vector2f position, InventoryData* armourInventory)
     toolRotation = 0;
     usingTool = false;
 
+    useToolCooldown = 0.0f;
+
     fishingRodCasted = false;
     swingingFishingRod = false;
     fishBitingLine = false;
@@ -232,6 +234,8 @@ void Player::updateTimers(float dt)
     }
 
     healthConsumableTimer = std::max(healthConsumableTimer - dt, 0.0f);
+
+    useToolCooldown = std::max(useToolCooldown - dt, 0.0f);
 }
 
 bool Player::testWorldWrap(int worldSize, sf::Vector2f& wrapPositionDelta)
@@ -613,6 +617,16 @@ void Player::useTool(ProjectileManager& projectileManager, InventoryData& invent
 bool Player::isUsingTool()
 {
     return usingTool;
+}
+
+void Player::startUseToolTimer()
+{
+    useToolCooldown = MAX_USE_TOOL_COOLDOWN;
+}
+
+bool Player::isUseToolTimerFinished()
+{
+    return (useToolCooldown <= 0.0f);
 }
 
 void Player::setCanMove(bool value)

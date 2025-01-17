@@ -248,7 +248,7 @@ private:
 
     std::unordered_map<ChunkPosition, const BiomeGenData*> chunkBiomeCache;
 
-    static constexpr int MAX_CHUNK_ENTITY_SPAWN_COOLDOWN = 60;
+    static constexpr int MAX_CHUNK_ENTITY_SPAWN_COOLDOWN = 60000;
     std::unordered_map<ChunkPosition, uint64_t> chunkLastEntitySpawnTime;
 
     FastNoise heightNoise;

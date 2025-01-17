@@ -449,54 +449,95 @@ void Game::runInGame(float dt)
     // Input testing
     if (!isStateTransitioning() && player.isAlive() && !(ImGui::GetIO().WantCaptureKeyboard || ImGui::GetIO().WantCaptureMouse))
     {
-        if (InputManager::isActionJustActivated(InputAction::USE_TOOL))
+        // Left click / use tool
         {
-            switch (worldMenuState)
-            {
-                case WorldMenuState::Main:
-                {
-                    bool hotbarInteracted = false;
-                    if (!InputManager::isControllerActive())
-                    {
-                        hotbarInteracted = InventoryGUI::handleLeftClickHotbar(mouseScreenPos);
-                    }
-                    if (!hotbarInteracted || InputManager::isControllerActive())
-                    {
-                        attemptUseTool();
-                        attemptBuildObject();
-                        attemptPlaceLand();
-                        attemptUseBossSpawn();
-                        attemptUseConsumable();
-                    }
-                    else
-                    {
-                        changePlayerTool();
-                    }
-                    break;
-                }
-                case WorldMenuState::NPCShop: // fallthrough
-                case WorldMenuState::Inventory:
-                {
-                    ItemType itemHeldBefore = InventoryGUI::getHeldItemType(inventory);
-                    
-                    if (InventoryGUI::isMouseOverUI(mouseScreenPos) && !InputManager::isControllerActive())
-                    {
-                        InventoryGUI::handleLeftClick(mouseScreenPos, shiftMode, inventory, armourInventory, chestDataPool.getChestDataPtr(openedChestID));
-                    }
-                    else
-                    {
-                        attemptUseTool();
-                        attemptBuildObject();
-                        attemptPlaceLand();
-                        attemptUseBossSpawn();
-                        attemptUseConsumable();
-                    }
+            bool uiInteracted = false;
 
-                    if (itemHeldBefore != InventoryGUI::getHeldItemType(inventory))
+            if (InputManager::isActionJustActivated(InputAction::USE_TOOL))
+            {
+                switch (worldMenuState)
+                {
+                    case WorldMenuState::Main:
                     {
-                        changePlayerTool();
+                        if (!InputManager::isControllerActive())
+                        {
+                            uiInteracted = InventoryGUI::handleLeftClickHotbar(mouseScreenPos);
+                        }
+
+                        if (uiInteracted)
+                        {
+                            changePlayerTool();
+                        }
+                        break;
                     }
-                    break;
+                    case WorldMenuState::NPCShop: // fallthrough
+                    case WorldMenuState::Inventory:
+                    {
+                        ItemType itemHeldBefore = InventoryGUI::getHeldItemType(inventory);
+                        
+                        if (InventoryGUI::isMouseOverUI(mouseScreenPos) && !InputManager::isControllerActive())
+                        {
+                            InventoryGUI::handleLeftClick(mouseScreenPos, shiftMode, inventory, armourInventory, chestDataPool.getChestDataPtr(openedChestID));
+                            uiInteracted = true;
+                        }
+
+                        if (itemHeldBefore != InventoryGUI::getHeldItemType(inventory))
+                        {
+                            changePlayerTool();
+                        }
+                        break;
+                    }
+                }
+
+                if (uiInteracted)
+                {
+                    // Prevent use of tool after interacting with UI for short period
+                    player.startUseToolTimer();
+                }
+            }
+
+            if (InputManager::isActionActive(InputAction::USE_TOOL))
+            {
+                switch (worldMenuState)
+                {
+                    case WorldMenuState::Main:
+                    {
+                        if ((!uiInteracted || InputManager::isControllerActive()) && player.isUseToolTimerFinished())
+                        {
+                            player.startUseToolTimer();
+                            attemptUseTool();
+                            attemptBuildObject();
+                            attemptPlaceLand();
+                            attemptUseBossSpawn();
+                            attemptUseConsumable();
+                        }
+                        else
+                        {
+                            changePlayerTool();
+                        }
+                        break;
+                    }
+                    case WorldMenuState::NPCShop: // fallthrough
+                    case WorldMenuState::Inventory:
+                    {
+                        ItemType itemHeldBefore = InventoryGUI::getHeldItemType(inventory);
+                        
+                        if (!uiInteracted && player.isUseToolTimerFinished())
+                        {
+                            player.startUseToolTimer();
+                            attemptUseTool();
+                            attemptBuildObject();
+                            attemptPlaceLand();
+                            attemptUseBossSpawn();
+                            attemptUseConsumable();
+                        }
+
+                        if (itemHeldBefore != InventoryGUI::getHeldItemType(inventory))
+                        {
+                            changePlayerTool();
+                        }
+                        break;
+                    }
                 }
             }
         }

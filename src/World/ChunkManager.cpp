@@ -52,6 +52,7 @@ void ChunkManager::deleteAllChunks()
     storedChunks.clear();
 
     chunkBiomeCache.clear();
+    chunkLastEntitySpawnTime.clear();
 }
 
 bool ChunkManager::updateChunks(Game& game, const Camera& camera)
@@ -83,11 +84,7 @@ bool ChunkManager::updateChunks(Game& game, const Camera& camera)
     {
         for (int x = screenTopLeftGrid.x - CHUNK_VIEW_LOAD_BORDER; x <= screenBottomRightGrid.x + CHUNK_VIEW_LOAD_BORDER; x++)
         {
-            // Get wrapped x and y using world size
-            int wrappedX = ((x % worldSize) + worldSize) % worldSize;
-            int wrappedY = ((y % worldSize) + worldSize) % worldSize;
-
-            ChunkPosition chunkPos(wrappedX, wrappedY);
+            ChunkPosition chunkPos(Helper::wrap(x, worldSize), Helper::wrap(y, worldSize));
 
             // Chunk already loaded
             if (loadedChunks.count(chunkPos))
@@ -137,7 +134,7 @@ bool ChunkManager::updateChunks(Game& game, const Camera& camera)
             }
 
             // Generate new chunk if does not exist
-            generateChunk(ChunkPosition(wrappedX, wrappedY), game, true, chunkWorldPos);
+            generateChunk(chunkPos, game, true, chunkWorldPos);
         }
     }
 
