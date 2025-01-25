@@ -168,8 +168,10 @@ public:
     void addItemPickup(const ItemPickup& itemPickup);
 
     // Check chunks in 3x3 area around player for colliding item pickups
-    // Returns first item pickup collided with (if any) and deletes the collided pickup from world
-    std::optional<ItemPickup> getCollidingItemPickup(const CollisionRect& playerCollision, float gameTime);
+    // Returns first item pickup collided with (if any)
+    // Call deleteItemPickup if successfully picked up
+    std::vector<ItemPickupReference> getCollidingItemPickup(const CollisionRect& playerCollision, float gameTime);
+    void deleteItemPickup(const ItemPickupReference& itemPickupReference);
 
     std::vector<WorldObject*> getItemPickups();
 

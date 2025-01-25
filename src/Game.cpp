@@ -1,7 +1,5 @@
 #include "Game.hpp"
 
-// TODO: Prevent item pickups when inventory is full
-
 // FIX: Improve UI scaling elements (text etc)
 
 // TODO: Night and menu music
@@ -1045,10 +1043,14 @@ void Game::updateOnPlanet(float dt)
     enemyProjectileManager.update(dt);
 
     // Test item pickups colliding
-    std::optional<ItemPickup> itemPickupColliding = chunkManager.getCollidingItemPickup(player.getCollisionRect(), gameTime);
-    if (itemPickupColliding.has_value())
+    std::vector<ItemPickupReference> itemPickupsColliding = chunkManager.getCollidingItemPickup(player.getCollisionRect(), gameTime);
+    for (ItemPickupReference pickupReference : itemPickupsColliding)
     {
-        inventory.addItem(itemPickupColliding->getItemType(), 1, true);
+        int amountAdded = inventory.addItem(pickupReference.itemPickup.getItemType(), 1, true, false);
+        if (amountAdded > 0)
+        {
+            chunkManager.deleteItemPickup(pickupReference);
+        }
     }
 
     if (!isStateTransitioning() && !player.isInRocket() && player.isAlive())

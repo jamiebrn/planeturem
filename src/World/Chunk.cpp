@@ -1026,21 +1026,32 @@ void Chunk::addItemPickup(const ItemPickup& itemPickup)
     itemPickups.push_back(itemPickup);
 }
     
-std::optional<ItemPickup> Chunk::getCollidingItemPickup(const CollisionRect& playerCollision, float gameTime)
+std::vector<ItemPickupReference> Chunk::getCollidingItemPickup(const CollisionRect& playerCollision, float gameTime)
 {
+    std::vector<ItemPickupReference> pickupsCollided;
+
     for (auto iter = itemPickups.begin(); iter != itemPickups.end();)
     {
         if (iter->isBeingPickedUp(playerCollision, gameTime))
         {
-            ItemPickup pickupCollided = *iter;
-            iter = itemPickups.erase(iter);
-            return pickupCollided;
+            ItemPickupReference reference{*iter, chunkPosition, iter};
+            pickupsCollided.push_back(reference);
         }
 
         iter++;
     }
 
-    return std::nullopt;
+    return pickupsCollided;
+}
+
+void Chunk::deleteItemPickup(const ItemPickupReference& itemPickupReference)
+{
+    if (itemPickupReference.pickupIter == itemPickups.end())
+    {
+        return;
+    }
+
+    itemPickups.erase(itemPickupReference.pickupIter);
 }
 
 std::vector<WorldObject*> Chunk::getItemPickups()

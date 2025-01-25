@@ -2,6 +2,7 @@
 
 #include <SFML/Graphics.hpp>
 #include <cmath>
+#include <vector>
 
 #include "Core/ResolutionHandler.hpp"
 #include "Core/CollisionRect.hpp"
@@ -19,6 +20,8 @@
 #include "Data/ObjectDataLoader.hpp"
 #include "Data/ToolDataLoader.hpp"
 #include "Data/ArmourDataLoader.hpp"
+
+#include "World/ChunkPosition.hpp"
 
 #include "GUI/ItemSlot.hpp"
 
@@ -43,4 +46,11 @@ private:
     ItemType itemType;
     float spawnGameTime;
 
+};
+
+struct ItemPickupReference
+{
+    ItemPickup itemPickup;
+    ChunkPosition chunk;
+    std::vector<ItemPickup>::iterator pickupIter;
 };

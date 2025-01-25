@@ -24,7 +24,7 @@ public:
     InventoryData() = default;
     InventoryData(int size);
 
-    int addItem(ItemType item, int amount, bool createPopup = false);
+    int addItem(ItemType item, int amount, bool createPopup = false, bool createPopupIfNotEnoughSpace = false);
 
     void takeItem(ItemType item, int amount);
 
