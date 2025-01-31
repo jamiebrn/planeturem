@@ -1043,13 +1043,13 @@ void Game::updateOnPlanet(float dt)
     enemyProjectileManager.update(dt);
 
     // Test item pickups colliding
-    std::vector<ItemPickupReference> itemPickupsColliding = chunkManager.getCollidingItemPickup(player.getCollisionRect(), gameTime);
-    for (ItemPickupReference pickupReference : itemPickupsColliding)
+    std::optional<ItemPickupReference> itemPickupColliding = chunkManager.getCollidingItemPickup(player.getCollisionRect(), gameTime);
+    if (itemPickupColliding.has_value())
     {
-        int amountAdded = inventory.addItem(pickupReference.itemPickup.getItemType(), 1, true, false);
+        int amountAdded = inventory.addItem(itemPickupColliding->itemPickup.getItemType(), 1, true, false);
         if (amountAdded > 0)
         {
-            chunkManager.deleteItemPickup(pickupReference);
+            chunkManager.deleteItemPickup(itemPickupColliding.value());
         }
     }
 

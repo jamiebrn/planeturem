@@ -766,12 +766,10 @@ void ChunkManager::addItemPickup(const ItemPickup& itemPickup)
     chunkInside->addItemPickup(itemPickup);
 }
 
-std::vector<ItemPickupReference> ChunkManager::getCollidingItemPickup(const CollisionRect& playerCollision, float gameTime)
+std::optional<ItemPickupReference>ChunkManager::getCollidingItemPickup(const CollisionRect& playerCollision, float gameTime)
 {
     // Get chunk player is in
     ChunkPosition chunk = WorldObject::getChunkInside(sf::Vector2f(playerCollision.x, playerCollision.y), worldSize);
-
-    std::vector<ItemPickupReference> itemPickupReferences;
 
     // Check for pickups colliding in 3x3 chunk area around player
     for (int x = chunk.x - 1; x <= chunk.x + 1; x++)
@@ -785,13 +783,16 @@ std::vector<ItemPickupReference> ChunkManager::getCollidingItemPickup(const Coll
                 continue;
             }
 
-            std::vector<ItemPickupReference> pickupsCollided = chunkPtr->getCollidingItemPickup(playerCollision, gameTime);
+            std::optional<ItemPickupReference> pickupCollided = chunkPtr->getCollidingItemPickup(playerCollision, gameTime);
 
-            itemPickupReferences.insert(itemPickupReferences.end(), pickupsCollided.begin(), pickupsCollided.end());
+            if (pickupCollided.has_value())
+            {
+                return pickupCollided;
+            }
         }
     }
 
-    return itemPickupReferences;
+    return std::nullopt;
 }
 
 void ChunkManager::deleteItemPickup(const ItemPickupReference& itemPickupReference)

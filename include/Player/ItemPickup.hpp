@@ -31,6 +31,7 @@ class ItemPickup : public WorldObject
 {
 public:
     ItemPickup(sf::Vector2f position, ItemType itemType, float gameTime) : WorldObject(position), itemType(itemType), spawnGameTime(gameTime) {}
+    void resetSpawnTime(float gameTime);
 
     bool isBeingPickedUp(const CollisionRect& playerCollision, float gameTime);
 

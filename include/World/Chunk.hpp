@@ -154,7 +154,7 @@ public:
     // -- Item pickups -- //
     void addItemPickup(const ItemPickup& itemPickup);
 
-    std::vector<ItemPickupReference> getCollidingItemPickup(const CollisionRect& playerCollision, float gameTime);
+    std::optional<ItemPickupReference> getCollidingItemPickup(const CollisionRect& playerCollision, float gameTime);
     void deleteItemPickup(const ItemPickupReference& itemPickupReference);
 
     std::vector<WorldObject*> getItemPickups();

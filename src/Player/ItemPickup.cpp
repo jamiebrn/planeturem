@@ -11,6 +11,11 @@ bool ItemPickup::isBeingPickedUp(const CollisionRect& playerCollision, float gam
     return playerCollision.isColliding(collisionCircle);
 }
 
+void ItemPickup::resetSpawnTime(float gameTime)
+{
+    spawnGameTime = gameTime;
+}
+
 void ItemPickup::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
     const sf::Color& color) const
 {
