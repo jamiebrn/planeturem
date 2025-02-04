@@ -7,6 +7,7 @@
 #include <vector>
 #include <filesystem>
 #include <stdexcept>
+#include <unordered_set>
 
 #include <extlib/cereal/archives/binary.hpp>
 #include <extlib/cereal/types/vector.hpp>
@@ -42,6 +43,8 @@ struct PlayerGameSave
 
     InventoryData inventory;
     InventoryData armourInventory;
+
+    std::unordered_set<std::string> recipesSeen;
 
     float time;
     int day;

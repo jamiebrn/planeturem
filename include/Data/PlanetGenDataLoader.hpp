@@ -14,6 +14,7 @@
 #include "Data/StructureDataLoader.hpp"
 #include "World/TileMap.hpp"
 
+#include "GameConstants.hpp"
 #include "DebugOptions.hpp"
 
 class PlanetGenDataLoader

@@ -154,7 +154,9 @@ bool PlanetGenDataLoader::loadPlanet(nlohmann::ordered_json::iterator& planetDat
             if (tileIdToTileMap.count(tileGenData.tileID) == 0)
             {
                 tileIdToTileMap[tileGenData.tileID] = TileMap(tileGenData.tileMap.textureOffset, tileGenData.tileMap.variation);
+                #if (!RELEASE_BUILD)
                 DebugOptions::tileMapsVisible[tileGenData.tileID] = true;
+                #endif
             }
 
             biomeGenData.tileGenDatas.push_back(tileGenData);

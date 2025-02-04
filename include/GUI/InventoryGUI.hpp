@@ -2,10 +2,12 @@
 
 #include <SFML/Graphics.hpp>
 #include <unordered_map>
+#include <unordered_set>
 #include <array>
 #include <vector>
 #include <optional>
 #include <cmath>
+#include <stack>
 
 #include "Core/TextureManager.hpp"
 #include "Core/TextDraw.hpp"
@@ -57,6 +59,7 @@ struct ItemPopup
     ItemCount itemCount;
     float timeAlive = 0;
     bool notEnoughSpace = false;
+    std::optional<std::string> textOverride;
 };
 
 enum class InventoryShopInfoMode
@@ -73,6 +76,8 @@ class InventoryGUI
 public:
     // Initialise animations etc
     static void initialise(InventoryData& inventory);
+
+    static void reset();
 
     static void updateInventory(sf::Vector2f mouseScreenPos, float dt, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData = nullptr);
 
@@ -97,6 +102,8 @@ public:
     static bool isMouseOverUI(sf::Vector2f mouseScreenPos);
 
     static void updateAvailableRecipes(InventoryData& inventory, std::unordered_map<std::string, int> nearbyCraftingStationLevels);
+    static void setSeenRecipes(const std::unordered_set<ItemType>& recipes);
+    static const std::unordered_set<ItemType>& getSeenRecipes();
 
     static ItemType getHeldItemType(InventoryData& inventory);
 
@@ -148,7 +155,7 @@ public:
     // -- Popups -- //
     static void updateItemPopups(float dt);
 
-    static void pushItemPopup(const ItemCount& itemCount, bool notEnoughSpace = false);
+    static void pushItemPopup(const ItemCount& itemCount, bool notEnoughSpace = false, std::optional<std::string> textOverride = std::nullopt);
 
     static void drawItemPopups(sf::RenderTarget& window);
 
@@ -224,6 +231,10 @@ private:
     static std::unordered_map<std::string, int> previous_nearbyCraftingStationLevels;
     static std::unordered_map<ItemType, unsigned int> previous_inventoryItemCount;
     static std::vector<int> availableRecipes;
+    static std::unordered_set<ItemType> recipesSeen;
+    static std::stack<ItemType> recipesSeenToNotify;
+    static constexpr float MAX_RECIPE_SEEN_NOTIFY_COOLDOWN = 0.2f;
+    static float recipeSeenNotifyCooldown;
 
     // Item Slots (visual / interacting)
     static std::vector<ItemSlot> inventoryItemSlots;

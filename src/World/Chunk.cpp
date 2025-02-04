@@ -591,13 +591,16 @@ void Chunk::drawChunkTerrain(sf::RenderTarget& window, const Camera& camera, flo
 
     for (auto iter = tileMaps.begin(); iter != tileMaps.end(); ++iter)
     {
+        #if (!RELEASE_BUILD)
         if (!DebugOptions::tileMapsVisible[iter->first])
             continue;
+        #endif
 
         iter->second.draw(window, camera.worldToScreenTransform(worldPosition), sf::Vector2f(scale, scale));
     }
 
 
+    #if (!RELEASE_BUILD)
     // DEBUG DRAW LINE TO ENTITIES
     if (DebugOptions::drawEntityChunkParents)
     {
@@ -634,6 +637,7 @@ void Chunk::drawChunkTerrain(sf::RenderTarget& window, const Camera& camera, flo
             collisionRect->debugDraw(window, camera);
         }
     }
+    #endif
 }
 
 void Chunk::drawChunkTerrainVisual(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Camera& camera, PlanetType planetType, float time)

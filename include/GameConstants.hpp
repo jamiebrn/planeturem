@@ -2,6 +2,8 @@
 
 #include <string>
 
+#define RELEASE_BUILD 0
+
 static const std::string GAME_TITLE = "Planeturem";
 static const std::string GAME_VERSION = "alpha-v1.3";
 

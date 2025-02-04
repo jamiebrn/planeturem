@@ -1,5 +1,9 @@
 #pragma once
 
+#include "GameConstants.hpp"
+
+#if (!RELEASE_BUILD)
+
 #include <map>
 
 namespace DebugOptions
@@ -17,3 +21,5 @@ extern float godSpeedMultiplier;
 extern bool limitlessZoom;
 
 }
+
+#endif

@@ -58,21 +58,27 @@ void Player::update(float dt, sf::Vector2f mouseWorldPos, ChunkManager& chunkMan
     // Handle collision with world (tiles, object)
 
     float speedMult = 1.0f;
+    #if (!RELEASE_BUILD)
     if (DebugOptions::godMode)
     {
         speedMult = DebugOptions::godSpeedMultiplier;
     }
+    #endif
 
     // Test collision after x movement
     collisionRect.x += direction.x * speed * dt * speedMult;
+    #if (!RELEASE_BUILD)
     if (!DebugOptions::godMode)
+    #endif
     {
         chunkManager.collisionRectChunkStaticCollisionX(collisionRect, direction.x);
     }
 
     // Test collision after y movement
     collisionRect.y += direction.y * speed * dt * speedMult;
+    #if (!RELEASE_BUILD)
     if (!DebugOptions::godMode)
+    #endif
     {
         chunkManager.collisionRectChunkStaticCollisionY(collisionRect, direction.y);
     }
@@ -386,11 +392,13 @@ void Player::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game
         drawFishingRodCast(window, camera, gameTime, worldSize, waterYOffset);
     }
 
+    #if (!RELEASE_BUILD)
     // DEBUG
     if (DebugOptions::drawCollisionRects)
     {
         collisionRect.debugDraw(window, camera);
     }
+    #endif
 }
 
 void Player::createLightSource(LightingEngine& lightingEngine, sf::Vector2f topLeftChunkPos) const

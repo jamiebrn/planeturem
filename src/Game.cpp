@@ -1,5 +1,7 @@
 #include "Game.hpp"
 
+// TODO: Melee weapons
+
 // FIX: Improve UI scaling elements (text etc)
 
 // TODO: Night and menu music
@@ -231,7 +233,9 @@ void Game::run()
 
         drawMouseCursor();
 
+        #if (!RELEASE_BUILD)
         drawDebugMenu(dt);
+        #endif
 
         ImGui::SetMouseCursor(ImGui::GetIO().WantCaptureMouse ? ImGuiMouseCursor_Arrow : ImGuiMouseCursor_None);
 
@@ -2253,6 +2257,7 @@ void Game::startNewGame(int seed)
     inventory = InventoryData(32);
     armourInventory = InventoryData(3);
     giveStartingInventory();
+    InventoryGUI::reset();
 
     chunkManager.setSeed(seed);
 
@@ -2298,6 +2303,11 @@ bool Game::saveGame(bool gettingInRocket)
     playerGameSave.armourInventory = armourInventory;
     playerGameSave.time = dayCycleManager.getCurrentTime();
     playerGameSave.day = dayCycleManager.getCurrentDay();
+
+    for (ItemType itemType : InventoryGUI::getSeenRecipes())
+    {
+        playerGameSave.recipesSeen.insert(ItemDataLoader::getItemData(itemType).name);
+    }
 
     // Add play time
     currentSaveFileSummary.timePlayed += std::round(saveSessionPlayTime);
@@ -2375,6 +2385,15 @@ bool Game::loadGame(const SaveFileSummary& saveFileSummary)
     }
 
     player = Player(sf::Vector2f(0, 0), &armourInventory);
+
+    InventoryGUI::reset();
+
+    std::unordered_set<ItemType> recipesSeen;
+    for (const std::string& itemName : playerGameSave.recipesSeen)
+    {
+        recipesSeen.insert(ItemDataLoader::getItemTypeFromName(itemName));
+    }
+    InventoryGUI::setSeenRecipes(recipesSeen);
 
     closeChest();
     
@@ -2570,11 +2589,13 @@ void Game::handleEventsWindow(sf::Event& event)
             return;
         }
 
+        #if (!RELEASE_BUILD)
         if (event.key.code == sf::Keyboard::F1)
         {
             DebugOptions::debugOptionsMenuOpen = !DebugOptions::debugOptionsMenuOpen;
             return;
         }
+        #endif
     }
 
     // ImGui
@@ -2864,6 +2885,7 @@ void Game::drawControllerGlyphs(const std::vector<std::pair<InputAction, std::st
     }
 }
 
+#if (!RELEASE_BUILD)
 void Game::drawDebugMenu(float dt)
 {
     if (!DebugOptions::debugOptionsMenuOpen)
@@ -2969,3 +2991,4 @@ void Game::drawDebugMenu(float dt)
 
     ImGui::End();   
 }
+#endif

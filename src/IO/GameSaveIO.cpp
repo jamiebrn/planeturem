@@ -47,6 +47,11 @@ bool GameSaveIO::loadPlayerSave(PlayerGameSave& playerGameSave)
             playerGameSave.planetType = 0;
         }
 
+        if (json.contains("recipes-seen"))
+        {
+            playerGameSave.recipesSeen = json.at("recipes-seen");
+        }
+
         if (json.contains("time-played"))
         {
             playerGameSave.timePlayed = json.at("time-played");
@@ -166,6 +171,8 @@ bool GameSaveIO::writePlayerSave(const PlayerGameSave& playerGameSave)
         {
             json["roomdest"] = StructureDataLoader::getRoomData(playerGameSave.roomDestinationType).name;
         }
+
+        json["recipes-seen"] = playerGameSave.recipesSeen;
 
         json["time-played"] = playerGameSave.timePlayed;
 

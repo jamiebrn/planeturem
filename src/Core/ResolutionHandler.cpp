@@ -23,11 +23,13 @@ void ResolutionHandler::changeZoom(int amount)
 {
     int lowLimit = 0;
     int highLimit = 5;
+    #if (!RELEASE_BUILD)
     if (DebugOptions::limitlessZoom)
     {
         lowLimit = -2;
         highLimit = 100000;
     }
+    #endif
 
     currentZoom = std::min(std::max(currentZoom + amount, lowLimit), highLimit);
 }

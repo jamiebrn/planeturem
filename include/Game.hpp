@@ -254,7 +254,9 @@ private:
 
     void drawControllerGlyphs(const std::vector<std::pair<InputAction, std::string>>& actionStrings);
 
+    #if (!RELEASE_BUILD)
     void drawDebugMenu(float dt);
+    #endif
 
 
 private:

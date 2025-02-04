@@ -391,7 +391,8 @@ void Room::draw(sf::RenderTarget& window, const Camera& camera) const
     const RoomData& roomData = StructureDataLoader::getRoomData(roomType);
 
     TextureManager::drawSubTexture(window, drawData, roomData.textureRect);
-    
+
+    #if (!RELEASE_BUILD)
     if (DebugOptions::drawCollisionRects)
     {
         for (const CollisionRect& rect : collisionRects)
@@ -399,6 +400,7 @@ void Room::draw(sf::RenderTarget& window, const Camera& camera) const
             rect.debugDraw(window, camera);
         }
     }
+    #endif
 }
 
 

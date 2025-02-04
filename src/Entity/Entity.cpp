@@ -110,11 +110,13 @@ void Entity::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game
     TextureManager::drawSubTexture(window, {TextureType::Entities, camera.worldToScreenTransform(position + sf::Vector2f(0, waterYOffset)), 0, 
         scale, entityData.textureOrigin, color}, textureRect, shader);
 
+    #if (!RELEASE_BUILD)
     // DEBUG
     if (DebugOptions::drawCollisionRects)
     {
         collisionRect.debugDraw(window, game.getCamera());
     }
+    #endif
 }
 
 void Entity::createLightSource(LightingEngine& lightingEngine, sf::Vector2f topLeftChunkPos) const

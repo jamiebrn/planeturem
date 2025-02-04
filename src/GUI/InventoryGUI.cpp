@@ -11,6 +11,9 @@ int InventoryGUI::pickedUpItemCount;
 std::unordered_map<std::string, int> InventoryGUI::previous_nearbyCraftingStationLevels;
 std::unordered_map<ItemType, unsigned int> InventoryGUI::previous_inventoryItemCount;
 std::vector<int> InventoryGUI::availableRecipes;
+std::unordered_set<ItemType> InventoryGUI::recipesSeen;
+std::stack<ItemType> InventoryGUI::recipesSeenToNotify;
+float InventoryGUI::recipeSeenNotifyCooldown = 0.0f;
 
 std::vector<ItemSlot> InventoryGUI::inventoryItemSlots;
 std::vector<ItemSlot> InventoryGUI::armourItemSlots;
@@ -236,6 +239,19 @@ void InventoryGUI::updateInventory(sf::Vector2f mouseScreenPos, float dt, Invent
                 chestItemSlots[i].overrideItemScaleMult(1.0f);
             }
         }
+    }
+
+    // Notify new recipes
+    recipeSeenNotifyCooldown = std::max(recipeSeenNotifyCooldown - dt, 0.0f);
+    if (recipeSeenNotifyCooldown <= 0.0f && !recipesSeenToNotify.empty())
+    {
+        ItemType recipeItem = recipesSeenToNotify.top();
+        recipesSeenToNotify.pop();
+
+        const ItemData& itemData = ItemDataLoader::getItemData(recipeItem);
+        pushItemPopup(ItemCount(recipeItem, 1), false, "NEW RECIPE - " + itemData.name);
+
+        recipeSeenNotifyCooldown = MAX_RECIPE_SEEN_NOTIFY_COOLDOWN;
     }
 }
 
@@ -738,10 +754,42 @@ void InventoryGUI::updateAvailableRecipes(InventoryData& inventory, std::unorder
         // {
         //     selectedRecipe = 0;
         // }
-        recipeCurrentPage = std::clamp(recipeCurrentPage, 0, static_cast<int>(std::floor(std::max(static_cast<int>(availableRecipes.size() - 1) / (RECIPE_MAX_ROWS * ITEM_BOX_PER_ROW), 0))));
+        recipeCurrentPage = std::clamp(recipeCurrentPage, 0, static_cast<int>(std::floor(
+            std::max(static_cast<int>(availableRecipes.size() - 1) / (RECIPE_MAX_ROWS * ITEM_BOX_PER_ROW), 0))));
 
         createRecipeItemSlots(inventory);
+
+        // Add any new recipes to "recipes seen" set and create popup
+        for (int recipe : availableRecipes)
+        {
+            const RecipeData& recipeData = RecipeDataLoader::getRecipeData()[recipe];
+            if (recipesSeen.contains(recipeData.product))
+            {
+                continue;
+            }
+
+            recipesSeenToNotify.push(recipeData.product);
+            recipesSeen.insert(recipeData.product);
+        }
     }
+}
+
+void InventoryGUI::reset()
+{
+    recipesSeen = std::unordered_set<ItemType>();
+    recipesSeenToNotify = std::stack<ItemType>();
+    recipeSeenNotifyCooldown = 0.0f;
+    itemPopups.clear();
+}
+
+void InventoryGUI::setSeenRecipes(const std::unordered_set<ItemType>& recipes)
+{
+    recipesSeen = recipes;
+}
+
+const std::unordered_set<ItemType>& InventoryGUI::getSeenRecipes()
+{
+    return recipesSeen;
 }
 
 ItemType InventoryGUI::getHeldItemType(InventoryData& inventory)
@@ -1919,7 +1967,7 @@ void InventoryGUI::updateItemPopups(float dt)
     }
 }
 
-void InventoryGUI::pushItemPopup(const ItemCount& itemCount, bool notEnoughSpace)
+void InventoryGUI::pushItemPopup(const ItemCount& itemCount, bool notEnoughSpace, std::optional<std::string> textOverride)
 {
     if (itemCount.second <= 0)
     {
@@ -1928,30 +1976,33 @@ void InventoryGUI::pushItemPopup(const ItemCount& itemCount, bool notEnoughSpace
 
     bool addedToExisting = false;
 
-    // Add to item popup if same item is already in popups
-    for (auto iter = itemPopups.begin(); iter != itemPopups.end();)
+    if (!textOverride.has_value())
     {
-        if (iter->notEnoughSpace == notEnoughSpace)
+        // Add to item popup if same item is already in popups
+        for (auto iter = itemPopups.begin(); iter != itemPopups.end();)
         {
-            // Only add to popup if "not enough space" labels are the same
-
-            if (itemCount.first == iter->itemCount.first)
+            if (iter->notEnoughSpace == notEnoughSpace)
             {
-                // Popup of same item type found
-                ItemPopup popupToAddTo = *iter;
-                popupToAddTo.itemCount.second += itemCount.second;
-                popupToAddTo.timeAlive = 0.0f;
+                // Only add to popup if "not enough space" labels are the same
 
-                iter = itemPopups.erase(iter);
-                itemPopups.push_back(popupToAddTo);
+                if (itemCount.first == iter->itemCount.first)
+                {
+                    // Popup of same item type found
+                    ItemPopup popupToAddTo = *iter;
+                    popupToAddTo.itemCount.second += itemCount.second;
+                    popupToAddTo.timeAlive = 0.0f;
 
-                addedToExisting = true;
+                    iter = itemPopups.erase(iter);
+                    itemPopups.push_back(popupToAddTo);
 
-                break;
+                    addedToExisting = true;
+
+                    break;
+                }
             }
-        }
 
-        iter++;
+            iter++;
+        }
     }
 
     if (!addedToExisting)
@@ -1960,6 +2011,7 @@ void InventoryGUI::pushItemPopup(const ItemCount& itemCount, bool notEnoughSpace
         ItemPopup itemPopup;
         itemPopup.itemCount = itemCount;
         itemPopup.notEnoughSpace = notEnoughSpace;
+        itemPopup.textOverride = textOverride;
 
         itemPopups.push_back(itemPopup);
     }
@@ -1991,7 +2043,12 @@ void InventoryGUI::drawItemPopups(sf::RenderTarget& window)
         infoString.itemCount = itemPopup.itemCount;
         infoString.string = itemData.getDisplayName();
 
-        if (itemPopup.notEnoughSpace)
+        if (itemPopup.textOverride.has_value())
+        {
+            infoString.string = itemPopup.textOverride.value();
+            infoString.drawItemCountNumberWhenOne = false;
+        }
+        else if (itemPopup.notEnoughSpace)
         {
             infoString.string += " - Inventory Full";
             infoString.color = sf::Color(232, 59, 59);
