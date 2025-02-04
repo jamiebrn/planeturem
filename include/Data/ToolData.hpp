@@ -9,13 +9,15 @@ enum ToolBehaviourType
 {
     Pickaxe,
     FishingRod,
-    BowWeapon
+    BowWeapon,
+    MeleeWeapon
 };
 
 static const std::unordered_map<std::string, ToolBehaviourType> toolBehaviourStrTypeMap = {
     {"Pickaxe", ToolBehaviourType::Pickaxe},
     {"Fishing Rod", ToolBehaviourType::FishingRod},
-    {"BowWeapon", ToolBehaviourType::BowWeapon}
+    {"BowWeapon", ToolBehaviourType::BowWeapon},
+    {"MeleeWeapon", ToolBehaviourType::MeleeWeapon}
 };
 
 struct ProjectileData
@@ -55,9 +57,12 @@ struct ToolData
     sf::Vector2f fishingRodLineOffset;
     float fishingEfficiency = 0.0f;
 
-    // Weapon stuff
+    // Bow weapon stuff
     std::vector<ProjectileType> projectileShootTypes;
     float shootPower = 1.0f;
     float projectileDamageMult = 1.0f;
     sf::Vector2i shootOffset;
+
+    // Melee weapon stuff
+    
 };

@@ -1312,6 +1312,11 @@ sf::Vector2f InventoryGUI::drawItemInfoBox(sf::RenderTarget& window, float gameT
                 infoStrings.push_back({Helper::floatToString(toolData.projectileDamageMult, 2) + "x projectile damage", 20});
                 infoStrings.push_back({Helper::floatToString(toolData.shootPower, 2) + " shooting power", 20});
             }
+            case ToolBehaviourType::MeleeWeapon:
+            {
+                infoStrings.push_back({std::to_string(toolData.damage) + " melee damage", 20});
+                break;
+            }
         }
     }
     else if (itemData.projectileType >= 0)

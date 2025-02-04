@@ -452,5 +452,13 @@
         "key-items": ["Titanium Bar"],
         "crafting-station": "bench",
         "crafting-station-level": 1
+    },
+    {
+        "product": "Wooden Club",
+        "item-requirements": {
+            "Wood": 15
+        },
+        "crafting-station": "bench",
+        "crafting-station-level": 1
     }
 ]

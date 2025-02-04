@@ -8,6 +8,7 @@
 #include <array>
 #include <memory>
 #include <optional>
+#include <vector>
 
 #include "Core/ResolutionHandler.hpp"
 #include "Core/CollisionRect.hpp"
@@ -151,6 +152,7 @@ private:
     TweenID rotationTweenID;
     // bool swingingTool;
     bool usingTool;
+    std::vector<CollisionRect> meleeCollisionRects;
 
     static constexpr float MAX_USE_TOOL_COOLDOWN = 0.3f;
     float useToolCooldown;

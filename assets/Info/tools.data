@@ -196,6 +196,18 @@
             "shoot-power": 1.0,
             "projectiles": ["Snowball"],
             "sell-value": 18
+        },
+        {
+            "name": "Wooden Club",
+            "behaviour-type": "MeleeWeapon",
+            "textures": [[48, 16]],
+            "texture-width": 16,
+            "texture-height": 16,
+            "pivot-x": 0.6875,
+            "pivot-y": 0.6875,
+            "hold-offset": [-2, -3],
+            "damage": 1,
+            "sell-value": 1
         }
     ]
 }
