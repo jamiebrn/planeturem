@@ -69,6 +69,18 @@ public:
         return id;
     }
 
+    inline bool stopTween(TweenID tweenQueueID)
+    {
+        if (!activeTweens.contains(tweenQueueID))
+        {
+            return false;
+        }
+
+        activeTweens.erase(tweenQueueID);
+
+        return true;
+    }
+
     inline void addTweenToQueue(TweenID tweenQueueID, T* value, T start, T end, float duration, TweenTransition transitionType, TweenEasing easingType)
     {
         if (!activeTweens.contains(tweenQueueID))

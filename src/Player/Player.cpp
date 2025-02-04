@@ -206,15 +206,17 @@ void Player::updateToolRotation(sf::Vector2f mouseWorldPos)
     } 
 
     const ToolData& toolData = ToolDataLoader::getToolData(equippedTool);
-    if (toolData.toolBehaviourType == ToolBehaviourType::BowWeapon)
+    if (toolData.toolBehaviourType == ToolBehaviourType::BowWeapon || toolData.toolBehaviourType == ToolBehaviourType::MeleeWeapon)
     {
         if (flippedTexture)
         {
-            toolRotation = 180.0f * std::atan2(mouseWorldPos.y - position.y, position.x - mouseWorldPos.x) / M_PI;
+            toolRotation = 180.0f * std::atan2(mouseWorldPos.y - position.y, position.x - mouseWorldPos.x) / M_PI + 
+                (usingTool ? toolRotation : 0);
         }
         else
         {
-            toolRotation = 180.0f * std::atan2(mouseWorldPos.y - position.y, mouseWorldPos.x - position.x) / M_PI;
+            toolRotation = 180.0f * std::atan2(mouseWorldPos.y - position.y, mouseWorldPos.x - position.x) / M_PI + 
+                (usingTool ? toolRotation : 0);
         }
     }
 
@@ -578,6 +580,11 @@ void Player::setTool(ToolType toolType)
     toolRotation = 0.0f;
 
     fishingRodCasted = false;
+
+    if (usingTool)
+    {
+        toolTweener.stopTween(rotationTweenID);
+    }
 }
 
 ToolType Player::getTool()
@@ -646,6 +653,17 @@ void Player::useTool(ProjectileManager& projectileManager, InventoryData& invent
 
             // Add projectile to manager
             projectileManager.addProjectile(std::move(projectile));
+            break;
+        }
+        case ToolBehaviourType::MeleeWeapon:
+        {
+            usingTool = true;
+
+            static constexpr float destRotation = 90.0f;
+            static constexpr float tweenTime = 0.1f;
+
+            rotationTweenID = toolTweener.startTween(&toolRotation, toolRotation, destRotation, tweenTime, TweenTransition::Circ, TweenEasing::EaseInOut);
+            toolTweener.addTweenToQueue(rotationTweenID, &toolRotation, destRotation, 0.0f, 0.15, TweenTransition::Expo, TweenEasing::EaseOut);
             break;
         }
     }

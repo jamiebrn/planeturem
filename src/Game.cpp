@@ -248,7 +248,7 @@ void Game::run()
     SDL_Quit();
 }
 
-
+#if (!RELEASE_BUILD)
 void Game::runFeatureTest()
 {
     // static std::optional<std::pair<int, int>> start, end;
@@ -357,7 +357,7 @@ void Game::runFeatureTest()
     //     window.draw(rect);
     // }
 }
-
+#endif
 
 // -- Main Menu -- //
 
@@ -504,14 +504,17 @@ void Game::runInGame(float dt)
                 {
                     case WorldMenuState::Main:
                     {
-                        if ((!uiInteracted || InputManager::isControllerActive()) && player.isUseToolTimerFinished())
+                        if (!uiInteracted || InputManager::isControllerActive())
                         {
-                            player.startUseToolTimer();
-                            attemptUseTool();
-                            attemptBuildObject();
-                            attemptPlaceLand();
-                            attemptUseBossSpawn();
-                            attemptUseConsumable();
+                            if (player.isUseToolTimerFinished())
+                            {
+                                player.startUseToolTimer();
+                                attemptUseTool();
+                                attemptBuildObject();
+                                attemptPlaceLand();
+                                attemptUseBossSpawn();
+                                attemptUseConsumable();
+                            }
                         }
                         else
                         {
