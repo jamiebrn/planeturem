@@ -24,19 +24,45 @@ void ChestObject::update(Game& game, float dt, bool onWater, bool loopAnimation)
 
 bool ChestObject::damage(int amount, Game& game, ChunkManager& chunkManager, ParticleSystem& particleSystem, bool giveItems)
 {
-    // Check if chest contains items - if it does, set damage amount to 0
-    if (chestID != 0xFFFF)
-    {
-        if (!game.getChestDataPool().getChestDataPtr(chestID)->isEmpty())
-        {
-            amount = 0;
-        }
-    }
+    // if (chestID != 0xFFFF)
+    // {
+    //     if (!game.getChestDataPool().getChestDataPtr(chestID)->isEmpty())
+    //     {
+    //         amount = 0;
+    //     }
+    // }
 
     bool destroyed = BuildableObject::damage(amount, game, chunkManager, particleSystem);
 
     if (destroyed)
     {
+        InventoryData* chestData = game.getChestDataPool().getChestDataPtr(chestID);
+        if (chestData != nullptr)
+        {
+            // Create pickups for items in chest
+            if (!chestData->isEmpty())
+            {
+                std::vector<ItemDrop> itemDrops;
+                for (auto& itemCount : chestData->getData())
+                {
+                    if (!itemCount.has_value())
+                    {
+                        continue;
+                    }
+
+                    ItemDrop itemDrop;
+                    itemDrop.item = itemCount->first;
+                    itemDrop.chance = 1.0f;
+                    itemDrop.minAmount = itemCount->second;
+                    itemDrop.maxAmount = itemCount->second;
+
+                    itemDrops.push_back(itemDrop);
+                }
+
+                BuildableObject::createItemPickups(chunkManager, itemDrops, game.getGameTime()); 
+            }
+        }
+
         removeChestFromPool(game);
 
         if (game.getOpenChestID() == chestID)
