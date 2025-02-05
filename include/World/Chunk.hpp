@@ -32,6 +32,7 @@
 #include "Player/ItemPickup.hpp"
 
 #include "Entity/Entity.hpp"
+#include "Entity/HitRect.hpp"
 #include "World/ChunkManager.hpp"
 #include "World/TileMap.hpp"
 #include "World/PathfindingEngine.hpp"
@@ -145,6 +146,9 @@ public:
 
     // -- Entity handling -- //
     void updateChunkEntities(float dt, int worldSize, ProjectileManager& projectileManager, ChunkManager& chunkManager, Game& game);
+
+    void testEntityHitCollision(const std::vector<HitRect>& hitRects, ChunkManager& chunkManager, float gameTime);
+
     void moveEntityToChunk(std::unique_ptr<Entity> entity);
 
     // Cursor position IS IN WORLD SPACE

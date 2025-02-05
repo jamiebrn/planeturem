@@ -116,6 +116,9 @@ public:
     void landmarkPlaced(const LandmarkObject& landmark, bool createGUI);
     void landmarkDestroyed(const LandmarkObject& landmark);
 
+    // Melee combat
+    void testMeleeCollision(const std::vector<HitRect>& hitRects);
+
     void drawWorld(sf::RenderTexture& renderTexture, float dt, std::vector<WorldObject*>& worldObjects, ChunkManager& chunkManagerArg, const Camera& cameraArg);
 
     inline bool getIsDay() {return isDay;}

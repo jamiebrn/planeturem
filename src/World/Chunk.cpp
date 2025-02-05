@@ -1010,6 +1010,14 @@ void Chunk::updateChunkEntities(float dt, int worldSize, ProjectileManager& proj
     }
 }
 
+void Chunk::testEntityHitCollision(const std::vector<HitRect>& hitRects, ChunkManager& chunkManager, float gameTime)
+{
+    for (auto& entity : entities)
+    {
+        entity->testHitCollision(hitRects, chunkManager, gameTime);
+    }
+}
+
 void Chunk::moveEntityToChunk(std::unique_ptr<Entity> entity)
 {
     entities.push_back(std::move(entity));

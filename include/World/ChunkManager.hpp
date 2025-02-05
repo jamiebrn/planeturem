@@ -18,6 +18,7 @@
 #include "World/ChunkPosition.hpp"
 #include "World/TileMap.hpp"
 #include "Entity/Entity.hpp"
+#include "Entity/HitRect.hpp"
 #include "Types/TileType.hpp"
 #include "Player/InventoryData.hpp"
 #include "Player/ItemPickup.hpp"
@@ -147,6 +148,9 @@ public:
     // -- Entities -- //
     // Update all entities in loaded chunks
     void updateChunksEntities(float dt, ProjectileManager& projectileManager, Game& game);
+
+    // Damages any entities hit by any hit rect
+    void testChunkEntityHitCollision(const std::vector<HitRect>& hitRects, float gameTime);
 
     // Handle moving of entity from one chunk to another chunk
     void moveEntityToChunkFromChunk(std::unique_ptr<Entity> entity, ChunkPosition newChunk);

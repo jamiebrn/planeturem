@@ -1518,7 +1518,7 @@ void Game::attemptUseToolPickaxe()
     sf::Vector2f mouseWorldPos = camera.screenToWorldTransform(mouseScreenPos);
     
     // Swing pickaxe
-    player.useTool(projectileManager, inventory, mouseWorldPos);
+    player.useTool(projectileManager, inventory, mouseWorldPos, *this);
 
     if (gameState != GameState::OnPlanet)
         return;
@@ -1531,13 +1531,6 @@ void Game::attemptUseToolPickaxe()
 
     const ToolData& toolData = ToolDataLoader::getToolData(currentTool);
 
-    // Entity* selectedEntity = chunkManager.getSelectedEntity(Cursor::getSelectedChunk(chunkManager.getWorldSize()), mouseWorldPos);
-    // if (selectedEntity != nullptr)
-    // {
-        // selectedEntity->damage(toolData.damage, inventory);
-    // }
-    // else
-    // {
     bool canDestroyObject = chunkManager.canDestroyObject(Cursor::getSelectedChunk(chunkManager.getWorldSize()),
                                                     Cursor::getSelectedChunkTile(),
                                                     player.getCollisionRect());
@@ -1552,7 +1545,6 @@ void Game::attemptUseToolPickaxe()
     {
         selectedObject->damage(toolData.damage, *this, chunkManager, particleSystem);
     }
-    // }
 }
 
 void Game::attemptUseToolFishingRod()
@@ -1592,7 +1584,7 @@ void Game::attemptUseToolFishingRod()
     }
     
     // Swing fishing rod
-    player.useTool(projectileManager, inventory, mouseWorldPos);
+    player.useTool(projectileManager, inventory, mouseWorldPos, *this);
 
     player.swingFishingRod(mouseWorldPos, Cursor::getSelectedWorldTile(chunkManager.getWorldSize()));
 }
@@ -1604,7 +1596,12 @@ void Game::attemptUseToolWeapon()
 
     sf::Vector2f mouseWorldPos = camera.screenToWorldTransform(mouseScreenPos);
 
-    player.useTool(projectileManager, inventory, mouseWorldPos);
+    player.useTool(projectileManager, inventory, mouseWorldPos, *this);
+}
+
+void Game::testMeleeCollision(const std::vector<HitRect>& hitRects)
+{
+    chunkManager.testChunkEntityHitCollision(hitRects, gameTime);
 }
 
 void Game::catchRandomFish(sf::Vector2i fishedTile)

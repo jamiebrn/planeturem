@@ -134,6 +134,18 @@ void Entity::createLightSource(LightingEngine& lightingEngine, sf::Vector2f topL
 }
 
 
+void Entity::testHitCollision(const std::vector<HitRect>& hitRects, ChunkManager& chunkManager, float gameTime)
+{
+    for (const HitRect& hitRect : hitRects)
+    {
+        if (hitRect.isColliding(collisionRect))
+        {
+            damage(hitRect.damage, chunkManager, gameTime);
+            return;
+        }
+    }
+}
+
 void Entity::damage(int amount, ChunkManager& chunkManager, float gameTime)
 {
     flash_amount = 1.0f;

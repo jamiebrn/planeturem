@@ -10,9 +10,9 @@
 
 class Game;
 
-class BuildableObjectFactory
+namespace BuildableObjectFactory
 {
-    BuildableObjectFactory() = delete;
-public:
-    static std::unique_ptr<BuildableObject> create(sf::Vector2f position, ObjectType objectType, Game* game = nullptr, bool placedByPlayer = false);
-};
+
+std::unique_ptr<BuildableObject> create(sf::Vector2f position, ObjectType objectType, Game* game = nullptr, bool placedByPlayer = false);
+
+}

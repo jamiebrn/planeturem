@@ -60,7 +60,7 @@ public:
     void setTool(ToolType toolType);
     ToolType getTool();
 
-    void useTool(ProjectileManager& projectileManager, InventoryData& inventory, sf::Vector2f mouseWorldPos);
+    void useTool(ProjectileManager& projectileManager, InventoryData& inventory, sf::Vector2f mouseWorldPos, Game& game);
     bool isUsingTool();
 
     void startUseToolTimer();
@@ -152,7 +152,7 @@ private:
     TweenID rotationTweenID;
     // bool swingingTool;
     bool usingTool;
-    std::vector<CollisionRect> meleeCollisionRects;
+    std::vector<HitRect> meleeHitRects;
 
     static constexpr float MAX_USE_TOOL_COOLDOWN = 0.3f;
     float useToolCooldown;

@@ -1,5 +1,6 @@
 #include "Player/Player.hpp"
 #include "Player/Cursor.hpp"
+#include "Game.hpp"
 
 Player::Player(sf::Vector2f position, InventoryData* armourInventory)
     : WorldObject(position)
@@ -223,7 +224,7 @@ void Player::updateToolRotation(sf::Vector2f mouseWorldPos)
     // Update melee collision rects
     if (toolData.toolBehaviourType == ToolBehaviourType::MeleeWeapon)
     {
-        meleeCollisionRects.clear();
+        meleeHitRects.clear();
         float angle = std::atan2(mouseWorldPos.y - position.y, mouseWorldPos.x - position.x);
         constexpr float angleStep = M_PI / 8.0f;
         constexpr float radius = 9.0f;
@@ -232,12 +233,13 @@ void Player::updateToolRotation(sf::Vector2f mouseWorldPos)
 
         for (int i = -2; i <= 2; i++)
         {
-            CollisionRect rect;
+            HitRect rect;
             rect.x = position.x + std::cos(angle + i * angleStep) * radius - collisionSize / 2.0f;
             rect.y = position.y + yOriginOffset + std::sin(angle + i * angleStep) * radius - collisionSize / 2.0f;
             rect.width = collisionSize;
             rect.height = collisionSize;
-            meleeCollisionRects.push_back(rect);
+            rect.damage = toolData.damage;
+            meleeHitRects.push_back(rect);
         }
     }
 }
@@ -408,14 +410,20 @@ void Player::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game
             TextureType::Tools, toolPos, correctedToolRotation, playerScale, {toolData.pivot.x, toolData.pivot.y + pivotYOffset
             }}, toolData.textureRects[textureRectIndex]);
         
-        if (toolData.toolBehaviourType == ToolBehaviourType::MeleeWeapon)
+        #if (!RELEASE_BUILD)
+        // DEBUG
+        if (DebugOptions::drawCollisionRects)
         {
-            spriteBatch.endDrawing(window);
-            for (const CollisionRect& rect : meleeCollisionRects)
+            if (toolData.toolBehaviourType == ToolBehaviourType::MeleeWeapon)
             {
-                rect.debugDraw(window, camera);
+                spriteBatch.endDrawing(window);
+                for (const CollisionRect& rect : meleeHitRects)
+                {
+                    rect.debugDraw(window, camera);
+                }
             }
         }
+        #endif
     }
 
     // Draw fishing line if casted rod
@@ -592,7 +600,7 @@ ToolType Player::getTool()
     return equippedTool;
 }
 
-void Player::useTool(ProjectileManager& projectileManager, InventoryData& inventory, sf::Vector2f mouseWorldPos)
+void Player::useTool(ProjectileManager& projectileManager, InventoryData& inventory, sf::Vector2f mouseWorldPos, Game& game)
 {
     // swingingTool = true;
 
@@ -662,8 +670,10 @@ void Player::useTool(ProjectileManager& projectileManager, InventoryData& invent
             static constexpr float destRotation = 90.0f;
             static constexpr float tweenTime = 0.1f;
 
-            rotationTweenID = toolTweener.startTween(&toolRotation, toolRotation, destRotation, tweenTime, TweenTransition::Circ, TweenEasing::EaseInOut);
+            rotationTweenID = toolTweener.startTween(&toolRotation, 0.0f, destRotation, tweenTime, TweenTransition::Circ, TweenEasing::EaseInOut);
             toolTweener.addTweenToQueue(rotationTweenID, &toolRotation, destRotation, 0.0f, 0.15, TweenTransition::Expo, TweenEasing::EaseOut);
+
+            game.testMeleeCollision(meleeHitRects);
             break;
         }
     }

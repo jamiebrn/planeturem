@@ -1,6 +1,9 @@
 #include "Object/BuildableObjectFactory.hpp"
 
-std::unique_ptr<BuildableObject> BuildableObjectFactory::create(sf::Vector2f position, ObjectType objectType, Game* game, bool placedByPlayer)
+namespace BuildableObjectFactory
+{
+
+std::unique_ptr<BuildableObject> create(sf::Vector2f position, ObjectType objectType, Game* game, bool placedByPlayer)
 {
     if (objectType >= 0)
     {
@@ -30,4 +33,6 @@ std::unique_ptr<BuildableObject> BuildableObjectFactory::create(sf::Vector2f pos
 
     // Default case
     return std::make_unique<BuildableObject>(position, objectType);
+}
+
 }
