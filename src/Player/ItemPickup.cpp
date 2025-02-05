@@ -40,7 +40,7 @@ void ItemPickup::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& 
     float floatAmount = std::pow(std::sin(gameTime + worldTile.x + worldTile.y), 2);
 
     sf::Vector2f screenPos = camera.worldToScreenTransform(position - sf::Vector2f(0, floatAmount * (maxFloatHeight - minFloatHeight) + minFloatHeight));
-    float scaleMult = scale / 3.0f;
+    float scaleMult = scale / 3.0f / ResolutionHandler::getResolutionIntegerScale();
 
     float flashAmount = std::max(SPAWN_FLASH_TIME - (gameTime - spawnGameTime), 0.0f) / SPAWN_FLASH_TIME;
 

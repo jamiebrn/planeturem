@@ -43,5 +43,5 @@ int ResolutionHandler::getResolutionIntegerScale()
 {
     float resolutionXScale = currentResolution.x / 1920.0f;
     float resolutionYScale = currentResolution.y / 1080.0f;
-    return std::max(std::max(static_cast<int>(resolutionXScale), static_cast<int>(resolutionYScale)), 1);
+    return std::max(std::min(static_cast<int>(resolutionXScale), static_cast<int>(resolutionYScale)), 1);
 }

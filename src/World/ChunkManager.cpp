@@ -192,6 +192,11 @@ void ChunkManager::reloadChunks()
         
         // Store chunk in chunk memory
         storedChunks[chunkPos] = std::move(iter->second);
+
+        // Reset chunk entity spawn cooldown to prevent chunks spawning new entities when reloaded
+        // e.g. when world boundary crossed, prevent new entities from spawning on loaded chunks
+        resetChunkEntitySpawnCooldown(iter->first);
+
         // Unload chunk
         iter = loadedChunks.erase(iter);
     }
