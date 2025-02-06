@@ -157,7 +157,7 @@ public:
 
     static void pushItemPopup(const ItemCount& itemCount, bool notEnoughSpace = false, std::optional<std::string> textOverride = std::nullopt);
 
-    static void drawItemPopups(sf::RenderTarget& window);
+    static void drawItemPopups(sf::RenderTarget& window, float gameTime);
 
     // -- Controller navigation -- //
 

@@ -1239,13 +1239,7 @@ sf::Vector2f InventoryGUI::drawItemInfoBox(sf::RenderTarget& window, float gameT
 
     std::vector<ItemInfoString> infoStrings;
 
-    sf::Color itemNameColor = itemData.nameColor;
-    if (itemData.nameColor == sf::Color(0, 0, 0))
-    {
-        itemNameColor.r = 255.0f * (std::sin(gameTime * 2.0f) + 1) / 2.0f;
-        itemNameColor.g = 255.0f * (std::cos(gameTime * 2.0f) + 1) / 2.0f;
-        itemNameColor.b = 255.0f * (std::sin(gameTime * 2.0f + 3 * 3.14 / 2) + 1) / 2.0f;
-    }
+    sf::Color itemNameColor = itemData.getNameColor(gameTime);
 
     infoStrings.push_back({itemData.getDisplayName(), 24, itemNameColor});
 
@@ -1338,6 +1332,10 @@ sf::Vector2f InventoryGUI::drawItemInfoBox(sf::RenderTarget& window, float gameT
         if (itemData.consumableData->healthIncrease > 0)
         {
             infoStrings.push_back({"+" + std::to_string(itemData.consumableData->healthIncrease) + " health", 20});
+        }
+        if (itemData.consumableData->permanentHealthIncrease > 0)
+        {
+            infoStrings.push_back({"+" + std::to_string(itemData.consumableData->permanentHealthIncrease) + " permanent max health", 20});
         }
     }
 
@@ -1561,7 +1559,7 @@ sf::Vector2f InventoryGUI::drawInfoBox(sf::RenderTarget& window, sf::Vector2f po
                 TextDrawData itemAmountText = {
                     .text = std::to_string(itemCount.second),
                     .position = textDrawData.position + sf::Vector2f(itemSize, itemSize) * 0.85f * static_cast<float>(intScale),
-                    .colour = sf::Color(textDrawData.colour.r, textDrawData.colour.g, textDrawData.colour.b, alpha),
+                    .colour = sf::Color(255, 255, 255, alpha),
                     .size = textDrawData.size,
                     .centeredX = true,
                     .centeredY = true
@@ -2027,7 +2025,7 @@ void InventoryGUI::pushItemPopup(const ItemCount& itemCount, bool notEnoughSpace
     }
 }
 
-void InventoryGUI::drawItemPopups(sf::RenderTarget& window)
+void InventoryGUI::drawItemPopups(sf::RenderTarget& window, float gameTime)
 {
     if (itemPopups.size() <= 0)
         return;
@@ -2047,6 +2045,7 @@ void InventoryGUI::drawItemPopups(sf::RenderTarget& window)
         ItemInfoString infoString;
         infoString.itemCount = itemPopup.itemCount;
         infoString.string = itemData.getDisplayName();
+        infoString.color = itemData.getNameColor(gameTime);
 
         if (itemPopup.textOverride.has_value())
         {

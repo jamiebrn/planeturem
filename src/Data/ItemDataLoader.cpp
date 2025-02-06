@@ -42,11 +42,16 @@ bool ItemDataLoader::loadData(std::string itemDataPath)
             auto jsonConsumableData = jsonItemData.at("consumable-data");
 
             ConsumableData consumableData;
-            consumableData.cooldownTime = jsonConsumableData.at("cooldown-time");
+            if (jsonConsumableData.contains("cooldown-time")) consumableData.cooldownTime = jsonConsumableData.at("cooldown-time");
             
             if (jsonConsumableData.contains("health-increase"))
             {
                 consumableData.healthIncrease = jsonConsumableData.at("health-increase");
+            }
+
+            if (jsonConsumableData.contains("permanent-health-increase"))
+            {
+                consumableData.permanentHealthIncrease = jsonConsumableData.at("permanent-health-increase");
             }
 
             itemData.consumableData = consumableData;
@@ -57,6 +62,8 @@ bool ItemDataLoader::loadData(std::string itemDataPath)
         if (jsonItemData.contains("currency-value")) itemData.currencyValue = jsonItemData.at("currency-value");
 
         if (jsonItemData.contains("sell-value")) itemData.sellValue = jsonItemData.at("sell-value");
+
+        if (jsonItemData.contains("name-colour")) itemData.nameColor = jsonItemData.at("name-colour");
 
         // Add to item name to type map
         itemNameToTypeMap[itemData.name] = itemIndex;

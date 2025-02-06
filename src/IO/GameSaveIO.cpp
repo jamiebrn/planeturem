@@ -47,6 +47,11 @@ bool GameSaveIO::loadPlayerSave(PlayerGameSave& playerGameSave)
             playerGameSave.planetType = 0;
         }
 
+        if (json.contains("max-health"))
+        {
+            playerGameSave.maxHealth = json.at("max-health");
+        }
+
         if (json.contains("recipes-seen"))
         {
             playerGameSave.recipesSeen = json.at("recipes-seen");
@@ -171,6 +176,8 @@ bool GameSaveIO::writePlayerSave(const PlayerGameSave& playerGameSave)
         {
             json["roomdest"] = StructureDataLoader::getRoomData(playerGameSave.roomDestinationType).name;
         }
+
+        json["max-health"] = playerGameSave.maxHealth;
 
         json["recipes-seen"] = playerGameSave.recipesSeen;
 

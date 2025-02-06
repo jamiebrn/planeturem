@@ -204,5 +204,14 @@
         "name": "Silver Gemstone",
         "texture": [80, 48, 16, 16],
         "currency-value": 1
+    },
+    {
+        "name": "Golden Banana",
+        "texture": [112, 32, 16, 16],
+        "name-colour": [0, 0, 0],
+        "sell-value": 20,
+        "consumable-data": {
+            "permanent-health-increase": 25
+        }
     }
 ]

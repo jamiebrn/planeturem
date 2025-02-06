@@ -8,6 +8,7 @@
 
 #include "Core/json.hpp"
 #include "Data/Serialise/IntRectSerialise.hpp"
+#include "Data/Serialise/ColorSerialise.hpp"
 #include "Data/typedefs.hpp"
 #include "Data/ItemData.hpp"
 #include "Data/ObjectData.hpp"

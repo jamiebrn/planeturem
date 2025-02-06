@@ -2,7 +2,7 @@
 #include "Player/Cursor.hpp"
 #include "Game.hpp"
 
-Player::Player(sf::Vector2f position, InventoryData* armourInventory)
+Player::Player(sf::Vector2f position, InventoryData* armourInventory, int maxHealth)
     : WorldObject(position)
 {
     collisionRect.width = 12.0f;
@@ -20,8 +20,8 @@ Player::Player(sf::Vector2f position, InventoryData* armourInventory)
 
     canMove = true;
 
-    maxHealth = INITIAL_MAX_HEALTH;
-    health = maxHealth;
+    this->maxHealth = (maxHealth == 0) ? INITIAL_MAX_HEALTH : maxHealth;
+    health = this->maxHealth;
     healthRegenCooldownTimer = 0.0f;
     damageCooldownTimer = 0.0f;
     respawnTimer = 0.0f;
@@ -779,6 +779,14 @@ bool Player::useConsumable(const ConsumableData& consumable)
 
         healthConsumableTimerMax = consumable.cooldownTime;
         healthConsumableTimer = healthConsumableTimerMax;
+
+        usedConsumable = true;
+    }
+
+    if (consumable.permanentHealthIncrease > 0)
+    {
+        maxHealth += consumable.permanentHealthIncrease;
+        HitMarkers::addHitMarker(position, consumable.permanentHealthIncrease, sf::Color(35, 144, 99));
 
         usedConsumable = true;
     }

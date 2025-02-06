@@ -815,7 +815,7 @@ void Game::runInGame(float dt)
             case WorldMenuState::Main:
             {
                 InventoryGUI::drawHotbar(window, mouseScreenPos, inventory);
-                InventoryGUI::drawItemPopups(window);
+                InventoryGUI::drawItemPopups(window, gameTime);
                 HealthGUI::drawHealth(window, spriteBatch, player, gameTime, extraInfoStrings);
 
                 // Controller glyphs
@@ -845,7 +845,7 @@ void Game::runInGame(float dt)
                 }
                 HealthGUI::drawHealth(window, spriteBatch, player, gameTime, extraInfoStrings);
                 spriteBatch.endDrawing(window);
-                InventoryGUI::drawItemPopups(window);
+                InventoryGUI::drawItemPopups(window, gameTime);
 
                 InventoryData* chestDataPtr = nullptr;
 
@@ -2302,6 +2302,7 @@ bool Game::saveGame(bool gettingInRocket)
     playerGameSave.seed = chunkManager.getSeed();
     playerGameSave.inventory = inventory;
     playerGameSave.armourInventory = armourInventory;
+    playerGameSave.maxHealth = player.getMaxHealth();
     playerGameSave.time = dayCycleManager.getCurrentTime();
     playerGameSave.day = dayCycleManager.getCurrentDay();
 
@@ -2385,7 +2386,7 @@ bool Game::loadGame(const SaveFileSummary& saveFileSummary)
         return false;
     }
 
-    player = Player(sf::Vector2f(0, 0), &armourInventory);
+    player = Player(sf::Vector2f(0, 0), &armourInventory, playerGameSave.maxHealth);
 
     InventoryGUI::reset();
 

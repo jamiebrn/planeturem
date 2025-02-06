@@ -17,6 +17,7 @@ struct ConsumableData
 {
     int cooldownTime;
     int healthIncrease = 0;
+    int permanentHealthIncrease = 0;
 };
 
 struct ItemData
@@ -52,5 +53,19 @@ struct ItemData
             return displayName.value();
         }
         return name;
+    }
+
+    inline sf::Color getNameColor(float gameTime) const
+    {
+        if (nameColor == sf::Color(0, 0, 0))
+        {
+            sf::Color rainbowColor;
+            rainbowColor.r = 255.0f * (std::sin(gameTime * 2.0f) + 1) / 2.0f;
+            rainbowColor.g = 255.0f * (std::cos(gameTime * 2.0f) + 1) / 2.0f;
+            rainbowColor.b = 255.0f * (std::sin(gameTime * 2.0f + 3 * 3.14 / 2) + 1) / 2.0f;
+            return rainbowColor;
+        }
+
+        return nameColor;
     }
 };

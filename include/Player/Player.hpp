@@ -48,7 +48,7 @@ class Player : public WorldObject
 {
 public:
     Player() = default;
-    Player(sf::Vector2f position, InventoryData* armourInventory);
+    Player(sf::Vector2f position, InventoryData* armourInventory, int maxHealth = 0);
 
     void update(float dt, sf::Vector2f mouseWorldPos, ChunkManager& chunkManager, ProjectileManager& enemyProjectileManager,
         bool& wrappedAroundWorld, sf::Vector2f& wrapPositionDelta);

@@ -46,6 +46,8 @@ struct PlayerGameSave
 
     std::unordered_set<std::string> recipesSeen;
 
+    int maxHealth = 0;
+
     float time;
     int day;
 
