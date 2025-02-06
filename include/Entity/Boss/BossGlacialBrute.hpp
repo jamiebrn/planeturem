@@ -58,9 +58,13 @@ public:
 
     void testProjectileCollision(Projectile& projectile) override;
 
+    void testHitRectCollision(const std::vector<HitRect>& hitRects) override;
+
     void getWorldObjects(std::vector<WorldObject*>& worldObjects) override;
 
 private:
+    void damage(int amount, sf::Vector2f damageSource);
+
     void updateCollision();
 
     void throwSnowball(ProjectileManager& enemyProjectileManager, Player& player);
@@ -96,6 +100,8 @@ private:
     float throwSnowballTimer = 0.0f;
 
     static constexpr float LEAVE_SPEED_MULT = 2.4f;
+
+    static constexpr float BODY_DAMAGE = 200.0f;
 
     CollisionRect hitCollision;
 

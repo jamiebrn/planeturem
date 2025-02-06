@@ -20,7 +20,7 @@ Player::Player(sf::Vector2f position, InventoryData* armourInventory)
 
     canMove = true;
 
-    maxHealth = 250;
+    maxHealth = INITIAL_MAX_HEALTH;
     health = maxHealth;
     healthRegenCooldownTimer = 0.0f;
     damageCooldownTimer = 0.0f;

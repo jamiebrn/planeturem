@@ -208,18 +208,37 @@ void BossGlacialBrute::getHoverStats(sf::Vector2f mouseWorldPos, std::vector<std
 
 void BossGlacialBrute::testCollisionWithPlayer(Player& player)
 {
-
+    HitRect hitRect(hitCollision);
+    hitRect.damage = BODY_DAMAGE;
+    player.testHitCollision(hitRect);
 }
 
 void BossGlacialBrute::testProjectileCollision(Projectile& projectile)
 {
     if (hitCollision.isColliding(projectile.getCollisionCircle()))
     {
-        health -= projectile.getDamage();
-        flashTime = MAX_FLASH_TIME;
-        HitMarkers::addHitMarker(projectile.getPosition(), projectile.getDamage());
+        damage(projectile.getDamage(), projectile.getPosition());
         projectile.onCollision();
     }
+}
+
+void BossGlacialBrute::testHitRectCollision(const std::vector<HitRect>& hitRects)
+{
+    for (const HitRect& hitRect : hitRects)
+    {
+        if (hitCollision.isColliding(hitRect))
+        {
+            damage(hitRect.damage, hitRect.getCentre());
+            return;
+        }   
+    }
+}
+
+void BossGlacialBrute::damage(int amount, sf::Vector2f damageSource)
+{
+    health -= amount;
+    flashTime = MAX_FLASH_TIME;
+    HitMarkers::addHitMarker(damageSource, amount);
 }
 
 void BossGlacialBrute::getWorldObjects(std::vector<WorldObject*>& worldObjects)

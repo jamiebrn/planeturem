@@ -80,7 +80,7 @@ bool Projectile::isAlive()
     return alive;
 }
 
-const CollisionCircle Projectile::getCollisionCircle() const
+CollisionCircle Projectile::getCollisionCircle() const
 {
     const ProjectileData& projectileData = ToolDataLoader::getProjectileData(projectileType);
 

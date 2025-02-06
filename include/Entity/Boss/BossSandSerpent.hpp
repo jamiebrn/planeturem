@@ -58,6 +58,8 @@ public:
 
     void testProjectileCollision(Projectile& projectile) override;
 
+    void testHitRectCollision(const std::vector<HitRect>& hitRects) override;
+
     void getWorldObjects(std::vector<WorldObject*>& worldObjects) override;
 
 private:

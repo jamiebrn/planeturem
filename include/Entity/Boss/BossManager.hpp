@@ -29,6 +29,8 @@ public:
 
     void update(Game& game, ProjectileManager& projectileManager, ProjectileManager& enemyProjectileManager, ChunkManager& chunkManager, Player& player, float dt, float gameTime);
 
+    void testHitRectCollision(const std::vector<HitRect>& hitRects);
+
     void handleWorldWrap(sf::Vector2f positionDelta);
 
     void stopBossMusic();

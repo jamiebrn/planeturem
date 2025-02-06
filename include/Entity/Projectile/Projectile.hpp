@@ -37,7 +37,7 @@ public:
 
     bool isAlive();
 
-    const CollisionCircle getCollisionCircle() const;
+    CollisionCircle getCollisionCircle() const;
 
 private:
     ProjectileType projectileType;

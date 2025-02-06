@@ -1602,6 +1602,7 @@ void Game::attemptUseToolWeapon()
 void Game::testMeleeCollision(const std::vector<HitRect>& hitRects)
 {
     chunkManager.testChunkEntityHitCollision(hitRects, gameTime);
+    bossManager.testHitRectCollision(hitRects);
 }
 
 void Game::catchRandomFish(sf::Vector2i fishedTile)

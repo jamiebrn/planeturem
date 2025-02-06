@@ -27,6 +27,8 @@ struct CollisionRect
     bool isColliding(const CollisionCircle& circle) const;
     bool isPointInRect(float x, float y) const;
 
+    sf::Vector2f getCentre() const;
+
     void debugDraw(sf::RenderTarget& window, const Camera& camera, sf::Color color = {255, 0, 0, 120}) const;
 
     template <class Archive>

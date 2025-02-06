@@ -79,6 +79,14 @@ void BossManager::update(Game& game, ProjectileManager& projectileManager, Proje
     }
 }
 
+void BossManager::testHitRectCollision(const std::vector<HitRect>& hitRects)
+{
+    for (auto& boss : bosses)
+    {
+        boss->testHitRectCollision(hitRects);
+    }
+}
+
 void BossManager::handleWorldWrap(sf::Vector2f positionDelta)
 {
     for (auto& boss : bosses)

@@ -357,6 +357,32 @@ void BossSandSerpent::testProjectileCollision(Projectile& projectile)
     }
 }
 
+void BossSandSerpent::testHitRectCollision(const std::vector<HitRect>& hitRects)
+{
+    if (headHealth > 0)
+    {
+        for (const HitRect& hitRect : hitRects)
+        {
+            if (headCollision.isColliding(hitRect))
+            {
+                if (takeHeadDamage(hitRect.damage, hitRect.getCentre()))
+                {
+                    return;
+                }
+            }
+        }
+    }
+
+    for (const HitRect& hitRect : hitRects)
+    {
+        if (bodyCollision.isColliding(hitRect))
+        {
+            takeBodyDamage(hitRect.damage, hitRect.getCentre());
+            break;
+        }
+    }
+}
+
 void BossSandSerpent::getWorldObjects(std::vector<WorldObject*>& worldObjects)
 {
     worldObjects.push_back(this);

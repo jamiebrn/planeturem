@@ -107,6 +107,11 @@ bool CollisionRect::isPointInRect(float x, float y) const
     return (this->x <= x && this->x + width >= x && this->y <= y && this->y + height >= y);
 }
 
+sf::Vector2f CollisionRect::getCentre() const
+{
+    return sf::Vector2f(x + width / 2, y + height / 2);
+}
+
 void CollisionRect::debugDraw(sf::RenderTarget& window, const Camera& camera, sf::Color color) const
 {
     float scale = ResolutionHandler::getScale();

@@ -13,6 +13,7 @@
 
 #include "Entity/Projectile/Projectile.hpp"
 #include "Entity/Projectile/ProjectileManager.hpp"
+#include "Entity/HitRect.hpp"
 
 class Game;
 class Player;
@@ -39,7 +40,9 @@ public:
 
     virtual void testCollisionWithPlayer(Player& player) = 0;
 
-    virtual void testProjectileCollision(Projectile& projectile) = 0;
+    virtual void testProjectileCollision(Projectile& projectile) {}
+
+    virtual void testHitRectCollision(const std::vector<HitRect>& hitRects) {}
 
     virtual void getWorldObjects(std::vector<WorldObject*>& worldObjects) = 0;
 

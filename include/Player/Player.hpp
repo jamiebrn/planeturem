@@ -136,6 +136,7 @@ private:
     static constexpr float BASE_HEALTH_REGEN_RATE = 3.0f;
     static constexpr float MAX_HEALTH_REGEN_COOLDOWN_TIMER = 5.0f;
     float healthRegenCooldownTimer;
+    static constexpr int INITIAL_MAX_HEALTH = 150;
     int maxHealth;
     float health;
     static constexpr float MAX_DAMAGE_COOLDOWN_TIMER = 0.4f;
