@@ -154,6 +154,8 @@ private:
     // bool swingingTool;
     bool usingTool;
     std::vector<HitRect> meleeHitRects;
+    AnimatedTexture meleeSwingAnimation;
+    float meleeSwingAnimationRotation;
 
     static constexpr float MAX_USE_TOOL_COOLDOWN = 0.3f;
     float useToolCooldown;

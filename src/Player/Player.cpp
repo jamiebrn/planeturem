@@ -31,6 +31,9 @@ Player::Player(sf::Vector2f position, InventoryData* armourInventory, int maxHea
     toolRotation = 0;
     usingTool = false;
 
+    meleeSwingAnimation.create(7, 5, 13, 201, 35, 0.025f, false);
+    meleeSwingAnimation.setFrame(6);
+
     useToolCooldown = 0.0f;
 
     fishingRodCasted = false;
@@ -195,6 +198,17 @@ void Player::updateAnimation(float dt)
                 castFishingRod();
             }
         }
+
+    }
+
+    if (equippedTool >= 0)
+    {
+        const ToolData& toolData = ToolDataLoader::getToolData(equippedTool);
+
+        if (toolData.toolBehaviourType == ToolBehaviourType::MeleeWeapon)
+        {
+            meleeSwingAnimation.update(dt);
+        }
     }
 }
 
@@ -241,6 +255,8 @@ void Player::updateToolRotation(sf::Vector2f mouseWorldPos)
             rect.damage = toolData.damage;
             meleeHitRects.push_back(rect);
         }
+
+        meleeSwingAnimationRotation = angle;
     }
 }
 
@@ -404,6 +420,22 @@ void Player::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game
             {
                 textureRectIndex = 1;
             }
+        }
+
+        // Draw melee swing if required
+        if (toolData.toolBehaviourType == ToolBehaviourType::MeleeWeapon)
+        {
+            static constexpr float SWING_ANIMATION_DISTANCE = 8.0f;
+            sf::Vector2f swingWorldPos = sf::Vector2f(std::cos(meleeSwingAnimationRotation), std::sin(meleeSwingAnimationRotation)) * SWING_ANIMATION_DISTANCE + position;
+
+            TextureDrawData meleeSwingDrawData;
+            meleeSwingDrawData.type = TextureType::Tools;
+            meleeSwingDrawData.centerRatio = sf::Vector2f(0.5f, 0.5f);
+            meleeSwingDrawData.position = camera.worldToScreenTransform(swingWorldPos);
+            meleeSwingDrawData.rotation = meleeSwingAnimationRotation / M_PI * 180.0f;
+            meleeSwingDrawData.scale = sf::Vector2f((float)ResolutionHandler::getScale(), (float)ResolutionHandler::getScale());
+
+            spriteBatch.draw(window, meleeSwingDrawData, meleeSwingAnimation.getTextureRect());
         }
 
         TextureManager::drawSubTexture(window, {
@@ -674,6 +706,8 @@ void Player::useTool(ProjectileManager& projectileManager, InventoryData& invent
             toolTweener.addTweenToQueue(rotationTweenID, &toolRotation, destRotation, 0.0f, 0.15, TweenTransition::Expo, TweenEasing::EaseOut);
 
             game.testMeleeCollision(meleeHitRects);
+
+            meleeSwingAnimation.setFrame(0);
             break;
         }
     }
