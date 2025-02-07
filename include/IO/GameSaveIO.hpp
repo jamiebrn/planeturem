@@ -142,7 +142,7 @@ struct SaveFileSummary
 
 struct OptionsSave
 {
-    int musicVolume = 100;
+    int musicVolume = 30;
     int controllerGlyphType = 0;
 };
 

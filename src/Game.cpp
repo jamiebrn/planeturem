@@ -1057,6 +1057,10 @@ void Game::updateOnPlanet(float dt)
         if (amountAdded > 0)
         {
             chunkManager.deleteItemPickup(itemPickupColliding.value());
+
+            // Play pickup sound
+            const std::vector<SoundType> pickupSounds = {SoundType::Pop0, SoundType::Pop1, SoundType::Pop2, SoundType::Pop3};
+            Sounds::playSound(pickupSounds[Helper::randInt(0, pickupSounds.size() - 1)], 30.0f);
         }
     }
 

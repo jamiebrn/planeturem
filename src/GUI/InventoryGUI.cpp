@@ -251,6 +251,9 @@ void InventoryGUI::updateInventory(sf::Vector2f mouseScreenPos, float dt, Invent
         const ItemData& itemData = ItemDataLoader::getItemData(recipeItem);
         pushItemPopup(ItemCount(recipeItem, 1), false, "NEW RECIPE - " + itemData.name);
 
+        // Play sound
+        Sounds::playSound(SoundType::Notify0, 30.0f);
+
         recipeSeenNotifyCooldown = MAX_RECIPE_SEEN_NOTIFY_COOLDOWN;
     }
 }

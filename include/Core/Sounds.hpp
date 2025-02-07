@@ -14,6 +14,9 @@ enum class SoundType
 {
     HitObject, HitObject2, HitObject3,
     CraftBuild1, CraftBuild2,
+    Pop0, Pop1, Pop2, Pop3,
+    Notify0,
+    UIClick0,
     Crow
 };
 
@@ -85,6 +88,12 @@ private:
         {SoundType::HitObject3, "Data/Sounds/hit_object_3.ogg"},
         {SoundType::CraftBuild1, "Data/Sounds/craftbuild1.ogg"},
         {SoundType::CraftBuild2, "Data/Sounds/craftbuild2.ogg"},
+        {SoundType::Pop0, "Data/Sounds/pop0.ogg"},
+        {SoundType::Pop1, "Data/Sounds/pop1.ogg"},
+        {SoundType::Pop2, "Data/Sounds/pop2.ogg"},
+        {SoundType::Pop3, "Data/Sounds/pop3.ogg"},
+        {SoundType::Notify0, "Data/Sounds/notify0.ogg"},
+        {SoundType::UIClick0, "Data/Sounds/uiclick0.ogg"},
         {SoundType::Crow, "Data/Sounds/crow.ogg"}
     };
 

@@ -22,6 +22,9 @@ Button::Button(const GUIInputState& inputState, ElementID id, int x, int y, int 
     if (inputState.leftMouseJustUp && held)
     {
         clicked = true;
+
+        // Play click sound
+        Sounds::playSound(SoundType::UIClick0, 30.0f);
     }
 
     CollisionRect rect(x, y, width, height);
