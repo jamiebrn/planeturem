@@ -27,6 +27,8 @@ Player::Player(sf::Vector2f position, InventoryData* armourInventory, int maxHea
     respawnTimer = 0.0f;
     healthConsumableTimer = 0.0f;
 
+    playerYScaleMult = 1.0f;
+
     equippedTool = -1;
     toolRotation = 0;
     usingTool = false;
@@ -174,10 +176,15 @@ void Player::updateDirection(sf::Vector2f mouseWorldPos)
 void Player::updateAnimation(float dt)
 {
     // Update animation
-    idleAnimation.update(dt);
+    if (!usingTool)
+    {
+        idleAnimation.update(dt);
+    }
     runAnimation.update(dt);
 
     toolTweener.update(dt);
+
+    playerYScaleMult = Helper::lerp(playerYScaleMult, 1.0f, PLAYER_Y_SCALE_LERP_WEIGHT * dt);
 
     // if (swingingTool)
     // {
@@ -397,6 +404,7 @@ void Player::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game
         Shaders::getShader(flashShader.value())->setUniform("flash_amount", damageCooldownTimer / MAX_DAMAGE_COOLDOWN_TIMER);
     }
 
+    playerScale.y *= playerYScaleMult;
     spriteBatch.draw(window, {TextureType::Player, camera.worldToScreenTransform(position + sf::Vector2f(0, waterYOffset)), 0, playerScale, {0.5, 1}}, 
         animationRect, flashShader);
     
@@ -732,6 +740,8 @@ void Player::useTool(ProjectileManager& projectileManager, InventoryData& invent
         }
     }
 
+    playerYScaleMult = 0.8f;
+    idleAnimation.setFrame(0);
 }
 
 bool Player::isUsingTool()

@@ -14,6 +14,7 @@
 #include "Core/CollisionRect.hpp"
 #include "Core/AnimatedTexture.hpp"
 #include "Core/Tween.hpp"
+#include "Core/Helper.hpp"
 #include "Core/TextureManager.hpp"
 #include "Core/TextDraw.hpp"
 #include "Core/SpriteBatch.hpp"
@@ -145,6 +146,9 @@ private:
     float damageCooldownTimer;
     static constexpr float MAX_RESPAWN_TIMER = 10.0f;
     float respawnTimer;
+
+    static constexpr float PLAYER_Y_SCALE_LERP_WEIGHT = 10.0f;
+    float playerYScaleMult;
 
     ToolType equippedTool;
     InventoryData* armourInventory = nullptr;
