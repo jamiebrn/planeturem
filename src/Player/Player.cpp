@@ -239,17 +239,15 @@ void Player::updateToolRotation(sf::Vector2f mouseWorldPos)
     if (toolData.toolBehaviourType == ToolBehaviourType::MeleeWeapon)
     {
         meleeHitRects.clear();
-        float angle = std::atan2(mouseWorldPos.y - position.y, mouseWorldPos.x - position.x);
+        float angle = std::atan2(mouseWorldPos.y - position.y + MELEE_SWING_Y_ORIGIN_OFFSET, mouseWorldPos.x - position.x);
         constexpr float angleStep = M_PI / 8.0f;
-        constexpr float radius = 9.0f;
         constexpr float collisionSize = 7.0f;
-        constexpr float yOriginOffset = -4.0f;
 
         for (int i = -2; i <= 2; i++)
         {
             HitRect rect;
-            rect.x = position.x + std::cos(angle + i * angleStep) * radius - collisionSize / 2.0f;
-            rect.y = position.y + yOriginOffset + std::sin(angle + i * angleStep) * radius - collisionSize / 2.0f;
+            rect.x = position.x + std::cos(angle + i * angleStep) * MELEE_SWING_RADIUS - collisionSize / 2.0f;
+            rect.y = position.y + MELEE_SWING_Y_ORIGIN_OFFSET + std::sin(angle + i * angleStep) * MELEE_SWING_RADIUS - collisionSize / 2.0f;
             rect.width = collisionSize;
             rect.height = collisionSize;
             rect.damage = toolData.damage;
@@ -380,18 +378,30 @@ void Player::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game
         TextureType::Shadow, camera.worldToScreenTransform(position + sf::Vector2f(0, waterYOffset)), 0, playerScale * shadowScale, {0.5, 0.85}
         });
     
-    sf::Shader* flashShader = nullptr;
+    // Draw melee swing behind player if required
+    bool meleeSwingDrawn = false;
+    if (equippedTool >= 0)
+    {
+        const ToolData& toolData = ToolDataLoader::getToolData(equippedTool);
+        if (toolData.toolBehaviourType == ToolBehaviourType::MeleeWeapon && meleeSwingAnimationRotation < 0.0f)
+        {
+            drawMeleeSwing(window, spriteBatch, camera);
+            meleeSwingDrawn = true;
+        }
+    }
+    
+    std::optional<ShaderType> flashShader;
     if (damageCooldownTimer > 0.0f)
     {
-        flashShader = Shaders::getShader(ShaderType::Flash);
-        flashShader->setUniform("flash_amount", damageCooldownTimer / MAX_DAMAGE_COOLDOWN_TIMER);
+        flashShader = ShaderType::Flash;
+        Shaders::getShader(flashShader.value())->setUniform("flash_amount", damageCooldownTimer / MAX_DAMAGE_COOLDOWN_TIMER);
     }
 
-    TextureManager::drawSubTexture(window, {TextureType::Player, camera.worldToScreenTransform(position + sf::Vector2f(0, waterYOffset)), 0, playerScale, {0.5, 1}}, 
+    spriteBatch.draw(window, {TextureType::Player, camera.worldToScreenTransform(position + sf::Vector2f(0, waterYOffset)), 0, playerScale, {0.5, 1}}, 
         animationRect, flashShader);
     
     // Draw armour
-    drawArmour(window, camera, waterYOffset);
+    drawArmour(window, spriteBatch, camera, waterYOffset);
 
     // Draw equipped tool
     if (equippedTool >= 0)
@@ -423,22 +433,12 @@ void Player::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game
         }
 
         // Draw melee swing if required
-        if (toolData.toolBehaviourType == ToolBehaviourType::MeleeWeapon)
+        if (toolData.toolBehaviourType == ToolBehaviourType::MeleeWeapon && !meleeSwingDrawn)
         {
-            static constexpr float SWING_ANIMATION_DISTANCE = 8.0f;
-            sf::Vector2f swingWorldPos = sf::Vector2f(std::cos(meleeSwingAnimationRotation), std::sin(meleeSwingAnimationRotation)) * SWING_ANIMATION_DISTANCE + position;
-
-            TextureDrawData meleeSwingDrawData;
-            meleeSwingDrawData.type = TextureType::Tools;
-            meleeSwingDrawData.centerRatio = sf::Vector2f(0.5f, 0.5f);
-            meleeSwingDrawData.position = camera.worldToScreenTransform(swingWorldPos);
-            meleeSwingDrawData.rotation = meleeSwingAnimationRotation / M_PI * 180.0f;
-            meleeSwingDrawData.scale = sf::Vector2f((float)ResolutionHandler::getScale(), (float)ResolutionHandler::getScale());
-
-            spriteBatch.draw(window, meleeSwingDrawData, meleeSwingAnimation.getTextureRect());
+            drawMeleeSwing(window, spriteBatch, camera);
         }
 
-        TextureManager::drawSubTexture(window, {
+        spriteBatch.draw(window, {
             TextureType::Tools, toolPos, correctedToolRotation, playerScale, {toolData.pivot.x, toolData.pivot.y + pivotYOffset
             }}, toolData.textureRects[textureRectIndex]);
         
@@ -552,7 +552,27 @@ void Player::drawFishingRodCast(sf::RenderTarget& window, const Camera& camera, 
     window.draw(line);
 }
 
-void Player::drawArmour(sf::RenderTarget& window, const Camera& camera, float waterYOffset) const
+void Player::drawMeleeSwing(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Camera& camera) const
+{
+    sf::Vector2f swingWorldPos = sf::Vector2f(std::cos(meleeSwingAnimationRotation), std::sin(meleeSwingAnimationRotation)) * MELEE_SWING_RADIUS + position;
+    swingWorldPos.y += MELEE_SWING_Y_ORIGIN_OFFSET;
+
+    TextureDrawData meleeSwingDrawData;
+    meleeSwingDrawData.type = TextureType::Tools;
+    meleeSwingDrawData.centerRatio = sf::Vector2f(0.5f, 0.5f);
+    meleeSwingDrawData.position = camera.worldToScreenTransform(swingWorldPos);
+    meleeSwingDrawData.rotation = meleeSwingAnimationRotation / M_PI * 180.0f;
+    meleeSwingDrawData.scale = sf::Vector2f((float)ResolutionHandler::getScale(), -(float)ResolutionHandler::getScale());
+
+    if (flippedTexture)
+    {
+        meleeSwingDrawData.scale.y *= -1;
+    }
+
+    spriteBatch.draw(window, meleeSwingDrawData, meleeSwingAnimation.getTextureRect());
+}
+
+void Player::drawArmour(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Camera& camera, float waterYOffset) const
 {
     if (!armourInventory)
     {
@@ -569,11 +589,11 @@ void Player::drawArmour(sf::RenderTarget& window, const Camera& camera, float wa
 
     sf::Vector2f armourOrigin = position - sf::Vector2f(8 * xScaleMult, 16);
 
-    sf::Shader* flashShader = nullptr;
+    std::optional<ShaderType> flashShader;
     if (damageCooldownTimer > 0.0f)
     {
-        flashShader = Shaders::getShader(ShaderType::Flash);
-        flashShader->setUniform("flash_amount", damageCooldownTimer / MAX_DAMAGE_COOLDOWN_TIMER);
+        flashShader = ShaderType::Flash;
+        Shaders::getShader(flashShader.value())->setUniform("flash_amount", damageCooldownTimer / MAX_DAMAGE_COOLDOWN_TIMER);
     }
 
     // Draw headpiece, chest, and boots
@@ -609,7 +629,7 @@ void Player::drawArmour(sf::RenderTarget& window, const Camera& camera, float wa
         drawData.position = camera.worldToScreenTransform(armourOrigin + sf::Vector2f(armourData.wearTextureOffset.x * xScaleMult, armourData.wearTextureOffset.y + waterYOffset));
         drawData.scale = sf::Vector2f(scale * xScaleMult, scale);
         
-        TextureManager::drawSubTexture(window, drawData, armourTextureRect, flashShader);
+        spriteBatch.draw(window, drawData, armourTextureRect, flashShader);
     }
 }
 

@@ -118,7 +118,9 @@ private:
 
     void drawFishingRodCast(sf::RenderTarget& window, const Camera& camera, float gameTime, int worldSize, float waterYOffset) const;
 
-    void drawArmour(sf::RenderTarget& window, const Camera& camera, float waterYOffset) const;
+    void drawMeleeSwing(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Camera& camera) const;
+
+    void drawArmour(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Camera& camera, float waterYOffset) const;
 
 private:
     CollisionRect collisionRect;
@@ -153,6 +155,8 @@ private:
     TweenID rotationTweenID;
     // bool swingingTool;
     bool usingTool;
+    static constexpr float MELEE_SWING_Y_ORIGIN_OFFSET = -4.0f;
+    static constexpr float MELEE_SWING_RADIUS = 13.0f;
     std::vector<HitRect> meleeHitRects;
     AnimatedTexture meleeSwingAnimation;
     float meleeSwingAnimationRotation;
