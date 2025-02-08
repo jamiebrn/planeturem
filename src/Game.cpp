@@ -1547,7 +1547,11 @@ void Game::attemptUseToolPickaxe()
 
     if (selectedObject)
     {
-        selectedObject->damage(toolData.damage, *this, chunkManager, particleSystem);
+        bool destroyed = selectedObject->damage(toolData.damage, *this, chunkManager, particleSystem);
+        if (destroyed)
+        {
+            camera.setScreenShakeTime(0.3f);
+        }
     }
 }
 

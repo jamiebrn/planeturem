@@ -45,6 +45,11 @@ public:
 
     bool isInView(sf::Vector2f position) const;
 
+    void setScreenShakeTime(float time);
+
+    inline void setScreenShakeEnabled(float enabled) {screenShakeEnabled = enabled;}
+    inline bool getScreenShakeEnabled() const {return screenShakeEnabled;}
+
 // Private member variables
 private:
     // Constant storing interpolation weight for camera movement
@@ -54,5 +59,8 @@ private:
 
     // Variable storing offset/position of camera
     sf::Vector2f offset;
+
+    float screenShakeTime = 0.0f;
+    bool screenShakeEnabled = true;
 
 };

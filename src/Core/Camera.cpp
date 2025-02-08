@@ -16,6 +16,14 @@ void Camera::update(sf::Vector2f playerPosition, sf::Vector2f mouseScreenPos, fl
     destinationOffset.x += std::round(std::max(std::min(mouseScreenPos.x - (resolution.x / 2.0f), resolution.x / 2.0f), -resolution.x / 2.0f) / MOUSE_DELTA_DAMPEN / scale);
     destinationOffset.y += std::round(std::max(std::min(mouseScreenPos.y - (resolution.y / 2.0f), resolution.y / 2.0f), -resolution.y / 2.0f) / MOUSE_DELTA_DAMPEN / scale);
 
+    // Apply screen shake if required
+    screenShakeTime = std::max(screenShakeTime - deltaTime, 0.0f);
+    if (screenShakeTime > 0.0f && screenShakeEnabled)
+    {
+        destinationOffset.x += Helper::randInt(-screenShakeTime * 150.0f / scale, screenShakeTime * 150.0f / scale);
+        destinationOffset.y += Helper::randInt(-screenShakeTime * 150.0f / scale, screenShakeTime * 150.0f / scale);
+    }
+
     // Interpolate towards desired position
     offset.x = Helper::lerp(offset.x, destinationOffset.x, MOVE_LERP_WEIGHT * deltaTime);
     offset.y = Helper::lerp(offset.y, destinationOffset.y, MOVE_LERP_WEIGHT * deltaTime);
@@ -103,4 +111,9 @@ bool Camera::isInView(sf::Vector2f position) const
 
     return (screenPos.x >= 0 && screenPos.x <= ResolutionHandler::getResolution().x &&
             screenPos.y >= 0 && screenPos.y <= ResolutionHandler::getResolution().y);
+}
+
+void Camera::setScreenShakeTime(float time)
+{
+    screenShakeTime = time;
 }
