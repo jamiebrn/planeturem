@@ -213,5 +213,13 @@
         "consumable-data": {
             "permanent-health-increase": 25
         }
+    },
+    {
+        "name": "Banana",
+        "texture": [128, 32, 16, 16],
+        "description": "Appears to be fresh",
+        "consumable-data": {
+            "health-increase": 20
+        }
     }
 ]

@@ -1308,6 +1308,7 @@ sf::Vector2f InventoryGUI::drawItemInfoBox(sf::RenderTarget& window, float gameT
             {
                 infoStrings.push_back({Helper::floatToString(toolData.projectileDamageMult, 2) + "x projectile damage", 20});
                 infoStrings.push_back({Helper::floatToString(toolData.shootPower, 2) + " shooting power", 20});
+                break;
             }
             case ToolBehaviourType::MeleeWeapon:
             {

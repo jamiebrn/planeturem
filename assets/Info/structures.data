@@ -10,7 +10,8 @@
                     [[5, "Wood", 2], [14, "Stone", 1]],
                     [[6, "Raw Iron", 2], [12, "Wood", 1]],
                     [[6, "Stone", 4], [13, "Raw Iron", 2]],
-                    [[3, "Golden Gemstone", 1], [14, "Wood", 2]]
+                    [[3, "Golden Gemstone", 1], [14, "Wood", 2]],
+                    [[8, "Stone", 2], [11, "Wood", 2], [13, "Banana", 1]]
                     ]]
             ]
         },

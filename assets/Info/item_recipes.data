@@ -460,5 +460,14 @@
         },
         "crafting-station": "bench",
         "crafting-station-level": 1
+    },
+    {
+        "product": "Golden Banana",
+        "item-requirements": {
+            "Banana": 1,
+            "Gold Bar": 7
+        },
+        "crafting-station": "anvil",
+        "crafting-station-level": 1
     }
 ]
