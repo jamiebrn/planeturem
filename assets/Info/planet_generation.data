@@ -16,7 +16,7 @@
                         ["Sand", 0, 0.5, 1]
                     ],
                     "objects": [
-                        ["Cactus", 0.025]
+                        ["Cactus Bulb", 0.025]
                     ],
                     "fish-catches": [
                         ["Sandfish", 1, 0.5],

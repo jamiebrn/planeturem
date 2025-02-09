@@ -232,15 +232,52 @@
         }
     },
     {
-        "name": "Cactus",
-        "health": 5,
-        "textures": [[63, 96]],
-        "texture-width": 18,
-        "texture-height": 21,
+        "name": "Cactus Bulb",
+        "textures": [[104, 224]],
+        "texture-width": 16,
+        "texture-height": 16,
         "texture-x-origin": 0.5,
-        "texture-y-origin": 1,
-        "item-drops": {
-            "Wood": [2, 4, 1.0]
+        "texture-y-origin": 1.0,
+        "plant-data": {
+            "stages": [
+                {
+                    "textures": [[96, 224]],
+                    "texture-size": [32, 16],
+                    "texture-origin": [0.5, 1.0],
+                    "health": 3,
+                    "day-range": [0, 0]
+                },
+                {
+                    "textures": [[64, 224]],
+                    "texture-size": [32, 16],
+                    "texture-origin": [0.5, 1.0],
+                    "health": 5,
+                    "day-range": [1, 2],
+                    "item-drops": {
+                        "Wood": [1, 3, 1.0]
+                    }
+                },
+                {
+                    "textures": [[32, 208]],
+                    "texture-size": [32, 32],
+                    "texture-origin": [0.5, 1.0],
+                    "day-range": [3, 3],
+                    "health": 6,
+                    "item-drops": {
+                        "Wood": [3, 5, 1.0]
+                    }
+                },
+                {
+                    "textures": [[0, 208]],
+                    "texture-size": [32, 32],
+                    "texture-origin": [0.5, 1.0],
+                    "health": 9,
+                    "item-drops": {
+                        "Wood": [5, 7, 1.0],
+                        "Cactus Bulb": [1, 2, 1.0]
+                    }
+                }
+            ]
         }
     },
     {
