@@ -1,7 +1,6 @@
 #include "Game.hpp"
 
-// TODO: Melee weapons
-
+// FIX: Player armour not scaling with squish
 // FIX: Improve UI scaling elements (text etc)
 
 // TODO: Night and menu music
@@ -1631,7 +1630,19 @@ void Game::catchRandomFish(sf::Vector2i fishedTile)
         if (cumulativeChance >= randomChance)
         {
             // Add fish / catch
-            inventory.addItem(fishCatchData.itemCatch, fishCatchData.count, true);
+            // inventory.addItem(fishCatchData.itemCatch, fishCatchData.count, true);
+
+            // Create fish item pickups
+            for (int i = 0; i < fishCatchData.count; i++)
+            {
+                sf::Vector2f spawnPos = player.getPosition() + sf::Vector2f(
+                    Helper::randFloat(-TILE_SIZE_PIXELS_UNSCALED / 2.0f, TILE_SIZE_PIXELS_UNSCALED / 2.0f),
+                    Helper::randFloat(-TILE_SIZE_PIXELS_UNSCALED / 2.0f, TILE_SIZE_PIXELS_UNSCALED / 2.0f)
+                );
+
+                chunkManager.addItemPickup(ItemPickup(spawnPos, fishCatchData.itemCatch, gameTime));
+            }
+
             break;
         }
     }

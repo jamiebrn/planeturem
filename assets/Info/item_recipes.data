@@ -508,5 +508,14 @@
         },
         "crafting-station": "furnace",
         "crafting-station-level": 1
+    },
+    {
+        "product": "Metal Club",
+        "item-requirements": {
+            "Iron Bar": 6,
+            "Wood": 2
+        },
+        "crafting-station": "anvil",
+        "crafting-station-level": 1
     }
 ]

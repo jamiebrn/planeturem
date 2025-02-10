@@ -24,8 +24,8 @@
         "texture-size": [16, 18],
         "texture-origin": [0.4375, 1],
         "health": 5,
-        "size": [1, 0.7],
-        "hit-collision": [-8, -10, 16, 10],
+        "size": [0.8, 0.7],
+        "hit-collision": [-6, -10, 12, 10],
         "item-drops": {
             "Meat": [0, 2, 1.0],
             "Hide": [0, 3, 1.0]
