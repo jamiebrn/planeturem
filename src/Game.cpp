@@ -1609,7 +1609,7 @@ void Game::attemptUseToolWeapon()
 
 void Game::testMeleeCollision(const std::vector<HitRect>& hitRects)
 {
-    chunkManager.testChunkEntityHitCollision(hitRects, gameTime);
+    chunkManager.testChunkEntityHitCollision(hitRects, *this, gameTime);
     bossManager.testHitRectCollision(hitRects);
 }
 

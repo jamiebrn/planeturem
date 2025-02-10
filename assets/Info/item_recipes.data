@@ -469,5 +469,14 @@
         },
         "crafting-station": "anvil",
         "crafting-station-level": 1
+    },
+    {
+        "product": "Cooked Meat",
+        "item-requirements": {
+            "Meat": 1,
+            "Wood": 2
+        },
+        "crafting-station": "furnace",
+        "crafting-station-level": 1
     }
 ]

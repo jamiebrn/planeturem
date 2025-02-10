@@ -60,6 +60,7 @@ void Entity::update(float dt, ProjectileManager& projectileManager, ChunkManager
         {
             damage(projectile->getDamage(), chunkManager, gameTime);
             projectile->onCollision();
+            behaviour->onHit(*this, game, projectile->getPosition());
         }
     }
 
@@ -67,8 +68,8 @@ void Entity::update(float dt, ProjectileManager& projectileManager, ChunkManager
     flash_amount = std::max(flash_amount - dt * 3.0f, 0.0f);
 
     const EntityData& entityData = EntityDataLoader::getEntityData(entityType);
-    idleAnim.update(dt, 1, entityData.idleTextureRects.size(), entityData.idleAnimSpeed);
-    walkAnim.update(dt, 1, entityData.walkTextureRects.size(), entityData.walkAnimSpeed);
+    idleAnim.update(dt * animationSpeed, 1, entityData.idleTextureRects.size(), entityData.idleAnimSpeed);
+    walkAnim.update(dt * animationSpeed, 1, entityData.walkTextureRects.size(), entityData.walkAnimSpeed);
 
     this->onWater = onWater;
 }
@@ -134,13 +135,14 @@ void Entity::createLightSource(LightingEngine& lightingEngine, sf::Vector2f topL
 }
 
 
-void Entity::testHitCollision(const std::vector<HitRect>& hitRects, ChunkManager& chunkManager, float gameTime)
+void Entity::testHitCollision(const std::vector<HitRect>& hitRects, ChunkManager& chunkManager, Game& game, float gameTime)
 {
     for (const HitRect& hitRect : hitRects)
     {
         if (hitRect.isColliding(collisionRect))
         {
             damage(hitRect.damage, chunkManager, gameTime);
+            behaviour->onHit(*this, game, game.getPlayer().getPosition());
             return;
         }
     }
@@ -233,6 +235,11 @@ sf::Vector2f Entity::getVelocity()
 void Entity::setVelocity(sf::Vector2f velocity)
 {
     this->velocity = velocity;
+}
+
+void Entity::setAnimationSpeed(float speed)
+{
+    animationSpeed = speed;
 }
 
 EntityPOD Entity::getPOD(sf::Vector2f chunkPosition)

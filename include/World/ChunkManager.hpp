@@ -150,7 +150,7 @@ public:
     void updateChunksEntities(float dt, ProjectileManager& projectileManager, Game& game);
 
     // Damages any entities hit by any hit rect
-    void testChunkEntityHitCollision(const std::vector<HitRect>& hitRects, float gameTime);
+    void testChunkEntityHitCollision(const std::vector<HitRect>& hitRects, Game& game, float gameTime);
 
     // Handle moving of entity from one chunk to another chunk
     void moveEntityToChunkFromChunk(std::unique_ptr<Entity> entity, ChunkPosition newChunk);

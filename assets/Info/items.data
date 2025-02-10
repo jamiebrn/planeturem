@@ -53,6 +53,15 @@
         "name": "Meat",
         "texture": [80, 16, 16, 16],
         "consumable-data": {
+            "cooldown-time": 30,
+            "health-increase": 15
+        },
+        "sell-value": 0.5
+    },
+    {
+        "name": "Cooked Meat",
+        "texture": [96, 16, 16, 16],
+        "consumable-data": {
             "cooldown-time": 20,
             "health-increase": 40
         },

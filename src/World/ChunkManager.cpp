@@ -694,11 +694,11 @@ void ChunkManager::updateChunksEntities(float dt, ProjectileManager& projectileM
     }
 }
 
-void ChunkManager::testChunkEntityHitCollision(const std::vector<HitRect>& hitRects, float gameTime)
+void ChunkManager::testChunkEntityHitCollision(const std::vector<HitRect>& hitRects, Game& game, float gameTime)
 {
     for (auto& chunkPair : loadedChunks)
     {
-        chunkPair.second->testEntityHitCollision(hitRects, *this, gameTime);
+        chunkPair.second->testEntityHitCollision(hitRects, *this, game, gameTime);
     }
 }
 

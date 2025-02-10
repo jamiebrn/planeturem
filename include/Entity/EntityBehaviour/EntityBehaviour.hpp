@@ -12,4 +12,6 @@ public:
     EntityBehaviour() = default;
 
     virtual void update(Entity& entity, ChunkManager& chunkManager, Game& game, float dt) = 0;
+
+    inline virtual void onHit(Entity& entity, Game& game, sf::Vector2f hitSource) {}
 };

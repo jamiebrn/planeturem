@@ -1010,11 +1010,11 @@ void Chunk::updateChunkEntities(float dt, int worldSize, ProjectileManager& proj
     }
 }
 
-void Chunk::testEntityHitCollision(const std::vector<HitRect>& hitRects, ChunkManager& chunkManager, float gameTime)
+void Chunk::testEntityHitCollision(const std::vector<HitRect>& hitRects, ChunkManager& chunkManager, Game& game, float gameTime)
 {
     for (auto& entity : entities)
     {
-        entity->testHitCollision(hitRects, chunkManager, gameTime);
+        entity->testHitCollision(hitRects, chunkManager, game, gameTime);
     }
 }
 

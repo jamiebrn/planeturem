@@ -42,7 +42,7 @@ public:
     void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const sf::Color& color) const override;
     void createLightSource(LightingEngine& lightingEngine, sf::Vector2f topLeftChunkPos) const override;
 
-    void testHitCollision(const std::vector<HitRect>& hitRects, ChunkManager& chunkManager, float gameTime);
+    void testHitCollision(const std::vector<HitRect>& hitRects, ChunkManager& chunkManager, Game& game, float gameTime);
     void damage(int amount, ChunkManager& chunkManager, float gameTime);
     void interact();
 
@@ -59,6 +59,8 @@ public:
 
     sf::Vector2f getVelocity();
     void setVelocity(sf::Vector2f velocity);
+
+    void setAnimationSpeed(float speed);
 
     inline bool isAlive() {return health > 0;}
 
@@ -79,6 +81,8 @@ private:
 
     CollisionRect collisionRect;
     sf::Vector2f velocity;
+
+    float animationSpeed;
 
     AnimatedTextureMinimal idleAnim;
     AnimatedTextureMinimal walkAnim;
