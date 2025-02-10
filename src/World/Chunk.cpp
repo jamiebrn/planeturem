@@ -634,7 +634,7 @@ void Chunk::drawChunkTerrain(sf::RenderTarget& window, const Camera& camera, flo
     {
         for (auto& collisionRect : collisionRects)
         {
-            collisionRect->debugDraw(window, camera);
+            collisionRect.debugDraw(window, camera);
         }
     }
     #endif
@@ -1078,16 +1078,16 @@ std::vector<WorldObject*> Chunk::getItemPickups()
 
 void Chunk::recalculateCollisionRects(ChunkManager& chunkManager, PathfindingEngine* pathfindingEngine)
 {
-    auto createCollisionRect = [this](std::vector<std::unique_ptr<CollisionRect>>& rects, int x, int y) -> void
+    auto createCollisionRect = [this](std::vector<CollisionRect>& rects, int x, int y) -> void
     {
-        std::unique_ptr<CollisionRect> collisionRect = std::make_unique<CollisionRect>();
+        CollisionRect collisionRect;
 
-        collisionRect->x = this->worldPosition.x + x * TILE_SIZE_PIXELS_UNSCALED;
-        collisionRect->y = this->worldPosition.y + y * TILE_SIZE_PIXELS_UNSCALED;
-        collisionRect->width = TILE_SIZE_PIXELS_UNSCALED;
-        collisionRect->height = TILE_SIZE_PIXELS_UNSCALED;
+        collisionRect.x = this->worldPosition.x + x * TILE_SIZE_PIXELS_UNSCALED;
+        collisionRect.y = this->worldPosition.y + y * TILE_SIZE_PIXELS_UNSCALED;
+        collisionRect.width = TILE_SIZE_PIXELS_UNSCALED;
+        collisionRect.height = TILE_SIZE_PIXELS_UNSCALED;
 
-        rects.push_back(std::move(collisionRect));
+        rects.push_back(collisionRect);
     };
 
     // Clear previously calculated collision rects
@@ -1187,7 +1187,7 @@ std::vector<CollisionRect*> Chunk::getCollisionRects()
     std::vector<CollisionRect*> collisionRectPtrs;
     for (auto& collisionRect : collisionRects)
     {
-        collisionRectPtrs.push_back(collisionRect.get());
+        collisionRectPtrs.push_back(&collisionRect);
     }
     return collisionRectPtrs;
 }
@@ -1197,7 +1197,7 @@ bool Chunk::collisionRectStaticCollisionX(CollisionRect& collisionRect, float dx
     bool collision = false;
     for (auto& rect : collisionRects)
     {
-        if (collisionRect.handleStaticCollisionX(*rect, dx))
+        if (collisionRect.handleStaticCollisionX(rect, dx))
             collision = true;
     }
     return collision;
@@ -1208,7 +1208,7 @@ bool Chunk::collisionRectStaticCollisionY(CollisionRect& collisionRect, float dy
     bool collision = false;
     for (auto& rect : collisionRects)
     {
-        if (collisionRect.handleStaticCollisionY(*rect, dy))
+        if (collisionRect.handleStaticCollisionY(rect, dy))
             collision = true;
     }
     return collision;

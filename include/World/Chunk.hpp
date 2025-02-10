@@ -245,8 +245,7 @@ private:
     std::vector<ItemPickup> itemPickups;
 
     // Stores collision rects for terrain and objects (NOT ENTITIES)
-    // TODO: Stop using uniqueptr
-    std::vector<std::unique_ptr<CollisionRect>> collisionRects;
+    std::vector<CollisionRect> collisionRects;
 
     // Stores chunk position in chunkmanager hashmap (NOT actual world position)
     ChunkPosition chunkPosition;
