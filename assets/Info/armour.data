@@ -25,6 +25,31 @@
         "sell-value": 2
     },
     {
+        "name": "Hide-Coated Headgear",
+        "type": "Head",
+        "texture": [752, 208, 16, 16],
+        "wear-textures": [[768, 208], [784, 208], [800, 208], [816, 208], [832, 208], [848, 208], [864, 208], [880, 208]],
+        "wear-texture-offset": [0, -3],
+        "defence": 2,
+        "sell-value": 2
+    },
+    {
+        "name": "Hide-Coated Chestpiece",
+        "type": "Chest",
+        "texture": [752, 224, 16, 16],
+        "wear-textures": [[768, 224], [784, 224], [800, 224], [816, 224], [832, 224], [848, 224], [864, 224], [880, 224]],
+        "defence": 3,
+        "sell-value": 2
+    },
+    {
+        "name": "Hide-Coated Boots",
+        "type": "Feet",
+        "texture": [752, 240, 16, 16],
+        "wear-textures": [[768, 240], [784, 240], [800, 240], [816, 240], [832, 240], [848, 240], [864, 240], [880, 240]],
+        "defence": 2,
+        "sell-value": 2
+    },
+    {
         "name": "Titanium Headgear",
         "type": "Head",
         "texture": [752, 160, 16, 16],
@@ -63,7 +88,7 @@
         "type": "Chest",
         "texture": [752, 32, 16, 16],
         "wear-textures": [[768, 32], [784, 32], [800, 32], [816, 32], [832, 32], [848, 32], [864, 32], [880, 32]],
-        "defence": 4,
+        "defence": 5,
         "sell-value": 4
     },
     {
@@ -71,7 +96,7 @@
         "type": "Feet",
         "texture": [752, 48, 16, 16],
         "wear-textures": [[768, 48], [784, 48], [800, 48], [816, 48], [832, 48], [848, 48], [864, 48], [880, 48]],
-        "defence": 2,
+        "defence": 3,
         "sell-value": 3
     },
     {

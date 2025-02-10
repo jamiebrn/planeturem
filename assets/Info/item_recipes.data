@@ -413,6 +413,36 @@
         "crafting-station-level": 1
     },
     {
+        "product": "Hide-Coated Headgear",
+        "item-requirements": {
+            "Wooden Headgear": 1,
+            "Hide": 15
+        },
+        "key-items": ["Hide"],
+        "crafting-station": "bench",
+        "crafting-station-level": 1
+    },
+    {
+        "product": "Hide-Coated Chestpiece",
+        "item-requirements": {
+            "Wooden Chestpiece": 1,
+            "Hide": 20
+        },
+        "key-items": ["Hide"],
+        "crafting-station": "bench",
+        "crafting-station-level": 1
+    },
+    {
+        "product": "Hide-Coated Boots",
+        "item-requirements": {
+            "Wooden Boots": 1,
+            "Hide": 10
+        },
+        "key-items": ["Hide"],
+        "crafting-station": "bench",
+        "crafting-station-level": 1
+    },
+    {
         "product": "Titanium Headgear",
         "item-requirements": {
             "Titanium Bar": 12,

@@ -59,6 +59,11 @@
         "sell-value": 0.5
     },
     {
+        "name": "Hide",
+        "texture": [64, 48, 16, 16],
+        "sell-value": 0.5
+    },
+    {
         "name": "Cooked Meat",
         "texture": [96, 16, 16, 16],
         "consumable-data": {
