@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "Core/CollisionRect.hpp"
 #include "Data/typedefs.hpp"
 #include "Data/ItemDrop.hpp"
 
@@ -26,6 +27,7 @@ struct EntityData
     sf::Vector2f size;
 
     std::vector<ItemDrop> itemDrops;
+    CollisionRect hitCollision;
 
     std::string behaviour;
 };

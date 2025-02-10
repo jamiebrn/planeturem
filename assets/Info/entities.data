@@ -9,6 +9,7 @@
         "texture-origin": [0.5, 1],
         "health": 5,
         "size": [1, 0.6],
+        "hit-collision": [-5, -10, 10, 10],
         "item-drops": {
             "Meat": [0, 2, 1.0]
         },
@@ -24,6 +25,7 @@
         "texture-origin": [0.4375, 1],
         "health": 5,
         "size": [1, 0.7],
+        "hit-collision": [-8, -10, 16, 10],
         "item-drops": {
             "Meat": [0, 2, 1.0]
         },

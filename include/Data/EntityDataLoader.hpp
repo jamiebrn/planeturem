@@ -7,6 +7,7 @@
 
 #include "Core/json.hpp"
 #include "Data/Serialise/Vector2Serialise.hpp"
+#include "Data/Serialise/IntRectSerialise.hpp"
 #include "Data/EntityData.hpp"
 #include "Data/ItemData.hpp"
 #include "Data/ItemDataLoader.hpp"

@@ -58,6 +58,8 @@ bool EntityDataLoader::loadData(std::string objectDataPath)
         if (jsonEntityData.contains("health")) entityData.health = jsonEntityData.at("health");
         if (jsonEntityData.contains("size")) entityData.size = jsonEntityData.at("size");
 
+        if (jsonEntityData.contains("hit-collision")) entityData.hitCollision = jsonEntityData.at("hit-collision");
+
         if (jsonEntityData.contains("item-drops"))
         {
             auto itemDrops = jsonEntityData.at("item-drops");

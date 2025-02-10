@@ -53,6 +53,11 @@ void Entity::update(float dt, ProjectileManager& projectileManager, ChunkManager
     position.x = collisionRect.x + collisionRect.width / 2.0f;
     position.y = collisionRect.y + collisionRect.height / 2.0f;
 
+    const EntityData& entityData = EntityDataLoader::getEntityData(entityType);
+    hitCollision = entityData.hitCollision;
+    hitCollision.x += position.x;
+    hitCollision.y += position.y;
+
     // Test collision with projectiles
     for (auto& projectile : projectileManager.getProjectiles())
     {
@@ -67,7 +72,6 @@ void Entity::update(float dt, ProjectileManager& projectileManager, ChunkManager
     // Update animations
     flash_amount = std::max(flash_amount - dt * 3.0f, 0.0f);
 
-    const EntityData& entityData = EntityDataLoader::getEntityData(entityType);
     idleAnim.update(dt * animationSpeed, 1, entityData.idleTextureRects.size(), entityData.idleAnimSpeed);
     walkAnim.update(dt * animationSpeed, 1, entityData.walkTextureRects.size(), entityData.walkAnimSpeed);
 
@@ -76,7 +80,7 @@ void Entity::update(float dt, ProjectileManager& projectileManager, ChunkManager
 
 bool Entity::isProjectileColliding(Projectile& projectile)
 {
-    return (collisionRect.isPointInRect(projectile.getPosition().x, projectile.getPosition().y));
+    return (hitCollision.isPointInRect(projectile.getPosition().x, projectile.getPosition().y));
 }
 
 void Entity::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const sf::Color& color) const
@@ -116,6 +120,7 @@ void Entity::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game
     if (DebugOptions::drawCollisionRects)
     {
         collisionRect.debugDraw(window, game.getCamera());
+        hitCollision.debugDraw(window, game.getCamera());
     }
     #endif
 }

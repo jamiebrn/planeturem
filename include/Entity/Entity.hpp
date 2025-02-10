@@ -80,6 +80,7 @@ private:
     std::unique_ptr<EntityBehaviour> behaviour;
 
     CollisionRect collisionRect;
+    CollisionRect hitCollision;
     sf::Vector2f velocity;
 
     float animationSpeed;
