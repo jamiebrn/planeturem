@@ -22,6 +22,8 @@ struct TextureDrawData
     sf::Vector2f centerRatio = sf::Vector2f(0, 0);
     // The base colour the texture should be drawn in (white in most cases)
     sf::Color colour = sf::Color(255, 255, 255);
+    
+    bool useCentreAbsolute = false;
 };
 
 // Declaration of TextureManager class

@@ -595,7 +595,7 @@ void Player::drawArmour(sf::RenderTarget& window, SpriteBatch& spriteBatch, cons
         xScaleMult = -1;
     }
 
-    sf::Vector2f armourOrigin = position - sf::Vector2f(8 * xScaleMult, 16);
+    sf::Vector2f armourOrigin = position - sf::Vector2f(8 * xScaleMult, 0);
 
     std::optional<ShaderType> flashShader;
     if (damageCooldownTimer > 0.0f)
@@ -603,7 +603,7 @@ void Player::drawArmour(sf::RenderTarget& window, SpriteBatch& spriteBatch, cons
         flashShader = ShaderType::Flash;
         Shaders::getShader(flashShader.value())->setUniform("flash_amount", damageCooldownTimer / MAX_DAMAGE_COOLDOWN_TIMER);
     }
-
+    spriteBatch.endDrawing(window);
     // Draw headpiece, chest, and boots
     for (int i = 2; i >= 0; i--)
     {
@@ -634,10 +634,12 @@ void Player::drawArmour(sf::RenderTarget& window, SpriteBatch& spriteBatch, cons
 
         TextureDrawData drawData;
         drawData.type = TextureType::Tools;
-        drawData.position = camera.worldToScreenTransform(armourOrigin + sf::Vector2f(armourData.wearTextureOffset.x * xScaleMult, armourData.wearTextureOffset.y + waterYOffset));
-        drawData.scale = sf::Vector2f(scale * xScaleMult, scale);
+        drawData.position = camera.worldToScreenTransform(armourOrigin + sf::Vector2f(armourData.wearTextureOffset.x * xScaleMult, waterYOffset));
+        drawData.scale = sf::Vector2f(scale * xScaleMult, scale * playerYScaleMult);
+        drawData.centerRatio = sf::Vector2f(0, armourTextureRect.height - armourData.wearTextureOffset.y);
+        drawData.useCentreAbsolute = true;
         
-        spriteBatch.draw(window, drawData, armourTextureRect, flashShader);
+        TextureManager::drawSubTexture(window, drawData, armourTextureRect);
     }
 }
 

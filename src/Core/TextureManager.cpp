@@ -167,7 +167,7 @@ void TextureManager::applyTextureData(TextureDrawData drawData)
     // Get size of sprite
     sf::FloatRect sizeRect = sprite.getLocalBounds();
     // Calculate middle point of sprite
-    sf::Vector2f origin = sf::Vector2f(sizeRect.width * drawData.centerRatio.x, sizeRect.height * drawData.centerRatio.y);
+    sf::Vector2f origin = drawData.useCentreAbsolute ? drawData.centerRatio : sf::Vector2f(sizeRect.width * drawData.centerRatio.x, sizeRect.height * drawData.centerRatio.y);
     // Set origin of sprite to middle
     sprite.setOrigin(origin);
 

@@ -1,6 +1,5 @@
 #include "Game.hpp"
 
-// FIX: Player armour not scaling with squish
 // FIX: Improve UI scaling elements (text etc)
 
 // TODO: Night and menu music
