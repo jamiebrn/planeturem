@@ -36,6 +36,25 @@ LandmarkSetGUIEvent LandmarkSetGUI::createAndDraw(sf::RenderWindow& window, floa
 
     TextDraw::drawText(window, textDrawData);
 
+    TextureDrawData colourDrawData;
+    colourDrawData.type = TextureType::UI;
+    colourDrawData.position = sf::Vector2f(textDrawData.position.x + 36 * 4 * intScale, textDrawData.position.y);
+    colourDrawData.scale = sf::Vector2f(3, 3) * intScale;
+    colourDrawData.centerRatio = sf::Vector2f(0.5f, 0.5f);
+
+    static const sf::IntRect colourRect(80, 112, 16, 16);
+
+    sf::Glsl::Vec4 replaceColourKey[] = {sf::Glsl::Vec4(sf::Color(0, 0, 0))};
+    
+    sf::Shader* replaceColourShader = Shaders::getShader(ShaderType::ReplaceColour);
+    replaceColourShader->setUniform("replaceKeyCount", 1);
+    replaceColourShader->setUniformArray("replaceKeys", replaceColourKey, 1);
+    
+    sf::Glsl::Vec4 replaceColourValue[] = {sf::Glsl::Vec4(sf::Color(aColour[0], aColour[1], aColour[2]))};
+    replaceColourShader->setUniformArray("replaceValues", replaceColourValue, 1);
+
+    TextureManager::drawSubTexture(window, colourDrawData, colourRect, replaceColourShader);
+
     yPos += 80;
 
     static const std::array<std::string, 3> colourStrings = {"Red", "Green", "Blue"};
@@ -51,10 +70,19 @@ LandmarkSetGUIEvent LandmarkSetGUI::createAndDraw(sf::RenderWindow& window, floa
         yPos += 100;
     }
 
+    yPos += 50;
+
     textDrawData.position.y = yPos * intScale;
     textDrawData.text = "Colour B";
 
     TextDraw::drawText(window, textDrawData);
+
+    colourDrawData.position = sf::Vector2f(textDrawData.position.x + 36 * 4 * intScale, textDrawData.position.y);
+    
+    replaceColourValue[0] = {sf::Glsl::Vec4(sf::Color(bColour[0], bColour[1], bColour[2]))};
+    replaceColourShader->setUniformArray("replaceValues", replaceColourValue, 1);
+
+    TextureManager::drawSubTexture(window, colourDrawData, colourRect, replaceColourShader);
 
     yPos += 80;
 

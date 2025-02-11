@@ -7,6 +7,7 @@
 
 #include "Core/ResolutionHandler.hpp"
 #include "Core/TextDraw.hpp"
+#include "Core/Shaders.hpp"
 
 #include "GUI/Base/GUIContext.hpp"
 #include "GUI/DefaultGUIPanel.hpp"

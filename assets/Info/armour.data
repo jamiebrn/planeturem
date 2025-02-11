@@ -129,7 +129,7 @@
         "type": "Head",
         "texture": [544, 32, 32, 32],
         "wear-textures": [[576, 32], [594, 32], [612, 32], [630, 32], [648, 32], [666, 32], [684, 32], [702, 32]],
-        "wear-texture-offset": [0, -10],
+        "wear-texture-offset": [0, -2],
         "wear-texture-size": [18, 26],
         "defence": 10,
         "sell-value": 20
