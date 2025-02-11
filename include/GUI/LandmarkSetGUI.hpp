@@ -43,4 +43,6 @@ private:
 
     ObjectReference landmarkSettingObjectReference;
 
+    int colourPage;
+
 };

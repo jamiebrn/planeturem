@@ -10,6 +10,8 @@ void LandmarkSetGUI::initialise(ObjectReference landmarkObject, sf::Color colour
     bColour[2] = colourB.b;
 
     landmarkSettingObjectReference = landmarkObject;
+
+    colourPage = 0;
 }
 
 LandmarkSetGUIEvent LandmarkSetGUI::createAndDraw(sf::RenderWindow& window, float dt)
@@ -33,17 +35,15 @@ LandmarkSetGUIEvent LandmarkSetGUI::createAndDraw(sf::RenderWindow& window, floa
     textDrawData.centeredY = true;
 
     textDrawData.text = "Colour A";
-
-    TextDraw::drawText(window, textDrawData);
-
+    
     TextureDrawData colourDrawData;
     colourDrawData.type = TextureType::UI;
     colourDrawData.position = sf::Vector2f(textDrawData.position.x + 36 * 4 * intScale, textDrawData.position.y);
     colourDrawData.scale = sf::Vector2f(3, 3) * intScale;
     colourDrawData.centerRatio = sf::Vector2f(0.5f, 0.5f);
-
+    
     static const sf::IntRect colourRect(80, 112, 16, 16);
-
+    
     sf::Glsl::Vec4 replaceColourKey[] = {sf::Glsl::Vec4(sf::Color(0, 0, 0))};
     
     sf::Shader* replaceColourShader = Shaders::getShader(ShaderType::ReplaceColour);
@@ -51,8 +51,20 @@ LandmarkSetGUIEvent LandmarkSetGUI::createAndDraw(sf::RenderWindow& window, floa
     replaceColourShader->setUniformArray("replaceKeys", replaceColourKey, 1);
     
     sf::Glsl::Vec4 replaceColourValue[] = {sf::Glsl::Vec4(sf::Color(aColour[0], aColour[1], aColour[2]))};
+    
+    float* colourArray = aColour;
+    
+    // Change values if on next page
+    if (colourPage > 0)
+    {
+        textDrawData.text = "Colour B";
+        replaceColourValue[0] = {sf::Glsl::Vec4(sf::Color(bColour[0], bColour[1], bColour[2]))};
+        colourArray = bColour;
+    }
+    
     replaceColourShader->setUniformArray("replaceValues", replaceColourValue, 1);
-
+    
+    TextDraw::drawText(window, textDrawData);
     TextureManager::drawSubTexture(window, colourDrawData, colourRect, replaceColourShader);
 
     yPos += 80;
@@ -62,7 +74,7 @@ LandmarkSetGUIEvent LandmarkSetGUI::createAndDraw(sf::RenderWindow& window, floa
     for (int i = 0; i < 3; i++)
     {
         if (guiContext.createSlider(scaledPanelPaddingX, yPos * intScale, panelWidth * intScale, 75 * intScale,
-            0.0f, 255.0f, &aColour[i], 20 * intScale, colourStrings[i], panelWidth / 2 * intScale, panelWidth / 10 * intScale, 40 * intScale).isHeld())
+            0.0f, 255.0f, &colourArray[i], 20 * intScale, colourStrings[i], panelWidth / 2 * intScale, panelWidth / 10 * intScale, 40 * intScale).isHeld())
         {
             setGUIEvent.modified = true;
         }
@@ -70,31 +82,53 @@ LandmarkSetGUIEvent LandmarkSetGUI::createAndDraw(sf::RenderWindow& window, floa
         yPos += 100;
     }
 
-    yPos += 50;
-
-    textDrawData.position.y = yPos * intScale;
-    textDrawData.text = "Colour B";
-
-    TextDraw::drawText(window, textDrawData);
-
-    colourDrawData.position = sf::Vector2f(textDrawData.position.x + 36 * 4 * intScale, textDrawData.position.y);
-    
-    replaceColourValue[0] = {sf::Glsl::Vec4(sf::Color(bColour[0], bColour[1], bColour[2]))};
-    replaceColourShader->setUniformArray("replaceValues", replaceColourValue, 1);
-
-    TextureManager::drawSubTexture(window, colourDrawData, colourRect, replaceColourShader);
-
-    yPos += 80;
-
-    for (int i = 0; i < 3; i++)
+    // Page selection for when window is too small
+    if ((yPos + 50 + 80 + 100 * 3 + 75) * intScale >= resolution.y)
     {
-        if (guiContext.createSlider(scaledPanelPaddingX, yPos * intScale, panelWidth * intScale, 75 * intScale,
-            0.0f, 255.0f, &bColour[i], 20 * intScale, colourStrings[i], panelWidth / 2 * intScale, panelWidth / 10 * intScale, 40 * intScale).isHeld())
+        if (guiContext.createButton(scaledPanelPaddingX, yPos * intScale,
+            panelWidth / 2 * intScale, 50 * intScale, 20 * intScale, "<", buttonStyle)
+            .isClicked())
         {
-            setGUIEvent.modified = true;
+            colourPage = Helper::wrap(colourPage - 1, 2);
+        }
+
+        if (guiContext.createButton((scaledPanelPaddingX + panelWidth / 2) * intScale, yPos * intScale,
+            panelWidth / 2 * intScale, 50 * intScale, 20 * intScale, ">", buttonStyle)
+            .isClicked())
+        {
+            colourPage = Helper::wrap(colourPage + 1, 2);
         }
 
         yPos += 100;
+    }
+    else
+    {
+        yPos += 50;
+    
+        textDrawData.position.y = yPos * intScale;
+        textDrawData.text = "Colour B";
+    
+        TextDraw::drawText(window, textDrawData);
+    
+        colourDrawData.position = sf::Vector2f(textDrawData.position.x + 36 * 4 * intScale, textDrawData.position.y);
+        
+        replaceColourValue[0] = {sf::Glsl::Vec4(sf::Color(bColour[0], bColour[1], bColour[2]))};
+        replaceColourShader->setUniformArray("replaceValues", replaceColourValue, 1);
+    
+        TextureManager::drawSubTexture(window, colourDrawData, colourRect, replaceColourShader);
+    
+        yPos += 80;
+    
+        for (int i = 0; i < 3; i++)
+        {
+            if (guiContext.createSlider(scaledPanelPaddingX, yPos * intScale, panelWidth * intScale, 75 * intScale,
+                0.0f, 255.0f, &bColour[i], 20 * intScale, colourStrings[i], panelWidth / 2 * intScale, panelWidth / 10 * intScale, 40 * intScale).isHeld())
+            {
+                setGUIEvent.modified = true;
+            }
+    
+            yPos += 100;
+        }
     }
 
     if (guiContext.createButton(scaledPanelPaddingX, yPos * intScale, panelWidth * intScale, 75 * intScale, 24 * intScale, "Set Colour", buttonStyle)
