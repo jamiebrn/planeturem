@@ -7,6 +7,7 @@
 
 #include "Core/TextDraw.hpp"
 #include "Core/CollisionRect.hpp"
+#include "Core/InputManager.hpp"
 
 #include "GUIElement.hpp"
 #include "GUIInputState.hpp"

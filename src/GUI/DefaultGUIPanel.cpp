@@ -158,3 +158,8 @@ void DefaultGUIPanel::resetHoverRect()
     selectionHoverRect = sf::FloatRect(0, 0, 0, 0);
     deferHoverRectReset = false;
 }
+
+const GUIContext& DefaultGUIPanel::getGUIContext()
+{
+    return guiContext;
+}

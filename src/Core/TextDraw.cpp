@@ -80,12 +80,12 @@ void TextDraw::drawText(sf::RenderTarget& window, TextDrawData drawData)
     // If centre X value, set centre to middle X value
     if (drawData.centeredX)
     {
-        textCentre.x = text.getLocalBounds().getSize().x / 2.0f;
+        textCentre.x = static_cast<int>(text.getLocalBounds().getSize().x / 2.0f);
     }
     // If centre Y value, set centre to middle Y value
     if (drawData.centeredY)
     {
-        textCentre.y = text.getLocalBounds().getSize().y / 2.0f;
+        textCentre.y = static_cast<int>(text.getLocalBounds().getSize().y / 2.0f);
         textCentre.y += text.getLocalBounds().getPosition().y;
     }
 

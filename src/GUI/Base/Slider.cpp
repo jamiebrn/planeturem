@@ -22,18 +22,27 @@ Slider::Slider(const GUIInputState& inputState, ElementID id, int x, int y, int 
 
     if (inputState.activeElement == id)
     {
-        if (inputState.leftMouseJustUp)
+        if (InputManager::isControllerActive())
         {
-            released = true;
-            return;
+            static constexpr float CONTROLLER_STEP = 0.01f;
+            *value = std::clamp(*value + (maxValue - minValue) * CONTROLLER_STEP * InputManager::getActionAxisActivation(InputAction::UI_LEFT, InputAction::UI_RIGHT),
+                minValue, maxValue);
+        }
+        else
+        {
+            if (inputState.leftMouseJustUp)
+            {
+                released = true;
+                return;
+            }
+
+            // Move slider value as is held
+            int sliderXPos = std::max(std::min(inputState.mouseX, this->x + this->width - this->height / 2), this->x + this->height / 2);
+            float sliderProgress = std::max(std::min((sliderXPos - (this->x + this->height / 2.0f)) / static_cast<float>(this->width - this->height), 1.0f), 0.0f);
+            *value = sliderProgress * (maxValue - minValue) + minValue;
         }
 
         held = true;
-
-        // Move slider value as is held
-        int sliderXPos = std::max(std::min(inputState.mouseX, this->x + this->width - this->height / 2), this->x + this->height / 2);
-        float sliderProgress = std::max(std::min((sliderXPos - (this->x + this->height / 2.0f)) / static_cast<float>(this->width - this->height), 1.0f), 0.0f);
-        *value = sliderProgress * (maxValue - minValue) + minValue;
     }
 
     int sliderXPos = ((*value - minValue) / (maxValue - minValue)) * this->width + this->x;

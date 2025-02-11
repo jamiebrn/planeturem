@@ -12,6 +12,8 @@ void LandmarkSetGUI::initialise(ObjectReference landmarkObject, sf::Color colour
     landmarkSettingObjectReference = landmarkObject;
 
     colourPage = 0;
+
+    guiContext.resetActiveElement();
 }
 
 LandmarkSetGUIEvent LandmarkSetGUI::createAndDraw(sf::RenderWindow& window, float dt)

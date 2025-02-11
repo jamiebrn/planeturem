@@ -1,6 +1,6 @@
 #include "Game.hpp"
 
-// FIX: Improve UI scaling elements (text etc)
+// TODO: Allow selection of bin while using controller
 
 // TODO: Night and menu music
 
@@ -652,8 +652,18 @@ void Game::runInGame(float dt)
             switch (worldMenuState)
             {
                 case WorldMenuState::SettingLandmark: // fallthrough
+                {
+                    if (landmarkSetGUI.getGUIContext().isElementActive())
+                    {
+                        break;
+                    }
+                }
                 case WorldMenuState::PauseMenu:
                 {
+                    if (worldMenuState == WorldMenuState::PauseMenu && mainMenuGUI.getGUIContext().isElementActive())
+                    {
+                        break;
+                    }
                     worldMenuState = WorldMenuState::Main;
                     player.setCanMove(true);
                     InputManager::consumeInputAction(InputAction::UI_BACK);

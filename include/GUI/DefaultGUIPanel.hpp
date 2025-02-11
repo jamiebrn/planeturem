@@ -17,6 +17,8 @@ public:
     void handleEvent(sf::Event& event);
 
     void resetHoverRect();
+
+    const GUIContext& getGUIContext();
     
 protected:
     void drawPanel(sf::RenderTarget& window);
