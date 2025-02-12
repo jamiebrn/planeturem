@@ -242,6 +242,7 @@ private:
     static std::vector<ItemSlot> hotbarItemSlots;
     static std::vector<ItemSlot> recipeItemSlots;
     static std::vector<ItemSlot> chestItemSlots;
+    static std::vector<ItemSlot> binItemSlot;
 
     // Index of selected recipe in available recipes
     // static int selectedRecipe;

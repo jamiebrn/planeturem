@@ -1,5 +1,7 @@
 #include "Core/Camera.hpp"
 
+bool Camera::screenShakeEnabled = true;
+
 // Update camera based on player position (or any position)
 void Camera::update(sf::Vector2f playerPosition, sf::Vector2f mouseScreenPos, float deltaTime)
 {

@@ -20,6 +20,7 @@ std::vector<ItemSlot> InventoryGUI::armourItemSlots;
 std::vector<ItemSlot> InventoryGUI::hotbarItemSlots;
 std::vector<ItemSlot> InventoryGUI::recipeItemSlots;
 std::vector<ItemSlot> InventoryGUI::chestItemSlots;
+std::vector<ItemSlot> InventoryGUI::binItemSlot;
 
 // int InventoryGUI::selectedRecipe = 0;
 int InventoryGUI::recipeCurrentPage = 0;
@@ -85,6 +86,12 @@ void InventoryGUI::initialiseInventory(InventoryData& inventory)
         
         armourBoxPosition.y += itemBoxSize + itemBoxSpacing;
     }
+
+    // Initialise bin item slot
+    sf::Vector2f binPos;
+    binPos.x = (itemBoxPadding + (itemBoxSize + itemBoxSpacing) * static_cast<float>(ITEM_BOX_PER_ROW + 1));
+    binPos.y = itemBoxPadding;
+    binItemSlot = {ItemSlot(binPos, itemBoxSize)};
 }
 
 void InventoryGUI::initialiseHotbar()
@@ -202,6 +209,9 @@ void InventoryGUI::updateInventory(sf::Vector2f mouseScreenPos, float dt, Invent
             armourItemSlots[i].overrideItemScaleMult(1.0f);
         }
     }
+
+    // Update bin item slot
+    binItemSlot[0].update(mouseScreenPos, dt);
 
     // Update recipe item slots
     for (int i = 0; i < recipeItemSlots.size(); i++)
@@ -444,6 +454,12 @@ void InventoryGUI::putDownItem(sf::Vector2f mouseScreenPos, InventoryData& inven
         isItemPickedUp = false;
         pickedUpItem = -1;
         pickedUpItemCount = 0;
+
+        if (InputManager::isControllerActive())
+        {
+            controllerSelectedItemSlots = nullptr;
+            controllerSelectedSlotIndex = 0;
+        }
         return;
     }
 
@@ -554,22 +570,7 @@ int InventoryGUI::getHoveredItemSlotIndex(const std::vector<ItemSlot>& itemSlots
 
 bool InventoryGUI::isBinSelected(sf::Vector2f mouseScreenPos)
 {
-    float intScale = ResolutionHandler::getResolutionIntegerScale();
-    
-    sf::Vector2f binPos;
-    binPos.x = (itemBoxPadding + (itemBoxSize + itemBoxSpacing) * static_cast<float>(ITEM_BOX_PER_ROW + 1)) * intScale;
-    binPos.y = itemBoxPadding * intScale;
-
-    // Add offset due to sprite size
-    binPos += sf::Vector2f(0, 4) * 3.0f * intScale;
-
-    CollisionRect binCollisionRect;
-    binCollisionRect.x = binPos.x;
-    binCollisionRect.y = binPos.y;
-    binCollisionRect.width = 16.0f * 3 * intScale;
-    binCollisionRect.height = 16.0f * 3 * intScale;
-
-    return binCollisionRect.isPointInRect(mouseScreenPos.x, mouseScreenPos.y);
+    return (getHoveredItemSlotIndex(binItemSlot, mouseScreenPos) >= 0);
 }
 
 bool InventoryGUI::isInventorySelected(sf::Vector2f mouseScreenPos)
@@ -993,8 +994,10 @@ void InventoryGUI::drawBin(sf::RenderTarget& window)
     float intScale = ResolutionHandler::getResolutionIntegerScale();
 
     sf::Vector2f binPosition;
-    binPosition.x = itemBoxPadding * intScale + (itemBoxSize + itemBoxSpacing) * static_cast<float>(ITEM_BOX_PER_ROW) * intScale + (itemBoxSize * 1.5f) * intScale;
-    binPosition.y = (itemBoxPadding + itemBoxSize * 0.5f) * intScale;
+    binPosition.x = binItemSlot[0].getPosition().x * intScale + binItemSlot[0].getItemBoxSize() / 2;
+    binPosition.y = binItemSlot[0].getPosition().y * intScale + binItemSlot[0].getItemBoxSize() / 2;
+    // binPosition.x = itemBoxPadding * intScale + (itemBoxSize + itemBoxSpacing) * static_cast<float>(ITEM_BOX_PER_ROW) * intScale + (itemBoxSize * 1.5f) * intScale;
+    // binPosition.y = (itemBoxPadding + itemBoxSize * 0.5f) * intScale;
 
     TextureManager::drawSubTexture(window, {
         TextureType::UI,
@@ -2105,14 +2108,20 @@ bool InventoryGUI::handleControllerInput(InventoryData& inventory, InventoryData
         bool transferredSlots = false;
         if (controllerSelectedItemSlots == &inventoryItemSlots)
         {
-            if (controllerSelectedSlotIndex % ITEM_BOX_PER_ROW >= ITEM_BOX_PER_ROW - 1)
+            if (controllerSelectedSlotIndex == ITEM_BOX_PER_ROW - 1 && isItemPickedUp)
+            {
+                controllerSelectedItemSlots = &binItemSlot;
+                controllerSelectedSlotIndex = 0;
+                transferredSlots = true;
+            }
+            else if (controllerSelectedSlotIndex % ITEM_BOX_PER_ROW >= ITEM_BOX_PER_ROW - 1)
             {
                 controllerSelectedItemSlots = &armourItemSlots;
                 controllerSelectedSlotIndex = std::clamp(controllerSelectedSlotIndex / ITEM_BOX_PER_ROW - 1, 0, static_cast<int>(armourItemSlots.size()) - 1);
                 transferredSlots = true;
             }
         }
-        else if (controllerSelectedItemSlots == &armourItemSlots)
+        else if (controllerSelectedItemSlots == &armourItemSlots || controllerSelectedItemSlots == &binItemSlot)
         {
             if (chestItemSlots.size() > 0)
             {
@@ -2172,6 +2181,12 @@ bool InventoryGUI::handleControllerInput(InventoryData& inventory, InventoryData
                 }
                 transferredSlots = true;
             }
+        }
+        else if (controllerSelectedItemSlots == &binItemSlot)
+        {
+            controllerSelectedItemSlots = &inventoryItemSlots;
+            controllerSelectedSlotIndex = ITEM_BOX_PER_ROW - 1;
+            transferredSlots = true;
         }
 
         if (!transferredSlots)

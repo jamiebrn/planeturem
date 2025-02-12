@@ -143,6 +143,7 @@ struct SaveFileSummary
 struct OptionsSave
 {
     int musicVolume = 30;
+    bool screenShakeEnabled = true;
     int controllerGlyphType = 0;
 };
 

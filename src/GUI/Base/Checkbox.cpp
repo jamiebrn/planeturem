@@ -1,9 +1,13 @@
 #include "GUI/Base/Checkbox.hpp"
 
-Checkbox::Checkbox(const GUIInputState& inputState, ElementID id, int x, int y, int width, int height, int textSize, const std::string& label, bool* value)
-    : Button(inputState, id, x, y, width, height, textSize, label)
+Checkbox::Checkbox(const GUIInputState& inputState, ElementID id, int x, int y, int width, int height, int textSize, const std::string& label, bool* value,
+    int paddingLeft, int paddingRight, int paddingY)
+    : Button(inputState, id, x + paddingLeft, y + paddingY / 2, width - (paddingLeft + paddingRight), height - paddingY, textSize, label)
 {
-    this->value = value;
+    this->value = *value;
+    this->paddingLeft = paddingLeft;
+    this->paddingRight = paddingRight;
+    this->paddingY = paddingY;
 
     if (clicked)
     {
@@ -27,31 +31,33 @@ void Checkbox::draw(sf::RenderTarget& window)
     window.draw(rect);
 
     // Draw inner rect
-    if (value)
+    if (value || held)
     {
-        if (*value || held)
+        sf::RectangleShape innerRect;
+        innerRect.setPosition(x + width * 0.15f, y + height * 0.15f);
+        innerRect.setSize(sf::Vector2f(width * 0.7f, height * 0.7f));
+        innerRect.setFillColor(sf::Color(30, 30, 30));
+
+        if (clicked || held)
         {
-            sf::RectangleShape innerRect;
-            innerRect.setPosition(x + width * 0.15f, y + height * 0.15f);
-            innerRect.setSize(sf::Vector2f(width * 0.7f, height * 0.7f));
-            innerRect.setFillColor(sf::Color(30, 30, 30));
-
-            if (clicked || held)
-            {
-                innerRect.setFillColor(sf::Color(100, 100, 100));
-            }
-
-            window.draw(innerRect);
+            innerRect.setFillColor(sf::Color(100, 100, 100));
         }
+
+        window.draw(innerRect);
     }
 
     // Draw text
     TextDrawData textDrawData;
     textDrawData.text = text;
     textDrawData.size = textSize;
-    textDrawData.colour = sf::Color(0, 0, 0);
-    textDrawData.position = sf::Vector2f(x, y) + sf::Vector2f(width * 1.2f, height / 2.0f);
+    textDrawData.colour = sf::Color(255, 255, 255);
+    textDrawData.position = sf::Vector2f(x - paddingLeft + 20.0f, y + height / 2.0f);
     textDrawData.centeredY = true;
 
     TextDraw::drawText(window, textDrawData);
+}
+
+sf::IntRect Checkbox::getBoundingBox() const
+{
+    return sf::IntRect(x - paddingLeft, y - paddingY / 2, width + paddingLeft + paddingRight, height + paddingY);
 }

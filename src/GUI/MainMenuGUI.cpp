@@ -360,7 +360,17 @@ bool MainMenuGUI::createOptionsMenu(sf::RenderTarget& window, int startElementYP
     }
 
     startElementYPos += 100 * intScale;
-
+    
+    bool screenShakeEnabled = Camera::getScreenShakeEnabled();
+    if (guiContext.createCheckbox(scaledPanelPaddingX, startElementYPos, panelWidth * intScale, 75 * intScale, 20 * intScale, "Screenshake", &screenShakeEnabled,
+        (panelWidth / 2 + 80) * intScale, (panelWidth / 10 + 80) * intScale, 40 * intScale)
+        .isClicked())
+    {
+        Camera::setScreenShakeEnabled(screenShakeEnabled);
+    }
+    
+    startElementYPos += 100 * intScale;
+    
     // Create button glyph switch buttons
     if (guiContext.createButton(scaledPanelPaddingX, startElementYPos,
         panelWidth / 6 * intScale, 50 * intScale, buttonTextSize, "<", buttonStyle)

@@ -103,10 +103,12 @@ const Button& GUIContext::createButton(int x, int y, int width, int height, int 
     return *static_cast<Button*>(elements.back().get());
 }
 
-const Checkbox& GUIContext::createCheckbox(int x, int y, int width, int height, int textSize, const std::string& label, bool* value)
+const Checkbox& GUIContext::createCheckbox(int x, int y, int width, int height, int textSize, const std::string& label, bool* value,
+    int paddingLeft, int paddingRight, int paddingY)
 {
-    std::unique_ptr<Checkbox> checkbox = std::make_unique<Checkbox>(inputState, elements.size(), x, y, width, height, textSize, label, value);
-
+    std::unique_ptr<Checkbox> checkbox = std::make_unique<Checkbox>(inputState, elements.size(), x, y, width, height, textSize, label, value,
+        paddingLeft, paddingRight, paddingY);
+    
     bool clicked = checkbox->isClicked();
 
     if (clicked)

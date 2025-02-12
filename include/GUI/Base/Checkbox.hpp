@@ -14,11 +14,16 @@
 class Checkbox : public Button
 {
 public:
-    Checkbox(const GUIInputState& inputState, ElementID id, int x, int y, int width, int height, int textSize, const std::string& label, bool* value);
+    Checkbox(const GUIInputState& inputState, ElementID id, int x, int y, int width, int height, int textSize, const std::string& label, bool* value,
+        int paddingLeft = 0, int paddingRight = 0, int paddingY = 0);
 
     void draw(sf::RenderTarget& window) override;
 
+    sf::IntRect getBoundingBox() const override;
+
 private:
-    bool* value;
+    bool value;
+
+    int paddingLeft, paddingRight, paddingY;
 
 };

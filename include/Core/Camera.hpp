@@ -47,8 +47,8 @@ public:
 
     void setScreenShakeTime(float time);
 
-    inline void setScreenShakeEnabled(float enabled) {screenShakeEnabled = enabled;}
-    inline bool getScreenShakeEnabled() const {return screenShakeEnabled;}
+    inline static void setScreenShakeEnabled(float enabled) {screenShakeEnabled = enabled;}
+    inline static bool getScreenShakeEnabled() {return screenShakeEnabled;}
 
 // Private member variables
 private:
@@ -61,6 +61,7 @@ private:
     sf::Vector2f offset;
 
     float screenShakeTime = 0.0f;
-    bool screenShakeEnabled = true;
+
+    static bool screenShakeEnabled;
 
 };

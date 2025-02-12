@@ -29,7 +29,8 @@ public:
 
     const Button& createButton(int x, int y, int width, int height, int textSize, const std::string& text, std::optional<ButtonStyle> style = std::nullopt);
 
-    const Checkbox& createCheckbox(int x, int y, int width, int height, int textSize, const std::string& label, bool* value);
+    const Checkbox& createCheckbox(int x, int y, int width, int height, int textSize, const std::string& label, bool* value,
+        int paddingLeft = 0, int paddingRight = 0, int paddingY = 0);
 
     const Slider& createSlider(int x, int y, int width, int height, float minValue, float maxValue, float* value, int textSize, std::optional<std::string> label = std::nullopt,
         int paddingLeft = 0, int paddingRight = 0, int paddingY = 0);

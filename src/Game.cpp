@@ -1,7 +1,5 @@
 #include "Game.hpp"
 
-// TODO: Allow selection of bin while using controller
-
 // TODO: Night and menu music
 
 // PRIORITY: LOW
@@ -2567,6 +2565,7 @@ void Game::saveOptions()
 {
     OptionsSave optionsSave;
     optionsSave.musicVolume = Sounds::getMusicVolume();
+    optionsSave.screenShakeEnabled = Camera::getScreenShakeEnabled();
     optionsSave.controllerGlyphType = InputManager::getGlyphType();
 
     GameSaveIO optionsIO;
@@ -2581,6 +2580,7 @@ void Game::loadOptions()
     optionsIO.loadOptionsSave(optionsSave);
 
     Sounds::setMusicVolume(optionsSave.musicVolume);
+    Camera::setScreenShakeEnabled(optionsSave.screenShakeEnabled);
     InputManager::setGlyphType(optionsSave.controllerGlyphType);
 }
 
