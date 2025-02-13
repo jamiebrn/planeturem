@@ -354,9 +354,15 @@ bool InventoryGUI::handleScroll(sf::Vector2f mouseScreenPos, int direction, Inve
     //     int recipeCount = availableRecipes.size();
     //     selectedRecipe = ((selectedRecipe + direction) % recipeCount + recipeCount) % recipeCount;
     // }
+
+    int recipePageBefore = recipeCurrentPage;
+
     recipeCurrentPage = std::clamp(recipeCurrentPage + direction, 0, static_cast<int>(std::floor((availableRecipes.size() - 1) / (RECIPE_MAX_ROWS * ITEM_BOX_PER_ROW))));
 
-    createRecipeItemSlots(inventory);
+    if (recipeCurrentPage != recipePageBefore)
+    {
+        createRecipeItemSlots(inventory);
+    }
 
     return true;
 }

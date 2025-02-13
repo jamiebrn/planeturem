@@ -524,7 +524,7 @@ const BiomeGenData* ChunkManager::getChunkBiome(ChunkPosition chunk)
     }
 
     // Biome for chunk has not been stored
-    // Get chunk biome using top left chunk tile
+    // Get chunk biome using centre chunk tile
     sf::Vector2i chunkTopLeft((chunk.x + 0.5f) * CHUNK_TILE_SIZE, (chunk.y + 0.5f) * CHUNK_TILE_SIZE);
 
     const BiomeGenData* biomeGenData = Chunk::getBiomeGenAtWorldTile(chunkTopLeft, worldSize, biomeNoise, planetType);

@@ -1621,7 +1621,7 @@ void Game::testMeleeCollision(const std::vector<HitRect>& hitRects)
 
 void Game::catchRandomFish(sf::Vector2i fishedTile)
 {
-    const BiomeGenData* biomeGenData = Chunk::getBiomeGenAtWorldTile(fishedTile, chunkManager.getWorldSize(), chunkManager.getBiomeNoise(), chunkManager.getPlanetType());
+    const BiomeGenData* biomeGenData = chunkManager.getChunkBiome(ChunkPosition(fishedTile.x / CHUNK_TILE_SIZE, fishedTile.y / CHUNK_TILE_SIZE));
 
     // Check for nullptr
     if (!biomeGenData)
