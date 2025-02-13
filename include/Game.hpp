@@ -36,6 +36,7 @@
 #include "World/LightingEngine.hpp"
 #include "World/PathfindingEngine.hpp"
 #include "World/LandmarkManager.hpp"
+#include "World/WeatherSystem.hpp"
 
 #include "Player/Player.hpp"
 #include "Player/Cursor.hpp"
@@ -299,6 +300,7 @@ private:
     InventoryData inventory;
     InventoryData armourInventory;
     ChunkManager chunkManager;
+    WeatherSystem weatherSystem;
     ProjectileManager projectileManager;
     ProjectileManager enemyProjectileManager;
     BossManager bossManager;

@@ -1082,8 +1082,10 @@ void Game::drawOnPlanet(float dt)
     std::vector<WorldObject*> worldObjects = chunkManager.getChunkObjects();
     std::vector<WorldObject*> entities = chunkManager.getChunkEntities();
     std::vector<WorldObject*> itemPickups = chunkManager.getItemPickups();
+    std::vector<WorldObject*> weatherParticles = weatherSystem.getWeatherParticles();
     worldObjects.insert(worldObjects.end(), entities.begin(), entities.end());
     worldObjects.insert(worldObjects.end(), itemPickups.begin(), itemPickups.end());
+    worldObjects.insert(worldObjects.end(), weatherParticles.begin(), weatherParticles.end());
     worldObjects.push_back(&player);
     bossManager.getBossWorldObjects(worldObjects);
 
@@ -1161,9 +1163,9 @@ void Game::drawLighting(float dt, std::vector<WorldObject*>& worldObjects)
 {
     float lightLevel = dayCycleManager.getLightLevel();
 
-    unsigned char ambientRedLight = Helper::lerp(2, 255, lightLevel);
-    unsigned char ambientGreenLight = Helper::lerp(7, 244, lightLevel);
-    unsigned char ambientBlueLight = Helper::lerp(14, 234, lightLevel);
+    unsigned char ambientRedLight = Helper::lerp(2, 255 * weatherSystem.getLightRedBias(), lightLevel);
+    unsigned char ambientGreenLight = Helper::lerp(7, 244 * weatherSystem.getLightGreenBias(), lightLevel);
+    unsigned char ambientBlueLight = Helper::lerp(14, 234 * weatherSystem.getLightBlueBias(), lightLevel);
 
     sf::Vector2i chunksSizeInView = chunkManager.getChunksSizeInView(camera);
     sf::Vector2f topLeftChunkPos = chunkManager.topLeftChunkPosInView(camera);
@@ -2872,7 +2874,7 @@ void Game::drawControllerGlyphs(const std::vector<std::pair<InputAction, std::st
     sf::Vector2f resolution = static_cast<sf::Vector2f>(ResolutionHandler::getResolution());
     float intScale = ResolutionHandler::getResolutionIntegerScale();
 
-    static constexpr int GLPYH_SPACING = 50;
+    static constexpr int GLYPH_SPACING = 50;
     static constexpr int GLYPH_X_PADDING = 70;
 
     for (int i = 0; i < actionStrings.size(); i++)
@@ -2893,7 +2895,7 @@ void Game::drawControllerGlyphs(const std::vector<std::pair<InputAction, std::st
         // Draw button glyph
         TextureDrawData glyphDrawData;
         glyphDrawData.type = TextureType::UI;
-        glyphDrawData.position = sf::Vector2f(resolution.x - GLYPH_X_PADDING / 2.0f * intScale, resolution.y - (i + 1) * GLPYH_SPACING * intScale);
+        glyphDrawData.position = sf::Vector2f(resolution.x - GLYPH_X_PADDING / 2.0f * intScale, resolution.y - (i + 1) * GLYPH_SPACING * intScale);
         glyphDrawData.centerRatio = sf::Vector2f(0.5f, 0.5f);
         glyphDrawData.scale = sf::Vector2f(3, 3) * intScale;
 
@@ -2902,7 +2904,7 @@ void Game::drawControllerGlyphs(const std::vector<std::pair<InputAction, std::st
         // Draw action text
         TextDrawData textDrawData;
         textDrawData.text = actionString.second;
-        textDrawData.position = sf::Vector2f(resolution.x, resolution.y - (i + 1) * GLPYH_SPACING * intScale);
+        textDrawData.position = sf::Vector2f(resolution.x, resolution.y - (i + 1) * GLYPH_SPACING * intScale);
         textDrawData.size = 24 * intScale;
         textDrawData.colour = sf::Color(255, 255, 255);
         textDrawData.outlineColour = sf::Color(46, 34, 47);
