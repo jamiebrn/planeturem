@@ -3,13 +3,30 @@
 #include <SFML/Graphics.hpp>
 
 #include <vector>
+#include <unordered_map>
 
 #include "Object/WorldObject.hpp"
 
+enum class WeatherType
+{
+    Rain
+};
+
+struct WeatherTypeData
+{
+    std::vector<sf::IntRect> particleTextureRects;
+    float redLightBias, greenLightBias, blueLightBias;
+};
+
 class WeatherParticle : public WorldObject
 {
+public:
+    void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
+        const sf::Color& color) const override;
+
 private:
     sf::Vector2f velocity;
+
 };
 
 class WeatherSystem
@@ -19,13 +36,13 @@ public:
 
     std::vector<WorldObject*> getWeatherParticles();
 
-    float getLightRedBias();
-    float getLightGreenBias();
-    float getLightBlueBias();
+    const WeatherTypeData& getWeatherTypeData() const;
 
 private:
-    std::vector<WeatherParticle> weatherParticles;
+    static const std::unordered_map<WeatherType, WeatherTypeData> weatherTypeDatas;
     
-    float redLightBias = 0.0f, greenLightBias = 0.0f, blueLightBias = 0.0f;
+    std::vector<WeatherParticle> weatherParticles;
+
+    WeatherType currentWeatherType;
 
 };

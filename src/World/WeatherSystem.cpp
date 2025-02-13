@@ -1,5 +1,9 @@
 #include "World/WeatherSystem.hpp"
 
+const std::unordered_map<WeatherType, WeatherTypeData> WeatherSystem::weatherTypeDatas = {
+    {WeatherType::Rain, {}}
+};
+
 std::vector<WorldObject*> WeatherSystem::getWeatherParticles()
 {
     std::vector<WorldObject*> particles;
@@ -10,17 +14,7 @@ std::vector<WorldObject*> WeatherSystem::getWeatherParticles()
     return particles;
 }
 
-float WeatherSystem:: getLightRedBias()
+const WeatherTypeData& WeatherSystem::getWeatherTypeData() const
 {
-
-}
-
-float WeatherSystem:: getLightGreenBias()
-{
-
-}
-
-float WeatherSystem:: getLightBlueBias()
-{
-
+    return weatherTypeDatas.at(currentWeatherType);
 }
