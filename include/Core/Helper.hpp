@@ -37,7 +37,8 @@ inline std::string floatToString(float value, int decimalPlaces)
     return std::format("{:.{}f}", value, decimalPlaces);
 }
 
-inline int sign(int value)
+template <typename T>
+inline T sign(T value)
 {
     if (value > 0)
     {
@@ -48,6 +49,11 @@ inline int sign(int value)
         return -1;
     }
     return 0;
+}
+
+inline float step(float start, float dest, float maxStep)
+{
+    return std::clamp(start + sign(dest - start) * maxStep, std::min(start, dest), std::max(start, dest));
 }
 
 inline int wrap(int value, int max)

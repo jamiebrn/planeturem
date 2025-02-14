@@ -69,6 +69,10 @@ public:
 
     const WeatherTypeData& getWeatherTypeData() const;
 
+    float getRedLightBias() const;
+    float getGreenLightBias() const;
+    float getBlueLightBias() const;
+
     inline void setWeather(WeatherType type) {currentWeatherType = type;}
 
 private:
@@ -77,6 +81,9 @@ private:
     std::vector<WeatherParticle> weatherParticles;
 
     WeatherType currentWeatherType;
+
+    static constexpr float LIGHT_BIAS_TRANSITION_SPEED = 0.05f;
+    float redLightBias, greenLightBias, blueLightBias;
 
     static constexpr float PARTICLE_SPAWN_RATE = 0.001f;
     float particleSpawnTimer;

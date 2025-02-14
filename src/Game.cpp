@@ -1168,9 +1168,9 @@ void Game::drawLighting(float dt, std::vector<WorldObject*>& worldObjects)
 {
     float lightLevel = dayCycleManager.getLightLevel();
 
-    unsigned char ambientRedLight = Helper::lerp(2, 255 * weatherSystem.getWeatherTypeData().redLightBias, lightLevel);
-    unsigned char ambientGreenLight = Helper::lerp(7, 244 * weatherSystem.getWeatherTypeData().greenLightBias, lightLevel);
-    unsigned char ambientBlueLight = Helper::lerp(14, 234 * weatherSystem.getWeatherTypeData().blueLightBias, lightLevel);
+    unsigned char ambientRedLight = Helper::lerp(2, 255 * weatherSystem.getRedLightBias(), lightLevel);
+    unsigned char ambientGreenLight = Helper::lerp(7, 244 * weatherSystem.getGreenLightBias(), lightLevel);
+    unsigned char ambientBlueLight = Helper::lerp(14, 234 * weatherSystem.getBlueLightBias(), lightLevel);
 
     sf::Vector2i chunksSizeInView = chunkManager.getChunksSizeInView(camera);
     sf::Vector2f topLeftChunkPos = chunkManager.topLeftChunkPosInView(camera);

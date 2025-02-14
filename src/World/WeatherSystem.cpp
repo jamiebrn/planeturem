@@ -4,6 +4,7 @@ WeatherParticle::WeatherParticle(sf::Vector2f position, const WeatherTypeData& w
     : WorldObject(position)
 {
     sf::Vector2u resolution = ResolutionHandler::getResolution();
+    float scale = ResolutionHandler::getScale();
 
     animatedTexture = weatherTypeData.particleAnimatedTexture;
 
@@ -11,7 +12,7 @@ WeatherParticle::WeatherParticle(sf::Vector2f position, const WeatherTypeData& w
     velocity = Helper::rotateVector(sf::Vector2f(1, 0), weatherTypeData.fallAngle / 180.0f * M_PI) * fallSpeed;
 
     fallTime = 0.0f;
-    targetFallTime = Helper::randFloat(0.7f, resolution.y / velocity.y * 1.2f);
+    targetFallTime = Helper::randFloat(0.7f, resolution.y / velocity.y / scale * 1.2f);
 }
 
 bool WeatherParticle::update(float dt, const Camera& camera, ChunkManager& chunkManager)
@@ -65,6 +66,11 @@ const std::unordered_map<WeatherType, WeatherTypeData> WeatherSystem::weatherTyp
 WeatherSystem::WeatherSystem()
 {
     currentWeatherType = WeatherType::None;
+    
+    redLightBias = 1.0f;
+    greenLightBias = 1.0f;
+    blueLightBias = 1.0f;
+    
     particleSpawnTimer = 0.0f;
 }
 
@@ -85,6 +91,12 @@ void WeatherSystem::update(float dt, const Camera& camera, ChunkManager& chunkMa
             weatherParticles.push_back(WeatherParticle(position, weatherTypeDatas.at(currentWeatherType)));
         }
     }
+
+    const WeatherTypeData& weatherTypeData = weatherTypeDatas.at(currentWeatherType);
+
+    redLightBias = Helper::step(redLightBias, weatherTypeData.redLightBias, LIGHT_BIAS_TRANSITION_SPEED * dt);
+    greenLightBias = Helper::step(greenLightBias, weatherTypeData.greenLightBias, LIGHT_BIAS_TRANSITION_SPEED * dt);
+    blueLightBias = Helper::step(blueLightBias, weatherTypeData.blueLightBias, LIGHT_BIAS_TRANSITION_SPEED * dt);
 
     for (auto iter = weatherParticles.begin(); iter != weatherParticles.end();)
     {
@@ -118,4 +130,19 @@ std::vector<WorldObject*> WeatherSystem::getWeatherParticles()
 const WeatherTypeData& WeatherSystem::getWeatherTypeData() const
 {
     return weatherTypeDatas.at(currentWeatherType);
+}
+
+float WeatherSystem::getRedLightBias() const
+{
+    return redLightBias;
+}
+
+float WeatherSystem::getGreenLightBias() const
+{
+    return greenLightBias;
+}
+
+float WeatherSystem::getBlueLightBias() const
+{
+    return blueLightBias;
 }
