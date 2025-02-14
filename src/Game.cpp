@@ -1032,6 +1032,9 @@ void Game::updateOnPlanet(float dt)
 
         // Wrap particles
         particleSystem.handleWorldWrap(wrapPositionDelta);
+
+        // Wrap weather particles
+        weatherSystem.handleWorldWrap(wrapPositionDelta);
     }
 
     // Update (loaded) chunks
@@ -1054,6 +1057,8 @@ void Game::updateOnPlanet(float dt)
     // Update projectiles
     projectileManager.update(dt);
     enemyProjectileManager.update(dt);
+
+    weatherSystem.update(dt, camera, chunkManager);
 
     // Test item pickups colliding
     std::optional<ItemPickupReference> itemPickupColliding = chunkManager.getCollidingItemPickup(player.getCollisionRect(), gameTime);
@@ -1440,6 +1445,8 @@ void Game::updateInRoom(float dt, Room& room, bool inStructure)
         // Continue to update objects and entities in world
         chunkManager.updateChunksObjects(*this, dt);
         chunkManager.updateChunksEntities(dt, projectileManager, *this);
+            
+        weatherSystem.update(dt, camera, chunkManager);
 
         if (!isStateTransitioning())
         {
@@ -3019,6 +3026,15 @@ void Game::drawDebugMenu(float dt)
     {
         ImGui::SliderFloat("God Speed Multiplier", &DebugOptions::godSpeedMultiplier, 0.0f, 100.0f);
         ImGui::Checkbox("Limitless Zoom", &DebugOptions::limitlessZoom);
+    }
+
+    if (ImGui::Button("Clear Weather"))
+    {
+        weatherSystem.setWeather(WeatherType::None);
+    }
+    if (ImGui::Button("Rain Weather"))
+    {
+        weatherSystem.setWeather(WeatherType::Rain);
     }
 
     ImGui::End();   

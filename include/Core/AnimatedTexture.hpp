@@ -19,6 +19,8 @@ public:
 
     inline int getFrameCount() const {return frameCount;}
 
+    inline bool isFinished() const {return ((frameCount - 1) == frame);}
+
 private:
     int xStart;
     int y;

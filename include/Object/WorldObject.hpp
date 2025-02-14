@@ -19,7 +19,7 @@ public:
 
     // General world object functionality
 
-    sf::Vector2f getPosition() const;
+    virtual sf::Vector2f getPosition() const;
     void setPosition(sf::Vector2f pos);
 
     static ChunkPosition getChunkInside(sf::Vector2f position, int worldSize);
