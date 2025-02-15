@@ -12,7 +12,7 @@ WeatherParticle::WeatherParticle(sf::Vector2f position, const WeatherTypeData& w
     velocity = Helper::rotateVector(sf::Vector2f(1, 0), weatherTypeData.fallAngle / 180.0f * M_PI) * fallSpeed;
 
     fallTime = 0.0f;
-    targetFallTime = Helper::randFloat(0.7f, resolution.y / velocity.y / scale * 1.2f);
+    targetFallTime = Helper::randFloat(0.0f, resolution.y / velocity.y / scale * 1.2f) + resolution.y / 2 / velocity.y;
 }
 
 bool WeatherParticle::update(float dt, const Camera& camera, ChunkManager& chunkManager)
@@ -63,7 +63,7 @@ const std::unordered_map<WeatherType, WeatherTypeData> WeatherSystem::weatherTyp
     {WeatherType::Rain, {{4, 16, 16, 0, 272, 0.05f, false}, 0.6f, 0.75f, 0.85f, 110.0f, 130.0f, 175.0f}}
 };
 
-WeatherSystem::WeatherSystem()
+WeatherSystem::WeatherSystem(float gameTime, int seed)
 {
     currentWeatherType = WeatherType::None;
     
@@ -72,31 +72,62 @@ WeatherSystem::WeatherSystem()
     blueLightBias = 1.0f;
     
     particleSpawnTimer = 0.0f;
+
+    weatherNoise.SetSeed(seed);
+    weatherNoise.SetNoiseType(FastNoise::NoiseType::SimplexFractal);
+    
+    updateCurrentWeather(gameTime, true);
 }
 
-void WeatherSystem::update(float dt, const Camera& camera, ChunkManager& chunkManager)
+void WeatherSystem::update(float dt, float gameTime, const Camera& camera, ChunkManager& chunkManager)
 {
-    if (currentWeatherType != WeatherType::None)
+    sf::Vector2u resolution = ResolutionHandler::getResolution();
+    float scale = ResolutionHandler::getScale();
+    
+    const WeatherTypeData& destinationWeatherTypeData = weatherTypeDatas.at(destinationWeatherType);
+
+    particleSpawnTimer += dt * Helper::randFloat(1.0f, 2.0f);
+
+    float particleSpawnRateMult = resolution.x / 1920.0f;
+    
+    if (particleSpawnTimer >= PARTICLE_SPAWN_RATE * particleSpawnRateMult)
     {
-        sf::Vector2u resolution = ResolutionHandler::getResolution();
+        particleSpawnTimer = 0.0f;
 
-        static const float PARTICLE_SPAWN_PADDING = 0;
+        sf::Vector2f position;
+        position.x = Helper::randInt(-camera.getDrawOffset().x - resolution.x / 2, -camera.getDrawOffset().x + resolution.x / 3 + resolution.x / 2);
+        position.y = -camera.getDrawOffset().y;
 
-        particleSpawnTimer += dt * Helper::randFloat(1.0f, 2.0f);
-
-        if (particleSpawnTimer >= PARTICLE_SPAWN_RATE)
+        // Spawn some particles at bottom of screen to keep particle density if player moves downwards
+        if (Helper::randFloat(0.0f, 1.0f) <= 0.3f)
         {
-            particleSpawnTimer = 0.0;
-            sf::Vector2f position = camera.screenToWorldTransform(sf::Vector2f(Helper::randInt(0, resolution.x), PARTICLE_SPAWN_PADDING));
-            weatherParticles.push_back(WeatherParticle(position, weatherTypeDatas.at(currentWeatherType)));
+            position.y += resolution.y / scale + 32;
+        }
+        
+        // Make either current weather or destination weather particle more likely depending on transition progress
+        if (Helper::randFloat(0.0f, 1.0f) >= getDestinationTransitionProgress())
+        {
+            // Spawn current weather particle
+            if (currentWeatherType != WeatherType::None)
+            {
+                weatherParticles.push_back(WeatherParticle(position, weatherTypeDatas.at(currentWeatherType)));
+            }
+        }
+        else
+        {
+            // Spawn destination weather particle
+            if (destinationWeatherType != WeatherType::None)
+            {
+                weatherParticles.push_back(WeatherParticle(position, destinationWeatherTypeData));
+            }
         }
     }
+    
+    redLightBias = Helper::step(redLightBias, destinationWeatherTypeData.redLightBias, LIGHT_BIAS_TRANSITION_SPEED * dt);
+    greenLightBias = Helper::step(greenLightBias, destinationWeatherTypeData.greenLightBias, LIGHT_BIAS_TRANSITION_SPEED * dt);
+    blueLightBias = Helper::step(blueLightBias, destinationWeatherTypeData.blueLightBias, LIGHT_BIAS_TRANSITION_SPEED * dt);
 
-    const WeatherTypeData& weatherTypeData = weatherTypeDatas.at(currentWeatherType);
-
-    redLightBias = Helper::step(redLightBias, weatherTypeData.redLightBias, LIGHT_BIAS_TRANSITION_SPEED * dt);
-    greenLightBias = Helper::step(greenLightBias, weatherTypeData.greenLightBias, LIGHT_BIAS_TRANSITION_SPEED * dt);
-    blueLightBias = Helper::step(blueLightBias, weatherTypeData.blueLightBias, LIGHT_BIAS_TRANSITION_SPEED * dt);
+    updateCurrentWeather(gameTime, false);
 
     for (auto iter = weatherParticles.begin(); iter != weatherParticles.end();)
     {
@@ -106,6 +137,71 @@ void WeatherSystem::update(float dt, const Camera& camera, ChunkManager& chunkMa
             continue;
         }
         iter++;
+    }
+}
+
+void WeatherSystem::updateCurrentWeather(float gameTime, bool initialise)
+{
+    float noiseValue = sampleWeatherFunction(gameTime);
+    
+    WeatherType newWeatherType;
+    if (noiseValue >= 0)
+    {
+        newWeatherType = WeatherType::None;
+    }
+    else
+    {
+        newWeatherType = WeatherType::Rain;
+    }
+
+    if (initialise)
+    {
+        currentWeatherType = newWeatherType;
+        destinationWeatherType = newWeatherType;
+
+        const WeatherTypeData& currentWeatherTypeData = weatherTypeDatas.at(currentWeatherType);
+        redLightBias = currentWeatherTypeData.redLightBias;
+        greenLightBias = currentWeatherTypeData.greenLightBias;
+        blueLightBias = currentWeatherTypeData.blueLightBias;
+    }
+
+    if (newWeatherType != currentWeatherType)
+    {
+        destinationWeatherType = newWeatherType;
+    }
+
+    static constexpr float TRANSITION_PROGRESS_COMPLETE_THRESHOLD = 0.95f;
+
+    if (getDestinationTransitionProgress() >= TRANSITION_PROGRESS_COMPLETE_THRESHOLD)
+    {
+        currentWeatherType = destinationWeatherType;
+            
+        const WeatherTypeData& destinationWeatherTypeData = weatherTypeDatas.at(destinationWeatherType);
+
+        redLightBias = destinationWeatherTypeData.redLightBias;
+        greenLightBias = destinationWeatherTypeData.greenLightBias;
+        blueLightBias = destinationWeatherTypeData.blueLightBias;
+    }
+}
+
+float WeatherSystem::getDestinationTransitionProgress() const
+{
+    const WeatherTypeData& weatherTypeData = weatherTypeDatas.at(currentWeatherType);
+    const WeatherTypeData& destinationWeatherTypeData = weatherTypeDatas.at(destinationWeatherType);
+
+    return (1.0f - (redLightBias - destinationWeatherTypeData.redLightBias) / (weatherTypeData.redLightBias - destinationWeatherTypeData.redLightBias));
+}
+
+void WeatherSystem::presimulateWeather(float gameTime, const Camera& camera, ChunkManager& chunkManager)
+{
+    if (currentWeatherType == WeatherType::None)
+    {
+        return;
+    }
+
+    for (int i = 0; i < WeatherSystem::PRESIMULATION_TICKS; i++)
+    {
+        update(1.0f / 30.0f, gameTime, camera, chunkManager);
     }
 }
 
@@ -145,4 +241,9 @@ float WeatherSystem::getGreenLightBias() const
 float WeatherSystem::getBlueLightBias() const
 {
     return blueLightBias;
+}
+
+float WeatherSystem::sampleWeatherFunction(float gameTime) const
+{
+    return weatherNoise.GetNoise(gameTime, 0);
 }

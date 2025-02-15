@@ -5,7 +5,7 @@
 #define RELEASE_BUILD 0
 
 static const std::string GAME_TITLE = "Planeturem";
-static const std::string GAME_VERSION = "alpha-v1.4";
+static const std::string GAME_VERSION = "alpha-v1.5";
 
 static constexpr float TILE_SIZE_PIXELS_UNSCALED = 16;
 static constexpr float CHUNK_TILE_SIZE = 8;

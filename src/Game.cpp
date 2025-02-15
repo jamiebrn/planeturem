@@ -565,14 +565,25 @@ void Game::runInGame(float dt)
             }
         }
 
-        if (InputManager::isActionJustActivated(InputAction::HOTBAR_0)) InventoryGUI::setHotbarSelectedIndex(0);
-        if (InputManager::isActionJustActivated(InputAction::HOTBAR_1)) InventoryGUI::setHotbarSelectedIndex(1);
-        if (InputManager::isActionJustActivated(InputAction::HOTBAR_2)) InventoryGUI::setHotbarSelectedIndex(2);
-        if (InputManager::isActionJustActivated(InputAction::HOTBAR_3)) InventoryGUI::setHotbarSelectedIndex(3);
-        if (InputManager::isActionJustActivated(InputAction::HOTBAR_4)) InventoryGUI::setHotbarSelectedIndex(4);
-        if (InputManager::isActionJustActivated(InputAction::HOTBAR_5)) InventoryGUI::setHotbarSelectedIndex(5);
-        if (InputManager::isActionJustActivated(InputAction::HOTBAR_6)) InventoryGUI::setHotbarSelectedIndex(6);
-        if (InputManager::isActionJustActivated(InputAction::HOTBAR_7)) InventoryGUI::setHotbarSelectedIndex(7);
+        std::vector<bool> hotbarInputActivated = {
+            InputManager::isActionJustActivated(InputAction::HOTBAR_0),
+            InputManager::isActionJustActivated(InputAction::HOTBAR_1),
+            InputManager::isActionJustActivated(InputAction::HOTBAR_2),
+            InputManager::isActionJustActivated(InputAction::HOTBAR_3),
+            InputManager::isActionJustActivated(InputAction::HOTBAR_4),
+            InputManager::isActionJustActivated(InputAction::HOTBAR_5),
+            InputManager::isActionJustActivated(InputAction::HOTBAR_6),
+            InputManager::isActionJustActivated(InputAction::HOTBAR_7)
+        };
+
+        for (int i = 0; i < hotbarInputActivated.size(); i++)
+        {
+            if (hotbarInputActivated[i])
+            {
+                InventoryGUI::setHotbarSelectedIndex(i);
+                changePlayerTool();   
+            }
+        }
 
         if (float zoom = InputManager::getActionAxisImmediateActivation(InputAction::ZOOM_IN, InputAction::ZOOM_OUT);
             std::abs(zoom) >= 0.5f)
@@ -1058,7 +1069,7 @@ void Game::updateOnPlanet(float dt)
     projectileManager.update(dt);
     enemyProjectileManager.update(dt);
 
-    weatherSystem.update(dt, camera, chunkManager);
+    weatherSystem.update(dt, gameTime, camera, chunkManager);
 
     // Test item pickups colliding
     std::optional<ItemPickupReference> itemPickupColliding = chunkManager.getCollidingItemPickup(player.getCollisionRect(), gameTime);
@@ -1446,7 +1457,7 @@ void Game::updateInRoom(float dt, Room& room, bool inStructure)
         chunkManager.updateChunksObjects(*this, dt);
         chunkManager.updateChunksEntities(dt, projectileManager, *this);
             
-        weatherSystem.update(dt, camera, chunkManager);
+        weatherSystem.update(dt, gameTime, camera, chunkManager);
 
         if (!isStateTransitioning())
         {
@@ -2177,6 +2188,9 @@ void Game::initialiseNewPlanet(PlanetType planetType, bool placeRocket)
 
     chunkManager.updateChunks(*this, camera);
 
+    weatherSystem = WeatherSystem(gameTime, chunkManager.getSeed() + chunkManager.getPlanetType());
+    weatherSystem.presimulateWeather(gameTime, camera, chunkManager);
+
     // Ensure spawn chunk does not have structure
     chunkManager.regenerateChunkWithoutStructure(playerSpawnChunk, *this);
     
@@ -2308,6 +2322,11 @@ void Game::startNewGame(int seed)
     projectileManager.clear();
     enemyProjectileManager.clear();
     landmarkManager.clear();
+
+    gameTime = 0.0f;
+
+    weatherSystem = WeatherSystem(gameTime, seed + chunkManager.getPlanetType());
+    weatherSystem.presimulateWeather(gameTime, camera, chunkManager);
 
     camera.instantUpdate(player.getPosition());
 
@@ -2447,6 +2466,9 @@ bool Game::loadGame(const SaveFileSummary& saveFileSummary)
     musicGap = MUSIC_GAP_MIN;
 
     landmarkManager.clear();
+        
+    // Sync time-based systems, e.g. weather
+    gameTime = playerGameSave.timePlayed;
 
     // Load planet
     if (playerGameSave.planetType >= 0)
@@ -2466,20 +2488,27 @@ bool Game::loadGame(const SaveFileSummary& saveFileSummary)
         structureRoomPool = planetGameSave.structureRoomPool;
 
         nextGameState = GameState::OnPlanet;
-
+        
         if (planetGameSave.isInRoom)
         {
             player.setPosition(planetGameSave.positionInRoom);
             structureEnteredID = planetGameSave.inRoomID;
             structureEnteredPos = planetGameSave.playerLastPlanetPos;
-
+            
             nextGameState = GameState::InStructure;
+
+            // Simulate weather outside of room
+            camera.instantUpdate(structureEnteredPos);
         }
         else
         {
             player.setPosition(planetGameSave.playerLastPlanetPos);
+            camera.instantUpdate(player.getPosition());
         }
-
+        
+        weatherSystem = WeatherSystem(gameTime, chunkManager.getSeed() + chunkManager.getPlanetType());
+        weatherSystem.presimulateWeather(gameTime, camera, chunkManager);
+        
         camera.instantUpdate(player.getPosition());
 
         chunkManager.updateChunks(*this, camera);
@@ -2543,12 +2572,22 @@ bool Game::loadPlanet(PlanetType planetType)
         player.setPosition(planetGameSave.positionInRoom);
         structureEnteredID = planetGameSave.inRoomID;
         structureEnteredPos = planetGameSave.playerLastPlanetPos;
+        
+        // Simulate weather outside of room
+        camera.instantUpdate(structureEnteredPos);
     }
     else
     {
         overrideState(GameState::OnPlanet);
         player.setPosition(planetGameSave.playerLastPlanetPos);
+        
+        camera.instantUpdate(player.getPosition());
     }
+    
+    weatherSystem = WeatherSystem(gameTime, chunkManager.getSeed() + chunkManager.getPlanetType());
+    weatherSystem.presimulateWeather(gameTime, camera, chunkManager);
+
+    camera.instantUpdate(player.getPosition());
 
     chunkManager.loadFromChunkPODs(planetGameSave.chunks, *this);
     chestDataPool = planetGameSave.chestDataPool;
@@ -3028,14 +3067,8 @@ void Game::drawDebugMenu(float dt)
         ImGui::Checkbox("Limitless Zoom", &DebugOptions::limitlessZoom);
     }
 
-    if (ImGui::Button("Clear Weather"))
-    {
-        weatherSystem.setWeather(WeatherType::None);
-    }
-    if (ImGui::Button("Rain Weather"))
-    {
-        weatherSystem.setWeather(WeatherType::Rain);
-    }
+    ImGui::Text(("Weather value: " + std::to_string(weatherSystem.sampleWeatherFunction(gameTime))).c_str());
+    ImGui::Text(("Weather transition: " + std::to_string(weatherSystem.getDestinationTransitionProgress())).c_str());
 
     ImGui::End();   
 }

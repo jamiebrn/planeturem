@@ -7,6 +7,7 @@
 #include <vector>
 #include <unordered_map>
 
+#include "World/FastNoise.h"
 #include "Core/AnimatedTexture.hpp"
 #include "Core/Camera.hpp"
 #include "Core/ResolutionHandler.hpp"
@@ -59,9 +60,10 @@ private:
 class WeatherSystem
 {
 public:
-    WeatherSystem();
+    WeatherSystem() = default;
+    WeatherSystem(float gameTime, int seed);
     
-    void update(float dt, const Camera& camera, ChunkManager& chunkManager);
+    void update(float dt, float gameTime, const Camera& camera, ChunkManager& chunkManager);
 
     void handleWorldWrap(sf::Vector2f positionDelta);
 
@@ -73,19 +75,34 @@ public:
     float getGreenLightBias() const;
     float getBlueLightBias() const;
 
+    float sampleWeatherFunction(float gameTime) const;
+
+    void presimulateWeather(float gameTime, const Camera& camera, ChunkManager& chunkManager);
+
     inline void setWeather(WeatherType type) {currentWeatherType = type;}
+
+private:
+    void updateCurrentWeather(float gameTime, bool initialise);
+public:
+    float getDestinationTransitionProgress() const;
+
+public:
+    static constexpr int PRESIMULATION_TICKS = 500;
 
 private:
     static const std::unordered_map<WeatherType, WeatherTypeData> weatherTypeDatas;
     
     std::vector<WeatherParticle> weatherParticles;
 
-    WeatherType currentWeatherType;
+    WeatherType currentWeatherType = WeatherType::None;
+    WeatherType destinationWeatherType = WeatherType::None;
+
+    FastNoise weatherNoise;
 
     static constexpr float LIGHT_BIAS_TRANSITION_SPEED = 0.05f;
     float redLightBias, greenLightBias, blueLightBias;
 
-    static constexpr float PARTICLE_SPAWN_RATE = 0.001f;
+    static constexpr float PARTICLE_SPAWN_RATE = 0.0001f;
     float particleSpawnTimer;
 
 };
