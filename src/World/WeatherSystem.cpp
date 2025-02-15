@@ -12,7 +12,7 @@ WeatherParticle::WeatherParticle(sf::Vector2f position, const WeatherTypeData& w
     velocity = Helper::rotateVector(sf::Vector2f(1, 0), weatherTypeData.fallAngle / 180.0f * M_PI) * fallSpeed;
 
     fallTime = 0.0f;
-    targetFallTime = Helper::randFloat(0.0f, resolution.y / velocity.y / scale * 1.2f) + resolution.y / 2 / velocity.y;
+    targetFallTime = Helper::randFloat(0.2f, resolution.y / velocity.y / scale * 1.2f);
 }
 
 bool WeatherParticle::update(float dt, const Camera& camera, ChunkManager& chunkManager)
@@ -90,9 +90,9 @@ void WeatherSystem::update(float dt, float gameTime, const Camera& camera, Chunk
 
     float particleSpawnRateMult = resolution.x / 1920.0f;
     
-    if (particleSpawnTimer >= PARTICLE_SPAWN_RATE * particleSpawnRateMult)
+    while (particleSpawnTimer * particleSpawnRateMult >= PARTICLE_SPAWN_RATE)
     {
-        particleSpawnTimer = 0.0f;
+        particleSpawnTimer -= PARTICLE_SPAWN_RATE;
 
         sf::Vector2f position;
         position.x = Helper::randInt(-camera.getDrawOffset().x - resolution.x / 2, -camera.getDrawOffset().x + resolution.x / 3 + resolution.x / 2);
