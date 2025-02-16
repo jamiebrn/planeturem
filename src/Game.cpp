@@ -391,6 +391,7 @@ void Game::runMainMenu(float dt)
 
                 currentSaveFileSummary = menuEvent->saveFileSummary;
                 startNewGame(menuEvent->worldSeed);
+                createLobby();
                 break;
             }
             case MainMenuEventType::Load:
@@ -403,6 +404,7 @@ void Game::runMainMenu(float dt)
                 if (loadGame(menuEvent->saveFileSummary))
                 {
                     mainMenuGUI.setCanInteract(false);
+                    createLobby();
                 }
 
                 currentSaveFileSummary = menuEvent->saveFileSummary;
@@ -988,6 +990,7 @@ void Game::runInGame(float dt)
                 case PauseMenuEventType::Quit:
                 {
                     saveGame();
+                    closeLobby();
                     currentSaveFileSummary.name = "";
                     startChangeStateTransition(GameState::MainMenu);
                     mainMenuGUI.initialise();
@@ -2631,6 +2634,23 @@ void Game::loadOptions()
     Camera::setScreenShakeEnabled(optionsSave.screenShakeEnabled);
     InputManager::setGlyphType(optionsSave.controllerGlyphType);
 }
+
+void Game::createLobby()
+{
+    SteamAPICall_t result = SteamMatchmaking()->CreateLobby(ELobbyType::k_ELobbyTypeFriendsOnly, 8);
+}
+
+void Game::closeLobby()
+{
+    SteamMatchmaking()->LeaveLobby(steamLobbyId);
+}
+
+void Game::callbackLobbyEnter(LobbyEnter_t* pCallback)
+{
+    steamLobbyId = pCallback->m_ulSteamIDLobby;
+    std::cout << "Joined lobby " << steamLobbyId << "\n";
+}
+
 
 // -- Window -- //
 

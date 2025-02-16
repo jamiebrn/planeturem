@@ -237,6 +237,11 @@ private:
     void loadOptions();
 
 
+    // -- Multiplayer -- //
+    void createLobby();
+    void closeLobby();
+    STEAM_CALLBACK(Game, callbackLobbyEnter, LobbyEnter_t);
+
     // -- Window -- //
 
     void handleZoom(int zoomChange);
@@ -312,6 +317,9 @@ private:
     LightingEngine lightingEngine;
     int lightingTick = 0;
     bool smoothLighting = true;
+
+    bool multiplayerGame = false;
+    uint64_t steamLobbyId = 0;
 
     std::array<sf::Texture, 2> waterNoiseTextures;
 
