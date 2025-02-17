@@ -243,6 +243,7 @@ private:
     void createLobby();
     void callbackLobbyCreated(LobbyCreated_t* pCallback, bool bIOFailure);
     void closeLobby();
+    STEAM_CALLBACK(Game, callbackLobbyJoinRequested, GameLobbyJoinRequested_t);
     STEAM_CALLBACK(Game, callbackLobbyEnter, LobbyEnter_t);
     STEAM_CALLBACK(Game, callbackLobbyUpdated, LobbyChatUpdate_t);
     STEAM_CALLBACK(Game, callbackMessageSessionRequest, SteamNetworkingMessagesSessionRequest_t);

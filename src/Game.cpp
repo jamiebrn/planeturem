@@ -2669,6 +2669,11 @@ void Game::closeLobby()
     lobbyHost = false;
 }
 
+void Game::callbackLobbyJoinRequested(GameLobbyJoinRequested_t* pCallback)
+{
+    SteamMatchmaking()->JoinLobby(pCallback->m_steamIDLobby);
+}
+
 void Game::callbackLobbyEnter(LobbyEnter_t* pCallback)
 {
     steamLobbyId = pCallback->m_ulSteamIDLobby;
@@ -2700,7 +2705,10 @@ void Game::callbackMessageSessionRequest(SteamNetworkingMessagesSessionRequest_t
 
     Packet packet;
     packet.type = PacketType::JoinReply;
-    memcpy((void*)packet.data, (void*)&pCallback->m_identityRemote, sizeof(uint64_t));
+    std::string steamId(SteamUser()->GetSteamID().Render());
+    std::string steamName(SteamFriends()->GetPersonaName());
+    std::string stringId = steamId + "(" + steamName + ")";
+    memcpy((void*)packet.data, (void*)stringId.c_str(), stringId.size() * sizeof(char));
     SteamNetworkingMessages()->SendMessageToUser(pCallback->m_identityRemote, (void*)&packet, sizeof(packet), k_nSteamNetworkingSend_Reliable, 0);
 }
 
