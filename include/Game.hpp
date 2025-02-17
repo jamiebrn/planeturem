@@ -85,6 +85,8 @@
 #include "GUI/NPCInteractionGUI.hpp"
 #include "GUI/HitMarkers.hpp"
 
+#include "Network/Packet.hpp"
+
 #include "IO/GameSaveIO.hpp"
 
 #include "DebugOptions.hpp"
@@ -239,8 +241,13 @@ private:
 
     // -- Multiplayer -- //
     void createLobby();
+    void callbackLobbyCreated(LobbyCreated_t* pCallback, bool bIOFailure);
     void closeLobby();
     STEAM_CALLBACK(Game, callbackLobbyEnter, LobbyEnter_t);
+    STEAM_CALLBACK(Game, callbackLobbyUpdated, LobbyChatUpdate_t);
+    STEAM_CALLBACK(Game, callbackMessageSessionRequest, SteamNetworkingMessagesSessionRequest_t);
+
+    void receiveMessages();
 
     // -- Window -- //
 
@@ -318,8 +325,11 @@ private:
     int lightingTick = 0;
     bool smoothLighting = true;
 
+    // Multiplayer
     bool multiplayerGame = false;
     uint64_t steamLobbyId = 0;
+    bool lobbyHost = false;
+    CCallResult<Game, LobbyCreated_t> m_SteamCallResultCreateLobby;
 
     std::array<sf::Texture, 2> waterNoiseTextures;
 

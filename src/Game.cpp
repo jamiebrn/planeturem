@@ -715,6 +715,14 @@ void Game::runInGame(float dt)
     }
 
     //
+    // -- NETWORKING --
+    //
+    if (multiplayerGame)
+    {
+        receiveMessages();
+    }
+
+    //
     // -- UPDATING --
     //
 
@@ -2635,14 +2643,30 @@ void Game::loadOptions()
     InputManager::setGlyphType(optionsSave.controllerGlyphType);
 }
 
+
+// -- Multiplayer --
+
 void Game::createLobby()
 {
-    SteamAPICall_t result = SteamMatchmaking()->CreateLobby(ELobbyType::k_ELobbyTypeFriendsOnly, 8);
+    SteamAPICall_t steamAPICall = SteamMatchmaking()->CreateLobby(ELobbyType::k_ELobbyTypeFriendsOnly, 8);
+    m_SteamCallResultCreateLobby.Set(steamAPICall, this, &Game::callbackLobbyCreated);
+}
+
+void Game::callbackLobbyCreated(LobbyCreated_t* pCallback, bool bIOFailure)
+{
+    std::cout << "Created lobby " << pCallback->m_ulSteamIDLobby << "\n";
+    lobbyHost = true;
 }
 
 void Game::closeLobby()
 {
+    if (lobbyHost)
+    {
+        SteamMatchmaking()->SetLobbyJoinable(steamLobbyId, false);
+    }
+    
     SteamMatchmaking()->LeaveLobby(steamLobbyId);
+    lobbyHost = false;
 }
 
 void Game::callbackLobbyEnter(LobbyEnter_t* pCallback)
@@ -2651,6 +2675,60 @@ void Game::callbackLobbyEnter(LobbyEnter_t* pCallback)
     std::cout << "Joined lobby " << steamLobbyId << "\n";
 }
 
+void Game::callbackLobbyUpdated(LobbyChatUpdate_t* pCallback)
+{
+    if (!lobbyHost)
+    {
+        return;
+    }
+
+    SteamNetworkingIdentity userIdentity;
+    userIdentity.m_eType = ESteamNetworkingIdentityType::k_ESteamNetworkingIdentityType_SteamID;
+    userIdentity.m_steamID64 = pCallback->m_ulSteamIDUserChanged;
+
+    if (pCallback->m_rgfChatMemberStateChange & k_EChatMemberStateChangeEntered)
+    {
+        Packet packet;
+        packet.type = PacketType::JoinQuery;
+        SteamNetworkingMessages()->SendMessageToUser(userIdentity, (void*)&packet, sizeof(packet), k_nSteamNetworkingSend_Reliable, 0);
+    }
+}
+
+void Game::callbackMessageSessionRequest(SteamNetworkingMessagesSessionRequest_t* pCallback)
+{
+    SteamNetworkingMessages()->AcceptSessionWithUser(pCallback->m_identityRemote);
+
+    Packet packet;
+    packet.type = PacketType::JoinReply;
+    memcpy((void*)packet.data, (void*)&pCallback->m_identityRemote, sizeof(uint64_t));
+    SteamNetworkingMessages()->SendMessageToUser(pCallback->m_identityRemote, (void*)&packet, sizeof(packet), k_nSteamNetworkingSend_Reliable, 0);
+}
+
+void Game::receiveMessages()
+{
+    static const int MAX_MESSAGES = 10;
+
+    SteamNetworkingMessage_t* messages[MAX_MESSAGES];
+    int messageCount = SteamNetworkingMessages()->ReceiveMessagesOnChannel(0, messages, MAX_MESSAGES);
+
+    std::vector<Packet> packets;
+
+    for (int i = 0; i < messageCount; i++)
+    {
+        packets.push_back(*(Packet*)(messages[i]->GetData()));
+        messages[i]->Release();
+    }
+
+    for (const Packet& packet : packets)
+    {
+        if (packet.type == PacketType::JoinReply)
+        {
+            uint64_t userId;
+            memcpy((void*)&userId, (void*)packet.data, sizeof(uint64_t));
+            std::cout << "Player joined: " << std::to_string(userId) << "\n";
+        }
+    }
+}
 
 // -- Window -- //
 
