@@ -2705,7 +2705,7 @@ void Game::callbackMessageSessionRequest(SteamNetworkingMessagesSessionRequest_t
 
     Packet packet;
     packet.type = PacketType::JoinReply;
-    std::string steamId(SteamUser()->GetSteamID().Render());
+    std::string steamId(std::to_string(SteamUser()->GetSteamID().ConvertToUint64()));
     std::string steamName(SteamFriends()->GetPersonaName());
     std::string stringId = steamId + "(" + steamName + ")";
     memcpy((void*)packet.data, (void*)stringId.c_str(), stringId.size() * sizeof(char));
