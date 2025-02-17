@@ -11,5 +11,6 @@ enum class PacketType
 struct Packet
 {
     PacketType type;
+    uint64_t senderSteamId;
     char data[1024];
 };

@@ -2693,25 +2693,27 @@ void Game::callbackLobbyUpdated(LobbyChatUpdate_t* pCallback)
     SteamNetworkingIdentity userIdentity;
     userIdentity.SetSteamID64(pCallback->m_ulSteamIDUserChanged);
     
+    Packet packet;
+    packet.senderSteamId = SteamUser()->GetSteamID().ConvertToUint64();
+    
     if (pCallback->m_rgfChatMemberStateChange & k_EChatMemberStateChangeEntered)
     {
-        Packet packet;
         packet.type = PacketType::JoinQuery;
-        SteamNetworkingMessages()->SendMessageToUser(userIdentity, (void*)&packet, sizeof(packet), k_nSteamNetworkingSend_Reliable, 0);
+        EResult result = SteamNetworkingMessages()->SendMessageToUser(userIdentity, (void*)&packet, sizeof(packet), k_nSteamNetworkingSend_Reliable, 0);
+        if (result == EResult::k_EResultOK)
+        {
+            std::cout << "Sent join query successfully\n";
+        }
+        else if (result == EResult::k_EResultNoConnection)
+        {
+            std::cout << "Could not send join query\n";
+        }
     }
 }
 
 void Game::callbackMessageSessionRequest(SteamNetworkingMessagesSessionRequest_t* pCallback)
 {
     SteamNetworkingMessages()->AcceptSessionWithUser(pCallback->m_identityRemote);
-
-    Packet packet;
-    packet.type = PacketType::JoinReply;
-    std::string steamId(std::to_string(SteamUser()->GetSteamID().ConvertToUint64()));
-    std::string steamName(SteamFriends()->GetPersonaName());
-    std::string stringId = steamId + "(" + steamName + ")";
-    memcpy((void*)packet.data, (void*)stringId.c_str(), stringId.size() * sizeof(char));
-    SteamNetworkingMessages()->SendMessageToUser(pCallback->m_identityRemote, (void*)&packet, sizeof(packet), k_nSteamNetworkingSend_Reliable, 0);
 }
 
 void Game::receiveMessages()
@@ -2733,9 +2735,25 @@ void Game::receiveMessages()
     {
         if (packet.type == PacketType::JoinReply)
         {
-            uint64_t userId;
-            memcpy((void*)&userId, (void*)packet.data, sizeof(uint64_t));
-            std::cout << "Player joined: " << std::to_string(userId) << "\n";
+            char* packetStr = new char[strlen(packet.data)];
+            strcpy(packetStr, packet.data);
+            std::cout << "Player joined: " << packetStr << "\n";
+        }
+        else if (packet.type == PacketType::JoinQuery)
+        {
+            Packet packetSend;
+            packetSend.senderSteamId = SteamUser()->GetSteamID().ConvertToUint64();
+            packetSend.type = PacketType::JoinReply;
+
+            std::string steamId(std::to_string(packetSend.senderSteamId));
+            std::string steamName(SteamFriends()->GetPersonaName());
+            std::string stringId = steamId + "(" + steamName + ")";
+            memcpy((void*)packetSend.data, (void*)stringId.c_str(), stringId.size() * sizeof(char));
+
+            SteamNetworkingIdentity userIdentity;
+            userIdentity.SetSteamID64(packet.senderSteamId);
+            
+            SteamNetworkingMessages()->SendMessageToUser(userIdentity, (void*)&packetSend, sizeof(packetSend), k_nSteamNetworkingSend_Reliable, 0);
         }
     }
 }
