@@ -22,7 +22,7 @@ const std::unordered_map<TextureType, std::string> TextureManager::texturePaths 
     {TextureType::Entities, "Data/Textures/entities.png"},
     {TextureType::Tools, "Data/Textures/tools.png"},
     {TextureType::Shadow, "Data/Textures/shadow.png"},
-    {TextureType::LightMask, "Data/Textures/light_mask.png"},
+    // {TextureType::LightMask, "Data/Textures/light_mask.png"},
     {TextureType::UI, "Data/Textures/UI.png"},
     {TextureType::Rooms, "Data/Textures/rooms.png"},
     {TextureType::Portraits, "Data/Textures/portraits.png"}
