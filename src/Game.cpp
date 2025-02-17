@@ -2656,6 +2656,7 @@ void Game::callbackLobbyCreated(LobbyCreated_t* pCallback, bool bIOFailure)
 {
     std::cout << "Created lobby " << pCallback->m_ulSteamIDLobby << "\n";
     lobbyHost = true;
+    multiplayerGame = true;
 }
 
 void Game::closeLobby()
@@ -2667,11 +2668,13 @@ void Game::closeLobby()
     
     SteamMatchmaking()->LeaveLobby(steamLobbyId);
     lobbyHost = false;
+    multiplayerGame = false;
 }
 
 void Game::callbackLobbyJoinRequested(GameLobbyJoinRequested_t* pCallback)
 {
     SteamMatchmaking()->JoinLobby(pCallback->m_steamIDLobby);
+    multiplayerGame = true;
 }
 
 void Game::callbackLobbyEnter(LobbyEnter_t* pCallback)
