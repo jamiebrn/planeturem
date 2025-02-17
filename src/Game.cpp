@@ -207,6 +207,11 @@ void Game::run()
 
         handleSDLEvents();
 
+        if (multiplayerGame)
+        {
+            receiveMessages();
+        }
+
         // runFeatureTest();
         switch (gameState)
         {
@@ -717,10 +722,6 @@ void Game::runInGame(float dt)
     //
     // -- NETWORKING --
     //
-    if (multiplayerGame)
-    {
-        receiveMessages();
-    }
 
     //
     // -- UPDATING --
