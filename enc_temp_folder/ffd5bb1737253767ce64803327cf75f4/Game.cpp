@@ -2688,8 +2688,9 @@ void Game::callbackLobbyUpdated(LobbyChatUpdate_t* pCallback)
     }
 
     SteamNetworkingIdentity userIdentity;
-    userIdentity.SetSteamID64(pCallback->m_ulSteamIDUserChanged);
-    
+    userIdentity.m_eType = ESteamNetworkingIdentityType::k_ESteamNetworkingIdentityType_SteamID;
+    userIdentity.m_steamID64 = pCallback->m_ulSteamIDUserChanged;
+
     if (pCallback->m_rgfChatMemberStateChange & k_EChatMemberStateChangeEntered)
     {
         Packet packet;
