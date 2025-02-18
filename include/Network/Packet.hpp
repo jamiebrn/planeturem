@@ -35,7 +35,7 @@ struct Packet
         memcpy(&type, serialisedData, sizeof(PacketType));
 
         size_t dataSize = serialisedDataSize - sizeof(PacketType);
-        data.reserve(dataSize);
+        data.resize(dataSize);
         memcpy(data.data(), serialisedData + sizeof(PacketType), dataSize);
     }
 

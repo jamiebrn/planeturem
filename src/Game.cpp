@@ -2732,6 +2732,7 @@ void Game::receiveMessages()
         if (packet.type == PacketType::JoinReply)
         {
             std::cout << "Player joined: " << packet.data << " (" << messages[i]->m_identityPeer.GetSteamID64() << ")" "\n";
+            InventoryGUI::pushItemPopup(ItemCount(0, 0), false, packet.data + " joined");
         }
         else if (packet.type == PacketType::JoinQuery)
         {
@@ -2742,7 +2743,7 @@ void Game::receiveMessages()
             
             std::cout << "Sending join reply to user " << messages[i]->m_identityPeer.GetSteamID64() << "\n";
             
-            packet.sendToUser(messages[i]->m_identityPeer, k_nSteamNetworkingSend_Reliable, 0);
+            packetToSend.sendToUser(messages[i]->m_identityPeer, k_nSteamNetworkingSend_Reliable, 0);
         }
 
         messages[i]->Release();
