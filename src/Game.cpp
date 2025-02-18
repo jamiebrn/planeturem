@@ -2669,6 +2669,7 @@ void Game::loadOptions()
 
 void Game::createLobby()
 {
+    networkPlayers.clear();
     SteamAPICall_t steamAPICall = SteamMatchmaking()->CreateLobby(ELobbyType::k_ELobbyTypeFriendsOnly, 8);
     m_SteamCallResultCreateLobby.Set(steamAPICall, this, &Game::callbackLobbyCreated);
 }
@@ -2767,7 +2768,7 @@ void Game::registerNetworkPlayer(uint64_t id, bool notify)
         for (auto iter = networkPlayers.begin(); iter != networkPlayers.end(); iter++)
         {
             SteamNetworkingIdentity identity;
-            identity.SetSteamID(iter->first);
+            identity.SetSteamID64(iter->first);
             packet.sendToUser(identity, k_nSteamNetworkingSend_Reliable, 0);
         }
     }
@@ -2798,7 +2799,7 @@ void Game::deleteNetworkPlayer(uint64_t id)
         for (auto iter = networkPlayers.begin(); iter != networkPlayers.end(); iter++)
         {
             SteamNetworkingIdentity identity;
-            identity.SetSteamID(iter->first);
+            identity.SetSteamID64(iter->first);
             packet.sendToUser(identity, k_nSteamNetworkingSend_Reliable, 0);
         }
     }
@@ -2951,7 +2952,7 @@ void Game::sendClientMessages()
     packet.set(player.getNetworkPlayerInfo());
 
     SteamNetworkingIdentity hostIdentity;
-    hostIdentity.SetSteamID(lobbyHost);
+    hostIdentity.SetSteamID64(lobbyHost);
 
     packet.sendToUser(hostIdentity, k_nSteamNetworkingSend_UnreliableNoDelay, 0);
 }
