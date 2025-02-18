@@ -2781,7 +2781,7 @@ void Game::receiveMessages()
             packetData.deserialise(packet.data);
 
             // Load into world
-
+            joinWorld(packetData);
         }
 
         messages[i]->Release();
