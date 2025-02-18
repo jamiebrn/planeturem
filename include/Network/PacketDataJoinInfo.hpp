@@ -15,20 +15,21 @@ struct PacketDataJoinInfo : public IPacketData
     int day;
     std::string planetName;
 
-    inline virtual std::string serialise() const
+    inline virtual std::vector<char> serialise() const
     {
         std::stringstream stream;
         {
             cereal::BinaryOutputArchive archive(stream);
             archive(seed, gameTime, time, day, planetName);
         }
-        
-        return stream.str();
+
+        std::string streamStr = stream.str();
+        return std::vector<char>(streamStr.begin(), streamStr.end());
     }
     
-    inline virtual void deserialise(const std::string& data)
+    inline virtual void deserialise(const std::vector<char>& data)
     {
-        std::stringstream stream(data);
+        std::stringstream stream(std::string(data.begin(), data.end()));
         cereal::BinaryInputArchive archive(stream);
         archive(seed, gameTime, time, day, planetName);
     }

@@ -2748,8 +2748,8 @@ void Game::receiveMessages()
         // Process packet
         if (packet.type == PacketType::JoinReply)
         {
-            std::cout << "Player joined: " << packet.data << " (" << messages[i]->m_identityPeer.GetSteamID64() << ")" "\n";
-            InventoryGUI::pushItemPopup(ItemCount(0, 1), false, packet.data + " joined");
+            std::cout << "Player joined: " << packet.data.data() << " (" << messages[i]->m_identityPeer.GetSteamID64() << ")" "\n";
+            InventoryGUI::pushItemPopup(ItemCount(0, 1), false, std::string(packet.data.data()) + " joined");
             
             // Send world info
             PacketDataJoinInfo packetData;
@@ -2768,7 +2768,8 @@ void Game::receiveMessages()
             Packet packetToSend;
             packetToSend.type = PacketType::JoinReply;
         
-            packetToSend.data = SteamFriends()->GetPersonaName();
+            std::string username = SteamFriends()->GetPersonaName();
+            packetToSend.data = std::vector<char>(username.begin(), username.end());
             
             std::cout << "Sending join reply to user " << messages[i]->m_identityPeer.GetSteamID64() << "\n";
             
