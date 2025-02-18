@@ -2754,6 +2754,10 @@ void Game::receiveMessages()
             // Send world info
             PacketDataJoinInfo packetData;
             packetData.seed = chunkManager.getSeed();
+            packetData.gameTime = gameTime;
+            packetData.time = dayCycleManager.getCurrentTime();
+            packetData.day = dayCycleManager.getCurrentDay();
+            packetData.planetName = PlanetGenDataLoader::getPlanetGenData(chunkManager.getPlanetType()).name;
 
             Packet packetToSend;
             packetToSend.set(packetData);
