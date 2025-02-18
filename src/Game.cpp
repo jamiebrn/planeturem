@@ -2739,9 +2739,8 @@ void Game::receiveMessages()
             Packet packetToSend;
             packetToSend.type = PacketType::JoinReply;
         
-            std::string steamName(SteamFriends()->GetPersonaName());
-            memcpy(packetToSend.data.data(), steamName.c_str(), steamName.size());
-
+            packetToSend.data = SteamFriends()->GetPersonaName();
+            
             std::cout << "Sending join reply to user " << messages[i]->m_identityPeer.GetSteamID64() << "\n";
             
             SteamNetworkingMessages()->SendMessageToUser(messages[i]->m_identityPeer, (void*)&packetToSend, sizeof(packetToSend), k_nSteamNetworkingSend_Reliable, 0);
