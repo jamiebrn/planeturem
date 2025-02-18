@@ -25,11 +25,10 @@ struct PacketDataPlayerInfo : public IPacketData
         ar(positionX, positionY, animationFrame, flipped, yScaleMult, toolType, toolRotation);
     }
 
+    PACKET_SERIALISATION();
+
     inline virtual PacketType getType() const
     {
         return PacketType::PlayerInfo;
     }
 };
-
-CEREAL_REGISTER_TYPE(PacketDataPlayerInfo);
-CEREAL_REGISTER_POLYMORPHIC_RELATION(IPacketData, PacketDataPlayerInfo);

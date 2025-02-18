@@ -20,12 +20,11 @@ struct PacketDataJoinInfo : public IPacketData
     {
         ar(seed, gameTime, time, day, planetName);
     }
+
+    PACKET_SERIALISATION();
     
     inline virtual PacketType getType() const
     {
         return PacketType::JoinInfo;
     }
 };
-
-CEREAL_REGISTER_TYPE(PacketDataJoinInfo);
-CEREAL_REGISTER_POLYMORPHIC_RELATION(IPacketData, PacketDataJoinInfo);
