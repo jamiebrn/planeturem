@@ -88,6 +88,7 @@
 #include "Network/Packet.hpp"
 #include "Network/IPacketData.hpp"
 #include "Network/PacketDataJoinInfo.hpp"
+#include "Network/PacketDataPlayerInfo.hpp"
 
 #include "IO/GameSaveIO.hpp"
 
@@ -251,7 +252,12 @@ private:
     STEAM_CALLBACK(Game, callbackLobbyUpdated, LobbyChatUpdate_t);
     STEAM_CALLBACK(Game, callbackMessageSessionRequest, SteamNetworkingMessagesSessionRequest_t);
 
+    void registerNetworkPlayer(uint64_t id);
+    void deleteNetworkPlayer(uint64_t id);
+
     void receiveMessages();
+    void sendHostMessages();
+    void sendClientMessages();
 
     // -- Window -- //
 
@@ -332,8 +338,10 @@ private:
     // Multiplayer
     bool multiplayerGame = false;
     uint64_t steamLobbyId = 0;
-    bool lobbyHost = false;
+    bool isLobbyHost = false;
+    uint64_t lobbyHost;
     CCallResult<Game, LobbyCreated_t> m_SteamCallResultCreateLobby;
+    std::unordered_map<uint64_t, Player> networkPlayers;
 
     std::array<sf::Texture, 2> waterNoiseTextures;
 

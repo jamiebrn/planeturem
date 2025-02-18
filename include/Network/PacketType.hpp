@@ -5,5 +5,9 @@ enum class PacketType
     JoinQuery,
     JoinReply,
 
-    JoinInfo
+    JoinInfo,
+    PlayerJoined,
+    PlayerDisconnected,
+
+    PlayerInfo,
 };

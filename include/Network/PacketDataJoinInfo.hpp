@@ -2,8 +2,8 @@
 
 #include <string>
 
-#include <extlib/cereal/archives/binary.hpp>
 #include <extlib/cereal/types/string.hpp>
+#include <cereal/types/polymorphic.hpp>
 
 #include "Network/IPacketData.hpp"
 
@@ -15,27 +15,17 @@ struct PacketDataJoinInfo : public IPacketData
     int day;
     std::string planetName;
 
-    inline virtual std::vector<char> serialise() const
+    template <class Archive>
+    void serialize(Archive& ar)
     {
-        std::stringstream stream;
-        {
-            cereal::BinaryOutputArchive archive(stream);
-            archive(seed, gameTime, time, day, planetName);
-        }
-
-        std::string streamStr = stream.str();
-        return std::vector<char>(streamStr.begin(), streamStr.end());
+        ar(seed, gameTime, time, day, planetName);
     }
     
-    inline virtual void deserialise(const std::vector<char>& data)
-    {
-        std::stringstream stream(std::string(data.begin(), data.end()));
-        cereal::BinaryInputArchive archive(stream);
-        archive(seed, gameTime, time, day, planetName);
-    }
-
     inline virtual PacketType getType() const
     {
         return PacketType::JoinInfo;
     }
 };
+
+CEREAL_REGISTER_TYPE(PacketDataJoinInfo);
+CEREAL_REGISTER_POLYMORPHIC_RELATION(IPacketData, PacketDataJoinInfo);

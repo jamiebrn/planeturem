@@ -954,3 +954,53 @@ bool Player::isAlive() const
 {
     return (health > 0);
 }
+
+
+// Multiplayer
+void Player::setNetworkPlayerInfo(const PacketDataPlayerInfo& info)
+{
+    position = sf::Vector2f(info.positionX, info.positionY);
+
+    if (info.animationFrame < idleAnimation.getFrameCount())
+    {
+        // Idle
+        direction = sf::Vector2f(0, 0);
+        idleAnimation.setFrame(info.animationFrame);
+    }
+    else
+    {
+        // Running
+        direction = sf::Vector2f(1, 0); // non-zero
+        runAnimation.setFrame(info.animationFrame - idleAnimation.getFrameCount());
+    }
+
+    flippedTexture = info.flipped;
+    playerYScaleMult = info.yScaleMult;
+
+    equippedTool = info.toolType;
+    toolRotation = info.toolRotation;
+}
+
+PacketDataPlayerInfo Player::getNetworkPlayerInfo()
+{
+    PacketDataPlayerInfo info;
+    info.positionX = position.x;
+    info.positionY = position.y;
+
+    if (direction.x == 0 && direction.y == 0)
+    {
+        info.animationFrame = idleAnimation.getFrame();
+    }
+    else
+    {
+        info.animationFrame = idleAnimation.getFrameCount() + runAnimation.getFrame();
+    }
+    
+    info.flipped = flippedTexture;
+    info.yScaleMult = playerYScaleMult;
+
+    info.toolType = equippedTool;
+    info.toolRotation = toolRotation;
+
+    return info;
+}

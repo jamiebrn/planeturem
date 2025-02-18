@@ -40,6 +40,8 @@
 
 #include "GUI/HitMarkers.hpp"
 
+#include "Network/PacketDataPlayerInfo.hpp"
+
 #include "GameConstants.hpp"
 #include "DebugOptions.hpp"
 
@@ -101,6 +103,11 @@ public:
     inline float getHealth() const {return health;}
     inline float getHealthConsumableTimerMax() const {return healthConsumableTimerMax;}
     inline float getHealthConsumableTimer() const {return healthConsumableTimer;}
+
+
+    // Multiplayer
+    void setNetworkPlayerInfo(const PacketDataPlayerInfo& info);
+    PacketDataPlayerInfo getNetworkPlayerInfo();
 
 private:
     void updateDirection(sf::Vector2f mouseWorldPos);

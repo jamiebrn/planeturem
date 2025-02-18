@@ -3,6 +3,7 @@
 #include <SFML/Graphics.hpp>
 #include <string>
 #include <optional>
+#include <cmath>
 
 #include "Data/typedefs.hpp"
 #include "Data/ObjectData.hpp"
