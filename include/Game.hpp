@@ -252,7 +252,7 @@ private:
     STEAM_CALLBACK(Game, callbackLobbyUpdated, LobbyChatUpdate_t);
     STEAM_CALLBACK(Game, callbackMessageSessionRequest, SteamNetworkingMessagesSessionRequest_t);
 
-    void registerNetworkPlayer(uint64_t id);
+    void registerNetworkPlayer(uint64_t id, bool notify = true);
     void deleteNetworkPlayer(uint64_t id);
 
     void receiveMessages();

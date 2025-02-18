@@ -1,7 +1,6 @@
 #pragma once
 
 #include <extlib/cereal/archives/binary.hpp>
-#include <cereal/types/polymorphic.hpp>
 
 #include "Network/IPacketData.hpp"
 

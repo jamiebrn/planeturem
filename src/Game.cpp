@@ -2745,7 +2745,7 @@ void Game::callbackLobbyUpdated(LobbyChatUpdate_t* pCallback)
     }
     else
     {
-        InventoryGUI::pushItemPopup(ItemCount(0, 1), false, std::to_string(userIdentity.GetSteamID64()) + " disconnected");
+        deleteNetworkPlayer(pCallback->m_ulSteamIDUserChanged);
     }
 }
 
@@ -2754,7 +2754,7 @@ void Game::callbackMessageSessionRequest(SteamNetworkingMessagesSessionRequest_t
     SteamNetworkingMessages()->AcceptSessionWithUser(pCallback->m_identityRemote);
 }
 
-void Game::registerNetworkPlayer(uint64_t id)
+void Game::registerNetworkPlayer(uint64_t id, bool notify)
 {
     // Alert connected players
     if (isLobbyHost)
@@ -2771,8 +2771,11 @@ void Game::registerNetworkPlayer(uint64_t id)
             packet.sendToUser(identity, k_nSteamNetworkingSend_Reliable, 0);
         }
     }
-    
-    InventoryGUI::pushItemPopup(ItemCount(0, 1), false, std::string(SteamFriends()->GetFriendPersonaName(id)) + " joined");
+
+    if (notify)
+    {
+        InventoryGUI::pushItemPopup(ItemCount(0, 1), false, std::string(SteamFriends()->GetFriendPersonaName(id)) + " joined");
+    }
 
     networkPlayers[id] = Player(sf::Vector2f(0, 0), nullptr);
 }
@@ -2799,6 +2802,8 @@ void Game::deleteNetworkPlayer(uint64_t id)
             packet.sendToUser(identity, k_nSteamNetworkingSend_Reliable, 0);
         }
     }
+
+    InventoryGUI::pushItemPopup(ItemCount(0, 1), false, std::string(SteamFriends()->GetFriendPersonaName(id)) + " disconnected");
 }
 
 void Game::receiveMessages()
@@ -2818,8 +2823,6 @@ void Game::receiveMessages()
         {
             std::cout << "Player joined: " << packet.data.data() << " (" << messages[i]->m_identityPeer.GetSteamID64() << ")" "\n";
             
-            registerNetworkPlayer(messages[i]->m_identityPeer.GetSteamID64());
-            
             // Send world info
             PacketDataJoinInfo packetData;
             packetData.seed = chunkManager.getSeed();
@@ -2827,7 +2830,15 @@ void Game::receiveMessages()
             packetData.time = dayCycleManager.getCurrentTime();
             packetData.day = dayCycleManager.getCurrentDay();
             packetData.planetName = PlanetGenDataLoader::getPlanetGenData(chunkManager.getPlanetType()).name;
+            
+            packetData.currentPlayers.push_back(SteamUser()->GetSteamID().ConvertToUint64());
+            for (auto iter = networkPlayers.begin(); iter != networkPlayers.end(); iter++)
+            {
+                packetData.currentPlayers.push_back(iter->first);
+            }
 
+            registerNetworkPlayer(messages[i]->m_identityPeer.GetSteamID64());
+            
             Packet packetToSend;
             packetToSend.set(packetData);
             packetToSend.sendToUser(messages[i]->m_identityPeer, k_nSteamNetworkingSend_Reliable, 0);
@@ -2849,6 +2860,11 @@ void Game::receiveMessages()
 
             // Set lobby host
             lobbyHost = messages[i]->m_identityPeer.GetSteamID64();
+
+            for (uint64_t player : packetData.currentPlayers)
+            {
+                registerNetworkPlayer(player, false);
+            }
 
             // Load into world
             joinWorld(packetData);
