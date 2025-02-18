@@ -1,5 +1,6 @@
 #pragma once
 
+#include <extlib/steam/steam_api.h>
 #include <cstring>
 #include <string>
 #include <vector>
@@ -36,5 +37,11 @@ struct Packet
         size_t dataSize = serialisedDataSize - sizeof(PacketType);
         data.reserve(dataSize);
         memcpy(data.data(), serialisedData + sizeof(PacketType), dataSize);
+    }
+
+    inline EResult sendToUser(const SteamNetworkingIdentity &identityRemote, int nSendFlags, int nRemoteChannel)
+    {
+        std::vector<char> serialised = serialise();
+        return SteamNetworkingMessages()->SendMessageToUser(identityRemote, serialised.data(), serialised.size(), nSendFlags, nRemoteChannel);
     }
 };

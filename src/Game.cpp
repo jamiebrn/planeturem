@@ -2699,8 +2699,7 @@ void Game::callbackLobbyUpdated(LobbyChatUpdate_t* pCallback)
     if (pCallback->m_rgfChatMemberStateChange & k_EChatMemberStateChangeEntered)
     {
         packet.type = PacketType::JoinQuery;
-        std::vector<char> serialisedPacket = packet.serialise();
-        EResult result = SteamNetworkingMessages()->SendMessageToUser(userIdentity, serialisedPacket.data(), serialisedPacket.size(), k_nSteamNetworkingSend_Reliable, 0);
+        EResult result = packet.sendToUser(userIdentity, k_nSteamNetworkingSend_Reliable, 0);
         if (result == EResult::k_EResultOK)
         {
             std::cout << "Sent join query successfully\n";
@@ -2743,7 +2742,7 @@ void Game::receiveMessages()
             
             std::cout << "Sending join reply to user " << messages[i]->m_identityPeer.GetSteamID64() << "\n";
             
-            SteamNetworkingMessages()->SendMessageToUser(messages[i]->m_identityPeer, (void*)&packetToSend, sizeof(packetToSend), k_nSteamNetworkingSend_Reliable, 0);
+            packet.sendToUser(messages[i]->m_identityPeer, k_nSteamNetworkingSend_Reliable, 0);
         }
 
         messages[i]->Release();
