@@ -15,7 +15,7 @@ struct Packet
 
     inline std::vector<char> serialise()
     {
-        size_t size = sizeof(PacketType) + data.size();
+        size_t size = sizeof(PacketType) + data.size() + 1;
         std::vector<char> serialisedData(size);
 
         memcpy(serialisedData.data(), &type, sizeof(PacketType));
