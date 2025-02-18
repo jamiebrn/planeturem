@@ -5,11 +5,8 @@
 #include <string>
 #include <vector>
 
-enum class PacketType
-{
-    JoinQuery,
-    JoinReply
-};
+#include "Network/PacketType.hpp"
+#include "Network/IPacketData.hpp"
 
 struct Packet
 {
@@ -43,5 +40,11 @@ struct Packet
     {
         std::vector<char> serialised = serialise();
         return SteamNetworkingMessages()->SendMessageToUser(identityRemote, serialised.data(), serialised.size(), nSendFlags, nRemoteChannel);
+    }
+
+    inline void set(const IPacketData& packetData)
+    {
+        type = packetData.getType();
+        data = packetData.serialise();
     }
 };

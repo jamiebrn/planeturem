@@ -86,6 +86,8 @@
 #include "GUI/HitMarkers.hpp"
 
 #include "Network/Packet.hpp"
+#include "Network/IPacketData.hpp"
+#include "Network/PacketDataJoinInfo.hpp"
 
 #include "IO/GameSaveIO.hpp"
 
@@ -230,7 +232,7 @@ private:
 
     // -- Save / load -- //
 
-    void startNewGame(int seed);
+    void startNewGame(int seed, std::optional<std::string> overridePlanetName = std::nullopt);
     bool saveGame(bool gettingInRocket = false);
     bool loadGame(const SaveFileSummary& saveFileSummary);
     bool loadPlanet(PlanetType planetType);
@@ -243,6 +245,7 @@ private:
     void createLobby();
     void callbackLobbyCreated(LobbyCreated_t* pCallback, bool bIOFailure);
     void closeLobby();
+    void joinWorld(const PacketDataJoinInfo& joinInfo);
     STEAM_CALLBACK(Game, callbackLobbyJoinRequested, GameLobbyJoinRequested_t);
     STEAM_CALLBACK(Game, callbackLobbyEnter, LobbyEnter_t);
     STEAM_CALLBACK(Game, callbackLobbyUpdated, LobbyChatUpdate_t);

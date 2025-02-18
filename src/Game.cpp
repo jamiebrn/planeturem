@@ -2311,7 +2311,7 @@ void Game::overrideState(GameState newState)
 
 // -- Save / load -- //
 
-void Game::startNewGame(int seed)
+void Game::startNewGame(int seed, std::optional<std::string> overridePlanetName)
 {
     // setWorldSeedFromInput();
 
@@ -2323,7 +2323,7 @@ void Game::startNewGame(int seed)
 
     chunkManager.setSeed(seed);
 
-    initialiseNewPlanet(PlanetGenDataLoader::getPlanetTypeFromName("Earthlike"));
+    initialiseNewPlanet(PlanetGenDataLoader::getPlanetTypeFromName(overridePlanetName.has_value() ? overridePlanetName.value() : "Earthlike"));
 
     dayCycleManager.setCurrentTime(dayCycleManager.getDayLength() * 0.5f);
     dayCycleManager.setCurrentDay(1);
@@ -2672,6 +2672,19 @@ void Game::closeLobby()
     multiplayerGame = false;
 }
 
+void Game::joinWorld(const PacketDataJoinInfo& joinInfo)
+{
+    startNewGame(joinInfo.seed, joinInfo.planetName);
+
+    dayCycleManager.setCurrentTime(joinInfo.time);
+    dayCycleManager.setCurrentDay(joinInfo.day);
+
+    gameTime = joinInfo.gameTime;
+
+    weatherSystem = WeatherSystem(gameTime, joinInfo.seed + chunkManager.getPlanetType());
+    weatherSystem.presimulateWeather(gameTime, camera, chunkManager);
+}
+
 void Game::callbackLobbyJoinRequested(GameLobbyJoinRequested_t* pCallback)
 {
     SteamMatchmaking()->JoinLobby(pCallback->m_steamIDLobby);
@@ -2709,6 +2722,10 @@ void Game::callbackLobbyUpdated(LobbyChatUpdate_t* pCallback)
             std::cout << "Could not send join query\n";
         }
     }
+    else
+    {
+        InventoryGUI::pushItemPopup(ItemCount(0, 1), false, userIdentity.GetSteamID64() + " disconnected");
+    }
 }
 
 void Game::callbackMessageSessionRequest(SteamNetworkingMessagesSessionRequest_t* pCallback)
@@ -2732,7 +2749,15 @@ void Game::receiveMessages()
         if (packet.type == PacketType::JoinReply)
         {
             std::cout << "Player joined: " << packet.data << " (" << messages[i]->m_identityPeer.GetSteamID64() << ")" "\n";
-            InventoryGUI::pushItemPopup(ItemCount(0, 0), false, packet.data + " joined");
+            InventoryGUI::pushItemPopup(ItemCount(0, 1), false, packet.data + " joined");
+            
+            // Send world info
+            PacketDataJoinInfo packetData;
+            packetData.seed = chunkManager.getSeed();
+
+            Packet packetToSend;
+            packetToSend.set(packetData);
+            packetToSend.sendToUser(messages[i]->m_identityPeer, k_nSteamNetworkingSend_Reliable, 0);
         }
         else if (packet.type == PacketType::JoinQuery)
         {
@@ -2744,6 +2769,15 @@ void Game::receiveMessages()
             std::cout << "Sending join reply to user " << messages[i]->m_identityPeer.GetSteamID64() << "\n";
             
             packetToSend.sendToUser(messages[i]->m_identityPeer, k_nSteamNetworkingSend_Reliable, 0);
+        }
+        else if (packet.type == PacketType::JoinInfo)
+        {
+            // Deserialise packet data
+            PacketDataJoinInfo packetData;
+            packetData.deserialise(packet.data);
+
+            // Load into world
+
         }
 
         messages[i]->Release();
