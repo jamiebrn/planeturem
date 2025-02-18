@@ -2724,7 +2724,7 @@ void Game::callbackLobbyUpdated(LobbyChatUpdate_t* pCallback)
     }
     else
     {
-        InventoryGUI::pushItemPopup(ItemCount(0, 1), false, userIdentity.GetSteamID64() + " disconnected");
+        InventoryGUI::pushItemPopup(ItemCount(0, 1), false, std::to_string(userIdentity.GetSteamID64()) + " disconnected");
     }
 }
 
