@@ -22,11 +22,8 @@ struct PacketDataJoinInfo : public IPacketData
             cereal::BinaryOutputArchive archive(stream);
             archive(seed, gameTime, time, day, planetName);
         }
-
-        std::string serialised;
-        stream.str(serialised);
-
-        return serialised;
+        
+        return stream.str();
     }
     
     inline virtual void deserialise(const std::string& data)
