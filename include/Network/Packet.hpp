@@ -1,6 +1,8 @@
 #pragma once
 
+#include <cstring>
 #include <string>
+#include <vector>
 
 enum class PacketType
 {
@@ -11,6 +13,28 @@ enum class PacketType
 struct Packet
 {
     PacketType type;
-    uint64_t senderSteamId;
-    char data[1024];
+    std::string data;
+
+    inline std::vector<char> serialise()
+    {
+        size_t size = sizeof(PacketType) + data.size();
+        std::vector<char> serialisedData(size);
+
+        memcpy(serialisedData.data(), &type, sizeof(PacketType));
+
+        size_t dataSize = data.size();
+        // memcpy(serialisedData.data() + sizeof(PacketType), &dataSize, sizeof(size_t));
+        memcpy(serialisedData.data() + sizeof(PacketType), data.data(), data.size());
+
+        return serialisedData;
+    }
+
+    inline void deserialise(const char* serialisedData, size_t serialisedDataSize)
+    {
+        memcpy(&type, serialisedData, sizeof(PacketType));
+
+        size_t dataSize = serialisedDataSize - sizeof(PacketType);
+        data.reserve(dataSize);
+        memcpy(data.data(), serialisedData + sizeof(PacketType), dataSize);
+    }
 };

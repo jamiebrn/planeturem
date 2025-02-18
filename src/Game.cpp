@@ -2695,7 +2695,6 @@ void Game::callbackLobbyUpdated(LobbyChatUpdate_t* pCallback)
     userIdentity.SetSteamID64(pCallback->m_ulSteamIDUserChanged);
     
     Packet packet;
-    packet.senderSteamId = SteamUser()->GetSteamID().ConvertToUint64();
     
     if (pCallback->m_rgfChatMemberStateChange & k_EChatMemberStateChangeEntered)
     {
@@ -2724,38 +2723,30 @@ void Game::receiveMessages()
     SteamNetworkingMessage_t* messages[MAX_MESSAGES];
     int messageCount = SteamNetworkingMessages()->ReceiveMessagesOnChannel(0, messages, MAX_MESSAGES);
 
-    std::vector<Packet> packets;
-
     for (int i = 0; i < messageCount; i++)
     {
-        packets.push_back(*(Packet*)(messages[i]->GetData()));
-        messages[i]->Release();
-    }
+        Packet packet;
+        packet.deserialise((char*)messages[i]->GetData(), messages[i]->GetSize());
 
-    for (const Packet& packet : packets)
-    {
+        // Process packet
         if (packet.type == PacketType::JoinReply)
         {
-            char* packetStr = new char[strlen(packet.data)];
-            strcpy(packetStr, packet.data);
-            std::cout << "Player joined: " << packetStr << "\n";
+            std::cout << "Player joined: " << packet.data << " (" << messages[i]->m_identityPeer.GetSteamID64() << ")" "\n";
         }
         else if (packet.type == PacketType::JoinQuery)
         {
-            Packet packetSend;
-            packetSend.senderSteamId = SteamUser()->GetSteamID().ConvertToUint64();
-            packetSend.type = PacketType::JoinReply;
-
-            std::string steamId(std::to_string(packetSend.senderSteamId));
+            Packet packetToSend;
+            packetToSend.type = PacketType::JoinReply;
+        
             std::string steamName(SteamFriends()->GetPersonaName());
-            std::string stringId = steamId + "(" + steamName + ")";
-            memcpy((void*)packetSend.data, (void*)stringId.c_str(), stringId.size() * sizeof(char));
+            memcpy(packetToSend.data.data(), steamName.c_str(), steamName.size());
 
-            SteamNetworkingIdentity userIdentity;
-            userIdentity.SetSteamID64(packet.senderSteamId);
+            std::cout << "Sending join reply to user " << messages[i]->m_identityPeer.GetSteamID64() << "\n";
             
-            SteamNetworkingMessages()->SendMessageToUser(userIdentity, (void*)&packetSend, sizeof(packetSend), k_nSteamNetworkingSend_Reliable, 0);
+            SteamNetworkingMessages()->SendMessageToUser(messages[i]->m_identityPeer, (void*)&packetToSend, sizeof(packetToSend), k_nSteamNetworkingSend_Reliable, 0);
         }
+
+        messages[i]->Release();
     }
 }
 
