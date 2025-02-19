@@ -2666,9 +2666,9 @@ void Game::quitWorld()
         saveGame();
     }
 
-    if (multiplayerGame && isLobbyHost)
+    if (multiplayerGame)
     {
-        closeLobby();
+        leaveLobby();
     }
 
     currentSaveFileSummary.name = "";
@@ -2701,7 +2701,7 @@ void Game::callbackLobbyCreated(LobbyCreated_t* pCallback, bool bIOFailure)
     multiplayerGame = true;
 }
 
-void Game::closeLobby()
+void Game::leaveLobby()
 {
     if (isLobbyHost)
     {
@@ -2751,32 +2751,50 @@ void Game::callbackLobbyEnter(LobbyEnter_t* pCallback)
 
 void Game::callbackLobbyUpdated(LobbyChatUpdate_t* pCallback)
 {
-    if (!isLobbyHost)
-    {
-        return;
-    }
-
     SteamNetworkingIdentity userIdentity;
     userIdentity.SetSteamID64(pCallback->m_ulSteamIDUserChanged);
     
-    Packet packet;
-    
-    if (pCallback->m_rgfChatMemberStateChange & k_EChatMemberStateChangeEntered)
+    if (isLobbyHost)
     {
-        packet.type = PacketType::JoinQuery;
-        EResult result = packet.sendToUser(userIdentity, k_nSteamNetworkingSend_Reliable, 0);
-        if (result == EResult::k_EResultOK)
+        Packet packet;
+        
+        if (pCallback->m_rgfChatMemberStateChange & k_EChatMemberStateChangeEntered)
         {
-            std::cout << "Sent join query successfully\n";
+            packet.type = PacketType::JoinQuery;
+            EResult result = packet.sendToUser(userIdentity, k_nSteamNetworkingSend_Reliable, 0);
+            if (result == EResult::k_EResultOK)
+            {
+                std::cout << "Sent join query successfully\n";
+            }
+            else if (result == EResult::k_EResultNoConnection)
+            {
+                std::cout << "Could not send join query\n";
+            }
         }
-        else if (result == EResult::k_EResultNoConnection)
+        else
         {
-            std::cout << "Could not send join query\n";
+            deleteNetworkPlayer(pCallback->m_ulSteamIDUserChanged);
         }
     }
     else
     {
-        deleteNetworkPlayer(pCallback->m_ulSteamIDUserChanged);
+        // Test for host disconnect
+        if (multiplayerGame)
+        {
+            // Test while in game
+            if (pCallback->m_ulSteamIDUserChanged == lobbyHost)
+            {
+                quitWorld();
+            }
+        }
+        else
+        {
+            // Test while in lobby, but not in game (rare case)
+            if (pCallback->m_ulSteamIDUserChanged == SteamMatchmaking()->GetLobbyOwner(steamLobbyId).ConvertToUint64())
+            {
+                leaveLobby();
+            }
+        }
     }
 }
 
@@ -2981,7 +2999,6 @@ void Game::sendHostMessages()
         
         // Send host player data
         playerInfoPackets[steamId].sendToUser(identity, k_nSteamNetworkingSend_Unreliable, 0);
-
     }
 }
 

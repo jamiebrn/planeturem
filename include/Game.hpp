@@ -248,7 +248,7 @@ private:
 
     void createLobby();
     void callbackLobbyCreated(LobbyCreated_t* pCallback, bool bIOFailure);
-    void closeLobby();
+    void leaveLobby();
     void joinWorld(const PacketDataJoinInfo& joinInfo);
     STEAM_CALLBACK(Game, callbackLobbyJoinRequested, GameLobbyJoinRequested_t);
     STEAM_CALLBACK(Game, callbackLobbyEnter, LobbyEnter_t);
