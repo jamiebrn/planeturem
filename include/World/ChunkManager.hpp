@@ -229,6 +229,10 @@ public:
     std::unordered_map<std::string, int> getNearbyCraftingStationLevels(ChunkPosition playerChunk,
                                                                         sf::Vector2i playerTile,
                                                                         int searchArea);
+    
+    // Translate position relative to player position and world size, to make position closest possible to player
+    // Provides planet / wraparound effect
+    sf::Vector2f translatePositionAroundWorld(sf::Vector2f position, sf::Vector2f playerPosition);
 
     // Used to calculate chunk and tile positions from an offset value, from another chunk and tile
     // Correct for offsets < worldSize * CHUNK_TILE_SIZE

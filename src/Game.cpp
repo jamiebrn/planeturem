@@ -2716,7 +2716,14 @@ void Game::leaveLobby()
             SteamNetworkingIdentity identity;
             identity.SetSteamID64(iter->first);
             packet.sendToUser(identity, k_nSteamNetworkingSend_Reliable, 0);
+            SteamNetworkingMessages()->CloseSessionWithUser(identity);
         }
+    }
+    else
+    {
+        SteamNetworkingIdentity hostIdentity;
+        hostIdentity.SetSteamID64(lobbyHost);
+        SteamNetworkingMessages()->CloseSessionWithUser(hostIdentity);
     }
     
     SteamMatchmaking()->LeaveLobby(steamLobbyId);
@@ -2873,7 +2880,7 @@ void Game::receiveMessages()
         if (packet.type == PacketType::JoinReply && isLobbyHost)
         {
             const char* steamName = SteamFriends()->GetFriendPersonaName(messages[i]->m_identityPeer.GetSteamID());
-            std::cout << "Player joined: " << steamName << " (" << messages[i]->m_identityPeer.GetSteamID64() << ")" "\n";
+            std::cout << "Player joined: " << steamName << " (" << messages[i]->m_identityPeer.GetSteamID64() << ")\n";
             
             // Send world info
             PacketDataJoinInfo packetData;
@@ -2952,8 +2959,15 @@ void Game::receiveMessages()
             {
                 PacketDataPlayerInfo packetData;
                 packetData.deserialise(packet.data);
-    
-                networkPlayers[messages[i]->m_identityPeer.GetSteamID64()].setNetworkPlayerInfo(packetData);
+
+                std::string playerName = SteamFriends()->GetFriendPersonaName(messages[i]->m_identityPeer.GetSteamID());
+
+                // Translate player position to wrap around world, relative to player
+                sf::Vector2f playerPos = chunkManager.translatePositionAroundWorld(sf::Vector2f(packetData.positionX, packetData.positionY), player.getPosition());
+                packetData.positionX = playerPos.x;
+                packetData.positionY = playerPos.y;
+
+                networkPlayers[messages[i]->m_identityPeer.GetSteamID64()].setNetworkPlayerInfo(packetData, playerName);
             }
         }
 

@@ -1076,6 +1076,50 @@ std::unordered_map<std::string, int> ChunkManager::getNearbyCraftingStationLevel
     return craftingStationLevels;
 }
 
+sf::Vector2f ChunkManager::translatePositionAroundWorld(sf::Vector2f position, sf::Vector2f playerPosition)
+{
+    int worldPixelSize = worldSize * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
+    float halfWorldPixelSize = worldPixelSize / 2.0f;
+
+    if (std::abs(playerPosition.x - position.x) >= halfWorldPixelSize)
+    {
+        if (playerPosition.x >= halfWorldPixelSize)
+        {
+            if (position.x < halfWorldPixelSize)
+            {
+                position.x += worldPixelSize;
+            }
+        }
+        else
+        {
+            if (position.x >= halfWorldPixelSize)
+            {
+                position.x -= worldPixelSize;
+            }
+        }
+    }
+
+    if (std::abs(playerPosition.y - position.y) >= halfWorldPixelSize)
+    {
+        if (playerPosition.y >= halfWorldPixelSize)
+        {
+            if (position.y < halfWorldPixelSize)
+            {
+                position.y += worldPixelSize;
+            }
+        }
+        else
+        {
+            if (position.y >= halfWorldPixelSize)
+            {
+                position.y -= worldPixelSize;
+            }
+        }
+    }
+
+    return position;
+}
+
 void ChunkManager::generateChunk(const ChunkPosition& chunkPosition, Game& game, bool putInLoaded, std::optional<sf::Vector2f> positionOverride)
 {
     std::unique_ptr<Chunk> chunk = std::make_unique<Chunk>(chunkPosition);

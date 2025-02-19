@@ -472,6 +472,21 @@ void Player::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game
         drawFishingRodCast(window, camera, gameTime, worldSize, waterYOffset);
     }
 
+    // Network player name
+    if (isNetworkPlayer)
+    {
+        TextDrawData nameDrawData;
+        nameDrawData.text = networkPlayerName;
+        nameDrawData.position = camera.worldToScreenTransform(position - sf::Vector2f(0, 24));
+        nameDrawData.centeredX = true;
+        nameDrawData.centeredY = true;
+        nameDrawData.colour = sf::Color(255, 255, 255);
+        nameDrawData.size = 9 * ResolutionHandler::getScale();
+        nameDrawData.outlineColour = sf::Color(46, 34, 47);
+        nameDrawData.outlineThickness = 0.6f * ResolutionHandler::getScale();
+        TextDraw::drawText(window, nameDrawData);
+    }
+
     #if (!RELEASE_BUILD)
     // DEBUG
     if (DebugOptions::drawCollisionRects)
@@ -957,7 +972,7 @@ bool Player::isAlive() const
 
 
 // Multiplayer
-void Player::setNetworkPlayerInfo(const PacketDataPlayerInfo& info)
+void Player::setNetworkPlayerInfo(const PacketDataPlayerInfo& info, std::string steamName)
 {
     position = sf::Vector2f(info.positionX, info.positionY);
 
@@ -979,6 +994,9 @@ void Player::setNetworkPlayerInfo(const PacketDataPlayerInfo& info)
 
     equippedTool = info.toolType;
     toolRotation = info.toolRotation;
+
+    isNetworkPlayer = true;
+    networkPlayerName = steamName;
 }
 
 PacketDataPlayerInfo Player::getNetworkPlayerInfo()
