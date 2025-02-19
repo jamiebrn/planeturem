@@ -2950,9 +2950,11 @@ void Game::sendHostMessages()
         return;
     }
 
+    uint64_t steamId = SteamUser()->GetSteamID().ConvertToUint64();
+
     std::unordered_map<uint64_t, Packet> playerInfoPackets;
-    playerInfoPackets[SteamUser()->GetSteamID().ConvertToUint64()] = Packet();
-    playerInfoPackets[SteamUser()->GetSteamID().ConvertToUint64()].set(player.getNetworkPlayerInfo());
+    playerInfoPackets[steamId] = Packet();
+    playerInfoPackets[steamId].set(player.getNetworkPlayerInfo());
 
     // Get player infos
     for (auto iter = networkPlayers.begin(); iter != networkPlayers.end(); iter++)
@@ -2976,6 +2978,10 @@ void Game::sendHostMessages()
 
             playerInfoPackets[subIter->first].sendToUser(identity, k_nSteamNetworkingSend_Unreliable, 0);
         }
+        
+        // Send host player data
+        playerInfoPackets[steamId].sendToUser(identity, k_nSteamNetworkingSend_Unreliable, 0);
+
     }
 }
 
