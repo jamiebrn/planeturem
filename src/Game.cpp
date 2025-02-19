@@ -396,7 +396,10 @@ void Game::runMainMenu(float dt)
 
                 currentSaveFileSummary = menuEvent->saveFileSummary;
                 startNewGame(menuEvent->worldSeed);
-                createLobby();
+                if (steamInitialised)
+                {
+                    createLobby();
+                }
                 break;
             }
             case MainMenuEventType::Load:
@@ -409,7 +412,10 @@ void Game::runMainMenu(float dt)
                 if (loadGame(menuEvent->saveFileSummary))
                 {
                     mainMenuGUI.setCanInteract(false);
-                    createLobby();
+                    if (steamInitialised)
+                    {
+                        createLobby();
+                    }
                 }
 
                 currentSaveFileSummary = menuEvent->saveFileSummary;
@@ -1006,18 +1012,7 @@ void Game::runInGame(float dt)
                 }
                 case PauseMenuEventType::Quit:
                 {
-                    if (!multiplayerGame)
-                    {
-                        saveGame();
-                    }
-                    else
-                    {
-                        closeLobby();
-                    }
-                    currentSaveFileSummary.name = "";
-                    startChangeStateTransition(GameState::MainMenu);
-                    mainMenuGUI.initialise();
-                    Sounds::stopMusic();
+                    quitWorld();
                     break;
                 }
             }
@@ -2664,6 +2659,24 @@ void Game::loadOptions()
     InputManager::setGlyphType(optionsSave.controllerGlyphType);
 }
 
+void Game::quitWorld()
+{
+    if (!multiplayerGame || isLobbyHost)
+    {
+        saveGame();
+    }
+
+    if (multiplayerGame && isLobbyHost)
+    {
+        closeLobby();
+    }
+
+    currentSaveFileSummary.name = "";
+    startChangeStateTransition(GameState::MainMenu);
+    mainMenuGUI.initialise();
+    Sounds::stopMusic();
+}
+
 
 // -- Multiplayer --
 
@@ -2676,6 +2689,12 @@ void Game::createLobby()
 
 void Game::callbackLobbyCreated(LobbyCreated_t* pCallback, bool bIOFailure)
 {
+    if (pCallback->m_ulSteamIDLobby == 0)
+    {
+        std::cout << "Lobby creation failed\n";
+        return;
+    }
+
     std::cout << "Created lobby " << pCallback->m_ulSteamIDLobby << "\n";
     isLobbyHost = true;
     lobbyHost = SteamUser()->GetSteamID().ConvertToUint64();
@@ -2687,6 +2706,17 @@ void Game::closeLobby()
     if (isLobbyHost)
     {
         SteamMatchmaking()->SetLobbyJoinable(steamLobbyId, false);
+
+        // Alert clients of host leaving
+        Packet packet;
+        packet.type = PacketType::HostQuit;
+
+        for (auto iter = networkPlayers.begin(); iter != networkPlayers.end(); iter++)
+        {
+            SteamNetworkingIdentity identity;
+            identity.SetSteamID64(iter->first);
+            packet.sendToUser(identity, k_nSteamNetworkingSend_Reliable, 0);
+        }
     }
     
     SteamMatchmaking()->LeaveLobby(steamLobbyId);
@@ -2783,10 +2813,12 @@ void Game::registerNetworkPlayer(uint64_t id, bool notify)
 
 void Game::deleteNetworkPlayer(uint64_t id)
 {
-    if (networkPlayers.contains(id))
+    if (!networkPlayers.contains(id))
     {
-        networkPlayers.erase(id);
+        return;
     }
+    
+    networkPlayers.erase(id);
 
     // Alert connected players
     if (isLobbyHost)
@@ -2822,7 +2854,8 @@ void Game::receiveMessages()
         // Process packet
         if (packet.type == PacketType::JoinReply && isLobbyHost)
         {
-            std::cout << "Player joined: " << packet.data.data() << " (" << messages[i]->m_identityPeer.GetSteamID64() << ")" "\n";
+            const char* steamName = SteamFriends()->GetFriendPersonaName(messages[i]->m_identityPeer.GetSteamID());
+            std::cout << "Player joined: " << steamName << " (" << messages[i]->m_identityPeer.GetSteamID64() << ")" "\n";
             
             // Send world info
             PacketDataJoinInfo packetData;
@@ -2865,6 +2898,7 @@ void Game::receiveMessages()
             for (uint64_t player : packetData.currentPlayers)
             {
                 registerNetworkPlayer(player, false);
+                std::cout << "Registered existing player " << SteamFriends()->GetFriendPersonaName(CSteamID(player)) << "\n";
             }
 
             // Load into world
@@ -2881,6 +2915,10 @@ void Game::receiveMessages()
             uint64_t id;
             memcpy(&id, packet.data.data(), sizeof(id));
             deleteNetworkPlayer(id);
+        }
+        else if (packet.type == PacketType::HostQuit && !isLobbyHost)
+        {
+            quitWorld();
         }
         else if (packet.type == PacketType::PlayerInfo)
         {
@@ -2936,7 +2974,7 @@ void Game::sendHostMessages()
                 continue;
             }
 
-            playerInfoPackets[subIter->first].sendToUser(identity, k_nSteamNetworkingSend_UnreliableNoDelay, 0);
+            playerInfoPackets[subIter->first].sendToUser(identity, k_nSteamNetworkingSend_Unreliable, 0);
         }
     }
 }
@@ -2954,7 +2992,7 @@ void Game::sendClientMessages()
     SteamNetworkingIdentity hostIdentity;
     hostIdentity.SetSteamID64(lobbyHost);
 
-    packet.sendToUser(hostIdentity, k_nSteamNetworkingSend_UnreliableNoDelay, 0);
+    packet.sendToUser(hostIdentity, k_nSteamNetworkingSend_Unreliable, 0);
 }
 
 // -- Window -- //

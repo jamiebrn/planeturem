@@ -241,8 +241,11 @@ private:
     void saveOptions();
     void loadOptions();
 
+    void quitWorld();
+
 
     // -- Multiplayer -- //
+
     void createLobby();
     void callbackLobbyCreated(LobbyCreated_t* pCallback, bool bIOFailure);
     void closeLobby();
@@ -258,6 +261,7 @@ private:
     void receiveMessages();
     void sendHostMessages();
     void sendClientMessages();
+
 
     // -- Window -- //
 

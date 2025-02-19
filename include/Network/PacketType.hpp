@@ -8,6 +8,7 @@ enum class PacketType
     JoinInfo,
     PlayerJoined,
     PlayerDisconnected,
+    HostQuit,
 
     PlayerInfo,
 };
