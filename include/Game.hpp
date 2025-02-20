@@ -90,7 +90,7 @@
 #include "Network/PacketDataJoinInfo.hpp"
 #include "Network/PacketDataPlayerInfo.hpp"
 #include "Network/PacketDataObjectHit.hpp"
-#include "Network/PacketDataObjectPlaced.hpp"
+#include "Network/PacketDataObjectBuilt.hpp"
 
 #include "IO/GameSaveIO.hpp"
 
@@ -181,7 +181,8 @@ private:
     void attemptUseToolFishingRod();
     void attemptUseToolWeapon();
 
-    void hitObject(ChunkPosition chunk, sf::Vector2i tile, int damage, bool sentFromHost = false);
+    void hitObject(ChunkPosition chunk, sf::Vector2i tile, int damage, bool sentFromHost = false, std::optional<uint64_t> userId = std::nullopt);
+    void buildObject(ChunkPosition chunk, sf::Vector2i tile, ObjectType objectType, bool sentFromHost = false);
     
     void catchRandomFish(sf::Vector2i fishedTile);
     

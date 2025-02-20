@@ -13,7 +13,7 @@ enum class PacketType
     PlayerInfo,
 
     ObjectHit,
-    ObjectPlaced,
+    ObjectBuilt,
 
     ChunkData,
 };

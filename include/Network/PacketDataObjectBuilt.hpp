@@ -7,21 +7,22 @@
 #include "Data/typedefs.hpp"
 #include "Object/ObjectReference.hpp"
 
-struct PacketDataObjectPlaced : public IPacketData
+struct PacketDataObjectBuilt : public IPacketData
 {
     ObjectReference objectReference;
     ObjectType objectType;
+    uint64_t userId;
 
     template <class Archive>
     void serialize(Archive& ar)
     {
-        ar(objectReference, objectType);
+        ar(objectReference, objectType, userId);
     }
 
     PACKET_SERIALISATION();
     
     inline virtual PacketType getType() const
     {
-        return PacketType::ObjectPlaced;
+        return PacketType::ObjectBuilt;
     }
 };

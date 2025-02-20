@@ -1591,55 +1591,6 @@ void Game::attemptUseToolPickaxe()
     hitObject(Cursor::getSelectedChunk(chunkManager.getWorldSize()), Cursor::getSelectedChunkTile(), toolData.damage);
 }
 
-void Game::hitObject(ChunkPosition chunk, sf::Vector2i tile, int damage, bool sentFromHost)
-{
-    // If multiplayer and not host and not sent from host (this client attempted to hit object), send hit object packet to host
-    if (multiplayerGame && !isLobbyHost && !sentFromHost)
-    {
-        PacketDataObjectHit packetData;
-        packetData.objectHit.chunk = chunk;
-        packetData.objectHit.tile = tile;
-        packetData.damage = damage;
-
-        Packet packet;
-        packet.set(packetData);
-        sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
-        return;
-    }
-
-    // Not multiplayer game / is host / hit object packet sent from host
-
-    bool canDestroyObject = chunkManager.canDestroyObject(chunk, tile, player.getCollisionRect());
-
-    if (!canDestroyObject)
-        return;
-
-    BuildableObject* selectedObject = chunkManager.getChunkObject(chunk, tile);
-
-    if (selectedObject)
-    {
-        bool destroyed = selectedObject->damage(damage, *this, chunkManager, particleSystem);
-
-        // Alert network players if host
-        if (multiplayerGame && isLobbyHost)
-        {
-            PacketDataObjectHit packetData;
-            packetData.objectHit.chunk = chunk;
-            packetData.objectHit.tile = tile;
-            packetData.damage = damage;
-
-            Packet packet;
-            packet.set(packetData);
-            sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0);
-        }
-
-        if (destroyed)
-        {
-            camera.setScreenShakeTime(0.3f);
-        }
-    }
-}
-
 void Game::attemptUseToolFishingRod()
 {
     if (gameState != GameState::OnPlanet)
@@ -1690,6 +1641,130 @@ void Game::attemptUseToolWeapon()
     sf::Vector2f mouseWorldPos = camera.screenToWorldTransform(mouseScreenPos);
 
     player.useTool(projectileManager, inventory, mouseWorldPos, *this);
+}
+
+void Game::hitObject(ChunkPosition chunk, sf::Vector2i tile, int damage, bool sentFromHost, std::optional<uint64_t> userId)
+{
+    // If multiplayer and this client attempted to hit object, send hit object packet to host
+    if (multiplayerGame && !isLobbyHost && !sentFromHost)
+    {
+        PacketDataObjectHit packetData;
+        packetData.objectHit.chunk = chunk;
+        packetData.objectHit.tile = tile;
+        packetData.damage = damage;
+        packetData.userId = SteamUser()->GetSteamID().ConvertToUint64();
+
+        Packet packet;
+        packet.set(packetData);
+        sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
+        return;
+    }
+
+    // Not multiplayer game / is host / hit object packet sent from host
+
+    bool canDestroyObject = chunkManager.canDestroyObject(chunk, tile, player.getCollisionRect());
+
+    if (!canDestroyObject)
+        return;
+
+    BuildableObject* selectedObject = chunkManager.getChunkObject(chunk, tile);
+
+    if (selectedObject)
+    {
+        bool destroyed = selectedObject->damage(damage, *this, chunkManager, particleSystem);
+
+        // Alert network players if host
+        if (multiplayerGame && isLobbyHost)
+        {
+            PacketDataObjectHit packetData;
+            packetData.objectHit.chunk = chunk;
+            packetData.objectHit.tile = tile;
+            packetData.damage = damage;
+            if (userId.has_value())
+            {
+                packetData.userId = userId.value();
+            }
+            else
+            {
+                packetData.userId = SteamUser()->GetSteamID().ConvertToUint64();
+            }
+
+            Packet packet;
+            packet.set(packetData);
+            sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0);
+        }
+
+        // Only apply screenshake if this client destroyed object
+        if (destroyed)
+        {
+            bool applyScreenShake = true;
+
+            if (multiplayerGame && userId.has_value())
+            {
+                // Hit came from different client / host, do not screenshake
+                if (userId.value() != SteamUser()->GetSteamID().ConvertToUint64())
+                {
+                    applyScreenShake = false;
+                }
+            }
+
+            if (applyScreenShake)
+            {
+                camera.setScreenShakeTime(0.3f);
+            }
+        }
+    }
+}
+
+void Game::buildObject(ChunkPosition chunk, sf::Vector2i tile, ObjectType objectType, bool sentFromHost)
+{
+    // If multiplayer game and this client builds object, send build object packet to host
+    if (multiplayerGame && !isLobbyHost && !sentFromHost)
+    {
+        PacketDataObjectBuilt packetData;
+        packetData.objectReference.chunk = chunk;
+        packetData.objectReference.tile = tile;
+        packetData.objectType = objectType;
+        packetData.userId = SteamUser()->GetSteamID().ConvertToUint64();
+
+        Packet packet;
+        packet.set(packetData);
+        sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
+        return;
+    }
+
+    // Not multiplayer game / sent from host / is host
+
+    if (multiplayerGame && isLobbyHost)
+    {
+        // Send build object packets to clients
+        PacketDataObjectBuilt packetData;
+        packetData.objectReference.chunk = chunk;
+        packetData.objectReference.tile = tile;
+        packetData.objectType = objectType;
+        packetData.userId = SteamUser()->GetSteamID().ConvertToUint64();
+
+        Packet packet;
+        packet.set(packetData);
+        sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0);
+    }
+
+    // Play build sound
+    int soundChance = rand() % 2;
+    SoundType buildSound = SoundType::CraftBuild1;
+    if (soundChance == 1) buildSound = SoundType::CraftBuild2;
+
+    Sounds::playSound(buildSound, 60.0f);
+
+    // Build object
+    chunkManager.setObject(chunk, tile, objectType, *this);
+
+    // Create build particles
+    BuildableObject* placedObject = chunkManager.getChunkObject(chunk, tile);
+    if (placedObject)
+    {
+        placedObject->createHitParticles(particleSystem);
+    }
 }
 
 void Game::testMeleeCollision(const std::vector<HitRect>& hitRects)
@@ -1764,55 +1839,23 @@ void Game::attemptBuildObject()
         return;
 
     ObjectType objectType = InventoryGUI::getHeldObjectType(inventory);
-    // bool placeFromHotbar = false;
 
     if (objectType < 0)
         return;
 
-    // // Do not build if holding tool in inventory
-    // if (player.getTool() >= 0)
-    //     return;
-
-
-    // bool canAfford = Inventory::canBuildObject(objectType);
-    bool canPlace = chunkManager.canPlaceObject(Cursor::getSelectedChunk(chunkManager.getWorldSize()),
-                                                Cursor::getSelectedChunkTile(),
-                                                objectType,
-                                                player.getCollisionRect());
-
-    bool inRange = player.canReachPosition(camera.screenToWorldTransform(mouseScreenPos));
-
-    if (canPlace && inRange)
+    if (!player.canReachPosition(camera.screenToWorldTransform(mouseScreenPos)))
     {
-        // Remove object from being held
-        // if (placeFromHotbar)
-        // {
-        //     InventoryGUI::placeHotbarObject(inventory);
-        // }
-        // else
-        // {
-        InventoryGUI::subtractHeldItem(inventory);
-        // }
-
-        // Play build sound
-        int soundChance = rand() % 2;
-        SoundType buildSound = SoundType::CraftBuild1;
-        if (soundChance == 1) buildSound = SoundType::CraftBuild2;
-
-        Sounds::playSound(buildSound, 60.0f);
-
-        ObjectReference placeObjectReference = {Cursor::getSelectedChunk(chunkManager.getWorldSize()), Cursor::getSelectedChunkTile()};
-
-        // Build object
-        chunkManager.setObject(placeObjectReference.chunk, placeObjectReference.tile, objectType, *this);
-
-        // Create build particles
-        BuildableObject* placedObject = chunkManager.getChunkObject(placeObjectReference.chunk, placeObjectReference.tile);
-        if (placedObject)
-        {
-            placedObject->createHitParticles(particleSystem);
-        }
+        return;
     }
+
+    if (!chunkManager.canPlaceObject(Cursor::getSelectedChunk(chunkManager.getWorldSize()), Cursor::getSelectedChunkTile(), objectType, player.getCollisionRect()))
+    {
+        return;
+    }
+    
+    InventoryGUI::subtractHeldItem(inventory);
+
+    buildObject(Cursor::getSelectedChunk(chunkManager.getWorldSize()), Cursor::getSelectedChunkTile(), objectType);
 }
 
 void Game::attemptPlaceLand()
@@ -3007,7 +3050,14 @@ void Game::receiveMessages()
             PacketDataObjectHit packetData;
             packetData.deserialise(packet.data);
             bool sentFromHost = !isLobbyHost;
-            hitObject(packetData.objectHit.chunk, packetData.objectHit.tile, packetData.damage, sentFromHost);
+            hitObject(packetData.objectHit.chunk, packetData.objectHit.tile, packetData.damage, sentFromHost, packetData.userId);
+        }
+        else if (packet.type == PacketType::ObjectBuilt)
+        {
+            PacketDataObjectBuilt packetData;
+            packetData.deserialise(packet.data);
+            bool sentFromHost = !isLobbyHost;
+            buildObject(packetData.objectReference.chunk, packetData.objectReference.tile, packetData.objectType, sentFromHost);
         }
 
         messages[i]->Release();
