@@ -89,6 +89,8 @@
 #include "Network/IPacketData.hpp"
 #include "Network/PacketDataJoinInfo.hpp"
 #include "Network/PacketDataPlayerInfo.hpp"
+#include "Network/PacketDataObjectHit.hpp"
+#include "Network/PacketDataObjectPlaced.hpp"
 
 #include "IO/GameSaveIO.hpp"
 
@@ -179,8 +181,10 @@ private:
     void attemptUseToolFishingRod();
     void attemptUseToolWeapon();
 
+    void hitObject(ChunkPosition chunk, sf::Vector2i tile, int damage, bool sentFromHost = false);
+    
     void catchRandomFish(sf::Vector2i fishedTile);
-
+    
     void attemptObjectInteract();
     void attemptBuildObject();
     void attemptPlaceLand();
@@ -260,7 +264,10 @@ private:
 
     void receiveMessages();
     void sendHostMessages();
+    EResult sendPacketToClients(const Packet& packet, int nSendFlags, int nRemoteChannel);
+    
     void sendClientMessages();
+    EResult sendPacketToHost(const Packet& packet, int nSendFlags, int nRemoteChannel);
 
 
     // -- Window -- //

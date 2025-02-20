@@ -11,4 +11,9 @@ enum class PacketType
     HostQuit,
 
     PlayerInfo,
+
+    ObjectHit,
+    ObjectPlaced,
+
+    ChunkData,
 };

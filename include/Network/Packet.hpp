@@ -13,7 +13,7 @@ struct Packet
     PacketType type;
     std::vector<char> data;
 
-    inline std::vector<char> serialise()
+    inline std::vector<char> serialise() const
     {
         size_t size = sizeof(PacketType) + data.size() + 1;
         std::vector<char> serialisedData(size);
@@ -36,7 +36,7 @@ struct Packet
         memcpy(data.data(), serialisedData + sizeof(PacketType), dataSize);
     }
 
-    inline EResult sendToUser(const SteamNetworkingIdentity &identityRemote, int nSendFlags, int nRemoteChannel)
+    inline EResult sendToUser(const SteamNetworkingIdentity &identityRemote, int nSendFlags, int nRemoteChannel) const
     {
         std::vector<char> serialised = serialise();
         return SteamNetworkingMessages()->SendMessageToUser(identityRemote, serialised.data(), serialised.size(), nSendFlags, nRemoteChannel);

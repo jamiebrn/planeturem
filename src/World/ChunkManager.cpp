@@ -620,11 +620,15 @@ bool ChunkManager::canPlaceObject(ChunkPosition chunk, sf::Vector2i tile, Object
 
 bool ChunkManager::canDestroyObject(ChunkPosition chunk, sf::Vector2i tile, const CollisionRect& playerCollisionRect)
 {
+    Chunk* chunkPtr = getChunk(chunk);
+
     // Chunk does not exist
-    if (loadedChunks.count(chunk) <= 0)
+    if (!chunkPtr)
+    {
         return false;
+    }
     
-    BuildableObject* object = loadedChunks[chunk]->getObject(tile);
+    BuildableObject* object = chunkPtr->getObject(tile);
 
     if (!object)
         return false;
@@ -639,7 +643,7 @@ bool ChunkManager::canDestroyObject(ChunkPosition chunk, sf::Vector2i tile, cons
     if (objectData.placeOnWater)
     {
         // Create collision rect for object using world position
-        sf::Vector2f chunkWorldPosition = loadedChunks[chunk]->getWorldPosition();
+        sf::Vector2f chunkWorldPosition = chunkPtr->getWorldPosition();
 
         CollisionRect objectCollisionRect;
         objectCollisionRect.x = chunkWorldPosition.x + tile.x * TILE_SIZE_PIXELS_UNSCALED;

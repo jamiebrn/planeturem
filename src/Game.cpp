@@ -1588,19 +1588,51 @@ void Game::attemptUseToolPickaxe()
 
     const ToolData& toolData = ToolDataLoader::getToolData(currentTool);
 
-    bool canDestroyObject = chunkManager.canDestroyObject(Cursor::getSelectedChunk(chunkManager.getWorldSize()),
-                                                    Cursor::getSelectedChunkTile(),
-                                                    player.getCollisionRect());
+    hitObject(Cursor::getSelectedChunk(chunkManager.getWorldSize()), Cursor::getSelectedChunkTile(), toolData.damage);
+}
+
+void Game::hitObject(ChunkPosition chunk, sf::Vector2i tile, int damage, bool sentFromHost)
+{
+    // If multiplayer and not host and not sent from host (this client attempted to hit object), send hit object packet to host
+    if (multiplayerGame && !isLobbyHost && !sentFromHost)
+    {
+        PacketDataObjectHit packetData;
+        packetData.objectHit.chunk = chunk;
+        packetData.objectHit.tile = tile;
+        packetData.damage = damage;
+
+        Packet packet;
+        packet.set(packetData);
+        sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
+        return;
+    }
+
+    // Not multiplayer game / is host / hit object packet sent from host
+
+    bool canDestroyObject = chunkManager.canDestroyObject(chunk, tile, player.getCollisionRect());
 
     if (!canDestroyObject)
         return;
 
-    BuildableObject* selectedObject = chunkManager.getChunkObject(Cursor::getSelectedChunk(
-        chunkManager.getWorldSize()), Cursor::getSelectedChunkTile());
+    BuildableObject* selectedObject = chunkManager.getChunkObject(chunk, tile);
 
     if (selectedObject)
     {
-        bool destroyed = selectedObject->damage(toolData.damage, *this, chunkManager, particleSystem);
+        bool destroyed = selectedObject->damage(damage, *this, chunkManager, particleSystem);
+
+        // Alert network players if host
+        if (multiplayerGame && isLobbyHost)
+        {
+            PacketDataObjectHit packetData;
+            packetData.objectHit.chunk = chunk;
+            packetData.objectHit.tile = tile;
+            packetData.damage = damage;
+
+            Packet packet;
+            packet.set(packetData);
+            sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0);
+        }
+
         if (destroyed)
         {
             camera.setScreenShakeTime(0.3f);
@@ -2970,6 +3002,13 @@ void Game::receiveMessages()
                 networkPlayers[messages[i]->m_identityPeer.GetSteamID64()].setNetworkPlayerInfo(packetData, playerName);
             }
         }
+        else if (packet.type == PacketType::ObjectHit)
+        {
+            PacketDataObjectHit packetData;
+            packetData.deserialise(packet.data);
+            bool sentFromHost = !isLobbyHost;
+            hitObject(packetData.objectHit.chunk, packetData.objectHit.tile, packetData.damage, sentFromHost);
+        }
 
         messages[i]->Release();
     }
@@ -3016,6 +3055,29 @@ void Game::sendHostMessages()
     }
 }
 
+EResult Game::sendPacketToClients(const Packet& packet, int nSendFlags, int nRemoteChannel)
+{
+    if (!isLobbyHost)
+    {
+        return EResult::k_EResultAccessDenied;
+    }
+
+    EResult result = EResult::k_EResultOK;
+    for (auto iter = networkPlayers.begin(); iter != networkPlayers.end(); iter++)
+    {
+        SteamNetworkingIdentity identity;
+        identity.SetSteamID64(iter->first);
+        EResult sendResult = packet.sendToUser(identity, nSendFlags, nRemoteChannel);
+
+        if (sendResult != EResult::k_EResultOK)
+        {
+            result = sendResult;
+        }
+    }
+
+    return result;
+}
+
 void Game::sendClientMessages()
 {
     if (isLobbyHost)
@@ -3031,6 +3093,20 @@ void Game::sendClientMessages()
 
     packet.sendToUser(hostIdentity, k_nSteamNetworkingSend_Unreliable, 0);
 }
+
+EResult Game::sendPacketToHost(const Packet& packet, int nSendFlags, int nRemoteChannel)
+{
+    if (isLobbyHost)
+    {
+        return EResult::k_EResultAccessDenied;
+    }
+
+    SteamNetworkingIdentity hostIdentity;
+    hostIdentity.SetSteamID64(lobbyHost);
+
+    return packet.sendToUser(hostIdentity, nSendFlags, nRemoteChannel);
+}
+
 
 // -- Window -- //
 
