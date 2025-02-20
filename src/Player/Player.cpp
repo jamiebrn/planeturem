@@ -33,6 +33,8 @@ Player::Player(sf::Vector2f position, int maxHealth)
     toolRotation = 0;
     usingTool = false;
 
+    armour = {-1, -1, -1};
+
     meleeSwingAnimation.create(7, 5, 13, 201, 35, 0.025f, false);
     meleeSwingAnimation.setFrame(6);
 
