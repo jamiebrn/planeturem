@@ -51,7 +51,7 @@ class Player : public WorldObject
 {
 public:
     Player() = default;
-    Player(sf::Vector2f position, InventoryData* armourInventory, int maxHealth = 0);
+    Player(sf::Vector2f position, int maxHealth = 0);
 
     void update(float dt, sf::Vector2f mouseWorldPos, ChunkManager& chunkManager, ProjectileManager& enemyProjectileManager,
         bool& wrappedAroundWorld, sf::Vector2f& wrapPositionDelta);
@@ -68,6 +68,8 @@ public:
 
     void startUseToolTimer();
     bool isUseToolTimerFinished();
+
+    void setArmourFromInventory(const InventoryData& armourInventory);
 
     void setCanMove(bool value);
 
@@ -158,7 +160,8 @@ private:
     float playerYScaleMult;
 
     ToolType equippedTool;
-    InventoryData* armourInventory = nullptr;
+    // InventoryData* armourInventory = nullptr;
+    std::array<ArmourType, 3> armour;
 
     // Tool animation
     float toolRotation;

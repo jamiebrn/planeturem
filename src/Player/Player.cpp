@@ -2,7 +2,7 @@
 #include "Player/Cursor.hpp"
 #include "Game.hpp"
 
-Player::Player(sf::Vector2f position, InventoryData* armourInventory, int maxHealth)
+Player::Player(sf::Vector2f position, int maxHealth)
     : WorldObject(position)
 {
     collisionRect.width = 12.0f;
@@ -41,8 +41,6 @@ Player::Player(sf::Vector2f position, InventoryData* armourInventory, int maxHea
     fishingRodCasted = false;
     swingingFishingRod = false;
     fishBitingLine = false;
-
-    this->armourInventory = armourInventory;
 
     inRocket = false;
 }
@@ -597,11 +595,6 @@ void Player::drawMeleeSwing(sf::RenderTarget& window, SpriteBatch& spriteBatch, 
 
 void Player::drawArmour(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Camera& camera, float waterYOffset) const
 {
-    if (!armourInventory)
-    {
-        return;
-    }
-
     float scale = ResolutionHandler::getScale();
 
     int xScaleMult = 1;
@@ -618,25 +611,20 @@ void Player::drawArmour(sf::RenderTarget& window, SpriteBatch& spriteBatch, cons
         flashShader = ShaderType::Flash;
         Shaders::getShader(flashShader.value())->setUniform("flash_amount", damageCooldownTimer / MAX_DAMAGE_COOLDOWN_TIMER);
     }
-    spriteBatch.endDrawing(window);
+    // spriteBatch.endDrawing(window);
+
     // Draw headpiece, chest, and boots
     for (int i = 2; i >= 0; i--)
     {
-        const std::optional<ItemCount> itemSlot = armourInventory->getItemSlotData(i);
+        ArmourType armourType = armour[i];
 
-        if (!itemSlot.has_value())
+        if (armourType < 0)
         {
             continue;
         }
 
         // Get data
-        const ItemData& armourItemData = ItemDataLoader::getItemData(itemSlot->first);
-        if (armourItemData.armourType < 0)
-        {
-            continue;
-        }
-
-        const ArmourData& armourData = ArmourDataLoader::getArmourData(armourItemData.armourType);
+        const ArmourData& armourData = ArmourDataLoader::getArmourData(armourType);
 
         // Draw armour piece
         int frame = idleAnimation.getFrame();
@@ -654,7 +642,7 @@ void Player::drawArmour(sf::RenderTarget& window, SpriteBatch& spriteBatch, cons
         drawData.centerRatio = sf::Vector2f(0, armourTextureRect.height - armourData.wearTextureOffset.y);
         drawData.useCentreAbsolute = true;
         
-        TextureManager::drawSubTexture(window, drawData, armourTextureRect);
+        spriteBatch.draw(window, drawData, armourTextureRect, flashShader);
     }
 }
 
@@ -776,6 +764,23 @@ bool Player::isUseToolTimerFinished()
     return (useToolCooldown <= 0.0f);
 }
 
+void Player::setArmourFromInventory(const InventoryData& armourInventory)
+{
+    for (int i = 0; i < std::min(3, armourInventory.getSize()); i++)
+    {
+        const std::optional<ItemCount>& armourItemSlot = armourInventory.getData().at(i);
+        if (armourItemSlot.has_value())
+        {
+            const ItemData& itemData = ItemDataLoader::getItemData(armourItemSlot->first);
+            armour[i] = itemData.armourType;
+        }
+        else
+        {
+            armour[i] = -1;
+        }
+    }
+}
+
 void Player::setCanMove(bool value)
 {
     canMove = value;
@@ -824,11 +829,7 @@ bool Player::takeDamage(float rawAmount)
     // Calculate defence to modify damage
     if (damageCooldownTimer <= 0)
     {
-        int defence = 0;
-        if (armourInventory)
-        {
-            defence = PlayerStats::calculateDefence(*armourInventory);
-        }
+        int defence = PlayerStats::calculateDefence(armour);
 
         int damageAmount = std::max(std::round(rawAmount * (1.0f - defence / 70.0f)), 0.0f);
         
@@ -995,6 +996,8 @@ void Player::setNetworkPlayerInfo(const PacketDataPlayerInfo& info, std::string 
     equippedTool = info.toolType;
     toolRotation = info.toolRotation;
 
+    armour = info.armour;
+
     isNetworkPlayer = true;
     networkPlayerName = steamName;
 }
@@ -1019,6 +1022,8 @@ PacketDataPlayerInfo Player::getNetworkPlayerInfo()
 
     info.toolType = equippedTool;
     info.toolRotation = toolRotation;
+
+    info.armour = armour;
 
     return info;
 }

@@ -45,7 +45,7 @@ public:
     int addCurrencyValueItems(int currencyValue);
     void takeCurrencyValueItems(int currencyValue);
 
-    inline int getSize() {return inventoryData.size();}
+    inline int getSize() const {return inventoryData.size();}
 
     inline const std::vector<std::optional<ItemCount>>& getData() const {return inventoryData;}
     inline std::vector<std::optional<ItemCount>>& getData() {return inventoryData;}

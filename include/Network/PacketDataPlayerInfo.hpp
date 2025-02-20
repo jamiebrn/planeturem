@@ -1,6 +1,7 @@
 #pragma once
 
 #include <extlib/cereal/archives/binary.hpp>
+#include <extlib/cereal/types/array.hpp>
 
 #include "Network/IPacketData.hpp"
 
@@ -18,10 +19,12 @@ struct PacketDataPlayerInfo : public IPacketData
     ToolType toolType;
     float toolRotation;
 
+    std::array<ArmourType, 3> armour;
+
     template <class Archive>
     void serialize(Archive& ar)
     {
-        ar(positionX, positionY, animationFrame, flipped, yScaleMult, toolType, toolRotation);
+        ar(positionX, positionY, animationFrame, flipped, yScaleMult, toolType, toolRotation, armour);
     }
 
     PACKET_SERIALISATION();

@@ -161,7 +161,7 @@ bool Game::initialise()
     musicGapTimer = 0.0f;
     musicGap = 0.0f;
 
-    player = Player(sf::Vector2f(0, 0), &armourInventory);
+    player = Player(sf::Vector2f(0, 0));
     inventory = InventoryData(32);
     armourInventory = InventoryData(3);
 
@@ -741,7 +741,7 @@ void Game::runInGame(float dt)
     // -- UPDATING --
     //
 
-    if (worldMenuState != WorldMenuState::PauseMenu)
+    if (worldMenuState != WorldMenuState::PauseMenu || multiplayerGame)
     {
         saveSessionPlayTime += dt;
 
@@ -760,6 +760,8 @@ void Game::runInGame(float dt)
         dayCycleManager.update(dt);
         isDay = dayCycleManager.isDay();
         // updateDayNightCycle(dt);
+
+        player.setArmourFromInventory(armourInventory);
 
         if (travelTrigger)
         {
@@ -2405,7 +2407,7 @@ void Game::startNewGame(int seed, std::optional<std::string> overridePlanetName)
 {
     // setWorldSeedFromInput();
 
-    player = Player(sf::Vector2f(0, 0), &armourInventory);
+    player = Player(sf::Vector2f(0, 0));
     inventory = InventoryData(32);
     armourInventory = InventoryData(3);
     giveStartingInventory();
@@ -2542,7 +2544,7 @@ bool Game::loadGame(const SaveFileSummary& saveFileSummary)
         return false;
     }
 
-    player = Player(sf::Vector2f(0, 0), &armourInventory, playerGameSave.maxHealth);
+    player = Player(sf::Vector2f(0, 0), playerGameSave.maxHealth);
 
     InventoryGUI::reset();
 
@@ -2908,7 +2910,7 @@ void Game::registerNetworkPlayer(uint64_t id, bool notify)
         InventoryGUI::pushItemPopup(ItemCount(0, 1), false, std::string(SteamFriends()->GetFriendPersonaName(id)) + " joined");
     }
 
-    networkPlayers[id] = Player(sf::Vector2f(0, 0), nullptr);
+    networkPlayers[id] = Player(sf::Vector2f(0, 0));
 }
 
 void Game::deleteNetworkPlayer(uint64_t id)

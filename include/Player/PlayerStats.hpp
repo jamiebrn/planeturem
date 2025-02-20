@@ -1,5 +1,7 @@
 #pragma once
 
+#include <array>
+
 #include "Data/typedefs.hpp"
 #include "Data/ItemData.hpp"
 #include "Data/ItemDataLoader.hpp"
@@ -12,5 +14,6 @@ namespace PlayerStats
 {
 
 int calculateDefence(InventoryData& armourInventory);
+int calculateDefence(const std::array<ArmourType, 3>& armour);
 
 }
