@@ -156,10 +156,12 @@ public:
 
 
     // -- Item pickups -- //
-    void addItemPickup(const ItemPickup& itemPickup);
+    uint64_t addItemPickup(const ItemPickup& itemPickup, std::optional<uint64_t> idOverride = std::nullopt);
 
     std::optional<ItemPickupReference> getCollidingItemPickup(const CollisionRect& playerCollision, float gameTime);
-    void deleteItemPickup(const ItemPickupReference& itemPickupReference);
+    void deleteItemPickup(uint64_t id);
+
+    const ItemPickup* getItemPickup(uint64_t id);
 
     std::vector<WorldObject*> getItemPickups();
 
@@ -210,6 +212,8 @@ public:
     bool getContainsWater();
     bool hasBeenModified();
 
+    ChunkPosition getChunkPosition();
+
     // bool isPointInChunk(sf::Vector2f position);
 
     // inline std::array<std::array<std::optional<BuildableObject>, 8>, 8>& getObjectGrid() {return objectGrid;}
@@ -242,7 +246,8 @@ private:
     std::array<std::array<std::unique_ptr<BuildableObject>, 8>, 8> objectGrid;
     std::vector<std::unique_ptr<Entity>> entities;
 
-    std::vector<ItemPickup> itemPickups;
+    std::unordered_map<uint64_t, ItemPickup> itemPickups;
+    uint64_t itemPickupCounter; // used as ID for pickups
 
     // Stores collision rects for terrain and objects (NOT ENTITIES)
     std::vector<CollisionRect> collisionRects;

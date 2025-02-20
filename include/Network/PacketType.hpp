@@ -15,5 +15,8 @@ enum class PacketType
     ObjectHit,
     ObjectBuilt,
 
+    ItemPickupsCreated,
+    ItemPickupCollected,
+
     ChunkData,
 };

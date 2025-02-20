@@ -32,7 +32,7 @@ bool ChestObject::damage(int amount, Game& game, ChunkManager& chunkManager, Par
     //     }
     // }
 
-    bool destroyed = BuildableObject::damage(amount, game, chunkManager, particleSystem);
+    bool destroyed = BuildableObject::damage(amount, game, chunkManager, particleSystem, giveItems);
 
     if (destroyed)
     {
@@ -59,7 +59,10 @@ bool ChestObject::damage(int amount, Game& game, ChunkManager& chunkManager, Par
                     itemDrops.push_back(itemDrop);
                 }
 
-                BuildableObject::createItemPickups(chunkManager, itemDrops, game.getGameTime()); 
+                if (giveItems)
+                {
+                    BuildableObject::createItemPickups(chunkManager, game, itemDrops, game.getGameTime()); 
+                }
             }
         }
 

@@ -87,7 +87,10 @@ bool PlantObject::damage(int amount, Game& game, ChunkManager& chunkManager, Par
         }
 
         // Give item drops
-        createItemPickups(chunkManager, plantStageData->itemDrops, game.getGameTime());
+        if (giveItems)
+        {
+            createItemPickups(chunkManager, game, plantStageData->itemDrops, game.getGameTime());
+        }
 
         return true;
     }

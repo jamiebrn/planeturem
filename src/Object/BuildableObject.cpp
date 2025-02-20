@@ -234,7 +234,7 @@ bool BuildableObject::damage(int amount, Game& game, ChunkManager& chunkManager,
         if (giveItems)
         {
             // Give item drops
-            createItemPickups(chunkManager, objectData.itemDrops, game.getGameTime());
+            createItemPickups(chunkManager, game, objectData.itemDrops, game.getGameTime());
         }
 
         return true;
@@ -310,8 +310,11 @@ void BuildableObject::createHitMarker(int amount)
     HitMarkers::addHitMarker(spawnPos, amount, hitColour);
 }
 
-void BuildableObject::createItemPickups(ChunkManager& chunkManager, const std::vector<ItemDrop>& itemDrops, float gameTime)
+void BuildableObject::createItemPickups(ChunkManager& chunkManager, Game& game, const std::vector<ItemDrop>& itemDrops, float gameTime, bool alertGame)
 {
+    // Keep track of all item pickups created and alert game
+    std::vector<ItemPickupReference> itemPickupsCreated;
+
     float dropChance = (rand() % 1000) / 1000.0f;
 
     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
@@ -329,11 +332,16 @@ void BuildableObject::createItemPickups(ChunkManager& chunkManager, const std::v
                 spawnPos.x += Helper::randFloat(0.0f, objectData.size.x * TILE_SIZE_PIXELS_UNSCALED);
                 spawnPos.y += Helper::randFloat(0.0f, objectData.size.y * TILE_SIZE_PIXELS_UNSCALED);
 
-                chunkManager.addItemPickup(ItemPickup(spawnPos, itemDrop.item, gameTime));
+                itemPickupsCreated.push_back(chunkManager.addItemPickup(ItemPickup(spawnPos, itemDrop.item, gameTime)).value());
             }
 
             // inventory.addItem(itemDrop.item, itemAmount, true);
         }
+    }
+
+    if (alertGame)
+    {
+        game.itemPickupsCreated(itemPickupsCreated);
     }
 }
 

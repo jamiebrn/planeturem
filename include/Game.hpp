@@ -91,6 +91,7 @@
 #include "Network/PacketDataPlayerInfo.hpp"
 #include "Network/PacketDataObjectHit.hpp"
 #include "Network/PacketDataObjectBuilt.hpp"
+#include "Network/PacketDataItemPickupsCreated.hpp"
 
 #include "IO/GameSaveIO.hpp"
 
@@ -126,6 +127,9 @@ public:
 
     // Melee combat
     void testMeleeCollision(const std::vector<HitRect>& hitRects);
+
+    // Item pickups created alert
+    void itemPickupsCreated(const std::vector<ItemPickupReference>& itemPickupsCreated);
 
     void drawWorld(sf::RenderTexture& renderTexture, float dt, std::vector<WorldObject*>& worldObjects, ChunkManager& chunkManagerArg, const Camera& cameraArg);
 

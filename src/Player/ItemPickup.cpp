@@ -1,6 +1,6 @@
 #include "Player/ItemPickup.hpp"
 
-bool ItemPickup::isBeingPickedUp(const CollisionRect& playerCollision, float gameTime)
+bool ItemPickup::isBeingPickedUp(const CollisionRect& playerCollision, float gameTime) const
 {
     if (gameTime - spawnGameTime < SPAWN_FLASH_TIME)
     {

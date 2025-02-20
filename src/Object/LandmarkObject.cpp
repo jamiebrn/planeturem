@@ -41,7 +41,7 @@ void LandmarkObject::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Ga
 
 bool LandmarkObject::damage(int amount, Game& game, ChunkManager& chunkManager, ParticleSystem& particleSystem, bool giveItems)
 {
-    bool destroyed = BuildableObject::damage(amount, game, chunkManager, particleSystem);
+    bool destroyed = BuildableObject::damage(amount, game, chunkManager, particleSystem, giveItems);
 
     if (destroyed)
     {

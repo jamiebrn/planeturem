@@ -5,6 +5,8 @@ Chunk::Chunk(ChunkPosition chunkPosition)
 {
     this->chunkPosition = chunkPosition;
 
+    itemPickupCounter = 0;
+
     reset();
 }
 
@@ -1033,19 +1035,27 @@ Entity* Chunk::getSelectedEntity(sf::Vector2f cursorPos)
     return nullptr;
 }
 
-void Chunk::addItemPickup(const ItemPickup& itemPickup)
+uint64_t Chunk::addItemPickup(const ItemPickup& itemPickup, std::optional<uint64_t> idOverride)
 {
-    itemPickups.push_back(itemPickup);
+    if (idOverride.has_value())
+    {
+        itemPickups[idOverride.value()] = itemPickup;
+        return idOverride.value();
+    }
+
+    itemPickups[itemPickupCounter] = itemPickup;
+    itemPickupCounter++;
+    return itemPickupCounter;
 }
     
 std::optional<ItemPickupReference> Chunk::getCollidingItemPickup(const CollisionRect& playerCollision, float gameTime)
 {
     for (auto iter = itemPickups.begin(); iter != itemPickups.end();)
     {
-        if (iter->isBeingPickedUp(playerCollision, gameTime))
+        if (iter->second.isBeingPickedUp(playerCollision, gameTime))
         {
-            iter->resetSpawnTime(gameTime);
-            return ItemPickupReference{*iter, chunkPosition, iter};
+            iter->second.resetSpawnTime(gameTime);
+            return ItemPickupReference{chunkPosition, iter->first};
         }
 
         iter++;
@@ -1054,23 +1064,33 @@ std::optional<ItemPickupReference> Chunk::getCollidingItemPickup(const Collision
     return std::nullopt;
 }
 
-void Chunk::deleteItemPickup(const ItemPickupReference& itemPickupReference)
+void Chunk::deleteItemPickup(uint64_t id)
 {
-    if (itemPickupReference.pickupIter == itemPickups.end())
+    if (!itemPickups.contains(id))
     {
         return;
     }
 
-    itemPickups.erase(itemPickupReference.pickupIter);
+    itemPickups.erase(id);
+}
+
+const ItemPickup* Chunk::getItemPickup(uint64_t id)
+{
+    if (!itemPickups.contains(id))
+    {
+        return nullptr;
+    }
+
+    return &itemPickups[id];
 }
 
 std::vector<WorldObject*> Chunk::getItemPickups()
 {
     std::vector<WorldObject*> itemPickupWorldObjects;
 
-    for (ItemPickup& itemPickup : itemPickups)
+    for (auto& itemPickup : itemPickups)
     {
-        itemPickupWorldObjects.push_back(&itemPickup);
+        itemPickupWorldObjects.push_back(&itemPickup.second);
     }
 
     return itemPickupWorldObjects;
@@ -1403,9 +1423,9 @@ void Chunk::setWorldPosition(sf::Vector2f position, ChunkManager& chunkManager)
     for (auto& itemPickup : itemPickups)
     {
         // Get position relative to chunk before updating chunk position
-        sf::Vector2f relativePosition = itemPickup.getPosition() - worldPosition;
+        sf::Vector2f relativePosition = itemPickup.second.getPosition() - worldPosition;
         // Set entity position to new chunk position + relative
-        itemPickup.setPosition(position + relativePosition);
+        itemPickup.second.setPosition(position + relativePosition);
     }
 
     // Update structure position if necessary
@@ -1451,6 +1471,11 @@ bool Chunk::getContainsWater()
 bool Chunk::hasBeenModified()
 {
     return modified;
+}
+
+ChunkPosition Chunk::getChunkPosition()
+{
+    return chunkPosition;
 }
 
 std::vector<WorldObject*> Chunk::getEntities()

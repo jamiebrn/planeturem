@@ -1098,14 +1098,19 @@ void Game::updateOnPlanet(float dt)
     std::optional<ItemPickupReference> itemPickupColliding = chunkManager.getCollidingItemPickup(player.getCollisionRect(), gameTime);
     if (itemPickupColliding.has_value())
     {
-        int amountAdded = inventory.addItem(itemPickupColliding->itemPickup.getItemType(), 1, true, false);
-        if (amountAdded > 0)
-        {
-            chunkManager.deleteItemPickup(itemPickupColliding.value());
+        const ItemPickup* itemPickupPtr = chunkManager.getChunk(itemPickupColliding->chunk)->getItemPickup(itemPickupColliding->id);
 
-            // Play pickup sound
-            const std::vector<SoundType> pickupSounds = {SoundType::Pop0, SoundType::Pop1, SoundType::Pop2, SoundType::Pop3};
-            Sounds::playSound(pickupSounds[Helper::randInt(0, pickupSounds.size() - 1)], 30.0f);
+        if (itemPickupPtr != nullptr)
+        {
+            int amountAdded = inventory.addItem(itemPickupPtr->getItemType(), 1, true, false);
+            if (amountAdded > 0)
+            {
+                chunkManager.deleteItemPickup(itemPickupColliding.value());
+    
+                // Play pickup sound
+                const std::vector<SoundType> pickupSounds = {SoundType::Pop0, SoundType::Pop1, SoundType::Pop2, SoundType::Pop3};
+                Sounds::playSound(pickupSounds[Helper::randInt(0, pickupSounds.size() - 1)], 30.0f);
+            }
         }
     }
 
@@ -1673,7 +1678,11 @@ void Game::hitObject(ChunkPosition chunk, sf::Vector2i tile, int damage, bool se
 
     if (selectedObject)
     {
-        bool destroyed = selectedObject->damage(damage, *this, chunkManager, particleSystem);
+        // Only drop items if playing solo or is host of lobby
+        // In multiplayer, host handles creation of all pickups and alerts clients of new pickups
+        bool dropItems = (!multiplayerGame || isLobbyHost);
+
+        bool destroyed = selectedObject->damage(damage, *this, chunkManager, particleSystem, dropItems);
 
         // Alert network players if host
         if (multiplayerGame && isLobbyHost)
@@ -1775,6 +1784,50 @@ void Game::testMeleeCollision(const std::vector<HitRect>& hitRects)
     bossManager.testHitRectCollision(hitRects);
 }
 
+void Game::itemPickupsCreated(const std::vector<ItemPickupReference>& itemPickupsCreated)
+{
+    if (!multiplayerGame || !isLobbyHost)
+    {
+        return;
+    }
+
+    // Alert clients of item pickups created
+    PacketDataItemPickupsCreated packetData;
+    for (auto& itemPickupReference : itemPickupsCreated)
+    {
+        Chunk* chunkPtr = chunkManager.getChunk(itemPickupReference.chunk);
+        if (!chunkPtr)
+        {
+            std::cout << "ERROR: Attempted to send item pickup creation data for null chunk (" << itemPickupReference.chunk.x
+                << ", " << itemPickupReference.chunk.y << ")\n";
+            continue;
+        }
+
+        const ItemPickup* itemPickupPtr = chunkPtr->getItemPickup(itemPickupReference.id);
+        if (!itemPickupPtr)
+        {
+            std::cout << "ERROR: Attempted to send item pickup creation data for null pickup ID " << itemPickupReference.id << "\n";
+            continue;
+        }
+
+        ItemPickup itemPickup = *itemPickupPtr;
+
+        // Normalise item pickup position relative to chunk before sending over network
+        itemPickup.setPosition(itemPickup.getPosition() - chunkPtr->getWorldPosition());
+        
+        packetData.createdPickups.push_back({itemPickupReference, itemPickup});
+    }
+
+    if (packetData.createdPickups.size() <= 0)
+    {
+        return;
+    }
+
+    Packet packet;
+    packet.set(packetData);
+    sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0);
+}
+
 void Game::catchRandomFish(sf::Vector2i fishedTile)
 {
     const BiomeGenData* biomeGenData = chunkManager.getChunkBiome(ChunkPosition(fishedTile.x / CHUNK_TILE_SIZE, fishedTile.y / CHUNK_TILE_SIZE));
@@ -1782,6 +1835,8 @@ void Game::catchRandomFish(sf::Vector2i fishedTile)
     // Check for nullptr
     if (!biomeGenData)
         return;
+
+    std::vector<ItemPickupReference> itemPickupsCreatedVector;
     
     // Randomise catch
     float randomChance = Helper::randInt(0, 10000) / 10000.0f;
@@ -1803,12 +1858,14 @@ void Game::catchRandomFish(sf::Vector2i fishedTile)
                     Helper::randFloat(-TILE_SIZE_PIXELS_UNSCALED / 2.0f, TILE_SIZE_PIXELS_UNSCALED / 2.0f)
                 );
 
-                chunkManager.addItemPickup(ItemPickup(spawnPos, fishCatchData.itemCatch, gameTime));
+                itemPickupsCreatedVector.push_back(chunkManager.addItemPickup(ItemPickup(spawnPos, fishCatchData.itemCatch, gameTime)).value());
             }
 
             break;
         }
     }
+
+    itemPickupsCreated(itemPickupsCreatedVector);
 }
 
 void Game::attemptObjectInteract()
@@ -3060,6 +3117,28 @@ void Game::receiveMessages()
             packetData.deserialise(packet.data);
             bool sentFromHost = !isLobbyHost;
             buildObject(packetData.objectReference.chunk, packetData.objectReference.tile, packetData.objectType, sentFromHost);
+        }
+        else if (packet.type == PacketType::ItemPickupsCreated && !isLobbyHost)
+        {
+            PacketDataItemPickupsCreated packetData;
+            packetData.deserialise(packet.data);
+            
+            // Create item pickups sent from host
+            for (auto& itemPickupPair : packetData.createdPickups)
+            {
+                Chunk* chunkPtr = chunkManager.getChunk(itemPickupPair.first.chunk);
+                if (!chunkPtr)
+                {
+                    std::cout << "ERROR: Failed to create item pickup sent from host in null chunk (" << itemPickupPair.first.chunk.x <<
+                        ", " << itemPickupPair.first.chunk.y << ")\n";
+                    continue;
+                }
+
+                // Denormalise pickup position from relative to chunk to world position
+                itemPickupPair.second.setPosition(itemPickupPair.second.getPosition() + chunkPtr->getWorldPosition());
+
+                chunkPtr->addItemPickup(itemPickupPair.second, itemPickupPair.first.id);
+            }
         }
 
         messages[i]->Release();

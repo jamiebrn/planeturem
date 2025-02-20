@@ -771,16 +771,16 @@ void ChunkManager::resetChunkEntitySpawnCooldown(ChunkPosition chunk)
     chunkLastEntitySpawnTime[chunk] = time;
 }
 
-void ChunkManager::addItemPickup(const ItemPickup& itemPickup)
+std::optional<ItemPickupReference> ChunkManager::addItemPickup(const ItemPickup& itemPickup, std::optional<uint64_t> idOverride)
 {
     Chunk* chunkInside = getChunk(itemPickup.getChunkInside(worldSize));
 
     if (chunkInside == nullptr)
     {
-        return;
+        return std::nullopt;
     }
 
-    chunkInside->addItemPickup(itemPickup);
+    return ItemPickupReference{chunkInside->getChunkPosition(), chunkInside->addItemPickup(itemPickup, idOverride)};
 }
 
 std::optional<ItemPickupReference>ChunkManager::getCollidingItemPickup(const CollisionRect& playerCollision, float gameTime)
@@ -821,7 +821,7 @@ void ChunkManager::deleteItemPickup(const ItemPickupReference& itemPickupReferen
         return;
     }
 
-    chunkPtr->deleteItemPickup(itemPickupReference);
+    chunkPtr->deleteItemPickup(itemPickupReference.id);
 }
 
 std::vector<WorldObject*> ChunkManager::getItemPickups()

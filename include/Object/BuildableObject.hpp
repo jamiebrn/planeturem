@@ -98,7 +98,7 @@ public:
     }
 
 protected:
-    void createItemPickups(ChunkManager& chunkManager, const std::vector<ItemDrop>& itemDrops, float gameTime);
+    void createItemPickups(ChunkManager& chunkManager, Game& game, const std::vector<ItemDrop>& itemDrops, float gameTime, bool alertGame = true);
 
     void drawObject(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Camera& camera, float gameTime, int worldSize, const sf::Color& color,
         std::optional<std::vector<sf::IntRect>> textureRectsOverride = std::nullopt, std::optional<sf::Vector2f> textureOriginOverride = std::nullopt,

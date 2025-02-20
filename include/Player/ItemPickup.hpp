@@ -4,6 +4,8 @@
 #include <cmath>
 #include <vector>
 
+#include <extlib/cereal/archives/binary.hpp>
+
 #include "Core/ResolutionHandler.hpp"
 #include "Core/CollisionRect.hpp"
 #include "Core/CollisionCircle.hpp"
@@ -30,15 +32,22 @@
 class ItemPickup : public WorldObject
 {
 public:
+    ItemPickup() = default;
     ItemPickup(sf::Vector2f position, ItemType itemType, float gameTime) : WorldObject(position), itemType(itemType), spawnGameTime(gameTime) {}
     void resetSpawnTime(float gameTime);
 
-    bool isBeingPickedUp(const CollisionRect& playerCollision, float gameTime);
+    bool isBeingPickedUp(const CollisionRect& playerCollision, float gameTime) const;
 
     void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
         const sf::Color& color) const override;
     
-    inline ItemType getItemType() {return itemType;}
+    inline ItemType getItemType() const {return itemType;}
+
+    template <class Archive>
+    void serialize(Archive& ar)
+    {
+        ar(position.x, position.y, itemType, spawnGameTime);
+    }
 
 private:
     static constexpr float PICKUP_RADIUS = 4.0f;
@@ -51,7 +60,12 @@ private:
 
 struct ItemPickupReference
 {
-    ItemPickup itemPickup;
     ChunkPosition chunk;
-    std::vector<ItemPickup>::iterator pickupIter;
+    uint64_t id = 0;
+
+    template <class Archive>
+    void serialize(Archive& ar)
+    {
+        ar(chunk.x, chunk.y, id);
+    }
 };
