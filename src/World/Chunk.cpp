@@ -1044,8 +1044,7 @@ uint64_t Chunk::addItemPickup(const ItemPickup& itemPickup, std::optional<uint64
     }
 
     itemPickups[itemPickupCounter] = itemPickup;
-    itemPickupCounter++;
-    return itemPickupCounter;
+    return itemPickupCounter++;
 }
     
 std::optional<ItemPickupReference> Chunk::getCollidingItemPickup(const CollisionRect& playerCollision, float gameTime)
