@@ -92,6 +92,7 @@
 #include "Network/PacketDataObjectHit.hpp"
 #include "Network/PacketDataObjectBuilt.hpp"
 #include "Network/PacketDataItemPickupsCreated.hpp"
+#include "Network/PacketDataItemPickupDeleted.hpp"
 
 #include "IO/GameSaveIO.hpp"
 
@@ -187,7 +188,7 @@ private:
 
     void hitObject(ChunkPosition chunk, sf::Vector2i tile, int damage, bool sentFromHost = false, std::optional<uint64_t> userId = std::nullopt);
     void buildObject(ChunkPosition chunk, sf::Vector2i tile, ObjectType objectType, bool sentFromHost = false);
-    
+
     void catchRandomFish(sf::Vector2i fishedTile);
     
     void attemptObjectInteract();

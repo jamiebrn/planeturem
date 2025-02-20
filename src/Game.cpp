@@ -1105,11 +1105,33 @@ void Game::updateOnPlanet(float dt)
             int amountAdded = inventory.addItem(itemPickupPtr->getItemType(), 1, true, false);
             if (amountAdded > 0)
             {
-                chunkManager.deleteItemPickup(itemPickupColliding.value());
+                // Only delete pickup if playing solo or is host
+                if (!multiplayerGame || isLobbyHost)
+                {
+                    chunkManager.deleteItemPickup(itemPickupColliding.value());
+                }
     
                 // Play pickup sound
                 const std::vector<SoundType> pickupSounds = {SoundType::Pop0, SoundType::Pop1, SoundType::Pop2, SoundType::Pop3};
                 Sounds::playSound(pickupSounds[Helper::randInt(0, pickupSounds.size() - 1)], 30.0f);
+
+                // Networking
+                if (multiplayerGame && (!isLobbyHost || networkPlayers.size() > 0))
+                {
+                    PacketDataItemPickupDeleted packetData;
+                    packetData.pickupDeleted = itemPickupColliding.value();
+                    Packet packet;
+                    packet.set(packetData);
+
+                    if (isLobbyHost)
+                    {
+                        sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0);
+                    }
+                    else
+                    {
+                        sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
+                    }
+                }
             }
         }
     }
@@ -3134,11 +3156,25 @@ void Game::receiveMessages()
                     continue;
                 }
 
-                // Denormalise pickup position from relative to chunk to world position
+                // Denormalise pickup position from chunk-relative to world position
                 itemPickupPair.second.setPosition(itemPickupPair.second.getPosition() + chunkPtr->getWorldPosition());
 
                 chunkPtr->addItemPickup(itemPickupPair.second, itemPickupPair.first.id);
             }
+        }
+        else if (packet.type == PacketType::ItemPickupDeleted)
+        {
+            // If host, redistribute to clients
+            if (isLobbyHost)
+            {
+                sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0);
+            }
+
+            PacketDataItemPickupDeleted packetData;
+            packetData.deserialise(packet.data);
+
+            // Delete pickup from chunk manager, regardless of whether we are host or client
+            chunkManager.deleteItemPickup(packetData.pickupDeleted);
         }
 
         messages[i]->Release();
