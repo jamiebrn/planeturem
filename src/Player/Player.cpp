@@ -613,7 +613,7 @@ void Player::drawArmour(sf::RenderTarget& window, SpriteBatch& spriteBatch, cons
         flashShader = ShaderType::Flash;
         Shaders::getShader(flashShader.value())->setUniform("flash_amount", damageCooldownTimer / MAX_DAMAGE_COOLDOWN_TIMER);
     }
-    // spriteBatch.endDrawing(window);
+    spriteBatch.endDrawing(window);
 
     // Draw headpiece, chest, and boots
     for (int i = 2; i >= 0; i--)
@@ -644,7 +644,7 @@ void Player::drawArmour(sf::RenderTarget& window, SpriteBatch& spriteBatch, cons
         drawData.centerRatio = sf::Vector2f(0, armourTextureRect.height - armourData.wearTextureOffset.y);
         drawData.useCentreAbsolute = true;
         
-        spriteBatch.draw(window, drawData, armourTextureRect, flashShader);
+        spriteBatch.draw(window, drawData, armourTextureRect);
     }
 }
 

@@ -40,14 +40,23 @@ void SpriteBatch::draw(sf::RenderTarget& window, const TextureDrawData& drawData
     sf::Vector2f size;
     size.x = textureRect.width * drawData.scale.x;
     size.y = textureRect.height * drawData.scale.y;
+
+    float centreRatioX = drawData.centerRatio.x;
+    float centreRatioY = drawData.centerRatio.y;
+
+    if (drawData.useCentreAbsolute)
+    {
+        centreRatioX /= textureRect.width;
+        centreRatioY /= textureRect.height;
+    }
     
     if (drawData.rotation == 0)
     {
         // Simple case, no rotation
         // Separate from rotation calculation in order to save performance
         sf::Vector2f topLeft;
-        topLeft.x = drawData.position.x - (size.x * drawData.centerRatio.x);
-        topLeft.y = drawData.position.y - (size.y * drawData.centerRatio.y);
+        topLeft.x = drawData.position.x - (size.x * centreRatioX);
+        topLeft.y = drawData.position.y - (size.y * centreRatioY);
 
         vertices[0].position = topLeft;
         vertices[1].position = topLeft + sf::Vector2f(size.x, 0);
@@ -59,10 +68,10 @@ void SpriteBatch::draw(sf::RenderTarget& window, const TextureDrawData& drawData
         // Apply rotation
         float angleRadians = M_PI * drawData.rotation / 180.0f;
 
-        float nX = -size.x * drawData.centerRatio.x;
-        float pX = (1.0f - drawData.centerRatio.x) * size.x;
-        float nY = -size.y * drawData.centerRatio.y;
-        float pY = (1.0f - drawData.centerRatio.y) * size.y;
+        float nX = -size.x * centreRatioX;
+        float pX = (1.0f - centreRatioX) * size.x;
+        float nY = -size.y * centreRatioY;
+        float pY = (1.0f - centreRatioY) * size.y;
 
         vertices[0].position = Helper::rotateVector(sf::Vector2f(nX, nY), angleRadians) + drawData.position;
         vertices[1].position = Helper::rotateVector(sf::Vector2f(pX, nY), angleRadians) + drawData.position;

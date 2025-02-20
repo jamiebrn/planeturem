@@ -741,7 +741,7 @@ void Game::runInGame(float dt)
     // -- UPDATING --
     //
 
-    if (worldMenuState != WorldMenuState::PauseMenu || multiplayerGame)
+    if (worldMenuState != WorldMenuState::PauseMenu || (multiplayerGame && networkPlayers.size() > 0))
     {
         saveSessionPlayTime += dt;
 
