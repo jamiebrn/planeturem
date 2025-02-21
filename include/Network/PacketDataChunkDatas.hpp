@@ -36,7 +36,7 @@ struct PacketDataChunkDatas : public IPacketData
         template <class Archive>
         void serialize(Archive& ar)
         {
-            ar(chunkPosition.x, chunkPosition.y, groundTileGrid, objectGrid, structureObject);
+            ar(chunkPosition.x, chunkPosition.y, groundTileGrid, objectGrid, structureObject, itemPickupsRelative);
         }
 
         void setFromPOD(const ChunkPOD& pod)
