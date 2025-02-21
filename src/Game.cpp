@@ -2386,7 +2386,10 @@ void Game::initialiseNewPlanet(PlanetType planetType, bool placeRocket)
     
     camera.instantUpdate(player.getPosition());
 
-    chunkManager.updateChunks(*this, camera);
+    if (!multiplayerGame || isLobbyHost)
+    {
+        chunkManager.updateChunks(*this, camera);
+    }
 
     weatherSystem = WeatherSystem(gameTime, chunkManager.getSeed() + chunkManager.getPlanetType());
     weatherSystem.presimulateWeather(gameTime, camera, chunkManager);
@@ -2926,7 +2929,6 @@ void Game::joinWorld(const PacketDataJoinInfo& joinInfo)
 void Game::callbackLobbyJoinRequested(GameLobbyJoinRequested_t* pCallback)
 {
     SteamMatchmaking()->JoinLobby(pCallback->m_steamIDLobby);
-    multiplayerGame = true;
 }
 
 void Game::callbackLobbyEnter(LobbyEnter_t* pCallback)
@@ -3098,7 +3100,10 @@ void Game::receiveMessages()
 
             // Set lobby host
             lobbyHost = messages[i]->m_identityPeer.GetSteamID64();
+            isLobbyHost = false;
 
+            multiplayerGame = true;
+            
             for (uint64_t player : packetData.currentPlayers)
             {
                 registerNetworkPlayer(player, false);
@@ -3134,11 +3139,11 @@ void Game::receiveMessages()
                 }
             }
 
-            if (networkPlayers.contains(messages[i]->m_identityPeer.GetSteamID64()))
-            {
-                PacketDataPlayerInfo packetData;
-                packetData.deserialise(packet.data);
+            PacketDataPlayerInfo packetData;
+            packetData.deserialise(packet.data);
 
+            if (networkPlayers.contains(packetData.steamID))
+            {
                 std::string playerName = SteamFriends()->GetFriendPersonaName(messages[i]->m_identityPeer.GetSteamID());
 
                 // Translate player position to wrap around world, relative to player
@@ -3146,7 +3151,7 @@ void Game::receiveMessages()
                 packetData.positionX = playerPos.x;
                 packetData.positionY = playerPos.y;
 
-                networkPlayers[messages[i]->m_identityPeer.GetSteamID64()].setNetworkPlayerInfo(packetData, playerName);
+                networkPlayers[packetData.steamID].setNetworkPlayerInfo(packetData, playerName);
             }
         }
         else if (packet.type == PacketType::ObjectHit)
@@ -3246,17 +3251,17 @@ void Game::sendHostMessages()
         return;
     }
 
-    uint64_t steamId = SteamUser()->GetSteamID().ConvertToUint64();
+    uint64_t steamID = SteamUser()->GetSteamID().ConvertToUint64();
 
     std::unordered_map<uint64_t, Packet> playerInfoPackets;
-    playerInfoPackets[steamId] = Packet();
-    playerInfoPackets[steamId].set(player.getNetworkPlayerInfo());
+    playerInfoPackets[steamID] = Packet();
+    playerInfoPackets[steamID].set(player.getNetworkPlayerInfo(steamID));
 
     // Get player infos
     for (auto iter = networkPlayers.begin(); iter != networkPlayers.end(); iter++)
     {
         playerInfoPackets[iter->first] = Packet();
-        playerInfoPackets[iter->first].set(iter->second.getNetworkPlayerInfo());
+        playerInfoPackets[iter->first].set(iter->second.getNetworkPlayerInfo(iter->first));
     }
     
     for (auto iter = networkPlayers.begin(); iter != networkPlayers.end(); iter++)
@@ -3276,7 +3281,7 @@ void Game::sendHostMessages()
         }
         
         // Send host player data
-        playerInfoPackets[steamId].sendToUser(identity, k_nSteamNetworkingSend_Unreliable, 0);
+        playerInfoPackets[steamID].sendToUser(identity, k_nSteamNetworkingSend_Unreliable, 0);
     }
 }
 
@@ -3332,8 +3337,10 @@ void Game::sendClientMessages()
         return;
     }
 
+    uint64_t steamID = SteamUser()->GetSteamID().ConvertToUint64();
+
     Packet packet;
-    packet.set(player.getNetworkPlayerInfo());
+    packet.set(player.getNetworkPlayerInfo(steamID));
 
     SteamNetworkingIdentity hostIdentity;
     hostIdentity.SetSteamID64(lobbyHost);

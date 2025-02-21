@@ -979,6 +979,9 @@ void Player::setNetworkPlayerInfo(const PacketDataPlayerInfo& info, std::string 
 {
     position = sf::Vector2f(info.positionX, info.positionY);
 
+    collisionRect.x = position.x - collisionRect.width / 2.0f;
+    collisionRect.y = position.y - collisionRect.height / 2.0f;
+
     if (info.animationFrame < idleAnimation.getFrameCount())
     {
         // Idle
@@ -1004,7 +1007,7 @@ void Player::setNetworkPlayerInfo(const PacketDataPlayerInfo& info, std::string 
     networkPlayerName = steamName;
 }
 
-PacketDataPlayerInfo Player::getNetworkPlayerInfo()
+PacketDataPlayerInfo Player::getNetworkPlayerInfo(uint64_t steamID)
 {
     PacketDataPlayerInfo info;
     info.positionX = position.x;
@@ -1026,6 +1029,8 @@ PacketDataPlayerInfo Player::getNetworkPlayerInfo()
     info.toolRotation = toolRotation;
 
     info.armour = armour;
+
+    info.steamID = steamID;
 
     return info;
 }

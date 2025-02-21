@@ -109,7 +109,7 @@ public:
 
     // Multiplayer
     void setNetworkPlayerInfo(const PacketDataPlayerInfo& info, std::string steamName);
-    PacketDataPlayerInfo getNetworkPlayerInfo();
+    PacketDataPlayerInfo getNetworkPlayerInfo(uint64_t steamID);
 
 private:
     void updateDirection(sf::Vector2f mouseWorldPos);
