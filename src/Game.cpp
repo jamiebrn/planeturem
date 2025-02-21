@@ -3379,10 +3379,9 @@ void Game::requestChunksFromHost(std::vector<ChunkPosition>& chunks)
     {
         if (!chunkRequestsOutstanding.contains(*iter))
         {
-            continue;
+            chunkRequestsOutstanding[*iter] = gameTime;
         }
-
-        if (gameTime - chunkRequestsOutstanding.at(*iter) >= CHUNK_REQUEST_OUTSTANDING_MAX_TIME)
+        else if (gameTime - chunkRequestsOutstanding.at(*iter) >= CHUNK_REQUEST_OUTSTANDING_MAX_TIME)
         {
             // Reset time and request again
             chunkRequestsOutstanding[*iter] = gameTime;
