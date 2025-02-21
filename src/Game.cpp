@@ -1102,7 +1102,12 @@ void Game::updateOnPlanet(float dt)
 
         if (itemPickupPtr != nullptr)
         {
-            int amountAdded = inventory.addItem(itemPickupPtr->getItemType(), 1, true, false);
+            // Only actually add item to inventory if solo or is host
+            // Host will give client item
+            bool modifyInventory = (!multiplayerGame || isLobbyHost);
+
+            int amountAdded = inventory.addItem(itemPickupPtr->getItemType(), 1, true, false, modifyInventory);
+
             if (amountAdded > 0)
             {
                 // Only delete pickup if playing solo or is host
@@ -3164,17 +3169,40 @@ void Game::receiveMessages()
         }
         else if (packet.type == PacketType::ItemPickupDeleted)
         {
+            PacketDataItemPickupDeleted packetData;
+            packetData.deserialise(packet.data);
+            
             // If host, redistribute to clients
             if (isLobbyHost)
             {
                 sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0);
-            }
 
-            PacketDataItemPickupDeleted packetData;
-            packetData.deserialise(packet.data);
+                Chunk* chunkPtr = chunkManager.getChunk(packetData.pickupDeleted.chunk);
+                if (chunkPtr)
+                {
+                    ItemPickup* itemPickupPtr = chunkPtr->getItemPickup(packetData.pickupDeleted.id);
+                    if (itemPickupPtr)
+                    {
+                        // Give item to client
+                        PacketDataInventoryAddItem itemPacketData;
+                        itemPacketData.itemType = itemPickupPtr->getItemType();
+                        itemPacketData.amount = 1;
+                        Packet itemPacket;
+                        itemPacket.set(itemPacketData);
+
+                        itemPacket.sendToUser(messages[i]->m_identityPeer, k_nSteamNetworkingSend_Reliable, 0);
+                    }
+                }
+            }
 
             // Delete pickup from chunk manager, regardless of whether we are host or client
             chunkManager.deleteItemPickup(packetData.pickupDeleted);
+        }
+        else if (packet.type == PacketType::InventoryAddItem)
+        {
+            PacketDataInventoryAddItem packetData;
+            packetData.deserialise(packet.data);
+            inventory.addItem(packetData.itemType, packetData.amount, true);
         }
 
         messages[i]->Release();

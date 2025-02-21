@@ -10,7 +10,7 @@ InventoryData::InventoryData(int size)
     inventoryData = std::vector<std::optional<ItemCount>>(size, std::nullopt);
 }
 
-int InventoryData::addItem(ItemType item, int amount, bool createPopup, bool createPopupIfNotEnoughSpace)
+int InventoryData::addItem(ItemType item, int amount, bool createPopup, bool createPopupIfNotEnoughSpace, bool modifyInventory)
 {
     if (amount <= 0)
     {
@@ -39,7 +39,10 @@ int InventoryData::addItem(ItemType item, int amount, bool createPopup, bool cre
 
         amountToAdd -= amountAddedToStack;
 
-        itemCount.second += amountAddedToStack;
+        if (modifyInventory)
+        {
+            itemCount.second += amountAddedToStack;
+        }
 
         if (amountToAdd <= 0)
             break;
@@ -59,7 +62,10 @@ int InventoryData::addItem(ItemType item, int amount, bool createPopup, bool cre
 
             amountToAdd -= amountPutInSlot;
 
-            itemSlot = ItemCount(item, amountPutInSlot);
+            if (modifyInventory)
+            {
+                itemSlot = ItemCount(item, amountPutInSlot);
+            }
 
             if (amountToAdd <= 0)
                 break;

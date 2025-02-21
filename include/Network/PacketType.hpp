@@ -17,6 +17,7 @@ enum class PacketType
 
     ItemPickupsCreated,
     ItemPickupDeleted,
+    InventoryAddItem,
 
     ChunkData,
 };

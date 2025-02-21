@@ -93,6 +93,7 @@
 #include "Network/PacketDataObjectBuilt.hpp"
 #include "Network/PacketDataItemPickupsCreated.hpp"
 #include "Network/PacketDataItemPickupDeleted.hpp"
+#include "Network/PacketDataInventoryAddItem.hpp"
 
 #include "IO/GameSaveIO.hpp"
 

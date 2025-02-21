@@ -24,7 +24,8 @@ public:
     InventoryData() = default;
     InventoryData(int size);
 
-    int addItem(ItemType item, int amount, bool createPopup = false, bool createPopupIfNotEnoughSpace = false);
+    // Use modify inventory = false to test whether item can fit in inventory
+    int addItem(ItemType item, int amount, bool createPopup = false, bool createPopupIfNotEnoughSpace = false, bool modifyInventory = true);
 
     void takeItem(ItemType item, int amount);
 

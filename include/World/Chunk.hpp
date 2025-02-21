@@ -161,7 +161,7 @@ public:
     std::optional<ItemPickupReference> getCollidingItemPickup(const CollisionRect& playerCollision, float gameTime);
     void deleteItemPickup(uint64_t id);
 
-    const ItemPickup* getItemPickup(uint64_t id);
+    ItemPickup* getItemPickup(uint64_t id);
 
     std::vector<WorldObject*> getItemPickups();
 

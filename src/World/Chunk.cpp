@@ -1053,7 +1053,7 @@ std::optional<ItemPickupReference> Chunk::getCollidingItemPickup(const Collision
     {
         if (iter->second.isBeingPickedUp(playerCollision, gameTime))
         {
-            iter->second.resetSpawnTime(gameTime);
+            // iter->second.resetSpawnTime(gameTime);
             return ItemPickupReference{chunkPosition, iter->first};
         }
 
@@ -1073,7 +1073,7 @@ void Chunk::deleteItemPickup(uint64_t id)
     itemPickups.erase(id);
 }
 
-const ItemPickup* Chunk::getItemPickup(uint64_t id)
+ItemPickup* Chunk::getItemPickup(uint64_t id)
 {
     if (!itemPickups.contains(id))
     {
