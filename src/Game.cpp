@@ -1106,7 +1106,7 @@ void Game::updateOnPlanet(float dt)
             // Host will give client item
             bool modifyInventory = (!multiplayerGame || isLobbyHost);
 
-            int amountAdded = inventory.addItem(itemPickupPtr->getItemType(), 1, true, false, modifyInventory);
+            int amountAdded = inventory.addItem(itemPickupPtr->getItemType(), 1, modifyInventory, false, modifyInventory);
 
             if (amountAdded > 0)
             {
