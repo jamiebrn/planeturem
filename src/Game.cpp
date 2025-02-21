@@ -3161,7 +3161,7 @@ void Game::receiveMessages()
 
             if (networkPlayers.contains(packetData.steamID))
             {
-                std::string playerName = SteamFriends()->GetFriendPersonaName(messages[i]->m_identityPeer.GetSteamID());
+                std::string playerName = SteamFriends()->GetFriendPersonaName(CSteamID(packetData.steamID));
 
                 // Translate player position to wrap around world, relative to player
                 sf::Vector2f playerPos = chunkManager.translatePositionAroundWorld(sf::Vector2f(packetData.positionX, packetData.positionY), player.getPosition());
