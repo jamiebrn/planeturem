@@ -279,7 +279,7 @@ private:
     void sendClientMessages();
     EResult sendPacketToHost(const Packet& packet, int nSendFlags, int nRemoteChannel);
     void handleChunkDatasFromHost(const PacketDataChunkDatas& chunkDatas);
-    void requestChunksFromHost(const std::vector<ChunkPosition>& chunks);
+    void requestChunksFromHost(std::vector<ChunkPosition>& chunks);
 
 
     // -- Window -- //
@@ -365,6 +365,8 @@ private:
     uint64_t lobbyHost;
     CCallResult<Game, LobbyCreated_t> m_SteamCallResultCreateLobby;
     std::unordered_map<uint64_t, Player> networkPlayers;
+    static constexpr float CHUNK_REQUEST_OUTSTANDING_MAX_TIME = 5.0f;
+    std::unordered_map<ChunkPosition, float> chunkRequestsOutstanding;
 
     std::array<sf::Texture, 2> waterNoiseTextures;
 

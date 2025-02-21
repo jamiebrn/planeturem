@@ -2919,6 +2919,8 @@ void Game::joinWorld(const PacketDataJoinInfo& joinInfo)
 
     weatherSystem = WeatherSystem(gameTime, joinInfo.seed + chunkManager.getPlanetType());
     weatherSystem.presimulateWeather(gameTime, camera, chunkManager);
+
+    chunkRequestsOutstanding.clear();
 }
 
 void Game::callbackLobbyJoinRequested(GameLobbyJoinRequested_t* pCallback)
@@ -3366,13 +3368,35 @@ void Game::handleChunkDatasFromHost(const PacketDataChunkDatas& chunkDatas)
     }
 }
 
-void Game::requestChunksFromHost(const std::vector<ChunkPosition>& chunks)
+void Game::requestChunksFromHost(std::vector<ChunkPosition>& chunks)
 {
     if (!multiplayerGame || isLobbyHost)
     {
         return;
     }
 
+    for (auto iter = chunks.begin(); iter != chunks.end(); iter++)
+    {
+        if (!chunkRequestsOutstanding.contains(*iter))
+        {
+            continue;
+        }
+
+        if (gameTime - chunkRequestsOutstanding.at(*iter) >= CHUNK_REQUEST_OUTSTANDING_MAX_TIME)
+        {
+            // Reset time and request again
+            chunkRequestsOutstanding[*iter] = gameTime;
+        }
+        else
+        {
+            // Chunk is still being requested - do not request again (yet)
+            iter = chunks.erase(iter);
+            continue;
+        }
+
+        iter++;
+    }
+    
     std::cout << "Requesting " << chunks.size() << " chunks from host\n";
 
     PacketDataChunkRequests packetData;
