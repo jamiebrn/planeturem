@@ -2929,12 +2929,14 @@ void Game::joinWorld(const PacketDataJoinInfo& joinInfo)
 void Game::callbackLobbyJoinRequested(GameLobbyJoinRequested_t* pCallback)
 {
     SteamMatchmaking()->JoinLobby(pCallback->m_steamIDLobby);
+    multiplayerGame = true;
 }
 
 void Game::callbackLobbyEnter(LobbyEnter_t* pCallback)
 {
     steamLobbyId = pCallback->m_ulSteamIDLobby;
     std::cout << "Joined lobby " << steamLobbyId << "\n";
+    multiplayerGame = true;
 }
 
 void Game::callbackLobbyUpdated(LobbyChatUpdate_t* pCallback)
