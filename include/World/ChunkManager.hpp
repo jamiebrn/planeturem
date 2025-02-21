@@ -55,7 +55,7 @@ public:
 
     // Load/unload chunks every frame
     // Returns true if any chunks loaded / unloaded
-    bool updateChunks(Game& game, const Camera& camera, bool allowGeneration = true);
+    bool updateChunks(Game& game, const Camera& camera, bool isClient = false, std::vector<ChunkPosition>* chunksToRequestFromHost = nullptr);
 
     // Forces a reload of chunks, used when wrapping around world
     void reloadChunks();

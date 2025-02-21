@@ -1074,7 +1074,14 @@ void Game::updateOnPlanet(float dt)
     // Update (loaded) chunks
     // Enable / disable chunk generation depending on multiplayer state
     bool allowChunkGeneration = (!multiplayerGame || isLobbyHost);
-    bool modifiedChunks = chunkManager.updateChunks(*this, camera, allowChunkGeneration);
+    std::vector<ChunkPosition> chunksToRequestFromHost;
+
+    bool modifiedChunks = chunkManager.updateChunks(*this, camera, allowChunkGeneration, &chunksToRequestFromHost);
+
+    if (multiplayerGame && !isLobbyHost && chunksToRequestFromHost.size() > 0)
+    {
+        requestChunksFromHost(chunksToRequestFromHost);
+    }
 
     chunkManager.updateChunksObjects(*this, dt);
     chunkManager.updateChunksEntities(dt, projectileManager, *this);
@@ -2305,7 +2312,7 @@ void Game::travelToPlanet(PlanetType planetType)
 
     camera.instantUpdate(player.getPosition());
 
-    if (gameState == GameState::OnPlanet)
+    if (gameState == GameState::OnPlanet && (!multiplayerGame || isLobbyHost))
     {
         chunkManager.updateChunks(*this, camera);
     }
@@ -2521,7 +2528,11 @@ void Game::startNewGame(int seed, std::optional<std::string> overridePlanetName)
 
     camera.instantUpdate(player.getPosition());
 
-    chunkManager.updateChunks(*this, camera);
+    // Only generate chunks if solo / lobby host
+    if (!multiplayerGame || isLobbyHost)
+    {
+        chunkManager.updateChunks(*this, camera);
+    }
     lightingTick = LIGHTING_TICK;
 
     worldMenuState = WorldMenuState::Main;
@@ -3351,6 +3362,22 @@ void Game::handleChunkDatasFromHost(const PacketDataChunkDatas& chunkDatas)
         chunkManager.setChunkData(chunkData, *this);
         std::cout << "Received chunk (" << chunkData.chunkPosition.x << ", " << chunkData.chunkPosition.y << ") data from host\n";
     }
+}
+
+void Game::requestChunksFromHost(const std::vector<ChunkPosition>& chunks)
+{
+    if (!multiplayerGame || isLobbyHost)
+    {
+        return;
+    }
+
+    std::cout << "Requesting " << chunks.size() << " chunks from host\n";
+
+    PacketDataChunkRequests packetData;
+    packetData.chunkRequests = chunks;
+    Packet packet;
+    packet.set(packetData);
+    sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
 }
 
 

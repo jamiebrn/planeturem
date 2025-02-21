@@ -279,6 +279,7 @@ private:
     void sendClientMessages();
     EResult sendPacketToHost(const Packet& packet, int nSendFlags, int nRemoteChannel);
     void handleChunkDatasFromHost(const PacketDataChunkDatas& chunkDatas);
+    void requestChunksFromHost(const std::vector<ChunkPosition>& chunks);
 
 
     // -- Window -- //

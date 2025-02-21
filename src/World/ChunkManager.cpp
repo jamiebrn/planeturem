@@ -55,7 +55,7 @@ void ChunkManager::deleteAllChunks()
     chunkLastEntitySpawnTime.clear();
 }
 
-bool ChunkManager::updateChunks(Game& game, const Camera& camera, bool allowGeneration)
+bool ChunkManager::updateChunks(Game& game, const Camera& camera, bool isClient, std::vector<ChunkPosition>* chunksToRequestFromHost)
 {
     // Chunk load/unload
 
@@ -133,10 +133,14 @@ bool ChunkManager::updateChunks(Game& game, const Camera& camera, bool allowGene
                 continue;
             }
 
-            if (allowGeneration)
+            if (!isClient)
             {
                 // Generate new chunk if does not exist
                 generateChunk(chunkPos, game, true, chunkWorldPos);
+            }
+            else if (chunksToRequestFromHost != nullptr)
+            {
+                chunksToRequestFromHost->push_back(chunkPos);
             }
         }
     }
