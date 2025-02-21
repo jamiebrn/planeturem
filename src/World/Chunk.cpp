@@ -828,12 +828,18 @@ int Chunk::getTileType(sf::Vector2i position) const
     return groundTileGrid[position.y][position.x];
 }
 
-void Chunk::setObject(sf::Vector2i position, ObjectType objectType, Game& game, ChunkManager& chunkManager, PathfindingEngine* pathfindingEngine,
+void Chunk::setObject(sf::Vector2i position, std::optional<ObjectType> objectType, Game& game, ChunkManager& chunkManager, PathfindingEngine* pathfindingEngine,
     bool recalculateCollision, bool calledWhileGenerating)
 {
     if (!calledWhileGenerating)
     {
         modified = true;
+    }
+
+    if (!objectType.has_value())
+    {
+        objectGrid[position.y][position.x] = nullptr;
+        return;
     }
 
     // sf::Vector2f worldPosition = static_cast<sf::Vector2f>(chunkPosition) * 8.0f * tileSize;
@@ -842,13 +848,13 @@ void Chunk::setObject(sf::Vector2i position, ObjectType objectType, Game& game, 
     objectPos.y = worldPosition.y + position.y * TILE_SIZE_PIXELS_UNSCALED + TILE_SIZE_PIXELS_UNSCALED / 2.0f;
 
     sf::Vector2i objectSize(1, 1);
-    if (objectType >= 0)
+    if (objectType.value() >= 0)
     {
-        objectSize = ObjectDataLoader::getObjectData(objectType).size;
+        objectSize = ObjectDataLoader::getObjectData(objectType.value()).size;
     }
 
     // Set object in chunk
-    objectGrid[position.y][position.x] = BuildableObjectFactory::create(objectPos, objectType, &game, !calledWhileGenerating);
+    objectGrid[position.y][position.x] = BuildableObjectFactory::create(objectPos, objectType.value(), &game, !calledWhileGenerating);
 
     // Create object reference objects if object is larger than one tile
     if (objectSize != sf::Vector2i(1, 1))

@@ -1744,17 +1744,32 @@ void Game::hitObject(ChunkPosition chunk, sf::Vector2i tile, int damage, bool se
             sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0);
         }
 
-        // Only apply screenshake if this client destroyed object
         if (destroyed)
         {
+            // Only apply screenshake if this client destroyed object
             bool applyScreenShake = true;
-
-            if (multiplayerGame && userId.has_value())
+            
+            if (multiplayerGame)
             {
-                // Hit came from different client / host, do not screenshake
-                if (userId.value() != SteamUser()->GetSteamID().ConvertToUint64())
+                // If host, alert clients of object destruction
+                if (isLobbyHost)
                 {
-                    applyScreenShake = false;
+                    PacketDataObjectDestroyed objectDestroyedPacketData;
+                    objectDestroyedPacketData.objectReference.chunk = chunk;
+                    objectDestroyedPacketData.objectReference.tile = tile;
+                    objectDestroyedPacketData.userId = userId.has_value() ? userId.value() : SteamUser()->GetSteamID().ConvertToUint64(); 
+                    Packet packet;
+                    packet.set(objectDestroyedPacketData);
+                    sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0);
+                }
+                
+                if (userId.has_value())
+                {
+                    // Hit came from different client / host, do not screenshake
+                    if (userId.value() != SteamUser()->GetSteamID().ConvertToUint64())
+                    {
+                        applyScreenShake = false;
+                    }
                 }
             }
 
@@ -3169,6 +3184,12 @@ void Game::receiveMessages()
             packetData.deserialise(packet.data);
             bool sentFromHost = !isLobbyHost;
             buildObject(packetData.objectReference.chunk, packetData.objectReference.tile, packetData.objectType, sentFromHost);
+        }
+        else if (packet.type == PacketType::ObjectDestroyed && !isLobbyHost)
+        {
+            PacketDataObjectDestroyed packetData;
+            packetData.deserialise(packet.data);
+            chunkManager.setObject(packetData.objectReference.chunk, packetData.objectReference.tile, std::nullopt, *this);
         }
         else if (packet.type == PacketType::ItemPickupsCreated && !isLobbyHost)
         {

@@ -91,6 +91,7 @@
 #include "Network/PacketDataPlayerInfo.hpp"
 #include "Network/PacketDataObjectHit.hpp"
 #include "Network/PacketDataObjectBuilt.hpp"
+#include "Network/PacketDataObjectDestroyed.hpp"
 #include "Network/PacketDataItemPickupsCreated.hpp"
 #include "Network/PacketDataItemPickupDeleted.hpp"
 #include "Network/PacketDataInventoryAddItem.hpp"
