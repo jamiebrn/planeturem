@@ -47,4 +47,9 @@ struct Packet
         type = packetData.getType();
         data = packetData.serialise();
     }
+
+    inline int getSize()
+    {
+        return (sizeof(PacketType) + data.size());
+    }
 };

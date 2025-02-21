@@ -1,5 +1,6 @@
 #include "Game.hpp"
 
+// FIX: Collision bugs in multiplayer while client
 // FIX: Lighting sometimes momentarily breaks when crossing world boundary
 
 // TODO: Night and menu music
@@ -3341,15 +3342,27 @@ void Game::handleChunkRequestsFromClient(const PacketDataChunkRequests& chunkReq
     PacketDataChunkDatas packetChunkDatas;
 
     const char* steamName = SteamFriends()->GetFriendPersonaName(client.GetSteamID());
-
+    
+    int minChunkX = 9999999;
+    int minChunkY = 9999999;
+    int maxChunkX = -9999999;
+    int maxChunkY = -9999999;
+    
     for (ChunkPosition chunk : chunkRequests.chunkRequests)
     {
         packetChunkDatas.chunkDatas.push_back(chunkManager.getChunkDataAndGenerate(chunk, *this));
-        std::cout << "Sending chunk (" << chunk.x << ", " << chunk.y << ") data to " << steamName << "\n";
+        minChunkX = std::min((int)chunk.x, minChunkX);
+        minChunkY = std::min((int)chunk.y, minChunkY);
+        maxChunkX = std::max((int)chunk.x, maxChunkX);
+        maxChunkY = std::max((int)chunk.y, maxChunkY);
     }
 
     Packet packet;
     packet.set(packetChunkDatas);
+    
+    std::cout << "Sending " << chunkRequests.chunkRequests.size() << " chunks in range (" << minChunkX << ", " << minChunkY << ") to (" <<
+        maxChunkX << ", " << maxChunkY << ") to " << steamName << " (size: " << packet.getSize() << " bytes)\n";
+
     packet.sendToUser(client, k_nSteamNetworkingSend_Reliable, 0);
 }
 
