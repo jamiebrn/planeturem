@@ -55,7 +55,7 @@ void ChunkManager::deleteAllChunks()
     chunkLastEntitySpawnTime.clear();
 }
 
-bool ChunkManager::updateChunks(Game& game, const Camera& camera)
+bool ChunkManager::updateChunks(Game& game, const Camera& camera, bool allowGeneration)
 {
     // Chunk load/unload
 
@@ -133,8 +133,11 @@ bool ChunkManager::updateChunks(Game& game, const Camera& camera)
                 continue;
             }
 
-            // Generate new chunk if does not exist
-            generateChunk(chunkPos, game, true, chunkWorldPos);
+            if (allowGeneration)
+            {
+                // Generate new chunk if does not exist
+                generateChunk(chunkPos, game, true, chunkWorldPos);
+            }
         }
     }
 
@@ -959,6 +962,61 @@ void ChunkManager::loadFromChunkPODs(const std::vector<ChunkPOD>& pods, Game& ga
     }
 }
 
+// -- Networking --
+
+PacketDataChunkDatas::ChunkData ChunkManager::getChunkDataAndGenerate(ChunkPosition chunk, Game& game)
+{
+    Chunk* chunkPtr = getChunk(chunk);
+    
+    // Not generated - generate before getting chunk data
+    if (!chunkPtr)
+    {
+        chunkPtr = generateChunk(chunk, game, false);
+    }
+
+    ChunkPOD chunkPODNoEntities = chunkPtr->getChunkPOD(false);
+
+    PacketDataChunkDatas::ChunkData chunkData;
+    chunkData.setFromPOD(chunkPODNoEntities);
+
+    // Get item pickups
+    chunkData.itemPickupsRelative = chunkPtr->getItemPickupsMap();
+
+    // Normalise item pickup positions to chunk-relative
+    for (auto& itemPickup : chunkData.itemPickupsRelative)
+    {
+        itemPickup.second.setPosition(itemPickup.second.getPosition() - chunkPtr->getWorldPosition());
+    }
+
+    return chunkData;
+}
+
+void ChunkManager::setChunkData(const PacketDataChunkDatas::ChunkData& chunkData, Game& game)
+{
+    Chunk* chunkPtr = getChunk(chunkData.chunkPosition);
+
+    // Chunk does not exist - create blank chunk
+    if (!chunkPtr)
+    {
+        std::unique_ptr<Chunk> chunk = std::make_unique<Chunk>(chunkData.chunkPosition);
+        storedChunks[chunkData.chunkPosition] = std::move(chunk);
+        chunkPtr = chunk.get();
+    }
+    
+    chunkPtr->loadFromChunkPOD(chunkData.createPOD(), game);
+
+    std::unordered_map<uint64_t, ItemPickup> itemPickups = chunkData.itemPickupsRelative;
+
+    // Normalise item pickup positions to world-relative
+    for (auto& itemPickup : itemPickups)
+    {
+        itemPickup.second.setPosition(itemPickup.second.getPosition() + chunkPtr->getWorldPosition());
+    }
+
+    chunkPtr->overwriteItemPickupsMap(itemPickups);
+}
+
+
 ChunkPosition ChunkManager::findValidSpawnChunk(int waterlessAreaSize)
 {
     // Move all loaded chunks (if any) into stored chunks temporarily
@@ -1124,7 +1182,7 @@ sf::Vector2f ChunkManager::translatePositionAroundWorld(sf::Vector2f position, s
     return position;
 }
 
-void ChunkManager::generateChunk(const ChunkPosition& chunkPosition, Game& game, bool putInLoaded, std::optional<sf::Vector2f> positionOverride)
+Chunk* ChunkManager::generateChunk(const ChunkPosition& chunkPosition, Game& game, bool putInLoaded, std::optional<sf::Vector2f> positionOverride)
 {
     std::unique_ptr<Chunk> chunk = std::make_unique<Chunk>(chunkPosition);
 
@@ -1157,8 +1215,12 @@ void ChunkManager::generateChunk(const ChunkPosition& chunkPosition, Game& game,
 
     resetChunkEntitySpawnCooldown(chunkPosition);
 
+    bool initialiseChunk = putInLoaded;
+
     // Generate
-    chunkPtr->generateChunk(heightNoise, biomeNoise, riverNoise, planetType, game, *this, pathfindingEngine, true, true);
+    chunkPtr->generateChunk(heightNoise, biomeNoise, riverNoise, planetType, game, *this, pathfindingEngine, true, true, initialiseChunk);
+
+    return chunkPtr;
 }
 
 void ChunkManager::clearUnmodifiedStoredChunks()

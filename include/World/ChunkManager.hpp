@@ -30,6 +30,8 @@
 #include "Data/PlanetGenData.hpp"
 #include "Data/PlanetGenDataLoader.hpp"
 
+#include "Network/PacketDataChunkDatas.hpp"
+
 // Forward declaration
 class Game;
 class Chunk;
@@ -53,7 +55,7 @@ public:
 
     // Load/unload chunks every frame
     // Returns true if any chunks loaded / unloaded
-    bool updateChunks(Game& game, const Camera& camera);
+    bool updateChunks(Game& game, const Camera& camera, bool allowGeneration = true);
 
     // Forces a reload of chunks, used when wrapping around world
     void reloadChunks();
@@ -207,6 +209,15 @@ public:
     // Save / load
     std::vector<ChunkPOD> getChunkPODs();
     void loadFromChunkPODs(const std::vector<ChunkPOD>& pods, Game& game);
+
+
+    // -- Networking --
+
+    // Get chunk data to send over network
+    // Generates chunk minimally (as if loaded from POD and out of view) if does not exist
+    PacketDataChunkDatas::ChunkData getChunkDataAndGenerate(ChunkPosition chunk, Game& game);
+
+    void setChunkData(const PacketDataChunkDatas::ChunkData& chunkData, Game& game);
     
 
     // Misc
@@ -245,7 +256,7 @@ public:
 
 private:
     // Generates a chunk and stores it
-    void generateChunk(const ChunkPosition& chunkPosition,
+    Chunk* generateChunk(const ChunkPosition& chunkPosition,
                        Game& game,
                        bool putInLoaded = true,
                        std::optional<sf::Vector2f> positionOverride = std::nullopt);

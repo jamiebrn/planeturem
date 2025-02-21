@@ -70,7 +70,7 @@ public:
 
     // Initialisation / generation
     void generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNoise, const FastNoise& riverNoise, PlanetType planetType, Game& game, ChunkManager& chunkManager,
-        PathfindingEngine& pathfindingEngine, bool allowStructureGen = true, bool spawnEntities = true);
+        PathfindingEngine& pathfindingEngine, bool allowStructureGen = true, bool spawnEntities = true, bool initialise = true);
 
     // Tiles meaning tile grid, not tilemaps
     // Returns random int generator to continue to be used in generation
@@ -165,6 +165,9 @@ public:
 
     std::vector<WorldObject*> getItemPickups();
 
+    void overwriteItemPickupsMap(const std::unordered_map<uint64_t, ItemPickup>& itemPickups);
+    const std::unordered_map<uint64_t, ItemPickup>& getItemPickupsMap();
+
 
     // -- Collision -- //
     // Calculate all collision rects (should be called after modifying terrain/objects etc)
@@ -200,7 +203,7 @@ public:
 
 
     // Save / load
-    ChunkPOD getChunkPOD();
+    ChunkPOD getChunkPOD(bool includeEntities = true);
     void loadFromChunkPOD(const ChunkPOD& pod, Game& game);
     bool wasGeneratedFromPOD();
     

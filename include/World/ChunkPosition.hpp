@@ -3,6 +3,8 @@
 #include <memory>
 #include <cstdint>
 
+#include <extlib/cereal/archives/binary.hpp>
+
 struct ChunkPosition
 {
     int16_t x, y;
@@ -31,6 +33,12 @@ struct ChunkPosition
     inline int hash()
     {
         return (x * xPrime) ^ (y * yPrime);
+    }
+
+    template <class Archive>
+    void serialize(Archive& ar)
+    {
+        ar(x, y);
     }
 };
 

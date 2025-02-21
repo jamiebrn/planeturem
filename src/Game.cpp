@@ -1072,7 +1072,10 @@ void Game::updateOnPlanet(float dt)
     }
 
     // Update (loaded) chunks
-    bool modifiedChunks = chunkManager.updateChunks(*this, camera);
+    // Enable / disable chunk generation depending on multiplayer state
+    bool allowChunkGeneration = (!multiplayerGame || isLobbyHost);
+    bool modifiedChunks = chunkManager.updateChunks(*this, camera, allowChunkGeneration);
+
     chunkManager.updateChunksObjects(*this, dt);
     chunkManager.updateChunksEntities(dt, projectileManager, *this);
 
@@ -3204,6 +3207,18 @@ void Game::receiveMessages()
             packetData.deserialise(packet.data);
             inventory.addItem(packetData.itemType, packetData.amount, true);
         }
+        else if (packet.type == PacketType::ChunkRequests && isLobbyHost)
+        {
+            PacketDataChunkRequests packetData;
+            packetData.deserialise(packet.data);
+            handleChunkRequestsFromClient(packetData, messages[i]->m_identityPeer);
+        }
+        else if (packet.type == PacketType::ChunkDatas && !isLobbyHost)
+        {
+            PacketDataChunkDatas packetData;
+            packetData.deserialise(packet.data);
+            handleChunkDatasFromHost(packetData);
+        }
 
         messages[i]->Release();
     }
@@ -3273,6 +3288,28 @@ EResult Game::sendPacketToClients(const Packet& packet, int nSendFlags, int nRem
     return result;
 }
 
+void Game::handleChunkRequestsFromClient(const PacketDataChunkRequests& chunkRequests, const SteamNetworkingIdentity& client)
+{
+    if (!isLobbyHost)
+    {
+        return;
+    }
+
+    PacketDataChunkDatas packetChunkDatas;
+
+    const char* steamName = SteamFriends()->GetFriendPersonaName(client.GetSteamID());
+
+    for (ChunkPosition chunk : chunkRequests.chunkRequests)
+    {
+        packetChunkDatas.chunkDatas.push_back(chunkManager.getChunkDataAndGenerate(chunk, *this));
+        std::cout << "Sending chunk (" << chunk.x << ", " << chunk.y << ") data to " << steamName << "\n";
+    }
+
+    Packet packet;
+    packet.set(packetChunkDatas);
+    packet.sendToUser(client, k_nSteamNetworkingSend_Reliable, 0);
+}
+
 void Game::sendClientMessages()
 {
     if (isLobbyHost)
@@ -3300,6 +3337,20 @@ EResult Game::sendPacketToHost(const Packet& packet, int nSendFlags, int nRemote
     hostIdentity.SetSteamID64(lobbyHost);
 
     return packet.sendToUser(hostIdentity, nSendFlags, nRemoteChannel);
+}
+
+void Game::handleChunkDatasFromHost(const PacketDataChunkDatas& chunkDatas)
+{
+    if (isLobbyHost)
+    {
+        return;
+    }
+
+    for (const auto& chunkData : chunkDatas.chunkDatas)
+    {
+        chunkManager.setChunkData(chunkData, *this);
+        std::cout << "Received chunk (" << chunkData.chunkPosition.x << ", " << chunkData.chunkPosition.y << ") data from host\n";
+    }
 }
 
 

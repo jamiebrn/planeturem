@@ -94,6 +94,8 @@
 #include "Network/PacketDataItemPickupsCreated.hpp"
 #include "Network/PacketDataItemPickupDeleted.hpp"
 #include "Network/PacketDataInventoryAddItem.hpp"
+#include "Network/PacketDataChunkDatas.hpp"
+#include "Network/PacketDataChunkRequests.hpp"
 
 #include "IO/GameSaveIO.hpp"
 
@@ -272,9 +274,11 @@ private:
     void receiveMessages();
     void sendHostMessages();
     EResult sendPacketToClients(const Packet& packet, int nSendFlags, int nRemoteChannel);
+    void handleChunkRequestsFromClient(const PacketDataChunkRequests& chunkRequests, const SteamNetworkingIdentity& client);
     
     void sendClientMessages();
     EResult sendPacketToHost(const Packet& packet, int nSendFlags, int nRemoteChannel);
+    void handleChunkDatasFromHost(const PacketDataChunkDatas& chunkDatas);
 
 
     // -- Window -- //

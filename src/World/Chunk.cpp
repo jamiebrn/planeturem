@@ -46,13 +46,20 @@ void Chunk::reset(bool fullReset)
 }
 
 void Chunk::generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNoise, const FastNoise& riverNoise, PlanetType planetType, Game& game, ChunkManager& chunkManager,
-    PathfindingEngine& pathfindingEngine, bool allowStructureGen, bool spawnEntities)
+    PathfindingEngine& pathfindingEngine, bool allowStructureGen, bool spawnEntities, bool initialise)
 {
     RandInt randGen = generateTilesAndStructure(heightNoise, biomeNoise, riverNoise, planetType, chunkManager, allowStructureGen);
 
     generateObjectsAndEntities(heightNoise, biomeNoise, riverNoise, planetType, randGen, game, chunkManager, spawnEntities);
 
-    generateTilemapsAndInit(chunkManager, pathfindingEngine);
+    if (initialise)
+    {
+        generateTilemapsAndInit(chunkManager, pathfindingEngine);
+    }
+    else
+    {
+        generatedFromPOD = true;
+    }
 }
 
 RandInt Chunk::generateTilesAndStructure(const FastNoise& heightNoise, const FastNoise& biomeNoise, const FastNoise& riverNoise, PlanetType planetType,
@@ -1095,6 +1102,16 @@ std::vector<WorldObject*> Chunk::getItemPickups()
     return itemPickupWorldObjects;
 }
 
+void Chunk::overwriteItemPickupsMap(const std::unordered_map<uint64_t, ItemPickup>& itemPickups)
+{
+    this->itemPickups = itemPickups;
+}
+
+const std::unordered_map<uint64_t, ItemPickup>& Chunk::getItemPickupsMap()
+{
+    return itemPickups;
+}
+
 void Chunk::recalculateCollisionRects(ChunkManager& chunkManager, PathfindingEngine* pathfindingEngine)
 {
     auto createCollisionRect = [this](std::vector<CollisionRect>& rects, int x, int y) -> void
@@ -1316,7 +1333,7 @@ bool Chunk::hasStructure()
     return (structureObject.has_value());
 }
 
-ChunkPOD Chunk::getChunkPOD()
+ChunkPOD Chunk::getChunkPOD(bool includeEntities)
 {
     ChunkPOD pod;
     pod.chunkPosition = chunkPosition;
@@ -1338,9 +1355,12 @@ ChunkPOD Chunk::getChunkPOD()
         }
     }
 
-    for (auto& entity : entities)
+    if (includeEntities)
     {
-        pod.entities.push_back(entity->getPOD(worldPosition));
+        for (auto& entity : entities)
+        {
+            pod.entities.push_back(entity->getPOD(worldPosition));
+        }
     }
 
     if (structureObject.has_value())
