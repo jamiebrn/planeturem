@@ -3384,7 +3384,7 @@ void Game::requestChunksFromHost(std::vector<ChunkPosition>& chunks)
         return;
     }
 
-    for (auto iter = chunks.begin(); iter != chunks.end(); iter++)
+    for (auto iter = chunks.begin(); iter != chunks.end();)
     {
         if (!chunkRequestsOutstanding.contains(*iter))
         {
