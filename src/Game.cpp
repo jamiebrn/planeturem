@@ -1,5 +1,7 @@
 #include "Game.hpp"
 
+// FIX: Lighting sometimes momentarily breaks when crossing world boundary
+
 // TODO: Night and menu music
 
 // PRIORITY: LOW
@@ -1073,10 +1075,10 @@ void Game::updateOnPlanet(float dt)
 
     // Update (loaded) chunks
     // Enable / disable chunk generation depending on multiplayer state
-    bool allowChunkGeneration = (!multiplayerGame || isLobbyHost);
+    bool isClient = (multiplayerGame && !isLobbyHost);
     std::vector<ChunkPosition> chunksToRequestFromHost;
 
-    bool modifiedChunks = chunkManager.updateChunks(*this, camera, allowChunkGeneration, &chunksToRequestFromHost);
+    bool modifiedChunks = chunkManager.updateChunks(*this, camera, isClient, &chunksToRequestFromHost);
 
     if (multiplayerGame && !isLobbyHost && chunksToRequestFromHost.size() > 0)
     {
