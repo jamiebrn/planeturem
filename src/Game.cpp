@@ -3454,6 +3454,12 @@ void Game::handleChunkDatasFromHost(const PacketDataChunkDatas& chunkDatas)
     for (const auto& chunkData : chunkDatas.chunkDatas)
     {
         chunkManager.setChunkData(chunkData, *this);
+        
+        if (chunkRequestsOutstanding.contains(chunkData.chunkPosition))
+        {
+            chunkRequestsOutstanding.erase(chunkData.chunkPosition);    
+        }
+
         std::cout << "Received chunk (" << chunkData.chunkPosition.x << ", " << chunkData.chunkPosition.y << ") data from host\n";
     }
 }
