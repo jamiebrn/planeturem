@@ -542,7 +542,7 @@ const BiomeGenData* ChunkManager::getChunkBiome(ChunkPosition chunk)
     return biomeGenData;
 }
 
-void ChunkManager::setObject(ChunkPosition chunk, sf::Vector2i tile, std::optional<ObjectType> objectType, Game& game)
+void ChunkManager::setObject(ChunkPosition chunk, sf::Vector2i tile, ObjectType objectType, Game& game)
 {
     Chunk* chunkPtr = getChunk(chunk);
     // Chunk does not exist

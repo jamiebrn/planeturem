@@ -128,7 +128,7 @@ public:
     BuildableObject* getObject(sf::Vector2i position);
 
     // Sets object (and object references if size > (1, 1), across chunks)
-    void setObject(sf::Vector2i position, std::optional<ObjectType> objectType, Game& game, ChunkManager& chunkManager, PathfindingEngine* pathfindingEngine,
+    void setObject(sf::Vector2i position, ObjectType objectType, Game& game, ChunkManager& chunkManager, PathfindingEngine* pathfindingEngine,
         bool recalculateCollision = true, bool calledWhileGenerating = false);
 
     // Deletes object (including object references if size > (1, 1), across chunks)

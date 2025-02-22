@@ -1,6 +1,5 @@
 #include "Game.hpp"
 
-// FIX: Collision bugs in multiplayer while client
 // FIX: Lighting sometimes momentarily breaks when crossing world boundary
 
 // TODO: Night and menu music
@@ -1819,21 +1818,35 @@ void Game::buildObject(ChunkPosition chunk, sf::Vector2i tile, ObjectType object
         sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0);
     }
 
-    // Play build sound
-    int soundChance = rand() % 2;
-    SoundType buildSound = SoundType::CraftBuild1;
-    if (soundChance == 1) buildSound = SoundType::CraftBuild2;
-
-    Sounds::playSound(buildSound, 60.0f);
+    // If sent from host and client does not have chunk, request it
+    if (multiplayerGame && !isLobbyHost && sentFromHost)
+    {
+        Chunk* chunkPtr = chunkManager.getChunk(chunk);
+        if (!chunkPtr)
+        {
+            std::vector<ChunkPosition> requestedChunks = {chunk};
+            requestChunksFromHost(requestedChunks);
+            return;
+        }
+    }
 
     // Build object
     chunkManager.setObject(chunk, tile, objectType, *this);
-
+    
     // Create build particles
     BuildableObject* placedObject = chunkManager.getChunkObject(chunk, tile);
     if (placedObject)
     {
         placedObject->createHitParticles(particleSystem);
+    }
+    
+    // Play build sound if object in view
+    if (camera.isInView(placedObject->getPosition()))
+    {
+        int soundChance = rand() % 2;
+        SoundType buildSound = SoundType::CraftBuild1;
+        if (soundChance == 1) buildSound = SoundType::CraftBuild2;
+        Sounds::playSound(buildSound, 60.0f);
     }
 }
 
@@ -3155,14 +3168,11 @@ void Game::receiveMessages()
         {
             PacketDataWorldInfo worldInfo;
             worldInfo.deserialise(packet.data);
-            float timeBefore = worldInfo.gameTime;
             worldInfo.applyPingEstimate();
 
             gameTime = worldInfo.gameTime;
             dayCycleManager.setCurrentDay(worldInfo.day);
             dayCycleManager.setCurrentTime(worldInfo.time);
-
-            std::cout << "Corrected packet by " << worldInfo.gameTime - timeBefore << "s\n";
         }
         else if (packet.type == PacketType::PlayerInfo)
         {
@@ -3207,7 +3217,7 @@ void Game::receiveMessages()
         {
             PacketDataObjectDestroyed packetData;
             packetData.deserialise(packet.data);
-            chunkManager.setObject(packetData.objectReference.chunk, packetData.objectReference.tile, std::nullopt, *this);
+            chunkManager.deleteObject(packetData.objectReference.chunk, packetData.objectReference.tile);
         }
         else if (packet.type == PacketType::ItemPickupsCreated && !isLobbyHost)
         {
@@ -3869,16 +3879,19 @@ void Game::drawDebugMenu(float dt)
 
     ImGui::Spacing();
 
-    ImGui::Text("Save / Load");
-
-    if (ImGui::Button("Save"))
+    if (!multiplayerGame || isLobbyHost)
     {
-        saveGame();
-    }
-
-    if (ImGui::Button("Load"))
-    {
-        loadGame(currentSaveFileSummary);
+        ImGui::Text("Save / Load");
+    
+        if (ImGui::Button("Save"))
+        {
+            saveGame();
+        }
+    
+        if (ImGui::Button("Load"))
+        {
+            loadGame(currentSaveFileSummary);
+        }
     }
 
     ImGui::Spacing();
@@ -3886,9 +3899,16 @@ void Game::drawDebugMenu(float dt)
     ImGui::Checkbox("Smooth Lighting", &smoothLighting);
 
     float time = dayCycleManager.getCurrentTime();
-    if (ImGui::SliderFloat("Day time", &time, 0.0f, dayCycleManager.getDayLength()))
+    if (!multiplayerGame || isLobbyHost)
     {
-        dayCycleManager.setCurrentTime(time);
+        if (ImGui::SliderFloat("Day time", &time, 0.0f, dayCycleManager.getDayLength()))
+        {
+            dayCycleManager.setCurrentTime(time);
+        }
+    }
+    else
+    {
+        ImGui::Text(("Day time: " + std::to_string(time)).c_str());
     }
 
     ImGui::Text(("Light level: " + std::to_string(dayCycleManager.getLightLevel())).c_str());

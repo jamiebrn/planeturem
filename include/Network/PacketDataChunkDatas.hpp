@@ -31,12 +31,14 @@ struct PacketDataChunkDatas : public IPacketData
     
         std::optional<StructureObjectPOD> structureObject;
 
+        bool modified;
+
         std::unordered_map<uint64_t, ItemPickup> itemPickupsRelative;
 
         template <class Archive>
         void serialize(Archive& ar)
         {
-            ar(chunkPosition.x, chunkPosition.y, groundTileGrid, objectGrid, structureObject, itemPickupsRelative);
+            ar(chunkPosition.x, chunkPosition.y, groundTileGrid, objectGrid, structureObject, modified, itemPickupsRelative);
         }
 
         void setFromPOD(const ChunkPOD& pod)
@@ -45,6 +47,7 @@ struct PacketDataChunkDatas : public IPacketData
             groundTileGrid = pod.groundTileGrid;
             objectGrid = pod.objectGrid;
             structureObject = pod.structureObject;
+            modified = pod.modified;
         }
 
         ChunkPOD createPOD() const
@@ -54,6 +57,7 @@ struct PacketDataChunkDatas : public IPacketData
             pod.groundTileGrid = groundTileGrid;
             pod.objectGrid = objectGrid;
             pod.structureObject = structureObject;
+            pod.modified = modified;
             return pod;
         }
     };

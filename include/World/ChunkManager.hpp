@@ -124,7 +124,7 @@ public:
 
     // Sets object in chunk at tile
     // Places object references if required
-    void setObject(ChunkPosition chunk, sf::Vector2i tile, std::optional<ObjectType> objectType, Game& game);
+    void setObject(ChunkPosition chunk, sf::Vector2i tile, ObjectType objectType, Game& game);
 
     // Deletes object in chunk at tile
     // Deletes object references if required
