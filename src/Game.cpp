@@ -3358,7 +3358,7 @@ void Game::handleChunkRequestsFromClient(const PacketDataChunkRequests& chunkReq
     }
 
     Packet packet;
-    packet.set(packetChunkDatas);
+    packet.set(packetChunkDatas, true);
 
     float compressionRatio = static_cast<float>(packet.getSize()) / static_cast<float>(packet.getUncompressedSize());
     

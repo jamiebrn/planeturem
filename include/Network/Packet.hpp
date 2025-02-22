@@ -83,6 +83,7 @@ struct Packet
 
             if (compressedSize < uncompressedSize)
             {
+                compressedData.resize(compressedSize);
                 data = compressedData;
             }
             else
