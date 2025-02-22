@@ -84,6 +84,7 @@ bool Game::initialise()
     if (steamInitialised)
     {
         SteamUserStats()->RequestCurrentStats();
+        SteamNetworkingUtils()->InitRelayNetworkAccess();
     }
 
     // Randomise
@@ -731,13 +732,16 @@ void Game::runInGame(float dt)
     //
     // -- NETWORKING --
     //
-    if (isLobbyHost)
+    if (multiplayerGame)
     {
-        sendHostMessages();
-    }
-    else
-    {
-        sendClientMessages();
+        if (isLobbyHost)
+        {
+            sendHostMessages();
+        }
+        else
+        {
+            sendClientMessages();
+        }
     }
 
     //
@@ -3147,6 +3151,19 @@ void Game::receiveMessages()
         {
             quitWorld();
         }
+        else if (packet.type == PacketType::WorldInfo && !isLobbyHost)
+        {
+            PacketDataWorldInfo worldInfo;
+            worldInfo.deserialise(packet.data);
+            float timeBefore = worldInfo.gameTime;
+            worldInfo.applyPingEstimate();
+
+            gameTime = worldInfo.gameTime;
+            dayCycleManager.setCurrentDay(worldInfo.day);
+            dayCycleManager.setCurrentTime(worldInfo.time);
+
+            std::cout << "Corrected packet by " << worldInfo.gameTime - timeBefore << "s\n";
+        }
         else if (packet.type == PacketType::PlayerInfo)
         {
             if (isLobbyHost)
@@ -3277,6 +3294,22 @@ void Game::sendHostMessages()
 
     uint64_t steamID = SteamUser()->GetSteamID().ConvertToUint64();
 
+    // Send world info
+    PacketDataWorldInfo worldInfoData;
+    worldInfoData.gameTime = gameTime;
+    worldInfoData.day = dayCycleManager.getCurrentDay();
+    worldInfoData.time = dayCycleManager.getCurrentTime();
+    worldInfoData.setHostPingLocation();
+    Packet worldInfoPacket;
+    worldInfoPacket.set(worldInfoData);
+
+    for (auto& client : networkPlayers)
+    {
+        SteamNetworkingIdentity clientIdentity;
+        clientIdentity.SetSteamID64(client.first);
+        worldInfoPacket.sendToUser(clientIdentity, k_nSteamNetworkingSend_Unreliable, 0);
+    }
+
     std::unordered_map<uint64_t, Packet> playerInfoPackets;
     playerInfoPackets[steamID] = Packet();
     playerInfoPackets[steamID].set(player.getNetworkPlayerInfo(steamID));
@@ -3287,7 +3320,8 @@ void Game::sendHostMessages()
         playerInfoPackets[iter->first] = Packet();
         playerInfoPackets[iter->first].set(iter->second.getNetworkPlayerInfo(iter->first));
     }
-    
+
+    // Send player info
     for (auto iter = networkPlayers.begin(); iter != networkPlayers.end(); iter++)
     {
         SteamNetworkingIdentity identity;
@@ -3360,7 +3394,7 @@ void Game::handleChunkRequestsFromClient(const PacketDataChunkRequests& chunkReq
     Packet packet;
     packet.set(packetChunkDatas, true);
 
-    float compressionRatio = static_cast<float>(packet.getSize()) / static_cast<float>(packet.getUncompressedSize());
+    float compressionRatio = static_cast<float>(packet.getUncompressedSize()) / static_cast<float>(packet.getSize());
     
     std::cout << "Sending " << chunkRequests.chunkRequests.size() << " chunks in range (" << minChunkX << ", " << minChunkY << ") to (" <<
         maxChunkX << ", " << maxChunkY << ") to " << steamName << " (size: " << packet.getSize() << " bytes, uncompressed: " <<

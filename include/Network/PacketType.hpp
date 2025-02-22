@@ -11,6 +11,7 @@ enum class PacketType : uint8_t
     HostQuit,
 
     PlayerInfo,
+    WorldInfo,
 
     ObjectHit,
     ObjectBuilt,

@@ -89,6 +89,7 @@
 #include "Network/IPacketData.hpp"
 #include "Network/PacketDataJoinInfo.hpp"
 #include "Network/PacketDataPlayerInfo.hpp"
+#include "Network/PacketDataWorldInfo.hpp"
 #include "Network/PacketDataObjectHit.hpp"
 #include "Network/PacketDataObjectBuilt.hpp"
 #include "Network/PacketDataObjectDestroyed.hpp"
