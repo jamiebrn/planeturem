@@ -3438,6 +3438,12 @@ void Game::requestChunksFromHost(std::vector<ChunkPosition>& chunks)
 
         iter++;
     }
+
+    // Do not request 0 chunks
+    if (chunks.size() <= 0)
+    {
+        return;
+    }
     
     std::cout << "Requesting " << chunks.size() << " chunks from host\n";
 
