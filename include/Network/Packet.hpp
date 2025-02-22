@@ -18,7 +18,7 @@ struct Packet
 
     inline std::vector<char> serialise() const
     {
-        int size = sizeof(type) + sizeof(compressed) + sizeof(uncompressedSize) + data.size();
+        int size = sizeof(type) + sizeof(compressed) + sizeof(uncompressedSize) + data.size() + 1;
         std::vector<char> serialisedData(size);
 
         memcpy(serialisedData.data(), &type, sizeof(type));
@@ -94,7 +94,7 @@ struct Packet
 
     inline int getSize()
     {
-        return (sizeof(type) + sizeof(compressed) + sizeof(uncompressedSize) + data.size());
+        return (sizeof(type) + sizeof(compressed) + sizeof(uncompressedSize) + data.size() + 1);
     }
 
     inline int getUncompressedSize()
@@ -103,6 +103,6 @@ struct Packet
         {
             return getSize();
         }
-        return (sizeof(type) + sizeof(compressed) + sizeof(uncompressedSize) + uncompressedSize);
+        return (sizeof(type) + sizeof(compressed) + sizeof(uncompressedSize) + uncompressedSize + 1);
     }
 };
