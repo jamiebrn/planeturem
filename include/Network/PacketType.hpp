@@ -1,6 +1,6 @@
 #pragma once
 
-enum class PacketType
+enum class PacketType : uint8_t
 {
     JoinQuery,
     JoinReply,

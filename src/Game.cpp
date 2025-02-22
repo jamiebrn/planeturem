@@ -3359,9 +3359,12 @@ void Game::handleChunkRequestsFromClient(const PacketDataChunkRequests& chunkReq
 
     Packet packet;
     packet.set(packetChunkDatas);
+
+    float compressionRatio = static_cast<float>(packet.getSize()) / static_cast<float>(packet.getUncompressedSize());
     
     std::cout << "Sending " << chunkRequests.chunkRequests.size() << " chunks in range (" << minChunkX << ", " << minChunkY << ") to (" <<
-        maxChunkX << ", " << maxChunkY << ") to " << steamName << " (size: " << packet.getSize() << " bytes)\n";
+        maxChunkX << ", " << maxChunkY << ") to " << steamName << " (size: " << packet.getSize() << " bytes, uncompressed: " <<
+        packet.getUncompressedSize() << " bytes, ratio: " << compressionRatio << ")\n";
 
     packet.sendToUser(client, k_nSteamNetworkingSend_Reliable, 0);
 }
