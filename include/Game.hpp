@@ -367,7 +367,7 @@ private:
     uint64_t lobbyHost;
     CCallResult<Game, LobbyCreated_t> m_SteamCallResultCreateLobby;
     std::unordered_map<uint64_t, Player> networkPlayers;
-    static constexpr float CHUNK_REQUEST_OUTSTANDING_MAX_TIME = 5.0f;
+    static constexpr float CHUNK_REQUEST_OUTSTANDING_MAX_TIME = 2.0f;
     std::unordered_map<ChunkPosition, float> chunkRequestsOutstanding;
 
     std::array<sf::Texture, 2> waterNoiseTextures;

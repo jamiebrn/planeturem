@@ -1127,10 +1127,10 @@ void Game::updateOnPlanet(float dt)
             if (amountAdded > 0)
             {
                 // Only delete pickup if playing solo or is host
-                if (!multiplayerGame || isLobbyHost)
-                {
-                    chunkManager.deleteItemPickup(itemPickupColliding.value());
-                }
+                // if (!multiplayerGame || isLobbyHost)
+                // {
+                chunkManager.deleteItemPickup(itemPickupColliding.value());
+                // }
     
                 // Play pickup sound
                 const std::vector<SoundType> pickupSounds = {SoundType::Pop0, SoundType::Pop1, SoundType::Pop2, SoundType::Pop3};
