@@ -2971,7 +2971,7 @@ void Game::joinWorld(const PacketDataJoinInfo& joinInfo)
     chunkManager.setSeed(joinInfo.seed);
     chunkManager.setPlanetType(PlanetGenDataLoader::getPlanetTypeFromName(joinInfo.planetName));
 
-    chestDataPool = ChestDataPool();
+    chestDataPool = joinInfo.chestDataPool;
     structureRoomPool = RoomPool();
     landmarkManager = LandmarkManager();
     particleSystem.clear();
