@@ -409,7 +409,8 @@ bool MainMenuGUI::createOptionsMenu(sf::RenderTarget& window, int startElementYP
     return false;
 }
 
-std::optional<PauseMenuEventType> MainMenuGUI::createAndDrawPauseMenu(sf::RenderTarget& window, float dt, float gameTime)
+std::optional<PauseMenuEventType> MainMenuGUI::createAndDrawPauseMenu(sf::RenderTarget& window, float dt, float gameTime, bool steamInitialised,
+    std::optional<uint64_t> lobbyId)
 {
     float intScale = ResolutionHandler::getResolutionIntegerScale();
     sf::Vector2f resolution = static_cast<sf::Vector2f>(ResolutionHandler::getResolution());
@@ -444,6 +445,30 @@ std::optional<PauseMenuEventType> MainMenuGUI::createAndDrawPauseMenu(sf::Render
             }
 
             elementYPos += 100 * intScale;
+
+            if (steamInitialised)
+            {
+                if (lobbyId.has_value())
+                {
+                    if (guiContext.createButton(scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale, 24 * intScale, "Invite Friends", buttonStyle)
+                        .isClicked())
+                    {
+                        SteamFriends()->ActivateGameOverlayInviteDialog(lobbyId.value());
+                        resetHoverRect();
+                    }
+                }
+                else
+                {
+                    if (guiContext.createButton(scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale, 24 * intScale, "Start Multiplayer", buttonStyle)
+                        .isClicked())
+                    {
+                        menuEvent = PauseMenuEventType::StartMultiplayer;
+                        resetHoverRect();
+                    }
+                }
+
+                elementYPos += 100 * intScale;
+            }
             
             if (guiContext.createButton(scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale, 24 * intScale, "Options", buttonStyle).isClicked())
             {

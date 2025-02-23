@@ -3,6 +3,7 @@
 #include <string>
 #include <optional>
 
+#include <extlib/steam/steam_api.h>
 #include <SFML/Graphics.hpp>
 
 #include "Core/TextureManager.hpp"
@@ -49,6 +50,7 @@ enum class PauseMenuState
 enum class PauseMenuEventType
 {
     Resume,
+    StartMultiplayer,
     SaveOptions,
     Quit
 };
@@ -70,7 +72,7 @@ public:
 
     std::optional<MainMenuEvent> createAndDraw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, float dt, float gameTime);
 
-    std::optional<PauseMenuEventType> createAndDrawPauseMenu(sf::RenderTarget& window, float dt, float gameTime);
+    std::optional<PauseMenuEventType> createAndDrawPauseMenu(sf::RenderTarget& window, float dt, float gameTime, bool steamInitialised, std::optional<uint64_t> lobbyId);
 
     void setCanInteract(bool value);
 

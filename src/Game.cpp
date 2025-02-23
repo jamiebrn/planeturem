@@ -399,10 +399,10 @@ void Game::runMainMenu(float dt)
 
                 currentSaveFileSummary = menuEvent->saveFileSummary;
                 startNewGame(menuEvent->worldSeed);
-                if (steamInitialised)
-                {
-                    createLobby();
-                }
+                // if (steamInitialised)
+                // {
+                //     createLobby();
+                // }
                 break;
             }
             case MainMenuEventType::Load:
@@ -415,10 +415,10 @@ void Game::runMainMenu(float dt)
                 if (loadGame(menuEvent->saveFileSummary))
                 {
                     mainMenuGUI.setCanInteract(false);
-                    if (steamInitialised)
-                    {
-                        createLobby();
-                    }
+                    // if (steamInitialised)
+                    // {
+                    //     createLobby();
+                    // }
                 }
 
                 currentSaveFileSummary = menuEvent->saveFileSummary;
@@ -1002,7 +1002,12 @@ void Game::runInGame(float dt)
 
     if (worldMenuState == WorldMenuState::PauseMenu)
     {
-        std::optional<PauseMenuEventType> pauseMenuEvent = mainMenuGUI.createAndDrawPauseMenu(window, dt, gameTime);
+        std::optional<uint64_t> lobbyId;
+        if (multiplayerGame)
+        {
+            lobbyId = steamLobbyId;
+        }
+        std::optional<PauseMenuEventType> pauseMenuEvent = mainMenuGUI.createAndDrawPauseMenu(window, dt, gameTime, steamInitialised, lobbyId);
 
         if (pauseMenuEvent.has_value())
         {
@@ -1011,6 +1016,11 @@ void Game::runInGame(float dt)
                 case PauseMenuEventType::Resume:
                 {
                     worldMenuState = WorldMenuState::Main;
+                    break;
+                }
+                case PauseMenuEventType::StartMultiplayer:
+                {
+                    createLobby();
                     break;
                 }
                 case PauseMenuEventType::SaveOptions:
@@ -2538,6 +2548,9 @@ void Game::overrideState(GameState newState)
 void Game::startNewGame(int seed, std::optional<std::string> overridePlanetName)
 {
     // setWorldSeedFromInput();
+    networkPlayers.clear();
+    multiplayerGame = false;
+    lobbyHost = false;
 
     player = Player(sf::Vector2f(0, 0));
     inventory = InventoryData(32);
@@ -2679,6 +2692,10 @@ bool Game::loadGame(const SaveFileSummary& saveFileSummary)
         std::cout << "Failed to load player " + saveFileSummary.name + "\n";
         return false;
     }
+
+    networkPlayers.clear();
+    multiplayerGame = false;
+    lobbyHost = false;
 
     player = Player(sf::Vector2f(0, 0), playerGameSave.maxHealth);
 
@@ -3885,17 +3902,17 @@ void Game::drawDebugMenu(float dt)
 
     if (!multiplayerGame || isLobbyHost)
     {
-        ImGui::Text("Save / Load");
+        // ImGui::Text("Save / Load");
     
         if (ImGui::Button("Save"))
         {
             saveGame();
         }
     
-        if (ImGui::Button("Load"))
-        {
-            loadGame(currentSaveFileSummary);
-        }
+        // if (ImGui::Button("Load"))
+        // {
+        //     loadGame(currentSaveFileSummary);
+        // }
     }
 
     ImGui::Spacing();
