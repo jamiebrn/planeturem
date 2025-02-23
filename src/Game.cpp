@@ -2545,12 +2545,15 @@ void Game::overrideState(GameState newState)
 
 // -- Save / load -- //
 
-void Game::startNewGame(int seed, std::optional<std::string> overridePlanetName)
+void Game::startNewGame(int seed, std::optional<std::string> overridePlanetName, bool joiningMultiplayer)
 {
     // setWorldSeedFromInput();
-    networkPlayers.clear();
-    multiplayerGame = false;
-    lobbyHost = false;
+    if (!joiningMultiplayer)
+    {
+        networkPlayers.clear();
+        multiplayerGame = false;
+        lobbyHost = false;
+    }
 
     player = Player(sf::Vector2f(0, 0));
     inventory = InventoryData(32);
@@ -2579,8 +2582,7 @@ void Game::startNewGame(int seed, std::optional<std::string> overridePlanetName)
 
     camera.instantUpdate(player.getPosition());
 
-    // Only generate chunks if solo / lobby host
-    if (!multiplayerGame || isLobbyHost)
+    if (!joiningMultiplayer)
     {
         chunkManager.updateChunks(*this, camera);
     }
@@ -2963,7 +2965,7 @@ void Game::leaveLobby()
 
 void Game::joinWorld(const PacketDataJoinInfo& joinInfo)
 {
-    startNewGame(joinInfo.seed, joinInfo.planetName);
+    startNewGame(joinInfo.seed, joinInfo.planetName, true);
 
     dayCycleManager.setCurrentTime(joinInfo.time);
     dayCycleManager.setCurrentDay(joinInfo.day);
@@ -3150,20 +3152,21 @@ void Game::receiveMessages()
             PacketDataJoinInfo packetData;
             packetData.deserialise(packet.data);
 
-            // Load into world
-            joinWorld(packetData);
-
             // Set lobby host
             lobbyHost = messages[i]->m_identityPeer.GetSteamID64();
             isLobbyHost = false;
-
-            multiplayerGame = true;
             
+            multiplayerGame = true;
+
+            networkPlayers.clear();
             for (uint64_t player : packetData.currentPlayers)
             {
                 registerNetworkPlayer(player, false);
                 std::cout << "Registered existing player " << SteamFriends()->GetFriendPersonaName(CSteamID(player)) << "\n";
             }
+
+            // Load into world
+            joinWorld(packetData);
         }
         else if (packet.type == PacketType::PlayerJoined && !isLobbyHost)
         {
