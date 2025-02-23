@@ -2545,15 +2545,12 @@ void Game::overrideState(GameState newState)
 
 // -- Save / load -- //
 
-void Game::startNewGame(int seed, std::optional<std::string> overridePlanetName, bool joiningMultiplayer)
+void Game::startNewGame(int seed)
 {
     // setWorldSeedFromInput();
-    if (!joiningMultiplayer)
-    {
-        networkPlayers.clear();
-        multiplayerGame = false;
-        lobbyHost = false;
-    }
+    networkPlayers.clear();
+    multiplayerGame = false;
+    lobbyHost = false;
 
     player = Player(sf::Vector2f(0, 0));
     inventory = InventoryData(32);
@@ -2563,7 +2560,7 @@ void Game::startNewGame(int seed, std::optional<std::string> overridePlanetName,
 
     chunkManager.setSeed(seed);
 
-    initialiseNewPlanet(PlanetGenDataLoader::getPlanetTypeFromName(overridePlanetName.has_value() ? overridePlanetName.value() : "Earthlike"));
+    initialiseNewPlanet(PlanetGenDataLoader::getPlanetTypeFromName("Earthlike"));
 
     dayCycleManager.setCurrentTime(dayCycleManager.getDayLength() * 0.5f);
     dayCycleManager.setCurrentDay(1);
@@ -2582,10 +2579,7 @@ void Game::startNewGame(int seed, std::optional<std::string> overridePlanetName,
 
     camera.instantUpdate(player.getPosition());
 
-    if (!joiningMultiplayer)
-    {
-        chunkManager.updateChunks(*this, camera);
-    }
+    chunkManager.updateChunks(*this, camera);
     lightingTick = LIGHTING_TICK;
 
     worldMenuState = WorldMenuState::Main;
@@ -2965,7 +2959,22 @@ void Game::leaveLobby()
 
 void Game::joinWorld(const PacketDataJoinInfo& joinInfo)
 {
-    startNewGame(joinInfo.seed, joinInfo.planetName, true);
+    player.setPosition(joinInfo.spawnPosition);
+    camera.instantUpdate(player.getPosition());
+
+    player = Player(sf::Vector2f(0, 0));
+    inventory = InventoryData(32);
+    armourInventory = InventoryData(3);
+    giveStartingInventory();
+    InventoryGUI::reset();
+
+    chunkManager.setSeed(joinInfo.seed);
+    chunkManager.setPlanetType(PlanetGenDataLoader::getPlanetTypeFromName(joinInfo.planetName));
+
+    chestDataPool = ChestDataPool();
+    structureRoomPool = RoomPool();
+    landmarkManager = LandmarkManager();
+    particleSystem.clear();
 
     dayCycleManager.setCurrentTime(joinInfo.time);
     dayCycleManager.setCurrentDay(joinInfo.day);
@@ -2975,7 +2984,13 @@ void Game::joinWorld(const PacketDataJoinInfo& joinInfo)
     weatherSystem = WeatherSystem(gameTime, joinInfo.seed + chunkManager.getPlanetType());
     weatherSystem.presimulateWeather(gameTime, camera, chunkManager);
 
+    lightingTick = LIGHTING_TICK;
+
     chunkRequestsOutstanding.clear();
+
+    worldMenuState = WorldMenuState::Main;
+    musicGap = MUSIC_GAP_MIN;
+    startChangeStateTransition(GameState::OnPlanet);
 }
 
 void Game::callbackLobbyJoinRequested(GameLobbyJoinRequested_t* pCallback)
@@ -3124,6 +3139,11 @@ void Game::receiveMessages()
             packetData.time = dayCycleManager.getCurrentTime();
             packetData.day = dayCycleManager.getCurrentDay();
             packetData.planetName = PlanetGenDataLoader::getPlanetGenData(chunkManager.getPlanetType()).name;
+
+            // Find spawn for player
+            ChunkPosition playerSpawnChunk = chunkManager.findValidSpawnChunk(2);
+            packetData.spawnPosition.x = playerSpawnChunk.x * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED + 0.5f * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
+            packetData.spawnPosition.y = playerSpawnChunk.y * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED + 0.5f * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
             
             packetData.currentPlayers.push_back(SteamUser()->GetSteamID().ConvertToUint64());
             for (auto iter = networkPlayers.begin(); iter != networkPlayers.end(); iter++)

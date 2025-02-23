@@ -249,7 +249,7 @@ private:
 
     // -- Save / load -- //
 
-    void startNewGame(int seed, std::optional<std::string> overridePlanetName = std::nullopt, bool joiningMultiplayer = false);
+    void startNewGame(int seed);
     bool saveGame(bool gettingInRocket = false);
     bool loadGame(const SaveFileSummary& saveFileSummary);
     bool loadPlanet(PlanetType planetType);
