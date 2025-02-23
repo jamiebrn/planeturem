@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 enum class PacketType : uint8_t
 {
     JoinQuery,
@@ -20,6 +22,10 @@ enum class PacketType : uint8_t
     ItemPickupsCreated,
     ItemPickupDeleted,
     InventoryAddItem,
+
+    ObjectInteract,
+    OpenChest,
+    CloseChest,
 
     ChunkDatas,
     ChunkRequests,

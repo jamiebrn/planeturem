@@ -106,4 +106,13 @@ struct Packet
         }
         return (sizeof(type) + sizeof(compressed) + sizeof(uncompressedSize) + uncompressedSize);
     }
+
+    inline float getCompressionRatio()
+    {
+        if (!compressed)
+        {
+            return 1.0f;
+        }
+        return static_cast<float>(getUncompressedSize()) / static_cast<float>(getSize());
+    }
 };

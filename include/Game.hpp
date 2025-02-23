@@ -5,6 +5,7 @@
 #include <imgui.h>
 #include <imgui-SFML.h>
 #include <extlib/steam/steam_api.h>
+#include <chrono>
 
 #include <World/FastNoise.h>
 #include <Core/json.hpp>

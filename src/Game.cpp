@@ -3403,12 +3403,10 @@ void Game::handleChunkRequestsFromClient(const PacketDataChunkRequests& chunkReq
 
     Packet packet;
     packet.set(packetChunkDatas, true);
-
-    float compressionRatio = static_cast<float>(packet.getUncompressedSize()) / static_cast<float>(packet.getSize());
     
-    std::cout << "Sending " << chunkRequests.chunkRequests.size() << " chunks in range (" << minChunkX << ", " << minChunkY << ") to (" <<
-        maxChunkX << ", " << maxChunkY << ") to " << steamName << " (size: " << packet.getSize() << " bytes, uncompressed: " <<
-        packet.getUncompressedSize() << " bytes, ratio: " << compressionRatio << ")\n";
+    printf(("Sending " + std::to_string(chunkRequests.chunkRequests.size()) + " chunks in range (" + std::to_string(minChunkX) + ", " + std::to_string(minChunkY) +
+        ") to (" + std::to_string(maxChunkX) + ", " + std::to_string(maxChunkY) + ") to " + steamName + " (size: " + std::to_string(packet.getSize()) +
+        " bytes, uncompressed: " + std::to_string(packet.getUncompressedSize()) + " bytes, ratio: " + std::to_string(packet.getCompressionRatio()) + ")\n").c_str());
 
     packet.sendToUser(client, k_nSteamNetworkingSend_Reliable, 0);
 }
@@ -3460,7 +3458,7 @@ void Game::handleChunkDatasFromHost(const PacketDataChunkDatas& chunkDatas)
             chunkRequestsOutstanding.erase(chunkData.chunkPosition);    
         }
 
-        std::cout << "Received chunk (" << chunkData.chunkPosition.x << ", " << chunkData.chunkPosition.y << ") data from host\n";
+        printf(("Received chunk (" + std::to_string(chunkData.chunkPosition.x) + ", " + std::to_string(chunkData.chunkPosition.y) + ") data from host\n").c_str());
     }
 }
 
@@ -3498,7 +3496,7 @@ void Game::requestChunksFromHost(std::vector<ChunkPosition>& chunks)
         return;
     }
     
-    std::cout << "Requesting " << chunks.size() << " chunks from host\n";
+    printf(("Requesting " + std::to_string(chunks.size()) + " chunks from host\n").c_str());
 
     PacketDataChunkRequests packetData;
     packetData.chunkRequests = chunks;
