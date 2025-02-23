@@ -3140,6 +3140,8 @@ void Game::receiveMessages()
             packetData.day = dayCycleManager.getCurrentDay();
             packetData.planetName = PlanetGenDataLoader::getPlanetGenData(chunkManager.getPlanetType()).name;
 
+            packetData.chestDataPool = chestDataPool;
+
             // Find spawn for player
             ChunkPosition playerSpawnChunk = chunkManager.findValidSpawnChunk(2);
             packetData.spawnPosition.x = playerSpawnChunk.x * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED + 0.5f * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
