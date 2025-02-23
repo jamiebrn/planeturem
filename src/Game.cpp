@@ -2959,15 +2959,15 @@ void Game::leaveLobby()
 
 void Game::joinWorld(const PacketDataJoinInfo& joinInfo)
 {
-    player.setPosition(joinInfo.spawnPosition);
-    camera.instantUpdate(player.getPosition());
-
     player = Player(sf::Vector2f(0, 0));
     inventory = InventoryData(32);
     armourInventory = InventoryData(3);
     giveStartingInventory();
     InventoryGUI::reset();
 
+    player.setPosition(joinInfo.spawnPosition);
+    camera.instantUpdate(player.getPosition());
+    
     chunkManager.setSeed(joinInfo.seed);
     chunkManager.setPlanetType(PlanetGenDataLoader::getPlanetTypeFromName(joinInfo.planetName));
 
