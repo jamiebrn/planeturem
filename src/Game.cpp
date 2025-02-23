@@ -3150,6 +3150,9 @@ void Game::receiveMessages()
             PacketDataJoinInfo packetData;
             packetData.deserialise(packet.data);
 
+            // Load into world
+            joinWorld(packetData);
+
             // Set lobby host
             lobbyHost = messages[i]->m_identityPeer.GetSteamID64();
             isLobbyHost = false;
@@ -3161,9 +3164,6 @@ void Game::receiveMessages()
                 registerNetworkPlayer(player, false);
                 std::cout << "Registered existing player " << SteamFriends()->GetFriendPersonaName(CSteamID(player)) << "\n";
             }
-
-            // Load into world
-            joinWorld(packetData);
         }
         else if (packet.type == PacketType::PlayerJoined && !isLobbyHost)
         {
@@ -3236,7 +3236,7 @@ void Game::receiveMessages()
             packetData.deserialise(packet.data);
             chunkManager.deleteObject(packetData.objectReference.chunk, packetData.objectReference.tile);
         }
-        else if (packet.type == PacketType::ItemPickupsCreated && !isLobbyHost)
+        else if (packet.type == PacketType::ItemPickupsCreated)
         {
             PacketDataItemPickupsCreated packetData;
             packetData.deserialise(packet.data);
@@ -3256,6 +3256,12 @@ void Game::receiveMessages()
                 itemPickupPair.second.setPosition(itemPickupPair.second.getPosition() + chunkPtr->getWorldPosition());
 
                 chunkPtr->addItemPickup(itemPickupPair.second, itemPickupPair.first.id);
+            }
+
+            // If host, redistribute pickups created message to clients
+            if (isLobbyHost)
+            {
+                sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0);
             }
         }
         else if (packet.type == PacketType::ItemPickupDeleted)
