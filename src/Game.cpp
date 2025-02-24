@@ -3521,7 +3521,7 @@ void Game::receiveMessages()
             }
 
             // Close chest for us (if using the chest, close inventory etc, or simply close animation if other user closed)
-            closeChest(packetData.chestObject, true, messages[i]->m_identityPeer.GetSteamID64());
+            closeChest(packetData.chestObject, true, packetData.userID);
         }
 
         messages[i]->Release();
