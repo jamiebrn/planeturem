@@ -21,10 +21,12 @@ public:
 
     bool damage(int amount, Game& game, ChunkManager& chunkManager, ParticleSystem& particleSystem, bool giveItems = true) override;
 
-    void interact(Game& game) override;
+    void interact(Game& game, bool isClient) override;
     bool isInteractable() const override;
 
     void triggerBehaviour(Game& game, ObjectBehaviourTrigger trigger) override;
+
+    uint16_t createChestID(Game& game);
 
     inline void setChestID(uint16_t chestID) {this->chestID = chestID;}
     inline uint16_t getChestID() {return chestID;}
@@ -33,6 +35,8 @@ public:
 
     void openChest();
     void closeChest();
+
+    bool isOpen();
 
     // Save / load
     BuildableObjectPOD getPOD() const override;

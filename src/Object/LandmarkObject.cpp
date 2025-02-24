@@ -51,7 +51,7 @@ bool LandmarkObject::damage(int amount, Game& game, ChunkManager& chunkManager, 
     return destroyed;
 }
 
-void LandmarkObject::interact(Game& game)
+void LandmarkObject::interact(Game& game, bool isClient)
 {
     game.landmarkPlaced(*this, true);
 }

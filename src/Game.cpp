@@ -1067,7 +1067,7 @@ void Game::updateOnPlanet(float dt)
     {
         camera.handleWorldWrap(wrapPositionDelta);
         Cursor::handleWorldWrap(wrapPositionDelta);
-        handleOpenChestPositionWorldWrap(wrapPositionDelta);
+        // handleOpenChestPositionWorldWrap(wrapPositionDelta);
         chunkManager.reloadChunks();
 
         // Wrap bosses
@@ -1967,7 +1967,8 @@ void Game::attemptObjectInteract()
 
     if (selectedObject)
     {
-        selectedObject->interact(*this);
+        bool isClient = (multiplayerGame && !isLobbyHost);
+        selectedObject->interact(*this, isClient);
     }
 }
 
@@ -2268,18 +2269,128 @@ void Game::handleInventoryClose()
     }   
 }
 
-void Game::openChest(ChestObject& chest)
+void Game::openChest(ChestObject& chest, bool initiatedClientSide)
 {
-    // If required
-    InventoryGUI::shopClosed();
+    if (initiatedClientSide && (multiplayerGame && !isLobbyHost))
+    {
+        // Alert server of attempt chest open
+        PacketDataChestOpened packetData;
+        packetData.chestObject.chunk = chest.getChunkInside(chunkManager.getWorldSize());
+        packetData.chestObject.tile = chest.getChunkTileInside(chunkManager.getWorldSize());
+        packetData.userID = SteamUser()->GetSteamID().ConvertToUint64();
+        Packet packet;
+        packet.set(packetData);
+        sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
+    }
+    else
+    {
+        // Sent from host / is host / not multiplayer
+        if (multiplayerGame && isLobbyHost)
+        {
+            // If is host - tell clients chest has been opened
+            PacketDataChestOpened packetData;
+            packetData.chestObject.chunk = chest.getChunkInside(chunkManager.getWorldSize());
+            packetData.chestObject.tile = chest.getChunkTileInside(chunkManager.getWorldSize());
+            packetData.userID = SteamUser()->GetSteamID().ConvertToUint64();
+            Packet packet;
+            packet.set(packetData);
+            sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0);
+        }
 
-    openedChestID = chest.getChestID();
+        // If required
+        InventoryGUI::shopClosed();
+    
+        openedChestID = chest.getChestID();
 
-    openedChestPos = chest.getPosition();
+        openedChest.chunk = chest.getChunkInside(chunkManager.getWorldSize());
+        openedChest.tile = chest.getChunkTileInside(chunkManager.getWorldSize());
+        // openedChestPos = chest.getPosition();
+    
+        InventoryGUI::chestOpened(chestDataPool.getChestDataPtr(openedChestID));
+    
+        worldMenuState = WorldMenuState::Inventory;
+    }
+}
 
-    InventoryGUI::chestOpened(chestDataPool.getChestDataPtr(openedChestID));
+void Game::openChestForClient(PacketDataChestOpened packetData)
+{
+    if (!multiplayerGame || !isLobbyHost)
+    {
+        return;
+    }
 
-    worldMenuState = WorldMenuState::Inventory;
+    BuildableObject* object = chunkManager.getChunkObject(packetData.chestObject.chunk, packetData.chestObject.tile);
+
+    if (!object)
+    {
+        return;
+    }
+
+    // Check is valid
+    ChestObject* chestObject = dynamic_cast<ChestObject*>(object);
+    if (!chestObject)
+    {
+        return;
+    }
+
+    // If already open, do not allow client to open as well (prevents item sync issues)
+    if (chestObject->isOpen())
+    {
+        return;
+    }
+    
+    // Initialise new chest
+    packetData.chestID = chestObject->getChestID();
+    if (packetData.chestID == 0xFFFF)
+    {
+        packetData.chestID = chestObject->createChestID(*this);
+    }
+
+    InventoryData* chestData = chestDataPool.getChestDataPtr(packetData.chestID);
+
+    // Failed to create new chest - abort
+    if (!chestData)
+    {
+        return;
+    }
+    
+    packetData.chestData = *chestData;
+    Packet packet;
+    packet.set(packetData, true);
+    sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0);
+}
+
+void Game::openChestFromHost(const PacketDataChestOpened& packetData)
+{
+    if (!multiplayerGame || isLobbyHost)
+    {
+        return;
+    }
+
+    BuildableObject* object = chunkManager.getChunkObject(packetData.chestObject.chunk, packetData.chestObject.tile);
+
+    if (!object)
+    {
+        return;
+    }
+
+    // Opened by another user - make chest open with animation only
+    if (packetData.userID != SteamUser()->GetSteamID().ConvertToUint64())
+    {
+        object->triggerBehaviour(*this, ObjectBehaviourTrigger::ChestOpen);
+        return;
+    }
+
+    // Set chest ID and data, and open chest
+    ChestObject* chestObject = dynamic_cast<ChestObject*>(object);
+    if (!chestObject)
+    {
+        return;
+    }
+
+    chestObject->setChestID(packetData.chestID);
+    chestDataPool.overwriteChestData(packetData.chestID, packetData.chestData);
+    object->interact(*this, false); // isClient is passed as false as now has server auth to open chest
 }
 
 uint16_t Game::getOpenChestID()
@@ -2296,24 +2407,70 @@ void Game::checkChestOpenInRange()
 {
     if (openedChestID == 0xFFFF)
         return;
+    
+    BuildableObject* chestObject = chunkManager.getChunkObject(openedChest.chunk, openedChest.tile);
+    if (!chestObject)
+    {
+        closeChest();
+        return;
+    }
 
-    if (!player.canReachPosition(openedChestPos))
+    if (!player.canReachPosition(chestObject->getPosition()))
     {
         closeChest();
     }
 }
 
-void Game::handleOpenChestPositionWorldWrap(sf::Vector2f positionDelta)
-{
-    openedChestPos += positionDelta;
-}
+// void Game::handleOpenChestPositionWorldWrap(sf::Vector2f positionDelta)
+// {
+//     openedChestPos += positionDelta;
+// }
 
-void Game::closeChest()
+void Game::closeChest(std::optional<ObjectReference> chestObjectRef, bool sentFromHost, std::optional<uint64_t> userId)
 {
-    InventoryGUI::chestClosed();
+    if (multiplayerGame && !isLobbyHost && !sentFromHost)
+    {
+        // Alert host of chest close
+        PacketDataChestClosed packetData;
+        packetData.chestObject = openedChest;
+        packetData.userID = SteamUser()->GetSteamID().ConvertToUint64();
+        Packet packet;
+        packet.set(packetData);
+        sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
+        return;
+    }
 
-    openedChestID = 0xFFFF;
-    openedChestPos = sf::Vector2f(0, 0);
+    if (!chestObjectRef.has_value())
+    {
+        chestObjectRef = openedChest;
+    }
+
+    // Close chest
+    BuildableObject* object = chunkManager.getChunkObject(chestObjectRef->chunk, chestObjectRef->tile);
+    if (object)
+    {
+        ChestObject* chestObject = dynamic_cast<ChestObject*>(object);
+        if (chestObject)
+        {
+            chestObject->closeChest();
+        }
+    }
+
+    bool isUser = false;
+    if (userId.has_value())
+    {
+        isUser = (userId.value() == SteamUser()->GetSteamID().ConvertToUint64());
+    }
+
+    if (!multiplayerGame || (sentFromHost && isUser))
+    {
+        InventoryGUI::chestClosed();
+    
+        openedChestID = 0xFFFF;
+        openedChest.chunk = ChunkPosition(0, 0);
+        openedChest.tile = sf::Vector2i(0, 0);
+        // openedChestPos = sf::Vector2f(0, 0);
+    }
 }
 
 
@@ -3156,7 +3313,7 @@ void Game::receiveMessages()
             registerNetworkPlayer(messages[i]->m_identityPeer.GetSteamID64());
             
             Packet packetToSend;
-            packetToSend.set(packetData);
+            packetToSend.set(packetData, true);
             packetToSend.sendToUser(messages[i]->m_identityPeer, k_nSteamNetworkingSend_Reliable, 0);
         }
         else if (packet.type == PacketType::JoinQuery)
@@ -3229,16 +3386,16 @@ void Game::receiveMessages()
             PacketDataPlayerInfo packetData;
             packetData.deserialise(packet.data);
 
-            if (networkPlayers.contains(packetData.steamID))
+            if (networkPlayers.contains(packetData.userID))
             {
-                std::string playerName = SteamFriends()->GetFriendPersonaName(CSteamID(packetData.steamID));
+                std::string playerName = SteamFriends()->GetFriendPersonaName(CSteamID(packetData.userID));
 
                 // Translate player position to wrap around world, relative to player
                 sf::Vector2f playerPos = chunkManager.translatePositionAroundWorld(sf::Vector2f(packetData.positionX, packetData.positionY), player.getPosition());
                 packetData.positionX = playerPos.x;
                 packetData.positionY = playerPos.y;
 
-                networkPlayers[packetData.steamID].setNetworkPlayerInfo(packetData, playerName);
+                networkPlayers[packetData.userID].setNetworkPlayerInfo(packetData, playerName);
             }
         }
         else if (packet.type == PacketType::ObjectHit)
@@ -3337,6 +3494,34 @@ void Game::receiveMessages()
             PacketDataChunkDatas packetData;
             packetData.deserialise(packet.data);
             handleChunkDatasFromHost(packetData);
+        }
+        else if (packet.type == PacketType::ChestOpened)
+        {
+            PacketDataChestOpened packetData;
+            packetData.deserialise(packet.data);
+            if (isLobbyHost)
+            {
+                openChestForClient(packetData);
+            }
+            else
+            {
+                openChestFromHost(packetData);
+            }
+        }
+        else if (packet.type == PacketType::ChestClosed)
+        {
+            PacketDataChestClosed packetData;
+            packetData.deserialise(packet.data);
+            if (isLobbyHost)
+            {
+                // Redistribute to clients
+                Packet packetToSend;
+                packetToSend.set(packetData);
+                sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0);
+            }
+
+            // Close chest for us (if using the chest, close inventory etc, or simply close animation if other user closed)
+            closeChest(packetData.chestObject, true, messages[i]->m_identityPeer.GetSteamID64());
         }
 
         messages[i]->Release();

@@ -1030,7 +1030,7 @@ PacketDataPlayerInfo Player::getNetworkPlayerInfo(uint64_t steamID)
 
     info.armour = armour;
 
-    info.steamID = steamID;
+    info.userID = steamID;
 
     return info;
 }

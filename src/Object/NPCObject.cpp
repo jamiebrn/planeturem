@@ -23,7 +23,7 @@ bool NPCObject::damage(int amount, Game& game, ChunkManager& chunkManager, Parti
     return false;
 }
 
-void NPCObject::interact(Game& game)
+void NPCObject::interact(Game& game, bool isClient)
 {
     game.interactWithNPC(*this);
 }

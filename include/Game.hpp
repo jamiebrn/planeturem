@@ -97,6 +97,8 @@
 #include "Network/PacketDataItemPickupsCreated.hpp"
 #include "Network/PacketDataItemPickupDeleted.hpp"
 #include "Network/PacketDataInventoryAddItem.hpp"
+#include "Network/PacketDataChestOpened.hpp"
+#include "Network/PacketDataChestClosed.hpp"
 #include "Network/PacketDataChunkDatas.hpp"
 #include "Network/PacketDataChunkRequests.hpp"
 
@@ -113,8 +115,10 @@ public:
 
 public:
     // Chest
-    void openChest(ChestObject& chest);
-    void closeChest();
+    void openChest(ChestObject& chest, bool initiatedClientSide);
+    void openChestForClient(PacketDataChestOpened packetData);
+    void openChestFromHost(const PacketDataChestOpened& packetData);
+    void closeChest(std::optional<ObjectReference> chestObjectRef = std::nullopt, bool sentFromHost = false, std::optional<uint64_t> userId = std::nullopt);
     uint16_t getOpenChestID();
     ChestDataPool& getChestDataPool();
 
@@ -224,7 +228,7 @@ private:
     void handleInventoryClose();
 
     void checkChestOpenInRange();
-    void handleOpenChestPositionWorldWrap(sf::Vector2f positionDelta);
+    // void handleOpenChestPositionWorldWrap(sf::Vector2f positionDelta);
 
 
     // -- Planet travelling -- //
@@ -384,8 +388,8 @@ private:
 
     // 0xFFFF chest ID reserved for no chest opened / non-initialised chest
     uint16_t openedChestID;
-    // ObjectReference openedChest;
-    sf::Vector2f openedChestPos;
+    ObjectReference openedChest;
+    // sf::Vector2f openedChestPos;
     ChestDataPool chestDataPool;
 
     // Structure

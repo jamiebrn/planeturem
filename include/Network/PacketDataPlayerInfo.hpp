@@ -21,12 +21,12 @@ struct PacketDataPlayerInfo : public IPacketData
 
     std::array<ArmourType, 3> armour;
 
-    uint64_t steamID;
+    uint64_t userID;
 
     template <class Archive>
     void serialize(Archive& ar)
     {
-        ar(positionX, positionY, animationFrame, flipped, yScaleMult, toolType, toolRotation, armour, steamID);
+        ar(positionX, positionY, animationFrame, flipped, yScaleMult, toolType, toolRotation, armour, userID);
     }
 
     PACKET_SERIALISATION();

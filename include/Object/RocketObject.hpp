@@ -26,7 +26,7 @@ public:
 
     void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const sf::Color& color) const override;
 
-    void interact(Game& game) override;
+    void interact(Game& game, bool isClient) override;
     bool isInteractable() const override;
 
     void triggerBehaviour(Game& game, ObjectBehaviourTrigger trigger) override;

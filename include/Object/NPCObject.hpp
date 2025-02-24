@@ -18,7 +18,7 @@ public:
 
     bool damage(int amount, Game& game, ChunkManager& chunkManager, ParticleSystem& particleSystem, bool giveItems = true) override;
 
-    void interact(Game& game) override;
+    void interact(Game& game, bool isClient) override;
     bool isInteractable() const override;
 
     void triggerBehaviour(Game& game, ObjectBehaviourTrigger trigger) override;

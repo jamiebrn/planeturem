@@ -24,8 +24,8 @@ enum class PacketType : uint8_t
     InventoryAddItem,
 
     ObjectInteract,
-    OpenChest,
-    CloseChest,
+    ChestOpened,
+    ChestClosed,
 
     ChunkDatas,
     ChunkRequests,

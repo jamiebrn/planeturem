@@ -345,7 +345,7 @@ void BuildableObject::createItemPickups(ChunkManager& chunkManager, Game& game, 
     }
 }
 
-void BuildableObject::interact(Game& game)
+void BuildableObject::interact(Game& game, bool isClient)
 {
     // No interaction for regular object
     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);

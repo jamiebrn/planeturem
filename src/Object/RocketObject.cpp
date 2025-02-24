@@ -56,7 +56,7 @@ void RocketObject::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game
     drawRocket(window, spriteBatch, camera, color);
 }
 
-void RocketObject::interact(Game& game)
+void RocketObject::interact(Game& game, bool isClient)
 {
     // Rocket interaction stuff
     if (!entered)

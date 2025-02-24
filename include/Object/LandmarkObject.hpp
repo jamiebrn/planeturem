@@ -25,7 +25,7 @@ public:
     
     bool damage(int amount, Game& game, ChunkManager& chunkManager, ParticleSystem& particleSystem, bool giveItems = true) override;
 
-    virtual void interact(Game& game) override;
+    virtual void interact(Game& game, bool isClient) override;
     virtual bool isInteractable() const override;
 
     void setLandmarkColour(const sf::Color& colourA, const sf::Color& colourB);

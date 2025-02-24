@@ -7,7 +7,7 @@ ChestDataPool::ChestDataPool()
 
     openDataSlots.clear();
 
-    // topDataSlot = 0;
+    topDataSlot = 0;
 }
 
 // ID 0xFFFF returned means chest was not initialised, as data is full
@@ -22,10 +22,11 @@ uint16_t ChestDataPool::createChest(const InventoryData& chestContents)
     }
     else
     {
-        if (chestData.size() < 0xFFFF)
+        if (topDataSlot < 0xFFFF)
         {
-            chestData.push_back(chestContents);
-            uint16_t chestID = chestData.size() - 1;
+            chestData[topDataSlot] = chestContents;
+            topDataSlot++;
+            uint16_t chestID = topDataSlot - 1;
             return chestID;
         }
     }
@@ -70,4 +71,9 @@ InventoryData* ChestDataPool::getChestDataPtr(uint16_t id)
     }
 
     return &(chestData.at(id).value());
+}
+
+void ChestDataPool::overwriteChestData(uint16_t id, const InventoryData& chestContents)
+{
+    chestData[id] = chestContents;
 }

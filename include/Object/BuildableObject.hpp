@@ -31,7 +31,9 @@ class ChunkManager;
 enum ObjectBehaviourTrigger
 {
     RocketFlyUp, RocketFlyDown,
-    RocketExit
+    RocketExit,
+
+    ChestOpen, ChestClose
 };
 
 constexpr int DUMMY_OBJECT_COLLISION = -10;
@@ -64,7 +66,7 @@ public:
 
     inline bool isAlive() {return health > 0;}
 
-    virtual void interact(Game& game);
+    virtual void interact(Game& game, bool isClient);
     virtual bool isInteractable() const;
 
     virtual void triggerBehaviour(Game& game, ObjectBehaviourTrigger trigger);

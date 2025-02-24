@@ -612,7 +612,7 @@ bool ChunkManager::canPlaceObject(ChunkPosition chunk, sf::Vector2i tile, Object
                 int wrappedX = (x % worldSize + worldSize) % worldSize;
                 int wrappedY = (y % worldSize + worldSize) % worldSize;
 
-                // FIX: May have to check entities in stored chunks aswell
+                // FIX: May have to check entities in stored chunks as well
 
                 // If chunk does not exist, do not attempt to check collision
                 if (loadedChunks.count(ChunkPosition(wrappedX, wrappedY)) <= 0)
@@ -673,7 +673,7 @@ bool ChunkManager::canDestroyObject(ChunkPosition chunk, sf::Vector2i tile, cons
                 int wrappedX = (x % worldSize + worldSize) % worldSize;
                 int wrappedY = (y % worldSize + worldSize) % worldSize;
 
-                // FIX: May have to check entities in stored chunks aswell
+                // FIX: May have to check entities in stored chunks as well
 
                 // If chunk does not exist, do not attempt to check collision
                 if (loadedChunks.count(ChunkPosition(wrappedX, wrappedY)) <= 0)

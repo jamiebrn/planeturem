@@ -16,10 +16,10 @@ void ChestObject::update(Game& game, float dt, bool onWater, bool loopAnimation)
 {
     BuildableObject::update(game, dt, onWater, false);
 
-    if (game.getOpenChestID() != chestID)
-    {
-        closeChest();
-    }
+    // if (game.getOpenChestID() != chestID)
+    // {
+    //     closeChest();
+    // }
 }
 
 bool ChestObject::damage(int amount, Game& game, ChunkManager& chunkManager, ParticleSystem& particleSystem, bool giveItems)
@@ -77,7 +77,7 @@ bool ChestObject::damage(int amount, Game& game, ChunkManager& chunkManager, Par
     return destroyed;
 }
 
-void ChestObject::interact(Game& game)
+void ChestObject::interact(Game& game, bool isClient)
 {
     // Chest interaction stuff
     if (chestID == 0xFFFF)
@@ -104,7 +104,7 @@ void ChestObject::interact(Game& game)
     // Animation
     openChest();
 
-    game.openChest(*this);
+    game.openChest(*this, isClient);
 }
 
 bool ChestObject::isInteractable() const
@@ -114,7 +114,21 @@ bool ChestObject::isInteractable() const
 
 void ChestObject::triggerBehaviour(Game& game, ObjectBehaviourTrigger trigger)
 {
+    switch (trigger)
+    {
+        case ObjectBehaviourTrigger::ChestOpen:
+            openChest();
+            break;
+        case ObjectBehaviourTrigger::ChestClose:
+            closeChest();
+            break;
+    }
+}
 
+uint16_t ChestObject::createChestID(Game& game)
+{
+    const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
+    return (game.getChestDataPool().createChest(objectData.chestCapacity));
 }
 
 // int ChestObject::getChestCapactity()
@@ -137,6 +151,11 @@ void ChestObject::closeChest()
 {
     // Rewind open chest animation
     animationDirection = -1;
+}
+
+bool ChestObject::isOpen()
+{
+    return (animationDirection > 0);
 }
 
 void ChestObject::removeChestFromPool(Game& game)
