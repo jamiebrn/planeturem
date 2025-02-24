@@ -61,18 +61,13 @@ public:
     {
         for (auto& chestContents : chestData)
         {
-            if (!chestContents.second.has_value())
-            {
-                continue;
-            }
-
-            chestContents.second->mapVersions(itemVersionMap);
+            chestContents.second.mapVersions(itemVersionMap);
         }   
     }
 
 private:
     // 0xFFFF reserved for uninitialised chest / null
-    std::unordered_map<uint16_t, std::optional<InventoryData>> chestData;
+    std::unordered_map<uint16_t, InventoryData> chestData;
 
     uint16_t topDataSlot;
 

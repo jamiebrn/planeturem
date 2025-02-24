@@ -80,29 +80,33 @@ bool ChestObject::damage(int amount, Game& game, ChunkManager& chunkManager, Par
 void ChestObject::interact(Game& game, bool isClient)
 {
     // Chest interaction stuff
-    if (chestID == 0xFFFF)
+    if (!isClient)
     {
-        const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
-        chestID = game.getChestDataPool().createChest(objectData.chestCapacity);
-    }
-    else
-    {
-        // Close chest if already open
-        if (game.getOpenChestID() == chestID)
+        if (chestID == 0xFFFF)
         {
-            game.closeChest();
+            const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
+            chestID = game.getChestDataPool().createChest(objectData.chestCapacity);
+        }
+        else
+        {
+            // Close chest if already open
+            if (game.getOpenChestID() == chestID)
+            {
+                game.closeChest();
+                return;
+            }
+        }
+    
+        // If chestID is still 0xFFFF, then max chest number has been reached
+        if (chestID == 0xFFFF)
+        {
             return;
         }
+
+        // Animation
+        openChest();
     }
 
-    // If chestID is still 0xFFFF, then max chest number has been reached
-    if (chestID == 0xFFFF)
-    {
-        return;
-    }
-
-    // Animation
-    openChest();
 
     game.openChest(*this, isClient);
 }

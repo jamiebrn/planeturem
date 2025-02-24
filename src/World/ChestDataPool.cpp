@@ -47,12 +47,12 @@ uint16_t ChestDataPool::createChest(int capacity)
 
 void ChestDataPool::destroyChest(uint16_t id)
 {
-    if (id >= chestData.size())
+    if (!chestData.contains(id))
     {
         return;
     }
 
-    chestData[id] = std::nullopt;
+    chestData.erase(id);
     openDataSlots.push_back(id);
 }
 
@@ -60,7 +60,7 @@ InventoryData& ChestDataPool::getChestData(uint16_t id)
 {
     assert(id < chestData.size());
 
-    return chestData.at(id).value();
+    return chestData.at(id);
 }
 
 InventoryData* ChestDataPool::getChestDataPtr(uint16_t id)
@@ -70,7 +70,7 @@ InventoryData* ChestDataPool::getChestDataPtr(uint16_t id)
         return nullptr;
     }
 
-    return &(chestData.at(id).value());
+    return &(chestData.at(id));
 }
 
 void ChestDataPool::overwriteChestData(uint16_t id, const InventoryData& chestContents)
