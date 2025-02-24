@@ -2462,7 +2462,7 @@ void Game::closeChest(std::optional<ObjectReference> chestObjectRef, bool sentFr
         isUser = (userId.value() == SteamUser()->GetSteamID().ConvertToUint64());
     }
 
-    if (!multiplayerGame || (sentFromHost && isUser))
+    if (!multiplayerGame || isLobbyHost || (sentFromHost && isUser))
     {
         InventoryGUI::chestClosed();
     

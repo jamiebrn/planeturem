@@ -48,7 +48,7 @@ public:
                 {
                     continue;
                 }
-                chestData[i] = vectorChestData[i];
+                chestData[i] = vectorChestData[i].value();
             }
         }
         else if (version == 2)
