@@ -2428,16 +2428,25 @@ void Game::checkChestOpenInRange()
 
 void Game::closeChest(std::optional<ObjectReference> chestObjectRef, bool sentFromHost, std::optional<uint64_t> userId)
 {
-    if (multiplayerGame && !isLobbyHost && !sentFromHost)
+    // Networking for chest
+    if (multiplayerGame)
     {
-        // Alert host of chest close
         PacketDataChestClosed packetData;
         packetData.chestObject = openedChest;
         packetData.userID = SteamUser()->GetSteamID().ConvertToUint64();
         Packet packet;
         packet.set(packetData);
-        sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
-        return;
+        if (!isLobbyHost && !sentFromHost)
+        {
+            // Alert host of chest close
+            sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
+            return;
+        }
+        else if (isLobbyHost)
+        {
+            // Alert clients
+            sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0);   
+        }
     }
 
     if (!chestObjectRef.has_value())
@@ -2449,11 +2458,7 @@ void Game::closeChest(std::optional<ObjectReference> chestObjectRef, bool sentFr
     BuildableObject* object = chunkManager.getChunkObject(chestObjectRef->chunk, chestObjectRef->tile);
     if (object)
     {
-        ChestObject* chestObject = dynamic_cast<ChestObject*>(object);
-        if (chestObject)
-        {
-            chestObject->closeChest();
-        }
+        object->triggerBehaviour(*this, ObjectBehaviourTrigger::ChestClose);
     }
 
     bool isUser = false;
