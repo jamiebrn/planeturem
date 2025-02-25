@@ -68,7 +68,7 @@ bool ChestObject::damage(int amount, Game& game, ChunkManager& chunkManager, Par
 
         removeChestFromPool(game);
 
-        if (game.getOpenChestRef() == getThisObjectReference(game.getChunkManager().getWorldSize()))
+        if (game.getOpenChestID() == chestID)
         {
             game.closeChest();
         }
@@ -87,15 +87,6 @@ void ChestObject::interact(Game& game, bool isClient)
             const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
             chestID = game.getChestDataPool().createChest(objectData.chestCapacity);
         }
-        else
-        {
-            // Close chest if already open
-            if (game.getOpenChestRef() == getThisObjectReference(game.getChunkManager().getWorldSize()))
-            {
-                game.closeChest();
-                return;
-            }
-        }
     
         // If chestID is still 0xFFFF, then max chest number has been reached
         if (chestID == 0xFFFF)
@@ -107,6 +98,15 @@ void ChestObject::interact(Game& game, bool isClient)
         // openChest();
     }
 
+    // Close chest if already open
+    if (chestID != 0xFFFF)
+    {
+        if (game.getOpenChestID() == chestID)
+        {
+            game.closeChest();
+            return;
+        }
+    }
 
     game.openChest(*this, isClient);
 }

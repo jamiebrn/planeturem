@@ -1919,6 +1919,8 @@ void Game::catchRandomFish(sf::Vector2i fishedTile)
         return;
 
     std::vector<ItemPickupReference> itemPickupsCreatedVector;
+
+    PacketDataItemPickupsCreateRequest packetData;
     
     // Randomise catch
     float randomChance = Helper::randInt(0, 10000) / 10000.0f;
@@ -1940,14 +1942,50 @@ void Game::catchRandomFish(sf::Vector2i fishedTile)
                     Helper::randFloat(-TILE_SIZE_PIXELS_UNSCALED / 2.0f, TILE_SIZE_PIXELS_UNSCALED / 2.0f)
                 );
 
-                itemPickupsCreatedVector.push_back(chunkManager.addItemPickup(ItemPickup(spawnPos, fishCatchData.itemCatch, gameTime)).value());
+                if (!multiplayerGame || (multiplayerGame && isLobbyHost))
+                {
+                    // Not multiplayer / is host, create pickups and tell clients
+                    itemPickupsCreatedVector.push_back(chunkManager.addItemPickup(ItemPickup(spawnPos, fishCatchData.itemCatch, gameTime)).value());
+                }
+                else
+                {
+                    // Multiplayer and is client, request pickup from host
+                    ItemPickupRequest request;
+                    request.chunk = WorldObject::getChunkInside(spawnPos, chunkManager.getWorldSize());
+
+                    // Get chunkPtr to calculate spawn relative position
+                    // Cannot spawn if chunk does not exist, as cannot calculate relative position
+                    Chunk* chunkPtr = chunkManager.getChunk(request.chunk);
+                    if (!chunkPtr)
+                    {
+                        break;
+                    }
+
+                    request.itemType = fishCatchData.itemCatch;
+                    request.positionRelative = spawnPos - chunkPtr->getWorldPosition();
+                    packetData.pickupRequests.push_back(request);
+                }
             }
 
             break;
         }
     }
 
-    itemPickupsCreated(itemPickupsCreatedVector);
+    if (!multiplayerGame)
+    {
+        return;
+    }
+
+    if (isLobbyHost)
+    {
+        itemPickupsCreated(itemPickupsCreatedVector);
+    }
+    else
+    {
+        Packet packet;
+        packet.set(packetData, true);
+        sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
+    }
 }
 
 void Game::attemptObjectInteract()
@@ -2424,9 +2462,9 @@ void Game::openedChestDataModified()
     sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
 }
 
-ObjectReference Game::getOpenChestRef()
+uint16_t Game::getOpenChestID()
 {
-    return openedChest;
+    return openedChestID;
 }
 
 ChestDataPool& Game::getChestDataPool()
@@ -3459,7 +3497,7 @@ void Game::receiveMessages()
             PacketDataItemPickupsCreated packetData;
             packetData.deserialise(packet.data);
             
-            // Create item pickups sent from host
+            // Create item pickups sent
             for (auto& itemPickupPair : packetData.createdPickups)
             {
                 Chunk* chunkPtr = chunkManager.getChunk(itemPickupPair.first.chunk);
@@ -3512,6 +3550,45 @@ void Game::receiveMessages()
 
             // Delete pickup from chunk manager, regardless of whether we are host or client
             chunkManager.deleteItemPickup(packetData.pickupDeleted);
+        }
+        else if (packet.type == PacketType::ItemPickupsCreateRequest && isLobbyHost)
+        {
+            PacketDataItemPickupsCreateRequest packetData;
+            packetData.deserialise(packet.data);
+
+            PacketDataItemPickupsCreated pickupsCreatedPacketData;
+
+            // Create item pickups requested
+            for (auto& request : packetData.pickupRequests)
+            {
+                Chunk* chunkPtr = chunkManager.getChunk(request.chunk);
+                if (!chunkPtr)
+                {
+                    std::cout << "ERROR: Failed to create item pickup requested from client in null chunk (" << request.chunk.x <<
+                        ", " << request.chunk.y << ")\n";
+                    continue;
+                }
+
+                // Denormalise pickup position from chunk-relative to world position
+                ItemPickup pickup(request.positionRelative + chunkPtr->getWorldPosition(), request.itemType, gameTime);
+
+                uint64_t itemPickupID = chunkPtr->addItemPickup(pickup);
+                ItemPickup* itemPickupPtr = chunkPtr->getItemPickup(itemPickupID);
+                if (!itemPickupPtr)
+                {
+                    std::cout << "ERROR: Failed to create null item pickup requested from client in chunk (" << request.chunk.x <<
+                    ", " << request.chunk.y << ")\n";
+                    continue;
+                }
+
+                pickupsCreatedPacketData.createdPickups.push_back({ItemPickupReference{request.chunk, itemPickupID}, *itemPickupPtr});
+            }
+
+            Packet pickupsCreatedPacket;
+            pickupsCreatedPacket.set(pickupsCreatedPacketData, true);
+
+            // Alert clients of pickups created
+            sendPacketToClients(pickupsCreatedPacket, k_nSteamNetworkingSend_Reliable, 0);
         }
         else if (packet.type == PacketType::InventoryAddItem)
         {

@@ -21,6 +21,7 @@ enum class PacketType : uint8_t
 
     ItemPickupsCreated,
     ItemPickupDeleted,
+    ItemPickupsCreateRequest,
     InventoryAddItem,
 
     ObjectInteract,

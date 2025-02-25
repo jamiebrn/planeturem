@@ -96,6 +96,7 @@
 #include "Network/PacketDataObjectDestroyed.hpp"
 #include "Network/PacketDataItemPickupsCreated.hpp"
 #include "Network/PacketDataItemPickupDeleted.hpp"
+#include "Network/PacketDataItemPickupsCreateRequest.hpp"
 #include "Network/PacketDataInventoryAddItem.hpp"
 #include "Network/PacketDataChestOpened.hpp"
 #include "Network/PacketDataChestClosed.hpp"
@@ -121,7 +122,7 @@ public:
     void openChestFromHost(const PacketDataChestOpened& packetData);
     void openedChestDataModified();
     void closeChest(std::optional<ObjectReference> chestObjectRef = std::nullopt, bool sentFromHost = false, std::optional<uint64_t> userId = std::nullopt);
-    ObjectReference getOpenChestRef();
+    uint16_t getOpenChestID();
     ChestDataPool& getChestDataPool();
 
     // Rocket
