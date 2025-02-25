@@ -104,7 +104,7 @@ void ChestObject::interact(Game& game, bool isClient)
         }
 
         // Animation
-        openChest();
+        // openChest();
     }
 
 

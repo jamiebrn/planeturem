@@ -2290,6 +2290,9 @@ void Game::openChest(ChestObject& chest, bool initiatedClientSide)
             return;
         }
 
+        // Open chest animation
+        chest.openChest();
+
         // Sent from host / is host / not multiplayer
         if (multiplayerGame && isLobbyHost)
         {
