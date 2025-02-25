@@ -19,6 +19,7 @@ uint16_t ChestDataPool::createChest(const InventoryData& chestContents)
         uint16_t chestID = openDataSlots.back();
         openDataSlots.pop_back();
         chestData[chestID] = chestContents;
+        return chestID;
     }
     else
     {
