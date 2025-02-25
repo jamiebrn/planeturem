@@ -42,6 +42,19 @@ sf::Vector2i WorldObject::getChunkTileInside(int worldSize) const
     return getChunkTileInside(position, worldSize);
 }
 
+ObjectReference WorldObject::getObjectReferenceFromPosition(sf::Vector2f position, int worldSize)
+{
+    ObjectReference objectReference;
+    objectReference.chunk = getChunkInside(position, worldSize);
+    objectReference.tile = getChunkTileInside(position, worldSize);
+    return objectReference;
+}
+
+ObjectReference WorldObject::getThisObjectReference(int worldSize) const
+{
+    return getObjectReferenceFromPosition(position, worldSize);
+}
+
 sf::Vector2i WorldObject::getTileInside(sf::Vector2f position)
 {
     sf::Vector2i tile;

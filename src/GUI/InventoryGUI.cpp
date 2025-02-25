@@ -301,7 +301,7 @@ void InventoryGUI::handleLeftClick(Game& game, sf::Vector2f mouseScreenPos, bool
         // Pickup max items possible
         if (canQuickTransfer(mouseScreenPos, shiftMode, inventory, chestData))
         {
-            inventoryChestItemQuickTransfer(mouseScreenPos, 999999999, inventory, *chestData);
+            inventoryChestItemQuickTransfer(game, mouseScreenPos, 999999999, inventory, *chestData);
         }
         else
         {
@@ -331,7 +331,7 @@ void InventoryGUI::handleRightClick(Game& game, sf::Vector2f mouseScreenPos, boo
 {
     if (canQuickTransfer(mouseScreenPos, shiftMode, inventory, chestData) && !openShopData.has_value())
     {
-        inventoryChestItemQuickTransfer(mouseScreenPos, 1, inventory, *chestData);
+        inventoryChestItemQuickTransfer(game, mouseScreenPos, 1, inventory, *chestData);
     }
     else
     {
@@ -1871,7 +1871,7 @@ void InventoryGUI::createChestItemSlots(InventoryData* chestData)
     }
 }
 
-void InventoryGUI::inventoryChestItemQuickTransfer(sf::Vector2f mouseScreenPos, unsigned int amount, InventoryData& inventory, InventoryData& chestData)
+void InventoryGUI::inventoryChestItemQuickTransfer(Game& game, sf::Vector2f mouseScreenPos, unsigned int amount, InventoryData& inventory, InventoryData& chestData)
 {
     InventoryData* hoveredInventory = &inventory;
     InventoryData* destinationInventory = &chestData;
@@ -1900,6 +1900,8 @@ void InventoryGUI::inventoryChestItemQuickTransfer(sf::Vector2f mouseScreenPos, 
 
     // Subtract amount from source inventory
     hoveredInventory->takeItemAtIndex(itemHovered, amountTransfered);
+
+    game.openedChestDataModified();
 }
 
 

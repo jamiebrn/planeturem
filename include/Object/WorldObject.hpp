@@ -6,6 +6,7 @@
 #include "Core/SpriteBatch.hpp"
 #include "Core/Camera.hpp"
 #include "World/ChunkPosition.hpp"
+#include "Object/ObjectReference.hpp"
 #include "World/LightingEngine.hpp"
 #include "GameConstants.hpp"
 
@@ -28,6 +29,9 @@ public:
     static sf::Vector2i getChunkTileInside(sf::Vector2f position, int worldSize);
 
     sf::Vector2i getChunkTileInside(int worldSize) const;
+
+    static ObjectReference getObjectReferenceFromPosition(sf::Vector2f position, int worldSize);
+    ObjectReference getThisObjectReference(int worldSize) const;
 
     static sf::Vector2i getTileInside(sf::Vector2f position);
     sf::Vector2i getTileInside() const;

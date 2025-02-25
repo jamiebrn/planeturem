@@ -2424,9 +2424,9 @@ void Game::openedChestDataModified()
     sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
 }
 
-uint16_t Game::getOpenChestID()
+ObjectReference Game::getOpenChestRef()
 {
-    return openedChestID;
+    return openedChest;
 }
 
 ChestDataPool& Game::getChestDataPool()

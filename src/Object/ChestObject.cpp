@@ -68,7 +68,7 @@ bool ChestObject::damage(int amount, Game& game, ChunkManager& chunkManager, Par
 
         removeChestFromPool(game);
 
-        if (game.getOpenChestID() == chestID)
+        if (game.getOpenChestRef() == getThisObjectReference(game.getChunkManager().getWorldSize()))
         {
             game.closeChest();
         }
@@ -90,7 +90,7 @@ void ChestObject::interact(Game& game, bool isClient)
         else
         {
             // Close chest if already open
-            if (game.getOpenChestID() == chestID)
+            if (game.getOpenChestRef() == getThisObjectReference(game.getChunkManager().getWorldSize()))
             {
                 game.closeChest();
                 return;

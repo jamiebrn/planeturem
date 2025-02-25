@@ -121,7 +121,7 @@ public:
     void openChestFromHost(const PacketDataChestOpened& packetData);
     void openedChestDataModified();
     void closeChest(std::optional<ObjectReference> chestObjectRef = std::nullopt, bool sentFromHost = false, std::optional<uint64_t> userId = std::nullopt);
-    uint16_t getOpenChestID();
+    ObjectReference getOpenChestRef();
     ChestDataPool& getChestDataPool();
 
     // Rocket

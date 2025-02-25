@@ -211,7 +211,7 @@ private:
     static void handleHotbarItemChange();
 
     // -- Chest --
-    static void inventoryChestItemQuickTransfer(sf::Vector2f mouseScreenPos, unsigned int amount, InventoryData& inventory, InventoryData& chestData);
+    static void inventoryChestItemQuickTransfer(Game& game, sf::Vector2f mouseScreenPos, unsigned int amount, InventoryData& inventory, InventoryData& chestData);
 
     // -- Shop --
     static bool attemptPurchaseItem(InventoryData& inventory, int shopIndex);
