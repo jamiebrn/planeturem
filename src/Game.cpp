@@ -2409,6 +2409,8 @@ void Game::openedChestDataModified()
     packetData.chestData = *chestDataPool.getChestDataPtr(openedChestID);
     Packet packet;
     packet.set(packetData, true);
+    
+    printf("Sending chest data to host\n");
 
     sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
 }
@@ -3553,6 +3555,7 @@ void Game::receiveMessages()
             PacketDataChestDataModified packetData;
             packetData.deserialise(packet.data);
             chestDataPool.overwriteChestData(packetData.chestID, packetData.chestData);
+            printf(("Received chest data from " + std::string(SteamFriends()->GetFriendPersonaName(messages[i]->m_identityPeer.GetSteamID())) + "\n").c_str());
         }
 
         messages[i]->Release();
