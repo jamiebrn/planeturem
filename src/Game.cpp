@@ -1,5 +1,6 @@
 #include "Game.hpp"
 
+// FIX: Chests stay open when opening another chest
 // FIX: Lighting sometimes momentarily breaks when crossing world boundary
 
 // TODO: Night and menu music
@@ -2328,6 +2329,12 @@ void Game::openChest(ChestObject& chest, bool initiatedClientSide)
             return;
         }
 
+        // Close open chest (if one is open)
+        if (openedChestID != 0xFFFF)
+        {
+            closeChest();
+        }
+
         // Open chest animation
         chest.openChest();
 
@@ -2530,8 +2537,14 @@ void Game::closeChest(std::optional<ObjectReference> chestObjectRef, bool sentFr
         object->triggerBehaviour(*this, ObjectBehaviourTrigger::ChestClose);
     }
 
+    // Chest closed is not currently opened chest - do not close UI
+    if (chestObjectRef.value() != openedChest)
+    {
+        return;
+    }
+
     bool isUser = false;
-    if (userId.has_value())
+    if (userId.has_value() && steamInitialised)
     {
         isUser = (userId.value() == SteamUser()->GetSteamID().ConvertToUint64());
     }
