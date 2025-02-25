@@ -881,10 +881,16 @@ void Chunk::setObject(sf::Vector2i position, ObjectType objectType, Game& game, 
 
 void Chunk::deleteObject(sf::Vector2i position, ChunkManager& chunkManager, PathfindingEngine& pathfindingEngine)
 {
+    BuildableObject* object = objectGrid[position.y][position.x].get();
+    if (!object)
+    {
+        return;
+    }
+
     modified = true;
 
     // Get size of object to handle different deletion cases
-    ObjectType objectType = objectGrid[position.y][position.x]->getObjectType();
+    ObjectType objectType = object->getObjectType();
 
     sf::Vector2i objectSize(1, 1);
     if (objectType >= 0)

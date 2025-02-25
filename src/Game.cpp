@@ -2284,6 +2284,12 @@ void Game::openChest(ChestObject& chest, bool initiatedClientSide)
     }
     else
     {
+        // Ensure chest is not open
+        if (chest.isOpen())
+        {
+            return;
+        }
+
         // Sent from host / is host / not multiplayer
         if (multiplayerGame && isLobbyHost)
         {

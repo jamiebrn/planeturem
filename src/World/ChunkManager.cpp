@@ -285,15 +285,14 @@ void ChunkManager::updateChunksObjects(Game& game, float dt)
 
 TileMap* ChunkManager::getChunkTileMap(ChunkPosition chunk, int tileMap)
 {
-    // Chunk is not generated
-    if (!isChunkGenerated(chunk))
-        return nullptr;
-    
     // Not in loaded chunks, go to stored chunks
-    if (loadedChunks.count(chunk) <= 0)
-        return storedChunks.at(chunk)->getTileMap(tileMap);
-    
-    return loadedChunks.at(chunk)->getTileMap(tileMap);
+    Chunk* chunkPtr = getChunk(chunk);
+    if (!chunkPtr)
+    {
+        return nullptr;
+    }
+
+    return chunkPtr->getTileMap(tileMap);
 }
 
 std::set<int> ChunkManager::setChunkTile(ChunkPosition chunk, int tileMap, sf::Vector2i position, bool tileGraphicUpdate)
@@ -558,34 +557,46 @@ void ChunkManager::setObject(ChunkPosition chunk, sf::Vector2i tile, ObjectType 
 void ChunkManager::deleteObject(ChunkPosition chunk, sf::Vector2i tile)
 {
     // Chunk does not exist
-    if (loadedChunks.count(chunk) <= 0)
+    Chunk* chunkPtr = getChunk(chunk);
+    if (!chunkPtr)
+    {
         return;
+    }
     
-    loadedChunks[chunk]->deleteObject(tile, *this, pathfindingEngine);
+    chunkPtr->deleteObject(tile, *this, pathfindingEngine);
 }
 
 void ChunkManager::deleteSingleObject(ChunkPosition chunk, sf::Vector2i tile)
 {
-    if (loadedChunks.count(chunk) <= 0)
+    Chunk* chunkPtr = getChunk(chunk);
+    if (!chunkPtr)
+    {
         return;
+    }
     
-    loadedChunks[chunk]->deleteSingleObject(tile, *this, pathfindingEngine);
+    chunkPtr->deleteSingleObject(tile, *this, pathfindingEngine);
 }
 
 void ChunkManager::setObjectReference(const ChunkPosition& chunk, const ObjectReference& objectReference, sf::Vector2i tile)
 {
     // Chunk does not exist
-    if (loadedChunks.count(chunk) <= 0)
+    Chunk* chunkPtr = getChunk(chunk);
+    if (!chunkPtr)
+    {
         return;
+    }
     
-    loadedChunks[chunk]->setObjectReference(objectReference, tile, *this, pathfindingEngine);
+    chunkPtr->setObjectReference(objectReference, tile, *this, pathfindingEngine);
 }
 
 bool ChunkManager::canPlaceObject(ChunkPosition chunk, sf::Vector2i tile, ObjectType objectType, const CollisionRect& playerCollisionRect)
 {
     // Chunk does not exist
-    if (loadedChunks.count(chunk) <= 0)
-        return false;
+    Chunk* chunkPtr = getChunk(chunk);
+    if (!chunkPtr)
+    {
+        return;
+    }
 
     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
 
@@ -625,7 +636,7 @@ bool ChunkManager::canPlaceObject(ChunkPosition chunk, sf::Vector2i tile, Object
     }
 
     // If not colliding with player / entities, test whether colliding with other objects
-    return loadedChunks[chunk]->canPlaceObject(tile, objectType, worldSize, *this);
+    return chunkPtr->canPlaceObject(tile, objectType, worldSize, *this);
 }
 
 bool ChunkManager::canDestroyObject(ChunkPosition chunk, sf::Vector2i tile, const CollisionRect& playerCollisionRect)
@@ -887,24 +898,30 @@ std::vector<CollisionRect*> ChunkManager::getChunkCollisionRects()
 bool ChunkManager::canPlaceLand(ChunkPosition chunk, sf::Vector2i tile)
 {
     // Chunk not loaded
-    if (loadedChunks.count(chunk) <= 0)
-        return false;
+    Chunk* chunkPtr = getChunk(chunk);
+    if (!chunkPtr)
+    {
+        return;
+    }
     
-    return loadedChunks[chunk]->canPlaceLand(tile);
+    return chunkPtr->canPlaceLand(tile);
 }
 
 void ChunkManager::placeLand(ChunkPosition chunk, sf::Vector2i tile)
 {
     // Chunk not loaded
-    if (loadedChunks.count(chunk) <= 0)
+    Chunk* chunkPtr = getChunk(chunk);
+    if (!chunkPtr)
+    {
         return;
+    }
     
     // Cannot place land
-    if (!loadedChunks[chunk]->canPlaceLand(tile))
+    if (!chunkPtr->canPlaceLand(tile))
         return;
     
     // Place land and update visual tiles for chunk
-    loadedChunks[chunk]->placeLand(tile, worldSize, heightNoise, biomeNoise, planetType, *this, pathfindingEngine);
+    chunkPtr->placeLand(tile, worldSize, heightNoise, biomeNoise, planetType, *this, pathfindingEngine);
 
     // Update visual tiles for adjacent chunks
     for (int x = chunk.x - 1; x <= chunk.x + 1; x++)
