@@ -3581,7 +3581,11 @@ void Game::receiveMessages()
                     continue;
                 }
 
-                pickupsCreatedPacketData.createdPickups.push_back({ItemPickupReference{request.chunk, itemPickupID}, *itemPickupPtr});
+                // Normalise to chunk-relative before sending to clients
+                ItemPickup itemPickup = *itemPickupPtr;
+                itemPickup.setPosition(itemPickup.getPosition() - chunkPtr->getWorldPosition());
+
+                pickupsCreatedPacketData.createdPickups.push_back({ItemPickupReference{request.chunk, itemPickupID}, itemPickup});
             }
 
             Packet pickupsCreatedPacket;
