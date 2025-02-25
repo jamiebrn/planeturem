@@ -595,7 +595,7 @@ bool ChunkManager::canPlaceObject(ChunkPosition chunk, sf::Vector2i tile, Object
     Chunk* chunkPtr = getChunk(chunk);
     if (!chunkPtr)
     {
-        return;
+        return false;
     }
 
     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
@@ -901,7 +901,7 @@ bool ChunkManager::canPlaceLand(ChunkPosition chunk, sf::Vector2i tile)
     Chunk* chunkPtr = getChunk(chunk);
     if (!chunkPtr)
     {
-        return;
+        return false;
     }
     
     return chunkPtr->canPlaceLand(tile);
