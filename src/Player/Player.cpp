@@ -654,7 +654,7 @@ void Player::setTool(ToolType toolType)
 
     toolRotation = 0.0f;
 
-    fishingRodCasted = false;
+    reelInFishingRod();
 
     if (usingTool)
     {
@@ -975,10 +975,10 @@ bool Player::isAlive() const
 
 
 // Multiplayer
-void Player::setNetworkPlayerInfo(const PacketDataPlayerInfo& info, std::string steamName)
+void Player::setNetworkPlayerInfo(const PacketDataPlayerInfo& info, std::string steamName, sf::Vector2f playerPosition, const ChunkManager& chunkManager)
 {
-    position = sf::Vector2f(info.positionX, info.positionY);
-
+    position = chunkManager.translatePositionAroundWorld(sf::Vector2f(info.positionX, info.positionY), playerPosition);
+    
     collisionRect.x = position.x - collisionRect.width / 2.0f;
     collisionRect.y = position.y - collisionRect.height / 2.0f;
 
@@ -998,8 +998,17 @@ void Player::setNetworkPlayerInfo(const PacketDataPlayerInfo& info, std::string 
     flippedTexture = info.flipped;
     playerYScaleMult = info.yScaleMult;
 
+    onWater = info.onWater;
+
     equippedTool = info.toolType;
     toolRotation = info.toolRotation;
+    fishingRodCasted = info.fishingRodCasted;
+    
+    if (fishingRodCasted)
+    {
+        fishingRodBobWorldPos = (static_cast<sf::Vector2f>(info.fishingRodBobWorldTile) + sf::Vector2f(0.5f, 0.5f)) * TILE_SIZE_PIXELS_UNSCALED;
+        fishingRodBobWorldPos = chunkManager.translatePositionAroundWorld(fishingRodBobWorldPos, playerPosition);
+    }
 
     armour = info.armour;
 
@@ -1025,8 +1034,12 @@ PacketDataPlayerInfo Player::getNetworkPlayerInfo(uint64_t steamID)
     info.flipped = flippedTexture;
     info.yScaleMult = playerYScaleMult;
 
+    info.onWater = onWater;
+
     info.toolType = equippedTool;
     info.toolRotation = toolRotation;
+    info.fishingRodCasted = fishingRodCasted;
+    info.fishingRodBobWorldTile = fishingRodBobWorldTile;
 
     info.armour = armour;
 

@@ -3469,7 +3469,7 @@ void Game::receiveMessages()
                 packetData.positionX = playerPos.x;
                 packetData.positionY = playerPos.y;
 
-                networkPlayers[packetData.userID].setNetworkPlayerInfo(packetData, playerName);
+                networkPlayers[packetData.userID].setNetworkPlayerInfo(packetData, playerName, player.getPosition(), chunkManager);
             }
         }
         else if (packet.type == PacketType::ObjectHit)

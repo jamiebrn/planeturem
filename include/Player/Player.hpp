@@ -108,7 +108,9 @@ public:
 
 
     // Multiplayer
-    void setNetworkPlayerInfo(const PacketDataPlayerInfo& info, std::string steamName);
+
+    // Player position is of player on this machine, not for this network player
+    void setNetworkPlayerInfo(const PacketDataPlayerInfo& info, std::string steamName, sf::Vector2f playerPosition, const ChunkManager& chunkManager);
     PacketDataPlayerInfo getNetworkPlayerInfo(uint64_t steamID);
 
 private:

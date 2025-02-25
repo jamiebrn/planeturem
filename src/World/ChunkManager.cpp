@@ -1162,7 +1162,7 @@ std::unordered_map<std::string, int> ChunkManager::getNearbyCraftingStationLevel
     return craftingStationLevels;
 }
 
-sf::Vector2f ChunkManager::translatePositionAroundWorld(sf::Vector2f position, sf::Vector2f playerPosition)
+sf::Vector2f ChunkManager::translatePositionAroundWorld(sf::Vector2f position, sf::Vector2f playerPosition) const
 {
     int worldPixelSize = worldSize * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
     float halfWorldPixelSize = worldPixelSize / 2.0f;
