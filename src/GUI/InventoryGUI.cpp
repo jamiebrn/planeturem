@@ -1,4 +1,5 @@
 #include "GUI/InventoryGUI.hpp"
+#include "Game.hpp"
 
 int InventoryGUI::itemBoxSize = 75;
 int InventoryGUI::itemBoxSpacing = 10;
@@ -268,7 +269,7 @@ void InventoryGUI::updateInventory(sf::Vector2f mouseScreenPos, float dt, Invent
     }
 }
 
-void InventoryGUI::handleLeftClick(sf::Vector2f mouseScreenPos, bool shiftMode, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData)
+void InventoryGUI::handleLeftClick(Game& game, sf::Vector2f mouseScreenPos, bool shiftMode, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData)
 {
     if (isItemPickedUp)
     {
@@ -282,7 +283,7 @@ void InventoryGUI::handleLeftClick(sf::Vector2f mouseScreenPos, bool shiftMode, 
             {
                 if (itemSlotData->first == pickedUpItem)
                 {
-                    pickUpItem(mouseScreenPos, 999999999, inventory, armourInventory, chestData);
+                    pickUpItem(game, mouseScreenPos, 999999999, inventory, armourInventory, chestData);
                 }
                 else
                 {
@@ -292,7 +293,7 @@ void InventoryGUI::handleLeftClick(sf::Vector2f mouseScreenPos, bool shiftMode, 
         }
         else
         {
-            putDownItem(mouseScreenPos, inventory, armourInventory, chestData);
+            putDownItem(game, mouseScreenPos, inventory, armourInventory, chestData);
         }
     }
     else
@@ -304,7 +305,7 @@ void InventoryGUI::handleLeftClick(sf::Vector2f mouseScreenPos, bool shiftMode, 
         }
         else
         {
-            pickUpItem(mouseScreenPos, 999999999, inventory, armourInventory, chestData);
+            pickUpItem(game, mouseScreenPos, 999999999, inventory, armourInventory, chestData);
         }
     }
 
@@ -326,7 +327,7 @@ void InventoryGUI::handleLeftClick(sf::Vector2f mouseScreenPos, bool shiftMode, 
     }
 }
 
-void InventoryGUI::handleRightClick(sf::Vector2f mouseScreenPos, bool shiftMode, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData)
+void InventoryGUI::handleRightClick(Game& game, sf::Vector2f mouseScreenPos, bool shiftMode, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData)
 {
     if (canQuickTransfer(mouseScreenPos, shiftMode, inventory, chestData) && !openShopData.has_value())
     {
@@ -338,7 +339,7 @@ void InventoryGUI::handleRightClick(sf::Vector2f mouseScreenPos, bool shiftMode,
         if (!openShopData.has_value() || shopHoveredIndex < 0)
         {
             // Only pickup single item if not attempting to buy from shop
-            pickUpItem(mouseScreenPos, 1, inventory, armourInventory, chestData);
+            pickUpItem(game, mouseScreenPos, 1, inventory, armourInventory, chestData);
         }
     }
 }
@@ -367,7 +368,7 @@ bool InventoryGUI::handleScroll(sf::Vector2f mouseScreenPos, int direction, Inve
     return true;
 }
 
-void InventoryGUI::pickUpItem(sf::Vector2f mouseScreenPos, unsigned int amount, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData)
+void InventoryGUI::pickUpItem(Game& game, sf::Vector2f mouseScreenPos, unsigned int amount, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData)
 {
     // Get item selected at mouse
     int itemIndex = getHoveredItemSlotIndex(inventoryItemSlots, mouseScreenPos);
@@ -447,9 +448,15 @@ void InventoryGUI::pickUpItem(sf::Vector2f mouseScreenPos, unsigned int amount, 
             hoveredInventory->takeItemAtIndex(itemIndex, amount);
         }
     }
+
+    // Alert game of chest data modified
+    if (hoveredInventory == chestData)
+    {
+        game.openedChestDataModified();
+    }
 }
 
-void InventoryGUI::putDownItem(sf::Vector2f mouseScreenPos, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData)
+void InventoryGUI::putDownItem(Game& game, sf::Vector2f mouseScreenPos, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData)
 {
     if (!isItemPickedUp)
         return;
@@ -534,23 +541,29 @@ void InventoryGUI::putDownItem(sf::Vector2f mouseScreenPos, InventoryData& inven
             pickedUpItem = toSwap.first;
             pickedUpItemCount = toSwap.second;
         }
-
-        return;
+    }
+    else
+    {
+        const ItemData& pickedUpItemData = ItemDataLoader::getItemData(pickedUpItem);
+    
+        // No item at selected position, so attempt to put down whole stack
+        int amountPutDown = std::min(pickedUpItemCount, static_cast<int>(pickedUpItemData.maxStackSize));
+    
+        // Create stack
+        hoveredInventory->addItemAtIndex(itemIndex, pickedUpItem, amountPutDown);
+    
+        // Take from cursor
+        pickedUpItemCount -= amountPutDown;
+    
+        if (pickedUpItemCount <= 0)
+            isItemPickedUp = false;
     }
 
-    const ItemData& pickedUpItemData = ItemDataLoader::getItemData(pickedUpItem);
-
-    // No item at selected position, so attempt to put down whole stack
-    int amountPutDown = std::min(pickedUpItemCount, static_cast<int>(pickedUpItemData.maxStackSize));
-
-    // Create stack
-    hoveredInventory->addItemAtIndex(itemIndex, pickedUpItem, amountPutDown);
-
-    // Take from cursor
-    pickedUpItemCount -= amountPutDown;
-
-    if (pickedUpItemCount <= 0)
-        isItemPickedUp = false;
+    // Alert game of chest inventory modification
+    if (hoveredInventory == chestData)
+    {
+        game.openedChestDataModified();
+    }
 }
 
 int InventoryGUI::getHoveredItemSlotIndex(const std::vector<ItemSlot>& itemSlots, sf::Vector2f mouseScreenPos)
@@ -2092,7 +2105,7 @@ void InventoryGUI::drawItemPopups(sf::RenderTarget& window, float gameTime)
 
 
 // -- Controller navigation -- //
-bool InventoryGUI::handleControllerInput(InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData)
+bool InventoryGUI::handleControllerInput(Game& game, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData)
 {
     if (!InputManager::isControllerActive())
     {
@@ -2270,12 +2283,12 @@ bool InventoryGUI::handleControllerInput(InventoryData& inventory, InventoryData
 
     if (InputManager::isActionJustActivated(InputAction::UI_CONFIRM))
     {
-        handleLeftClick(sf::Vector2f(0, 0), InputManager::isActionActive(InputAction::UI_SHIFT), inventory, armourInventory, chestData);
+        handleLeftClick(game, sf::Vector2f(0, 0), InputManager::isActionActive(InputAction::UI_SHIFT), inventory, armourInventory, chestData);
         return true;
     }
     if (InputManager::isActionJustActivated(InputAction::UI_CONFIRM_OTHER))
     {
-        handleRightClick(sf::Vector2f(0, 0), InputManager::isActionActive(InputAction::UI_SHIFT), inventory, armourInventory, chestData);
+        handleRightClick(game, sf::Vector2f(0, 0), InputManager::isActionActive(InputAction::UI_SHIFT), inventory, armourInventory, chestData);
         return true;
     }
 

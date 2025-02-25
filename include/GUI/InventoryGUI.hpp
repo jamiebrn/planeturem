@@ -43,6 +43,9 @@
 
 #include "GUI/ItemSlot.hpp"
 
+// Forward declare
+class Game;
+
 struct ItemInfoString
 {
     std::string string;
@@ -82,19 +85,19 @@ public:
     static void updateInventory(sf::Vector2f mouseScreenPos, float dt, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData = nullptr);
 
     // May pick up item stack, may put down item stack
-    static void handleLeftClick(sf::Vector2f mouseScreenPos, bool shiftMode, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData = nullptr);
+    static void handleLeftClick(Game& game, sf::Vector2f mouseScreenPos, bool shiftMode, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData = nullptr);
 
     // May pick up single item
-    static void handleRightClick(sf::Vector2f mouseScreenPos, bool shiftMode, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData = nullptr);
+    static void handleRightClick(Game& game, sf::Vector2f mouseScreenPos, bool shiftMode, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData = nullptr);
 
     static bool handleScroll(sf::Vector2f mouseScreenPos, int direction, InventoryData& inventory);
 
     // Pickup max stack size to pickup whole stack (may be less than whole stack)
     // Pickup less (e.g 1) to limit pickup amount
-    static void pickUpItem(sf::Vector2f mouseScreenPos, unsigned int amount, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData = nullptr);
+    static void pickUpItem(Game& game, sf::Vector2f mouseScreenPos, unsigned int amount, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData = nullptr);
 
     // Put down whole stack held in cursor
-    static void putDownItem(sf::Vector2f mouseScreenPos, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData = nullptr);
+    static void putDownItem(Game& game, sf::Vector2f mouseScreenPos, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData = nullptr);
 
     // Called when inventory is closed, handles item picked up (if any)
     static void handleClose(InventoryData& inventory, InventoryData* chestData = nullptr);
@@ -162,7 +165,7 @@ public:
     // -- Controller navigation -- //
 
     // Returns true if any inventory is modified
-    static bool handleControllerInput(InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData);
+    static bool handleControllerInput(Game& game, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData);
 
     // -- Misc -- //
     static bool canQuickTransfer(sf::Vector2f mouseScreenPos, bool shiftMode, InventoryData& inventory, InventoryData* chestData);

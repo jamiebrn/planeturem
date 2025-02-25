@@ -491,7 +491,7 @@ void Game::runInGame(float dt)
                         
                         if (InventoryGUI::isMouseOverUI(mouseScreenPos) && !InputManager::isControllerActive())
                         {
-                            InventoryGUI::handleLeftClick(mouseScreenPos, shiftMode, inventory, armourInventory, chestDataPool.getChestDataPtr(openedChestID));
+                            InventoryGUI::handleLeftClick(*this, mouseScreenPos, shiftMode, inventory, armourInventory, chestDataPool.getChestDataPtr(openedChestID));
                             uiInteracted = true;
                         }
 
@@ -570,7 +570,7 @@ void Game::runInGame(float dt)
                 case WorldMenuState::Inventory:
                     if (InventoryGUI::isMouseOverUI(mouseScreenPos) && !InputManager::isControllerActive())
                     {
-                        InventoryGUI::handleRightClick(mouseScreenPos, shiftMode, inventory, armourInventory, chestDataPool.getChestDataPtr(openedChestID));
+                        InventoryGUI::handleRightClick(*this, mouseScreenPos, shiftMode, inventory, armourInventory, chestDataPool.getChestDataPtr(openedChestID));
                         changePlayerTool();
                     }
                     else
@@ -886,7 +886,7 @@ void Game::runInGame(float dt)
             case WorldMenuState::Inventory:
             {
                 ItemType itemHeldBefore = InventoryGUI::getHeldItemType(inventory);
-                if (InventoryGUI::handleControllerInput(inventory, armourInventory, chestDataPool.getChestDataPtr(openedChestID)))
+                if (InventoryGUI::handleControllerInput(*this, inventory, armourInventory, chestDataPool.getChestDataPtr(openedChestID)))
                 {
                     if (itemHeldBefore != InventoryGUI::getHeldItemType(inventory))
                     {
@@ -2338,6 +2338,9 @@ void Game::openChestForClient(PacketDataChestOpened packetData)
     {
         return;
     }
+
+    // Open chest host-side
+    chestObject->openChest();
     
     // Initialise new chest
     packetData.chestID = chestObject->getChestID();
@@ -2391,6 +2394,23 @@ void Game::openChestFromHost(const PacketDataChestOpened& packetData)
     chestObject->setChestID(packetData.chestID);
     chestDataPool.overwriteChestData(packetData.chestID, packetData.chestData);
     object->interact(*this, false); // isClient is passed as false as now has server auth to open chest
+}
+
+void Game::openedChestDataModified()
+{
+    // Only send packet if not lobby host (is client), as host updates chest data for client on open regardless
+    if (!multiplayerGame || isLobbyHost || chestDataPool.getChestDataPtr(openedChestID) == nullptr)
+    {
+        return;
+    }
+
+    PacketDataChestDataModified packetData;
+    packetData.chestID = openedChestID;
+    packetData.chestData = *chestDataPool.getChestDataPtr(openedChestID);
+    Packet packet;
+    packet.set(packetData, true);
+
+    sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
 }
 
 uint16_t Game::getOpenChestID()
@@ -3527,6 +3547,12 @@ void Game::receiveMessages()
 
             // Close chest for us (if using the chest, close inventory etc, or simply close animation if other user closed)
             closeChest(packetData.chestObject, true, packetData.userID);
+        }
+        else if (packet.type == PacketType::ChestDataModified && isLobbyHost)
+        {
+            PacketDataChestDataModified packetData;
+            packetData.deserialise(packet.data);
+            chestDataPool.overwriteChestData(packetData.chestID, packetData.chestData);
         }
 
         messages[i]->Release();

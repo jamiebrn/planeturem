@@ -99,6 +99,7 @@
 #include "Network/PacketDataInventoryAddItem.hpp"
 #include "Network/PacketDataChestOpened.hpp"
 #include "Network/PacketDataChestClosed.hpp"
+#include "Network/PacketDataChestDataModified.hpp"
 #include "Network/PacketDataChunkDatas.hpp"
 #include "Network/PacketDataChunkRequests.hpp"
 
@@ -118,6 +119,7 @@ public:
     void openChest(ChestObject& chest, bool initiatedClientSide);
     void openChestForClient(PacketDataChestOpened packetData);
     void openChestFromHost(const PacketDataChestOpened& packetData);
+    void openedChestDataModified();
     void closeChest(std::optional<ObjectReference> chestObjectRef = std::nullopt, bool sentFromHost = false, std::optional<uint64_t> userId = std::nullopt);
     uint16_t getOpenChestID();
     ChestDataPool& getChestDataPool();
