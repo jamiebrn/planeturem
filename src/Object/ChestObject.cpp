@@ -132,7 +132,8 @@ void ChestObject::triggerBehaviour(Game& game, ObjectBehaviourTrigger trigger)
 uint16_t ChestObject::createChestID(Game& game)
 {
     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
-    return (game.getChestDataPool().createChest(objectData.chestCapacity));
+    chestID = game.getChestDataPool().createChest(objectData.chestCapacity);
+    return chestID;
 }
 
 // int ChestObject::getChestCapactity()
