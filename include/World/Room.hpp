@@ -58,8 +58,8 @@ public:
 
     void updateObjects(Game& game, float dt);
 
-    // BuildableObject* getObject(sf::Vector2f mouseWorldPos) const;
-    BuildableObject* getObject(sf::Vector2i tile) const;
+    template <class T = BuildableObject>
+    T* getObject(sf::Vector2i tile) const;
 
     bool getFirstRocketObjectReference(ObjectReference& objectReference) const;
 
@@ -194,5 +194,35 @@ private:
     std::unique_ptr<std::vector<uint16_t>> unusedMetadataChestIDs = nullptr;
 
 };
+
+template <class T>
+inline T* Room::getObject(sf::Vector2i tile) const
+{
+    // Bounds checking
+    if (tile.y < 0 || tile.y >= objectGrid.size())
+        return nullptr;
+    
+    if (tile.x < 0 || tile.x >= objectGrid[tile.y].size())
+        return nullptr;
+    
+    BuildableObject* object = objectGrid[tile.y][tile.x].get();
+
+    if (!object)
+    {
+        return nullptr;
+    }
+
+    if (object->isObjectReference())
+    {
+        return getObject<T>(object->getObjectReference()->tile);
+    }
+
+    if constexpr (std::is_same_v<T, BuildableObject>)
+    {
+        return object;
+    }
+
+    return dynamic_cast<T*>(object);
+}
 
 CEREAL_CLASS_VERSION(Room, 2);

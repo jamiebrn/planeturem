@@ -441,36 +441,6 @@ void ChunkManager::performChunkSetTileUpdate(ChunkPosition chunk, std::set<int> 
     }
 }
 
-BuildableObject* ChunkManager::getChunkObject(ChunkPosition chunk, sf::Vector2i tile)
-{
-    // // Empty object to return if chunk / object does not exist
-    // static std::optional<BuildableObject> null = std::nullopt;
-
-    Chunk* chunkPtr = getChunk(chunk);
-
-    // Chunk does not exist
-    if (!chunkPtr)
-    {
-        return nullptr;
-    }
-    
-    // Get object from chunk
-    BuildableObject* selectedObject = chunkPtr->getObject(sf::Vector2i(tile.x, tile.y));
-
-    if (!selectedObject)
-        return nullptr;
-
-    // Test if object is object reference object, to then get the actual object
-    if (selectedObject->isObjectReference())
-    {
-        const ObjectReference& objectReference = selectedObject->getObjectReference().value();
-        return getChunkObject(objectReference.chunk, objectReference.tile);
-    }
-
-    // Return retrieved object
-    return selectedObject;
-}
-
 int ChunkManager::getLoadedChunkTileType(ChunkPosition chunk, sf::Vector2i tile) const
 {
     // Chunk does not exist

@@ -1,4 +1,6 @@
 #include "World/Chunk.hpp"
+#include "World/ChunkManager.hpp"
+#include "Entity/Entity.hpp"
 #include "Game.hpp"
 
 Chunk::Chunk(ChunkPosition chunkPosition)
@@ -769,7 +771,6 @@ void Chunk::updateChunkObjects(Game& game, float dt, int worldSize, ChunkManager
             BuildableObject* object = object_row[x].get();
             if (object)
             {
-                // OccupiedTileObject* occupiedTile = dynamic_cast<OccupiedTileObject*>(object.get());
                 // If object is object reference, do not update
                 if (object->isObjectReference())
                     continue;
@@ -794,7 +795,6 @@ std::vector<WorldObject*> Chunk::getObjects()
     {
         for (int x = 0; x < 8; x++)
         {
-            // OccupiedTileObject* occupiedTile = dynamic_cast<OccupiedTileObject*>(objectGrid[y][x].get());
             if (!objectGrid[y][x])
                 continue;
 
@@ -816,11 +816,6 @@ std::vector<WorldObject*> Chunk::getObjects()
     }
 
     return objects;
-}
-
-BuildableObject* Chunk::getObject(sf::Vector2i position)
-{
-    return objectGrid[position.y][position.x].get();
 }
 
 int Chunk::getTileType(sf::Vector2i position) const

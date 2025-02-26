@@ -23,6 +23,7 @@
 #include "Player/InventoryData.hpp"
 #include "Player/ItemPickup.hpp"
 
+#include "World/Chunk.hpp"
 #include "World/ChunkPOD.hpp"
 #include "World/PathfindingEngine.hpp"
 
@@ -34,7 +35,6 @@
 
 // Forward declaration
 class Game;
-class Chunk;
 class Entity;
 class ProjectileManager;
 
@@ -120,7 +120,8 @@ public:
 
     // Get object at certain world position
     // Returns actual object if object reference is at position requested
-    BuildableObject* getChunkObject(ChunkPosition chunk, sf::Vector2i tile);
+    template <class T = BuildableObject>
+    T* getChunkObject(ChunkPosition chunk, sf::Vector2i tile);
 
     // Sets object in chunk at tile
     // Places object references if required
@@ -284,3 +285,32 @@ private:
     PathfindingEngine pathfindingEngine;
 
 };
+
+template <class T>
+inline T* ChunkManager::getChunkObject(ChunkPosition chunk, sf::Vector2i tile)
+{
+    Chunk* chunkPtr = getChunk(chunk);
+
+    // Chunk does not exist
+    if (!chunkPtr)
+    {
+        return nullptr;
+    }
+    
+    // Get object from chunk
+    // Get as BuildableObject as could be object reference
+    BuildableObject* selectedObject = chunkPtr->getObject(tile);
+
+    if (!selectedObject)
+        return nullptr;
+
+    // Test if object is object reference object, to then get the actual object
+    if (selectedObject->isObjectReference())
+    {
+        const ObjectReference& objectReference = selectedObject->getObjectReference().value();
+        return getChunkObject<T>(objectReference.chunk, objectReference.tile);
+    }
+
+    // Return casted object
+    return chunkPtr->getObject<T>(tile);
+}

@@ -20,9 +20,7 @@ std::vector<LandmarkSummaryData> LandmarkManager::getLandmarkSummaryDatas(const 
     {
         LandmarkSummaryData landmarkSummary;
 
-        BuildableObject* objectPtr = chunkManager.getChunkObject(iter->chunk, iter->tile);
-
-        LandmarkObject* landmarkObjectPtr = dynamic_cast<LandmarkObject*>(objectPtr);
+        LandmarkObject* landmarkObjectPtr = chunkManager.getChunkObject<LandmarkObject>(iter->chunk, iter->tile);
 
         if (!landmarkObjectPtr)
         {

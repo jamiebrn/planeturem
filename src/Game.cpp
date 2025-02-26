@@ -953,8 +953,8 @@ void Game::runInGame(float dt)
 
                 if (landmarkSetGUIEvent.modified)
                 {
-                    BuildableObject* objectPtr = getObjectFromChunkOrRoom(landmarkSetGUI.getLandmarkObjectReference());
-                    if (LandmarkObject* landmarkObjectPtr = dynamic_cast<LandmarkObject*>(objectPtr); landmarkObjectPtr != nullptr)
+                    LandmarkObject* landmarkObjectPtr = getObjectFromChunkOrRoom<LandmarkObject>(landmarkSetGUI.getLandmarkObjectReference());
+                    if (landmarkObjectPtr)
                     {
                         landmarkObjectPtr->setLandmarkColour(landmarkSetGUI.getColourA(), landmarkSetGUI.getColourB());
                     }
@@ -2261,23 +2261,24 @@ BuildableObject* Game::getSelectedObjectFromChunkOrRoom()
     return nullptr;
 }
 
-BuildableObject* Game::getObjectFromChunkOrRoom(ObjectReference objectReference)
+template <class T>
+T* Game::getObjectFromChunkOrRoom(ObjectReference objectReference)
 {
     switch (gameState)
     {
         case GameState::OnPlanet:
         {
-            return chunkManager.getChunkObject(objectReference.chunk, objectReference.tile);
+            return chunkManager.getChunkObject<T>(objectReference.chunk, objectReference.tile);
         }
         case GameState::InStructure:
         {
             Room& structureRoom = structureRoomPool.getRoom(structureEnteredID);
-            return structureRoom.getObject(objectReference.tile);
+            return structureRoom.getObject<T>(objectReference.tile);
         }
         case GameState::InRoomDestination:
         {
-            return roomDestination.getObject(objectReference.tile);
-        }   
+            return roomDestination.getObject<T>(objectReference.tile);
+        }
     }
 
     return nullptr;
@@ -2372,15 +2373,7 @@ void Game::openChestForClient(PacketDataChestOpened packetData)
         return;
     }
 
-    BuildableObject* object = chunkManager.getChunkObject(packetData.chestObject.chunk, packetData.chestObject.tile);
-
-    if (!object)
-    {
-        return;
-    }
-
-    // Check is valid
-    ChestObject* chestObject = dynamic_cast<ChestObject*>(object);
+    ChestObject* chestObject = chunkManager.getChunkObject<ChestObject>(packetData.chestObject.chunk, packetData.chestObject.tile);
     if (!chestObject)
     {
         return;
@@ -2423,9 +2416,9 @@ void Game::openChestFromHost(const PacketDataChestOpened& packetData)
         return;
     }
 
-    BuildableObject* object = chunkManager.getChunkObject(packetData.chestObject.chunk, packetData.chestObject.tile);
+    ChestObject* chestObject = chunkManager.getChunkObject<ChestObject>(packetData.chestObject.chunk, packetData.chestObject.tile);
 
-    if (!object)
+    if (!chestObject)
     {
         return;
     }
@@ -2433,20 +2426,14 @@ void Game::openChestFromHost(const PacketDataChestOpened& packetData)
     // Opened by another user - make chest open with animation only
     if (packetData.userID != SteamUser()->GetSteamID().ConvertToUint64())
     {
-        object->triggerBehaviour(*this, ObjectBehaviourTrigger::ChestOpen);
+        chestObject->triggerBehaviour(*this, ObjectBehaviourTrigger::ChestOpen);
         return;
     }
 
     // Set chest ID and data, and open chest
-    ChestObject* chestObject = dynamic_cast<ChestObject*>(object);
-    if (!chestObject)
-    {
-        return;
-    }
-
     chestObject->setChestID(packetData.chestID);
     chestDataPool.overwriteChestData(packetData.chestID, packetData.chestData);
-    object->interact(*this, false); // isClient is passed as false as now has server auth to open chest
+    chestObject->interact(*this, false); // isClient is passed as false as now has server auth to open chest
 }
 
 void Game::openedChestDataModified()

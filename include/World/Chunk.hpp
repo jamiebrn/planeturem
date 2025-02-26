@@ -10,6 +10,7 @@
 #include <optional>
 #include <set>
 #include <iostream>
+#include <type_traits>
 
 #include "Core/TextureManager.hpp"
 #include "Core/Camera.hpp"
@@ -31,9 +32,7 @@
 #include "Player/InventoryData.hpp"
 #include "Player/ItemPickup.hpp"
 
-#include "Entity/Entity.hpp"
 #include "Entity/HitRect.hpp"
-#include "World/ChunkManager.hpp"
 #include "World/TileMap.hpp"
 #include "World/PathfindingEngine.hpp"
 
@@ -125,7 +124,8 @@ public:
     void updateChunkObjects(Game& game, float dt, int worldSize, ChunkManager& chunkManager, PathfindingEngine& pathfindingEngine);
     
     // Get object (optional) at position
-    BuildableObject* getObject(sf::Vector2i position);
+    template <class T = BuildableObject>
+    T* getObject(sf::Vector2i position);
 
     // Sets object (and object references if size > (1, 1), across chunks)
     void setObject(sf::Vector2i position, ObjectType objectType, Game& game, ChunkManager& chunkManager, PathfindingEngine* pathfindingEngine,
@@ -273,3 +273,20 @@ private:
     bool generatedFromPOD = false;
 
 };
+
+template <class T>
+inline T* Chunk::getObject(sf::Vector2i position)
+{
+    BuildableObject* objectPtr = objectGrid[position.y][position.x].get();
+    if (!objectPtr)
+    {
+        return nullptr;
+    }
+
+    if constexpr (std::is_same_v<T, BuildableObject>)
+    {
+        return objectPtr;
+    }
+
+    return dynamic_cast<T*>(objectPtr);
+}

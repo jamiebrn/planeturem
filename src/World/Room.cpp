@@ -283,30 +283,6 @@ void Room::setObjectFromBitmask(sf::Vector2i tile, uint8_t bitmaskValue, ChestDa
     }
 }
 
-BuildableObject* Room::getObject(sf::Vector2i tile) const
-{
-    // Bounds checking
-    if (tile.y < 0 || tile.y >= objectGrid.size())
-        return nullptr;
-    
-    if (tile.x < 0 || tile.x >= objectGrid[tile.y].size())
-        return nullptr;
-    
-    BuildableObject* object = objectGrid[tile.y][tile.x].get();
-
-    if (object == nullptr)
-    {
-        return nullptr;
-    }
-
-    if (object->isObjectReference())
-    {
-        return getObject(object->getObjectReference()->tile);
-    }
-
-    return object;
-}
-
 bool Room::getFirstRocketObjectReference(ObjectReference& objectReference) const
 {
     for (int y = 0; y < objectGrid.size(); y++)

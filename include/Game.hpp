@@ -221,7 +221,8 @@ private:
 
     // For chunks, will use chunk and tile from object reference
     // For rooms, will use tile from object reference
-    BuildableObject* getObjectFromChunkOrRoom(ObjectReference objectReference);
+    template <class T = BuildableObject>
+    T* getObjectFromChunkOrRoom(ObjectReference objectReference);
 
 
     // -- Inventory / Chests -- //
