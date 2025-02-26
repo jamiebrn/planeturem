@@ -1003,6 +1003,7 @@ void Player::setNetworkPlayerInfo(const PacketDataPlayerInfo& info, std::string 
     equippedTool = info.toolType;
     toolRotation = info.toolRotation;
     fishingRodCasted = info.fishingRodCasted;
+    fishBitingLine = info.fishBitingLine;
     
     if (fishingRodCasted)
     {
@@ -1039,6 +1040,7 @@ PacketDataPlayerInfo Player::getNetworkPlayerInfo(uint64_t steamID)
     info.toolType = equippedTool;
     info.toolRotation = toolRotation;
     info.fishingRodCasted = fishingRodCasted;
+    info.fishBitingLine = fishBitingLine;
     info.fishingRodBobWorldTile = fishingRodBobWorldTile;
 
     info.armour = armour;

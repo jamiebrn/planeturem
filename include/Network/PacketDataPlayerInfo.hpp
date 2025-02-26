@@ -23,6 +23,7 @@ struct PacketDataPlayerInfo : public IPacketData
     ToolType toolType;
     float toolRotation;
     bool fishingRodCasted;
+    bool fishBitingLine;
     sf::Vector2i fishingRodBobWorldTile;
 
     std::array<ArmourType, 3> armour;
@@ -33,7 +34,7 @@ struct PacketDataPlayerInfo : public IPacketData
     void serialize(Archive& ar)
     {
         ar(positionX, positionY, animationFrame, flipped, yScaleMult, onWater, toolType, toolRotation,
-            fishingRodCasted, fishingRodBobWorldTile.x, fishingRodBobWorldTile.y, armour, userID);
+            fishingRodCasted, fishBitingLine, fishingRodBobWorldTile.x, fishingRodBobWorldTile.y, armour, userID);
     }
 
     PACKET_SERIALISATION();
