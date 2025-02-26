@@ -1,6 +1,5 @@
 #include "Game.hpp"
 
-// FIX: Chests stay open when opening another chest
 // FIX: Lighting sometimes momentarily breaks when crossing world boundary
 
 // TODO: Night and menu music
@@ -2396,7 +2395,7 @@ void Game::openChestForClient(PacketDataChestOpened packetData)
     // Open chest host-side
     chestObject->openChest();
     
-    // Initialise new chest
+    // Initialise new chest if required
     packetData.chestID = chestObject->getChestID();
     if (packetData.chestID == 0xFFFF)
     {
@@ -2504,11 +2503,16 @@ void Game::checkChestOpenInRange()
 
 void Game::closeChest(std::optional<ObjectReference> chestObjectRef, bool sentFromHost, std::optional<uint64_t> userId)
 {
+    if (!chestObjectRef.has_value())
+    {
+        chestObjectRef = openedChest;
+    }
+
     // Networking for chest
     if (multiplayerGame)
     {
         PacketDataChestClosed packetData;
-        packetData.chestObject = openedChest;
+        packetData.chestObject = chestObjectRef.value();
         packetData.userID = SteamUser()->GetSteamID().ConvertToUint64();
         Packet packet;
         packet.set(packetData);
@@ -2523,11 +2527,6 @@ void Game::closeChest(std::optional<ObjectReference> chestObjectRef, bool sentFr
             // Alert clients
             sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0);   
         }
-    }
-
-    if (!chestObjectRef.has_value())
-    {
-        chestObjectRef = openedChest;
     }
 
     // Close chest
