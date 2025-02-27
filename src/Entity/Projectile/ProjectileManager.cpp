@@ -4,11 +4,11 @@ void ProjectileManager::update(float dt)
 {
     for (auto iter = projectiles.begin(); iter != projectiles.end();)
     {
-        Projectile* projectile = iter->get();
+        Projectile& projectile = iter->second;
         
-        if (projectile->isAlive())
+        if (projectile.isAlive())
         {
-            projectile->update(dt);
+            projectile.update(dt);
         }
         else
         {
@@ -22,27 +22,33 @@ void ProjectileManager::update(float dt)
 
 void ProjectileManager::drawProjectiles(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Camera& camera)
 {
-    for (auto& projectile : projectiles)
+    for (auto& projectilePair : projectiles)
     {
-        projectile->draw(window, spriteBatch, camera);
+        projectilePair.second.draw(window, spriteBatch, camera);
     }
 }
 
-void ProjectileManager::addProjectile(std::unique_ptr<Projectile> projectile)
+void ProjectileManager::addProjectile(const Projectile& projectile)
 {
-    projectiles.push_back(std::move(projectile));
+    projectiles[projectileCounter] = projectile;
+    projectileCounter++;
 }
 
-std::vector<std::unique_ptr<Projectile>>& ProjectileManager::getProjectiles()
+void ProjectileManager::createProjectileWithID(uint64_t id, const Projectile& projectile)
+{
+    projectiles[id] = projectile;
+}
+
+std::unordered_map<uint64_t, Projectile>& ProjectileManager::getProjectiles()
 {
     return projectiles;
 }
 
 void ProjectileManager::handleWorldWrap(sf::Vector2f positionDelta)
 {
-    for (auto& projectile : projectiles)
+    for (auto& projectilePair : projectiles)
     {
-        projectile->handleWorldWrap(positionDelta);
+        projectilePair.second.handleWorldWrap(positionDelta);
     }
 }
 

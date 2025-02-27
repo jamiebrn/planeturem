@@ -105,7 +105,7 @@ void BossSandSerpent::update(Game& game, ProjectileManager& enemyProjectileManag
             {
                 shootProjectileCooldownTime = 0.0f;
                 float angle = std::atan2(player.getPosition().y - 4 - (position.y - 50), player.getPosition().x - position.x) * 180.0f / M_PI;
-                enemyProjectileManager.addProjectile(std::make_unique<Projectile>(position - sf::Vector2f(0, 50), angle,
+                enemyProjectileManager.addProjectile(Projectile(position - sf::Vector2f(0, 50), angle,
                     ToolDataLoader::getProjectileTypeFromName("Serpent Venom BOSS"), 1.0f, 1.0f));
             }
             break;

@@ -1,7 +1,8 @@
 #pragma once
 
-#include <vector>
+#include <unordered_map>
 #include <memory>
+#include <cstdint>
 
 #include <SFML/Graphics.hpp>
 
@@ -19,15 +20,17 @@ public:
 
     void drawProjectiles(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Camera& camera);
 
-    void addProjectile(std::unique_ptr<Projectile> projectile);
+    void addProjectile(const Projectile& projectile);
+    void createProjectileWithID(uint64_t id, const Projectile& projectile);
 
-    std::vector<std::unique_ptr<Projectile>>& getProjectiles();
+    std::unordered_map<uint64_t, Projectile>& getProjectiles();
 
     void handleWorldWrap(sf::Vector2f positionDelta);
 
     void clear();
 
 private:
-    std::vector<std::unique_ptr<Projectile>> projectiles;
+    std::unordered_map<uint64_t, Projectile> projectiles;
+    uint64_t projectileCounter = 0;
 
 };

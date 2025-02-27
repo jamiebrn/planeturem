@@ -96,11 +96,11 @@ void Player::update(float dt, sf::Vector2f mouseWorldPos, ChunkManager& chunkMan
     position.y = collisionRect.y + collisionRect.height / 2.0f;
 
     // Test projectile collisions
-    for (auto& projectile : enemyProjectileManager.getProjectiles())
+    for (auto& projectilePair : enemyProjectileManager.getProjectiles())
     {
-        if (testHitCollision(*projectile))
+        if (testHitCollision(projectilePair.second))
         {
-            projectile->onCollision();
+            projectilePair.second.onCollision();
         }
     }
 
@@ -723,11 +723,11 @@ void Player::useTool(ProjectileManager& projectileManager, InventoryData& invent
             spawnPos += position;
 
             // Create projectile
-            std::unique_ptr<Projectile> projectile = std::make_unique<Projectile>(spawnPos, angle, projectileType,
+            Projectile projectile(spawnPos, angle, projectileType,
                 toolData.projectileDamageMult, toolData.shootPower);
 
             // Add projectile to manager
-            projectileManager.addProjectile(std::move(projectile));
+            projectileManager.addProjectile(projectile);
             break;
         }
         case ToolBehaviourType::MeleeWeapon:
