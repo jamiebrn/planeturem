@@ -164,8 +164,8 @@ public:
 
     inline const Camera& getCamera() {return camera;}
 
-    inline const Player& getPlayer() {return player;}
-    inline Inventory& getInventory() {return inventory;}
+    inline Player& getPlayer() {return player;}
+    inline InventoryData& getInventory() {return inventory;}
 
     inline float getGameTime() {return gameTime;}
     inline void setGameTime(float gameTime) {this->gameTime = gameTime;}
@@ -288,12 +288,12 @@ private:
     // void registerNetworkPlayer(uint64_t id, bool notify = true);
     // void deleteNetworkPlayer(uint64_t id);
 
-    void receiveMessages();
-    void sendHostMessages();
+    // void receiveMessages();
+    // void sendHostMessages();
     // EResult sendPacketToClients(const Packet& packet, int nSendFlags, int nRemoteChannel);
     void handleChunkRequestsFromClient(const PacketDataChunkRequests& chunkRequests, const SteamNetworkingIdentity& client);
     
-    void sendClientMessages();
+    // void sendClientMessages();
     // EResult sendPacketToHost(const Packet& packet, int nSendFlags, int nRemoteChannel);
     void handleChunkDatasFromHost(const PacketDataChunkDatas& chunkDatas);
     void requestChunksFromHost(std::vector<ChunkPosition>& chunks);

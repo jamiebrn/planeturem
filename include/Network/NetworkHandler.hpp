@@ -32,10 +32,14 @@ class NetworkHandler
 {
 public:
     NetworkHandler(Game* game);
+    void reset();
 
     void startHostServer();
 
     void receiveMessages();
+
+    void sendGameUpdatesToClients();
+    void sendGameUpdatesToHost();
 
     void leaveLobby();
 

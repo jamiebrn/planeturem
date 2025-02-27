@@ -210,9 +210,9 @@ void Game::run()
 
         handleSDLEvents();
 
-        if (multiplayerGame)
+        if (networkHandler.isMultiplayerGame())
         {
-            receiveMessages();
+            networkHandler.receiveMessages();
         }
 
         // runFeatureTest();
@@ -3125,7 +3125,7 @@ void Game::quitWorld()
     if (networkHandler.isMultiplayerGame())
     {
         networkHandler.leaveLobby();
-        networkHandler = NetworkHandler(this);
+        networkHandler.reset();
     }
 
     currentSaveFileSummary.name = "";
@@ -3171,94 +3171,8 @@ void Game::joinWorld(const PacketDataJoinInfo& joinInfo)
     startChangeStateTransition(GameState::OnPlanet);
 }
 
-void Game::sendHostMessages()
-{
-    if (!isLobbyHost)
-    {
-        return;
-    }
-
-    uint64_t steamID = SteamUser()->GetSteamID().ConvertToUint64();
-
-    // Send world info
-    PacketDataWorldInfo worldInfoData;
-    worldInfoData.gameTime = gameTime;
-    worldInfoData.day = dayCycleManager.getCurrentDay();
-    worldInfoData.time = dayCycleManager.getCurrentTime();
-    worldInfoData.setHostPingLocation();
-    Packet worldInfoPacket;
-    worldInfoPacket.set(worldInfoData);
-
-    for (auto& client : networkPlayers)
-    {
-        SteamNetworkingIdentity clientIdentity;
-        clientIdentity.SetSteamID64(client.first);
-        worldInfoPacket.sendToUser(clientIdentity, k_nSteamNetworkingSend_Unreliable, 0);
-    }
-
-    std::unordered_map<uint64_t, Packet> playerInfoPackets;
-    playerInfoPackets[steamID] = Packet();
-    playerInfoPackets[steamID].set(player.getNetworkPlayerInfo(steamID));
-
-    // Get player infos
-    for (auto iter = networkPlayers.begin(); iter != networkPlayers.end(); iter++)
-    {
-        playerInfoPackets[iter->first] = Packet();
-        playerInfoPackets[iter->first].set(iter->second.getNetworkPlayerInfo(iter->first));
-    }
-
-    // Send player info
-    for (auto iter = networkPlayers.begin(); iter != networkPlayers.end(); iter++)
-    {
-        SteamNetworkingIdentity identity;
-        identity.SetSteamID64(iter->first);
-
-        for (auto subIter = networkPlayers.begin(); subIter != networkPlayers.end(); subIter++)
-        {
-            // Don't send player their own info
-            if (iter == subIter)
-            {
-                continue;
-            }
-
-            playerInfoPackets[subIter->first].sendToUser(identity, k_nSteamNetworkingSend_Unreliable, 0);
-        }
-        
-        // Send host player data
-        playerInfoPackets[steamID].sendToUser(identity, k_nSteamNetworkingSend_Unreliable, 0);
-    }
-}
-
-// EResult Game::sendPacketToClients(const Packet& packet, int nSendFlags, int nRemoteChannel)
-// {
-//     if (!isLobbyHost)
-//     {
-//         return EResult::k_EResultAccessDenied;
-//     }
-
-//     EResult result = EResult::k_EResultOK;
-//     for (auto iter = networkPlayers.begin(); iter != networkPlayers.end(); iter++)
-//     {
-//         SteamNetworkingIdentity identity;
-//         identity.SetSteamID64(iter->first);
-//         EResult sendResult = packet.sendToUser(identity, nSendFlags, nRemoteChannel);
-
-//         if (sendResult != EResult::k_EResultOK)
-//         {
-//             result = sendResult;
-//         }
-//     }
-
-//     return result;
-// }
-
 void Game::handleChunkRequestsFromClient(const PacketDataChunkRequests& chunkRequests, const SteamNetworkingIdentity& client)
 {
-    if (!isLobbyHost)
-    {
-        return;
-    }
-
     PacketDataChunkDatas packetChunkDatas;
 
     const char* steamName = SteamFriends()->GetFriendPersonaName(client.GetSteamID());
@@ -3287,23 +3201,6 @@ void Game::handleChunkRequestsFromClient(const PacketDataChunkRequests& chunkReq
     packet.sendToUser(client, k_nSteamNetworkingSend_Reliable, 0);
 }
 
-void Game::sendClientMessages()
-{
-    if (isLobbyHost)
-    {
-        return;
-    }
-
-    uint64_t steamID = SteamUser()->GetSteamID().ConvertToUint64();
-
-    Packet packet;
-    packet.set(player.getNetworkPlayerInfo(steamID));
-
-    SteamNetworkingIdentity hostIdentity;
-    hostIdentity.SetSteamID64(lobbyHost);
-
-    packet.sendToUser(hostIdentity, k_nSteamNetworkingSend_Unreliable, 0);
-}
 
 // EResult Game::sendPacketToHost(const Packet& packet, int nSendFlags, int nRemoteChannel)
 // {
