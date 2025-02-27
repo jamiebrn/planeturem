@@ -104,6 +104,8 @@
 #include "Network/PacketDataChunkDatas.hpp"
 #include "Network/PacketDataChunkRequests.hpp"
 
+#include "Network/NetworkHandler.hpp"
+
 #include "IO/GameSaveIO.hpp"
 
 #include "DebugOptions.hpp"
@@ -146,17 +148,27 @@ public:
     void itemPickupsCreated(const std::vector<ItemPickupReference>& itemPickupsCreated);
 
     void drawWorld(sf::RenderTexture& renderTexture, float dt, std::vector<WorldObject*>& worldObjects, ChunkManager& chunkManagerArg, const Camera& cameraArg);
+    
+    void joinWorld(const PacketDataJoinInfo& joinInfo);
+    void quitWorld();
+
+    void hitObject(ChunkPosition chunk, sf::Vector2i tile, int damage, bool sentFromHost = false, std::optional<uint64_t> userId = std::nullopt);
+    void buildObject(ChunkPosition chunk, sf::Vector2i tile, ObjectType objectType, bool sentFromHost = false);
 
     inline bool getIsDay() {return isDay;}
-    const DayCycleManager& getDayCycleManager();
+    DayCycleManager& getDayCycleManager(bool overrideMenuSwap = false);
 
-    inline const ChunkManager& getChunkManager() {return chunkManager;}
+    inline ChunkManager& getChunkManager() {return chunkManager;}
+
+    inline ChestDataPool& getChestDataPool() {return chestDataPool;}
 
     inline const Camera& getCamera() {return camera;}
 
     inline const Player& getPlayer() {return player;}
+    inline Inventory& getInventory() {return inventory;}
 
     inline float getGameTime() {return gameTime;}
+    inline void setGameTime(float gameTime) {this->gameTime = gameTime;}
 
 private:
 
@@ -198,9 +210,6 @@ private:
     void attemptUseToolPickaxe();
     void attemptUseToolFishingRod();
     void attemptUseToolWeapon();
-
-    void hitObject(ChunkPosition chunk, sf::Vector2i tile, int damage, bool sentFromHost = false, std::optional<uint64_t> userId = std::nullopt);
-    void buildObject(ChunkPosition chunk, sf::Vector2i tile, ObjectType objectType, bool sentFromHost = false);
 
     void catchRandomFish(sf::Vector2i fishedTile);
     
@@ -265,30 +274,27 @@ private:
     void saveOptions();
     void loadOptions();
 
-    void quitWorld();
-
 
     // -- Multiplayer -- //
 
-    void createLobby();
-    void callbackLobbyCreated(LobbyCreated_t* pCallback, bool bIOFailure);
-    void leaveLobby();
-    void joinWorld(const PacketDataJoinInfo& joinInfo);
-    STEAM_CALLBACK(Game, callbackLobbyJoinRequested, GameLobbyJoinRequested_t);
-    STEAM_CALLBACK(Game, callbackLobbyEnter, LobbyEnter_t);
-    STEAM_CALLBACK(Game, callbackLobbyUpdated, LobbyChatUpdate_t);
-    STEAM_CALLBACK(Game, callbackMessageSessionRequest, SteamNetworkingMessagesSessionRequest_t);
+    // void createLobby();
+    // void callbackLobbyCreated(LobbyCreated_t* pCallback, bool bIOFailure);
+    // void leaveLobby();
+    // STEAM_CALLBACK(Game, callbackLobbyJoinRequested, GameLobbyJoinRequested_t);
+    // STEAM_CALLBACK(Game, callbackLobbyEnter, LobbyEnter_t);
+    // STEAM_CALLBACK(Game, callbackLobbyUpdated, LobbyChatUpdate_t);
+    // STEAM_CALLBACK(Game, callbackMessageSessionRequest, SteamNetworkingMessagesSessionRequest_t);
 
-    void registerNetworkPlayer(uint64_t id, bool notify = true);
-    void deleteNetworkPlayer(uint64_t id);
+    // void registerNetworkPlayer(uint64_t id, bool notify = true);
+    // void deleteNetworkPlayer(uint64_t id);
 
     void receiveMessages();
     void sendHostMessages();
-    EResult sendPacketToClients(const Packet& packet, int nSendFlags, int nRemoteChannel);
+    // EResult sendPacketToClients(const Packet& packet, int nSendFlags, int nRemoteChannel);
     void handleChunkRequestsFromClient(const PacketDataChunkRequests& chunkRequests, const SteamNetworkingIdentity& client);
     
     void sendClientMessages();
-    EResult sendPacketToHost(const Packet& packet, int nSendFlags, int nRemoteChannel);
+    // EResult sendPacketToHost(const Packet& packet, int nSendFlags, int nRemoteChannel);
     void handleChunkDatasFromHost(const PacketDataChunkDatas& chunkDatas);
     void requestChunksFromHost(std::vector<ChunkPosition>& chunks);
 
@@ -370,14 +376,16 @@ private:
     bool smoothLighting = true;
 
     // Multiplayer
-    bool multiplayerGame = false;
-    uint64_t steamLobbyId = 0;
-    bool isLobbyHost = false;
-    uint64_t lobbyHost;
-    CCallResult<Game, LobbyCreated_t> m_SteamCallResultCreateLobby;
-    std::unordered_map<uint64_t, Player> networkPlayers;
-    static constexpr float CHUNK_REQUEST_OUTSTANDING_MAX_TIME = 2.0f;
-    std::unordered_map<ChunkPosition, float> chunkRequestsOutstanding;
+    NetworkHandler networkHandler;
+
+    // bool multiplayerGame = false;
+    // uint64_t steamLobbyId = 0;
+    // bool isLobbyHost = false;
+    // uint64_t lobbyHost;
+    // CCallResult<Game, LobbyCreated_t> m_SteamCallResultCreateLobby;
+    // std::unordered_map<uint64_t, Player> networkPlayers;
+    // static constexpr float CHUNK_REQUEST_OUTSTANDING_MAX_TIME = 2.0f;
+    // std::unordered_map<ChunkPosition, float> chunkRequestsOutstanding;
 
     std::array<sf::Texture, 2> waterNoiseTextures;
 
