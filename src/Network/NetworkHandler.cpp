@@ -273,143 +273,71 @@ void NetworkHandler::receiveMessages()
         Packet packet;
         packet.deserialise((char*)messages[i]->GetData(), messages[i]->GetSize());
 
-        // Process packet
-        if (packet.type == PacketType::JoinReply && isLobbyHost)
-        {
-            const char* steamName = SteamFriends()->GetFriendPersonaName(messages[i]->m_identityPeer.GetSteamID());
-            std::cout << "Player joined: " << steamName << " (" << messages[i]->m_identityPeer.GetSteamID64() << ")\n";
-            
-            // Send world info
-            PacketDataJoinInfo packetData;
-            packetData.seed = game->getChunkManager().getSeed();
-            packetData.gameTime = game->getGameTime();
-            packetData.time = game->getDayCycleManager().getCurrentTime();
-            packetData.day = game->getDayCycleManager().getCurrentDay();
-            packetData.planetName = PlanetGenDataLoader::getPlanetGenData(game->getChunkManager().getPlanetType()).name;
+        processMessage(*messages[i], packet);
 
-            packetData.chestDataPool = game->getChestDataPool();
+        messages[i]->Release();
+    }
+}
 
-            // Find spawn for player
-            ChunkPosition playerSpawnChunk = game->getChunkManager().findValidSpawnChunk(2);
-            packetData.spawnPosition.x = playerSpawnChunk.x * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED + 0.5f * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
-            packetData.spawnPosition.y = playerSpawnChunk.y * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED + 0.5f * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
-            
-            packetData.currentPlayers.push_back(SteamUser()->GetSteamID().ConvertToUint64());
-            for (auto iter = networkPlayers.begin(); iter != networkPlayers.end(); iter++)
-            {
-                packetData.currentPlayers.push_back(iter->first);
-            }
+void NetworkHandler::processMessage(const SteamNetworkingMessage_t& message, const Packet& packet)
+{
+    // Process packet
+    if (isLobbyHost)
+    {
+        processMessageAsHost(message, packet);
+    }
+    else
+    {
+        processMessageAsClient(message, packet);
+    }
 
-            registerNetworkPlayer(messages[i]->m_identityPeer.GetSteamID64());
-            
-            Packet packetToSend;
-            packetToSend.set(packetData, true);
-            packetToSend.sendToUser(messages[i]->m_identityPeer, k_nSteamNetworkingSend_Reliable, 0);
-        }
-        else if (packet.type == PacketType::JoinQuery)
-        {
-            Packet packetToSend;
-            packetToSend.type = PacketType::JoinReply;
-            
-            std::cout << "Sending join reply to user " << messages[i]->m_identityPeer.GetSteamID64() << "\n";
-            
-            packetToSend.sendToUser(messages[i]->m_identityPeer, k_nSteamNetworkingSend_Reliable, 0);
-        }
-        else if (packet.type == PacketType::JoinInfo)
-        {
-            // Deserialise packet data
-            PacketDataJoinInfo packetData;
-            packetData.deserialise(packet.data);
-
-            // Set lobby host
-            lobbyHost = messages[i]->m_identityPeer.GetSteamID64();
-            isLobbyHost = false;
-            
-            multiplayerGame = true;
-
-            networkPlayers.clear();
-            for (uint64_t player : packetData.currentPlayers)
-            {
-                registerNetworkPlayer(player, false);
-                std::cout << "Registered existing player " << SteamFriends()->GetFriendPersonaName(CSteamID(player)) << "\n";
-            }
-
-            // Load into world
-            game->joinWorld(packetData);
-        }
-        else if (packet.type == PacketType::PlayerJoined && !isLobbyHost)
-        {
-            uint64_t id;
-            memcpy(&id, packet.data.data(), sizeof(id));
-            registerNetworkPlayer(id);
-        }
-        else if (packet.type == PacketType::PlayerDisconnected && !isLobbyHost)
-        {    
-            uint64_t id;
-            memcpy(&id, packet.data.data(), sizeof(id));
-            deleteNetworkPlayer(id);
-        }
-        else if (packet.type == PacketType::HostQuit && !isLobbyHost)
-        {
-            game->quitWorld();
-        }
-        else if (packet.type == PacketType::WorldInfo && !isLobbyHost)
-        {
-            PacketDataWorldInfo worldInfo;
-            worldInfo.deserialise(packet.data);
-            worldInfo.applyPingEstimate();
-
-            game->setGameTime(worldInfo.gameTime);
-            game->getDayCycleManager(true).setCurrentDay(worldInfo.day);
-            game->getDayCycleManager(true).setCurrentTime(worldInfo.time);
-        }
-        else if (packet.type == PacketType::PlayerInfo)
+    
+    switch (packet.type)
+    {
+        case PacketType::PlayerInfo:
         {
             if (isLobbyHost)
             {
-                if (!networkPlayers.contains(messages[i]->m_identityPeer.GetSteamID64()))
+                if (!networkPlayers.contains(message.m_identityPeer.GetSteamID64()))
                 {
-                    registerNetworkPlayer(messages[i]->m_identityPeer.GetSteamID64());
+                    registerNetworkPlayer(message.m_identityPeer.GetSteamID64());
                 }
             }
-
+    
             PacketDataPlayerInfo packetData;
             packetData.deserialise(packet.data);
-
+    
             if (networkPlayers.contains(packetData.userID))
             {
                 std::string playerName = SteamFriends()->GetFriendPersonaName(CSteamID(packetData.userID));
-
+    
                 // Translate player position to wrap around world, relative to player
                 sf::Vector2f playerPos = game->getChunkManager().translatePositionAroundWorld(sf::Vector2f(packetData.positionX, packetData.positionY),
                     game->getPlayer().getPosition());
                 packetData.positionX = playerPos.x;
                 packetData.positionY = playerPos.y;
-
+    
                 networkPlayers[packetData.userID].setNetworkPlayerInfo(packetData, playerName, game->getPlayer().getPosition(), game->getChunkManager());
             }
+            break;
         }
-        else if (packet.type == PacketType::ObjectHit)
+        case PacketType::ObjectHit:
         {
             PacketDataObjectHit packetData;
             packetData.deserialise(packet.data);
             bool sentFromHost = !isLobbyHost;
             game->hitObject(packetData.objectHit.chunk, packetData.objectHit.tile, packetData.damage, sentFromHost, packetData.userId);
+            break;
         }
-        else if (packet.type == PacketType::ObjectBuilt)
+        case PacketType::ObjectBuilt:
         {
             PacketDataObjectBuilt packetData;
             packetData.deserialise(packet.data);
             bool sentFromHost = !isLobbyHost;
             game->buildObject(packetData.objectReference.chunk, packetData.objectReference.tile, packetData.objectType, sentFromHost);
+            break;
         }
-        else if (packet.type == PacketType::ObjectDestroyed && !isLobbyHost)
-        {
-            PacketDataObjectDestroyed packetData;
-            packetData.deserialise(packet.data);
-            game->getChunkManager().deleteObject(packetData.objectReference.chunk, packetData.objectReference.tile);
-        }
-        else if (packet.type == PacketType::ItemPickupsCreated)
+        case PacketType::ItemPickupsCreated:
         {
             PacketDataItemPickupsCreated packetData;
             packetData.deserialise(packet.data);
@@ -424,20 +352,21 @@ void NetworkHandler::receiveMessages()
                         ", " << itemPickupPair.first.chunk.y << ")\n";
                     continue;
                 }
-
+    
                 // Denormalise pickup position from chunk-relative to world position
                 itemPickupPair.second.setPosition(itemPickupPair.second.getPosition() + chunkPtr->getWorldPosition());
-
+    
                 chunkPtr->addItemPickup(itemPickupPair.second, itemPickupPair.first.id);
             }
-
+    
             // If host, redistribute pickups created message to clients
             if (isLobbyHost)
             {
                 sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0);
             }
+            break;
         }
-        else if (packet.type == PacketType::ItemPickupDeleted)
+        case PacketType::ItemPickupDeleted:
         {
             PacketDataItemPickupDeleted packetData;
             packetData.deserialise(packet.data);
@@ -446,7 +375,7 @@ void NetworkHandler::receiveMessages()
             if (isLobbyHost)
             {
                 sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0);
-
+    
                 Chunk* chunkPtr = game->getChunkManager().getChunk(packetData.pickupDeleted.chunk);
                 if (chunkPtr)
                 {
@@ -459,16 +388,94 @@ void NetworkHandler::receiveMessages()
                         itemPacketData.amount = 1;
                         Packet itemPacket;
                         itemPacket.set(itemPacketData);
-
-                        itemPacket.sendToUser(messages[i]->m_identityPeer, k_nSteamNetworkingSend_Reliable, 0);
+    
+                        itemPacket.sendToUser(message.m_identityPeer, k_nSteamNetworkingSend_Reliable, 0);
                     }
                 }
             }
-
+    
             // Delete pickup from chunk manager, regardless of whether we are host or client
             game->getChunkManager().deleteItemPickup(packetData.pickupDeleted);
+            break;
         }
-        else if (packet.type == PacketType::ItemPickupsCreateRequest && isLobbyHost)
+        case PacketType::InventoryAddItem:
+        {
+            PacketDataInventoryAddItem packetData;
+            packetData.deserialise(packet.data);
+            game->getInventory().addItem(packetData.itemType, packetData.amount, true);
+            break;
+        }
+        case PacketType::ChestOpened:
+        {
+            PacketDataChestOpened packetData;
+            packetData.deserialise(packet.data);
+            if (isLobbyHost)
+            {
+                game->openChestForClient(packetData);
+            }
+            else
+            {
+                game->openChestFromHost(packetData);
+            }
+            break;
+        }
+        case PacketType::ChestClosed:
+        {
+            PacketDataChestClosed packetData;
+            packetData.deserialise(packet.data);
+            if (isLobbyHost)
+            {
+                // Redistribute to clients
+                Packet packetToSend;
+                packetToSend.set(packetData);
+                sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0);
+            }
+    
+            // Close chest for us (if using the chest, close inventory etc, or simply close animation if other user closed)
+            game->closeChest(packetData.chestObject, true, packetData.userID);
+            break;
+        }
+    }
+}
+
+void NetworkHandler::processMessageAsHost(const SteamNetworkingMessage_t& message, const Packet& packet)
+{
+    switch (packet.type)
+    {
+        case PacketType::JoinReply:
+        {
+            const char* steamName = SteamFriends()->GetFriendPersonaName(message.m_identityPeer.GetSteamID());
+            std::cout << "Player joined: " << steamName << " (" << message.m_identityPeer.GetSteamID64() << ")\n";
+            
+            // Send world info
+            PacketDataJoinInfo packetData;
+            packetData.seed = game->getChunkManager().getSeed();
+            packetData.gameTime = game->getGameTime();
+            packetData.time = game->getDayCycleManager().getCurrentTime();
+            packetData.day = game->getDayCycleManager().getCurrentDay();
+            packetData.planetName = PlanetGenDataLoader::getPlanetGenData(game->getChunkManager().getPlanetType()).name;
+    
+            packetData.chestDataPool = game->getChestDataPool();
+    
+            // Find spawn for player
+            ChunkPosition playerSpawnChunk = game->getChunkManager().findValidSpawnChunk(2);
+            packetData.spawnPosition.x = playerSpawnChunk.x * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED + 0.5f * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
+            packetData.spawnPosition.y = playerSpawnChunk.y * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED + 0.5f * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
+            
+            packetData.currentPlayers.push_back(SteamUser()->GetSteamID().ConvertToUint64());
+            for (auto iter = networkPlayers.begin(); iter != networkPlayers.end(); iter++)
+            {
+                packetData.currentPlayers.push_back(iter->first);
+            }
+    
+            registerNetworkPlayer(message.m_identityPeer.GetSteamID64());
+            
+            Packet packetToSend;
+            packetToSend.set(packetData, true);
+            packetToSend.sendToUser(message.m_identityPeer, k_nSteamNetworkingSend_Reliable, 0);
+            break;
+        }
+        case PacketType::ItemPickupsCreateRequest:
         {
             PacketDataItemPickupsCreateRequest packetData;
             packetData.deserialise(packet.data);
@@ -510,62 +517,107 @@ void NetworkHandler::receiveMessages()
 
             // Alert clients of pickups created
             sendPacketToClients(pickupsCreatedPacket, k_nSteamNetworkingSend_Reliable, 0);
+            break;
         }
-        else if (packet.type == PacketType::InventoryAddItem)
-        {
-            PacketDataInventoryAddItem packetData;
-            packetData.deserialise(packet.data);
-            game->getInventory().addItem(packetData.itemType, packetData.amount, true);
-        }
-        else if (packet.type == PacketType::ChunkRequests && isLobbyHost)
+        case PacketType::ChunkRequests:
         {
             PacketDataChunkRequests packetData;
             packetData.deserialise(packet.data);
-            game->handleChunkRequestsFromClient(packetData, messages[i]->m_identityPeer);
+            game->handleChunkRequestsFromClient(packetData, message.m_identityPeer);
+            break;
         }
-        else if (packet.type == PacketType::ChunkDatas && !isLobbyHost)
-        {
-            PacketDataChunkDatas packetData;
-            packetData.deserialise(packet.data);
-            handleChunkDatasFromHost(packetData);
-        }
-        else if (packet.type == PacketType::ChestOpened)
-        {
-            PacketDataChestOpened packetData;
-            packetData.deserialise(packet.data);
-            if (isLobbyHost)
-            {
-                game->openChestForClient(packetData);
-            }
-            else
-            {
-                game->openChestFromHost(packetData);
-            }
-        }
-        else if (packet.type == PacketType::ChestClosed)
-        {
-            PacketDataChestClosed packetData;
-            packetData.deserialise(packet.data);
-            if (isLobbyHost)
-            {
-                // Redistribute to clients
-                Packet packetToSend;
-                packetToSend.set(packetData);
-                sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0);
-            }
-
-            // Close chest for us (if using the chest, close inventory etc, or simply close animation if other user closed)
-            game->closeChest(packetData.chestObject, true, packetData.userID);
-        }
-        else if (packet.type == PacketType::ChestDataModified && isLobbyHost)
+        case PacketType::ChestDataModified:
         {
             PacketDataChestDataModified packetData;
             packetData.deserialise(packet.data);
             game->getChestDataPool().overwriteChestData(packetData.chestID, packetData.chestData);
-            printf(("Received chest data from " + std::string(SteamFriends()->GetFriendPersonaName(messages[i]->m_identityPeer.GetSteamID())) + "\n").c_str());
+            printf(("Received chest data from " + std::string(SteamFriends()->GetFriendPersonaName(message.m_identityPeer.GetSteamID())) + "\n").c_str());
+            break;
         }
+    }
+}
 
-        messages[i]->Release();
+void NetworkHandler::processMessageAsClient(const SteamNetworkingMessage_t& message, const Packet& packet)
+{
+    switch (packet.type)
+    {
+        case PacketType::JoinQuery:
+        {
+            Packet packetToSend;
+            packetToSend.type = PacketType::JoinReply;
+            
+            std::cout << "Sending join reply to user " << message.m_identityPeer.GetSteamID64() << "\n";
+            
+            packetToSend.sendToUser(message.m_identityPeer, k_nSteamNetworkingSend_Reliable, 0);
+            break;
+        }
+        case PacketType::JoinInfo:
+        {
+            // Deserialise packet data
+            PacketDataJoinInfo packetData;
+            packetData.deserialise(packet.data);
+
+            // Set lobby host
+            lobbyHost = message.m_identityPeer.GetSteamID64();
+            isLobbyHost = false;
+            
+            multiplayerGame = true;
+
+            networkPlayers.clear();
+            for (uint64_t player : packetData.currentPlayers)
+            {
+                registerNetworkPlayer(player, false);
+                std::cout << "Registered existing player " << SteamFriends()->GetFriendPersonaName(CSteamID(player)) << "\n";
+            }
+
+            // Load into world
+            game->joinWorld(packetData);
+            break;
+        }
+        case PacketType::PlayerJoined:
+        {
+            uint64_t id;
+            memcpy(&id, packet.data.data(), sizeof(id));
+            registerNetworkPlayer(id);
+            break;
+        }
+        case PacketType::PlayerDisconnected:
+        {    
+            uint64_t id;
+            memcpy(&id, packet.data.data(), sizeof(id));
+            deleteNetworkPlayer(id);
+            break;
+        }
+        case PacketType::HostQuit:
+        {
+            game->quitWorld();
+            break;
+        }
+        case PacketType::WorldInfo:
+        {
+            PacketDataWorldInfo worldInfo;
+            worldInfo.deserialise(packet.data);
+            worldInfo.applyPingEstimate();
+
+            game->setGameTime(worldInfo.gameTime);
+            game->getDayCycleManager(true).setCurrentDay(worldInfo.day);
+            game->getDayCycleManager(true).setCurrentTime(worldInfo.time);
+            break;
+        }
+        case PacketType::ObjectDestroyed:
+        {
+            PacketDataObjectDestroyed packetData;
+            packetData.deserialise(packet.data);
+            game->getChunkManager().deleteObject(packetData.objectReference.chunk, packetData.objectReference.tile);
+            break;
+        }
+        case PacketType::ChunkDatas:
+        {
+            PacketDataChunkDatas packetData;
+            packetData.deserialise(packet.data);
+            handleChunkDatasFromHost(packetData);
+            break;
+        }
     }
 }
 

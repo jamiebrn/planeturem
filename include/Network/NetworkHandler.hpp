@@ -61,8 +61,9 @@ public:
     std::unordered_map<uint64_t, Player>& getNetworkPlayers();
     
 private:
-    void receiveMessagesHost();
-    void receiveMessagesClient();
+    void processMessage(const SteamNetworkingMessage_t& message, const Packet& packet);
+    void processMessageAsHost(const SteamNetworkingMessage_t& message, const Packet& packet);
+    void processMessageAsClient(const SteamNetworkingMessage_t& message, const Packet& packet);
     
     void callbackLobbyCreated(LobbyCreated_t* pCallback, bool bIOFailure);
     
