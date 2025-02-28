@@ -3,6 +3,7 @@
 #include <extlib/steam/steam_api.h>
 
 #include <unordered_map>
+#include <vector>
 
 #include "Network/Packet.hpp"
 #include "Network/IPacketData.hpp"
@@ -31,33 +32,46 @@ class Game;
 class NetworkHandler
 {
 public:
+    NetworkHandler() = default;
     NetworkHandler(Game* game);
-    void reset();
+    void reset(Game* game);
 
     void startHostServer();
 
     void receiveMessages();
 
+    void sendGameUpdates();
     void sendGameUpdatesToClients();
     void sendGameUpdatesToHost();
 
     void leaveLobby();
-
+    
     EResult sendPacketToClients(const Packet& packet, int nSendFlags, int nRemoteChannel);
     EResult sendPacketToHost(const Packet& packet, int nSendFlags, int nRemoteChannel);
-
+    
+    void requestChunksFromHost(std::vector<ChunkPosition>& chunks);
+    
     bool isMultiplayerGame();
+    bool isLobbyHostOrSolo();
     bool getIsLobbyHost();
+    bool isClient();
+    int getNetworkPlayerCount();
+    std::optional<uint64_t> getLobbyID();
 
+    std::unordered_map<uint64_t, Player>& getNetworkPlayers();
+    
 private:
     void receiveMessagesHost();
     void receiveMessagesClient();
-
+    
     void callbackLobbyCreated(LobbyCreated_t* pCallback, bool bIOFailure);
-
+    
     void registerNetworkPlayer(uint64_t id, bool notify = true);
     void deleteNetworkPlayer(uint64_t id);
 
+    void handleChunkDatasFromHost(const PacketDataChunkDatas& chunkDatas);
+
+    // Callbacks
     STEAM_CALLBACK(NetworkHandler, callbackLobbyJoinRequested, GameLobbyJoinRequested_t);
     STEAM_CALLBACK(NetworkHandler, callbackLobbyEnter, LobbyEnter_t);
     STEAM_CALLBACK(NetworkHandler, callbackLobbyUpdated, LobbyChatUpdate_t);
@@ -69,7 +83,7 @@ private:
     bool isLobbyHost;
     uint64_t lobbyHost;
 
-    Game* game;
+    Game* game = nullptr;
 
     std::unordered_map<uint64_t, Player> networkPlayers;
 

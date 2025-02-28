@@ -86,6 +86,9 @@ bool Game::initialise()
         SteamNetworkingUtils()->InitRelayNetworkAccess();
     }
 
+    // Initialise network handler
+    networkHandler.reset(this);
+
     // Randomise
     srand(time(NULL));
 
@@ -731,23 +734,16 @@ void Game::runInGame(float dt)
     //
     // -- NETWORKING --
     //
-    if (multiplayerGame)
+    if (networkHandler.isMultiplayerGame())
     {
-        if (isLobbyHost)
-        {
-            sendHostMessages();
-        }
-        else
-        {
-            sendClientMessages();
-        }
+        networkHandler.sendGameUpdates();
     }
 
     //
     // -- UPDATING --
     //
 
-    if (worldMenuState != WorldMenuState::PauseMenu || (multiplayerGame && networkPlayers.size() > 0))
+    if (worldMenuState != WorldMenuState::PauseMenu || (networkHandler.isMultiplayerGame() && networkHandler.getNetworkPlayerCount() > 0))
     {
         saveSessionPlayTime += dt;
 
@@ -1002,12 +998,7 @@ void Game::runInGame(float dt)
 
     if (worldMenuState == WorldMenuState::PauseMenu)
     {
-        std::optional<uint64_t> lobbyId;
-        if (multiplayerGame)
-        {
-            lobbyId = steamLobbyId;
-        }
-        std::optional<PauseMenuEventType> pauseMenuEvent = mainMenuGUI.createAndDrawPauseMenu(window, dt, gameTime, steamInitialised, lobbyId);
+        std::optional<PauseMenuEventType> pauseMenuEvent = mainMenuGUI.createAndDrawPauseMenu(window, dt, gameTime, steamInitialised, networkHandler.getLobbyID());
 
         if (pauseMenuEvent.has_value())
         {
@@ -1020,7 +1011,7 @@ void Game::runInGame(float dt)
                 }
                 case PauseMenuEventType::StartMultiplayer:
                 {
-                    createLobby();
+                    networkHandler.startHostServer();
                     break;
                 }
                 case PauseMenuEventType::SaveOptions:
@@ -1089,14 +1080,13 @@ void Game::updateOnPlanet(float dt)
 
     // Update (loaded) chunks
     // Enable / disable chunk generation depending on multiplayer state
-    bool isClient = (multiplayerGame && !isLobbyHost);
     std::vector<ChunkPosition> chunksToRequestFromHost;
 
-    bool modifiedChunks = chunkManager.updateChunks(*this, camera, isClient, &chunksToRequestFromHost);
+    bool modifiedChunks = chunkManager.updateChunks(*this, camera, networkHandler.isClient(), &chunksToRequestFromHost);
 
-    if (multiplayerGame && !isLobbyHost && chunksToRequestFromHost.size() > 0)
+    if (networkHandler.isClient() && chunksToRequestFromHost.size() > 0)
     {
-        requestChunksFromHost(chunksToRequestFromHost);
+        networkHandler.requestChunksFromHost(chunksToRequestFromHost);
     }
 
     chunkManager.updateChunksObjects(*this, dt);
@@ -1130,7 +1120,7 @@ void Game::updateOnPlanet(float dt)
         {
             // Only actually add item to inventory if solo or is host
             // Host will give client item
-            bool modifyInventory = (!multiplayerGame || isLobbyHost);
+            bool modifyInventory = networkHandler.isLobbyHostOrSolo();
 
             int amountAdded = inventory.addItem(itemPickupPtr->getItemType(), 1, modifyInventory, false, modifyInventory);
 
@@ -1147,20 +1137,20 @@ void Game::updateOnPlanet(float dt)
                 Sounds::playSound(pickupSounds[Helper::randInt(0, pickupSounds.size() - 1)], 30.0f);
 
                 // Networking
-                if (multiplayerGame && (!isLobbyHost || networkPlayers.size() > 0))
+                if (networkHandler.isMultiplayerGame() && networkHandler.getNetworkPlayerCount() > 0)
                 {
                     PacketDataItemPickupDeleted packetData;
                     packetData.pickupDeleted = itemPickupColliding.value();
                     Packet packet;
                     packet.set(packetData);
 
-                    if (isLobbyHost)
+                    if (networkHandler.getIsLobbyHost())
                     {
-                        sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0);
+                        networkHandler.sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0);
                     }
                     else
                     {
-                        sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
+                        networkHandler.sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
                     }
                 }
             }
@@ -1187,7 +1177,7 @@ void Game::drawOnPlanet(float dt)
     bossManager.getBossWorldObjects(worldObjects);
 
     // Add network players
-    for (auto iter = networkPlayers.begin(); iter != networkPlayers.end(); iter++)
+    for (auto iter = networkHandler.getNetworkPlayers().begin(); iter != networkHandler.getNetworkPlayers().end(); iter++)
     {
         worldObjects.push_back(&iter->second);
     }
@@ -1706,7 +1696,7 @@ void Game::attemptUseToolWeapon()
 void Game::hitObject(ChunkPosition chunk, sf::Vector2i tile, int damage, bool sentFromHost, std::optional<uint64_t> userId)
 {
     // If multiplayer and this client attempted to hit object, send hit object packet to host
-    if (multiplayerGame && !isLobbyHost && !sentFromHost)
+    if (networkHandler.isClient() && !sentFromHost)
     {
         PacketDataObjectHit packetData;
         packetData.objectHit.chunk = chunk;
@@ -1716,7 +1706,7 @@ void Game::hitObject(ChunkPosition chunk, sf::Vector2i tile, int damage, bool se
 
         Packet packet;
         packet.set(packetData);
-        sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
+        networkHandler.sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
         return;
     }
 
@@ -1733,12 +1723,10 @@ void Game::hitObject(ChunkPosition chunk, sf::Vector2i tile, int damage, bool se
     {
         // Only drop items if playing solo or is host of lobby
         // In multiplayer, host handles creation of all pickups and alerts clients of new pickups
-        bool dropItems = (!multiplayerGame || isLobbyHost);
-
-        bool destroyed = selectedObject->damage(damage, *this, chunkManager, particleSystem, dropItems);
+        bool destroyed = selectedObject->damage(damage, *this, chunkManager, particleSystem, networkHandler.isLobbyHostOrSolo());
 
         // Alert network players if host
-        if (multiplayerGame && isLobbyHost)
+        if (networkHandler.getIsLobbyHost())
         {
             PacketDataObjectHit packetData;
             packetData.objectHit.chunk = chunk;
@@ -1755,7 +1743,7 @@ void Game::hitObject(ChunkPosition chunk, sf::Vector2i tile, int damage, bool se
 
             Packet packet;
             packet.set(packetData);
-            sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0);
+            networkHandler.sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0);
         }
 
         if (destroyed)
@@ -1763,10 +1751,10 @@ void Game::hitObject(ChunkPosition chunk, sf::Vector2i tile, int damage, bool se
             // Only apply screenshake if this client destroyed object
             bool applyScreenShake = true;
             
-            if (multiplayerGame)
+            if (networkHandler.isMultiplayerGame())
             {
                 // If host, alert clients of object destruction
-                if (isLobbyHost)
+                if (networkHandler.getIsLobbyHost())
                 {
                     PacketDataObjectDestroyed objectDestroyedPacketData;
                     objectDestroyedPacketData.objectReference.chunk = chunk;
@@ -1774,7 +1762,7 @@ void Game::hitObject(ChunkPosition chunk, sf::Vector2i tile, int damage, bool se
                     objectDestroyedPacketData.userId = userId.has_value() ? userId.value() : SteamUser()->GetSteamID().ConvertToUint64(); 
                     Packet packet;
                     packet.set(objectDestroyedPacketData);
-                    sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0);
+                    networkHandler.sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0);
                 }
                 
                 if (userId.has_value())
@@ -1798,7 +1786,7 @@ void Game::hitObject(ChunkPosition chunk, sf::Vector2i tile, int damage, bool se
 void Game::buildObject(ChunkPosition chunk, sf::Vector2i tile, ObjectType objectType, bool sentFromHost)
 {
     // If multiplayer game and this client builds object, send build object packet to host
-    if (multiplayerGame && !isLobbyHost && !sentFromHost)
+    if (networkHandler.isClient() && !sentFromHost)
     {
         PacketDataObjectBuilt packetData;
         packetData.objectReference.chunk = chunk;
@@ -1808,13 +1796,13 @@ void Game::buildObject(ChunkPosition chunk, sf::Vector2i tile, ObjectType object
 
         Packet packet;
         packet.set(packetData);
-        sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
+        networkHandler.sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
         return;
     }
 
     // Not multiplayer game / sent from host / is host
 
-    if (multiplayerGame && isLobbyHost)
+    if (networkHandler.getIsLobbyHost())
     {
         // Send build object packets to clients
         PacketDataObjectBuilt packetData;
@@ -1825,17 +1813,17 @@ void Game::buildObject(ChunkPosition chunk, sf::Vector2i tile, ObjectType object
 
         Packet packet;
         packet.set(packetData);
-        sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0);
+        networkHandler.sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0);
     }
 
     // If sent from host and client does not have chunk, request it
-    if (multiplayerGame && !isLobbyHost && sentFromHost)
+    if (networkHandler.isClient() && sentFromHost)
     {
         Chunk* chunkPtr = chunkManager.getChunk(chunk);
         if (!chunkPtr)
         {
             std::vector<ChunkPosition> requestedChunks = {chunk};
-            requestChunksFromHost(requestedChunks);
+            networkHandler.requestChunksFromHost(requestedChunks);
             return;
         }
     }
@@ -1868,7 +1856,7 @@ void Game::testMeleeCollision(const std::vector<HitRect>& hitRects)
 
 void Game::itemPickupsCreated(const std::vector<ItemPickupReference>& itemPickupsCreated)
 {
-    if (!multiplayerGame || !isLobbyHost)
+    if (!networkHandler.getIsLobbyHost())
     {
         return;
     }
@@ -1907,7 +1895,7 @@ void Game::itemPickupsCreated(const std::vector<ItemPickupReference>& itemPickup
 
     Packet packet;
     packet.set(packetData);
-    sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0);
+    networkHandler.sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0);
 }
 
 void Game::catchRandomFish(sf::Vector2i fishedTile)
@@ -1942,7 +1930,7 @@ void Game::catchRandomFish(sf::Vector2i fishedTile)
                     Helper::randFloat(-TILE_SIZE_PIXELS_UNSCALED / 2.0f, TILE_SIZE_PIXELS_UNSCALED / 2.0f)
                 );
 
-                if (!multiplayerGame || (multiplayerGame && isLobbyHost))
+                if (!networkHandler.isMultiplayerGame() || networkHandler.getIsLobbyHost())
                 {
                     // Not multiplayer / is host, create pickups and tell clients
                     itemPickupsCreatedVector.push_back(chunkManager.addItemPickup(ItemPickup(spawnPos, fishCatchData.itemCatch, gameTime)).value());
@@ -1971,12 +1959,12 @@ void Game::catchRandomFish(sf::Vector2i fishedTile)
         }
     }
 
-    if (!multiplayerGame)
+    if (!networkHandler.isMultiplayerGame())
     {
         return;
     }
 
-    if (isLobbyHost)
+    if (networkHandler.getIsLobbyHost())
     {
         itemPickupsCreated(itemPickupsCreatedVector);
     }
@@ -1984,7 +1972,7 @@ void Game::catchRandomFish(sf::Vector2i fishedTile)
     {
         Packet packet;
         packet.set(packetData, true);
-        sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
+        networkHandler.sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
     }
 }
 
@@ -2005,8 +1993,7 @@ void Game::attemptObjectInteract()
 
     if (selectedObject)
     {
-        bool isClient = (multiplayerGame && !isLobbyHost);
-        selectedObject->interact(*this, isClient);
+        selectedObject->interact(*this, networkHandler.isClient());
     }
 }
 
@@ -2310,7 +2297,7 @@ void Game::handleInventoryClose()
 
 void Game::openChest(ChestObject& chest, bool initiatedClientSide)
 {
-    if (initiatedClientSide && (multiplayerGame && !isLobbyHost))
+    if (initiatedClientSide && networkHandler.isClient())
     {
         // Alert server of attempt chest open
         PacketDataChestOpened packetData;
@@ -2319,10 +2306,12 @@ void Game::openChest(ChestObject& chest, bool initiatedClientSide)
         packetData.userID = SteamUser()->GetSteamID().ConvertToUint64();
         Packet packet;
         packet.set(packetData);
-        sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
+        networkHandler.sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
     }
     else
     {
+        // Sent from host / is host / not multiplayer
+        
         // Ensure chest is not open
         if (chest.isOpen())
         {
@@ -2338,8 +2327,7 @@ void Game::openChest(ChestObject& chest, bool initiatedClientSide)
         // Open chest animation
         chest.openChest();
 
-        // Sent from host / is host / not multiplayer
-        if (multiplayerGame && isLobbyHost)
+        if (networkHandler.getIsLobbyHost())
         {
             // If is host - tell clients chest has been opened
             PacketDataChestOpened packetData;
@@ -2348,7 +2336,7 @@ void Game::openChest(ChestObject& chest, bool initiatedClientSide)
             packetData.userID = SteamUser()->GetSteamID().ConvertToUint64();
             Packet packet;
             packet.set(packetData);
-            sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0);
+            networkHandler.sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0);
         }
 
         // If required
@@ -2368,7 +2356,7 @@ void Game::openChest(ChestObject& chest, bool initiatedClientSide)
 
 void Game::openChestForClient(PacketDataChestOpened packetData)
 {
-    if (!multiplayerGame || !isLobbyHost)
+    if (!networkHandler.getIsLobbyHost())
     {
         return;
     }
@@ -2406,12 +2394,12 @@ void Game::openChestForClient(PacketDataChestOpened packetData)
     packetData.chestData = *chestData;
     Packet packet;
     packet.set(packetData, true);
-    sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0);
+    networkHandler.sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0);
 }
 
 void Game::openChestFromHost(const PacketDataChestOpened& packetData)
 {
-    if (!multiplayerGame || isLobbyHost)
+    if (!networkHandler.isClient())
     {
         return;
     }
@@ -2439,7 +2427,7 @@ void Game::openChestFromHost(const PacketDataChestOpened& packetData)
 void Game::openedChestDataModified()
 {
     // Only send packet if not lobby host (is client), as host updates chest data for client on open regardless
-    if (!multiplayerGame || isLobbyHost || chestDataPool.getChestDataPtr(openedChestID) == nullptr)
+    if (!networkHandler.isClient() || chestDataPool.getChestDataPtr(openedChestID) == nullptr)
     {
         return;
     }
@@ -2452,7 +2440,7 @@ void Game::openedChestDataModified()
     
     printf("Sending chest data to host\n");
 
-    sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
+    networkHandler.sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
 }
 
 uint16_t Game::getOpenChestID()
@@ -2496,23 +2484,23 @@ void Game::closeChest(std::optional<ObjectReference> chestObjectRef, bool sentFr
     }
 
     // Networking for chest
-    if (multiplayerGame)
+    if (networkHandler.isMultiplayerGame())
     {
         PacketDataChestClosed packetData;
         packetData.chestObject = chestObjectRef.value();
         packetData.userID = SteamUser()->GetSteamID().ConvertToUint64();
         Packet packet;
         packet.set(packetData);
-        if (!isLobbyHost && !sentFromHost)
+        if (networkHandler.isClient() && !sentFromHost)
         {
             // Alert host of chest close
-            sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
+            networkHandler.sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
             return;
         }
-        else if (isLobbyHost)
+        else if (networkHandler.getIsLobbyHost())
         {
             // Alert clients
-            sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0);   
+            networkHandler.sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0);   
         }
     }
 
@@ -2535,7 +2523,7 @@ void Game::closeChest(std::optional<ObjectReference> chestObjectRef, bool sentFr
         isUser = (userId.value() == SteamUser()->GetSteamID().ConvertToUint64());
     }
 
-    if (!multiplayerGame || isLobbyHost || (sentFromHost && isUser))
+    if (networkHandler.isLobbyHostOrSolo() || (sentFromHost && isUser))
     {
         InventoryGUI::chestClosed();
     
@@ -2587,7 +2575,7 @@ void Game::travelToPlanet(PlanetType planetType)
 
     camera.instantUpdate(player.getPosition());
 
-    if (gameState == GameState::OnPlanet && (!multiplayerGame || isLobbyHost))
+    if (gameState == GameState::OnPlanet && networkHandler.isLobbyHostOrSolo())
     {
         chunkManager.updateChunks(*this, camera);
     }
@@ -2659,7 +2647,7 @@ void Game::initialiseNewPlanet(PlanetType planetType, bool placeRocket)
     
     camera.instantUpdate(player.getPosition());
 
-    if (!multiplayerGame || isLobbyHost)
+    if (networkHandler.isLobbyHostOrSolo())
     {
         chunkManager.updateChunks(*this, camera);
     }
@@ -2777,10 +2765,7 @@ void Game::overrideState(GameState newState)
 
 void Game::startNewGame(int seed)
 {
-    // setWorldSeedFromInput();
-    networkPlayers.clear();
-    multiplayerGame = false;
-    lobbyHost = false;
+    networkHandler.reset(this);
 
     player = Player(sf::Vector2f(0, 0));
     inventory = InventoryData(32);
@@ -2919,9 +2904,7 @@ bool Game::loadGame(const SaveFileSummary& saveFileSummary)
         return false;
     }
 
-    networkPlayers.clear();
-    multiplayerGame = false;
-    lobbyHost = false;
+    networkHandler.reset(this);
 
     player = Player(sf::Vector2f(0, 0), playerGameSave.maxHealth);
 
@@ -3125,7 +3108,7 @@ void Game::quitWorld()
     if (networkHandler.isMultiplayerGame())
     {
         networkHandler.leaveLobby();
-        networkHandler.reset();
+        networkHandler.reset(this);
     }
 
     currentSaveFileSummary.name = "";
@@ -3201,81 +3184,10 @@ void Game::handleChunkRequestsFromClient(const PacketDataChunkRequests& chunkReq
     packet.sendToUser(client, k_nSteamNetworkingSend_Reliable, 0);
 }
 
-
-// EResult Game::sendPacketToHost(const Packet& packet, int nSendFlags, int nRemoteChannel)
-// {
-//     if (isLobbyHost)
-//     {
-//         return EResult::k_EResultAccessDenied;
-//     }
-
-//     SteamNetworkingIdentity hostIdentity;
-//     hostIdentity.SetSteamID64(lobbyHost);
-
-//     return packet.sendToUser(hostIdentity, nSendFlags, nRemoteChannel);
-// }
-
-void Game::handleChunkDatasFromHost(const PacketDataChunkDatas& chunkDatas)
+void Game::handleChunkDataFromHost(const PacketDataChunkDatas::ChunkData& chunkData)
 {
-    if (isLobbyHost)
-    {
-        return;
-    }
-
-    for (const auto& chunkData : chunkDatas.chunkDatas)
-    {
-        chunkManager.setChunkData(chunkData, *this);
-        
-        if (chunkRequestsOutstanding.contains(chunkData.chunkPosition))
-        {
-            chunkRequestsOutstanding.erase(chunkData.chunkPosition);    
-        }
-
-        printf(("Received chunk (" + std::to_string(chunkData.chunkPosition.x) + ", " + std::to_string(chunkData.chunkPosition.y) + ") data from host\n").c_str());
-    }
-}
-
-void Game::requestChunksFromHost(std::vector<ChunkPosition>& chunks)
-{
-    if (!multiplayerGame || isLobbyHost)
-    {
-        return;
-    }
-
-    for (auto iter = chunks.begin(); iter != chunks.end();)
-    {
-        if (!chunkRequestsOutstanding.contains(*iter))
-        {
-            chunkRequestsOutstanding[*iter] = gameTime;
-        }
-        else if (gameTime - chunkRequestsOutstanding.at(*iter) >= CHUNK_REQUEST_OUTSTANDING_MAX_TIME)
-        {
-            // Reset time and request again
-            chunkRequestsOutstanding[*iter] = gameTime;
-        }
-        else
-        {
-            // Chunk is still being requested - do not request again (yet)
-            iter = chunks.erase(iter);
-            continue;
-        }
-
-        iter++;
-    }
-
-    // Do not request 0 chunks
-    if (chunks.size() <= 0)
-    {
-        return;
-    }
-    
-    printf(("Requesting " + std::to_string(chunks.size()) + " chunks from host\n").c_str());
-
-    PacketDataChunkRequests packetData;
-    packetData.chunkRequests = chunks;
-    Packet packet;
-    packet.set(packetData);
-    sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
+    chunkManager.setChunkData(chunkData, *this);
+    printf(("Received chunk (" + std::to_string(chunkData.chunkPosition.x) + ", " + std::to_string(chunkData.chunkPosition.y) + ") data from host\n").c_str());
 }
 
 
@@ -3656,19 +3568,12 @@ void Game::drawDebugMenu(float dt)
 
     ImGui::Spacing();
 
-    if (!multiplayerGame || isLobbyHost)
+    if (!networkHandler.isClient())
     {
-        // ImGui::Text("Save / Load");
-    
         if (ImGui::Button("Save"))
         {
             saveGame();
         }
-    
-        // if (ImGui::Button("Load"))
-        // {
-        //     loadGame(currentSaveFileSummary);
-        // }
     }
 
     ImGui::Spacing();
@@ -3676,7 +3581,7 @@ void Game::drawDebugMenu(float dt)
     ImGui::Checkbox("Smooth Lighting", &smoothLighting);
 
     float time = dayCycleManager.getCurrentTime();
-    if (!multiplayerGame || isLobbyHost)
+    if (!networkHandler.isClient())
     {
         if (ImGui::SliderFloat("Day time", &time, 0.0f, dayCycleManager.getDayLength()))
         {

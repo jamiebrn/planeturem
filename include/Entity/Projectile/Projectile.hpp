@@ -19,6 +19,7 @@
 class Projectile
 {
 public:
+    Projectile() = default;
     // Angle in DEGREES
     Projectile(sf::Vector2f position, float angle, ProjectileType type, float damageMult, float shootPower);
 

@@ -8,16 +8,16 @@ NetworkHandler::NetworkHandler(Game* game)
         printf("ERROR: NetworkHandler game ptr set to null\n");
     }
 
-    this->game = game;
-    reset();
+    reset(game);
 }
 
-void NetworkHandler::reset()
+void NetworkHandler::reset(Game* game)
 {
-    bool multiplayerGame = false;
-    uint64_t steamLobbyId = 0;
-    bool isLobbyHost = false;
-    uint64_t lobbyHost = 0;
+    this->game = game;
+    multiplayerGame = false;
+    steamLobbyId = 0;
+    isLobbyHost = false;
+    lobbyHost = 0;
 }
 
 void NetworkHandler::startHostServer()
@@ -86,6 +86,16 @@ bool NetworkHandler::isMultiplayerGame()
     return multiplayerGame;
 }
 
+bool NetworkHandler::isLobbyHostOrSolo()
+{
+    if (!multiplayerGame)
+    {
+        return true;
+    }
+
+    return isLobbyHost;
+}
+
 bool NetworkHandler::getIsLobbyHost()
 {
     if (!multiplayerGame)
@@ -94,6 +104,30 @@ bool NetworkHandler::getIsLobbyHost()
     }
 
     return isLobbyHost;
+}
+
+bool NetworkHandler::isClient()
+{
+    return (multiplayerGame && !isLobbyHost);
+}
+
+int NetworkHandler::getNetworkPlayerCount()
+{
+    return networkPlayers.size();
+}
+
+std::optional<uint64_t> NetworkHandler::getLobbyID()
+{
+    if (!multiplayerGame)
+    {
+        return std::nullopt;
+    }
+    return steamLobbyId;
+}
+
+std::unordered_map<uint64_t, Player>& NetworkHandler::getNetworkPlayers()
+{
+    return networkPlayers;
 }
 
 void NetworkHandler::registerNetworkPlayer(uint64_t id, bool notify)
@@ -487,7 +521,7 @@ void NetworkHandler::receiveMessages()
         {
             PacketDataChunkRequests packetData;
             packetData.deserialise(packet.data);
-            handleChunkRequestsFromClient(packetData, messages[i]->m_identityPeer);
+            game->handleChunkRequestsFromClient(packetData, messages[i]->m_identityPeer);
         }
         else if (packet.type == PacketType::ChunkDatas && !isLobbyHost)
         {
@@ -501,11 +535,11 @@ void NetworkHandler::receiveMessages()
             packetData.deserialise(packet.data);
             if (isLobbyHost)
             {
-                openChestForClient(packetData);
+                game->openChestForClient(packetData);
             }
             else
             {
-                openChestFromHost(packetData);
+                game->openChestFromHost(packetData);
             }
         }
         else if (packet.type == PacketType::ChestClosed)
@@ -535,6 +569,10 @@ void NetworkHandler::receiveMessages()
     }
 }
 
+void NetworkHandler::sendGameUpdates()
+{
+
+}
 
 void NetworkHandler::sendGameUpdatesToClients()
 {
@@ -563,7 +601,7 @@ void NetworkHandler::sendGameUpdatesToClients()
 
     std::unordered_map<uint64_t, Packet> playerInfoPackets;
     playerInfoPackets[steamID] = Packet();
-    playerInfoPackets[steamID].set(player.getNetworkPlayerInfo(steamID));
+    playerInfoPackets[steamID].set(game->getPlayer().getNetworkPlayerInfo(steamID));
 
     // Get player infos
     for (auto iter = networkPlayers.begin(); iter != networkPlayers.end(); iter++)
@@ -641,4 +679,60 @@ EResult NetworkHandler::sendPacketToHost(const Packet& packet, int nSendFlags, i
     hostIdentity.SetSteamID64(lobbyHost);
 
     return packet.sendToUser(hostIdentity, nSendFlags, nRemoteChannel);
+}
+
+void NetworkHandler::requestChunksFromHost(std::vector<ChunkPosition>& chunks)
+{
+    if (!multiplayerGame || isLobbyHost)
+    {
+        return;
+    }
+
+    for (auto iter = chunks.begin(); iter != chunks.end();)
+    {
+        if (!chunkRequestsOutstanding.contains(*iter))
+        {
+            chunkRequestsOutstanding[*iter] = game->getGameTime();
+        }
+        else if (game->getGameTime() - chunkRequestsOutstanding.at(*iter) >= CHUNK_REQUEST_OUTSTANDING_MAX_TIME)
+        {
+            // Reset time and request again
+            chunkRequestsOutstanding[*iter] = game->getGameTime();
+        }
+        else
+        {
+            // Chunk is still being requested - do not request again (yet)
+            iter = chunks.erase(iter);
+            continue;
+        }
+
+        iter++;
+    }
+
+    // Do not request 0 chunks
+    if (chunks.size() <= 0)
+    {
+        return;
+    }
+    
+    printf(("Requesting " + std::to_string(chunks.size()) + " chunks from host\n").c_str());
+
+    PacketDataChunkRequests packetData;
+    packetData.chunkRequests = chunks;
+    Packet packet;
+    packet.set(packetData);
+    sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
+}
+
+void NetworkHandler::handleChunkDatasFromHost(const PacketDataChunkDatas& chunkDatas)
+{
+    for (const auto& chunkData : chunkDatas.chunkDatas)
+    {
+        game->handleChunkDataFromHost(chunkData);
+
+        if (chunkRequestsOutstanding.contains(chunkData.chunkPosition))
+        {
+            chunkRequestsOutstanding.erase(chunkData.chunkPosition);
+        }
+    }
 }

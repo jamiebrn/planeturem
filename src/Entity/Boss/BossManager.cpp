@@ -50,13 +50,13 @@ void BossManager::update(Game& game, ProjectileManager& projectileManager, Proje
         {
             boss->update(game, enemyProjectileManager, player, dt);
 
-            for (auto& projectile : projectileManager.getProjectiles())
+            for (auto& projectilePair : projectileManager.getProjectiles())
             {
-                if (!projectile->isAlive())
+                if (!projectilePair.second.isAlive())
                 {
                     continue;
                 }
-                boss->testProjectileCollision(*projectile);
+                boss->testProjectileCollision(projectilePair.second);
             }
             iter++;
         }
