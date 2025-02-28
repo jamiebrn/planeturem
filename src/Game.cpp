@@ -2311,7 +2311,7 @@ void Game::openChest(ChestObject& chest, bool initiatedClientSide)
     else
     {
         // Sent from host / is host / not multiplayer
-        
+
         // Ensure chest is not open
         if (chest.isOpen())
         {
@@ -2495,7 +2495,6 @@ void Game::closeChest(std::optional<ObjectReference> chestObjectRef, bool sentFr
         {
             // Alert host of chest close
             networkHandler.sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
-            return;
         }
         else if (networkHandler.getIsLobbyHost())
         {
@@ -2511,27 +2510,30 @@ void Game::closeChest(std::optional<ObjectReference> chestObjectRef, bool sentFr
         object->triggerBehaviour(*this, ObjectBehaviourTrigger::ChestClose);
     }
 
-    // Chest closed is not currently opened chest - do not close UI
-    if (chestObjectRef.value() != openedChest)
-    {
-        return;
-    }
-
+    // If sent from host or is user (this client triggered this close so UI already closed), do not close UI
     bool isUser = false;
     if (userId.has_value() && steamInitialised)
     {
         isUser = (userId.value() == SteamUser()->GetSteamID().ConvertToUint64());
     }
 
-    if (networkHandler.isLobbyHostOrSolo() || (sentFromHost && isUser))
+    if (sentFromHost || isUser)
     {
-        InventoryGUI::chestClosed();
-    
-        openedChestID = 0xFFFF;
-        openedChest.chunk = ChunkPosition(0, 0);
-        openedChest.tile = sf::Vector2i(0, 0);
-        // openedChestPos = sf::Vector2f(0, 0);
+        return;
     }
+
+    // Chest closed is not currently opened chest - do not close UI
+    if (chestObjectRef.value() != openedChest)
+    {
+        return;
+    }
+
+    InventoryGUI::chestClosed();
+
+    openedChestID = 0xFFFF;
+    openedChest.chunk = ChunkPosition(0, 0);
+    openedChest.tile = sf::Vector2i(0, 0);
+    // openedChestPos = sf::Vector2f(0, 0);
 }
 
 
