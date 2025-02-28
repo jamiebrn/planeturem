@@ -571,7 +571,14 @@ void NetworkHandler::receiveMessages()
 
 void NetworkHandler::sendGameUpdates()
 {
-
+    if (isLobbyHost)
+    {
+        sendGameUpdatesToClients();
+    }
+    else
+    {
+        sendGameUpdatesToHost();
+    }
 }
 
 void NetworkHandler::sendGameUpdatesToClients()

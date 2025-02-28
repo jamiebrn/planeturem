@@ -17,10 +17,9 @@ struct IPacketTimeDependent
             return false;
         }
         
-        char* pingLocationStrBuffer = new char[k_cchMaxSteamNetworkingPingLocationString];
+        char pingLocationStrBuffer[k_cchMaxSteamNetworkingPingLocationString];
         SteamNetworkingUtils()->ConvertPingLocationToString(pingLocation, pingLocationStrBuffer, k_cchMaxSteamNetworkingPingLocationString);
         hostPingLocation = pingLocationStrBuffer;
-        delete[] pingLocationStrBuffer;
         
         return true;
     }
