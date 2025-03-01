@@ -38,6 +38,8 @@
 #include "World/PathfindingEngine.hpp"
 #include "World/LandmarkManager.hpp"
 #include "World/WeatherSystem.hpp"
+#include "World/WorldData.hpp"
+#include "World/RoomDestinationData.hpp"
 
 #include "Player/Player.hpp"
 #include "Player/Cursor.hpp"
@@ -125,7 +127,6 @@ public:
     void openedChestDataModified();
     void closeChest(std::optional<ObjectReference> chestObjectRef = std::nullopt, bool sentFromHost = false, std::optional<uint64_t> userId = std::nullopt);
     uint16_t getOpenChestID();
-    ChestDataPool& getChestDataPool();
 
     // Rocket
     void enterRocket(RocketObject& rocket);
@@ -165,7 +166,13 @@ public:
     inline bool getIsDay() {return isDay;}
     DayCycleManager& getDayCycleManager(bool overrideMenuSwap = false);
 
-    inline ChunkManager& getChunkManager() {return chunkManager;}
+    ChunkManager& getChunkManager(std::optional<PlanetType> planetTypeOverride = std::nullopt);
+    ProjectileManager& getProjectileManager(std::optional<PlanetType> planetTypeOverride = std::nullopt);
+    BossManager& getBossManager(std::optional<PlanetType> planetTypeOverride = std::nullopt);
+    LandmarkManager& getLandmarkManager(std::optional<PlanetType> planetTypeOverride = std::nullopt);
+    RoomPool& getStructureRoomPool(std::optional<PlanetType> planetTypeOverride = std::nullopt);
+    Room& getRoomDestination(std::optional<RoomType> roomDestOverride = std::nullopt);
+    ChestDataPool& getChestDataPool(std::optional<PlanetType> planetTypeOverride = std::nullopt, std::optional<RoomType> roomDestOverride = std::nullopt);
 
     inline const Camera& getCamera() {return camera;}
 
@@ -342,15 +349,14 @@ private:
     Camera camera;
     InventoryData inventory;
     InventoryData armourInventory;
-    ChunkManager chunkManager;
     WeatherSystem weatherSystem;
-    ProjectileManager projectileManager;
-    ProjectileManager enemyProjectileManager;
-    BossManager bossManager;
-    LandmarkManager landmarkManager;
     ParticleSystem particleSystem;
     DayCycleManager dayCycleManager;
-    Room roomDestination;
+    
+    std::unordered_map<PlanetType, WorldData> worldDatas;
+    PlanetType currentPlanetType;
+    std::unordered_map<RoomType, RoomDestinationData> roomDestDatas;
+    RoomType roomDestType;
 
     LightingEngine lightingEngine;
     int lightingTick = 0;
@@ -373,12 +379,10 @@ private:
     uint16_t openedChestID;
     ObjectReference openedChest;
     // sf::Vector2f openedChestPos;
-    ChestDataPool chestDataPool;
 
     // Structure
     uint32_t structureEnteredID;
     sf::Vector2f structureEnteredPos;
-    RoomPool structureRoomPool;
 
     // Rocket
     ObjectReference rocketEnteredReference;

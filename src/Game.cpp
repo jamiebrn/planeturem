@@ -379,7 +379,7 @@ void Game::runMainMenu(float dt)
 
     // sf::Vector2f mouseScreenPos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
 
-    mainMenuGUI.update(dt, mouseScreenPos, *this, projectileManager);
+    mainMenuGUI.update(dt, mouseScreenPos, *this, getProjectileManager());
 
     window.clear();
 
@@ -494,7 +494,7 @@ void Game::runInGame(float dt)
                         
                         if (InventoryGUI::isMouseOverUI(mouseScreenPos) && !InputManager::isControllerActive())
                         {
-                            InventoryGUI::handleLeftClick(*this, mouseScreenPos, shiftMode, inventory, armourInventory, chestDataPool.getChestDataPtr(openedChestID));
+                            InventoryGUI::handleLeftClick(*this, mouseScreenPos, shiftMode, inventory, armourInventory, getChestDataPool().getChestDataPtr(openedChestID));
                             uiInteracted = true;
                         }
 
@@ -573,7 +573,7 @@ void Game::runInGame(float dt)
                 case WorldMenuState::Inventory:
                     if (InventoryGUI::isMouseOverUI(mouseScreenPos) && !InputManager::isControllerActive())
                     {
-                        InventoryGUI::handleRightClick(*this, mouseScreenPos, shiftMode, inventory, armourInventory, chestDataPool.getChestDataPtr(openedChestID));
+                        InventoryGUI::handleRightClick(*this, mouseScreenPos, shiftMode, inventory, armourInventory, getChestDataPool().getChestDataPtr(openedChestID));
                         changePlayerTool();
                     }
                     else
@@ -813,7 +813,7 @@ void Game::runInGame(float dt)
                 {
                     // Update inventory GUI available recipes if required, and animations
                     InventoryGUI::updateAvailableRecipes(inventory, nearbyCraftingStationLevels);
-                    InventoryGUI::updateInventory(mouseScreenPos, dt, inventory, armourInventory, chestDataPool.getChestDataPtr(openedChestID));
+                    InventoryGUI::updateInventory(mouseScreenPos, dt, inventory, armourInventory, getChestDataPool().getChestDataPtr(openedChestID));
                     break;
                 }
             }
@@ -882,7 +882,7 @@ void Game::runInGame(float dt)
             case WorldMenuState::Inventory:
             {
                 ItemType itemHeldBefore = InventoryGUI::getHeldItemType(inventory);
-                if (InventoryGUI::handleControllerInput(*this, inventory, armourInventory, chestDataPool.getChestDataPtr(openedChestID)))
+                if (InventoryGUI::handleControllerInput(*this, inventory, armourInventory, getChestDataPool().getChestDataPtr(openedChestID)))
                 {
                     if (itemHeldBefore != InventoryGUI::getHeldItemType(inventory))
                     {
@@ -897,7 +897,7 @@ void Game::runInGame(float dt)
 
                 if (worldMenuState == WorldMenuState::Inventory)
                 {
-                    chestDataPtr = chestDataPool.getChestDataPtr(openedChestID);
+                    chestDataPtr = getChestDataPool().getChestDataPtr(openedChestID);
                 }
 
                 InventoryGUI::draw(window, gameTime, mouseScreenPos, inventory, armourInventory, chestDataPtr);
@@ -1366,7 +1366,7 @@ void Game::testEnterStructure()
     if (enterEvent.enteredStructure->getStructureID() == 0xFFFFFFFF)
     {
         const StructureData& structureData = StructureDataLoader::getStructureData(enterEvent.enteredStructure->getStructureType());
-        structureEnteredID = structureRoomPool.createRoom(structureData.roomType, chestDataPool);
+        structureEnteredID = structureRoomPool.createRoom(structureData.roomType, getChestDataPool());
         enterEvent.enteredStructure->setStructureID(structureEnteredID);
     }
     else
@@ -2285,7 +2285,7 @@ void Game::handleInventoryClose()
 {
     ItemType itemHeldBefore = InventoryGUI::getHeldItemType(inventory);
 
-    InventoryGUI::handleClose(inventory, chestDataPool.getChestDataPtr(openedChestID));
+    InventoryGUI::handleClose(inventory, getChestDataPool().getChestDataPtr(openedChestID));
     worldMenuState = WorldMenuState::Main;
     closeChest();
 
@@ -2348,7 +2348,7 @@ void Game::openChest(ChestObject& chest, bool initiatedClientSide)
         openedChest.tile = chest.getChunkTileInside(chunkManager.getWorldSize());
         // openedChestPos = chest.getPosition();
     
-        InventoryGUI::chestOpened(chestDataPool.getChestDataPtr(openedChestID));
+        InventoryGUI::chestOpened(getChestDataPool().getChestDataPtr(openedChestID));
     
         worldMenuState = WorldMenuState::Inventory;
     }
@@ -2383,7 +2383,7 @@ void Game::openChestForClient(PacketDataChestOpened packetData)
         packetData.chestID = chestObject->createChestID(*this);
     }
 
-    InventoryData* chestData = chestDataPool.getChestDataPtr(packetData.chestID);
+    InventoryData* chestData = getChestDataPool().getChestDataPtr(packetData.chestID);
 
     // Failed to create new chest - abort
     if (!chestData)
@@ -2420,21 +2420,21 @@ void Game::openChestFromHost(const PacketDataChestOpened& packetData)
 
     // Set chest ID and data, and open chest
     chestObject->setChestID(packetData.chestID);
-    chestDataPool.overwriteChestData(packetData.chestID, packetData.chestData);
+    getChestDataPool().overwriteChestData(packetData.chestID, packetData.chestData);
     chestObject->interact(*this, false); // isClient is passed as false as now has server auth to open chest
 }
 
 void Game::openedChestDataModified()
 {
     // Only send packet if not lobby host (is client), as host updates chest data for client on open regardless
-    if (!networkHandler.isClient() || chestDataPool.getChestDataPtr(openedChestID) == nullptr)
+    if (!networkHandler.isClient() || getChestDataPool().getChestDataPtr(openedChestID) == nullptr)
     {
         return;
     }
 
     PacketDataChestDataModified packetData;
     packetData.chestID = openedChestID;
-    packetData.chestData = *chestDataPool.getChestDataPtr(openedChestID);
+    packetData.chestData = *getChestDataPool().getChestDataPtr(openedChestID);
     Packet packet;
     packet.set(packetData, true);
     
@@ -2446,11 +2446,6 @@ void Game::openedChestDataModified()
 uint16_t Game::getOpenChestID()
 {
     return openedChestID;
-}
-
-ChestDataPool& Game::getChestDataPool()
-{
-    return chestDataPool;
 }
 
 void Game::checkChestOpenInRange()
@@ -3320,8 +3315,85 @@ DayCycleManager& Game::getDayCycleManager(bool overrideMenuSwap)
         static DayCycleManager tempDayCycleManager;
         return tempDayCycleManager;
     }
-
+    
     return dayCycleManager;
+}
+
+ChunkManager& Game::getChunkManager(std::optional<PlanetType> planetTypeOverride)
+{
+    if (planetTypeOverride.has_value())
+    {
+        return worldDatas[planetTypeOverride.value()].chunkManager;
+    }
+    return worldDatas[currentPlanetType].chunkManager;
+}
+
+ProjectileManager& Game::getProjectileManager(std::optional<PlanetType> planetTypeOverride)
+{
+    if (planetTypeOverride.has_value())
+    {
+        return worldDatas[planetTypeOverride.value()].projectileManager;
+    }
+    return worldDatas[currentPlanetType].projectileManager;
+}
+
+BossManager& Game::getBossManager(std::optional<PlanetType> planetTypeOverride)
+{
+    if (planetTypeOverride.has_value())
+    {
+        return worldDatas[planetTypeOverride.value()].bossManager;
+    }
+    return worldDatas[currentPlanetType].bossManager;
+}
+
+LandmarkManager& Game::getLandmarkManager(std::optional<PlanetType> planetTypeOverride)
+{
+    if (planetTypeOverride.has_value())
+    {
+        return worldDatas[planetTypeOverride.value()].landmarkManager;
+    }
+    return worldDatas[currentPlanetType].landmarkManager;
+}
+
+RoomPool& Game::getStructureRoomPool(std::optional<PlanetType> planetTypeOverride)
+{
+    if (planetTypeOverride.has_value())
+    {
+        return worldDatas[planetTypeOverride.value()].structureRoomPool;
+    }
+    return worldDatas[currentPlanetType].structureRoomPool;
+}
+
+Room& Game::getRoomDestination(std::optional<RoomType> roomDestOverride)
+{
+    if (roomDestOverride.has_value())
+    {
+        return roomDestDatas[roomDestOverride.value()].roomDestination;
+    }
+
+    assert(roomDestType > 0);
+    
+    return roomDestDatas[roomDestType].roomDestination;
+}
+
+ChestDataPool& Game::getChestDataPool(std::optional<PlanetType> planetTypeOverride, std::optional<RoomType> roomDestOverride)
+{
+    if (planetTypeOverride.has_value())
+    {
+        return worldDatas[planetTypeOverride.value()].chestDataPool;
+    }
+    else if (roomDestOverride.has_value())
+    {
+        return roomDestDatas[roomDestOverride.value()].chestDataPool;
+    }
+    if (currentPlanetType > 0)
+    {
+        return worldDatas[currentPlanetType].chestDataPool;
+    }
+    else if (roomDestType > 0)
+    {
+        return roomDestDatas[currentPlanetType].chestDataPool;
+    }
 }
 
 void Game::generateWaterNoiseTexture()
