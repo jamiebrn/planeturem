@@ -1038,10 +1038,10 @@ void Game::updateOnPlanet(float dt)
 {
     // sf::Vector2f mouseScreenPos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
 
-    int worldSize = chunkManager.getWorldSize();
+    int worldSize = getChunkManager().getWorldSize();
 
     // Update cursor
-    Cursor::updateTileCursor(camera.screenToWorldTransform(mouseScreenPos), dt, chunkManager, player.getCollisionRect(), InventoryGUI::getHeldItemType(inventory),
+    Cursor::updateTileCursor(camera.screenToWorldTransform(mouseScreenPos), dt, getChunkManager(), player.getCollisionRect(), InventoryGUI::getHeldItemType(inventory),
         player.getTool());
 
     // Update player
@@ -1050,7 +1050,7 @@ void Game::updateOnPlanet(float dt)
 
     if (!isStateTransitioning())
     {
-        player.update(dt, camera.screenToWorldTransform(mouseScreenPos), chunkManager, enemyProjectileManager, wrappedAroundWorld, wrapPositionDelta);
+        player.update(dt, camera.screenToWorldTransform(mouseScreenPos), getChunkManager(), enemyProjectileManager, wrappedAroundWorld, wrapPositionDelta);
     }
 
     // Handle world wrapping for camera and cursor, if player wrapped around
@@ -1059,7 +1059,7 @@ void Game::updateOnPlanet(float dt)
         camera.handleWorldWrap(wrapPositionDelta);
         Cursor::handleWorldWrap(wrapPositionDelta);
         // handleOpenChestPositionWorldWrap(wrapPositionDelta);
-        chunkManager.reloadChunks();
+        getChunkManager().reloadChunks();
 
         // Wrap bosses
         bossManager.handleWorldWrap(wrapPositionDelta);
@@ -1082,15 +1082,15 @@ void Game::updateOnPlanet(float dt)
     // Enable / disable chunk generation depending on multiplayer state
     std::vector<ChunkPosition> chunksToRequestFromHost;
 
-    bool modifiedChunks = chunkManager.updateChunks(*this, camera, networkHandler.isClient(), &chunksToRequestFromHost);
+    bool modifiedChunks = getChunkManager().updateChunks(*this, camera, networkHandler.isClient(), &chunksToRequestFromHost);
 
     if (networkHandler.isClient() && chunksToRequestFromHost.size() > 0)
     {
         networkHandler.requestChunksFromHost(chunksToRequestFromHost);
     }
 
-    chunkManager.updateChunksObjects(*this, dt);
-    chunkManager.updateChunksEntities(dt, projectileManager, *this);
+    getChunkManager().updateChunksObjects(*this, dt);
+    getChunkManager().updateChunksEntities(dt, projectileManager, *this);
 
     // If modified chunks, force a lighting recalculation
     if (modifiedChunks)
@@ -1099,22 +1099,22 @@ void Game::updateOnPlanet(float dt)
     }
     
     // Get nearby crafting stations
-    nearbyCraftingStationLevels = chunkManager.getNearbyCraftingStationLevels(player.getChunkInside(worldSize), player.getChunkTileInside(worldSize), 4);
+    nearbyCraftingStationLevels = getChunkManager().getNearbyCraftingStationLevels(player.getChunkInside(worldSize), player.getChunkTileInside(worldSize), 4);
 
     // Update bosses
-    bossManager.update(*this, projectileManager, enemyProjectileManager, chunkManager, player, dt, gameTime);
+    bossManager.update(*this, projectileManager, enemyProjectileManager, getChunkManager(), player, dt, gameTime);
 
     // Update projectiles
     projectileManager.update(dt);
     enemyProjectileManager.update(dt);
 
-    weatherSystem.update(dt, gameTime, camera, chunkManager);
+    weatherSystem.update(dt, gameTime, camera, getChunkManager());
 
     // Test item pickups colliding
-    std::optional<ItemPickupReference> itemPickupColliding = chunkManager.getCollidingItemPickup(player.getCollisionRect(), gameTime);
+    std::optional<ItemPickupReference> itemPickupColliding = getChunkManager().getCollidingItemPickup(player.getCollisionRect(), gameTime);
     if (itemPickupColliding.has_value())
     {
-        const ItemPickup* itemPickupPtr = chunkManager.getChunk(itemPickupColliding->chunk)->getItemPickup(itemPickupColliding->id);
+        const ItemPickup* itemPickupPtr = getChunkManager().getChunk(itemPickupColliding->chunk)->getItemPickup(itemPickupColliding->id);
 
         if (itemPickupPtr != nullptr)
         {
@@ -1129,7 +1129,7 @@ void Game::updateOnPlanet(float dt)
                 // Only delete pickup if playing solo or is host
                 // if (!multiplayerGame || isLobbyHost)
                 // {
-                chunkManager.deleteItemPickup(itemPickupColliding.value());
+                getChunkManager().deleteItemPickup(itemPickupColliding.value());
                 // }
     
                 // Play pickup sound
@@ -1166,9 +1166,9 @@ void Game::updateOnPlanet(float dt)
 void Game::drawOnPlanet(float dt)
 {
     // Get world objects
-    std::vector<WorldObject*> worldObjects = chunkManager.getChunkObjects();
-    std::vector<WorldObject*> entities = chunkManager.getChunkEntities();
-    std::vector<WorldObject*> itemPickups = chunkManager.getItemPickups();
+    std::vector<WorldObject*> worldObjects = getChunkManager().getChunkObjects();
+    std::vector<WorldObject*> entities = getChunkManager().getChunkEntities();
+    std::vector<WorldObject*> itemPickups = getChunkManager().getItemPickups();
     std::vector<WorldObject*> weatherParticles = weatherSystem.getWeatherParticles();
     worldObjects.insert(worldObjects.end(), entities.begin(), entities.end());
     worldObjects.insert(worldObjects.end(), itemPickups.begin(), itemPickups.end());
@@ -1182,7 +1182,7 @@ void Game::drawOnPlanet(float dt)
         worldObjects.push_back(&iter->second);
     }
 
-    drawWorld(worldTexture, dt, worldObjects, chunkManager, camera);
+    drawWorld(worldTexture, dt, worldObjects, getChunkManager(), camera);
     drawLighting(dt, worldObjects);
 
     // UI
@@ -1260,8 +1260,8 @@ void Game::drawLighting(float dt, std::vector<WorldObject*>& worldObjects)
     unsigned char ambientGreenLight = Helper::lerp(7, 244 * weatherSystem.getGreenLightBias(), lightLevel);
     unsigned char ambientBlueLight = Helper::lerp(14, 234 * weatherSystem.getBlueLightBias(), lightLevel);
 
-    sf::Vector2i chunksSizeInView = chunkManager.getChunksSizeInView(camera);
-    sf::Vector2f topLeftChunkPos = chunkManager.topLeftChunkPosInView(camera);
+    sf::Vector2i chunksSizeInView = getChunkManager().getChunksSizeInView(camera);
+    sf::Vector2f topLeftChunkPos = getChunkManager().topLeftChunkPosInView(camera);
     
     // Draw light sources on light texture
     sf::RenderTexture lightTexture;
@@ -1318,7 +1318,7 @@ void Game::drawLandmarks()
 
     landmarkUIAnimation.setFrame(static_cast<int>(gameTime / 0.1) % 6);
 
-    for (const LandmarkSummaryData& landmarkSummary : landmarkManager.getLandmarkSummaryDatas(player, chunkManager))
+    for (const LandmarkSummaryData& landmarkSummary : landmarkManager.getLandmarkSummaryDatas(player, getChunkManager()))
     {
         if (camera.isInView(landmarkSummary.worldPos))
         {
@@ -1357,7 +1357,7 @@ void Game::drawLandmarks()
 void Game::testEnterStructure()
 {
     StructureEnterEvent enterEvent;
-    if (!chunkManager.isPlayerInStructureEntrance(player.getPosition(), enterEvent))
+    if (!getChunkManager().isPlayerInStructureEntrance(player.getPosition(), enterEvent))
         return;
     
     // Structure has been entered
@@ -1400,8 +1400,8 @@ void Game::enterRocket(RocketObject& rocket)
     {
         case GameState::OnPlanet:
         {
-            rocketEnteredReference.chunk = rocket.getChunkInside(chunkManager.getWorldSize());
-            rocketEnteredReference.tile = rocket.getChunkTileInside(chunkManager.getWorldSize());
+            rocketEnteredReference.chunk = rocket.getChunkInside(getChunkManager().getWorldSize());
+            rocketEnteredReference.tile = rocket.getChunkTileInside(getChunkManager().getWorldSize());
             break;
         }
         case GameState::InStructure: // fallthrough
@@ -1420,21 +1420,21 @@ void Game::enterRocket(RocketObject& rocket)
 
     worldMenuState = WorldMenuState::TravelSelect;
 
-    PlanetType currentPlanetType = -1;
-    RoomType currentRoomType = -1;
-    if (gameState == GameState::OnPlanet)
-    {
-        currentPlanetType = chunkManager.getPlanetType();
-    }
-    else if (gameState == GameState::InRoomDestination)
-    {
-        currentRoomType = roomDestination.getRoomType();
-    }
+    // PlanetType currentPlanetType = -1;
+    // RoomType currentRoomType = -1;
+    // if (gameState == GameState::OnPlanet)
+    // {
+    //     currentPlanetType = chunkManager.getPlanetType();
+    // }
+    // else if (gameState == GameState::InRoomDestination)
+    // {
+    //     currentRoomType = roomDestination.getRoomType();
+    // }
 
     std::vector<PlanetType> planetDestinations;
     std::vector<RoomType> roomDestinations;
 
-    rocket.getRocketAvailableDestinations(currentPlanetType, currentRoomType, planetDestinations, roomDestinations);
+    rocket.getRocketAvailableDestinations(currentPlanetType, roomDestType, planetDestinations, roomDestinations);
 
     travelSelectGUI.setAvailableDestinations(planetDestinations, roomDestinations);
 
@@ -1491,7 +1491,8 @@ void Game::interactWithNPC(NPCObject& npc)
 // Landmark
 void Game::landmarkPlaced(const LandmarkObject& landmark, bool createGUI)
 {
-    ObjectReference landmarkObjectReference = ObjectReference{landmark.getChunkInside(chunkManager.getWorldSize()), landmark.getChunkTileInside(chunkManager.getWorldSize())};
+    ObjectReference landmarkObjectReference = ObjectReference{landmark.getChunkInside(getChunkManager().getWorldSize()),
+        landmark.getChunkTileInside(getChunkManager().getWorldSize())};
 
     landmarkManager.addLandmark(landmarkObjectReference);
 
@@ -1507,7 +1508,8 @@ void Game::landmarkPlaced(const LandmarkObject& landmark, bool createGUI)
 
 void Game::landmarkDestroyed(const LandmarkObject& landmark)
 {
-    landmarkManager.removeLandmark(ObjectReference{landmark.getChunkInside(chunkManager.getWorldSize()), landmark.getChunkTileInside(chunkManager.getWorldSize())});
+    landmarkManager.removeLandmark(ObjectReference{landmark.getChunkInside(getChunkManager().getWorldSize()),
+        landmark.getChunkTileInside(getChunkManager().getWorldSize())});
 }
 
 // -- In Room -- //
@@ -1531,10 +1533,10 @@ void Game::updateInRoom(float dt, Room& room, bool inStructure)
     if (inStructure)
     {
         // Continue to update objects and entities in world
-        chunkManager.updateChunksObjects(*this, dt);
-        chunkManager.updateChunksEntities(dt, projectileManager, *this);
+        getChunkManager().updateChunksObjects(*this, dt);
+        getChunkManager().updateChunksEntities(dt, projectileManager, *this);
             
-        weatherSystem.update(dt, gameTime, camera, chunkManager);
+        weatherSystem.update(dt, gameTime, camera, getChunkManager());
 
         if (!isStateTransitioning())
         {
@@ -1560,7 +1562,7 @@ void Game::drawInRoom(float dt, const Room& room)
 
     for (const WorldObject* object : worldObjects)
     {
-        object->draw(window, spriteBatch, *this, camera, dt, gameTime, chunkManager.getWorldSize(), sf::Color(255, 255, 255));
+        object->draw(window, spriteBatch, *this, camera, dt, gameTime, getChunkManager().getWorldSize(), sf::Color(255, 255, 255));
     }
 
     spriteBatch.endDrawing(window);
@@ -1638,7 +1640,7 @@ void Game::attemptUseToolPickaxe()
 
     const ToolData& toolData = ToolDataLoader::getToolData(currentTool);
 
-    hitObject(Cursor::getSelectedChunk(chunkManager.getWorldSize()), Cursor::getSelectedChunkTile(), toolData.damage);
+    hitObject(Cursor::getSelectedChunk(getChunkManager().getWorldSize()), Cursor::getSelectedChunkTile(), toolData.damage);
 }
 
 void Game::attemptUseToolFishingRod()
@@ -1663,13 +1665,13 @@ void Game::attemptUseToolFishingRod()
     }
     
     // Determine whether can fish at selected tile
-    ChunkPosition selectedChunk = Cursor::getSelectedChunk(chunkManager.getWorldSize());
+    ChunkPosition selectedChunk = Cursor::getSelectedChunk(getChunkManager().getWorldSize());
     sf::Vector2i selectedTile = Cursor::getSelectedChunkTile();
 
     // Test whether can fish on selected tile
     // Must have no object + be water
-    BuildableObject* selectedObject = chunkManager.getChunkObject(selectedChunk, selectedTile);
-    int tileType = chunkManager.getChunkTileType(selectedChunk, selectedTile);
+    BuildableObject* selectedObject = getChunkManager().getChunkObject(selectedChunk, selectedTile);
+    int tileType = getChunkManager().getChunkTileType(selectedChunk, selectedTile);
 
     if (selectedObject || tileType > 0)
     {
@@ -1680,7 +1682,7 @@ void Game::attemptUseToolFishingRod()
     // Swing fishing rod
     player.useTool(projectileManager, inventory, mouseWorldPos, *this);
 
-    player.swingFishingRod(mouseWorldPos, Cursor::getSelectedWorldTile(chunkManager.getWorldSize()));
+    player.swingFishingRod(mouseWorldPos, Cursor::getSelectedWorldTile(getChunkManager().getWorldSize()));
 }
 
 void Game::attemptUseToolWeapon()
@@ -1693,7 +1695,7 @@ void Game::attemptUseToolWeapon()
     player.useTool(projectileManager, inventory, mouseWorldPos, *this);
 }
 
-void Game::hitObject(ChunkPosition chunk, sf::Vector2i tile, int damage, bool sentFromHost, std::optional<uint64_t> userId)
+void Game::hitObject(ChunkPosition chunk, sf::Vector2i tile, int damage, std::optional<PlanetType> planetType, bool sentFromHost, std::optional<uint64_t> userId)
 {
     // If multiplayer and this client attempted to hit object, send hit object packet to host
     if (networkHandler.isClient() && !sentFromHost)
@@ -1710,20 +1712,25 @@ void Game::hitObject(ChunkPosition chunk, sf::Vector2i tile, int damage, bool se
         return;
     }
 
+    if (!planetType.has_value())
+    {
+        planetType = currentPlanetType;
+    }
+
     // Not multiplayer game / is host / hit object packet sent from host
 
-    bool canDestroyObject = chunkManager.canDestroyObject(chunk, tile, player.getCollisionRect());
+    bool canDestroyObject = getChunkManager(planetType).canDestroyObject(chunk, tile, player.getCollisionRect());
 
     if (!canDestroyObject)
         return;
 
-    BuildableObject* selectedObject = chunkManager.getChunkObject(chunk, tile);
+    BuildableObject* selectedObject = getChunkManager(planetType).getChunkObject(chunk, tile);
 
     if (selectedObject)
     {
         // Only drop items if playing solo or is host of lobby
         // In multiplayer, host handles creation of all pickups and alerts clients of new pickups
-        bool destroyed = selectedObject->damage(damage, *this, chunkManager, particleSystem, networkHandler.isLobbyHostOrSolo());
+        bool destroyed = selectedObject->damage(damage, *this, getChunkManager(planetType), particleSystem, networkHandler.isLobbyHostOrSolo());
 
         // Alert network players if host
         if (networkHandler.getIsLobbyHost())
@@ -1783,7 +1790,7 @@ void Game::hitObject(ChunkPosition chunk, sf::Vector2i tile, int damage, bool se
     }
 }
 
-void Game::buildObject(ChunkPosition chunk, sf::Vector2i tile, ObjectType objectType, bool sentFromHost)
+void Game::buildObject(ChunkPosition chunk, sf::Vector2i tile, ObjectType objectType, std::optional<PlanetType> planetType, bool sentFromHost)
 {
     // If multiplayer game and this client builds object, send build object packet to host
     if (networkHandler.isClient() && !sentFromHost)
@@ -1798,6 +1805,11 @@ void Game::buildObject(ChunkPosition chunk, sf::Vector2i tile, ObjectType object
         packet.set(packetData);
         networkHandler.sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
         return;
+    }
+
+    if (planetType.has_value())
+    {
+        planetType = currentPlanetType;
     }
 
     // Not multiplayer game / sent from host / is host
@@ -1819,7 +1831,7 @@ void Game::buildObject(ChunkPosition chunk, sf::Vector2i tile, ObjectType object
     // If sent from host and client does not have chunk, request it
     if (networkHandler.isClient() && sentFromHost)
     {
-        Chunk* chunkPtr = chunkManager.getChunk(chunk);
+        Chunk* chunkPtr = getChunkManager(planetType).getChunk(chunk);
         if (!chunkPtr)
         {
             std::vector<ChunkPosition> requestedChunks = {chunk};
@@ -1829,10 +1841,10 @@ void Game::buildObject(ChunkPosition chunk, sf::Vector2i tile, ObjectType object
     }
 
     // Build object
-    chunkManager.setObject(chunk, tile, objectType, *this);
+    getChunkManager(planetType).setObject(chunk, tile, objectType, *this);
     
     // Create build particles
-    BuildableObject* placedObject = chunkManager.getChunkObject(chunk, tile);
+    BuildableObject* placedObject = getChunkManager(planetType).getChunkObject(chunk, tile);
     if (placedObject)
     {
         placedObject->createHitParticles(particleSystem);
@@ -1854,18 +1866,23 @@ void Game::testMeleeCollision(const std::vector<HitRect>& hitRects)
     bossManager.testHitRectCollision(hitRects);
 }
 
-void Game::itemPickupsCreated(const std::vector<ItemPickupReference>& itemPickupsCreated)
+void Game::itemPickupsCreated(const std::vector<ItemPickupReference>& itemPickupsCreated, std::optional<PlanetType> planetType)
 {
     if (!networkHandler.getIsLobbyHost())
     {
         return;
     }
 
+    if (!planetType.has_value())
+    {
+        planetType = currentPlanetType;
+    }
+
     // Alert clients of item pickups created
     PacketDataItemPickupsCreated packetData;
     for (auto& itemPickupReference : itemPickupsCreated)
     {
-        Chunk* chunkPtr = chunkManager.getChunk(itemPickupReference.chunk);
+        Chunk* chunkPtr = getChunkManager(planetType).getChunk(itemPickupReference.chunk);
         if (!chunkPtr)
         {
             std::cout << "ERROR: Attempted to send item pickup creation data for null chunk (" << itemPickupReference.chunk.x
@@ -1900,7 +1917,7 @@ void Game::itemPickupsCreated(const std::vector<ItemPickupReference>& itemPickup
 
 void Game::catchRandomFish(sf::Vector2i fishedTile)
 {
-    const BiomeGenData* biomeGenData = chunkManager.getChunkBiome(ChunkPosition(fishedTile.x / CHUNK_TILE_SIZE, fishedTile.y / CHUNK_TILE_SIZE));
+    const BiomeGenData* biomeGenData = getChunkManager().getChunkBiome(ChunkPosition(fishedTile.x / CHUNK_TILE_SIZE, fishedTile.y / CHUNK_TILE_SIZE));
 
     // Check for nullptr
     if (!biomeGenData)
@@ -1933,17 +1950,17 @@ void Game::catchRandomFish(sf::Vector2i fishedTile)
                 if (!networkHandler.isMultiplayerGame() || networkHandler.getIsLobbyHost())
                 {
                     // Not multiplayer / is host, create pickups and tell clients
-                    itemPickupsCreatedVector.push_back(chunkManager.addItemPickup(ItemPickup(spawnPos, fishCatchData.itemCatch, gameTime)).value());
+                    itemPickupsCreatedVector.push_back(getChunkManager().addItemPickup(ItemPickup(spawnPos, fishCatchData.itemCatch, gameTime)).value());
                 }
                 else
                 {
                     // Multiplayer and is client, request pickup from host
                     ItemPickupRequest request;
-                    request.chunk = WorldObject::getChunkInside(spawnPos, chunkManager.getWorldSize());
+                    request.chunk = WorldObject::getChunkInside(spawnPos, getChunkManager().getWorldSize());
 
                     // Get chunkPtr to calculate spawn relative position
                     // Cannot spawn if chunk does not exist, as cannot calculate relative position
-                    Chunk* chunkPtr = chunkManager.getChunk(request.chunk);
+                    Chunk* chunkPtr = getChunkManager().getChunk(request.chunk);
                     if (!chunkPtr)
                     {
                         break;

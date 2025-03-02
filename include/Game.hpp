@@ -146,15 +146,17 @@ public:
     void testMeleeCollision(const std::vector<HitRect>& hitRects);
 
     // Item pickups created alert
-    void itemPickupsCreated(const std::vector<ItemPickupReference>& itemPickupsCreated);
+    void itemPickupsCreated(const std::vector<ItemPickupReference>& itemPickupsCreated, std::optional<PlanetType> planetType = std::nullopt);
 
     void drawWorld(sf::RenderTexture& renderTexture, float dt, std::vector<WorldObject*>& worldObjects, ChunkManager& chunkManagerArg, const Camera& cameraArg);
 
     void joinWorld(const PacketDataJoinInfo& joinInfo);
     void quitWorld();
 
-    void hitObject(ChunkPosition chunk, sf::Vector2i tile, int damage, bool sentFromHost = false, std::optional<uint64_t> userId = std::nullopt);
-    void buildObject(ChunkPosition chunk, sf::Vector2i tile, ObjectType objectType, bool sentFromHost = false);
+    void hitObject(ChunkPosition chunk, sf::Vector2i tile, int damage, std::optional<PlanetType> planetType = std::nullopt,
+        bool sentFromHost = false, std::optional<uint64_t> userId = std::nullopt);
+    void buildObject(ChunkPosition chunk, sf::Vector2i tile, ObjectType objectType, std::optional<PlanetType> planetType = std::nullopt,
+        bool sentFromHost = false);
 
     // Networking
     void handleChunkRequestsFromClient(const PacketDataChunkRequests& chunkRequests, const SteamNetworkingIdentity& client);
@@ -352,7 +354,8 @@ private:
     WeatherSystem weatherSystem;
     ParticleSystem particleSystem;
     DayCycleManager dayCycleManager;
-    
+
+    // Set planet / room dest type to -1 when selecting other
     std::unordered_map<PlanetType, WorldData> worldDatas;
     PlanetType currentPlanetType;
     std::unordered_map<RoomType, RoomDestinationData> roomDestDatas;

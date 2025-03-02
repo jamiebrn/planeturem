@@ -57,7 +57,7 @@ public:
         bool& wrappedAroundWorld, sf::Vector2f& wrapPositionDelta);
     void updateInRoom(float dt, sf::Vector2f mouseWorldPos, const Room& room);
 
-    void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const sf::Color& color) const override;
+    virtual void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const sf::Color& color) const override;
     void createLightSource(LightingEngine& lightingEngine, sf::Vector2f topLeftChunkPos) const override;
 
     void setTool(ToolType toolType);
@@ -106,12 +106,10 @@ public:
     inline float getHealthConsumableTimerMax() const {return healthConsumableTimerMax;}
     inline float getHealthConsumableTimer() const {return healthConsumableTimer;}
 
-
     // Multiplayer
-
-    // Player position is of player on this machine, not for this network player
-    void setNetworkPlayerInfo(const PacketDataPlayerInfo& info, std::string steamName, sf::Vector2f playerPosition, const ChunkManager& chunkManager);
+    
     PacketDataPlayerInfo getNetworkPlayerInfo(uint64_t steamID);
+
 
 private:
     void updateDirection(sf::Vector2f mouseWorldPos);
@@ -134,7 +132,7 @@ private:
 
     void drawArmour(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Camera& camera, float waterYOffset) const;
 
-private:
+protected:
     CollisionRect collisionRect;
     sf::Vector2f direction;
     bool flippedTexture;

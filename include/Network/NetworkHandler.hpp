@@ -25,7 +25,7 @@
 
 #include "GUI/InventoryGUI.hpp"
 #include "World/ChunkPosition.hpp"
-#include "Player/Player.hpp"
+#include "Player/NetworkPlayer.hpp"
 
 class Game;
 
@@ -58,7 +58,7 @@ public:
     int getNetworkPlayerCount();
     std::optional<uint64_t> getLobbyID();
 
-    std::unordered_map<uint64_t, Player>& getNetworkPlayers();
+    std::unordered_map<uint64_t, NetworkPlayer>& getNetworkPlayers();
     
 private:
     void processMessage(const SteamNetworkingMessage_t& message, const Packet& packet);
@@ -86,7 +86,7 @@ private:
 
     Game* game = nullptr;
 
-    std::unordered_map<uint64_t, Player> networkPlayers;
+    std::unordered_map<uint64_t, NetworkPlayer> networkPlayers;
 
     // Client-specific
     static constexpr float CHUNK_REQUEST_OUTSTANDING_MAX_TIME = 2.0f;

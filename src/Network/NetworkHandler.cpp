@@ -125,7 +125,7 @@ std::optional<uint64_t> NetworkHandler::getLobbyID()
     return steamLobbyId;
 }
 
-std::unordered_map<uint64_t, Player>& NetworkHandler::getNetworkPlayers()
+std::unordered_map<uint64_t, NetworkPlayer>& NetworkHandler::getNetworkPlayers()
 {
     return networkPlayers;
 }
@@ -158,7 +158,7 @@ void NetworkHandler::registerNetworkPlayer(uint64_t id, bool notify)
         InventoryGUI::pushItemPopup(ItemCount(0, 1), false, std::string(SteamFriends()->GetFriendPersonaName(id)) + " joined");
     }
 
-    networkPlayers[id] = Player(sf::Vector2f(0, 0));
+    networkPlayers[id] = NetworkPlayer(sf::Vector2f(0, 0));
 }
 
 void NetworkHandler::deleteNetworkPlayer(uint64_t id)
