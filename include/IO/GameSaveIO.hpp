@@ -35,18 +35,15 @@
 #include "Data/PlanetGenData.hpp"
 #include "Data/PlanetGenDataLoader.hpp"
 
+#include "Player/PlayerData.hpp"
+
 struct PlayerGameSave
 {
     int seed;
-    PlanetType planetType = -1;
-    RoomType roomDestinationType = -1;
 
-    InventoryData inventory;
-    InventoryData armourInventory;
+    PlayerData playerData;
 
-    std::unordered_set<std::string> recipesSeen;
-
-    int maxHealth = 0;
+    std::unordered_map<uint64_t, PlayerData> networkPlayerDatas;
 
     float time;
     int day;
@@ -73,11 +70,11 @@ struct GameDataVersionMapping
 
 struct PlanetGameSave
 {
-    sf::Vector2f playerLastPlanetPos;
+    // sf::Vector2f playerLastPlanetPos;
 
-    bool isInRoom = false;
-    uint32_t inRoomID = 0;
-    sf::Vector2f positionInRoom;
+    // bool isInRoom = false;
+    // uint32_t inRoomID = 0;
+    // sf::Vector2f positionInRoom;
 
     std::optional<ObjectReference> rocketObjectUsed = std::nullopt;
 
@@ -89,9 +86,13 @@ struct PlanetGameSave
     template <class Archive>
     void serialize(Archive& ar, const std::uint32_t version)
     {
-        if (version <= 2)
+        // if (version <= 2)
+        // {
+        //     ar(playerLastPlanetPos.x, playerLastPlanetPos.y, isInRoom, inRoomID, positionInRoom.x, positionInRoom.y, rocketObjectUsed, chunks, chestDataPool, structureRoomPool);
+        // }
+        if (version >= 3)
         {
-            ar(playerLastPlanetPos.x, playerLastPlanetPos.y, isInRoom, inRoomID, positionInRoom.x, positionInRoom.y, rocketObjectUsed, chunks, chestDataPool, structureRoomPool);
+            ar(rocketObjectUsed, chunks, chestDataPool, structureRoomPool);
         }
     }
 
@@ -112,14 +113,18 @@ struct RoomDestinationGameSave
     Room roomDestination;
     ChestDataPool chestDataPool;
 
-    sf::Vector2f playerLastPos;
+    // sf::Vector2f playerLastPos;
 
     template <class Archive>
     void serialize(Archive& ar, const std::uint32_t version)
     {
-        if (version == 1)
+        // if (version == 1)
+        // {
+        //     ar(roomDestination, chestDataPool, playerLastPos.x, playerLastPos.y);
+        // }
+        if (version == 2)
         {
-            ar(roomDestination, chestDataPool, playerLastPos.x, playerLastPos.y);
+            ar(roomDestination, chestDataPool);
         }
     }
 
@@ -130,8 +135,8 @@ struct RoomDestinationGameSave
     }
 };
 
-CEREAL_CLASS_VERSION(PlanetGameSave, 2);
-CEREAL_CLASS_VERSION(RoomDestinationGameSave, 1);
+CEREAL_CLASS_VERSION(PlanetGameSave, 3);
+CEREAL_CLASS_VERSION(RoomDestinationGameSave, 2);
 
 struct SaveFileSummary
 {

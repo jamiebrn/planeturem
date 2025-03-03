@@ -16,10 +16,12 @@
 #include "Core/TextDraw.hpp"
 
 #include "Data/typedefs.hpp"
+#include "Types/GameState.hpp"
 
 #include "Network/PacketDataPlayerInfo.hpp"
 
 #include "Player/Player.hpp"
+#include "Player/PlayerData.hpp"
 
 class NetworkPlayer : public Player
 {
@@ -34,10 +36,23 @@ public:
     // Player position is of player on this machine, not for this network player
     void setNetworkPlayerInfo(const PacketDataPlayerInfo& info, std::string steamName, sf::Vector2f playerPosition, const ChunkManager& chunkManager);
 
-private:
-    std::string networkPlayerName;
+    void setPlanetType(PlanetType planetType);
+    void setStructureEnteredID(uint32_t structureID);
+    void setRoomDestType(RoomType roomType);
+    PlanetType getPlanetType();
+    uint32_t getStructureEnteredID();
+    RoomType getRoomDestType();
 
+    GameState getGameState();
+
+    PlayerData getPlayerData();
+    void setPlayerData(const PlayerData& playerData);
+
+private:
     PlanetType currentPlanetType;
+    uint32_t structureEnteredID;
     RoomType roomDestType;
-    
+
+    PlayerData playerData;
+
 };

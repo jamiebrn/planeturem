@@ -784,7 +784,7 @@ void Game::runInGame(float dt)
             }
             case GameState::InRoomDestination:
             {
-                updateInRoom(dt, roomDestination, false);
+                updateInRoom(dt, getRoomDestination(), false);
                 break;
             }
         }
@@ -842,7 +842,7 @@ void Game::runInGame(float dt)
         }
         case GameState::InRoomDestination:
         {
-            drawInRoom(dt, roomDestination);
+            drawInRoom(dt, getRoomDestination());
             break;
         }
     }
@@ -1434,7 +1434,7 @@ void Game::enterRocket(RocketObject& rocket)
     std::vector<PlanetType> planetDestinations;
     std::vector<RoomType> roomDestinations;
 
-    rocket.getRocketAvailableDestinations(currentPlanetType, roomDestType, planetDestinations, roomDestinations);
+    rocket.getRocketAvailableDestinations(currentPlanetType, currentRoomDestType, planetDestinations, roomDestinations);
 
     travelSelectGUI.setAvailableDestinations(planetDestinations, roomDestinations);
 
@@ -1862,7 +1862,7 @@ void Game::buildObject(ChunkPosition chunk, sf::Vector2i tile, ObjectType object
 
 void Game::testMeleeCollision(const std::vector<HitRect>& hitRects)
 {
-    chunkManager.testChunkEntityHitCollision(hitRects, *this, gameTime);
+    getChunkManager().testChunkEntityHitCollision(hitRects, *this, gameTime);
     bossManager.testHitRectCollision(hitRects);
 }
 
@@ -2032,14 +2032,14 @@ void Game::attemptBuildObject()
         return;
     }
 
-    if (!chunkManager.canPlaceObject(Cursor::getSelectedChunk(chunkManager.getWorldSize()), Cursor::getSelectedChunkTile(), objectType, player.getCollisionRect()))
+    if (!getChunkManager().canPlaceObject(Cursor::getSelectedChunk(getChunkManager().getWorldSize()), Cursor::getSelectedChunkTile(), objectType, player.getCollisionRect()))
     {
         return;
     }
     
     InventoryGUI::subtractHeldItem(inventory);
 
-    buildObject(Cursor::getSelectedChunk(chunkManager.getWorldSize()), Cursor::getSelectedChunkTile(), objectType);
+    buildObject(Cursor::getSelectedChunk(getChunkManager().getWorldSize()), Cursor::getSelectedChunkTile(), objectType);
 }
 
 void Game::attemptPlaceLand()
@@ -2071,14 +2071,14 @@ void Game::attemptPlaceLand()
     //     }
     // }
     
-    if (!chunkManager.canPlaceLand(Cursor::getSelectedChunk(chunkManager.getWorldSize()), Cursor::getSelectedChunkTile()))
+    if (!getChunkManager().canPlaceLand(Cursor::getSelectedChunk(getChunkManager().getWorldSize()), Cursor::getSelectedChunkTile()))
         return;
     
     if (!player.canReachPosition(camera.screenToWorldTransform(mouseScreenPos)))
         return;
     
     // Place land
-    chunkManager.placeLand(Cursor::getSelectedChunk(chunkManager.getWorldSize()), Cursor::getSelectedChunkTile());
+    getChunkManager().placeLand(Cursor::getSelectedChunk(getChunkManager().getWorldSize()), Cursor::getSelectedChunkTile());
 
     // Play build sound
     int soundChance = rand() % 2;
@@ -2129,9 +2129,9 @@ void Game::attemptUseBossSpawn()
         return;
     }
 
-    const PlanetGenData& planetGenData = PlanetGenDataLoader::getPlanetGenData(chunkManager.getPlanetType());
-    const BiomeGenData* biomeGenData = Chunk::getBiomeGenAtWorldTile(player.getWorldTileInside(chunkManager.getWorldSize()), chunkManager.getWorldSize(),
-        chunkManager.getBiomeNoise(), chunkManager.getPlanetType());
+    const PlanetGenData& planetGenData = PlanetGenDataLoader::getPlanetGenData(currentPlanetType);
+    const BiomeGenData* biomeGenData = Chunk::getBiomeGenAtWorldTile(player.getWorldTileInside(getChunkManager().getWorldSize()), getChunkManager().getWorldSize(),
+        getChunkManager().getBiomeNoise(), currentPlanetType);
     
     std::unordered_set<std::string> bossesSpawnAllowedNames = planetGenData.bossesSpawnAllowedNames;
     if (biomeGenData)
@@ -2189,7 +2189,7 @@ void Game::attemptUseConsumable()
 void Game::drawGhostPlaceObjectAtCursor(ObjectType object)
 {
     // Draw object to be placed if held
-    bool canPlace = chunkManager.canPlaceObject(Cursor::getSelectedChunk(chunkManager.getWorldSize()),
+    bool canPlace = getChunkManager().canPlaceObject(Cursor::getSelectedChunk(getChunkManager().getWorldSize()),
                                                 Cursor::getSelectedChunkTile(),
                                                 object,
                                                 player.getCollisionRect());
@@ -2202,7 +2202,7 @@ void Game::drawGhostPlaceObjectAtCursor(ObjectType object)
     
     BuildableObject objectGhost(Cursor::getLerpedSelectPos() + sf::Vector2f(TILE_SIZE_PIXELS_UNSCALED / 2.0f, TILE_SIZE_PIXELS_UNSCALED / 2.0f), object, false);
 
-    objectGhost.draw(window, spriteBatch, *this, camera, 0.0f, 0, chunkManager.getWorldSize(), drawColor);
+    objectGhost.draw(window, spriteBatch, *this, camera, 0.0f, 0, getChunkManager().getWorldSize(), drawColor);
 
     spriteBatch.endDrawing(window);
 }
@@ -2210,11 +2210,12 @@ void Game::drawGhostPlaceObjectAtCursor(ObjectType object)
 void Game::drawGhostPlaceLandAtCursor()
 {
     sf::Vector2f tileWorldPosition = Cursor::getLerpedSelectPos();
-    int worldSize = chunkManager.getWorldSize();
+    int worldSize = getChunkManager().getWorldSize();
 
     // Change color depending on whether can place land or not
     sf::Color landGhostColor(255, 0, 0, 180);
-    if (chunkManager.canPlaceLand(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile()) && player.canReachPosition(camera.screenToWorldTransform(mouseScreenPos)))
+    if (getChunkManager().canPlaceLand(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile()) &&
+        player.canReachPosition(camera.screenToWorldTransform(mouseScreenPos)))
     {
         landGhostColor = sf::Color(0, 255, 0, 180);
     }
@@ -2223,7 +2224,7 @@ void Game::drawGhostPlaceLandAtCursor()
 
     // Sample noise to select correct tile to draw
     const BiomeGenData* biomeGenData = Chunk::getBiomeGenAtWorldTile(
-        Cursor::getSelectedWorldTile(worldSize), worldSize, chunkManager.getBiomeNoise(), chunkManager.getPlanetType()
+        Cursor::getSelectedWorldTile(worldSize), worldSize, getChunkManager().getBiomeNoise(), currentPlanetType
         );
     
     // Check for nullptr (shouldn't happen)
@@ -2253,7 +2254,7 @@ BuildableObject* Game::getSelectedObjectFromChunkOrRoom()
     {
         case GameState::OnPlanet:
         {
-            return getObjectFromChunkOrRoom(ObjectReference{Cursor::getSelectedChunk(chunkManager.getWorldSize()), Cursor::getSelectedChunkTile()});
+            return getObjectFromChunkOrRoom(ObjectReference{Cursor::getSelectedChunk(getChunkManager().getWorldSize()), Cursor::getSelectedChunkTile()});
         }
         case GameState::InStructure: // fallthrough
         case GameState::InRoomDestination:
@@ -2266,22 +2267,40 @@ BuildableObject* Game::getSelectedObjectFromChunkOrRoom()
 }
 
 template <class T>
-T* Game::getObjectFromChunkOrRoom(ObjectReference objectReference)
+T* Game::getObjectFromChunkOrRoom(ObjectReference objectReference, std::optional<PlanetType> planetType, std::optional<uint32_t> structureID,
+    std::optional<RoomType> roomDestType, std::optional<GameState> gameStateOverride)
 {
-    switch (gameState)
+    if (!planetType.has_value())
+    {
+        planetType = currentPlanetType;
+    }
+    if (!structureID.has_value())
+    {
+        structureID = structureEnteredID;
+    }
+    if (!roomDestType.has_value())
+    {
+        roomDestType = currentRoomDestType;
+    }
+    if (!gameStateOverride.has_value())
+    {
+        gameStateOverride = gameState;
+    }
+
+    switch (gameStateOverride.value())
     {
         case GameState::OnPlanet:
         {
-            return chunkManager.getChunkObject<T>(objectReference.chunk, objectReference.tile);
+            return getChunkManager(planetType.value()).getChunkObject<T>(objectReference.chunk, objectReference.tile);
         }
         case GameState::InStructure:
         {
-            Room& structureRoom = structureRoomPool.getRoom(structureEnteredID);
+            Room& structureRoom = getStructureRoomPool(planetType).getRoom(structureID.value());
             return structureRoom.getObject<T>(objectReference.tile);
         }
         case GameState::InRoomDestination:
         {
-            return roomDestination.getObject<T>(objectReference.tile);
+            return getRoomDestination(roomDestType.value()).getObject<T>(objectReference.tile);
         }
     }
 
@@ -2312,14 +2331,19 @@ void Game::handleInventoryClose()
     }   
 }
 
-void Game::openChest(ChestObject& chest, bool initiatedClientSide)
+void Game::openChest(ChestObject& chest, bool initiatedClientSide, std::optional<PlanetType> planetType)
 {
+    if (!planetType.has_value())
+    {
+        planetType = currentPlanetType;
+    }
+
     if (initiatedClientSide && networkHandler.isClient())
     {
         // Alert server of attempt chest open
         PacketDataChestOpened packetData;
-        packetData.chestObject.chunk = chest.getChunkInside(chunkManager.getWorldSize());
-        packetData.chestObject.tile = chest.getChunkTileInside(chunkManager.getWorldSize());
+        packetData.chestObject.chunk = chest.getChunkInside(getChunkManager().getWorldSize());
+        packetData.chestObject.tile = chest.getChunkTileInside(getChunkManager().getWorldSize());
         packetData.userID = SteamUser()->GetSteamID().ConvertToUint64();
         Packet packet;
         packet.set(packetData);
@@ -2348,8 +2372,8 @@ void Game::openChest(ChestObject& chest, bool initiatedClientSide)
         {
             // If is host - tell clients chest has been opened
             PacketDataChestOpened packetData;
-            packetData.chestObject.chunk = chest.getChunkInside(chunkManager.getWorldSize());
-            packetData.chestObject.tile = chest.getChunkTileInside(chunkManager.getWorldSize());
+            packetData.chestObject.chunk = chest.getChunkInside(getChunkManager().getWorldSize());
+            packetData.chestObject.tile = chest.getChunkTileInside(getChunkManager().getWorldSize());
             packetData.userID = SteamUser()->GetSteamID().ConvertToUint64();
             Packet packet;
             packet.set(packetData);
@@ -2361,8 +2385,8 @@ void Game::openChest(ChestObject& chest, bool initiatedClientSide)
     
         openedChestID = chest.getChestID();
 
-        openedChest.chunk = chest.getChunkInside(chunkManager.getWorldSize());
-        openedChest.tile = chest.getChunkTileInside(chunkManager.getWorldSize());
+        openedChest.chunk = chest.getChunkInside(getChunkManager().getWorldSize());
+        openedChest.tile = chest.getChunkTileInside(getChunkManager().getWorldSize());
         // openedChestPos = chest.getPosition();
     
         InventoryGUI::chestOpened(getChestDataPool().getChestDataPtr(openedChestID));
@@ -2378,7 +2402,16 @@ void Game::openChestForClient(PacketDataChestOpened packetData)
         return;
     }
 
-    ChestObject* chestObject = chunkManager.getChunkObject<ChestObject>(packetData.chestObject.chunk, packetData.chestObject.tile);
+    // Get client current planet
+    NetworkPlayer* networkPlayer = networkHandler.getNetworkPlayer(packetData.userID);
+    if (!networkPlayer)
+    {
+        return;
+    }
+
+    // ChestObject* chestObject = chunkManager.getChunkObject<ChestObject>(packetData.chestObject.chunk, packetData.chestObject.tile);
+    ChestObject* chestObject = getObjectFromChunkOrRoom<ChestObject>(packetData.chestObject, networkPlayer->getPlanetType(), networkPlayer->getStructureEnteredID(),
+        networkPlayer->getRoomDestType(), networkPlayer->getGameState());
     if (!chestObject)
     {
         return;
@@ -2397,10 +2430,10 @@ void Game::openChestForClient(PacketDataChestOpened packetData)
     packetData.chestID = chestObject->getChestID();
     if (packetData.chestID == 0xFFFF)
     {
-        packetData.chestID = chestObject->createChestID(*this);
+        packetData.chestID = chestObject->createChestID(*this, networkPlayer->getPlanetType(), networkPlayer->getRoomDestType());
     }
 
-    InventoryData* chestData = getChestDataPool().getChestDataPtr(packetData.chestID);
+    InventoryData* chestData = getChestDataPool(networkPlayer->getPlanetType(), networkPlayer->getRoomDestType()).getChestDataPtr(packetData.chestID);
 
     // Failed to create new chest - abort
     if (!chestData)
@@ -2421,7 +2454,7 @@ void Game::openChestFromHost(const PacketDataChestOpened& packetData)
         return;
     }
 
-    ChestObject* chestObject = chunkManager.getChunkObject<ChestObject>(packetData.chestObject.chunk, packetData.chestObject.tile);
+    ChestObject* chestObject = getObjectFromChunkOrRoom<ChestObject>(packetData.chestObject);
 
     if (!chestObject)
     {
@@ -2470,7 +2503,7 @@ void Game::checkChestOpenInRange()
     if (openedChestID == 0xFFFF)
         return;
     
-    BuildableObject* chestObject = chunkManager.getChunkObject(openedChest.chunk, openedChest.tile);
+    BuildableObject* chestObject = getObjectFromChunkOrRoom(openedChest);
     if (!chestObject)
     {
         closeChest();
@@ -2482,11 +2515,6 @@ void Game::checkChestOpenInRange()
         closeChest();
     }
 }
-
-// void Game::handleOpenChestPositionWorldWrap(sf::Vector2f positionDelta)
-// {
-//     openedChestPos += positionDelta;
-// }
 
 void Game::closeChest(std::optional<ObjectReference> chestObjectRef, bool sentFromHost, std::optional<uint64_t> userId)
 {
@@ -2516,7 +2544,24 @@ void Game::closeChest(std::optional<ObjectReference> chestObjectRef, bool sentFr
     }
 
     // Close chest
-    BuildableObject* object = chunkManager.getChunkObject(chestObjectRef->chunk, chestObjectRef->tile);
+    BuildableObject* object = nullptr;
+    if (networkHandler.getIsLobbyHost() && userId.has_value())
+    {
+        // Get chest for client gamestate
+        NetworkPlayer* networkPlayer = networkHandler.getNetworkPlayer(userId.value());
+        if (!networkPlayer)
+        {
+            printf("ERROR: Failed to close chest for null client\n");
+            return;
+        }
+        object = getObjectFromChunkOrRoom(chestObjectRef.value(), networkPlayer->getPlanetType(), networkPlayer->getStructureEnteredID(),
+            networkPlayer->getRoomDestType(), networkPlayer->getGameState());
+    }
+    else
+    {
+        // Get chest for this user's gamestate
+        object = getObjectFromChunkOrRoom(chestObjectRef.value());
+    }
     if (object)
     {
         object->triggerBehaviour(*this, ObjectBehaviourTrigger::ChestClose);
@@ -2557,13 +2602,19 @@ void Game::travelToDestination()
 
     player.exitRocket();
 
-    chestDataPool = ChestDataPool();
-    structureRoomPool = RoomPool();
-    bossManager.clearBosses();
-    projectileManager.clear();
-    enemyProjectileManager.clear();
+    // chestDataPool = ChestDataPool();
+    // structureRoomPool = RoomPool();
+    // bossManager.clearBosses();
+    // projectileManager.clear();
+    // enemyProjectileManager.clear();
+    // landmarkManager.clear();
+    if (!networkHandler.getIsLobbyHost())
+    {
+        // Only clear other world / room dest datas if not multiplayer / is client
+        worldDatas.clear();
+        roomDestDatas.clear();
+    }
     particleSystem.clear();
-    landmarkManager.clear();
     nearbyCraftingStationLevels.clear();
 
     if (destinationPlanet >= 0)
@@ -2575,26 +2626,32 @@ void Game::travelToDestination()
         travelToRoomDestination(destinationRoom);
     }
 
-    destinationPlanet = 0;
-    destinationRoom = 0;
+    destinationPlanet = -1;
+    destinationRoom = -1;
 }
 
 void Game::travelToPlanet(PlanetType planetType)
 {
-    if (!loadPlanet(planetType))
+    if (!worldDatas.contains(planetType))
     {
-        overrideState(GameState::OnPlanet);
-        initialiseNewPlanet(planetType, true);
+        if (!loadPlanet(planetType))
+        {
+            overrideState(GameState::OnPlanet);
+            initialiseNewPlanet(planetType, true);
+        }
     }
 
+    currentPlanetType = planetType;
+    currentRoomDestType = -1;
+    
     camera.instantUpdate(player.getPosition());
-
+    
     if (gameState == GameState::OnPlanet && networkHandler.isLobbyHostOrSolo())
     {
-        chunkManager.updateChunks(*this, camera);
+        getChunkManager().updateChunks(*this, camera);
     }
     lightingTick = LIGHTING_TICK;
-
+    
     // Start rocket flying downwards
     BuildableObject* rocketObject = getObjectFromChunkOrRoom(rocketEnteredReference);
     if (rocketObject)
@@ -2613,18 +2670,22 @@ void Game::travelToRoomDestination(RoomType destinationRoomType)
 
     RoomDestinationGameSave roomDestinationGameSave;
 
+    currentPlanetType = -1;
+    currentRoomDestType = destinationRoomType;
+
     if (io.loadRoomDestinationSave(destinationRoomType, roomDestinationGameSave))
     {
-        chestDataPool = roomDestinationGameSave.chestDataPool;
-        roomDestination = roomDestinationGameSave.roomDestination;
+        getChestDataPool(std::nullopt, currentRoomDestType) = roomDestinationGameSave.chestDataPool;
+        getRoomDestination(currentRoomDestType) = roomDestinationGameSave.roomDestination;
     }
     else
     {
-        chestDataPool = ChestDataPool();
-        roomDestination = Room(destinationRoomType, chestDataPool);
+        roomDestDatas[currentRoomDestType] = RoomDestinationData();
+        getChestDataPool(std::nullopt, currentRoomDestType) = ChestDataPool();
+        getRoomDestination(currentRoomDestType) = Room(destinationRoomType, roomDestDatas.at(currentRoomDestType).chestDataPool);
     }
 
-    if (roomDestination.getFirstRocketObjectReference(rocketEnteredReference))
+    if (getRoomDestination(currentRoomDestType).getFirstRocketObjectReference(rocketEnteredReference))
     {
         BuildableObject* rocketObject = getObjectFromChunkOrRoom(rocketEnteredReference);
 
@@ -2645,37 +2706,35 @@ void Game::travelToRoomDestination(RoomType destinationRoomType)
 
 void Game::initialiseNewPlanet(PlanetType planetType, bool placeRocket)
 {
-    chunkManager.setPlanetType(planetType);
+    worldDatas[planetType] = WorldData();
 
-    ChunkPosition playerSpawnChunk = chunkManager.findValidSpawnChunk(2);
+    getChunkManager(planetType).setPlanetType(planetType);
+    getChunkManager(planetType).setSeed(planetSeed);
+
+    ChunkPosition playerSpawnChunk = getChunkManager(planetType).findValidSpawnChunk(2);
 
     sf::Vector2f playerSpawnPos;
     playerSpawnPos.x = playerSpawnChunk.x * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED + 0.5f * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
     playerSpawnPos.y = playerSpawnChunk.y * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED + 0.5f * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
     player.setPosition(playerSpawnPos);
 
-    chestDataPool = ChestDataPool();
-    structureRoomPool = RoomPool();
-    landmarkManager = LandmarkManager();
-    particleSystem.clear();
-    
     camera.instantUpdate(player.getPosition());
 
     if (networkHandler.isLobbyHostOrSolo())
     {
-        chunkManager.updateChunks(*this, camera);
+        getChunkManager(planetType).updateChunks(*this, camera);
     }
 
-    weatherSystem = WeatherSystem(gameTime, chunkManager.getSeed() + chunkManager.getPlanetType());
-    weatherSystem.presimulateWeather(gameTime, camera, chunkManager);
+    weatherSystem = WeatherSystem(gameTime, getChunkManager(planetType).getSeed() + planetType);
+    weatherSystem.presimulateWeather(gameTime, camera, getChunkManager(planetType));
 
     // Ensure spawn chunk does not have structure
-    chunkManager.regenerateChunkWithoutStructure(playerSpawnChunk, *this);
+    getChunkManager(planetType).regenerateChunkWithoutStructure(playerSpawnChunk, *this);
     
     // Place rocket
     if (placeRocket)
     {
-        chunkManager.setObject(playerSpawnChunk, sf::Vector2i(0, 0), ObjectDataLoader::getObjectTypeFromName("Rocket Launch Pad"), *this);
+        getChunkManager(planetType).setObject(playerSpawnChunk, sf::Vector2i(0, 0), ObjectDataLoader::getObjectTypeFromName("Rocket Launch Pad"), *this);
         rocketEnteredReference.chunk = playerSpawnChunk;
         rocketEnteredReference.tile = sf::Vector2i(0, 0);
     }
@@ -2787,28 +2846,34 @@ void Game::startNewGame(int seed)
     giveStartingInventory();
     InventoryGUI::reset();
 
-    chunkManager.setSeed(seed);
+    currentPlanetType = PlanetGenDataLoader::getPlanetTypeFromName("Earthlike");
+    planetSeed = seed;
+    currentRoomDestType = -1;
 
-    initialiseNewPlanet(PlanetGenDataLoader::getPlanetTypeFromName("Earthlike"));
+    worldDatas.clear();
+    roomDestDatas.clear();
+    worldDatas[currentPlanetType] = WorldData();
+
+    initialiseNewPlanet(currentPlanetType);
 
     dayCycleManager.setCurrentTime(dayCycleManager.getDayLength() * 0.5f);
     dayCycleManager.setCurrentDay(1);
 
     saveSessionPlayTime = 0.0f;
 
-    bossManager.clearBosses();
-    projectileManager.clear();
-    enemyProjectileManager.clear();
-    landmarkManager.clear();
+    getBossManager().clearBosses();
+    getProjectileManager().clear();
+    // enemyProjectileManager.clear();
+    getLandmarkManager().clear();
 
     gameTime = 0.0f;
 
-    weatherSystem = WeatherSystem(gameTime, seed + chunkManager.getPlanetType());
-    weatherSystem.presimulateWeather(gameTime, camera, chunkManager);
+    weatherSystem = WeatherSystem(gameTime, seed + currentPlanetType);
+    weatherSystem.presimulateWeather(gameTime, camera, getChunkManager());
 
     camera.instantUpdate(player.getPosition());
 
-    chunkManager.updateChunks(*this, camera);
+    getChunkManager().updateChunks(*this, camera);
     lightingTick = LIGHTING_TICK;
 
     worldMenuState = WorldMenuState::Main;
@@ -2831,36 +2896,60 @@ bool Game::saveGame(bool gettingInRocket)
     GameSaveIO io(currentSaveFileSummary.name);
 
     PlayerGameSave playerGameSave;
-    playerGameSave.seed = chunkManager.getSeed();
-    playerGameSave.inventory = inventory;
-    playerGameSave.armourInventory = armourInventory;
-    playerGameSave.maxHealth = player.getMaxHealth();
+    playerGameSave.seed = planetSeed;
     playerGameSave.time = dayCycleManager.getCurrentTime();
     playerGameSave.day = dayCycleManager.getCurrentDay();
 
-    for (ItemType itemType : InventoryGUI::getSeenRecipes())
+    // Add this player data to save
+    playerGameSave.playerData = createPlayerData();
+
+    // Keep track of which planets / room dests require saving
+    std::unordered_set<PlanetType> planetTypesToSave;
+    std::unordered_set<RoomType> roomDestsToSave;
+
+    if (currentPlanetType >= 0)
     {
-        playerGameSave.recipesSeen.insert(ItemDataLoader::getItemData(itemType).name);
+        planetTypesToSave.insert(currentPlanetType);
+    }
+    else if (currentRoomDestType >= 0)
+    {
+        roomDestsToSave.insert(currentRoomDestType);
+    }
+
+    // Add network player datas to save
+    for (auto& networkPlayerPair : networkHandler.getNetworkPlayers())
+    {
+        playerGameSave.networkPlayerDatas[networkPlayerPair.first] = networkPlayerPair.second.getPlayerData();
+        if (networkPlayerPair.second.getPlanetType() >= 0)
+        {
+            planetTypesToSave.insert(networkPlayerPair.second.getPlanetType());
+        }
+        else if (networkPlayerPair.second.getRoomDestType() >= 0)
+        {
+            roomDestsToSave.insert(networkPlayerPair.second.getRoomDestType());
+        }
     }
 
     // Add play time
     currentSaveFileSummary.timePlayed += std::round(saveSessionPlayTime);
     saveSessionPlayTime = 0.0f;
     playerGameSave.timePlayed = currentSaveFileSummary.timePlayed;
-
+    
+    io.writePlayerSave(playerGameSave);
+    
     PlanetGameSave planetGameSave;
     RoomDestinationGameSave roomDestinationGameSave;
 
     switch (gameState)
     {
-        case GameState::InStructure:
-        {
-            planetGameSave.isInRoom = true;
-            planetGameSave.inRoomID = structureEnteredID;
-            planetGameSave.positionInRoom = player.getPosition();
+        // case GameState::InStructure:
+        // {
+        //     planetGameSave.isInRoom = true;
+        //     planetGameSave.inRoomID = structureEnteredID;
+        //     planetGameSave.positionInRoom = player.getPosition();
 
-            planetGameSave.playerLastPlanetPos = structureEnteredPos;
-        } // fallthrough
+        //     planetGameSave.playerLastPlanetPos = structureEnteredPos;
+        // } // fallthrough
         case GameState::OnPlanet:
         {
             planetGameSave.chunks = chunkManager.getChunkPODs();
@@ -2887,7 +2976,6 @@ bool Game::saveGame(bool gettingInRocket)
         }
     }
 
-    io.writePlayerSave(playerGameSave);
 
     switch (gameState)
     {
@@ -2900,6 +2988,7 @@ bool Game::saveGame(bool gettingInRocket)
         case GameState::InRoomDestination:
         {
             io.writeRoomDestinationSave(roomDestinationGameSave);
+            break;
         }
     }
 
@@ -3044,7 +3133,7 @@ bool Game::loadPlanet(PlanetType planetType)
         return false;
     }
 
-    chunkManager.setPlanetType(planetType);
+    getChunkManager(planetType).setPlanetType(planetType);
 
     if (planetGameSave.isInRoom)
     {
@@ -3064,14 +3153,14 @@ bool Game::loadPlanet(PlanetType planetType)
         camera.instantUpdate(player.getPosition());
     }
     
-    weatherSystem = WeatherSystem(gameTime, chunkManager.getSeed() + chunkManager.getPlanetType());
-    weatherSystem.presimulateWeather(gameTime, camera, chunkManager);
+    weatherSystem = WeatherSystem(gameTime, getChunkManager(planetType).getSeed() + planetType);
+    weatherSystem.presimulateWeather(gameTime, camera, getChunkManager(planetType));
 
     camera.instantUpdate(player.getPosition());
 
-    chunkManager.loadFromChunkPODs(planetGameSave.chunks, *this);
-    chestDataPool = planetGameSave.chestDataPool;
-    structureRoomPool = planetGameSave.structureRoomPool;
+    getChunkManager(planetType).loadFromChunkPODs(planetGameSave.chunks, *this);
+    getChestDataPool(planetType) = planetGameSave.chestDataPool;
+    getStructureRoomPool(planetType) = planetGameSave.structureRoomPool;
 
     // assert(planetGameSave.rocketObjectUsed.has_value());
 
@@ -3087,6 +3176,28 @@ bool Game::loadPlanet(PlanetType planetType)
     // rocketObject = planetGameSave.rocketObjectUsed.value();
 
     return true;
+}
+
+PlayerData Game::createPlayerData()
+{
+    PlayerData playerData;
+
+    playerData.name = playerName;
+    playerData.position = player.getPosition();
+    playerData.inventory = inventory;
+    playerData.armourInventory = armourInventory;
+    playerData.maxHealth = player.getMaxHealth();
+    
+    playerData.planetType = currentPlanetType;
+    playerData.isInStructure = (gameState == GameState::InStructure);
+    playerData.inStructureID = structureEnteredID;
+    playerData.structureExitPos = structureEnteredPos;
+    
+    playerData.roomDestinationType = currentRoomDestType;
+
+    playerData.recipesSeen = InventoryGUI::getSeenRecipes();
+
+    return playerData;
 }
 
 void Game::saveOptions()
@@ -3340,7 +3451,10 @@ ChunkManager& Game::getChunkManager(std::optional<PlanetType> planetTypeOverride
 {
     if (planetTypeOverride.has_value())
     {
-        return worldDatas[planetTypeOverride.value()].chunkManager;
+        if (planetTypeOverride.value() >= 0)
+        {
+            return worldDatas[planetTypeOverride.value()].chunkManager;
+        }
     }
     return worldDatas[currentPlanetType].chunkManager;
 }
@@ -3349,7 +3463,10 @@ ProjectileManager& Game::getProjectileManager(std::optional<PlanetType> planetTy
 {
     if (planetTypeOverride.has_value())
     {
-        return worldDatas[planetTypeOverride.value()].projectileManager;
+        if (planetTypeOverride.value() >= 0)
+        {
+            return worldDatas[planetTypeOverride.value()].projectileManager;
+        }
     }
     return worldDatas[currentPlanetType].projectileManager;
 }
@@ -3358,7 +3475,10 @@ BossManager& Game::getBossManager(std::optional<PlanetType> planetTypeOverride)
 {
     if (planetTypeOverride.has_value())
     {
-        return worldDatas[planetTypeOverride.value()].bossManager;
+        if (planetTypeOverride.value() >= 0)
+        {
+            return worldDatas[planetTypeOverride.value()].bossManager;
+        }
     }
     return worldDatas[currentPlanetType].bossManager;
 }
@@ -3367,7 +3487,10 @@ LandmarkManager& Game::getLandmarkManager(std::optional<PlanetType> planetTypeOv
 {
     if (planetTypeOverride.has_value())
     {
-        return worldDatas[planetTypeOverride.value()].landmarkManager;
+        if (planetTypeOverride.value() >= 0)
+        {
+            return worldDatas[planetTypeOverride.value()].landmarkManager;
+        }
     }
     return worldDatas[currentPlanetType].landmarkManager;
 }
@@ -3376,7 +3499,10 @@ RoomPool& Game::getStructureRoomPool(std::optional<PlanetType> planetTypeOverrid
 {
     if (planetTypeOverride.has_value())
     {
-        return worldDatas[planetTypeOverride.value()].structureRoomPool;
+        if (planetTypeOverride.value() >= 0)
+        {
+            return worldDatas[planetTypeOverride.value()].structureRoomPool;
+        }
     }
     return worldDatas[currentPlanetType].structureRoomPool;
 }
@@ -3385,32 +3511,40 @@ Room& Game::getRoomDestination(std::optional<RoomType> roomDestOverride)
 {
     if (roomDestOverride.has_value())
     {
-        return roomDestDatas[roomDestOverride.value()].roomDestination;
+        if (roomDestOverride.value() >= 0)
+        {
+            return roomDestDatas[roomDestOverride.value()].roomDestination;
+        }
     }
 
-    assert(roomDestType > 0);
+    assert(currentRoomDestType > 0);
     
-    return roomDestDatas[roomDestType].roomDestination;
+    return roomDestDatas[currentRoomDestType].roomDestination;
 }
 
 ChestDataPool& Game::getChestDataPool(std::optional<PlanetType> planetTypeOverride, std::optional<RoomType> roomDestOverride)
 {
     if (planetTypeOverride.has_value())
     {
-        return worldDatas[planetTypeOverride.value()].chestDataPool;
+        if (planetTypeOverride.value() >= 0)
+        {
+            return worldDatas[planetTypeOverride.value()].chestDataPool;
+        }
     }
     else if (roomDestOverride.has_value())
     {
-        return roomDestDatas[roomDestOverride.value()].chestDataPool;
+        if (roomDestOverride.value() >= 0)
+        {
+            return roomDestDatas[roomDestOverride.value()].chestDataPool;
+        }
     }
-    if (currentPlanetType > 0)
-    {
-        return worldDatas[currentPlanetType].chestDataPool;
-    }
-    else if (roomDestType > 0)
+    if (currentRoomDestType > 0)
     {
         return roomDestDatas[currentPlanetType].chestDataPool;
     }
+
+    // Default case
+    return worldDatas[currentPlanetType].chestDataPool;
 }
 
 void Game::generateWaterNoiseTexture()

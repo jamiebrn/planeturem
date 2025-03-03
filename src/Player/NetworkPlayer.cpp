@@ -63,3 +63,63 @@ void NetworkPlayer::setNetworkPlayerInfo(const PacketDataPlayerInfo& info, std::
 
     networkPlayerName = steamName;
 }
+
+void NetworkPlayer::setPlanetType(PlanetType planetType)
+{
+    currentPlanetType = planetType;
+}
+
+void NetworkPlayer::setStructureEnteredID(uint32_t structureID)
+{
+    structureEnteredID = structureID;
+}
+
+void NetworkPlayer::setRoomDestType(RoomType roomType)
+{
+    roomDestType = roomType;
+}
+
+PlanetType NetworkPlayer::getPlanetType()
+{
+    return currentPlanetType;
+}
+
+uint32_t NetworkPlayer::getStructureEnteredID()
+{
+    return structureEnteredID;
+}
+
+RoomType NetworkPlayer::getRoomDestType()
+{
+    return roomDestType;
+}
+
+GameState NetworkPlayer::getGameState()
+{
+    if (currentPlanetType > 0)
+    {
+        if (structureEnteredID < 0xFFFFFFFF)
+        {
+            return GameState::InStructure;
+        }
+        return GameState::OnPlanet;
+    }
+    return GameState::InRoomDestination;
+}
+
+
+PlayerData NetworkPlayer::getPlayerData()
+{
+    PlayerData newPlayerData = playerData;
+    newPlayerData.position = position;
+    newPlayerData.planetType = currentPlanetType;
+    newPlayerData.inStructureID = structureEnteredID;
+    newPlayerData.roomDestinationType = roomDestType;
+    newPlayerData.isInStructure = (getGameState() == GameState::InStructure);
+    return newPlayerData;
+}
+
+void NetworkPlayer::setPlayerData(const PlayerData& playerData)
+{
+    this->playerData = playerData;
+}

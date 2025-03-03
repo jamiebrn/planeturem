@@ -129,10 +129,10 @@ void ChestObject::triggerBehaviour(Game& game, ObjectBehaviourTrigger trigger)
     }
 }
 
-uint16_t ChestObject::createChestID(Game& game)
+uint16_t ChestObject::createChestID(Game& game, std::optional<PlanetType> planetTypeOverride, std::optional<RoomType> roomDestOverride)
 {
     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
-    chestID = game.getChestDataPool().createChest(objectData.chestCapacity);
+    chestID = game.getChestDataPool(planetTypeOverride, roomDestOverride).createChest(objectData.chestCapacity);
     return chestID;
 }
 

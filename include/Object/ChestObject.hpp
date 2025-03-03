@@ -26,7 +26,7 @@ public:
 
     void triggerBehaviour(Game& game, ObjectBehaviourTrigger trigger) override;
 
-    uint16_t createChestID(Game& game);
+    uint16_t createChestID(Game& game, std::optional<PlanetType> planetTypeOverride = std::nullopt, std::optional<RoomType> roomDestOverride = std::nullopt);
 
     inline void setChestID(uint16_t chestID) {this->chestID = chestID;}
     inline uint16_t getChestID() {return chestID;}

@@ -27,35 +27,37 @@ bool GameSaveIO::loadPlayerSave(PlayerGameSave& playerGameSave)
     {
         nlohmann::json json = nlohmann::json::parse(in);
         playerGameSave.seed = json["seed"];
-        playerGameSave.inventory = json["inventory"];
-        playerGameSave.armourInventory = json["armour-inventory"];
+        // playerGameSave.inventory = json["inventory"];
+        // playerGameSave.armourInventory = json["armour-inventory"];
+        playerGameSave.playerData = json["player-data"];
+        playerGameSave.networkPlayerDatas = json["network-player-datas"];
         playerGameSave.time = json["time"];
         playerGameSave.day = json["day"];
 
-        if (json.contains("planet"))
-        {
-            playerGameSave.planetType = PlanetGenDataLoader::getPlanetTypeFromName(json["planet"]);
-        }
-        else if (json.contains("roomdest"))
-        {
-            playerGameSave.roomDestinationType = StructureDataLoader::getRoomTypeTravelLocationFromName(json["roomdest"]);
-        }
-        else
-        {
-            const std::string& defaultPlanetName = PlanetGenDataLoader::getPlanetGenData(0).name;
-            std::cout << "Error: Player file \"" + fileName + "\" has no previous location. Defaulting to planet \"" + defaultPlanetName + "\"\n";
-            playerGameSave.planetType = 0;
-        }
+        // if (json.contains("planet"))
+        // {
+        //     playerGameSave.planetType = PlanetGenDataLoader::getPlanetTypeFromName(json["planet"]);
+        // }
+        // else if (json.contains("roomdest"))
+        // {
+        //     playerGameSave.roomDestinationType = StructureDataLoader::getRoomTypeTravelLocationFromName(json["roomdest"]);
+        // }
+        // else
+        // {
+        //     const std::string& defaultPlanetName = PlanetGenDataLoader::getPlanetGenData(0).name;
+        //     std::cout << "Error: Player file \"" + fileName + "\" has no previous location. Defaulting to planet \"" + defaultPlanetName + "\"\n";
+        //     playerGameSave.planetType = 0;
+        // }
 
-        if (json.contains("max-health"))
-        {
-            playerGameSave.maxHealth = json.at("max-health");
-        }
+        // if (json.contains("max-health"))
+        // {
+        //     playerGameSave.maxHealth = json.at("max-health");
+        // }
 
-        if (json.contains("recipes-seen"))
-        {
-            playerGameSave.recipesSeen = json.at("recipes-seen");
-        }
+        // if (json.contains("recipes-seen"))
+        // {
+        //     playerGameSave.recipesSeen = json.at("recipes-seen");
+        // }
 
         if (json.contains("time-played"))
         {
@@ -163,25 +165,28 @@ bool GameSaveIO::writePlayerSave(const PlayerGameSave& playerGameSave)
     {
         nlohmann::json json;
         json["seed"] = playerGameSave.seed;
-        json["inventory"] = playerGameSave.inventory;
-        json["armour-inventory"] = playerGameSave.armourInventory;
+        json["player-data"] = playerGameSave.playerData;
+        json["network-player-datas"] = playerGameSave.networkPlayerDatas;
         json["time"] = playerGameSave.time;
         json["day"] = playerGameSave.day;
-
-        if (playerGameSave.planetType >= 0)
-        {
-            json["planet"] = PlanetGenDataLoader::getPlanetGenData(playerGameSave.planetType).name;
-        }
-        else if (playerGameSave.roomDestinationType >= 0)
-        {
-            json["roomdest"] = StructureDataLoader::getRoomData(playerGameSave.roomDestinationType).name;
-        }
-
-        json["max-health"] = playerGameSave.maxHealth;
-
-        json["recipes-seen"] = playerGameSave.recipesSeen;
-
         json["time-played"] = playerGameSave.timePlayed;
+
+        // json["inventory"] = playerGameSave.inventory;
+        // json["armour-inventory"] = playerGameSave.armourInventory;
+
+        // if (playerGameSave.planetType >= 0)
+        // {
+        //     json["planet"] = PlanetGenDataLoader::getPlanetGenData(playerGameSave.planetType).name;
+        // }
+        // else if (playerGameSave.roomDestinationType >= 0)
+        // {
+        //     json["roomdest"] = StructureDataLoader::getRoomData(playerGameSave.roomDestinationType).name;
+        // }
+
+        // json["max-health"] = playerGameSave.maxHealth;
+
+        // json["recipes-seen"] = playerGameSave.recipesSeen;
+
 
         out << json;
         out.close();

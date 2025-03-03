@@ -42,6 +42,7 @@
 #include "World/RoomDestinationData.hpp"
 
 #include "Player/Player.hpp"
+#include "Player/PlayerData.hpp"
 #include "Player/Cursor.hpp"
 #include "Player/InventoryData.hpp"
 #include "Player/ItemPickup.hpp"
@@ -121,7 +122,7 @@ public:
 
 public:
     // Chest
-    void openChest(ChestObject& chest, bool initiatedClientSide);
+    void openChest(ChestObject& chest, bool initiatedClientSide, std::optional<PlanetType> planetType = std::nullopt);
     void openChestForClient(PacketDataChestOpened packetData);
     void openChestFromHost(const PacketDataChestOpened& packetData);
     void openedChestDataModified();
@@ -245,7 +246,8 @@ private:
     // For chunks, will use chunk and tile from object reference
     // For rooms, will use tile from object reference
     template <class T = BuildableObject>
-    T* getObjectFromChunkOrRoom(ObjectReference objectReference);
+    T* getObjectFromChunkOrRoom(ObjectReference objectReference, std::optional<PlanetType> planetType = std::nullopt, std::optional<uint32_t> structureID = std::nullopt,
+        std::optional<RoomType> roomDestType = std::nullopt, std::optional<GameState> gameStateOverride = std::nullopt);
 
 
     // -- Inventory / Chests -- //
@@ -285,9 +287,11 @@ private:
     bool loadGame(const SaveFileSummary& saveFileSummary);
     bool loadPlanet(PlanetType planetType);
 
+    PlayerData createPlayerData();
+    
     void saveOptions();
     void loadOptions();
-
+    
 
     // -- Window -- //
 
@@ -323,6 +327,7 @@ private:
     bool fullScreen = true;
 
     SaveFileSummary currentSaveFileSummary;
+    std::string playerName;
     float saveSessionPlayTime;
 
     SpriteBatch spriteBatch;
@@ -358,8 +363,9 @@ private:
     // Set planet / room dest type to -1 when selecting other
     std::unordered_map<PlanetType, WorldData> worldDatas;
     PlanetType currentPlanetType;
+    int planetSeed;
     std::unordered_map<RoomType, RoomDestinationData> roomDestDatas;
-    RoomType roomDestType;
+    RoomType currentRoomDestType;
 
     LightingEngine lightingEngine;
     int lightingTick = 0;

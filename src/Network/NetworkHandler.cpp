@@ -125,6 +125,15 @@ std::optional<uint64_t> NetworkHandler::getLobbyID()
     return steamLobbyId;
 }
 
+NetworkPlayer* NetworkHandler::getNetworkPlayer(uint64_t id)
+{
+    if (!networkPlayers.contains(id))
+    {
+        return nullptr;
+    }
+    return &networkPlayers.at(id);
+}
+
 std::unordered_map<uint64_t, NetworkPlayer>& NetworkHandler::getNetworkPlayers()
 {
     return networkPlayers;

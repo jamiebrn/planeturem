@@ -58,6 +58,7 @@ public:
     int getNetworkPlayerCount();
     std::optional<uint64_t> getLobbyID();
 
+    NetworkPlayer* getNetworkPlayer(uint64_t id);
     std::unordered_map<uint64_t, NetworkPlayer>& getNetworkPlayers();
     
 private:
