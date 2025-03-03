@@ -2936,61 +2936,80 @@ bool Game::saveGame(bool gettingInRocket)
     playerGameSave.timePlayed = currentSaveFileSummary.timePlayed;
     
     io.writePlayerSave(playerGameSave);
+
+    // Save planets required
+    for (PlanetType planetType : planetTypesToSave)
+    {
+        PlanetGameSave planetGameSave;
+        planetGameSave.chunks = getChunkManager(planetType).getChunkPODs();
+        planetGameSave.chestDataPool = getChestDataPool(planetType);
+        planetGameSave.structureRoomPool = getStructureRoomPool(planetType);
+        io.writePlanetSave(planetType, planetGameSave);
+    }
+
+    // Save room dests required
+    for (RoomType roomDestType : roomDestsToSave)
+    {
+        RoomDestinationGameSave roomDestGameSave;
+        roomDestGameSave.roomDestination = getRoomDestination(roomDestType);
+        roomDestGameSave.chestDataPool = getChestDataPool(std::nullopt, roomDestType);
+        io.writeRoomDestinationSave(roomDestGameSave);
+    }
     
-    PlanetGameSave planetGameSave;
-    RoomDestinationGameSave roomDestinationGameSave;
+    // PlanetGameSave planetGameSave;
+    // RoomDestinationGameSave roomDestinationGameSave;
 
-    switch (gameState)
-    {
-        // case GameState::InStructure:
-        // {
-        //     planetGameSave.isInRoom = true;
-        //     planetGameSave.inRoomID = structureEnteredID;
-        //     planetGameSave.positionInRoom = player.getPosition();
+    // switch (gameState)
+    // {
+    //     // case GameState::InStructure:
+    //     // {
+    //     //     planetGameSave.isInRoom = true;
+    //     //     planetGameSave.inRoomID = structureEnteredID;
+    //     //     planetGameSave.positionInRoom = player.getPosition();
 
-        //     planetGameSave.playerLastPlanetPos = structureEnteredPos;
-        // } // fallthrough
-        case GameState::OnPlanet:
-        {
-            planetGameSave.chunks = chunkManager.getChunkPODs();
-            planetGameSave.chestDataPool = chestDataPool;
-            planetGameSave.structureRoomPool = structureRoomPool;
+    //     //     planetGameSave.playerLastPlanetPos = structureEnteredPos;
+    //     // } // fallthrough
+    //     case GameState::OnPlanet:
+    //     {
+    //         planetGameSave.chunks = chunkManager.getChunkPODs();
+    //         planetGameSave.chestDataPool = chestDataPool;
+    //         planetGameSave.structureRoomPool = structureRoomPool;
             
-            playerGameSave.planetType = chunkManager.getPlanetType();
-            planetGameSave.playerLastPlanetPos = player.getPosition();
+    //         playerGameSave.planetType = chunkManager.getPlanetType();
+    //         planetGameSave.playerLastPlanetPos = player.getPosition();
             
-            if (gettingInRocket)
-            {
-                planetGameSave.rocketObjectUsed = rocketEnteredReference;
-            }
-            break;
-        }
-        case GameState::InRoomDestination:
-        {
-            roomDestinationGameSave.roomDestination = roomDestination;
-            roomDestinationGameSave.chestDataPool = chestDataPool;
-            roomDestinationGameSave.playerLastPos = player.getPosition();
+    //         if (gettingInRocket)
+    //         {
+    //             planetGameSave.rocketObjectUsed = rocketEnteredReference;
+    //         }
+    //         break;
+    //     }
+    //     case GameState::InRoomDestination:
+    //     {
+    //         roomDestinationGameSave.roomDestination = roomDestination;
+    //         roomDestinationGameSave.chestDataPool = chestDataPool;
+    //         roomDestinationGameSave.playerLastPos = player.getPosition();
 
-            playerGameSave.roomDestinationType = roomDestination.getRoomType();
-            break;
-        }
-    }
+    //         playerGameSave.roomDestinationType = roomDestination.getRoomType();
+    //         break;
+    //     }
+    // }
 
 
-    switch (gameState)
-    {
-        case GameState::InStructure: // fallthrough
-        case GameState::OnPlanet:
-        {
-            io.writePlanetSave(playerGameSave.planetType, planetGameSave);
-            break;
-        }
-        case GameState::InRoomDestination:
-        {
-            io.writeRoomDestinationSave(roomDestinationGameSave);
-            break;
-        }
-    }
+    // switch (gameState)
+    // {
+    //     case GameState::InStructure: // fallthrough
+    //     case GameState::OnPlanet:
+    //     {
+    //         io.writePlanetSave(playerGameSave.planetType, planetGameSave);
+    //         break;
+    //     }
+    //     case GameState::InRoomDestination:
+    //     {
+    //         io.writeRoomDestinationSave(roomDestinationGameSave);
+    //         break;
+    //     }
+    // }
 
     return true;
 }
@@ -3453,10 +3472,10 @@ ChunkManager& Game::getChunkManager(std::optional<PlanetType> planetTypeOverride
     {
         if (planetTypeOverride.value() >= 0)
         {
-            return worldDatas[planetTypeOverride.value()].chunkManager;
+            return worldDatas.at(planetTypeOverride.value()).chunkManager;
         }
     }
-    return worldDatas[currentPlanetType].chunkManager;
+    return worldDatas.at(currentPlanetType).chunkManager;
 }
 
 ProjectileManager& Game::getProjectileManager(std::optional<PlanetType> planetTypeOverride)
@@ -3465,10 +3484,10 @@ ProjectileManager& Game::getProjectileManager(std::optional<PlanetType> planetTy
     {
         if (planetTypeOverride.value() >= 0)
         {
-            return worldDatas[planetTypeOverride.value()].projectileManager;
+            return worldDatas.at(planetTypeOverride.value()).projectileManager;
         }
     }
-    return worldDatas[currentPlanetType].projectileManager;
+    return worldDatas.at(currentPlanetType).projectileManager;
 }
 
 BossManager& Game::getBossManager(std::optional<PlanetType> planetTypeOverride)
@@ -3477,10 +3496,10 @@ BossManager& Game::getBossManager(std::optional<PlanetType> planetTypeOverride)
     {
         if (planetTypeOverride.value() >= 0)
         {
-            return worldDatas[planetTypeOverride.value()].bossManager;
+            return worldDatas.at(planetTypeOverride.value()).bossManager;
         }
     }
-    return worldDatas[currentPlanetType].bossManager;
+    return worldDatas.at(currentPlanetType).bossManager;
 }
 
 LandmarkManager& Game::getLandmarkManager(std::optional<PlanetType> planetTypeOverride)
@@ -3489,10 +3508,10 @@ LandmarkManager& Game::getLandmarkManager(std::optional<PlanetType> planetTypeOv
     {
         if (planetTypeOverride.value() >= 0)
         {
-            return worldDatas[planetTypeOverride.value()].landmarkManager;
+            return worldDatas.at(planetTypeOverride.value()).landmarkManager;
         }
     }
-    return worldDatas[currentPlanetType].landmarkManager;
+    return worldDatas.at(currentPlanetType).landmarkManager;
 }
 
 RoomPool& Game::getStructureRoomPool(std::optional<PlanetType> planetTypeOverride)
@@ -3501,10 +3520,10 @@ RoomPool& Game::getStructureRoomPool(std::optional<PlanetType> planetTypeOverrid
     {
         if (planetTypeOverride.value() >= 0)
         {
-            return worldDatas[planetTypeOverride.value()].structureRoomPool;
+            return worldDatas.at(planetTypeOverride.value()).structureRoomPool;
         }
     }
-    return worldDatas[currentPlanetType].structureRoomPool;
+    return worldDatas.at(currentPlanetType).structureRoomPool;
 }
 
 Room& Game::getRoomDestination(std::optional<RoomType> roomDestOverride)
@@ -3513,13 +3532,13 @@ Room& Game::getRoomDestination(std::optional<RoomType> roomDestOverride)
     {
         if (roomDestOverride.value() >= 0)
         {
-            return roomDestDatas[roomDestOverride.value()].roomDestination;
+            return roomDestDatas.at(roomDestOverride.value()).roomDestination;
         }
     }
 
     assert(currentRoomDestType > 0);
     
-    return roomDestDatas[currentRoomDestType].roomDestination;
+    return roomDestDatas.at(currentRoomDestType).roomDestination;
 }
 
 ChestDataPool& Game::getChestDataPool(std::optional<PlanetType> planetTypeOverride, std::optional<RoomType> roomDestOverride)
@@ -3528,23 +3547,23 @@ ChestDataPool& Game::getChestDataPool(std::optional<PlanetType> planetTypeOverri
     {
         if (planetTypeOverride.value() >= 0)
         {
-            return worldDatas[planetTypeOverride.value()].chestDataPool;
+            return worldDatas.at(planetTypeOverride.value()).chestDataPool;
         }
     }
     else if (roomDestOverride.has_value())
     {
         if (roomDestOverride.value() >= 0)
         {
-            return roomDestDatas[roomDestOverride.value()].chestDataPool;
+            return roomDestDatas.at(roomDestOverride.value()).chestDataPool;
         }
     }
     if (currentRoomDestType > 0)
     {
-        return roomDestDatas[currentPlanetType].chestDataPool;
+        return roomDestDatas.at(currentPlanetType).chestDataPool;
     }
 
     // Default case
-    return worldDatas[currentPlanetType].chestDataPool;
+    return worldDatas.at(currentPlanetType).chestDataPool;
 }
 
 void Game::generateWaterNoiseTexture()

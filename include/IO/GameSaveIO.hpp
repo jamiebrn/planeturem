@@ -76,7 +76,7 @@ struct PlanetGameSave
     // uint32_t inRoomID = 0;
     // sf::Vector2f positionInRoom;
 
-    std::optional<ObjectReference> rocketObjectUsed = std::nullopt;
+    // std::optional<ObjectReference> rocketObjectUsed = std::nullopt;
 
     std::vector<ChunkPOD> chunks;
 
@@ -92,7 +92,7 @@ struct PlanetGameSave
         // }
         if (version >= 3)
         {
-            ar(rocketObjectUsed, chunks, chestDataPool, structureRoomPool);
+            ar(chunks, chestDataPool, structureRoomPool);
         }
     }
 
