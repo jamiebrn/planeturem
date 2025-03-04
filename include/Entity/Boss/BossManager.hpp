@@ -27,7 +27,7 @@ public:
 
     bool createBoss(const std::string& name, sf::Vector2f playerPosition, Game& game);
 
-    void update(Game& game, ProjectileManager& projectileManager, ProjectileManager& enemyProjectileManager, ChunkManager& chunkManager, Player& player, float dt, float gameTime);
+    void update(Game& game, ProjectileManager& projectileManager, ChunkManager& chunkManager, Player& player, float dt, float gameTime);
 
     void testHitRectCollision(const std::vector<HitRect>& hitRects);
 

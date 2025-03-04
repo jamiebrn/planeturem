@@ -368,6 +368,11 @@ void InventoryData::takeCurrencyValueItems(int currencyValue)
     }
 }
 
+void InventoryData::giveStartingItems()
+{
+    addItem(ItemDataLoader::getItemTypeFromName("Wooden Pickaxe"), 1);
+}
+
 // Save / load
 void to_json(nlohmann::json& json, const InventoryData& inventory)
 {

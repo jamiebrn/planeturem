@@ -14,6 +14,8 @@ enum class PacketType : uint8_t
 
     PlayerInfo,
     WorldInfo,
+    RoomDestInfo,
+    ServerInfo,
 
     ObjectHit,
     ObjectBuilt,

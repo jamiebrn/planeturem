@@ -9,7 +9,7 @@
 #include "Network/IPacketData.hpp"
 #include "Network/PacketDataJoinInfo.hpp"
 #include "Network/PacketDataPlayerInfo.hpp"
-#include "Network/PacketDataWorldInfo.hpp"
+#include "Network/PacketDataServerInfo.hpp"
 #include "Network/PacketDataObjectHit.hpp"
 #include "Network/PacketDataObjectBuilt.hpp"
 #include "Network/PacketDataObjectDestroyed.hpp"
@@ -60,6 +60,9 @@ public:
 
     NetworkPlayer* getNetworkPlayer(uint64_t id);
     std::unordered_map<uint64_t, NetworkPlayer>& getNetworkPlayers();
+
+    const PlayerData* getSavedNetworkPlayerData(uint64_t id);
+    void setSavedNetworkPlayerData(uint64_t id, const PlayerData& networkPlayerData);
     
 private:
     void processMessage(const SteamNetworkingMessage_t& message, const Packet& packet);
@@ -88,6 +91,7 @@ private:
     Game* game = nullptr;
 
     std::unordered_map<uint64_t, NetworkPlayer> networkPlayers;
+    std::unordered_map<uint64_t, PlayerData> networkPlayerDatasSaved;
 
     // Client-specific
     static constexpr float CHUNK_REQUEST_OUTSTANDING_MAX_TIME = 2.0f;

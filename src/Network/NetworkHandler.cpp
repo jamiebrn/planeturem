@@ -18,6 +18,8 @@ void NetworkHandler::reset(Game* game)
     steamLobbyId = 0;
     isLobbyHost = false;
     lobbyHost = 0;
+    networkPlayers.clear();
+    networkPlayerDatasSaved.clear();
 }
 
 void NetworkHandler::startHostServer()
@@ -137,6 +139,21 @@ NetworkPlayer* NetworkHandler::getNetworkPlayer(uint64_t id)
 std::unordered_map<uint64_t, NetworkPlayer>& NetworkHandler::getNetworkPlayers()
 {
     return networkPlayers;
+}
+
+
+const PlayerData* NetworkHandler::getSavedNetworkPlayerData(uint64_t id)
+{
+    if (!networkPlayerDatasSaved.contains(id))
+    {
+        return nullptr;
+    }
+    return &networkPlayerDatasSaved.at(id);
+}
+
+void NetworkHandler::setSavedNetworkPlayerData(uint64_t id, const PlayerData& networkPlayerData)
+{
+    networkPlayerDatasSaved[id] = networkPlayerData;
 }
 
 void NetworkHandler::registerNetworkPlayer(uint64_t id, bool notify)
@@ -458,18 +475,33 @@ void NetworkHandler::processMessageAsHost(const SteamNetworkingMessage_t& messag
             
             // Send world info
             PacketDataJoinInfo packetData;
-            packetData.seed = game->getChunkManager().getSeed();
+            packetData.seed = game->getPlanetSeed();
             packetData.gameTime = game->getGameTime();
             packetData.time = game->getDayCycleManager().getCurrentTime();
             packetData.day = game->getDayCycleManager().getCurrentDay();
-            packetData.planetName = PlanetGenDataLoader::getPlanetGenData(game->getChunkManager().getPlanetType()).name;
+            // packetData.planetName = PlanetGenDataLoader::getPlanetGenData(game->getChunkManager().getPlanetType()).name;
     
-            packetData.chestDataPool = game->getChestDataPool();
-    
-            // Find spawn for player
-            ChunkPosition playerSpawnChunk = game->getChunkManager().findValidSpawnChunk(2);
-            packetData.spawnPosition.x = playerSpawnChunk.x * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED + 0.5f * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
-            packetData.spawnPosition.y = playerSpawnChunk.y * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED + 0.5f * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
+            // packetData.chestDataPool = game->getChestDataPool();
+
+            // Send player data
+            if (networkPlayerDatasSaved.contains(message.m_identityPeer.GetSteamID64()))
+            {
+                // Player data exists from save
+                packetData.playerData = networkPlayerDatasSaved.at(message.m_identityPeer.GetSteamID64());
+            }
+            else
+            {
+                // Player data does not exist - initialise
+
+                packetData.playerData.planetType = PlanetGenDataLoader::getPlanetTypeFromName("Earthlike");
+                
+                // Find spawn for player
+                ChunkPosition playerSpawnChunk = game->getChunkManager(packetData.playerData.planetType).findValidSpawnChunk(2);
+                packetData.playerData.position.x = playerSpawnChunk.x * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED + 0.5f * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
+                packetData.playerData.position.y = playerSpawnChunk.y * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED + 0.5f * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
+
+                packetData.playerData.inventory.giveStartingItems();
+            }
             
             packetData.currentPlayers.push_back(SteamUser()->GetSteamID().ConvertToUint64());
             for (auto iter = networkPlayers.begin(); iter != networkPlayers.end(); iter++)
@@ -573,6 +605,7 @@ void NetworkHandler::processMessageAsClient(const SteamNetworkingMessage_t& mess
             multiplayerGame = true;
 
             networkPlayers.clear();
+            networkPlayerDatasSaved.clear();
             for (uint64_t player : packetData.currentPlayers)
             {
                 registerNetworkPlayer(player, false);
@@ -602,15 +635,15 @@ void NetworkHandler::processMessageAsClient(const SteamNetworkingMessage_t& mess
             game->quitWorld();
             break;
         }
-        case PacketType::WorldInfo:
+        case PacketType::ServerInfo:
         {
-            PacketDataWorldInfo worldInfo;
-            worldInfo.deserialise(packet.data);
-            worldInfo.applyPingEstimate();
+            PacketDataServerInfo serverInfo;
+            serverInfo.deserialise(packet.data);
+            serverInfo.applyPingEstimate();
 
-            game->setGameTime(worldInfo.gameTime);
-            game->getDayCycleManager(true).setCurrentDay(worldInfo.day);
-            game->getDayCycleManager(true).setCurrentTime(worldInfo.time);
+            game->setGameTime(serverInfo.gameTime);
+            game->getDayCycleManager(true).setCurrentDay(serverInfo.day);
+            game->getDayCycleManager(true).setCurrentTime(serverInfo.time);
             break;
         }
         case PacketType::ObjectDestroyed:
@@ -651,20 +684,20 @@ void NetworkHandler::sendGameUpdatesToClients()
 
     uint64_t steamID = SteamUser()->GetSteamID().ConvertToUint64();
 
-    // Send world info
-    PacketDataWorldInfo worldInfoData;
-    worldInfoData.gameTime = game->getGameTime();
-    worldInfoData.day = game->getDayCycleManager().getCurrentDay();
-    worldInfoData.time = game->getDayCycleManager().getCurrentTime();
-    worldInfoData.setHostPingLocation();
-    Packet worldInfoPacket;
-    worldInfoPacket.set(worldInfoData);
+    // Send server info
+    PacketDataServerInfo serverInfoData;
+    serverInfoData.gameTime = game->getGameTime();
+    serverInfoData.day = game->getDayCycleManager().getCurrentDay();
+    serverInfoData.time = game->getDayCycleManager().getCurrentTime();
+    serverInfoData.setHostPingLocation();
+    Packet serverInfoPacket;
+    serverInfoPacket.set(serverInfoData);
 
     for (auto& client : networkPlayers)
     {
         SteamNetworkingIdentity clientIdentity;
         clientIdentity.SetSteamID64(client.first);
-        worldInfoPacket.sendToUser(clientIdentity, k_nSteamNetworkingSend_Unreliable, 0);
+        serverInfoPacket.sendToUser(clientIdentity, k_nSteamNetworkingSend_Unreliable, 0);
     }
 
     std::unordered_map<uint64_t, Packet> playerInfoPackets;
@@ -794,10 +827,10 @@ void NetworkHandler::requestChunksFromHost(std::vector<ChunkPosition>& chunks)
 
 void NetworkHandler::handleChunkDatasFromHost(const PacketDataChunkDatas& chunkDatas)
 {
+    game->handleChunkDataFromHost(chunkDatas);
+
     for (const auto& chunkData : chunkDatas.chunkDatas)
     {
-        game->handleChunkDataFromHost(chunkData);
-
         if (chunkRequestsOutstanding.contains(chunkData.chunkPosition))
         {
             chunkRequestsOutstanding.erase(chunkData.chunkPosition);

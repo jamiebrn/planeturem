@@ -1,6 +1,6 @@
 #include "Player/NetworkPlayer.hpp"
 
-NetworkPlayer::NetworkPlayer(sf::Vector2f position, int maxHealth = 0)
+NetworkPlayer::NetworkPlayer(sf::Vector2f position, int maxHealth)
     : Player(position, maxHealth)
 {
 

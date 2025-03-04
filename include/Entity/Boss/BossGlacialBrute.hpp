@@ -40,7 +40,7 @@ class BossGlacialBrute : public BossEntity
 public:
     BossGlacialBrute(sf::Vector2f playerPosition, Game& game);
 
-    void update(Game& game, ProjectileManager& enemyProjectileManager, Player& player, float dt) override;
+    void update(Game& game, ProjectileManager& projectileManager, Player& player, float dt) override;
 
     bool isAlive() override;
 
@@ -67,7 +67,7 @@ private:
 
     void updateCollision();
 
-    void throwSnowball(ProjectileManager& enemyProjectileManager, Player& player);
+    void throwSnowball(ProjectileManager& projectileManager, Player& player);
 
 private:
     enum class BossGlacialBruteState

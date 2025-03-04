@@ -62,12 +62,14 @@ struct PacketDataChunkDatas : public IPacketData
         }
     };
 
+    PlanetType planetType;
+
     std::vector<ChunkData> chunkDatas;
 
     template <class Archive>
     void serialize(Archive& ar)
     {
-        ar(chunkDatas);
+        ar(planetType, chunkDatas);
     }
 
     PACKET_SERIALISATION();

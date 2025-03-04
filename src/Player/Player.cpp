@@ -47,7 +47,7 @@ Player::Player(sf::Vector2f position, int maxHealth)
     inRocket = false;
 }
 
-void Player::update(float dt, sf::Vector2f mouseWorldPos, ChunkManager& chunkManager, ProjectileManager& enemyProjectileManager,
+void Player::update(float dt, sf::Vector2f mouseWorldPos, ChunkManager& chunkManager, ProjectileManager& projectileManager,
     bool& wrappedAroundWorld, sf::Vector2f& wrapPositionDelta)
 {
     updateTimers(dt);
@@ -96,7 +96,7 @@ void Player::update(float dt, sf::Vector2f mouseWorldPos, ChunkManager& chunkMan
     position.y = collisionRect.y + collisionRect.height / 2.0f;
 
     // Test projectile collisions
-    for (auto& projectilePair : enemyProjectileManager.getProjectiles())
+    for (auto& projectilePair : projectileManager.getProjectiles())
     {
         if (testHitCollision(projectilePair.second))
         {

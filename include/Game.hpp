@@ -93,7 +93,7 @@
 #include "Network/IPacketData.hpp"
 #include "Network/PacketDataJoinInfo.hpp"
 #include "Network/PacketDataPlayerInfo.hpp"
-#include "Network/PacketDataWorldInfo.hpp"
+#include "Network/PacketDataServerInfo.hpp"
 #include "Network/PacketDataObjectHit.hpp"
 #include "Network/PacketDataObjectBuilt.hpp"
 #include "Network/PacketDataObjectDestroyed.hpp"
@@ -161,7 +161,7 @@ public:
 
     // Networking
     void handleChunkRequestsFromClient(const PacketDataChunkRequests& chunkRequests, const SteamNetworkingIdentity& client);
-    void handleChunkDataFromHost(const PacketDataChunkDatas::ChunkData& chunkData);
+    void handleChunkDataFromHost(const PacketDataChunkDatas& chunkDataPacket);
 
 
     // Misc
@@ -184,6 +184,8 @@ public:
 
     inline float getGameTime() {return gameTime;}
     inline void setGameTime(float gameTime) {this->gameTime = gameTime;}
+
+    inline int getPlanetSeed() {return planetSeed;}
 
 private:
 
@@ -252,8 +254,6 @@ private:
 
     // -- Inventory / Chests -- //
 
-    void giveStartingInventory();
-
     void handleInventoryClose();
 
     void checkChestOpenInRange();
@@ -288,6 +288,8 @@ private:
     bool loadPlanet(PlanetType planetType);
 
     PlayerData createPlayerData();
+
+    void initialiseWorldData(PlanetType planetType);
     
     void saveOptions();
     void loadOptions();

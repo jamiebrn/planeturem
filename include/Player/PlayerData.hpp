@@ -3,6 +3,10 @@
 #include <string>
 #include <unordered_set>
 
+#include <extlib/cereal/types/unordered_set.hpp>
+#include <extlib/cereal/types/string.hpp>
+#include <extlib/cereal/archives/binary.hpp>
+
 #include <SFML/System/Vector2.hpp>
 #include <Core/json.hpp>
 
@@ -34,6 +38,13 @@ struct PlayerData
     sf::Vector2f structureExitPos; // used to determine structure exit position on planet
 
     int maxHealth = 0;
+
+    template <class Archive>
+    void serialize(Archive& ar)
+    {
+        ar(planetType, inStructureID, roomDestinationType, inventory, armourInventory, recipesSeen, name, position.x, position.y,
+            isInStructure, structureExitPos.x, structureExitPos.y, maxHealth);
+    }
 };
 
 inline void from_json(const nlohmann::json& json, PlayerData& data)

@@ -53,7 +53,7 @@ public:
     Player() = default;
     Player(sf::Vector2f position, int maxHealth = 0);
 
-    void update(float dt, sf::Vector2f mouseWorldPos, ChunkManager& chunkManager, ProjectileManager& enemyProjectileManager,
+    void update(float dt, sf::Vector2f mouseWorldPos, ChunkManager& chunkManager, ProjectileManager& projectileManager,
         bool& wrappedAroundWorld, sf::Vector2f& wrapPositionDelta);
     void updateInRoom(float dt, sf::Vector2f mouseWorldPos, const Room& room);
 

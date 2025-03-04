@@ -40,7 +40,7 @@ bool BossManager::createBoss(const std::string& name, sf::Vector2f playerPositio
     return false;
 }
 
-void BossManager::update(Game& game, ProjectileManager& projectileManager, ProjectileManager& enemyProjectileManager, ChunkManager& chunkManager, Player& player, float dt,
+void BossManager::update(Game& game, ProjectileManager& projectileManager, ChunkManager& chunkManager, Player& player, float dt,
     float gameTime)
 {
     for (auto iter = bosses.begin(); iter != bosses.end();)
@@ -48,7 +48,7 @@ void BossManager::update(Game& game, ProjectileManager& projectileManager, Proje
         BossEntity* boss = iter->get();
         if (boss->isAlive() && boss->inPlayerRange(player))
         {
-            boss->update(game, enemyProjectileManager, player, dt);
+            boss->update(game, projectileManager, player, dt);
 
             for (auto& projectilePair : projectileManager.getProjectiles())
             {

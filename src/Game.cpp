@@ -157,6 +157,8 @@ bool Game::initialise()
     transitionGameStateTimer = 0.0f;
     worldMenuState = WorldMenuState::Main;
 
+    initialiseWorldData(0);
+    currentPlanetType = 0;
     mainMenuGUI.initialise();
 
     //menuScreenshotIndex = 0;
@@ -778,7 +780,7 @@ void Game::runInGame(float dt)
                 break;
             case GameState::InStructure:
             {
-                Room& structureRoom = structureRoomPool.getRoom(structureEnteredID);
+                Room& structureRoom = getStructureRoomPool().getRoom(structureEnteredID);
                 updateInRoom(dt, structureRoom, true);
                 break;
             }
@@ -836,7 +838,7 @@ void Game::runInGame(float dt)
         }
         case GameState::InStructure:
         {
-            const Room& structureRoom = structureRoomPool.getRoom(structureEnteredID);
+            const Room& structureRoom = getStructureRoomPool().getRoom(structureEnteredID);
             drawInRoom(dt, structureRoom);
             break;
         }
@@ -1050,7 +1052,7 @@ void Game::updateOnPlanet(float dt)
 
     if (!isStateTransitioning())
     {
-        player.update(dt, camera.screenToWorldTransform(mouseScreenPos), getChunkManager(), enemyProjectileManager, wrappedAroundWorld, wrapPositionDelta);
+        player.update(dt, camera.screenToWorldTransform(mouseScreenPos), getChunkManager(), getProjectileManager(), wrappedAroundWorld, wrapPositionDelta);
     }
 
     // Handle world wrapping for camera and cursor, if player wrapped around
@@ -1062,11 +1064,11 @@ void Game::updateOnPlanet(float dt)
         getChunkManager().reloadChunks();
 
         // Wrap bosses
-        bossManager.handleWorldWrap(wrapPositionDelta);
+        getBossManager().handleWorldWrap(wrapPositionDelta);
 
         // Wrap projectiles
-        projectileManager.handleWorldWrap(wrapPositionDelta);
-        enemyProjectileManager.handleWorldWrap(wrapPositionDelta);
+        getProjectileManager().handleWorldWrap(wrapPositionDelta);
+        // enemyProjectileManager.handleWorldWrap(wrapPositionDelta);
 
         // Wrap hit markers
         HitMarkers::handleWorldWrap(wrapPositionDelta);
@@ -1090,7 +1092,7 @@ void Game::updateOnPlanet(float dt)
     }
 
     getChunkManager().updateChunksObjects(*this, dt);
-    getChunkManager().updateChunksEntities(dt, projectileManager, *this);
+    getChunkManager().updateChunksEntities(dt, getProjectileManager(), *this);
 
     // If modified chunks, force a lighting recalculation
     if (modifiedChunks)
@@ -1102,11 +1104,11 @@ void Game::updateOnPlanet(float dt)
     nearbyCraftingStationLevels = getChunkManager().getNearbyCraftingStationLevels(player.getChunkInside(worldSize), player.getChunkTileInside(worldSize), 4);
 
     // Update bosses
-    bossManager.update(*this, projectileManager, enemyProjectileManager, getChunkManager(), player, dt, gameTime);
+    getBossManager().update(*this, getProjectileManager(), getChunkManager(), player, dt, gameTime);
 
     // Update projectiles
-    projectileManager.update(dt);
-    enemyProjectileManager.update(dt);
+    getProjectileManager().update(dt);
+    // enemyProjectileManager.update(dt);
 
     weatherSystem.update(dt, gameTime, camera, getChunkManager());
 
@@ -1174,7 +1176,7 @@ void Game::drawOnPlanet(float dt)
     worldObjects.insert(worldObjects.end(), itemPickups.begin(), itemPickups.end());
     worldObjects.insert(worldObjects.end(), weatherParticles.begin(), weatherParticles.end());
     worldObjects.push_back(&player);
-    bossManager.getBossWorldObjects(worldObjects);
+    getBossManager().getBossWorldObjects(worldObjects);
 
     // Add network players
     for (auto iter = networkHandler.getNetworkPlayers().begin(); iter != networkHandler.getNetworkPlayers().end(); iter++)
@@ -1210,7 +1212,7 @@ void Game::drawOnPlanet(float dt)
 
     drawLandmarks();
 
-    bossManager.drawStatsAtCursor(window, camera, mouseScreenPos);
+    getBossManager().drawStatsAtCursor(window, camera, mouseScreenPos);
 }
 
 void Game::drawWorld(sf::RenderTexture& renderTexture, float dt, std::vector<WorldObject*>& worldObjects, ChunkManager& chunkManagerArg, const Camera& cameraArg)
@@ -1244,8 +1246,8 @@ void Game::drawWorld(sf::RenderTexture& renderTexture, float dt, std::vector<Wor
     }
 
     // Draw projectiles
-    projectileManager.drawProjectiles(renderTexture, spriteBatch, cameraArg);
-    enemyProjectileManager.drawProjectiles(renderTexture, spriteBatch, cameraArg);
+    getProjectileManager().drawProjectiles(renderTexture, spriteBatch, cameraArg);
+    // enemyProjectileManager.drawProjectiles(renderTexture, spriteBatch, cameraArg);
 
     spriteBatch.endDrawing(renderTexture);
 
@@ -1318,7 +1320,7 @@ void Game::drawLandmarks()
 
     landmarkUIAnimation.setFrame(static_cast<int>(gameTime / 0.1) % 6);
 
-    for (const LandmarkSummaryData& landmarkSummary : landmarkManager.getLandmarkSummaryDatas(player, getChunkManager()))
+    for (const LandmarkSummaryData& landmarkSummary : getLandmarkManager().getLandmarkSummaryDatas(player, getChunkManager()))
     {
         if (camera.isInView(landmarkSummary.worldPos))
         {
@@ -1366,7 +1368,7 @@ void Game::testEnterStructure()
     if (enterEvent.enteredStructure->getStructureID() == 0xFFFFFFFF)
     {
         const StructureData& structureData = StructureDataLoader::getStructureData(enterEvent.enteredStructure->getStructureType());
-        structureEnteredID = structureRoomPool.createRoom(structureData.roomType, getChestDataPool());
+        structureEnteredID = getStructureRoomPool().createRoom(structureData.roomType, getChestDataPool());
         enterEvent.enteredStructure->setStructureID(structureEnteredID);
     }
     else
@@ -1384,7 +1386,7 @@ void Game::testEnterStructure()
 
 void Game::testExitStructure()
 {
-    const Room& structureRoom = structureRoomPool.getRoom(structureEnteredID);
+    const Room& structureRoom = getStructureRoomPool().getRoom(structureEnteredID);
     
     if (!structureRoom.isPlayerInExit(player.getPosition()))
         return;
@@ -1494,7 +1496,7 @@ void Game::landmarkPlaced(const LandmarkObject& landmark, bool createGUI)
     ObjectReference landmarkObjectReference = ObjectReference{landmark.getChunkInside(getChunkManager().getWorldSize()),
         landmark.getChunkTileInside(getChunkManager().getWorldSize())};
 
-    landmarkManager.addLandmark(landmarkObjectReference);
+    getLandmarkManager().addLandmark(landmarkObjectReference);
 
     if (createGUI)
     {
@@ -1508,7 +1510,7 @@ void Game::landmarkPlaced(const LandmarkObject& landmark, bool createGUI)
 
 void Game::landmarkDestroyed(const LandmarkObject& landmark)
 {
-    landmarkManager.removeLandmark(ObjectReference{landmark.getChunkInside(getChunkManager().getWorldSize()),
+    getLandmarkManager().removeLandmark(ObjectReference{landmark.getChunkInside(getChunkManager().getWorldSize()),
         landmark.getChunkTileInside(getChunkManager().getWorldSize())});
 }
 
@@ -1534,7 +1536,7 @@ void Game::updateInRoom(float dt, Room& room, bool inStructure)
     {
         // Continue to update objects and entities in world
         getChunkManager().updateChunksObjects(*this, dt);
-        getChunkManager().updateChunksEntities(dt, projectileManager, *this);
+        getChunkManager().updateChunksEntities(dt, getProjectileManager(), *this);
             
         weatherSystem.update(dt, gameTime, camera, getChunkManager());
 
@@ -1627,7 +1629,7 @@ void Game::attemptUseToolPickaxe()
     sf::Vector2f mouseWorldPos = camera.screenToWorldTransform(mouseScreenPos);
     
     // Swing pickaxe
-    player.useTool(projectileManager, inventory, mouseWorldPos, *this);
+    player.useTool(getProjectileManager(), inventory, mouseWorldPos, *this);
 
     if (gameState != GameState::OnPlanet)
         return;
@@ -1680,7 +1682,7 @@ void Game::attemptUseToolFishingRod()
     }
     
     // Swing fishing rod
-    player.useTool(projectileManager, inventory, mouseWorldPos, *this);
+    player.useTool(getProjectileManager(), inventory, mouseWorldPos, *this);
 
     player.swingFishingRod(mouseWorldPos, Cursor::getSelectedWorldTile(getChunkManager().getWorldSize()));
 }
@@ -1692,7 +1694,7 @@ void Game::attemptUseToolWeapon()
 
     sf::Vector2f mouseWorldPos = camera.screenToWorldTransform(mouseScreenPos);
 
-    player.useTool(projectileManager, inventory, mouseWorldPos, *this);
+    player.useTool(getProjectileManager(), inventory, mouseWorldPos, *this);
 }
 
 void Game::hitObject(ChunkPosition chunk, sf::Vector2i tile, int damage, std::optional<PlanetType> planetType, bool sentFromHost, std::optional<uint64_t> userId)
@@ -1863,7 +1865,7 @@ void Game::buildObject(ChunkPosition chunk, sf::Vector2i tile, ObjectType object
 void Game::testMeleeCollision(const std::vector<HitRect>& hitRects)
 {
     getChunkManager().testChunkEntityHitCollision(hitRects, *this, gameTime);
-    bossManager.testHitRectCollision(hitRects);
+    getBossManager().testHitRectCollision(hitRects);
 }
 
 void Game::itemPickupsCreated(const std::vector<ItemPickupReference>& itemPickupsCreated, std::optional<PlanetType> planetType)
@@ -2145,7 +2147,7 @@ void Game::attemptUseBossSpawn()
     }
 
     // Summon boss
-    if (!bossManager.createBoss(itemData.bossSummonData->bossName, player.getPosition(), *this))
+    if (!getBossManager().createBoss(itemData.bossSummonData->bossName, player.getPosition(), *this))
     {
         return;
     }
@@ -2309,13 +2311,6 @@ T* Game::getObjectFromChunkOrRoom(ObjectReference objectReference, std::optional
 
 
 // -- Inventory / Chests -- //
-
-void Game::giveStartingInventory()
-{
-    inventory.addItem(ItemDataLoader::getItemTypeFromName("Wooden Pickaxe"), 1);
-
-    changePlayerTool();
-}
 
 void Game::handleInventoryClose()
 {
@@ -2785,6 +2780,10 @@ void Game::changeState(GameState newState)
         case GameState::MainMenu:
         {
             ResolutionHandler::overrideZoom(0);
+            worldDatas.clear();
+            roomDestDatas.clear();
+            currentPlanetType = 0;
+            initialiseWorldData(currentPlanetType);
             break;
         }
         case GameState::InStructure:
@@ -2794,7 +2793,7 @@ void Game::changeState(GameState newState)
             
             if (gameState == GameState::OnPlanet)
             {
-                std::optional<sf::Vector2f> roomEntrancePos = structureRoomPool.getRoom(structureEnteredID).getEntrancePosition();
+                std::optional<sf::Vector2f> roomEntrancePos = getStructureRoomPool().getRoom(structureEnteredID).getEntrancePosition();
 
                 //assert(roomEntrancePos.has_value());
                 if (!roomEntrancePos.has_value())
@@ -2842,8 +2841,8 @@ void Game::startNewGame(int seed)
 
     player = Player(sf::Vector2f(0, 0));
     inventory = InventoryData(32);
+    inventory.giveStartingItems();
     armourInventory = InventoryData(3);
-    giveStartingInventory();
     InventoryGUI::reset();
 
     currentPlanetType = PlanetGenDataLoader::getPlanetTypeFromName("Earthlike");
@@ -3027,23 +3026,24 @@ bool Game::loadGame(const SaveFileSummary& saveFileSummary)
     }
 
     networkHandler.reset(this);
+    worldDatas.clear();
+    roomDestDatas.clear();
 
-    player = Player(sf::Vector2f(0, 0), playerGameSave.maxHealth);
+    playerName = playerGameSave.playerData.name;
+    player = Player(playerGameSave.playerData.position, playerGameSave.playerData.maxHealth);
+
+    inventory = playerGameSave.playerData.inventory;
+    armourInventory = playerGameSave.playerData.armourInventory;
+    InventoryGUI::setSeenRecipes(playerGameSave.playerData.recipesSeen);
 
     InventoryGUI::reset();
 
-    std::unordered_set<ItemType> recipesSeen;
-    for (const std::string& itemName : playerGameSave.recipesSeen)
-    {
-        recipesSeen.insert(ItemDataLoader::getItemTypeFromName(itemName));
-    }
-    InventoryGUI::setSeenRecipes(recipesSeen);
-
     closeChest();
     
-    chunkManager.setSeed(playerGameSave.seed);
-    inventory = playerGameSave.inventory;
-    armourInventory = playerGameSave.armourInventory;
+    // chunkManager.setSeed(playerGameSave.seed);
+    // inventory = playerGameSave.inventory;
+    // armourInventory = playerGameSave.armourInventory;
+    planetSeed = playerGameSave.seed;
     dayCycleManager.setCurrentTime(playerGameSave.time);
     dayCycleManager.setCurrentDay(playerGameSave.day);
 
@@ -3053,79 +3053,87 @@ bool Game::loadGame(const SaveFileSummary& saveFileSummary)
     worldMenuState = WorldMenuState::Main;
     musicGap = MUSIC_GAP_MIN;
 
-    landmarkManager.clear();
+    // landmarkManager.clear();
         
     // Sync time-based systems, e.g. weather
     gameTime = playerGameSave.timePlayed;
 
     // Load planet
-    if (playerGameSave.planetType >= 0)
+    if (playerGameSave.playerData.planetType >= 0)
     {
         PlanetGameSave planetGameSave;
 
-        if (!io.loadPlanetSave(playerGameSave.planetType, planetGameSave))
+        if (!io.loadPlanetSave(playerGameSave.playerData.planetType, planetGameSave))
         {
-            const std::string& planetName = PlanetGenDataLoader::getPlanetGenData(playerGameSave.planetType).name;
+            const std::string& planetName = PlanetGenDataLoader::getPlanetGenData(playerGameSave.playerData.planetType).name;
             std::cout << "Failed to load planet \"" + planetName + "\" for save " + saveFileSummary.name + "\n";
             return false;
         }
 
-        chunkManager.setPlanetType(playerGameSave.planetType);
-        chunkManager.loadFromChunkPODs(planetGameSave.chunks, *this);
-        chestDataPool = planetGameSave.chestDataPool;
-        structureRoomPool = planetGameSave.structureRoomPool;
+        currentRoomDestType = -1;
+        currentPlanetType = playerGameSave.playerData.planetType;
+        worldDatas[currentPlanetType] = WorldData();
+
+        getChunkManager().setPlanetType(currentPlanetType);
+        getChunkManager().setSeed(planetSeed);
+        getChunkManager().loadFromChunkPODs(planetGameSave.chunks, *this);
+        getChestDataPool() = planetGameSave.chestDataPool;
+        getStructureRoomPool() = planetGameSave.structureRoomPool;
+
+        // chunkManager.setPlanetType(playerGameSave.planetType);
+        // chunkManager.loadFromChunkPODs(planetGameSave.chunks, *this);
+        // chestDataPool = planetGameSave.chestDataPool;
+        // structureRoomPool = planetGameSave.structureRoomPool;
 
         nextGameState = GameState::OnPlanet;
         
-        if (planetGameSave.isInRoom)
+        if (playerGameSave.playerData.isInStructure)
         {
-            player.setPosition(planetGameSave.positionInRoom);
-            structureEnteredID = planetGameSave.inRoomID;
-            structureEnteredPos = planetGameSave.playerLastPlanetPos;
+            structureEnteredID = playerGameSave.playerData.inStructureID;
+            structureEnteredPos = playerGameSave.playerData.structureExitPos;
             
             nextGameState = GameState::InStructure;
 
             // Simulate weather outside of room
             camera.instantUpdate(structureEnteredPos);
         }
-        else
-        {
-            player.setPosition(planetGameSave.playerLastPlanetPos);
-            camera.instantUpdate(player.getPosition());
-        }
         
-        weatherSystem = WeatherSystem(gameTime, chunkManager.getSeed() + chunkManager.getPlanetType());
-        weatherSystem.presimulateWeather(gameTime, camera, chunkManager);
+        weatherSystem = WeatherSystem(gameTime, planetSeed + currentPlanetType);
+        weatherSystem.presimulateWeather(gameTime, camera, getChunkManager());
+        
+        getChunkManager().updateChunks(*this, camera);
         
         camera.instantUpdate(player.getPosition());
 
-        chunkManager.updateChunks(*this, camera);
         lightingTick = LIGHTING_TICK;
     }
-    else if (playerGameSave.roomDestinationType >= 0)
+    else if (playerGameSave.playerData.roomDestinationType >= 0)
     {
         // Load room destination
         RoomDestinationGameSave roomDestinationGameSave;
 
-        if (!io.loadRoomDestinationSave(playerGameSave.roomDestinationType, roomDestinationGameSave))
+        if (!io.loadRoomDestinationSave(playerGameSave.playerData.roomDestinationType, roomDestinationGameSave))
         {
-            const std::string& roomDestinationName = StructureDataLoader::getRoomData(playerGameSave.roomDestinationType).name;
+            const std::string& roomDestinationName = StructureDataLoader::getRoomData(playerGameSave.playerData.roomDestinationType).name;
             std::cout << "Failed to load room \"" + roomDestinationName + "\" for save " + saveFileSummary.name + "\n";
             return false;
         }
 
-        roomDestination = roomDestinationGameSave.roomDestination;
-        chestDataPool = roomDestinationGameSave.chestDataPool;
+        currentPlanetType = -1;
+        currentRoomDestType = playerGameSave.playerData.roomDestinationType;
+        roomDestDatas[currentRoomDestType] = RoomDestinationData();
+        getRoomDestination() = roomDestinationGameSave.roomDestination;
+        getChestDataPool() = roomDestinationGameSave.chestDataPool;
 
-        player.setPosition(roomDestinationGameSave.playerLastPos);
+        // player.setPosition(roomDestinationGameSave.playerLastPos);
 
         nextGameState = GameState::InRoomDestination;
     }
 
-    bossManager.clearBosses();
-    projectileManager.clear();
-    enemyProjectileManager.clear();
-    particleSystem.clear();
+    // bossManager.clearBosses();
+    // projectileManager.clear();
+    // enemyProjectileManager.clear();
+    // particleSystem.clear();
 
     camera.instantUpdate(player.getPosition());
 
@@ -3152,30 +3160,33 @@ bool Game::loadPlanet(PlanetType planetType)
         return false;
     }
 
+    worldDatas[planetType] = WorldData();
+
+    getChunkManager(planetType).setSeed(planetSeed);
     getChunkManager(planetType).setPlanetType(planetType);
 
-    if (planetGameSave.isInRoom)
-    {
-        overrideState(GameState::InStructure);
-        player.setPosition(planetGameSave.positionInRoom);
-        structureEnteredID = planetGameSave.inRoomID;
-        structureEnteredPos = planetGameSave.playerLastPlanetPos;
+    // if (planetGameSave.isInRoom)
+    // {
+    //     overrideState(GameState::InStructure);
+    //     player.setPosition(planetGameSave.positionInRoom);
+    //     structureEnteredID = planetGameSave.inRoomID;
+    //     structureEnteredPos = planetGameSave.playerLastPlanetPos;
         
-        // Simulate weather outside of room
-        camera.instantUpdate(structureEnteredPos);
-    }
-    else
-    {
-        overrideState(GameState::OnPlanet);
-        player.setPosition(planetGameSave.playerLastPlanetPos);
+    //     // Simulate weather outside of room
+    //     camera.instantUpdate(structureEnteredPos);
+    // }
+    // else
+    // {
+    //     overrideState(GameState::OnPlanet);
+    //     player.setPosition(planetGameSave.playerLastPlanetPos);
         
-        camera.instantUpdate(player.getPosition());
-    }
+    //     camera.instantUpdate(player.getPosition());
+    // }
     
-    weatherSystem = WeatherSystem(gameTime, getChunkManager(planetType).getSeed() + planetType);
-    weatherSystem.presimulateWeather(gameTime, camera, getChunkManager(planetType));
+    // weatherSystem = WeatherSystem(gameTime, getChunkManager(planetType).getSeed() + planetType);
+    // weatherSystem.presimulateWeather(gameTime, camera, getChunkManager(planetType));
 
-    camera.instantUpdate(player.getPosition());
+    // camera.instantUpdate(player.getPosition());
 
     getChunkManager(planetType).loadFromChunkPODs(planetGameSave.chunks, *this);
     getChestDataPool(planetType) = planetGameSave.chestDataPool;
@@ -3183,14 +3194,14 @@ bool Game::loadPlanet(PlanetType planetType)
 
     // assert(planetGameSave.rocketObjectUsed.has_value());
 
-    if (planetGameSave.rocketObjectUsed.has_value())
-    {
-        rocketEnteredReference = planetGameSave.rocketObjectUsed.value();
-    }
-    else
-    {
-        return false;
-    }
+    // if (planetGameSave.rocketObjectUsed.has_value())
+    // {
+    //     rocketEnteredReference = planetGameSave.rocketObjectUsed.value();
+    // }
+    // else
+    // {
+    //     return false;
+    // }
 
     // rocketObject = planetGameSave.rocketObjectUsed.value();
 
@@ -3217,6 +3228,18 @@ PlayerData Game::createPlayerData()
     playerData.recipesSeen = InventoryGUI::getSeenRecipes();
 
     return playerData;
+}
+
+void Game::initialiseWorldData(PlanetType planetType)
+{
+    if (worldDatas.contains(planetType))
+    {
+        printf(("WARNING: Initialising pre-existing world data for planet type " + std::to_string(planetType) + "\n").c_str());
+    }
+
+    worldDatas[planetType] = WorldData();
+    getChunkManager(planetType).setSeed(planetSeed);
+    getChunkManager(planetType).setPlanetType(planetType);
 }
 
 void Game::saveOptions()
@@ -3266,36 +3289,64 @@ void Game::quitWorld()
 
 void Game::joinWorld(const PacketDataJoinInfo& joinInfo)
 {
-    player = Player(sf::Vector2f(0, 0));
-    inventory = InventoryData(32);
-    armourInventory = InventoryData(3);
-    giveStartingInventory();
+    player = Player(joinInfo.playerData.position, joinInfo.playerData.maxHealth);
+    inventory = joinInfo.playerData.inventory;
+    armourInventory = joinInfo.playerData.armourInventory;
+
+    playerName = joinInfo.playerData.name;
+
+    InventoryGUI::setSeenRecipes(joinInfo.playerData.recipesSeen);
     InventoryGUI::reset();
 
-    player.setPosition(joinInfo.spawnPosition);
+    // player.setPosition(joinInfo.spawnPosition);
     camera.instantUpdate(player.getPosition());
-    
-    chunkManager.setSeed(joinInfo.seed);
-    chunkManager.setPlanetType(PlanetGenDataLoader::getPlanetTypeFromName(joinInfo.planetName));
 
-    chestDataPool = joinInfo.chestDataPool;
-    structureRoomPool = RoomPool();
-    landmarkManager = LandmarkManager();
-    particleSystem.clear();
+    worldDatas.clear();
+    roomDestDatas.clear();
+
+    GameState nextGameState = GameState::OnPlanet;
+
+    if (joinInfo.playerData.planetType >= 0)
+    {
+        currentPlanetType = joinInfo.playerData.planetType;
+        initialiseWorldData(currentPlanetType);
+        
+        if (joinInfo.playerData.isInStructure)
+        {
+            nextGameState = GameState::InStructure;
+            structureEnteredID = joinInfo.playerData.inStructureID;
+            structureEnteredPos = joinInfo.playerData.structureExitPos;
+        }
+
+        weatherSystem = WeatherSystem(gameTime, joinInfo.seed + currentPlanetType);
+        weatherSystem.presimulateWeather(gameTime, camera, getChunkManager());
+    }
+    else if (joinInfo.playerData.roomDestinationType >= 0)
+    {
+        nextGameState = GameState::InRoomDestination;
+        currentPlanetType = -1;
+        currentRoomDestType = joinInfo.playerData.roomDestinationType;
+        roomDestDatas[currentRoomDestType] = RoomDestinationData();
+    }
+
+    // chunkManager.setSeed(joinInfo.seed);
+    // chunkManager.setPlanetType(PlanetGenDataLoader::getPlanetTypeFromName(joinInfo.planetName));s
+
+    // chestDataPool = joinInfo.chestDataPool;
+    // structureRoomPool = RoomPool();
+    // landmarkManager = LandmarkManager();
+    // particleSystem.clear();
 
     dayCycleManager.setCurrentTime(joinInfo.time);
     dayCycleManager.setCurrentDay(joinInfo.day);
 
     gameTime = joinInfo.gameTime;
 
-    weatherSystem = WeatherSystem(gameTime, joinInfo.seed + chunkManager.getPlanetType());
-    weatherSystem.presimulateWeather(gameTime, camera, chunkManager);
-
     lightingTick = LIGHTING_TICK;
 
     worldMenuState = WorldMenuState::Main;
     musicGap = MUSIC_GAP_MIN;
-    startChangeStateTransition(GameState::OnPlanet);
+    startChangeStateTransition(nextGameState);
 }
 
 void Game::handleChunkRequestsFromClient(const PacketDataChunkRequests& chunkRequests, const SteamNetworkingIdentity& client)
@@ -3308,10 +3359,25 @@ void Game::handleChunkRequestsFromClient(const PacketDataChunkRequests& chunkReq
     int minChunkY = 9999999;
     int maxChunkX = -9999999;
     int maxChunkY = -9999999;
-    
+
+    // Get planet type for client
+    PlanetType clientPlanetType = networkHandler.getNetworkPlayer(client.GetSteamID64())->getPlanetType();
+    if (clientPlanetType < 0)
+    {
+        return;
+    }
+
+    if (!worldDatas.contains(clientPlanetType))
+    {
+        printf(("ERROR: Attempted to send chunks to client for uninitialised planet type " + std::to_string(clientPlanetType) + "\n").c_str());
+        return;
+    }
+
+    packetChunkDatas.planetType = clientPlanetType;
+
     for (ChunkPosition chunk : chunkRequests.chunkRequests)
     {
-        packetChunkDatas.chunkDatas.push_back(chunkManager.getChunkDataAndGenerate(chunk, *this));
+        packetChunkDatas.chunkDatas.push_back(getChunkManager(clientPlanetType).getChunkDataAndGenerate(chunk, *this));
         minChunkX = std::min((int)chunk.x, minChunkX);
         minChunkY = std::min((int)chunk.y, minChunkY);
         maxChunkX = std::max((int)chunk.x, maxChunkX);
@@ -3328,10 +3394,20 @@ void Game::handleChunkRequestsFromClient(const PacketDataChunkRequests& chunkReq
     packet.sendToUser(client, k_nSteamNetworkingSend_Reliable, 0);
 }
 
-void Game::handleChunkDataFromHost(const PacketDataChunkDatas::ChunkData& chunkData)
+void Game::handleChunkDataFromHost(const PacketDataChunkDatas& chunkDataPacket)
 {
-    chunkManager.setChunkData(chunkData, *this);
-    printf(("Received chunk (" + std::to_string(chunkData.chunkPosition.x) + ", " + std::to_string(chunkData.chunkPosition.y) + ") data from host\n").c_str());
+    if (chunkDataPacket.planetType != currentPlanetType)
+    {
+        printf(("ERROR: Received chunks from host for incorrect planet type " + std::to_string(chunkDataPacket.planetType) + "\n").c_str());
+    }
+
+    for (const auto& chunkData : chunkDataPacket.chunkDatas)
+    {
+        getChunkManager(chunkDataPacket.planetType).setChunkData(chunkData, *this);
+
+        printf(("Received chunk (" + std::to_string(chunkData.chunkPosition.x) + ", " +
+            std::to_string(chunkData.chunkPosition.y) + ") data from host\n").c_str());
+    }
 }
 
 
@@ -3442,7 +3518,7 @@ void Game::handleWindowResize(sf::Vector2u newSize)
     // Resize chest item slots
     if (worldMenuState == WorldMenuState::Inventory && openedChestID != 0xFFFF)
     {
-        InventoryGUI::chestOpened(chestDataPool.getChestDataPtr(openedChestID));
+        InventoryGUI::chestOpened(getChestDataPool().getChestDataPtr(openedChestID));
     }
 
     // float afterScale = ResolutionHandler::getScale();
@@ -3653,7 +3729,7 @@ void Game::drawMouseCursor()
 
     bool shiftMode = InputManager::isActionActive(InputAction::UI_SHIFT);
 
-    bool canQuickTransfer = InventoryGUI::canQuickTransfer(mouseScreenPos, shiftMode, inventory, chestDataPool.getChestDataPtr(openedChestID));
+    bool canQuickTransfer = InventoryGUI::canQuickTransfer(mouseScreenPos, shiftMode, inventory, getChestDataPool().getChestDataPtr(openedChestID));
 
     if (InputManager::isControllerActive())
     {
@@ -3778,9 +3854,11 @@ void Game::drawDebugMenu(float dt)
     std::vector<std::string> debugStrings = {
         GAME_VERSION,
         std::to_string(static_cast<int>(1.0f / dt)) + "FPS",
-        std::to_string(chunkManager.getLoadedChunkCount()) + " Chunks loaded",
-        std::to_string(chunkManager.getGeneratedChunkCount()) + " Chunks generated",
-        "Seed: " + std::to_string(chunkManager.getSeed()),
+        std::to_string(getChunkManager().getLoadedChunkCount()) + " Chunks loaded",
+        std::to_string(getChunkManager().getGeneratedChunkCount()) + " Chunks generated",
+        std::to_string(worldDatas.size()) + " world datas active",
+        std::to_string(roomDestDatas.size()) + " roomdest datas active",
+        "Seed: " + std::to_string(getChunkManager().getSeed()),
         "Player pos: " + std::to_string(static_cast<int>(player.getPosition().x)) + ", " + std::to_string(static_cast<int>(player.getPosition().y))
     };
 

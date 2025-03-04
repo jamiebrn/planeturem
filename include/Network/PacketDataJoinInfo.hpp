@@ -10,6 +10,7 @@
 
 #include "Network/IPacketData.hpp"
 
+#include "Player/PlayerData.hpp"
 #include "World/ChestDataPool.hpp"
 
 struct PacketDataJoinInfo : public IPacketData
@@ -18,17 +19,19 @@ struct PacketDataJoinInfo : public IPacketData
     float gameTime;
     float time;
     int day;
-    std::string planetName;
-    sf::Vector2f spawnPosition;
+    // std::string planetName;
+    // sf::Vector2f spawnPosition;
 
-    ChestDataPool chestDataPool;
+    PlayerData playerData;
+
+    // ChestDataPool chestDataPool;
 
     std::vector<uint64_t> currentPlayers;
 
     template <class Archive>
     void serialize(Archive& ar)
     {
-        ar(seed, gameTime, time, day, planetName, spawnPosition.x, spawnPosition.y, chestDataPool, currentPlayers);
+        ar(seed, gameTime, time, day, playerData, currentPlayers);
     }
 
     PACKET_SERIALISATION();

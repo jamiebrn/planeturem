@@ -40,7 +40,7 @@ class BossSandSerpent : public BossEntity
 public:
     BossSandSerpent(sf::Vector2f playerPosition, Game& game);
 
-    void update(Game& game, ProjectileManager& enemyProjectileManager, Player& player, float dt) override;
+    void update(Game& game, ProjectileManager& projectileManager, Player& player, float dt) override;
 
     bool isAlive() override;
 

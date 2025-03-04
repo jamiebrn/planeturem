@@ -11,7 +11,7 @@
 
 #include "Data/typedefs.hpp"
 
-struct PacketDataWorldInfo : public IPacketData, public IPacketTimeDependent
+struct PacketDataServerInfo : public IPacketData, public IPacketTimeDependent
 {
     float gameTime;
     int day;
@@ -27,7 +27,7 @@ struct PacketDataWorldInfo : public IPacketData, public IPacketTimeDependent
 
     inline virtual PacketType getType() const
     {
-        return PacketType::WorldInfo;
+        return PacketType::ServerInfo;
     }
 
 protected:
