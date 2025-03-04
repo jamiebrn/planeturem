@@ -1564,7 +1564,8 @@ void Game::drawInRoom(float dt, const Room& room)
 
     for (const WorldObject* object : worldObjects)
     {
-        object->draw(window, spriteBatch, *this, camera, dt, gameTime, getChunkManager().getWorldSize(), sf::Color(255, 255, 255));
+        // Use 1 for worldsize as dummy value
+        object->draw(window, spriteBatch, *this, camera, dt, gameTime, 1, sf::Color(255, 255, 255));
     }
 
     spriteBatch.endDrawing(window);
@@ -2676,11 +2677,11 @@ void Game::travelToRoomDestination(RoomType destinationRoomType)
     else
     {
         roomDestDatas[currentRoomDestType] = RoomDestinationData();
-        getChestDataPool(std::nullopt, currentRoomDestType) = ChestDataPool();
-        getRoomDestination(currentRoomDestType) = Room(destinationRoomType, roomDestDatas.at(currentRoomDestType).chestDataPool);
+        getChestDataPool() = ChestDataPool();
+        getRoomDestination() = Room(destinationRoomType, getChestDataPool());
     }
 
-    if (getRoomDestination(currentRoomDestType).getFirstRocketObjectReference(rocketEnteredReference))
+    if (getRoomDestination().getFirstRocketObjectReference(rocketEnteredReference))
     {
         BuildableObject* rocketObject = getObjectFromChunkOrRoom(rocketEnteredReference);
 
@@ -3635,7 +3636,7 @@ ChestDataPool& Game::getChestDataPool(std::optional<PlanetType> planetTypeOverri
     }
     if (currentRoomDestType > 0)
     {
-        return roomDestDatas.at(currentPlanetType).chestDataPool;
+        return roomDestDatas.at(currentRoomDestType).chestDataPool;
     }
 
     // Default case
@@ -3854,11 +3855,13 @@ void Game::drawDebugMenu(float dt)
     std::vector<std::string> debugStrings = {
         GAME_VERSION,
         std::to_string(static_cast<int>(1.0f / dt)) + "FPS",
-        std::to_string(getChunkManager().getLoadedChunkCount()) + " Chunks loaded",
-        std::to_string(getChunkManager().getGeneratedChunkCount()) + " Chunks generated",
+        ((gameState == GameState::OnPlanet || gameState == GameState::InStructure) ?
+            std::to_string(getChunkManager().getLoadedChunkCount()) + " Chunks loaded" : ""),
+        ((gameState == GameState::OnPlanet || gameState == GameState::InStructure) ?
+            std::to_string(getChunkManager().getGeneratedChunkCount()) + " Chunks generated" : ""),
         std::to_string(worldDatas.size()) + " world datas active",
         std::to_string(roomDestDatas.size()) + " roomdest datas active",
-        "Seed: " + std::to_string(getChunkManager().getSeed()),
+        "Seed: " + std::to_string(planetSeed),
         "Player pos: " + std::to_string(static_cast<int>(player.getPosition().x)) + ", " + std::to_string(static_cast<int>(player.getPosition().y))
     };
 
