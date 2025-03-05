@@ -152,7 +152,7 @@ public:
     // Item pickups created alert
     void itemPickupsCreated(const std::vector<ItemPickupReference>& itemPickupsCreated, std::optional<PlanetType> planetType = std::nullopt);
 
-    void drawWorld(sf::RenderTexture& renderTexture, float dt, std::vector<WorldObject*>& worldObjects, ChunkManager& chunkManagerArg, const Camera& cameraArg);
+    void drawWorld(sf::RenderTexture& renderTexture, float dt, std::vector<WorldObject*>& worldObjects, WorldData& worldData, const Camera& cameraArg);
 
     void joinWorld(const PacketDataJoinInfo& joinInfo);
     void quitWorld();

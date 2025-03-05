@@ -13,6 +13,7 @@
 
 #include "IO/GameSaveIO.hpp"
 
+#include "World/WorldData.hpp"
 #include "World/ChunkManager.hpp"
 
 #include "GUI/Base/GUIContext.hpp"
@@ -68,7 +69,7 @@ public:
 
     void initialisePauseMenu();
 
-    void update(float dt, sf::Vector2f mouseScreenPos, Game& game, ProjectileManager& projectileManager);
+    void update(float dt, sf::Vector2f mouseScreenPos, Game& game);
 
     std::optional<MainMenuEvent> createAndDraw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, float dt, float gameTime);
 
@@ -105,8 +106,8 @@ private:
 
     bool canInteract;
 
-    ChunkManager backgroundChunkManager;
+    WorldData menuWorldData;
     sf::Vector2f worldViewPosition;
-    Camera backgroundCamera;
+    Camera menuCamera;
 
 };

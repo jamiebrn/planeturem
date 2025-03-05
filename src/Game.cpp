@@ -381,7 +381,7 @@ void Game::runMainMenu(float dt)
 
     // sf::Vector2f mouseScreenPos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
 
-    mainMenuGUI.update(dt, mouseScreenPos, *this, getProjectileManager());
+    mainMenuGUI.update(dt, mouseScreenPos, *this);
 
     window.clear();
 
@@ -1184,7 +1184,7 @@ void Game::drawOnPlanet(float dt)
         worldObjects.push_back(&iter->second);
     }
 
-    drawWorld(worldTexture, dt, worldObjects, getChunkManager(), camera);
+    drawWorld(worldTexture, dt, worldObjects, worldDatas.at(currentPlanetType), camera);
     drawLighting(dt, worldObjects);
 
     // UI
@@ -1215,14 +1215,14 @@ void Game::drawOnPlanet(float dt)
     getBossManager().drawStatsAtCursor(window, camera, mouseScreenPos);
 }
 
-void Game::drawWorld(sf::RenderTexture& renderTexture, float dt, std::vector<WorldObject*>& worldObjects, ChunkManager& chunkManagerArg, const Camera& cameraArg)
+void Game::drawWorld(sf::RenderTexture& renderTexture, float dt, std::vector<WorldObject*>& worldObjects, WorldData& worldData, const Camera& cameraArg)
 {
     // Draw all world onto texture for lighting
     renderTexture.create(window.getSize().x, window.getSize().y);
     renderTexture.clear();
 
     // Draw water
-    chunkManagerArg.drawChunkWater(renderTexture, cameraArg, gameTime);
+    worldData.chunkManager.drawChunkWater(renderTexture, cameraArg, gameTime);
 
     std::sort(worldObjects.begin(), worldObjects.end(), [](WorldObject* a, WorldObject* b)
     {
@@ -1234,7 +1234,7 @@ void Game::drawWorld(sf::RenderTexture& renderTexture, float dt, std::vector<Wor
     spriteBatch.beginDrawing();
 
     // Draw terrain
-    chunkManagerArg.drawChunkTerrain(renderTexture, spriteBatch, cameraArg, gameTime);
+    worldData.chunkManager.drawChunkTerrain(renderTexture, spriteBatch, cameraArg, gameTime);
 
     // Draw particles
     particleSystem.draw(renderTexture, spriteBatch, cameraArg);
@@ -1242,11 +1242,11 @@ void Game::drawWorld(sf::RenderTexture& renderTexture, float dt, std::vector<Wor
     // Draw objects
     for (WorldObject* worldObject : worldObjects)
     {
-        worldObject->draw(renderTexture, spriteBatch, *this, cameraArg, dt, gameTime, chunkManagerArg.getWorldSize(), {255, 255, 255, 255});
+        worldObject->draw(renderTexture, spriteBatch, *this, cameraArg, dt, gameTime, worldData.chunkManager.getWorldSize(), {255, 255, 255, 255});
     }
 
     // Draw projectiles
-    getProjectileManager().drawProjectiles(renderTexture, spriteBatch, cameraArg);
+    worldData.projectileManager.drawProjectiles(renderTexture, spriteBatch, cameraArg);
     // enemyProjectileManager.drawProjectiles(renderTexture, spriteBatch, cameraArg);
 
     spriteBatch.endDrawing(renderTexture);
@@ -2802,6 +2802,8 @@ void Game::travelToRoomDestination(RoomType destinationRoomType)
     currentPlanetType = -1;
     currentRoomDestType = destinationRoomType;
 
+    roomDestDatas[currentRoomDestType] = RoomDestinationData();
+    
     if (io.loadRoomDestinationSave(destinationRoomType, roomDestinationGameSave))
     {
         getChestDataPool(std::nullopt, currentRoomDestType) = roomDestinationGameSave.chestDataPool;
@@ -2809,7 +2811,6 @@ void Game::travelToRoomDestination(RoomType destinationRoomType)
     }
     else
     {
-        roomDestDatas[currentRoomDestType] = RoomDestinationData();
         getChestDataPool() = ChestDataPool();
         getRoomDestination() = Room(destinationRoomType, getChestDataPool());
     }

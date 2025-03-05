@@ -12,15 +12,15 @@ void MainMenuGUI::initialise()
     deferHoverRectReset = false;
 
     // static const std::string backgroundWorldSeed = "Planeturem";
-    backgroundChunkManager.setSeed(rand());
-    backgroundChunkManager.setPlanetType(0);
+    menuWorldData.chunkManager.setSeed(rand());
+    menuWorldData.chunkManager.setPlanetType(0);
 
-    int worldSize = backgroundChunkManager.getWorldSize();
-    ChunkPosition worldViewChunk = backgroundChunkManager.findValidSpawnChunk(2);
+    int worldSize = menuWorldData.chunkManager.getWorldSize();
+    ChunkPosition worldViewChunk = menuWorldData.chunkManager.findValidSpawnChunk(2);
     worldViewPosition.x = worldViewChunk.x * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
     worldViewPosition.y = worldViewChunk.y * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
 
-    backgroundCamera.instantUpdate(worldViewPosition);
+    menuCamera.instantUpdate(worldViewPosition);
 }
 
 void MainMenuGUI::initialisePauseMenu()
@@ -29,17 +29,17 @@ void MainMenuGUI::initialisePauseMenu()
     resetHoverRect();
 }
 
-void MainMenuGUI::update(float dt, sf::Vector2f mouseScreenPos, Game& game, ProjectileManager& projectileManager)
+void MainMenuGUI::update(float dt, sf::Vector2f mouseScreenPos, Game& game)
 {
     // Update background world / chunk manager
     worldViewPosition.x += 20.0f * dt;
     worldViewPosition.y += 30.0f * dt;
 
-    backgroundCamera.update(worldViewPosition, sf::Vector2f(0, 0), dt);
+    menuCamera.update(worldViewPosition, sf::Vector2f(0, 0), dt);
 
-    backgroundChunkManager.updateChunks(game, backgroundCamera);
-    backgroundChunkManager.updateChunksObjects(game, dt);
-    backgroundChunkManager.updateChunksEntities(dt, projectileManager, game);
+    menuWorldData.chunkManager.updateChunks(game, menuCamera);
+    menuWorldData.chunkManager.updateChunksObjects(game, dt);
+    menuWorldData.chunkManager.updateChunksEntities(dt, menuWorldData.projectileManager, game);
 }
 
 std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, float dt, float gameTime)
@@ -48,12 +48,12 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
     sf::Vector2f resolution = static_cast<sf::Vector2f>(ResolutionHandler::getResolution());
     
     // Draw background chunks / world
-    std::vector<WorldObject*> worldObjects = backgroundChunkManager.getChunkObjects();
-    std::vector<WorldObject*> entities = backgroundChunkManager.getChunkEntities();
+    std::vector<WorldObject*> worldObjects = menuWorldData.chunkManager.getChunkObjects();
+    std::vector<WorldObject*> entities = menuWorldData.chunkManager.getChunkEntities();
     worldObjects.insert(worldObjects.end(), entities.begin(), entities.end());
 
     sf::RenderTexture worldTexture;
-    game.drawWorld(worldTexture, dt, worldObjects, backgroundChunkManager, backgroundCamera);
+    game.drawWorld(worldTexture, dt, worldObjects, menuWorldData, menuCamera);
 
     sf::Sprite worldTextureSprite(worldTexture.getTexture());
     window.draw(worldTextureSprite);
