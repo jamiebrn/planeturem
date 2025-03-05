@@ -9,13 +9,14 @@
 
 struct PacketDataObjectDestroyed : public IPacketData
 {
+    PlanetType planetType;
     ObjectReference objectReference;
     uint64_t userId;
 
     template <class Archive>
     void serialize(Archive& ar)
     {
-        ar(objectReference, userId);
+        ar(planetType, objectReference, userId);
     }
 
     PACKET_SERIALISATION();

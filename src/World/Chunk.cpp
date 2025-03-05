@@ -843,7 +843,7 @@ void Chunk::setObject(sf::Vector2i position, ObjectType objectType, Game& game, 
     }
 
     // Set object in chunk
-    objectGrid[position.y][position.x] = BuildableObjectFactory::create(objectPos, objectType, &game, !calledWhileGenerating);
+    objectGrid[position.y][position.x] = BuildableObjectFactory::create(objectPos, objectType, &game, !calledWhileGenerating, false, &chunkManager);
 
     // Create object reference objects if object is larger than one tile
     if (objectSize != sf::Vector2i(1, 1))
@@ -1376,7 +1376,7 @@ ChunkPOD Chunk::getChunkPOD(bool includeEntities)
     return pod;
 }
 
-void Chunk::loadFromChunkPOD(const ChunkPOD& pod, Game& game)
+void Chunk::loadFromChunkPOD(const ChunkPOD& pod, Game& game, ChunkManager& chunkManager)
 {
     generatedFromPOD = true;
     modified = pod.modified;
@@ -1395,7 +1395,7 @@ void Chunk::loadFromChunkPOD(const ChunkPOD& pod, Game& game)
                 objectPos.x = worldPosition.x + (x + 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
                 objectPos.y = worldPosition.y + (y + 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
 
-                std::unique_ptr<BuildableObject> object = BuildableObjectFactory::create(objectPos, objectPOD->objectType, &game);
+                std::unique_ptr<BuildableObject> object = BuildableObjectFactory::create(objectPos, objectPOD->objectType, &game, false, false, &chunkManager);
 
                 object->loadFromPOD(objectPOD.value());
 

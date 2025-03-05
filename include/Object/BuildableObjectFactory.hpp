@@ -9,10 +9,12 @@
 #include "Object/LandmarkObject.hpp"
 
 class Game;
+class ChunkManager;
 
 namespace BuildableObjectFactory
 {
 
-std::unique_ptr<BuildableObject> create(sf::Vector2f position, ObjectType objectType, Game* game = nullptr, bool placedByPlayer = false);
+std::unique_ptr<BuildableObject> create(sf::Vector2f position, ObjectType objectType, Game* game = nullptr, bool placedByPlayer = false,
+    bool placedByThisPlayer = false, ChunkManager* chunkManager = nullptr);
 
 }

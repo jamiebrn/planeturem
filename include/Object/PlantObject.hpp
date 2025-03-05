@@ -14,11 +14,12 @@
 #include "World/DayCycleManager.hpp"
 
 class Game;
+class ChunkManager;
 
 class PlantObject : public BuildableObject
 {
 public:
-    PlantObject(sf::Vector2f position, ObjectType objectType, Game& game, bool randomiseAge = false);
+    PlantObject(sf::Vector2f position, ObjectType objectType, Game& game, const ChunkManager* chunkManager = nullptr, bool randomiseAge = false);
 
     BuildableObject* clone() override;
 

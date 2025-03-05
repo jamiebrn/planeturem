@@ -3,27 +3,24 @@
 #include <extlib/cereal/archives/binary.hpp>
 
 #include "Network/IPacketData.hpp"
-
-#include "Data/typedefs.hpp"
+#include "Network/PacketDataChunkDatas.hpp"
 #include "Object/ObjectReference.hpp"
 
-struct PacketDataObjectBuilt : public IPacketData
+struct PacketDataPlanetTravelReply : public IPacketData
 {
-    PlanetType planetType;
-    ObjectReference objectReference;
-    ObjectType objectType;
-    uint64_t userId;
+    PacketDataChunkDatas chunkDatas;
+    ObjectReference rocketObjectReference;
 
     template <class Archive>
     void serialize(Archive& ar)
     {
-        ar(planetType, objectReference, objectType, userId);
+        ar(chunkDatas, rocketObjectReference);
     }
 
     PACKET_SERIALISATION();
     
     inline virtual PacketType getType() const
     {
-        return PacketType::ObjectBuilt;
+        return PacketType::PlanetTravelReply;
     }
 };

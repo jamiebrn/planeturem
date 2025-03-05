@@ -2,8 +2,10 @@
 
 #include <string>
 #include <unordered_set>
+#include <unordered_map>
 
 #include <extlib/cereal/types/unordered_set.hpp>
+#include <extlib/cereal/types/unordered_map.hpp>
 #include <extlib/cereal/types/string.hpp>
 #include <extlib/cereal/archives/binary.hpp>
 
@@ -17,6 +19,7 @@
 #include "Data/StructureData.hpp"
 #include "Data/StructureDataLoader.hpp"
 #include "Player/InventoryData.hpp"
+#include "Object/ObjectReference.hpp"
 
 struct PlayerData
 {
@@ -29,6 +32,8 @@ struct PlayerData
 
     std::unordered_set<ItemType> recipesSeen;
 
+    std::unordered_map<PlanetType, ObjectReference> planetRocketUsedPositions;
+
     std::string name;
 
     sf::Vector2f position;
@@ -40,12 +45,14 @@ struct PlayerData
     int maxHealth = 0;
 
     template <class Archive>
-    void serialize(Archive& ar)
+    void serialize(Archive& ar, uint32_t version)
     {
         ar(planetType, inStructureID, roomDestinationType, inventory, armourInventory, recipesSeen, name, position.x, position.y,
-            isInStructure, structureExitPos.x, structureExitPos.y, maxHealth);
+            isInStructure, structureExitPos.x, structureExitPos.y, maxHealth, planetRocketUsedPositions);
     }
 };
+
+CEREAL_CLASS_VERSION(PlayerData, 1);
 
 inline void from_json(const nlohmann::json& json, PlayerData& data)
 {

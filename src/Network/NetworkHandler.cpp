@@ -352,7 +352,7 @@ void NetworkHandler::processMessage(const SteamNetworkingMessage_t& message, con
             PacketDataObjectHit packetData;
             packetData.deserialise(packet.data);
             bool sentFromHost = !isLobbyHost;
-            game->hitObject(packetData.objectHit.chunk, packetData.objectHit.tile, packetData.damage, sentFromHost, packetData.userId);
+            game->hitObject(packetData.objectHit.chunk, packetData.objectHit.tile, packetData.damage, packetData.planetType, sentFromHost, packetData.userId);
             break;
         }
         case PacketType::ObjectBuilt:
@@ -360,7 +360,7 @@ void NetworkHandler::processMessage(const SteamNetworkingMessage_t& message, con
             PacketDataObjectBuilt packetData;
             packetData.deserialise(packet.data);
             bool sentFromHost = !isLobbyHost;
-            game->buildObject(packetData.objectReference.chunk, packetData.objectReference.tile, packetData.objectType, sentFromHost);
+            game->buildObject(packetData.objectReference.chunk, packetData.objectReference.tile, packetData.objectType, packetData.planetType, sentFromHost);
             break;
         }
         case PacketType::ItemPickupsCreated:
@@ -650,7 +650,7 @@ void NetworkHandler::processMessageAsClient(const SteamNetworkingMessage_t& mess
         {
             PacketDataObjectDestroyed packetData;
             packetData.deserialise(packet.data);
-            game->getChunkManager().deleteObject(packetData.objectReference.chunk, packetData.objectReference.tile);
+            game->destroyObjectFromHost(packetData.objectReference.chunk, packetData.objectReference.tile, packetData.planetType);
             break;
         }
         case PacketType::ChunkDatas:
@@ -767,6 +767,18 @@ EResult NetworkHandler::sendPacketToClients(const Packet& packet, int nSendFlags
     }
 
     return result;
+}
+
+EResult NetworkHandler::sendPacketToClient(uint64_t steamID, const Packet& packet, int nSendFlags, int nRemoteChannel)
+{
+    if (!isLobbyHost)
+    {
+        return EResult::k_EResultAccessDenied;
+    }
+
+    SteamNetworkingIdentity identity;
+    identity.SetSteamID64(steamID);
+    return packet.sendToUser(identity, nSendFlags, nRemoteChannel);
 }
 
 EResult NetworkHandler::sendPacketToHost(const Packet& packet, int nSendFlags, int nRemoteChannel)

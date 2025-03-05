@@ -950,7 +950,7 @@ void ChunkManager::loadFromChunkPODs(const std::vector<ChunkPOD>& pods, Game& ga
     for (const ChunkPOD& pod : pods)
     {
         std::unique_ptr<Chunk> chunk = std::make_unique<Chunk>(pod.chunkPosition);
-        chunk->loadFromChunkPOD(pod, game);
+        chunk->loadFromChunkPOD(pod, game, *this);
 
         storedChunks[pod.chunkPosition] = std::move(chunk);
     }
@@ -997,7 +997,7 @@ void ChunkManager::setChunkData(const PacketDataChunkDatas::ChunkData& chunkData
         storedChunks[chunkData.chunkPosition] = std::move(chunk);
     }
     
-    chunkPtr->loadFromChunkPOD(chunkData.createPOD(), game);
+    chunkPtr->loadFromChunkPOD(chunkData.createPOD(), game, *this);
 
     std::unordered_map<uint64_t, ItemPickup> itemPickups = chunkData.itemPickupsRelative;
 

@@ -5,25 +5,21 @@
 #include "Network/IPacketData.hpp"
 
 #include "Data/typedefs.hpp"
-#include "Object/ObjectReference.hpp"
 
-struct PacketDataObjectBuilt : public IPacketData
+struct PacketDataPlanetTravelRequest : public IPacketData
 {
     PlanetType planetType;
-    ObjectReference objectReference;
-    ObjectType objectType;
-    uint64_t userId;
 
     template <class Archive>
     void serialize(Archive& ar)
     {
-        ar(planetType, objectReference, objectType, userId);
+        ar(planetType);
     }
 
     PACKET_SERIALISATION();
     
     inline virtual PacketType getType() const
     {
-        return PacketType::ObjectBuilt;
+        return PacketType::PlanetTravelRequest;
     }
 };

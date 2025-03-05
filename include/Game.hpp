@@ -106,6 +106,8 @@
 #include "Network/PacketDataChestDataModified.hpp"
 #include "Network/PacketDataChunkDatas.hpp"
 #include "Network/PacketDataChunkRequests.hpp"
+#include "Network/PacketDataPlanetTravelRequest.hpp"
+#include "Network/PacketDataPlanetTravelReply.hpp"
 
 #include "Network/NetworkHandler.hpp"
 
@@ -158,10 +160,13 @@ public:
         bool sentFromHost = false, std::optional<uint64_t> userId = std::nullopt);
     void buildObject(ChunkPosition chunk, sf::Vector2i tile, ObjectType objectType, std::optional<PlanetType> planetType = std::nullopt,
         bool sentFromHost = false);
+    void destroyObjectFromHost(ChunkPosition chunk, sf::Vector2i tile, std::optional<PlanetType> planetType);
 
     // Networking
     void handleChunkRequestsFromClient(const PacketDataChunkRequests& chunkRequests, const SteamNetworkingIdentity& client);
     void handleChunkDataFromHost(const PacketDataChunkDatas& chunkDataPacket);
+
+    void travelToPlanetFromHost(const PacketDataPlanetTravelReply& planetTravelReplyPacket);
 
 
     // Misc
@@ -263,10 +268,14 @@ private:
     // -- Planet travelling -- //
 
     void travelToDestination();
-    void travelToPlanet(PlanetType planetType);
+    ObjectReference setupPlanetTravel(PlanetType planetType, ObjectReference rocketUsedObjectReference, std::optional<uint64_t> clientID);
+    void handleRocketCleanup(PlanetType currentPlanetType, RoomType currentRoomDestType, ObjectReference rocketObjectReference);
+    void travelToPlanet(PlanetType planetType, ObjectReference newRocketObjectReference);
+    ObjectReference placePlanetRocketForPlayer(const std::unordered_map<PlanetType, ObjectReference>& planetRocketsUsed, PlanetType planetType);
+
     void travelToRoomDestination(RoomType destinationRoomType);
 
-    void initialiseNewPlanet(PlanetType planetType, bool placeRocket = false);
+    void initialiseNewPlanet(PlanetType planetType);
 
 
     // -- Game State / Transition -- //
@@ -368,6 +377,8 @@ private:
     int planetSeed;
     std::unordered_map<RoomType, RoomDestinationData> roomDestDatas;
     RoomType currentRoomDestType;
+
+    std::unordered_map<PlanetType, ObjectReference> planetRocketUsedPositions;
 
     LightingEngine lightingEngine;
     int lightingTick = 0;

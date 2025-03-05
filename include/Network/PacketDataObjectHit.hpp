@@ -8,6 +8,7 @@
 
 struct PacketDataObjectHit : public IPacketData
 {
+    PlanetType planetType;
     ObjectReference objectHit;
     int damage;
     uint64_t userId;
@@ -15,7 +16,7 @@ struct PacketDataObjectHit : public IPacketData
     template <class Archive>
     void serialize(Archive& ar)
     {
-        ar(objectHit, damage, userId);
+        ar(planetType, objectHit, damage, userId);
     }
 
     PACKET_SERIALISATION();

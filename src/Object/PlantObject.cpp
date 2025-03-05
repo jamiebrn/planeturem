@@ -2,7 +2,7 @@
 #include "Game.hpp"
 #include "World/ChunkManager.hpp"
 
-PlantObject::PlantObject(sf::Vector2f position, ObjectType objectType, Game& game, bool randomiseAge)
+PlantObject::PlantObject(sf::Vector2f position, ObjectType objectType, Game& game, const ChunkManager* chunkManager, bool randomiseAge)
     : BuildableObject(position, objectType, false)
 {
     int currentDay = game.getDayCycleManager().getCurrentDay();
@@ -10,9 +10,8 @@ PlantObject::PlantObject(sf::Vector2f position, ObjectType objectType, Game& gam
     if (randomiseAge)
     {
         // Set seed for randgen
-        const ChunkManager& chunkManager = game.getChunkManager();
-        unsigned long int chunkSeed = (chunkManager.getSeed() + chunkManager.getPlanetType()) ^ getChunkInside(chunkManager.getWorldSize()).hash();
-        sf::Vector2i tile = getChunkTileInside(position, chunkManager.getWorldSize());
+        unsigned long int chunkSeed = (game.getPlanetSeed() + chunkManager->getPlanetType()) ^ getChunkInside(chunkManager->getWorldSize()).hash();
+        sf::Vector2i tile = getChunkTileInside(position, chunkManager->getWorldSize());
         chunkSeed |= tile.x | tile.y;
 
         RandInt randGen(chunkSeed);

@@ -47,6 +47,7 @@ public:
     void leaveLobby();
     
     EResult sendPacketToClients(const Packet& packet, int nSendFlags, int nRemoteChannel);
+    EResult sendPacketToClient(uint64_t steamID, const Packet& packet, int nSendFlags, int nRemoteChannel);
     EResult sendPacketToHost(const Packet& packet, int nSendFlags, int nRemoteChannel);
     
     void requestChunksFromHost(std::vector<ChunkPosition>& chunks);

@@ -3,7 +3,8 @@
 namespace BuildableObjectFactory
 {
 
-std::unique_ptr<BuildableObject> create(sf::Vector2f position, ObjectType objectType, Game* game, bool placedByPlayer)
+std::unique_ptr<BuildableObject> create(sf::Vector2f position, ObjectType objectType, Game* game, bool placedByPlayer,
+    bool placedByThisPlayer, ChunkManager* chunkManager)
 {
     if (objectType >= 0)
     {
@@ -19,7 +20,7 @@ std::unique_ptr<BuildableObject> create(sf::Vector2f position, ObjectType object
         }
         if (objectData.plantStageObjectData.has_value() && game)
         {
-            return std::make_unique<PlantObject>(position, objectType, *game, !placedByPlayer);
+            return std::make_unique<PlantObject>(position, objectType, *game, chunkManager, !placedByPlayer);
         }
         if (objectData.npcObjectData.has_value())
         {

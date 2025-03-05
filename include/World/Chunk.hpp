@@ -204,7 +204,7 @@ public:
 
     // Save / load
     ChunkPOD getChunkPOD(bool includeEntities = true);
-    void loadFromChunkPOD(const ChunkPOD& pod, Game& game);
+    void loadFromChunkPOD(const ChunkPOD& pod, Game& game, ChunkManager& chunkManager);
     bool wasGeneratedFromPOD();
     
 
