@@ -3203,10 +3203,8 @@ bool Game::loadGame(const SaveFileSummary& saveFileSummary)
 
         currentRoomDestType = -1;
         currentPlanetType = playerGameSave.playerData.planetType;
-        worldDatas[currentPlanetType] = WorldData();
-
-        getChunkManager().setPlanetType(currentPlanetType);
-        getChunkManager().setSeed(planetSeed);
+        
+        initialiseWorldData(currentPlanetType);
         getChunkManager().loadFromChunkPODs(planetGameSave.chunks, *this);
         getChestDataPool() = planetGameSave.chestDataPool;
         getStructureRoomPool() = planetGameSave.structureRoomPool;
@@ -3517,9 +3515,8 @@ void Game::handleChunkRequestsFromClient(const PacketDataChunkRequests& chunkReq
     Packet packet;
     packet.set(packetChunkDatas, true);
     
-    printf(("Sending " + std::to_string(chunkRequests.chunkRequests.size()) + " chunks in range (" + std::to_string(minChunkX) + ", " + std::to_string(minChunkY) +
-        ") to (" + std::to_string(maxChunkX) + ", " + std::to_string(maxChunkY) + ") to " + steamName + " (size: " + std::to_string(packet.getSize()) +
-        " bytes, uncompressed: " + std::to_string(packet.getUncompressedSize()) + " bytes, ratio: " + std::to_string(packet.getCompressionRatio()) + ")\n").c_str());
+    printf(("NETWORK: Sending " + std::to_string(chunkRequests.chunkRequests.size()) + " chunks in range (" + std::to_string(minChunkX) + ", " + std::to_string(minChunkY) +
+        ") to (" + std::to_string(maxChunkX) + ", " + std::to_string(maxChunkY) + ") to " + steamName + " " + packet.getSizeStr() + "\n").c_str());
 
     packet.sendToUser(client, k_nSteamNetworkingSend_Reliable, 0);
 }

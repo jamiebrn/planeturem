@@ -8,8 +8,9 @@
 #include "Network/Packet.hpp"
 #include "Network/IPacketData.hpp"
 #include "Network/PacketDataJoinInfo.hpp"
-#include "Network/PacketDataPlayerInfo.hpp"
 #include "Network/PacketDataServerInfo.hpp"
+#include "Network/PacketDataPlayerData.hpp"
+#include "Network/PacketDataPlayerCharacterInfo.hpp"
 #include "Network/PacketDataObjectHit.hpp"
 #include "Network/PacketDataObjectBuilt.hpp"
 #include "Network/PacketDataObjectDestroyed.hpp"
@@ -25,6 +26,7 @@
 
 #include "GUI/InventoryGUI.hpp"
 #include "World/ChunkPosition.hpp"
+#include "Player/PlayerData.hpp"
 #include "Player/NetworkPlayer.hpp"
 
 class Game;
@@ -51,6 +53,8 @@ public:
     EResult sendPacketToHost(const Packet& packet, int nSendFlags, int nRemoteChannel);
     
     void requestChunksFromHost(std::vector<ChunkPosition>& chunks);
+
+    void sendPlayerDataToHost(const PlayerData& playerData);
     
     bool isMultiplayerGame();
     bool isLobbyHostOrSolo();
@@ -76,6 +80,8 @@ private:
     void deleteNetworkPlayer(uint64_t id);
 
     void handleChunkDatasFromHost(const PacketDataChunkDatas& chunkDatas);
+
+    void sendPlayerDataToClients(const PacketDataPlayerData& playerDataPacket);
 
     // Callbacks
     STEAM_CALLBACK(NetworkHandler, callbackLobbyJoinRequested, GameLobbyJoinRequested_t);

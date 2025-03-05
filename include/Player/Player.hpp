@@ -40,7 +40,7 @@
 
 #include "GUI/HitMarkers.hpp"
 
-#include "Network/PacketDataPlayerInfo.hpp"
+#include "Network/PacketDataPlayerCharacterInfo.hpp"
 
 #include "GameConstants.hpp"
 #include "DebugOptions.hpp"
@@ -108,7 +108,7 @@ public:
 
     // Multiplayer
     
-    PacketDataPlayerInfo getNetworkPlayerInfo(uint64_t steamID);
+    PacketDataPlayerCharacterInfo getNetworkPlayerInfo(uint64_t steamID);
 
 
 private:

@@ -5,6 +5,7 @@
 #include <cstring>
 #include <string>
 #include <vector>
+#include <cstdio>
 
 #include "Network/PacketType.hpp"
 #include "Network/IPacketData.hpp"
@@ -114,5 +115,11 @@ struct Packet
             return 1.0f;
         }
         return static_cast<float>(getUncompressedSize()) / static_cast<float>(getSize());
+    }
+
+    inline std::string getSizeStr()
+    {
+        return ("(size: " + std::to_string(getSize()) + " bytes, uncompressed: " + std::to_string(getUncompressedSize()) +
+            " bytes, ratio: " + std::to_string(getCompressionRatio()) + ")");
     }
 };

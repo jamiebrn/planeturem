@@ -960,9 +960,9 @@ bool Player::isAlive() const
 
 // Multiplayer
 
-PacketDataPlayerInfo Player::getNetworkPlayerInfo(uint64_t steamID)
+PacketDataPlayerCharacterInfo Player::getNetworkPlayerInfo(uint64_t steamID)
 {
-    PacketDataPlayerInfo info;
+    PacketDataPlayerCharacterInfo info;
     info.positionX = position.x;
     info.positionY = position.y;
 

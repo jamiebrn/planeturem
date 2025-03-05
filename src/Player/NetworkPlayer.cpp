@@ -23,7 +23,7 @@ void NetworkPlayer::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Gam
     TextDraw::drawText(window, nameDrawData);
 }
 
-void NetworkPlayer::setNetworkPlayerInfo(const PacketDataPlayerInfo& info, std::string steamName, sf::Vector2f playerPosition, const ChunkManager& chunkManager)
+void NetworkPlayer::setNetworkPlayerInfo(const PacketDataPlayerCharacterInfo& info, std::string steamName, sf::Vector2f playerPosition, const ChunkManager& chunkManager)
 {
     position = chunkManager.translatePositionAroundWorld(sf::Vector2f(info.positionX, info.positionY), playerPosition);
     

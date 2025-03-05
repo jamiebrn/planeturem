@@ -18,7 +18,7 @@
 #include "Data/typedefs.hpp"
 #include "Types/GameState.hpp"
 
-#include "Network/PacketDataPlayerInfo.hpp"
+#include "Network/PacketDataPlayerCharacterInfo.hpp"
 
 #include "Player/Player.hpp"
 #include "Player/PlayerData.hpp"
@@ -34,7 +34,7 @@ public:
     // Multiplayer
 
     // Player position is of player on this machine, not for this network player
-    void setNetworkPlayerInfo(const PacketDataPlayerInfo& info, std::string steamName, sf::Vector2f playerPosition, const ChunkManager& chunkManager);
+    void setNetworkPlayerInfo(const PacketDataPlayerCharacterInfo& info, std::string steamName, sf::Vector2f playerPosition, const ChunkManager& chunkManager);
 
     void setPlanetType(PlanetType planetType);
     void setStructureEnteredID(uint32_t structureID);

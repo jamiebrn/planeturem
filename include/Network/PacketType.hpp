@@ -12,7 +12,8 @@ enum class PacketType : uint8_t
     PlayerDisconnected,
     HostQuit,
 
-    PlayerInfo,
+    PlayerData,
+    PlayerCharacterInfo,
     WorldInfo,
     RoomDestInfo,
     ServerInfo,

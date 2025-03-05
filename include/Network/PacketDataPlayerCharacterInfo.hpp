@@ -9,7 +9,7 @@
 
 #include "Data/typedefs.hpp"
 
-struct PacketDataPlayerInfo : public IPacketData
+struct PacketDataPlayerCharacterInfo : public IPacketData
 {
     float positionX;
     float positionY;
@@ -41,6 +41,6 @@ struct PacketDataPlayerInfo : public IPacketData
 
     inline virtual PacketType getType() const
     {
-        return PacketType::PlayerInfo;
+        return PacketType::PlayerCharacterInfo;
     }
 };

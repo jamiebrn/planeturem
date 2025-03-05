@@ -320,7 +320,7 @@ void NetworkHandler::processMessage(const SteamNetworkingMessage_t& message, con
     
     switch (packet.type)
     {
-        case PacketType::PlayerInfo:
+        case PacketType::PlayerCharacterInfo:
         {
             if (isLobbyHost)
             {
@@ -330,7 +330,7 @@ void NetworkHandler::processMessage(const SteamNetworkingMessage_t& message, con
                 }
             }
     
-            PacketDataPlayerInfo packetData;
+            PacketDataPlayerCharacterInfo packetData;
             packetData.deserialise(packet.data);
     
             if (networkPlayers.contains(packetData.userID))
@@ -572,8 +572,12 @@ void NetworkHandler::processMessageAsHost(const SteamNetworkingMessage_t& messag
             PacketDataChestDataModified packetData;
             packetData.deserialise(packet.data);
             game->getChestDataPool().overwriteChestData(packetData.chestID, packetData.chestData);
-            printf(("Received chest data from " + std::string(SteamFriends()->GetFriendPersonaName(message.m_identityPeer.GetSteamID())) + "\n").c_str());
+            printf(("NETWORK: Received chest data from " + std::string(SteamFriends()->GetFriendPersonaName(message.m_identityPeer.GetSteamID())) + "\n").c_str());
             break;
+        }
+        case PacketType::PlayerData:
+        {
+            
         }
     }
 }
@@ -587,7 +591,7 @@ void NetworkHandler::processMessageAsClient(const SteamNetworkingMessage_t& mess
             Packet packetToSend;
             packetToSend.type = PacketType::JoinReply;
             
-            std::cout << "Sending join reply to user " << message.m_identityPeer.GetSteamID64() << "\n";
+            std::cout << "NETWORK: Sending join reply to user " << message.m_identityPeer.GetSteamID64() << "\n";
             
             packetToSend.sendToUser(message.m_identityPeer, k_nSteamNetworkingSend_Reliable, 0);
             break;
@@ -609,7 +613,7 @@ void NetworkHandler::processMessageAsClient(const SteamNetworkingMessage_t& mess
             for (uint64_t player : packetData.currentPlayers)
             {
                 registerNetworkPlayer(player, false);
-                std::cout << "Registered existing player " << SteamFriends()->GetFriendPersonaName(CSteamID(player)) << "\n";
+                std::cout << "NETWORK: Registered existing player " << SteamFriends()->GetFriendPersonaName(CSteamID(player)) << "\n";
             }
 
             // Load into world
@@ -828,12 +832,32 @@ void NetworkHandler::requestChunksFromHost(std::vector<ChunkPosition>& chunks)
         return;
     }
     
-    printf(("Requesting " + std::to_string(chunks.size()) + " chunks from host\n").c_str());
+    printf(("NETWORK: Requesting " + std::to_string(chunks.size()) + " chunks from host\n").c_str());
 
     PacketDataChunkRequests packetData;
     packetData.chunkRequests = chunks;
     Packet packet;
     packet.set(packetData);
+    sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
+}
+
+
+void NetworkHandler::sendPlayerDataToHost(const PlayerData& playerData)
+{
+    if (!isClient())
+    {
+        return;
+    }
+
+    PacketDataPlayerData packetData;
+    packetData.userID = SteamUser()->GetSteamID().ConvertToUint64();
+    packetData.playerData = playerData;
+
+    Packet packet;
+    packet.set(packetData, true);
+
+    printf(("NETWORK: Sending player data to host " + packet.getSizeStr() + "\n").c_str());
+
     sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
 }
 
@@ -847,5 +871,24 @@ void NetworkHandler::handleChunkDatasFromHost(const PacketDataChunkDatas& chunkD
         {
             chunkRequestsOutstanding.erase(chunkData.chunkPosition);
         }
+    }
+}
+
+void NetworkHandler::sendPlayerDataToClients(const PacketDataPlayerData& playerDataPacket)
+{
+    Packet packet;
+    packet.set(playerDataPacket, true);
+
+    printf(("NETWORK: Sending player data to clients " + packet.getSizeStr() + "\n").c_str());
+
+    // Relay to clients (except this playerdata's respective client)
+    for (auto client = networkPlayers.begin(); client != networkPlayers.end(); client++)
+    {
+        if (client->first == playerDataPacket.userID)
+        {
+            continue;
+        }
+
+        sendPacketToClient(client->first, packet, k_nSteamNetworkingSend_Reliable, 0);
     }
 }
