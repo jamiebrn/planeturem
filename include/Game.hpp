@@ -269,14 +269,15 @@ private:
     // -- Planet travelling -- //
 
     void travelToDestination();
+    void deleteUsedRocket(ObjectReference rocketObjectReference, PlanetType planetType);
     ObjectReference setupPlanetTravel(PlanetType planetType, ObjectReference rocketUsedObjectReference, std::optional<uint64_t> clientID);
     void handleRocketCleanup(PlanetType currentPlanetType, RoomType currentRoomDestType, ObjectReference rocketObjectReference);
     void travelToPlanet(PlanetType planetType, ObjectReference newRocketObjectReference);
-    ObjectReference placePlanetRocketForPlayer(const std::unordered_map<PlanetType, ObjectReference>& planetRocketsUsed, PlanetType planetType);
 
     void travelToRoomDestination(RoomType destinationRoomType);
 
-    void initialiseNewPlanet(PlanetType planetType);
+    // Returns spawn chunk
+    ChunkPosition initialiseNewPlanet(PlanetType planetType);
 
 
     // -- Game State / Transition -- //

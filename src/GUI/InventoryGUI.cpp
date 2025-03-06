@@ -803,6 +803,7 @@ void InventoryGUI::reset()
     recipesSeenToNotify = std::stack<ItemType>();
     recipeSeenNotifyCooldown = 0.0f;
     itemPopups.clear();
+    selectedHotbarIndex = 0;
 }
 
 void InventoryGUI::setSeenRecipes(const std::unordered_set<ItemType>& recipes)

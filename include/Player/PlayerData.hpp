@@ -87,6 +87,17 @@ inline void from_json(const nlohmann::json& json, PlayerData& data)
     {
         data.recipesSeen.insert(ItemDataLoader::getItemTypeFromName(recipeStr));
     }
+
+    if (json.contains("rockets-used"))
+    {
+        for (auto iter = json["rockets-used"].begin(); iter != json["rockets-used"].end(); iter++)
+        {
+            ObjectReference rocketObjectReference;
+            rocketObjectReference.chunk = {iter.value()[0], iter.value()[1]};
+            rocketObjectReference.tile = {iter.value()[1], iter.value()[2]};
+            data.planetRocketUsedPositions[PlanetGenDataLoader::getPlanetTypeFromName(iter.key())] = rocketObjectReference;
+        }
+    }
 }
 
 inline void to_json(nlohmann::json& json, const PlayerData& data)
@@ -118,4 +129,10 @@ inline void to_json(nlohmann::json& json, const PlayerData& data)
         recipesSeenStrings.push_back(ItemDataLoader::getItemData(itemType).name);
     }
     json["recipes-seen"] = recipesSeenStrings;
+
+    for (const auto& rocketUsed : data.planetRocketUsedPositions)
+    {
+        const PlanetGenData& planetData = PlanetGenDataLoader::getPlanetGenData(rocketUsed.first);
+        json["rockets-used"][planetData.name] = {rocketUsed.second.chunk.x, rocketUsed.second.chunk.y, rocketUsed.second.tile.x, rocketUsed.second.tile.y};
+    }
 }
