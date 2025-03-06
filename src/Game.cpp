@@ -3166,9 +3166,9 @@ bool Game::loadGame(const SaveFileSummary& saveFileSummary)
 
     inventory = playerGameSave.playerData.inventory;
     armourInventory = playerGameSave.playerData.armourInventory;
-    InventoryGUI::setSeenRecipes(playerGameSave.playerData.recipesSeen);
-
+    
     InventoryGUI::reset();
+    InventoryGUI::setSeenRecipes(playerGameSave.playerData.recipesSeen);
 
     closeChest();
     
