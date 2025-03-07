@@ -429,6 +429,16 @@ void Game::runMainMenu(float dt)
                 currentSaveFileSummary = menuEvent->saveFileSummary;
                 break;
             }
+            case MainMenuEventType::JoinGame:
+            {
+                networkHandler.sendWorldJoinReply(menuEvent->saveFileSummary.playerName);
+                break;
+            }
+            case MainMenuEventType::CancelJoinGame:
+            {
+                networkHandler.leaveLobby();
+                break;
+            }
             case MainMenuEventType::SaveOptions:
             {
                 saveOptions();
@@ -1968,7 +1978,7 @@ void Game::catchRandomFish(sf::Vector2i fishedTile)
                     Helper::randFloat(-TILE_SIZE_PIXELS_UNSCALED / 2.0f, TILE_SIZE_PIXELS_UNSCALED / 2.0f)
                 );
 
-                if (!networkHandler.isMultiplayerGame() || networkHandler.getIsLobbyHost())
+                if (networkHandler.isLobbyHostOrSolo())
                 {
                     // Not multiplayer / is host, create pickups and tell clients
                     itemPickupsCreatedVector.push_back(getChunkManager().addItemPickup(ItemPickup(spawnPos, fishCatchData.itemCatch, gameTime)).value());
@@ -3197,7 +3207,6 @@ bool Game::loadGame(const SaveFileSummary& saveFileSummary)
     worldDatas.clear();
     roomDestDatas.clear();
 
-    playerName = playerGameSave.playerData.name;
     player = Player(playerGameSave.playerData.position, playerGameSave.playerData.maxHealth);
 
     inventory = playerGameSave.playerData.inventory;
@@ -3379,7 +3388,7 @@ PlayerData Game::createPlayerData()
 {
     PlayerData playerData;
 
-    playerData.name = playerName;
+    playerData.name = currentSaveFileSummary.playerName;
     playerData.position = player.getPosition();
     playerData.inventory = inventory;
     playerData.armourInventory = armourInventory;
@@ -3432,7 +3441,7 @@ void Game::loadOptions()
 
 void Game::quitWorld()
 {
-    if (!networkHandler.isMultiplayerGame() || networkHandler.getIsLobbyHost())
+    if (networkHandler.isLobbyHostOrSolo())
     {
         saveGame();
     }
@@ -3458,7 +3467,7 @@ void Game::joinWorld(const PacketDataJoinInfo& joinInfo)
     inventory = joinInfo.playerData.inventory;
     armourInventory = joinInfo.playerData.armourInventory;
 
-    playerName = joinInfo.playerData.name;
+    currentSaveFileSummary.playerName = joinInfo.playerData.name;
 
     InventoryGUI::setSeenRecipes(joinInfo.playerData.recipesSeen);
     InventoryGUI::reset();
@@ -3567,8 +3576,26 @@ void Game::handleChunkDataFromHost(const PacketDataChunkDatas& chunkDataPacket)
     {
         getChunkManager().setChunkData(chunkData, *this);
 
-        printf(("Received chunk (" + std::to_string(chunkData.chunkPosition.x) + ", " +
+        printf(("NETWORK: Received chunk (" + std::to_string(chunkData.chunkPosition.x) + ", " +
             std::to_string(chunkData.chunkPosition.y) + ") data from host\n").c_str());
+    }
+}
+
+void Game::joinedLobby(bool requiresNameInput)
+{
+    if (gameState != GameState::MainMenu)
+    {
+        networkHandler.leaveLobby();
+        return;
+    }
+
+    if (requiresNameInput)
+    {
+        mainMenuGUI.setMainMenuJoinGame();
+    }
+    else
+    {
+        networkHandler.sendWorldJoinReply();
     }
 }
 
@@ -3795,7 +3822,7 @@ ChestDataPool& Game::getChestDataPool(std::optional<PlanetType> planetTypeOverri
             return roomDestDatas.at(roomDestOverride.value()).chestDataPool;
         }
     }
-    if (locationState.isInRoom())
+    if (locationState.isInRoomDest())
     {
         return roomDestDatas.at(locationState.getRoomDestType()).chestDataPool;
     }

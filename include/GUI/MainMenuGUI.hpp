@@ -24,6 +24,7 @@ enum class MainMenuState
     Main,
     StartingNew,
     SelectingLoad,
+    JoiningGame,
     Options
 };
 
@@ -31,6 +32,8 @@ enum class MainMenuEventType
 {
     StartNew,
     Load,
+    JoinGame,
+    CancelJoinGame,
     SaveOptions,
     Quit
 };
@@ -73,6 +76,8 @@ public:
 
     std::optional<MainMenuEvent> createAndDraw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, float dt, float gameTime);
 
+    void setMainMenuJoinGame();
+
     std::optional<PauseMenuEventType> createAndDrawPauseMenu(sf::RenderTarget& window, float dt, float gameTime, bool steamInitialised, std::optional<uint64_t> lobbyId);
 
     void setCanInteract(bool value);
@@ -97,6 +102,7 @@ private:
     int saveFilePage;
 
     std::string saveNameInput;
+    std::string playerNameInput;
     std::string worldSeedInput;
 
     static constexpr float DELETE_SAVE_MAX_HOLD_TIME = 3.0f;

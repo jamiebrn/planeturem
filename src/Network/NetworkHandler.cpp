@@ -83,6 +83,18 @@ void NetworkHandler::leaveLobby()
     multiplayerGame = false;
 }
 
+void NetworkHandler::sendWorldJoinReply(std::string playerName)
+{
+    std::cout << "NETWORK: Sending join reply to user " << SteamFriends()->GetFriendPersonaName(CSteamID(lobbyHost)) << "\n";
+
+    PacketDataJoinReply packetData;
+    packetData.playerName = playerName;
+    
+    Packet packet;
+    packet.set(packetData);
+    sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
+}
+
 bool NetworkHandler::isMultiplayerGame()
 {
     return multiplayerGame;
@@ -240,11 +252,15 @@ void NetworkHandler::callbackLobbyUpdated(LobbyChatUpdate_t* pCallback)
     
     if (isLobbyHost)
     {
-        Packet packet;
         
         if (pCallback->m_rgfChatMemberStateChange & k_EChatMemberStateChangeEntered)
         {
-            packet.type = PacketType::JoinQuery;
+            PacketDataJoinQuery packetData;
+            packetData.requiresNameInput = !networkPlayerDatasSaved.contains(userIdentity.GetSteamID64());
+
+            Packet packet;
+            packet.set(packetData);
+
             EResult result = packet.sendToUser(userIdentity, k_nSteamNetworkingSend_Reliable, 0);
             if (result == EResult::k_EResultOK)
             {
@@ -483,25 +499,32 @@ void NetworkHandler::processMessageAsHost(const SteamNetworkingMessage_t& messag
     
             // packetData.chestDataPool = game->getChestDataPool();
 
-            // Send player data
-            if (networkPlayerDatasSaved.contains(message.m_identityPeer.GetSteamID64()))
-            {
-                // Player data exists from save
-                packetData.playerData = networkPlayerDatasSaved.at(message.m_identityPeer.GetSteamID64());
-            }
-            else
+            // Initialise new player data
+            if (!networkPlayerDatasSaved.contains(message.m_identityPeer.GetSteamID64()))
             {
                 // Player data does not exist - initialise
+                
+                // Get name from join reply packet
+                PacketDataJoinReply packetData;
+                packetData.deserialise(packet.data);
+                networkPlayerDatasSaved[message.m_identityPeer.GetSteamID64()] = PlayerData();
 
-                packetData.playerData.locationState.setPlanetType(PlanetGenDataLoader::getPlanetTypeFromName("Earthlike"));
+                PlayerData& playerData = networkPlayerDatasSaved[message.m_identityPeer.GetSteamID64()];
+
+                playerData.name = packetData.playerName;
+
+                playerData.locationState.setPlanetType(PlanetGenDataLoader::getPlanetTypeFromName("Earthlike"));
                 
                 // Find spawn for player
-                ChunkPosition playerSpawnChunk = game->getChunkManager(packetData.playerData.locationState.getPlanetType()).findValidSpawnChunk(2);
-                packetData.playerData.position.x = playerSpawnChunk.x * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED + 0.5f * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
-                packetData.playerData.position.y = playerSpawnChunk.y * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED + 0.5f * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
-
-                packetData.playerData.inventory.giveStartingItems();
+                ChunkPosition playerSpawnChunk = game->getChunkManager(playerData.locationState.getPlanetType()).findValidSpawnChunk(2);
+                playerData.position.x = playerSpawnChunk.x * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED + 0.5f * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
+                playerData.position.y = playerSpawnChunk.y * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED + 0.5f * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
+                
+                playerData.inventory.giveStartingItems();
             }
+
+            // Send player data
+            packetData.playerData = networkPlayerDatasSaved.at(message.m_identityPeer.GetSteamID64());
             
             packetData.currentPlayers.push_back(SteamUser()->GetSteamID().ConvertToUint64());
             for (auto iter = networkPlayers.begin(); iter != networkPlayers.end(); iter++)
@@ -577,7 +600,10 @@ void NetworkHandler::processMessageAsHost(const SteamNetworkingMessage_t& messag
         }
         case PacketType::PlayerData:
         {
-            
+            PacketDataPlayerData packetData;
+            packetData.deserialise(packet.data);
+            networkPlayerDatasSaved[packetData.userID] = packetData.playerData;
+            break;
         }
     }
 }
@@ -588,12 +614,13 @@ void NetworkHandler::processMessageAsClient(const SteamNetworkingMessage_t& mess
     {
         case PacketType::JoinQuery:
         {
-            Packet packetToSend;
-            packetToSend.type = PacketType::JoinReply;
+            PacketDataJoinQuery packetData;
+            packetData.deserialise(packet.data);
             
-            std::cout << "NETWORK: Sending join reply to user " << message.m_identityPeer.GetSteamID64() << "\n";
-            
-            packetToSend.sendToUser(message.m_identityPeer, k_nSteamNetworkingSend_Reliable, 0);
+            lobbyHost = message.m_identityPeer.GetSteamID64();
+            isLobbyHost = false;
+
+            game->joinedLobby(packetData.requiresNameInput);
             break;
         }
         case PacketType::JoinInfo:

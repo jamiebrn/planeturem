@@ -7,6 +7,8 @@
 
 #include "Network/Packet.hpp"
 #include "Network/IPacketData.hpp"
+#include "Network/PacketDataJoinQuery.hpp"
+#include "Network/PacketDataJoinReply.hpp"
 #include "Network/PacketDataJoinInfo.hpp"
 #include "Network/PacketDataServerInfo.hpp"
 #include "Network/PacketDataPlayerData.hpp"
@@ -39,6 +41,8 @@ public:
     void reset(Game* game);
 
     void startHostServer();
+    
+    void sendWorldJoinReply(std::string playerName = "");
 
     void receiveMessages();
 

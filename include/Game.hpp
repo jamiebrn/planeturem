@@ -165,6 +165,8 @@ public:
     void destroyObjectFromHost(ChunkPosition chunk, sf::Vector2i tile, std::optional<PlanetType> planetType);
 
     // Networking
+    void joinedLobby(bool requiresNameInput);
+
     void handleChunkRequestsFromClient(const PacketDataChunkRequests& chunkRequests, const SteamNetworkingIdentity& client);
     void handleChunkDataFromHost(const PacketDataChunkDatas& chunkDataPacket);
 
@@ -341,7 +343,6 @@ private:
     bool fullScreen = true;
 
     SaveFileSummary currentSaveFileSummary;
-    std::string playerName;
     float saveSessionPlayTime;
 
     SpriteBatch spriteBatch;

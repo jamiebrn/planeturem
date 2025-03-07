@@ -133,7 +133,12 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
             guiContext.createTextEnter(scaledPanelPaddingX, elementYPos,
                 panelWidth * intScale, 75 * intScale, 20 * intScale, "Save Name", &saveNameInput, panelWidth / 5 * intScale, 30 * intScale, 30);
 
-            elementYPos += 150 * intScale;
+            elementYPos += 100 * intScale;
+
+            guiContext.createTextEnter(scaledPanelPaddingX, elementYPos,
+                panelWidth * intScale, 75 * intScale, 20 * intScale, "Player Name", &playerNameInput, panelWidth / 5 * intScale, 30 * intScale, 30);
+
+            elementYPos += 100 * intScale;
 
             guiContext.createTextEnter(scaledPanelPaddingX, elementYPos,
                 panelWidth * intScale, 75 * intScale, 20 * intScale, "World Seed", &worldSeedInput, panelWidth / 5 * intScale, 30 * intScale, 30);
@@ -160,6 +165,7 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
                         menuEvent = MainMenuEvent();
                         menuEvent->type = MainMenuEventType::StartNew;
                         menuEvent->saveFileSummary.name = saveNameInput;
+                        menuEvent->saveFileSummary.playerName = playerNameInput;
                         menuEvent->worldSeed = getWorldSeedFromString(worldSeedInput);
                     }
                 }
@@ -297,6 +303,50 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
             }
             break;
         }
+        case MainMenuState::JoiningGame:
+        {
+            TextDrawData textDrawData;
+            textDrawData.text = "Join Multiplayer";
+            textDrawData.position = sf::Vector2f((scaledPanelPaddingX + panelWidth / 2) * intScale, elementYPos);
+            textDrawData.size = 24 * intScale;
+            textDrawData.centeredX = true;
+            textDrawData.centeredY = true;
+            textDrawData.colour = sf::Color(255, 255, 255);
+
+            TextDraw::drawText(window, textDrawData);
+
+            elementYPos += 60 * intScale;
+
+            guiContext.createTextEnter(scaledPanelPaddingX, elementYPos,
+                panelWidth * intScale, 75 * intScale, 20 * intScale, "Player Name", &playerNameInput, panelWidth / 5 * intScale, 30 * intScale, 30);
+
+            elementYPos += 100 * intScale;
+
+            if (guiContext.createButton(scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale, buttonTextSize, "Join", buttonStyle)
+                .isClicked())
+            {
+                if (!playerNameInput.empty())
+                {
+                    menuEvent = MainMenuEvent();
+                    menuEvent->type = MainMenuEventType::JoinGame;
+                    menuEvent->saveFileSummary.playerName = playerNameInput;
+                }
+            }
+
+            elementYPos += 100 * intScale;
+            
+            if (guiContext.createButton(scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale, buttonTextSize, "Back", buttonStyle)
+                .isClicked())
+            {
+                if (canInteract)
+                {
+                    nextUIState = MainMenuState::Main;
+                    menuEvent = MainMenuEvent();
+                    menuEvent->type = MainMenuEventType::CancelJoinGame;
+                }
+            }
+            break;   
+        }
         case MainMenuState::Options:
         {
             if (createOptionsMenu(window, elementYPos))
@@ -341,6 +391,12 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
     TextDraw::drawText(window, versionTextDrawData);
 
     return menuEvent;
+}
+
+void MainMenuGUI::setMainMenuJoinGame()
+{
+    playerNameInput = "";
+    changeUIState(MainMenuState::JoiningGame, mainMenuState);
 }
 
 bool MainMenuGUI::createOptionsMenu(sf::RenderTarget& window, int startElementYPos)

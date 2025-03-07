@@ -167,6 +167,7 @@ CEREAL_CLASS_VERSION(RoomDestinationGameSave, 3);
 struct SaveFileSummary
 {
     std::string name;
+    std::string playerName;
     int timePlayed = 0;
     std::string timePlayedString;
 };
