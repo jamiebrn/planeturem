@@ -493,10 +493,10 @@ void NetworkHandler::processMessageAsHost(const SteamNetworkingMessage_t& messag
             {
                 // Player data does not exist - initialise
 
-                packetData.playerData.planetType = PlanetGenDataLoader::getPlanetTypeFromName("Earthlike");
+                packetData.playerData.locationState.setPlanetType(PlanetGenDataLoader::getPlanetTypeFromName("Earthlike"));
                 
                 // Find spawn for player
-                ChunkPosition playerSpawnChunk = game->getChunkManager(packetData.playerData.planetType).findValidSpawnChunk(2);
+                ChunkPosition playerSpawnChunk = game->getChunkManager(packetData.playerData.locationState.getPlanetType()).findValidSpawnChunk(2);
                 packetData.playerData.position.x = playerSpawnChunk.x * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED + 0.5f * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
                 packetData.playerData.position.y = playerSpawnChunk.y * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED + 0.5f * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
 

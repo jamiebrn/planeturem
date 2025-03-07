@@ -43,6 +43,7 @@
 
 #include "Player/Player.hpp"
 #include "Player/PlayerData.hpp"
+#include "Player/LocationState.hpp"
 #include "Player/Cursor.hpp"
 #include "Player/InventoryData.hpp"
 #include "Player/ItemPickup.hpp"
@@ -366,6 +367,7 @@ private:
 
     // Game general data
     Player player;
+    LocationState locationState;
     Camera camera;
     InventoryData inventory;
     InventoryData armourInventory;
@@ -375,10 +377,8 @@ private:
 
     // Set planet / room dest type to -1 when selecting other
     std::unordered_map<PlanetType, WorldData> worldDatas;
-    PlanetType currentPlanetType;
-    int planetSeed;
     std::unordered_map<RoomType, RoomDestinationData> roomDestDatas;
-    RoomType currentRoomDestType;
+    int planetSeed;
 
     std::unordered_map<PlanetType, ObjectReference> planetRocketUsedPositions;
 
@@ -405,13 +405,11 @@ private:
     // sf::Vector2f openedChestPos;
 
     // Structure
-    uint32_t structureEnteredID;
     sf::Vector2f structureEnteredPos;
 
     // Rocket
     ObjectReference rocketEnteredReference;
-    PlanetType destinationPlanet;
-    RoomType destinationRoom;
+    LocationState destinationLocationState;
     bool travelTrigger = false;
 
     Tween<float> floatTween;

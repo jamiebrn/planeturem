@@ -195,9 +195,5 @@ protected:
     sf::Vector2f rocketExitPos;
 
     static constexpr std::array<float, 5> runningShadowScale = {1.0f, 0.8f, 0.7f, 0.8f, 0.9f};
-
-    // Multiplayer
-    bool isNetworkPlayer = false;
-    std::string networkPlayerName;
     
 };

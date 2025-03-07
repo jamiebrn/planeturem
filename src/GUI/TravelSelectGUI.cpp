@@ -9,7 +9,7 @@ void TravelSelectGUI::setAvailableDestinations(const std::vector<PlanetType>& av
     resetHoverRect();
 }
 
-bool TravelSelectGUI::createAndDraw(sf::RenderWindow& window, float dt, PlanetType& selectedPlanetType, RoomType& selectedRoomType)
+bool TravelSelectGUI::createAndDraw(sf::RenderWindow& window, float dt, LocationState& selectedLocationState)
 {
     float intScale = ResolutionHandler::getResolutionIntegerScale();
     sf::Vector2f resolution = static_cast<sf::Vector2f>(ResolutionHandler::getResolution());
@@ -44,7 +44,7 @@ bool TravelSelectGUI::createAndDraw(sf::RenderWindow& window, float dt, PlanetTy
             {
                 if (!clicked)
                 {
-                    selectedPlanetType = planetDestination;
+                    selectedLocationState.setPlanetType(planetDestination);
                 }
                 clicked = true;
             }
@@ -71,7 +71,7 @@ bool TravelSelectGUI::createAndDraw(sf::RenderWindow& window, float dt, PlanetTy
             {
                 if (!clicked)
                 {
-                    selectedRoomType = roomDestination;
+                    selectedLocationState.setRoomDestType(roomDestination);
                 }
                 clicked = true;
             }
