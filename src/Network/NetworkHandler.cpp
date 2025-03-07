@@ -514,6 +514,10 @@ void NetworkHandler::processMessageAsHost(const SteamNetworkingMessage_t& messag
                 playerData.name = packetData.playerName;
 
                 playerData.locationState.setPlanetType(PlanetGenDataLoader::getPlanetTypeFromName("Earthlike"));
+
+                playerData.inventory = InventoryData(32);
+                playerData.inventory.giveStartingItems();
+                playerData.armourInventory = InventoryData(3);
                 
                 // Find spawn for player
                 ChunkPosition playerSpawnChunk = game->getChunkManager(playerData.locationState.getPlanetType()).findValidSpawnChunk(2);
