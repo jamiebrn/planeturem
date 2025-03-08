@@ -687,7 +687,7 @@ void NetworkHandler::processMessageAsClient(const SteamNetworkingMessage_t& mess
             {
                 registerNetworkPlayer(networkPlayerDataPair.first, false);
                 std::cout << "NETWORK: Registered existing player " << SteamFriends()->GetFriendPersonaName(CSteamID(networkPlayerDataPair.first)) << "\n";
-                networkPlayerDatasSaved[networkPlayerDataPair.first] = networkPlayerDataPair.second;
+                networkPlayers[networkPlayerDataPair.first].setPlayerData(networkPlayerDataPair.second);
             }
 
             // Load into world
