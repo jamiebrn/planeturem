@@ -23,10 +23,11 @@ void NetworkPlayer::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Gam
     TextDraw::drawText(window, nameDrawData);
 }
 
-void NetworkPlayer::setNetworkPlayerInfo(const PacketDataPlayerCharacterInfo& info, std::string steamName, sf::Vector2f playerPosition, const ChunkManager& chunkManager)
+void NetworkPlayer::setNetworkPlayerCharacterInfo(const PacketDataPlayerCharacterInfo& info)
 {
-    position = chunkManager.translatePositionAroundWorld(sf::Vector2f(info.positionX, info.positionY), playerPosition);
-    
+    // position = chunkManager.translatePositionAroundWorld(sf::Vector2f(info.positionX, info.positionY), playerPosition);
+    playerData.position = sf::Vector2f(info.positionX, info.positionY);
+
     collisionRect.x = position.x - collisionRect.width / 2.0f;
     collisionRect.y = position.y - collisionRect.height / 2.0f;
 
@@ -55,20 +56,20 @@ void NetworkPlayer::setNetworkPlayerInfo(const PacketDataPlayerCharacterInfo& in
     
     if (fishingRodCasted)
     {
-        fishingRodBobWorldPos = (static_cast<sf::Vector2f>(info.fishingRodBobWorldTile) + sf::Vector2f(0.5f, 0.5f)) * TILE_SIZE_PIXELS_UNSCALED;
-        fishingRodBobWorldPos = chunkManager.translatePositionAroundWorld(fishingRodBobWorldPos, playerPosition);
+        fishingRodBobWorldPosUnwrapped = (static_cast<sf::Vector2f>(info.fishingRodBobWorldTile) + sf::Vector2f(0.5f, 0.5f)) * TILE_SIZE_PIXELS_UNSCALED;
     }
 
     armour = info.armour;
-
-    playerData.name = steamName;
 }
 
-PlayerData NetworkPlayer::getPlayerDataUpdated()
+void NetworkPlayer::applyWorldWrapTranslation(sf::Vector2f playerPosition, const ChunkManager& chunkManager)
 {
-    PlayerData newPlayerData = playerData;
-    newPlayerData.position = position;
-    return newPlayerData;
+    position = chunkManager.translatePositionAroundWorld(playerData.position, playerPosition);
+    
+    if (fishingRodCasted)
+    {
+        fishingRodBobWorldPos = chunkManager.translatePositionAroundWorld(fishingRodBobWorldPosUnwrapped, playerPosition);
+    }
 }
 
 PlayerData& NetworkPlayer::getPlayerData()

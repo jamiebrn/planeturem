@@ -70,9 +70,14 @@ public:
     NetworkPlayer* getNetworkPlayer(uint64_t id);
     std::unordered_map<uint64_t, NetworkPlayer>& getNetworkPlayers();
 
+    std::vector<WorldObject*> getNetworkPlayersToDraw(const LocationState& locationState, sf::Vector2f playerPosition);
+
+    std::string getPlayerName(uint64_t id);
+
     const PlayerData* getSavedNetworkPlayerData(uint64_t id);
     void setSavedNetworkPlayerData(uint64_t id, const PlayerData& networkPlayerData);
-    
+    const std::unordered_map<uint64_t, PlayerData> getSavedNetworkPlayerDataMap();
+
 private:
     void processMessage(const SteamNetworkingMessage_t& message, const Packet& packet);
     void processMessageAsHost(const SteamNetworkingMessage_t& message, const Packet& packet);

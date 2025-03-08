@@ -153,6 +153,30 @@ std::unordered_map<uint64_t, NetworkPlayer>& NetworkHandler::getNetworkPlayers()
     return networkPlayers;
 }
 
+std::vector<WorldObject*> NetworkHandler::getNetworkPlayersToDraw(const LocationState& locationState, sf::Vector2f playerPosition)
+{
+    std::vector<WorldObject*> networkPlayerObjects;
+
+    for (auto iter = networkPlayers.begin(); iter != networkPlayers.end(); iter++)
+    {
+        // Not in same location as player
+        if (iter->second.getPlayerData().locationState != locationState)
+        {
+            continue;
+        }
+
+        // Translate position to wrap around world correctly, if required
+        if (locationState.isOnPlanet())
+        {
+            iter->second.applyWorldWrapTranslation(playerPosition, game->getChunkManager(locationState.getPlanetType()));
+        }
+
+        networkPlayerObjects.push_back(&iter->second);
+    }
+
+    return networkPlayerObjects;
+}
+
 
 const PlayerData* NetworkHandler::getSavedNetworkPlayerData(uint64_t id)
 {
@@ -166,6 +190,11 @@ const PlayerData* NetworkHandler::getSavedNetworkPlayerData(uint64_t id)
 void NetworkHandler::setSavedNetworkPlayerData(uint64_t id, const PlayerData& networkPlayerData)
 {
     networkPlayerDatasSaved[id] = networkPlayerData;
+}
+
+const std::unordered_map<uint64_t, PlayerData> NetworkHandler::getSavedNetworkPlayerDataMap()
+{
+    return networkPlayerDatasSaved;
 }
 
 void NetworkHandler::registerNetworkPlayer(uint64_t id, bool notify)
@@ -351,16 +380,38 @@ void NetworkHandler::processMessage(const SteamNetworkingMessage_t& message, con
     
             if (networkPlayers.contains(packetData.userID))
             {
-                std::string playerName = SteamFriends()->GetFriendPersonaName(CSteamID(packetData.userID));
+                // std::string playerName = SteamFriends()->GetFriendPersonaName(CSteamID(packetData.userID));
     
                 // Translate player position to wrap around world, relative to player
-                sf::Vector2f playerPos = game->getChunkManager().translatePositionAroundWorld(sf::Vector2f(packetData.positionX, packetData.positionY),
-                    game->getPlayer().getPosition());
-                packetData.positionX = playerPos.x;
-                packetData.positionY = playerPos.y;
+                // sf::Vector2f playerPos = game->getChunkManager().translatePositionAroundWorld(sf::Vector2f(packetData.positionX, packetData.positionY),
+                //     game->getPlayer().getPosition());
+                // packetData.positionX = playerPos.x;
+                // packetData.positionY = playerPos.y;
     
-                networkPlayers[packetData.userID].setNetworkPlayerInfo(packetData, playerName, game->getPlayer().getPosition(), game->getChunkManager());
+                networkPlayers[packetData.userID].setNetworkPlayerCharacterInfo(packetData);
             }
+            break;
+        }
+        case PacketType::PlayerData:
+        {
+            PacketDataPlayerData packetData;
+            packetData.deserialise(packet.data);
+            if (networkPlayers.contains(packetData.userID))
+            {
+
+            }
+            else
+            {
+                printf(("WARNING: Received player data for unregistered network player " + std::to_string(packetData.userID) + "(" +
+                    packetData.playerData.name + ")\n").c_str());
+            }
+
+            // If host, save data and 
+            if (getIsLobbyHost())
+            {
+
+            }
+            networkPlayerDatasSaved[packetData.userID] = packetData.playerData;
             break;
         }
         case PacketType::ObjectHit:
@@ -598,13 +649,6 @@ void NetworkHandler::processMessageAsHost(const SteamNetworkingMessage_t& messag
             packetData.deserialise(packet.data);
             game->getChestDataPool().overwriteChestData(packetData.chestID, packetData.chestData);
             printf(("NETWORK: Received chest data from " + std::string(SteamFriends()->GetFriendPersonaName(message.m_identityPeer.GetSteamID())) + "\n").c_str());
-            break;
-        }
-        case PacketType::PlayerData:
-        {
-            PacketDataPlayerData packetData;
-            packetData.deserialise(packet.data);
-            networkPlayerDatasSaved[packetData.userID] = packetData.playerData;
             break;
         }
     }

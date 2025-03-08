@@ -23,6 +23,8 @@
 #include "Player/Player.hpp"
 #include "Player/PlayerData.hpp"
 
+class ChunkManager;
+
 class NetworkPlayer : public Player
 {
 public:
@@ -33,14 +35,18 @@ public:
 
     // Multiplayer
 
+    void setNetworkPlayerCharacterInfo(const PacketDataPlayerCharacterInfo& info);
+    
     // Player position is of player on this machine, not for this network player
-    void setNetworkPlayerInfo(const PacketDataPlayerCharacterInfo& info, std::string steamName, sf::Vector2f playerPosition, const ChunkManager& chunkManager);
+    void applyWorldWrapTranslation(sf::Vector2f playerPosition, const ChunkManager& chunkManager);
 
-    PlayerData getPlayerDataUpdated();
     PlayerData& getPlayerData();
     void setPlayerData(const PlayerData& playerData);
 
 private:
     PlayerData playerData;
+
+    // Before world wrap translation applied
+    sf::Vector2f fishingRodBobWorldPosUnwrapped;
 
 };

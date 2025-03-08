@@ -76,7 +76,7 @@ inline void from_json(const nlohmann::json& json, PlayerData& data)
         {
             ObjectReference rocketObjectReference;
             rocketObjectReference.chunk = {iter.value()[0], iter.value()[1]};
-            rocketObjectReference.tile = {iter.value()[1], iter.value()[2]};
+            rocketObjectReference.tile = {iter.value()[2], iter.value()[3]};
             data.planetRocketUsedPositions[PlanetGenDataLoader::getPlanetTypeFromName(iter.key())] = rocketObjectReference;
         }
     }
@@ -101,6 +101,7 @@ inline void to_json(nlohmann::json& json, const PlayerData& data)
     for (const auto& rocketUsed : data.planetRocketUsedPositions)
     {
         const PlanetGenData& planetData = PlanetGenDataLoader::getPlanetGenData(rocketUsed.first);
-        json["rockets-used"][planetData.name] = {rocketUsed.second.chunk.x, rocketUsed.second.chunk.y, rocketUsed.second.tile.x, rocketUsed.second.tile.y};
+        std::vector<int> objectReference = {rocketUsed.second.chunk.x, rocketUsed.second.chunk.y, rocketUsed.second.tile.x, rocketUsed.second.tile.y};
+        json["rockets-used"][planetData.name] = objectReference;
     }
 }
