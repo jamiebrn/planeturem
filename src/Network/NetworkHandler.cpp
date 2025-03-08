@@ -398,7 +398,7 @@ void NetworkHandler::processMessage(const SteamNetworkingMessage_t& message, con
             packetData.deserialise(packet.data);
             if (networkPlayers.contains(packetData.userID))
             {
-
+                networkPlayers[packetData.userID].getPlayerData() = packetData.playerData;
             }
             else
             {
@@ -406,12 +406,12 @@ void NetworkHandler::processMessage(const SteamNetworkingMessage_t& message, con
                     packetData.playerData.name + ")\n").c_str());
             }
 
-            // If host, save data and 
+            // If host, save data and redistribute
             if (getIsLobbyHost())
             {
-
+                networkPlayerDatasSaved[packetData.userID] = packetData.playerData;
+                sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0);
             }
-            networkPlayerDatasSaved[packetData.userID] = packetData.playerData;
             break;
         }
         case PacketType::ObjectHit:
