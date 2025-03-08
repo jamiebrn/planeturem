@@ -35,8 +35,19 @@ public:
 
     inline bool operator==(const LocationState& other) const
     {
-        return ((currentPlanetType == other.getPlanetType() && inStructureID == other.getInStructureID()) ||
-            currentRoomDestType == other.getRoomDestType());
+        if (isOnPlanet() && other.isOnPlanet() && currentPlanetType == other.getPlanetType())
+        {
+            if (isInStructure() && other.isInStructure())
+            {
+                return (inStructureID.value() == other.getInStructureID());
+            }
+            return true;
+        }
+        else if (isInRoomDest() && other.isInRoomDest() && currentRoomDestType == other.getRoomDestType())
+        {
+            return true;
+        }
+        return false;
     }
 
     template <class Archive>

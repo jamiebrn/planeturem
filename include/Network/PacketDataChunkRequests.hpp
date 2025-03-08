@@ -7,16 +7,18 @@
 
 #include "Network/IPacketData.hpp"
 
+#include "Data/typedefs.hpp"
 #include "World/ChunkPosition.hpp"
 
 struct PacketDataChunkRequests : public IPacketData
 {
+    PlanetType planetType;
     std::vector<ChunkPosition> chunkRequests;
 
     template <class Archive>
     void serialize(Archive& ar)
     {
-        ar(chunkRequests);
+        ar(planetType, chunkRequests);
     }
 
     PACKET_SERIALISATION();

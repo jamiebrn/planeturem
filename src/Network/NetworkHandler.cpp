@@ -38,11 +38,11 @@ void NetworkHandler::callbackLobbyCreated(LobbyCreated_t* pCallback, bool bIOFai
 {
     if (pCallback->m_ulSteamIDLobby == 0)
     {
-        std::cout << "Lobby creation failed\n";
+        std::cout << "ERROR: Lobby creation failed\n";
         return;
     }
 
-    std::cout << "Created lobby " << pCallback->m_ulSteamIDLobby << "\n";
+    std::cout << "NETWORK: Created lobby " << pCallback->m_ulSteamIDLobby << "\n";
     isLobbyHost = true;
     lobbyHost = SteamUser()->GetSteamID().ConvertToUint64();
     multiplayerGame = true;
@@ -241,7 +241,7 @@ void NetworkHandler::callbackLobbyJoinRequested(GameLobbyJoinRequested_t* pCallb
 void NetworkHandler::callbackLobbyEnter(LobbyEnter_t* pCallback)
 {
     steamLobbyId = pCallback->m_ulSteamIDLobby;
-    std::cout << "Joined lobby " << steamLobbyId << "\n";
+    std::cout << "NETWORK: Joined lobby " << steamLobbyId << "\n";
     multiplayerGame = true;
 }
 
@@ -264,11 +264,11 @@ void NetworkHandler::callbackLobbyUpdated(LobbyChatUpdate_t* pCallback)
             EResult result = packet.sendToUser(userIdentity, k_nSteamNetworkingSend_Reliable, 0);
             if (result == EResult::k_EResultOK)
             {
-                std::cout << "Sent join query successfully\n";
+                std::cout << "NETWORK: Sent join query successfully\n";
             }
             else if (result == EResult::k_EResultNoConnection)
             {
-                std::cout << "Could not send join query\n";
+                std::cout << "ERROR: Could not send join query\n";
             }
         }
         else
@@ -487,7 +487,7 @@ void NetworkHandler::processMessageAsHost(const SteamNetworkingMessage_t& messag
         case PacketType::JoinReply:
         {
             const char* steamName = SteamFriends()->GetFriendPersonaName(message.m_identityPeer.GetSteamID());
-            std::cout << "Player joined: " << steamName << " (" << message.m_identityPeer.GetSteamID64() << ")\n";
+            std::cout << "NETWORK: Player joined: " << steamName << " (" << message.m_identityPeer.GetSteamID64() << ")\n";
             
             // Send world info
             PacketDataJoinInfo packetData;
@@ -523,8 +523,6 @@ void NetworkHandler::processMessageAsHost(const SteamNetworkingMessage_t& messag
                 ChunkPosition playerSpawnChunk = game->getChunkManager(playerData.locationState.getPlanetType()).findValidSpawnChunk(2);
                 playerData.position.x = playerSpawnChunk.x * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED + 0.5f * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
                 playerData.position.y = playerSpawnChunk.y * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED + 0.5f * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
-                
-                playerData.inventory.giveStartingItems();
             }
 
             // Send player data
@@ -829,7 +827,7 @@ EResult NetworkHandler::sendPacketToHost(const Packet& packet, int nSendFlags, i
     return packet.sendToUser(hostIdentity, nSendFlags, nRemoteChannel);
 }
 
-void NetworkHandler::requestChunksFromHost(std::vector<ChunkPosition>& chunks)
+void NetworkHandler::requestChunksFromHost(PlanetType planetType, std::vector<ChunkPosition>& chunks)
 {
     if (!multiplayerGame || isLobbyHost)
     {
@@ -863,9 +861,10 @@ void NetworkHandler::requestChunksFromHost(std::vector<ChunkPosition>& chunks)
         return;
     }
     
-    printf(("NETWORK: Requesting " + std::to_string(chunks.size()) + " chunks from host\n").c_str());
+    printf(("NETWORK: Requesting " + std::to_string(chunks.size()) + " chunks from host for planet type " + std::to_string(planetType) + "\n").c_str());
 
     PacketDataChunkRequests packetData;
+    packetData.planetType = planetType;
     packetData.chunkRequests = chunks;
     Packet packet;
     packet.set(packetData);

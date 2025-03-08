@@ -2,6 +2,8 @@
 
 // FIX: Lighting sometimes momentarily breaks when crossing world boundary
 
+// FIX: Wrap around in multiplayer crash from null chunkmanager
+
 // TODO: Night and menu music
 
 // PRIORITY: LOW
@@ -1093,7 +1095,7 @@ void Game::updateOnPlanet(float dt)
 
     if (networkHandler.isClient() && chunksToRequestFromHost.size() > 0)
     {
-        networkHandler.requestChunksFromHost(chunksToRequestFromHost);
+        networkHandler.requestChunksFromHost(locationState.getPlanetType(), chunksToRequestFromHost);
     }
 
     getChunkManager().updateChunksObjects(*this, dt);
@@ -1856,7 +1858,7 @@ void Game::buildObject(ChunkPosition chunk, sf::Vector2i tile, ObjectType object
         if (!chunkPtr)
         {
             std::vector<ChunkPosition> requestedChunks = {chunk};
-            networkHandler.requestChunksFromHost(requestedChunks);
+            networkHandler.requestChunksFromHost(locationState.getPlanetType(), requestedChunks);
             return;
         }
     }
@@ -3533,23 +3535,22 @@ void Game::handleChunkRequestsFromClient(const PacketDataChunkRequests& chunkReq
     int maxChunkY = -9999999;
 
     // Get planet type for client
-    PlanetType clientPlanetType = networkHandler.getNetworkPlayer(client.GetSteamID64())->getPlayerData().locationState.getPlanetType();
-    if (clientPlanetType < 0)
+    if (chunkRequests.planetType < 0)
     {
         return;
     }
 
-    if (!worldDatas.contains(clientPlanetType))
+    if (!worldDatas.contains(chunkRequests.planetType))
     {
-        printf(("ERROR: Attempted to send chunks to client for uninitialised planet type " + std::to_string(clientPlanetType) + "\n").c_str());
+        printf(("ERROR: Attempted to send chunks to client for uninitialised planet type " + std::to_string(chunkRequests.planetType) + "\n").c_str());
         return;
     }
 
-    packetChunkDatas.planetType = clientPlanetType;
+    packetChunkDatas.planetType = chunkRequests.planetType;
 
     for (ChunkPosition chunk : chunkRequests.chunkRequests)
     {
-        packetChunkDatas.chunkDatas.push_back(getChunkManager(clientPlanetType).getChunkDataAndGenerate(chunk, *this));
+        packetChunkDatas.chunkDatas.push_back(getChunkManager(chunkRequests.planetType).getChunkDataAndGenerate(chunk, *this));
         minChunkX = std::min((int)chunk.x, minChunkX);
         minChunkY = std::min((int)chunk.y, minChunkY);
         maxChunkX = std::max((int)chunk.x, maxChunkX);
