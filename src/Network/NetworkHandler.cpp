@@ -442,7 +442,7 @@ void NetworkHandler::processMessage(const SteamNetworkingMessage_t& message, con
                 if (!chunkPtr)
                 {
                     std::cout << "ERROR: Failed to create item pickup sent from host in null chunk (" << itemPickupPair.first.chunk.x <<
-                        ", " << itemPickupPair.first.chunk.y << ")\n";
+                    ", " << itemPickupPair.first.chunk.y << ")\n";
                     continue;
                 }
     
@@ -579,10 +579,10 @@ void NetworkHandler::processMessageAsHost(const SteamNetworkingMessage_t& messag
             // Send player data
             packetData.playerData = networkPlayerDatasSaved.at(message.m_identityPeer.GetSteamID64());
             
-            packetData.currentPlayers.push_back(SteamUser()->GetSteamID().ConvertToUint64());
+            packetData.currentPlayerDatas[SteamUser()->GetSteamID().ConvertToUint64()] = game->createPlayerData();
             for (auto iter = networkPlayers.begin(); iter != networkPlayers.end(); iter++)
             {
-                packetData.currentPlayers.push_back(iter->first);
+                packetData.currentPlayerDatas[iter->first] = iter->second.getPlayerData();
             }
     
             registerNetworkPlayer(message.m_identityPeer.GetSteamID64());
@@ -683,10 +683,11 @@ void NetworkHandler::processMessageAsClient(const SteamNetworkingMessage_t& mess
 
             networkPlayers.clear();
             networkPlayerDatasSaved.clear();
-            for (uint64_t player : packetData.currentPlayers)
+            for (const auto& networkPlayerDataPair : packetData.currentPlayerDatas)
             {
-                registerNetworkPlayer(player, false);
-                std::cout << "NETWORK: Registered existing player " << SteamFriends()->GetFriendPersonaName(CSteamID(player)) << "\n";
+                registerNetworkPlayer(networkPlayerDataPair.first, false);
+                std::cout << "NETWORK: Registered existing player " << SteamFriends()->GetFriendPersonaName(CSteamID(networkPlayerDataPair.first)) << "\n";
+                networkPlayerDatasSaved[networkPlayerDataPair.first] = networkPlayerDataPair.second;
             }
 
             // Load into world

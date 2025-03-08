@@ -172,6 +172,8 @@ public:
 
     void travelToPlanetFromHost(const PacketDataPlanetTravelReply& planetTravelReplyPacket);
 
+    PlayerData createPlayerData();
+
 
     // Misc
 
@@ -300,8 +302,6 @@ private:
     bool saveGame(bool gettingInRocket = false);
     bool loadGame(const SaveFileSummary& saveFileSummary);
     bool loadPlanet(PlanetType planetType);
-
-    PlayerData createPlayerData();
 
     void initialiseWorldData(PlanetType planetType);
     

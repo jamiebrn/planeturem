@@ -3,8 +3,8 @@
 #include <string>
 #include <vector>
 
-#include <extlib/cereal/types/string.hpp>
-#include <extlib/cereal/types/vector.hpp>
+#include <extlib/cereal/types/unordered_map.hpp>
+#include <extlib/cereal/archives/binary.hpp>
 
 #include <SFML/System/Vector2.hpp>
 
@@ -26,12 +26,12 @@ struct PacketDataJoinInfo : public IPacketData
 
     // ChestDataPool chestDataPool;
 
-    std::vector<uint64_t> currentPlayers;
+    std::unordered_map<uint64_t, PlayerData> currentPlayerDatas;
 
     template <class Archive>
     void serialize(Archive& ar)
     {
-        ar(seed, gameTime, time, day, playerData, currentPlayers);
+        ar(seed, gameTime, time, day, playerData, currentPlayerDatas);
     }
 
     PACKET_SERIALISATION();
