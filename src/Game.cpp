@@ -1,8 +1,7 @@
 #include "Game.hpp"
 
-// FIX: Lighting sometimes momentarily breaks when crossing world boundary
-
-// FIX: Wrap around in multiplayer crash from null chunkmanager
+// FIX: Object deletion bug when not updating chunks (when client destroyed object outside of host update range)
+    // Maybe keep chunk range for each client, and update chunks in client range (also no more explicit chunk data requests?)
 
 // TODO: Night and menu music
 
@@ -428,7 +427,6 @@ void Game::runMainMenu(float dt)
                     // }
                 }
 
-                currentSaveFileSummary = menuEvent->saveFileSummary;
                 break;
             }
             case MainMenuEventType::JoinGame:
@@ -3617,6 +3615,9 @@ void Game::handleChunkDataFromHost(const PacketDataChunkDatas& chunkDataPacket)
         printf(("NETWORK: Received chunk (" + std::to_string(chunkData.chunkPosition.x) + ", " +
             std::to_string(chunkData.chunkPosition.y) + ") data from host\n").c_str());
     }
+
+    // Chunk datas received - recalcute lighting
+    lightingTick = LIGHTING_TICK;
 }
 
 void Game::joinedLobby(bool requiresNameInput)
