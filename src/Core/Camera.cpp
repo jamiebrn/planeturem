@@ -100,6 +100,21 @@ void Camera::handleWorldWrap(sf::Vector2f positionDelta)
     offset.y += positionDelta.y;
 }
 
+ChunkViewRange Camera::getChunkViewRange() const
+{
+    sf::Vector2f screenTopLeft = screenToWorldTransform({0, 0});
+    sf::Vector2f screenBottomRight = screenToWorldTransform(static_cast<sf::Vector2f>(ResolutionHandler::getResolution()));
+
+    ChunkViewRange chunkViewRange;
+
+    chunkViewRange.topLeft.x = std::floor(screenTopLeft.x / (TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE)) - CHUNK_VIEW_LOAD_BORDER;
+    chunkViewRange.topLeft.y = std::floor(screenTopLeft.y / (TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE)) - CHUNK_VIEW_LOAD_BORDER;
+    chunkViewRange.bottomRight.x = std::ceil(screenBottomRight.x / (TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE)) + CHUNK_VIEW_LOAD_BORDER;
+    chunkViewRange.bottomRight.y = std::ceil(screenBottomRight.y / (TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE)) + CHUNK_VIEW_LOAD_BORDER;
+
+    return chunkViewRange;
+}
+
 // Set offset of camera
 void Camera::setOffset(sf::Vector2f newOffset)
 {

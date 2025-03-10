@@ -177,6 +177,26 @@ std::vector<WorldObject*> NetworkHandler::getNetworkPlayersToDraw(const Location
     return networkPlayerObjects;
 }
 
+std::vector<ChunkViewRange> NetworkHandler::getNetworkPlayersChunkViewRanges(PlanetType planetType)
+{
+    std::vector<ChunkViewRange> chunkViewRanges;
+
+    LocationState locationState;
+    locationState.setPlanetType(planetType);
+
+    for (auto iter = networkPlayers.begin(); iter != networkPlayers.end(); iter++)
+    {
+        if (iter->second.getPlayerData().locationState != locationState)
+        {
+            continue;
+        }
+
+        chunkViewRanges.push_back(iter->second.getChunkViewRange());
+    }
+
+    return chunkViewRanges;
+}
+
 
 const PlayerData* NetworkHandler::getSavedNetworkPlayerData(uint64_t id)
 {
@@ -741,7 +761,7 @@ void NetworkHandler::processMessageAsClient(const SteamNetworkingMessage_t& mess
     }
 }
 
-void NetworkHandler::sendGameUpdates()
+void NetworkHandler::sendGameUpdates(const Camera& camera)
 {
     if (isLobbyHost)
     {
@@ -749,7 +769,7 @@ void NetworkHandler::sendGameUpdates()
     }
     else
     {
-        sendGameUpdatesToHost();
+        sendGameUpdatesToHost(camera);
     }
 }
 
@@ -780,13 +800,13 @@ void NetworkHandler::sendGameUpdatesToClients()
 
     std::unordered_map<uint64_t, Packet> playerInfoPackets;
     playerInfoPackets[steamID] = Packet();
-    playerInfoPackets[steamID].set(game->getPlayer().getNetworkPlayerInfo(steamID));
+    playerInfoPackets[steamID].set(game->getPlayer().getNetworkPlayerInfo(nullptr, steamID));
 
     // Get player infos
     for (auto iter = networkPlayers.begin(); iter != networkPlayers.end(); iter++)
     {
         playerInfoPackets[iter->first] = Packet();
-        playerInfoPackets[iter->first].set(iter->second.getNetworkPlayerInfo(iter->first));
+        playerInfoPackets[iter->first].set(iter->second.getNetworkPlayerInfo(nullptr, iter->first));
     }
 
     // Send player info
@@ -811,12 +831,12 @@ void NetworkHandler::sendGameUpdatesToClients()
     }
 }
 
-void NetworkHandler::sendGameUpdatesToHost()
+void NetworkHandler::sendGameUpdatesToHost(const Camera& camera)
 {
     uint64_t steamID = SteamUser()->GetSteamID().ConvertToUint64();
 
     Packet packet;
-    packet.set(game->getPlayer().getNetworkPlayerInfo(steamID));
+    packet.set(game->getPlayer().getNetworkPlayerInfo(&camera, steamID));
 
     SteamNetworkingIdentity hostIdentity;
     hostIdentity.SetSteamID64(lobbyHost);

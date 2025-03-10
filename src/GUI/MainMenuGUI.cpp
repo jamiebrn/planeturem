@@ -37,7 +37,7 @@ void MainMenuGUI::update(float dt, sf::Vector2f mouseScreenPos, Game& game)
 
     menuCamera.update(worldViewPosition, sf::Vector2f(0, 0), dt);
 
-    menuWorldData.chunkManager.updateChunks(game, menuCamera);
+    menuWorldData.chunkManager.updateChunks(game, {menuCamera.getChunkViewRange()});
     menuWorldData.chunkManager.updateChunksObjects(game, dt);
     menuWorldData.chunkManager.updateChunksEntities(dt, menuWorldData.projectileManager, game);
 }

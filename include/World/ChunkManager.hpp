@@ -25,6 +25,7 @@
 
 #include "World/Chunk.hpp"
 #include "World/ChunkPOD.hpp"
+#include "World/ChunkViewRange.hpp"
 #include "World/PathfindingEngine.hpp"
 
 #include "Data/typedefs.hpp"
@@ -53,9 +54,11 @@ public:
     // Delete all chunks (used when switching planets)
     void deleteAllChunks();
 
-    // Load/unload chunks every frame
-    // Returns true if any chunks loaded / unloaded
-    bool updateChunks(Game& game, const Camera& camera, bool isClient = false, std::vector<ChunkPosition>* chunksToRequestFromHost = nullptr);
+    // Load chunks every frame
+    // Returns true if any chunks loaded
+    bool updateChunks(Game& game, const std::vector<ChunkViewRange>& chunkViewRanges, bool isClient = false, std::vector<ChunkPosition>* chunksToRequestFromHost = nullptr);
+    
+    bool unloadChunksOutOfView(const std::vector<ChunkViewRange>& chunkViewRanges);
 
     // Forces a reload of chunks, used when wrapping around world
     void reloadChunks();

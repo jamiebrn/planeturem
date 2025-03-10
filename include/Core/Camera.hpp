@@ -4,19 +4,18 @@
 #include <algorithm>
 #include <cmath>
 
-// Include headers
 #include "Core/ResolutionHandler.hpp"
 #include "Core/Helper.hpp"
 
+#include "World/ChunkViewRange.hpp"
+
 #include "GameConstants.hpp"
 
-// Declare camera class
 class Camera
 {
 
 private:
 
-// Public class functions
 public:
     Camera() = default;
 
@@ -40,6 +39,8 @@ public:
 
     void handleWorldWrap(sf::Vector2f positionDelta);
 
+    ChunkViewRange getChunkViewRange() const;
+
     // Set offset of camera
     void setOffset(sf::Vector2f newOffset);
 
@@ -50,14 +51,11 @@ public:
     inline static void setScreenShakeEnabled(float enabled) {screenShakeEnabled = enabled;}
     inline static bool getScreenShakeEnabled() {return screenShakeEnabled;}
 
-// Private member variables
 private:
-    // Constant storing interpolation weight for camera movement
     static constexpr float MOVE_LERP_WEIGHT = 6;
     
     static constexpr float MOUSE_DELTA_DAMPEN = 15;
 
-    // Variable storing offset/position of camera
     sf::Vector2f offset;
 
     float screenShakeTime = 0.0f;

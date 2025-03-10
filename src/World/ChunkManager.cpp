@@ -55,61 +55,51 @@ void ChunkManager::deleteAllChunks()
     chunkLastEntitySpawnTime.clear();
 }
 
-bool ChunkManager::updateChunks(Game& game, const Camera& camera, bool isClient, std::vector<ChunkPosition>* chunksToRequestFromHost)
+bool ChunkManager::updateChunks(Game& game, const std::vector<ChunkViewRange>& chunkViewRanges, bool isClient, std::vector<ChunkPosition>* chunksToRequestFromHost)
 {
     // Chunk load/unload
 
     bool hasModifiedChunks = false;
 
-    // Get tile size
-    // float tileSize = ResolutionHandler::getTileSize();
-
-    // Get screen bounds
-    // sf::Vector2f screenTopLeft = -Camera::getDrawOffset();
-    // sf::Vector2f screenBottomRight = -Camera::getDrawOffset() + static_cast<sf::Vector2f>(ResolutionHandler::getResolution());
-    sf::Vector2f screenTopLeft = camera.screenToWorldTransform({0, 0});
-    sf::Vector2f screenBottomRight = camera.screenToWorldTransform(static_cast<sf::Vector2f>(ResolutionHandler::getResolution()));
-
-    // Convert screen bounds to chunk units
-    sf::Vector2i screenTopLeftGrid;
-    sf::Vector2i screenBottomRightGrid;
-
-    screenTopLeftGrid.y = std::floor(screenTopLeft.y / (TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE));
-    screenTopLeftGrid.x = std::floor(screenTopLeft.x / (TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE));
-    screenBottomRightGrid.x = std::ceil(screenBottomRight.x / (TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE));
-    screenBottomRightGrid.y = std::ceil(screenBottomRight.y / (TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE));
-
     // Check any chunks needed to load
-    for (int y = screenTopLeftGrid.y - CHUNK_VIEW_LOAD_BORDER; y <= screenBottomRightGrid.y + CHUNK_VIEW_LOAD_BORDER; y++)
+    for (const ChunkViewRange& chunkViewRange : chunkViewRanges)
     {
-        for (int x = screenTopLeftGrid.x - CHUNK_VIEW_LOAD_BORDER; x <= screenBottomRightGrid.x + CHUNK_VIEW_LOAD_BORDER; x++)
+        for (auto iter = chunkViewRange.begin(); iter != chunkViewRange.end(); iter++)
         {
-            ChunkPosition chunkPos(Helper::wrap(x, worldSize), Helper::wrap(y, worldSize));
-
+            ChunkPosition chunkPos = iter.get(worldSize);
+            
             // Chunk already loaded
             if (loadedChunks.count(chunkPos))
+            {
                 continue;
+            }    
+            
+            if (isClient && chunksToRequestFromHost != nullptr)
+            {
+                chunksToRequestFromHost->push_back(chunkPos);
+                continue;
+            }
             
             // Chunk not loaded
             hasModifiedChunks = true;
-
+        
             // Calculate chunk world pos
             sf::Vector2f chunkWorldPos;
-            chunkWorldPos.x = x * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
-            chunkWorldPos.y = y * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
-
+            chunkWorldPos.x = iter.getUnwrapped().x * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
+            chunkWorldPos.y = iter.getUnwrapped().y * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
+        
             // Check if chunk is in memory, and load if so
             if (storedChunks.count(chunkPos))
             {
                 // Move chunk into loaded chunks for rendering
                 loadedChunks[chunkPos] = std::move(storedChunks[chunkPos]);
                 storedChunks.erase(chunkPos);
-
+        
                 auto& chunk = loadedChunks[chunkPos];
-
+        
                 // Update chunk position
                 chunk->setWorldPosition(chunkWorldPos, *this);
-
+        
                 // If chunk was loaded through POD / save file, has not yet been initialised (tilemaps, collision, pathfinding etc)
                 // Therefore must initialise
                 if (chunk->wasGeneratedFromPOD())
@@ -119,76 +109,70 @@ bool ChunkManager::updateChunks(Game& game, const Camera& camera, bool isClient,
                 else
                 {
                     // Spawn entities if enough time has passed
-
+        
                     // Only attempt if chunk was not generated / loaded from POD, otherwise each time save is loaded
                     // more entities will spawn in player view (meaning previous state is not retained from player perspective)
-
+        
                     if (getChunkEntitySpawnCooldown(chunkPos) >= MAX_CHUNK_ENTITY_SPAWN_COOLDOWN)
                     {
                         chunk->spawnChunkEntities(worldSize, heightNoise, biomeNoise, riverNoise, planetType);
                         resetChunkEntitySpawnCooldown(chunkPos);
                     }
                 }
-
+        
                 continue;
             }
-
-            if (!isClient)
-            {
-                // Generate new chunk if does not exist
-                generateChunk(chunkPos, game, true, chunkWorldPos);
-            }
-            else if (chunksToRequestFromHost != nullptr)
-            {
-                chunksToRequestFromHost->push_back(chunkPos);
-            }
+        
+            // Generate new chunk if does not exist
+            generateChunk(chunkPos, game, true, chunkWorldPos);
         }
     }
+
+    return hasModifiedChunks;
+}
+
+bool ChunkManager::unloadChunksOutOfView(const std::vector<ChunkViewRange>& chunkViewRanges)
+{
+    bool hasUnloadedChunks = false;
 
     // Check any loaded chunks need unloading
     for (auto iter = loadedChunks.begin(); iter != loadedChunks.end();)
     {
         ChunkPosition chunkPos = iter->first;
 
-        // Calculate normalized chunk positions
-        int normalizedChunkX = ((chunkPos.x % worldSize) + worldSize) % worldSize;
-        int normalizedChunkY = ((chunkPos.y % worldSize) + worldSize) % worldSize;
-
-        int normalizedScreenLeft = (((screenTopLeftGrid.x - CHUNK_VIEW_LOAD_BORDER) % worldSize) + worldSize) % worldSize;
-        int normalizedScreenRight = (((screenBottomRightGrid.x + CHUNK_VIEW_LOAD_BORDER) % worldSize) + worldSize) % worldSize;
-        int normalizedScreenTop = (((screenTopLeftGrid.y - CHUNK_VIEW_LOAD_BORDER) % worldSize) + worldSize) % worldSize;
-        int normalizedScreenBottom = (((screenBottomRightGrid.y + CHUNK_VIEW_LOAD_BORDER) % worldSize) + worldSize) % worldSize;
-
-        // Use normalized chunk coordinates to determine whether the chunk is visible
-        bool chunkVisibleX = (normalizedChunkX >= normalizedScreenLeft && normalizedChunkX <= normalizedScreenRight) ||
-                        (normalizedScreenLeft > normalizedScreenRight && 
-                        (normalizedChunkX >= normalizedScreenLeft || normalizedChunkX <= normalizedScreenRight));
-
-        bool chunkVisibleY = (normalizedChunkY >= normalizedScreenTop && normalizedChunkY <= normalizedScreenBottom) ||
-                        (normalizedScreenTop > normalizedScreenBottom && 
-                        (normalizedChunkY >= normalizedScreenTop || normalizedChunkY <= normalizedScreenBottom));
-        
-        bool chunkVisible = chunkVisibleX && chunkVisibleY;
-
-        // If chunk is not visible, unload chunk
-        if (!chunkVisible)
+        // Must not be in any chunk view range
+        bool isInRange = false;
+        for (const ChunkViewRange& chunkViewRange : chunkViewRanges)
         {
-            hasModifiedChunks = true;
-
-            // If chunk has been modified, store it
-            if (iter->second->hasBeenModified())
+            if (chunkViewRange.isChunkInRange(chunkPos, worldSize))
             {
-                // Store chunk in chunk memory
-                storedChunks[chunkPos] = std::move(iter->second);
+                isInRange = true;
+                break;
             }
-            // Unload / delete chunk
-            iter = loadedChunks.erase(iter);
+        }
+
+        if (isInRange)
+        {
+            iter++;
             continue;
         }
-        iter++;
+
+        // If chunk is not visible, unload chunk
+        
+        // If chunk has been modified, store it
+        if (iter->second->hasBeenModified())
+        {
+            // Store chunk in chunk memory
+            storedChunks[chunkPos] = std::move(iter->second);
+        }
+        
+        // Unload / delete chunk
+        iter = loadedChunks.erase(iter);
+        
+        hasUnloadedChunks = true;
     }
 
-    return hasModifiedChunks;
+    return hasUnloadedChunks;
 }
 
 void ChunkManager::reloadChunks()
@@ -227,22 +211,34 @@ void ChunkManager::regenerateChunkWithoutStructure(ChunkPosition chunk, Game& ga
 
 void ChunkManager::drawChunkTerrain(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Camera& camera, float time)
 {
+    ChunkViewRange chunkViewRange = camera.getChunkViewRange();
+    
     // Draw terrain
-    for (auto& chunkPair : loadedChunks)
+    for (auto iter = chunkViewRange.begin(); iter != chunkViewRange.end(); iter++)
     {
-        ChunkPosition chunkPos = chunkPair.first;
-        std::unique_ptr<Chunk>& chunk = chunkPair.second;
+        ChunkPosition chunkPos = iter.get(worldSize);
         
-        chunk->drawChunkTerrain(window, camera, time);
+        if (!loadedChunks.contains(chunkPos))
+        {
+            printf(("ERROR: Attempted to draw unloaded chunk terrain (" + std::to_string(chunkPos.x) + ", " + std::to_string(chunkPos.y) + ")\n").c_str());
+            continue;
+        }
+        
+        loadedChunks[chunkPos]->drawChunkTerrain(window, camera, time);
     }
 
     // Draw visual terrain features e.g. cliffs
-    for (auto& chunkPair : loadedChunks)
+    for (auto iter = chunkViewRange.begin(); iter != chunkViewRange.end(); iter++)
     {
-        ChunkPosition chunkPos = chunkPair.first;
-        std::unique_ptr<Chunk>& chunk = chunkPair.second;
+        ChunkPosition chunkPos = iter.get(worldSize);
         
-        chunk->drawChunkTerrainVisual(window, spriteBatch, camera, planetType, time);
+        if (!loadedChunks.contains(chunkPos))
+        {
+            printf(("ERROR: Attempted to draw unloaded chunk terrain features (" + std::to_string(chunkPos.x) + ", " + std::to_string(chunkPos.y) + ")\n").c_str());
+            continue;
+        }
+        
+        loadedChunks[chunkPos]->drawChunkTerrainVisual(window, spriteBatch, camera, planetType, time);
     }
 }
 
@@ -252,12 +248,19 @@ void ChunkManager::drawChunkWater(sf::RenderTarget& window, const Camera& camera
     sf::Shader* waterShader = Shaders::getShader(ShaderType::Water);
     waterShader->setUniform("time", time);
 
-    for (auto& chunkPair : loadedChunks)
+    ChunkViewRange chunkViewRange = camera.getChunkViewRange();
+
+    for (auto iter = chunkViewRange.begin(); iter != chunkViewRange.end(); iter++)
     {
-        ChunkPosition chunkPos = chunkPair.first;
-        std::unique_ptr<Chunk>& chunk = chunkPair.second;
+        ChunkPosition chunkPos = iter.get(worldSize);
         
-        chunk->drawChunkWater(window, camera, *this);
+        if (!loadedChunks.contains(chunkPos))
+        {
+            printf(("ERROR: Attempted to draw unloaded chunk water (" + std::to_string(chunkPos.x) + ", " + std::to_string(chunkPos.y) + ")\n").c_str());
+            continue;
+        }
+        
+        loadedChunks[chunkPos]->drawChunkWater(window, camera, *this);
     }
 }
 

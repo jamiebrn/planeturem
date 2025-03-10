@@ -60,6 +60,8 @@ void NetworkPlayer::setNetworkPlayerCharacterInfo(const PacketDataPlayerCharacte
     }
 
     armour = info.armour;
+
+    chunkViewRange = info.chunkViewRange;
 }
 
 void NetworkPlayer::applyWorldWrapTranslation(sf::Vector2f playerPosition, const ChunkManager& chunkManager)
@@ -80,4 +82,9 @@ PlayerData& NetworkPlayer::getPlayerData()
 void NetworkPlayer::setPlayerData(const PlayerData& playerData)
 {
     this->playerData = playerData;
+}
+
+const ChunkViewRange& NetworkPlayer::getChunkViewRange()
+{
+    return chunkViewRange;
 }

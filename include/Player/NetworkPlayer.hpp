@@ -22,6 +22,7 @@
 
 #include "Player/Player.hpp"
 #include "Player/PlayerData.hpp"
+#include "World/ChunkViewRange.hpp"
 
 class ChunkManager;
 
@@ -43,8 +44,12 @@ public:
     PlayerData& getPlayerData();
     void setPlayerData(const PlayerData& playerData);
 
+    const ChunkViewRange& getChunkViewRange();
+
 private:
     PlayerData playerData;
+
+    ChunkViewRange chunkViewRange;
 
     // Before world wrap translation applied
     sf::Vector2f fishingRodBobWorldPosUnwrapped;

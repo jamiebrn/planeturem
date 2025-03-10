@@ -960,7 +960,7 @@ bool Player::isAlive() const
 
 // Multiplayer
 
-PacketDataPlayerCharacterInfo Player::getNetworkPlayerInfo(uint64_t steamID)
+PacketDataPlayerCharacterInfo Player::getNetworkPlayerInfo(const Camera* camera, uint64_t steamID)
 {
     PacketDataPlayerCharacterInfo info;
     info.positionX = position.x;
@@ -987,6 +987,11 @@ PacketDataPlayerCharacterInfo Player::getNetworkPlayerInfo(uint64_t steamID)
     info.fishingRodBobWorldTile = fishingRodBobWorldTile;
 
     info.armour = armour;
+
+    if (camera)
+    {
+        info.chunkViewRange = camera->getChunkViewRange();
+    }
 
     info.userID = steamID;
 

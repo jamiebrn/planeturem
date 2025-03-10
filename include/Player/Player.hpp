@@ -19,6 +19,7 @@
 #include "Core/TextDraw.hpp"
 #include "Core/SpriteBatch.hpp"
 #include "Core/InputManager.hpp"
+#include "Core/Camera.hpp"
 #include "Object/WorldObject.hpp"
 #include "World/ChunkManager.hpp"
 #include "World/Room.hpp"
@@ -108,7 +109,7 @@ public:
 
     // Multiplayer
     
-    PacketDataPlayerCharacterInfo getNetworkPlayerInfo(uint64_t steamID);
+    PacketDataPlayerCharacterInfo getNetworkPlayerInfo(const Camera* camera, uint64_t steamID);
 
 
 private:

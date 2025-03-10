@@ -5,6 +5,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include "Core/Camera.hpp"
+
 #include "Network/Packet.hpp"
 #include "Network/IPacketData.hpp"
 #include "Network/PacketDataJoinQuery.hpp"
@@ -28,6 +30,7 @@
 
 #include "GUI/InventoryGUI.hpp"
 #include "World/ChunkPosition.hpp"
+#include "World/ChunkViewRange.hpp"
 #include "Player/PlayerData.hpp"
 #include "Player/NetworkPlayer.hpp"
 
@@ -46,9 +49,9 @@ public:
 
     void receiveMessages();
 
-    void sendGameUpdates();
+    void sendGameUpdates(const Camera& camera);
     void sendGameUpdatesToClients();
-    void sendGameUpdatesToHost();
+    void sendGameUpdatesToHost(const Camera& camera);
 
     void leaveLobby();
     
@@ -71,6 +74,8 @@ public:
     std::unordered_map<uint64_t, NetworkPlayer>& getNetworkPlayers();
 
     std::vector<WorldObject*> getNetworkPlayersToDraw(const LocationState& locationState, sf::Vector2f playerPosition);
+
+    std::vector<ChunkViewRange> getNetworkPlayersChunkViewRanges(PlanetType planetType);
 
     std::string getPlayerName(uint64_t id);
 

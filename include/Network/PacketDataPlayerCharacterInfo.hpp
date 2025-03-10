@@ -8,6 +8,7 @@
 #include <SFML/System/Vector2.hpp>
 
 #include "Data/typedefs.hpp"
+#include "World/ChunkViewRange.hpp"
 
 struct PacketDataPlayerCharacterInfo : public IPacketData
 {
@@ -28,13 +29,15 @@ struct PacketDataPlayerCharacterInfo : public IPacketData
 
     std::array<ArmourType, 3> armour;
 
+    ChunkViewRange chunkViewRange;
     uint64_t userID;
 
     template <class Archive>
     void serialize(Archive& ar)
     {
         ar(positionX, positionY, animationFrame, flipped, yScaleMult, onWater, toolType, toolRotation,
-            fishingRodCasted, fishBitingLine, fishingRodBobWorldTile.x, fishingRodBobWorldTile.y, armour, userID);
+            fishingRodCasted, fishBitingLine, fishingRodBobWorldTile.x, fishingRodBobWorldTile.y, armour,
+            chunkViewRange, userID);
     }
 
     PACKET_SERIALISATION();
