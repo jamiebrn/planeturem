@@ -506,7 +506,8 @@ void Game::runInGame(float dt)
                         
                         if (InventoryGUI::isMouseOverUI(mouseScreenPos) && !InputManager::isControllerActive())
                         {
-                            InventoryGUI::handleLeftClick(*this, mouseScreenPos, shiftMode, inventory, armourInventory, getChestDataPool().getChestDataPtr(openedChestID));
+                            InventoryGUI::handleLeftClick(*this, mouseScreenPos, shiftMode, networkHandler,
+                                inventory, armourInventory, getChestDataPool().getChestDataPtr(openedChestID));
                             uiInteracted = true;
                         }
 
@@ -585,7 +586,8 @@ void Game::runInGame(float dt)
                 case WorldMenuState::Inventory:
                     if (InventoryGUI::isMouseOverUI(mouseScreenPos) && !InputManager::isControllerActive())
                     {
-                        InventoryGUI::handleRightClick(*this, mouseScreenPos, shiftMode, inventory, armourInventory, getChestDataPool().getChestDataPtr(openedChestID));
+                        InventoryGUI::handleRightClick(*this, mouseScreenPos, shiftMode, networkHandler,
+                            inventory, armourInventory, getChestDataPool().getChestDataPtr(openedChestID));
                         changePlayerTool();
                     }
                     else
@@ -894,7 +896,7 @@ void Game::runInGame(float dt)
             case WorldMenuState::Inventory:
             {
                 ItemType itemHeldBefore = InventoryGUI::getHeldItemType(inventory);
-                if (InventoryGUI::handleControllerInput(*this, inventory, armourInventory, getChestDataPool().getChestDataPtr(openedChestID)))
+                if (InventoryGUI::handleControllerInput(*this, networkHandler, inventory, armourInventory, getChestDataPool().getChestDataPtr(openedChestID)))
                 {
                     if (itemHeldBefore != InventoryGUI::getHeldItemType(inventory))
                     {
@@ -2843,6 +2845,8 @@ void Game::travelToPlanet(PlanetType planetType, ObjectReference newRocketObject
     }
     
     camera.instantUpdate(player.getPosition());
+
+    networkHandler.sendPlayerData();
 }
 
 void Game::travelToPlanetFromHost(const PacketDataPlanetTravelReply& planetTravelReplyPacket)
@@ -3557,7 +3561,7 @@ void Game::joinWorld(const PacketDataJoinInfo& joinInfo)
     lightingTick = LIGHTING_TICK;
 
     // Send player data to host
-    networkHandler.sendPlayerDataToHost(createPlayerData());
+    networkHandler.sendPlayerData();
 
     worldMenuState = WorldMenuState::Main;
     musicGap = MUSIC_GAP_MIN;

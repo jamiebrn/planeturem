@@ -269,7 +269,8 @@ void InventoryGUI::updateInventory(sf::Vector2f mouseScreenPos, float dt, Invent
     }
 }
 
-void InventoryGUI::handleLeftClick(Game& game, sf::Vector2f mouseScreenPos, bool shiftMode, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData)
+void InventoryGUI::handleLeftClick(Game& game, sf::Vector2f mouseScreenPos, bool shiftMode, NetworkHandler& networkHandler,
+    InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData)
 {
     if (isItemPickedUp)
     {
@@ -325,9 +326,12 @@ void InventoryGUI::handleLeftClick(Game& game, sf::Vector2f mouseScreenPos, bool
         int recipeClicked = recipeSlotClicked + recipeCurrentPage * RECIPE_MAX_ROWS * ITEM_BOX_PER_ROW;
         craftRecipe(inventory, recipeClicked);
     }
+
+    networkHandler.sendPlayerData();
 }
 
-void InventoryGUI::handleRightClick(Game& game, sf::Vector2f mouseScreenPos, bool shiftMode, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData)
+void InventoryGUI::handleRightClick(Game& game, sf::Vector2f mouseScreenPos, bool shiftMode, NetworkHandler& networkHandler,
+    InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData)
 {
     if (canQuickTransfer(mouseScreenPos, shiftMode, inventory, chestData) && !openShopData.has_value())
     {
@@ -342,6 +346,8 @@ void InventoryGUI::handleRightClick(Game& game, sf::Vector2f mouseScreenPos, boo
             pickUpItem(game, mouseScreenPos, 1, inventory, armourInventory, chestData);
         }
     }
+
+    networkHandler.sendPlayerData();
 }
 
 bool InventoryGUI::handleScroll(sf::Vector2f mouseScreenPos, int direction, InventoryData& inventory)
@@ -2108,7 +2114,7 @@ void InventoryGUI::drawItemPopups(sf::RenderTarget& window, float gameTime)
 
 
 // -- Controller navigation -- //
-bool InventoryGUI::handleControllerInput(Game& game, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData)
+bool InventoryGUI::handleControllerInput(Game& game, NetworkHandler& networkHandler, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData)
 {
     if (!InputManager::isControllerActive())
     {
@@ -2286,12 +2292,12 @@ bool InventoryGUI::handleControllerInput(Game& game, InventoryData& inventory, I
 
     if (InputManager::isActionJustActivated(InputAction::UI_CONFIRM))
     {
-        handleLeftClick(game, sf::Vector2f(0, 0), InputManager::isActionActive(InputAction::UI_SHIFT), inventory, armourInventory, chestData);
+        handleLeftClick(game, sf::Vector2f(0, 0), InputManager::isActionActive(InputAction::UI_SHIFT), networkHandler, inventory, armourInventory, chestData);
         return true;
     }
     if (InputManager::isActionJustActivated(InputAction::UI_CONFIRM_OTHER))
     {
-        handleRightClick(game, sf::Vector2f(0, 0), InputManager::isActionActive(InputAction::UI_SHIFT), inventory, armourInventory, chestData);
+        handleRightClick(game, sf::Vector2f(0, 0), InputManager::isActionActive(InputAction::UI_SHIFT), networkHandler, inventory, armourInventory, chestData);
         return true;
     }
 

@@ -260,11 +260,11 @@ void NetworkHandler::deleteNetworkPlayer(uint64_t id)
         return;
     }
     
-    networkPlayers.erase(id);
-
-    // Alert connected players
+    // Alert connected players and save player data
     if (isLobbyHost)
     {
+        networkPlayerDatasSaved[id] = networkPlayers[id].getPlayerData();
+
         Packet packet;
         packet.type = PacketType::PlayerDisconnected;
         packet.data.resize(sizeof(id));
@@ -277,6 +277,8 @@ void NetworkHandler::deleteNetworkPlayer(uint64_t id)
             packet.sendToUser(identity, k_nSteamNetworkingSend_Reliable, 0);
         }
     }
+
+    networkPlayers.erase(id);
 
     InventoryGUI::pushItemPopup(ItemCount(0, 1), false, std::string(SteamFriends()->GetFriendPersonaName(id)) + " disconnected");
 }
@@ -419,6 +421,8 @@ void NetworkHandler::processMessage(const SteamNetworkingMessage_t& message, con
             if (networkPlayers.contains(packetData.userID))
             {
                 networkPlayers[packetData.userID].getPlayerData() = packetData.playerData;
+                printf(("NETWORK: Received player data for network player " + std::to_string(packetData.userID) + "(" +
+                packetData.playerData.name + ")\n").c_str());
             }
             else
             {
@@ -937,7 +941,7 @@ void NetworkHandler::requestChunksFromHost(PlanetType planetType, std::vector<Ch
 }
 
 
-void NetworkHandler::sendPlayerDataToHost(const PlayerData& playerData)
+void NetworkHandler::sendPlayerDataToHost()
 {
     if (!isClient())
     {
@@ -946,7 +950,7 @@ void NetworkHandler::sendPlayerDataToHost(const PlayerData& playerData)
 
     PacketDataPlayerData packetData;
     packetData.userID = SteamUser()->GetSteamID().ConvertToUint64();
-    packetData.playerData = playerData;
+    packetData.playerData = game->createPlayerData();
 
     Packet packet;
     packet.set(packetData, true);
@@ -954,6 +958,20 @@ void NetworkHandler::sendPlayerDataToHost(const PlayerData& playerData)
     printf(("NETWORK: Sending player data to host " + packet.getSizeStr() + "\n").c_str());
 
     sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
+}
+
+void NetworkHandler::sendHostPlayerDataToClients()
+{
+    if (!getIsLobbyHost())
+    {
+        return;
+    }
+
+    PacketDataPlayerData packetData;
+    packetData.userID = SteamUser()->GetSteamID().ConvertToUint64();
+    packetData.playerData = game->createPlayerData();
+
+    sendPlayerDataToClients(packetData);
 }
 
 void NetworkHandler::handleChunkDatasFromHost(const PacketDataChunkDatas& chunkDatas)
@@ -966,6 +984,18 @@ void NetworkHandler::handleChunkDatasFromHost(const PacketDataChunkDatas& chunkD
         {
             chunkRequestsOutstanding.erase(chunkData.chunkPosition);
         }
+    }
+}
+
+void NetworkHandler::sendPlayerData()
+{
+    if (getIsLobbyHost())
+    {
+        sendHostPlayerDataToClients();
+    }
+    else if (isClient())
+    {
+        sendPlayerDataToHost();
     }
 }
 

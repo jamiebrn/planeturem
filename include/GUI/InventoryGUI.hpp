@@ -23,6 +23,8 @@
 #include "Player/InventoryData.hpp"
 #include "Player/ShopInventoryData.hpp"
 
+#include "Network/NetworkHandler.hpp"
+
 #include "Data/typedefs.hpp"
 #include "Data/ItemData.hpp"
 #include "Data/ItemDataLoader.hpp"
@@ -85,10 +87,12 @@ public:
     static void updateInventory(sf::Vector2f mouseScreenPos, float dt, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData = nullptr);
 
     // May pick up item stack, may put down item stack
-    static void handleLeftClick(Game& game, sf::Vector2f mouseScreenPos, bool shiftMode, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData = nullptr);
+    static void handleLeftClick(Game& game, sf::Vector2f mouseScreenPos, bool shiftMode, NetworkHandler& networkHandler,
+        InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData = nullptr);
 
     // May pick up single item
-    static void handleRightClick(Game& game, sf::Vector2f mouseScreenPos, bool shiftMode, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData = nullptr);
+    static void handleRightClick(Game& game, sf::Vector2f mouseScreenPos, bool shiftMode, NetworkHandler& networkHandler,
+        InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData = nullptr);
 
     static bool handleScroll(sf::Vector2f mouseScreenPos, int direction, InventoryData& inventory);
 
@@ -165,7 +169,7 @@ public:
     // -- Controller navigation -- //
 
     // Returns true if any inventory is modified
-    static bool handleControllerInput(Game& game, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData);
+    static bool handleControllerInput(Game& game, NetworkHandler& networkHandler, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData);
 
     // -- Misc -- //
     static bool canQuickTransfer(sf::Vector2f mouseScreenPos, bool shiftMode, InventoryData& inventory, InventoryData* chestData);

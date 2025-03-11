@@ -61,8 +61,8 @@ public:
     
     void requestChunksFromHost(PlanetType planetType, std::vector<ChunkPosition>& chunks);
 
-    void sendPlayerDataToHost(const PlayerData& playerData);
-    
+    void sendPlayerData();
+
     bool isMultiplayerGame();
     bool isLobbyHostOrSolo();
     bool getIsLobbyHost();
@@ -95,6 +95,8 @@ private:
 
     void handleChunkDatasFromHost(const PacketDataChunkDatas& chunkDatas);
 
+    void sendPlayerDataToHost();
+    void sendHostPlayerDataToClients();
     void sendPlayerDataToClients(const PacketDataPlayerData& playerDataPacket);
 
     // Callbacks
