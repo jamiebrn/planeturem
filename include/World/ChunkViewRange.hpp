@@ -29,9 +29,9 @@ struct ChunkViewRange
             index = std::max(index - 1, 0);
             return *this;
         }
-        inline bool operator==(const iterator& other)
+        inline bool operator!=(const iterator& other)
         {
-            return (index == other.index);
+            return (index != other.index);
         }
         inline ChunkPosition get(std::optional<int> worldSize)
         {

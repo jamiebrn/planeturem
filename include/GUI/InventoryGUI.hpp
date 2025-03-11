@@ -23,8 +23,6 @@
 #include "Player/InventoryData.hpp"
 #include "Player/ShopInventoryData.hpp"
 
-#include "Network/NetworkHandler.hpp"
-
 #include "Data/typedefs.hpp"
 #include "Data/ItemData.hpp"
 #include "Data/ItemDataLoader.hpp"
@@ -47,6 +45,7 @@
 
 // Forward declare
 class Game;
+class NetworkHandler;
 
 struct ItemInfoString
 {

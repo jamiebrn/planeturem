@@ -1,5 +1,6 @@
 #include "GUI/InventoryGUI.hpp"
 #include "Game.hpp"
+#include "Network/NetworkHandler.hpp"
 
 int InventoryGUI::itemBoxSize = 75;
 int InventoryGUI::itemBoxSpacing = 10;
