@@ -220,7 +220,6 @@ void ChunkManager::drawChunkTerrain(sf::RenderTarget& window, SpriteBatch& sprit
         
         if (!loadedChunks.contains(chunkPos))
         {
-            printf(("ERROR: Attempted to draw unloaded chunk terrain (" + std::to_string(chunkPos.x) + ", " + std::to_string(chunkPos.y) + ")\n").c_str());
             continue;
         }
         
@@ -234,7 +233,6 @@ void ChunkManager::drawChunkTerrain(sf::RenderTarget& window, SpriteBatch& sprit
         
         if (!loadedChunks.contains(chunkPos))
         {
-            printf(("ERROR: Attempted to draw unloaded chunk terrain features (" + std::to_string(chunkPos.x) + ", " + std::to_string(chunkPos.y) + ")\n").c_str());
             continue;
         }
         
@@ -256,7 +254,6 @@ void ChunkManager::drawChunkWater(sf::RenderTarget& window, const Camera& camera
         
         if (!loadedChunks.contains(chunkPos))
         {
-            printf(("ERROR: Attempted to draw unloaded chunk water (" + std::to_string(chunkPos.x) + ", " + std::to_string(chunkPos.y) + ")\n").c_str());
             continue;
         }
         
