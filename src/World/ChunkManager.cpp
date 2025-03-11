@@ -994,7 +994,7 @@ void ChunkManager::setChunkData(const PacketDataChunkDatas::ChunkData& chunkData
     {
         std::unique_ptr<Chunk> chunk = std::make_unique<Chunk>(chunkData.chunkPosition);
         chunkPtr = chunk.get();
-        storedChunks[chunkData.chunkPosition] = std::move(chunk);
+        loadedChunks[chunkData.chunkPosition] = std::move(chunk);
     }
     
     chunkPtr->loadFromChunkPOD(chunkData.createPOD(), game, *this);
