@@ -72,12 +72,6 @@ bool ChunkManager::updateChunks(Game& game, const std::vector<ChunkViewRange>& c
             if (loadedChunks.count(chunkPos))
             {
                 continue;
-            }    
-            
-            if (isClient && chunksToRequestFromHost != nullptr)
-            {
-                chunksToRequestFromHost->push_back(chunkPos);
-                continue;
             }
             
             // Chunk not loaded
@@ -122,8 +116,14 @@ bool ChunkManager::updateChunks(Game& game, const std::vector<ChunkViewRange>& c
         
                 continue;
             }
+
+            if (isClient && chunksToRequestFromHost != nullptr)
+            {
+                chunksToRequestFromHost->push_back(chunkPos);
+                continue;
+            }
         
-            // Generate new chunk if does not exist
+            // Generate new chunk if does not exist (only if host / solo)
             generateChunk(chunkPos, game, true, chunkWorldPos);
         }
     }
@@ -994,7 +994,7 @@ void ChunkManager::setChunkData(const PacketDataChunkDatas::ChunkData& chunkData
     {
         std::unique_ptr<Chunk> chunk = std::make_unique<Chunk>(chunkData.chunkPosition);
         chunkPtr = chunk.get();
-        loadedChunks[chunkData.chunkPosition] = std::move(chunk);
+        storedChunks[chunkData.chunkPosition] = std::move(chunk);
     }
     
     chunkPtr->loadFromChunkPOD(chunkData.createPOD(), game, *this);
