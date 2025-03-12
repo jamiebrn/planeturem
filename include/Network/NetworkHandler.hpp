@@ -49,6 +49,8 @@ public:
 
     void receiveMessages();
 
+    void update(float dt);
+
     void sendGameUpdates(const Camera& camera);
     void sendGameUpdatesToClients();
     void sendGameUpdatesToHost(const Camera& camera);
@@ -61,6 +63,7 @@ public:
     
     void requestChunksFromHost(PlanetType planetType, std::vector<ChunkPosition>& chunks);
 
+    void queueSendPlayerData();
     void sendPlayerData();
 
     bool isMultiplayerGame();
@@ -115,6 +118,10 @@ private:
 
     std::unordered_map<uint64_t, NetworkPlayer> networkPlayers;
     std::unordered_map<uint64_t, PlayerData> networkPlayerDatasSaved;
+
+    static constexpr float SEND_PLAYER_DATA_QUEUE_TIME = 1.0f;
+    bool sendPlayerDataQueued;
+    float sendPlayerDataQueueTime;
 
     // Client-specific
     static constexpr float CHUNK_REQUEST_OUTSTANDING_MAX_TIME = 2.0f;

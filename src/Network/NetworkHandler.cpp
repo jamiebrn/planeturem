@@ -20,6 +20,9 @@ void NetworkHandler::reset(Game* game)
     lobbyHost = 0;
     networkPlayers.clear();
     networkPlayerDatasSaved.clear();
+
+    sendPlayerDataQueued = false;
+    sendPlayerDataQueueTime = 0.0f;
 }
 
 void NetworkHandler::startHostServer()
@@ -354,6 +357,18 @@ void NetworkHandler::callbackMessageSessionRequest(SteamNetworkingMessagesSessio
     SteamNetworkingMessages()->AcceptSessionWithUser(pCallback->m_identityRemote);
 }
 
+void NetworkHandler::update(float dt)
+{
+    if (sendPlayerDataQueued)
+    {
+        sendPlayerDataQueueTime = std::max(sendPlayerDataQueueTime - dt, 0.0f);
+        if (sendPlayerDataQueueTime <= 0.0f)
+        {
+            sendPlayerData();
+        }
+    }
+}
+
 void NetworkHandler::receiveMessages()
 {
     static const int MAX_MESSAGES = 10;
@@ -420,7 +435,7 @@ void NetworkHandler::processMessage(const SteamNetworkingMessage_t& message, con
             packetData.deserialise(packet.data);
             if (networkPlayers.contains(packetData.userID))
             {
-                networkPlayers[packetData.userID].getPlayerData() = packetData.playerData;
+                networkPlayers[packetData.userID].setPlayerData(packetData.playerData);
                 printf(("NETWORK: Received player data for network player " + std::to_string(packetData.userID) + "(" +
                 packetData.playerData.name + ")\n").c_str());
             }
@@ -434,7 +449,7 @@ void NetworkHandler::processMessage(const SteamNetworkingMessage_t& message, con
             if (getIsLobbyHost())
             {
                 networkPlayerDatasSaved[packetData.userID] = packetData.playerData;
-                sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0);
+                sendPlayerDataToClients(packetData);
             }
             break;
         }
@@ -520,6 +535,7 @@ void NetworkHandler::processMessage(const SteamNetworkingMessage_t& message, con
             PacketDataInventoryAddItem packetData;
             packetData.deserialise(packet.data);
             game->getInventory().addItem(packetData.itemType, packetData.amount, true);
+            queueSendPlayerData();
             break;
         }
         case PacketType::ChestOpened:
@@ -940,6 +956,13 @@ void NetworkHandler::requestChunksFromHost(PlanetType planetType, std::vector<Ch
     sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
 }
 
+void NetworkHandler::queueSendPlayerData()
+{
+    sendPlayerDataQueued = true;
+    sendPlayerDataQueueTime = SEND_PLAYER_DATA_QUEUE_TIME;
+
+    printf("NETWORK: Queued player data send\n");
+}
 
 void NetworkHandler::sendPlayerDataToHost()
 {
@@ -997,6 +1020,8 @@ void NetworkHandler::sendPlayerData()
     {
         sendPlayerDataToHost();
     }
+    
+    sendPlayerDataQueued = false;
 }
 
 void NetworkHandler::sendPlayerDataToClients(const PacketDataPlayerData& playerDataPacket)

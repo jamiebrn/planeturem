@@ -1170,6 +1170,12 @@ void Game::updateOnPlanet(float dt)
                     {
                         networkHandler.sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
                     }
+
+                    // Queue send player data if required
+                    if (modifyInventory)
+                    {
+                        networkHandler.queueSendPlayerData();
+                    }
                 }
             }
         }

@@ -328,7 +328,7 @@ void InventoryGUI::handleLeftClick(Game& game, sf::Vector2f mouseScreenPos, bool
         craftRecipe(inventory, recipeClicked);
     }
 
-    networkHandler.sendPlayerData();
+    networkHandler.queueSendPlayerData();
 }
 
 void InventoryGUI::handleRightClick(Game& game, sf::Vector2f mouseScreenPos, bool shiftMode, NetworkHandler& networkHandler,
@@ -348,7 +348,7 @@ void InventoryGUI::handleRightClick(Game& game, sf::Vector2f mouseScreenPos, boo
         }
     }
 
-    networkHandler.sendPlayerData();
+    networkHandler.queueSendPlayerData();
 }
 
 bool InventoryGUI::handleScroll(sf::Vector2f mouseScreenPos, int direction, InventoryData& inventory)
