@@ -23,6 +23,8 @@ public:
 
     Room& getRoom(uint32_t structureID);
 
+    bool isIDValid(uint32_t structureID);
+
 
     // Save / load
     template<class Archive>

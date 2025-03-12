@@ -126,11 +126,12 @@ public:
 
 public:
     // Chest
-    void openChest(ChestObject& chest, bool initiatedClientSide, std::optional<PlanetType> planetType = std::nullopt);
+    void openChest(ChestObject& chest, std::optional<LocationState> chestLocationState, bool initiatedClientSide);
     void openChestForClient(PacketDataChestOpened packetData);
     void openChestFromHost(const PacketDataChestOpened& packetData);
     void openedChestDataModified();
-    void closeChest(std::optional<ObjectReference> chestObjectRef = std::nullopt, bool sentFromHost = false, std::optional<uint64_t> userId = std::nullopt);
+    void closeChest(std::optional<ObjectReference> chestObjectRef = std::nullopt, std::optional<LocationState> chestLocationState = std::nullopt,
+        bool sentFromHost = false, std::optional<uint64_t> userId = std::nullopt);
     uint16_t getOpenChestID();
 
     // Rocket
@@ -151,7 +152,7 @@ public:
     void testMeleeCollision(const std::vector<HitRect>& hitRects);
 
     // Item pickups created alert
-    void itemPickupsCreated(const std::vector<ItemPickupReference>& itemPickupsCreated, std::optional<PlanetType> planetType = std::nullopt);
+    void itemPickupsCreated(const std::vector<ItemPickupReference>& itemPickupsCreated, std::optional<LocationState> pickupsLocationState);
 
     void drawWorld(sf::RenderTexture& renderTexture, float dt, std::vector<WorldObject*>& worldObjects, WorldData& worldData, const Camera& cameraArg);
 
@@ -187,6 +188,7 @@ public:
     RoomPool& getStructureRoomPool(std::optional<PlanetType> planetTypeOverride = std::nullopt);
     Room& getRoomDestination(std::optional<RoomType> roomDestOverride = std::nullopt);
     ChestDataPool& getChestDataPool(std::optional<PlanetType> planetTypeOverride = std::nullopt, std::optional<RoomType> roomDestOverride = std::nullopt);
+    bool isLocationStateInitialised(const LocationState& locationState);
 
     inline const Camera& getCamera() {return camera;}
 
@@ -259,8 +261,7 @@ private:
     // For chunks, will use chunk and tile from object reference
     // For rooms, will use tile from object reference
     template <class T = BuildableObject>
-    T* getObjectFromChunkOrRoom(ObjectReference objectReference, std::optional<PlanetType> planetType = std::nullopt, std::optional<uint32_t> structureID = std::nullopt,
-        std::optional<RoomType> roomDestType = std::nullopt, std::optional<GameState> gameStateOverride = std::nullopt);
+    T* getObjectFromLocation(ObjectReference objectReference, const LocationState& objectLocationState);
 
 
     // -- Inventory / Chests -- //

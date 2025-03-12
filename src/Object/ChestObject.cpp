@@ -108,7 +108,7 @@ void ChestObject::interact(Game& game, bool isClient)
         }
     }
 
-    game.openChest(*this, isClient);
+    game.openChest(*this, std::nullopt, isClient);
 }
 
 bool ChestObject::isInteractable() const

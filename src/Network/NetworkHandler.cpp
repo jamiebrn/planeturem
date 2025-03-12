@@ -473,11 +473,21 @@ void NetworkHandler::processMessage(const SteamNetworkingMessage_t& message, con
         {
             PacketDataItemPickupsCreated packetData;
             packetData.deserialise(packet.data);
+
+            if (!game->isLocationStateInitialised(packetData.locationState))
+            {
+                if (isLobbyHost)
+                {
+                    printf(("ERROR: Attempted to create item pickups from client on null planet type " +
+                        std::to_string(packetData.locationState.getPlanetType()) + "\n").c_str());
+                }
+                break;
+            }
             
             // Create item pickups sent
             for (auto& itemPickupPair : packetData.createdPickups)
             {
-                Chunk* chunkPtr = game->getChunkManager().getChunk(itemPickupPair.first.chunk);
+                Chunk* chunkPtr = game->getChunkManager(packetData.locationState.getPlanetType()).getChunk(itemPickupPair.first.chunk);
                 if (!chunkPtr)
                 {
                     std::cout << "ERROR: Failed to create item pickup sent from host in null chunk (" << itemPickupPair.first.chunk.x <<
@@ -507,8 +517,15 @@ void NetworkHandler::processMessage(const SteamNetworkingMessage_t& message, con
             if (isLobbyHost)
             {
                 sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0);
+                
+                if (!game->isLocationStateInitialised(packetData.locationState))
+                {
+                    printf(("ERROR: Attempted to delete item pickups from client on null planet type " +
+                        std::to_string(packetData.locationState.getPlanetType()) + "\n").c_str());
+                    break;
+                }
     
-                Chunk* chunkPtr = game->getChunkManager().getChunk(packetData.pickupDeleted.chunk);
+                Chunk* chunkPtr = game->getChunkManager(packetData.locationState.getPlanetType()).getChunk(packetData.pickupDeleted.chunk);
                 if (chunkPtr)
                 {
                     ItemPickup* itemPickupPtr = chunkPtr->getItemPickup(packetData.pickupDeleted.id);
@@ -525,9 +542,12 @@ void NetworkHandler::processMessage(const SteamNetworkingMessage_t& message, con
                     }
                 }
             }
-    
-            // Delete pickup from chunk manager, regardless of whether we are host or client
-            game->getChunkManager().deleteItemPickup(packetData.pickupDeleted);
+
+            if (game->isLocationStateInitialised(packetData.locationState))
+            {
+                // Delete pickup from chunk manager, regardless of whether we are host or client
+                game->getChunkManager(packetData.locationState.getPlanetType()).deleteItemPickup(packetData.pickupDeleted);
+            }
             break;
         }
         case PacketType::InventoryAddItem:
@@ -565,7 +585,7 @@ void NetworkHandler::processMessage(const SteamNetworkingMessage_t& message, con
             }
     
             // Close chest for us (if using the chest, close inventory etc, or simply close animation if other user closed)
-            game->closeChest(packetData.chestObject, true, packetData.userID);
+            game->closeChest(packetData.chestObject, packetData.locationState, true, packetData.userID);
             break;
         }
     }
@@ -642,7 +662,7 @@ void NetworkHandler::processMessageAsHost(const SteamNetworkingMessage_t& messag
             // Create item pickups requested
             for (auto& request : packetData.pickupRequests)
             {
-                Chunk* chunkPtr = game->getChunkManager().getChunk(request.chunk);
+                Chunk* chunkPtr = game->getChunkManager(pickupsCreatedPacketData.locationState.getPlanetType()).getChunk(request.chunk);
                 if (!chunkPtr)
                 {
                     std::cout << "ERROR: Failed to create item pickup requested from client in null chunk (" << request.chunk.x <<
@@ -965,8 +985,6 @@ void NetworkHandler::queueSendPlayerData()
     
     sendPlayerDataQueued = true;
     sendPlayerDataQueueTime = SEND_PLAYER_DATA_QUEUE_TIME;
-
-    printf("NETWORK: Queued player data send\n");
 }
 
 void NetworkHandler::sendPlayerDataToHost()

@@ -14,3 +14,8 @@ Room& RoomPool::getRoom(uint32_t structureID)
 {
     return rooms.at(structureID);
 }
+
+bool RoomPool::isIDValid(uint32_t structureID)
+{
+    return (structureID < rooms.size());
+}

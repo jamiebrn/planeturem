@@ -1,5 +1,7 @@
 #pragma once
 
+#include <optional>
+
 #include <extlib/cereal/archives/binary.hpp>
 
 #include "Network/IPacketData.hpp"
@@ -12,7 +14,7 @@ struct PacketDataObjectBuilt : public IPacketData
     PlanetType planetType;
     ObjectReference objectReference;
     ObjectType objectType;
-    uint64_t userId;
+    std::optional<uint64_t> userId;
 
     template <class Archive>
     void serialize(Archive& ar)

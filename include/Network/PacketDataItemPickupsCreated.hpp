@@ -10,15 +10,17 @@
 #include "Network/IPacketData.hpp"
 
 #include "Player/ItemPickup.hpp"
+#include "Player/LocationState.hpp"
 
 struct PacketDataItemPickupsCreated : public IPacketData
 {
+    LocationState locationState;
     std::vector<std::pair<ItemPickupReference, ItemPickup>> createdPickups;
 
     template <class Archive>
     void serialize(Archive& ar)
     {
-        ar(createdPickups);
+        ar(locationState, createdPickups);
     }
 
     PACKET_SERIALISATION();

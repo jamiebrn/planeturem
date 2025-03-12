@@ -939,7 +939,7 @@ void Game::runInGame(float dt)
                 // std::vector<PlanetType> availableDestinations = getRocketAvailableDestinations();
                 if (travelSelectGUI.createAndDraw(window, dt, destinationLocationState))
                 {
-                    BuildableObject* rocketObject = getObjectFromChunkOrRoom(rocketEnteredReference);
+                    BuildableObject* rocketObject = getObjectFromLocation(rocketEnteredReference, locationState);
 
                     if (rocketObject)
                     {
@@ -959,7 +959,7 @@ void Game::runInGame(float dt)
 
                 if (landmarkSetGUIEvent.modified)
                 {
-                    LandmarkObject* landmarkObjectPtr = getObjectFromChunkOrRoom<LandmarkObject>(landmarkSetGUI.getLandmarkObjectReference());
+                    LandmarkObject* landmarkObjectPtr = getObjectFromLocation<LandmarkObject>(landmarkSetGUI.getLandmarkObjectReference(), locationState);
                     if (landmarkObjectPtr)
                     {
                         landmarkObjectPtr->setLandmarkColour(landmarkSetGUI.getColourA(), landmarkSetGUI.getColourB());
@@ -1159,6 +1159,7 @@ void Game::updateOnPlanet(float dt)
                 if (networkHandler.isMultiplayerGame() && networkHandler.getNetworkPlayerCount() > 0)
                 {
                     PacketDataItemPickupDeleted packetData;
+                    packetData.locationState = locationState;
                     packetData.pickupDeleted = itemPickupColliding.value();
                     Packet packet;
                     packet.set(packetData);
@@ -1475,7 +1476,7 @@ void Game::exitRocket()
     worldMenuState = WorldMenuState::Main;
 
     // Get rocket object
-    BuildableObject* rocketObject = getObjectFromChunkOrRoom(rocketEnteredReference);
+    BuildableObject* rocketObject = getObjectFromLocation(rocketEnteredReference, locationState);
 
     // Exit rocket object
     if (rocketObject)
@@ -1937,23 +1938,23 @@ void Game::testMeleeCollision(const std::vector<HitRect>& hitRects)
     getBossManager().testHitRectCollision(hitRects);
 }
 
-void Game::itemPickupsCreated(const std::vector<ItemPickupReference>& itemPickupsCreated, std::optional<PlanetType> planetType)
+void Game::itemPickupsCreated(const std::vector<ItemPickupReference>& itemPickupsCreated, std::optional<LocationState> pickupsLocationState)
 {
     if (!networkHandler.getIsLobbyHost())
     {
         return;
     }
 
-    if (!planetType.has_value())
+    if (!pickupsLocationState.has_value())
     {
-        planetType = locationState.getPlanetType();
+        pickupsLocationState = locationState;
     }
 
     // Alert clients of item pickups created
     PacketDataItemPickupsCreated packetData;
     for (auto& itemPickupReference : itemPickupsCreated)
     {
-        Chunk* chunkPtr = getChunkManager(planetType).getChunk(itemPickupReference.chunk);
+        Chunk* chunkPtr = getChunkManager(pickupsLocationState->getPlanetType()).getChunk(itemPickupReference.chunk);
         if (!chunkPtr)
         {
             std::cout << "ERROR: Attempted to send item pickup creation data for null chunk (" << itemPickupReference.chunk.x
@@ -1997,6 +1998,7 @@ void Game::catchRandomFish(sf::Vector2i fishedTile)
     std::vector<ItemPickupReference> itemPickupsCreatedVector;
 
     PacketDataItemPickupsCreateRequest packetData;
+    packetData.locationState = locationState;
     
     // Randomise catch
     float randomChance = Helper::randInt(0, 10000) / 10000.0f;
@@ -2054,7 +2056,7 @@ void Game::catchRandomFish(sf::Vector2i fishedTile)
 
     if (networkHandler.getIsLobbyHost())
     {
-        itemPickupsCreated(itemPickupsCreatedVector);
+        itemPickupsCreated(itemPickupsCreatedVector, locationState);
     }
     else
     {
@@ -2325,12 +2327,12 @@ BuildableObject* Game::getSelectedObjectFromChunkOrRoom()
     {
         case GameState::OnPlanet:
         {
-            return getObjectFromChunkOrRoom(ObjectReference{Cursor::getSelectedChunk(getChunkManager().getWorldSize()), Cursor::getSelectedChunkTile()});
+            return getObjectFromLocation(ObjectReference{Cursor::getSelectedChunk(getChunkManager().getWorldSize()), Cursor::getSelectedChunkTile()}, locationState);
         }
         case GameState::InStructure: // fallthrough
         case GameState::InRoomDestination:
         {
-            return getObjectFromChunkOrRoom(ObjectReference{{0, 0}, Cursor::getSelectedTile()});
+            return getObjectFromLocation(ObjectReference{{0, 0}, Cursor::getSelectedTile()}, locationState);
         }
     }
 
@@ -2338,40 +2340,42 @@ BuildableObject* Game::getSelectedObjectFromChunkOrRoom()
 }
 
 template <class T>
-T* Game::getObjectFromChunkOrRoom(ObjectReference objectReference, std::optional<PlanetType> planetType, std::optional<uint32_t> structureID,
-    std::optional<RoomType> roomDestType, std::optional<GameState> gameStateOverride)
+T* Game::getObjectFromLocation(ObjectReference objectReference, const LocationState& objectLocationState)
 {
-    if (!planetType.has_value())
-    {
-        planetType = locationState.getPlanetType();
-    }
-    if (!structureID.has_value())
-    {
-        structureID = locationState.getInStructureID();
-    }
-    if (!roomDestType.has_value())
-    {
-        roomDestType = locationState.getRoomDestType();
-    }
-    if (!gameStateOverride.has_value())
-    {
-        gameStateOverride = gameState;
-    }
-
-    switch (gameStateOverride.value())
+    switch (objectLocationState.getGameState())
     {
         case GameState::OnPlanet:
         {
-            return getChunkManager(planetType.value()).getChunkObject<T>(objectReference.chunk, objectReference.tile);
+            if (!worldDatas.contains(objectLocationState.getPlanetType()))
+            {
+                printf(("ERROR: Attempted to access object from null planet type " + std::to_string(objectLocationState.getPlanetType()) + "\n").c_str());
+                break;
+            }
+            return getChunkManager(objectLocationState.getPlanetType()).getChunkObject<T>(objectReference.chunk, objectReference.tile);
         }
         case GameState::InStructure:
         {
-            Room& structureRoom = getStructureRoomPool(planetType).getRoom(structureID.value());
+            if (!worldDatas.contains(objectLocationState.getPlanetType()))
+            {
+                printf(("ERROR: Attempted to access object for structure from null planet type " + std::to_string(objectLocationState.getPlanetType()) + "\n").c_str());
+                break;
+            }
+            if (!getStructureRoomPool(objectLocationState.getPlanetType()).isIDValid(objectLocationState.getInStructureID()))
+            {
+                printf(("ERROR: Attempted to access object from null structure ID " + std::to_string(objectLocationState.getInStructureID()) + "\n").c_str());
+                break;
+            }
+            Room& structureRoom = getStructureRoomPool(objectLocationState.getPlanetType()).getRoom(objectLocationState.getInStructureID());
             return structureRoom.getObject<T>(objectReference.tile);
         }
         case GameState::InRoomDestination:
         {
-            return getRoomDestination(roomDestType.value()).getObject<T>(objectReference.tile);
+            if (!roomDestDatas.contains(objectLocationState.getRoomDestType()))
+            {
+                printf(("ERROR: Attempted to access object from null room dest type " + std::to_string(objectLocationState.getRoomDestType()) + "\n").c_str());
+                break;
+            }
+            return getRoomDestination(objectLocationState.getRoomDestType()).getObject<T>(objectReference.tile);
         }
     }
 
@@ -2395,22 +2399,26 @@ void Game::handleInventoryClose()
     }   
 }
 
-void Game::openChest(ChestObject& chest, bool initiatedClientSide, std::optional<PlanetType> planetType)
+void Game::openChest(ChestObject& chest, std::optional<LocationState> chestLocationState, bool initiatedClientSide)
 {
-    if (!planetType.has_value())
+    if (!chestLocationState.has_value())
     {
-        planetType = locationState.getPlanetType();
+        chestLocationState = locationState;
     }
+
+    // Initialise chest opened packet
+    PacketDataChestOpened packetData;
+    packetData.locationState = chestLocationState.value();
+    packetData.chestObject.chunk = chest.getChunkInside(getChunkManager().getWorldSize());
+    packetData.chestObject.tile = chest.getChunkTileInside(getChunkManager().getWorldSize());
+    packetData.userID = SteamUser()->GetSteamID().ConvertToUint64();
+
+    Packet packet;
+    packet.set(packetData);
 
     if (initiatedClientSide && networkHandler.isClient())
     {
         // Alert server of attempt chest open
-        PacketDataChestOpened packetData;
-        packetData.chestObject.chunk = chest.getChunkInside(getChunkManager().getWorldSize());
-        packetData.chestObject.tile = chest.getChunkTileInside(getChunkManager().getWorldSize());
-        packetData.userID = SteamUser()->GetSteamID().ConvertToUint64();
-        Packet packet;
-        packet.set(packetData);
         networkHandler.sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
     }
     else
@@ -2435,12 +2443,6 @@ void Game::openChest(ChestObject& chest, bool initiatedClientSide, std::optional
         if (networkHandler.getIsLobbyHost())
         {
             // If is host - tell clients chest has been opened
-            PacketDataChestOpened packetData;
-            packetData.chestObject.chunk = chest.getChunkInside(getChunkManager().getWorldSize());
-            packetData.chestObject.tile = chest.getChunkTileInside(getChunkManager().getWorldSize());
-            packetData.userID = SteamUser()->GetSteamID().ConvertToUint64();
-            Packet packet;
-            packet.set(packetData);
             networkHandler.sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0);
         }
 
@@ -2466,18 +2468,8 @@ void Game::openChestForClient(PacketDataChestOpened packetData)
         return;
     }
 
-    // Get client current planet
-    NetworkPlayer* networkPlayer = networkHandler.getNetworkPlayer(packetData.userID);
-    if (!networkPlayer)
-    {
-        return;
-    }
-
     // ChestObject* chestObject = chunkManager.getChunkObject<ChestObject>(packetData.chestObject.chunk, packetData.chestObject.tile);
-    ChestObject* chestObject = getObjectFromChunkOrRoom<ChestObject>(packetData.chestObject, networkPlayer->getPlayerData().locationState.getPlanetType(),
-        networkPlayer->getPlayerData().locationState.getInStructureID(),
-        networkPlayer->getPlayerData().locationState.getRoomDestType(),
-        networkPlayer->getPlayerData().locationState.getGameState());
+    ChestObject* chestObject = getObjectFromLocation<ChestObject>(packetData.chestObject, packetData.locationState);
     if (!chestObject)
     {
         return;
@@ -2496,12 +2488,11 @@ void Game::openChestForClient(PacketDataChestOpened packetData)
     packetData.chestID = chestObject->getChestID();
     if (packetData.chestID == 0xFFFF)
     {
-        packetData.chestID = chestObject->createChestID(*this, networkPlayer->getPlayerData().locationState.getPlanetType(),
-            networkPlayer->getPlayerData().locationState.getRoomDestType());
+        packetData.chestID = chestObject->createChestID(*this, packetData.locationState.getPlanetType(), packetData.locationState.getRoomDestType());
     }
 
-    InventoryData* chestData = getChestDataPool(networkPlayer->getPlayerData().locationState.getPlanetType(),
-        networkPlayer->getPlayerData().locationState.getRoomDestType()).getChestDataPtr(packetData.chestID);
+    InventoryData* chestData = getChestDataPool(packetData.locationState.getPlanetType(), packetData.locationState.getRoomDestType())
+        .getChestDataPtr(packetData.chestID);
 
     // Failed to create new chest - abort
     if (!chestData)
@@ -2522,7 +2513,7 @@ void Game::openChestFromHost(const PacketDataChestOpened& packetData)
         return;
     }
 
-    ChestObject* chestObject = getObjectFromChunkOrRoom<ChestObject>(packetData.chestObject);
+    ChestObject* chestObject = getObjectFromLocation<ChestObject>(packetData.chestObject, packetData.locationState);
 
     if (!chestObject)
     {
@@ -2571,7 +2562,7 @@ void Game::checkChestOpenInRange()
     if (openedChestID == 0xFFFF)
         return;
     
-    BuildableObject* chestObject = getObjectFromChunkOrRoom(openedChest);
+    BuildableObject* chestObject = getObjectFromLocation(openedChest, locationState);
     if (!chestObject)
     {
         closeChest();
@@ -2584,11 +2575,16 @@ void Game::checkChestOpenInRange()
     }
 }
 
-void Game::closeChest(std::optional<ObjectReference> chestObjectRef, bool sentFromHost, std::optional<uint64_t> userId)
+void Game::closeChest(std::optional<ObjectReference> chestObjectRef, std::optional<LocationState> chestLocationState, bool sentFromHost, std::optional<uint64_t> userId)
 {
     if (!chestObjectRef.has_value())
     {
         chestObjectRef = openedChest;
+    }
+
+    if (!chestLocationState.has_value())
+    {
+        chestLocationState = locationState;
     }
 
     // Networking for chest
@@ -2612,29 +2608,14 @@ void Game::closeChest(std::optional<ObjectReference> chestObjectRef, bool sentFr
     }
 
     // Close chest
-    BuildableObject* object = nullptr;
-    if (networkHandler.getIsLobbyHost() && userId.has_value())
-    {
-        // Get chest for client gamestate
-        NetworkPlayer* networkPlayer = networkHandler.getNetworkPlayer(userId.value());
-        if (!networkPlayer)
-        {
-            printf("ERROR: Failed to close chest for null client\n");
-            return;
-        }
-        object = getObjectFromChunkOrRoom(chestObjectRef.value(), networkPlayer->getPlayerData().locationState.getPlanetType(),
-            networkPlayer->getPlayerData().locationState.getInStructureID(),
-            networkPlayer->getPlayerData().locationState.getRoomDestType(),
-            networkPlayer->getPlayerData().locationState.getGameState());
-    }
-    else
-    {
-        // Get chest for this user's gamestate
-        object = getObjectFromChunkOrRoom(chestObjectRef.value());
-    }
+    BuildableObject* object = getObjectFromLocation(chestObjectRef.value(), locationState);
     if (object)
     {
         object->triggerBehaviour(*this, ObjectBehaviourTrigger::ChestClose);
+    }
+    else
+    {
+        printf("ERROR: Attempted to close null chest\n");
     }
 
     // If sent from host or is user (this client triggered this close so UI already closed), do not close UI
@@ -2840,7 +2821,7 @@ void Game::travelToPlanet(PlanetType planetType, ObjectReference newRocketObject
     rocketEnteredReference = newRocketObjectReference;
     
     // Start rocket flying downwards
-    RocketObject* rocketObject = getObjectFromChunkOrRoom<RocketObject>(rocketEnteredReference);
+    RocketObject* rocketObject = getObjectFromLocation<RocketObject>(rocketEnteredReference, locationState);
     if (rocketObject)
     {
         player.setPosition(rocketObject->getPosition() - sf::Vector2f(1, 1) * TILE_SIZE_PIXELS_UNSCALED);
@@ -2902,7 +2883,7 @@ void Game::travelToRoomDestination(RoomType destinationRoomType)
 
     if (getRoomDestination().getFirstRocketObjectReference(rocketEnteredReference))
     {
-        BuildableObject* rocketObject = getObjectFromChunkOrRoom(rocketEnteredReference);
+        BuildableObject* rocketObject = getObjectFromLocation(rocketEnteredReference, locationState);
 
         if (rocketObject)
         {
@@ -3888,6 +3869,28 @@ ChestDataPool& Game::getChestDataPool(std::optional<PlanetType> planetTypeOverri
 
     // Default case
     return worldDatas.at(locationState.getPlanetType()).chestDataPool;
+}
+
+bool Game::isLocationStateInitialised(const LocationState& locationState)
+{
+    switch (locationState.getGameState())
+    {
+        case GameState::OnPlanet:
+        {
+            return worldDatas.contains(locationState.getPlanetType());
+        }
+        case GameState::InStructure:
+        {
+            return (worldDatas.contains(locationState.getPlanetType()) &&
+                getStructureRoomPool(locationState.getPlanetType()).isIDValid(locationState.getInStructureID()));
+        }
+        case GameState::InRoomDestination:
+        {
+            return roomDestDatas.contains(locationState.getRoomDestType());
+        }
+    }
+
+    return false;
 }
 
 void Game::generateWaterNoiseTexture()

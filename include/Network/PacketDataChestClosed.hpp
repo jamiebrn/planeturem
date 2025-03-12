@@ -6,16 +6,18 @@
 
 #include "Data/typedefs.hpp"
 #include "Object/ObjectReference.hpp"
+#include "Player/LocationState.hpp"
 
 struct PacketDataChestClosed : public IPacketData
 {
+    LocationState locationState;
     ObjectReference chestObject;
     uint64_t userID;
 
     template <class Archive>
     void serialize(Archive& ar)
     {
-        ar(chestObject, userID);
+        ar(locationState, chestObject, userID);
     }
 
     PACKET_SERIALISATION();

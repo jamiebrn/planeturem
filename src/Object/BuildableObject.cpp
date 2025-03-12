@@ -341,7 +341,7 @@ void BuildableObject::createItemPickups(ChunkManager& chunkManager, Game& game, 
 
     if (alertGame)
     {
-        game.itemPickupsCreated(itemPickupsCreated);
+        game.itemPickupsCreated(itemPickupsCreated, std::nullopt);
     }
 }
 

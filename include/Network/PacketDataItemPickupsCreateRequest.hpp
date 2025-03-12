@@ -13,6 +13,7 @@
 
 #include "Data/typedefs.hpp"
 #include "World/ChunkPosition.hpp"
+#include "Player/LocationState.hpp"
 
 struct ItemPickupRequest
 {
@@ -30,12 +31,13 @@ struct ItemPickupRequest
 // Requests host to create item pickups
 struct PacketDataItemPickupsCreateRequest : public IPacketData
 {
+    LocationState locationState;
     std::vector<ItemPickupRequest> pickupRequests;
 
     template <class Archive>
     void serialize(Archive& ar)
     {
-        ar(pickupRequests);
+        ar(locationState, pickupRequests);
     }
 
     PACKET_SERIALISATION();

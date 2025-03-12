@@ -5,10 +5,12 @@
 #include "Network/IPacketData.hpp"
 
 #include "Object/ObjectReference.hpp"
+#include "Player/LocationState.hpp"
 #include "Player/InventoryData.hpp"
 
 struct PacketDataChestOpened : public IPacketData
 {
+    LocationState locationState;
     ObjectReference chestObject;
     uint64_t userID;
 
@@ -19,7 +21,7 @@ struct PacketDataChestOpened : public IPacketData
     template <class Archive>
     void serialize(Archive& ar)
     {
-        ar(chestObject, userID, chestID, chestData);
+        ar(locationState, chestObject, userID, chestID, chestData);
     }
 
     PACKET_SERIALISATION();
