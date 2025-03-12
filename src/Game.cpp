@@ -2606,6 +2606,7 @@ void Game::closeChest(std::optional<ObjectReference> chestObjectRef, std::option
     if (networkHandler.isMultiplayerGame())
     {
         PacketDataChestClosed packetData;
+        packetData.locationState = chestLocationState.value();
         packetData.chestObject = chestObjectRef.value();
         packetData.userID = SteamUser()->GetSteamID().ConvertToUint64();
         Packet packet;
