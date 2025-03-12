@@ -341,7 +341,9 @@ void BuildableObject::createItemPickups(ChunkManager& chunkManager, Game& game, 
 
     if (alertGame)
     {
-        game.itemPickupsCreated(itemPickupsCreated, std::nullopt);
+        LocationState pickupsLocationState;
+        pickupsLocationState.setPlanetType(chunkManager.getPlanetType());
+        game.itemPickupsCreated(itemPickupsCreated, pickupsLocationState);
     }
 }
 
