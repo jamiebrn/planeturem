@@ -958,6 +958,11 @@ void NetworkHandler::requestChunksFromHost(PlanetType planetType, std::vector<Ch
 
 void NetworkHandler::queueSendPlayerData()
 {
+    if (!multiplayerGame)
+    {
+        return;
+    }
+    
     sendPlayerDataQueued = true;
     sendPlayerDataQueueTime = SEND_PLAYER_DATA_QUEUE_TIME;
 
