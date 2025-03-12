@@ -2411,8 +2411,15 @@ void Game::openChest(ChestObject& chest, std::optional<LocationState> chestLocat
     // Initialise chest opened packet
     PacketDataChestOpened packetData;
     packetData.locationState = chestLocationState.value();
-    packetData.chestObject.chunk = chest.getChunkInside(getChunkManager().getWorldSize());
-    packetData.chestObject.tile = chest.getChunkTileInside(getChunkManager().getWorldSize());
+    if (chestLocationState->getGameState() == GameState::OnPlanet)
+    {
+        packetData.chestObject.chunk = chest.getChunkInside(getChunkManager().getWorldSize());
+        packetData.chestObject.tile = chest.getChunkTileInside(getChunkManager().getWorldSize());
+    }
+    else
+    {
+        packetData.chestObject.tile = chest.getTileInside();
+    }
     packetData.userID = SteamUser()->GetSteamID().ConvertToUint64();
 
     Packet packet;
@@ -2453,8 +2460,7 @@ void Game::openChest(ChestObject& chest, std::optional<LocationState> chestLocat
     
         openedChestID = chest.getChestID();
 
-        openedChest.chunk = chest.getChunkInside(getChunkManager().getWorldSize());
-        openedChest.tile = chest.getChunkTileInside(getChunkManager().getWorldSize());
+        openedChest = packetData.chestObject;
         // openedChestPos = chest.getPosition();
     
         InventoryGUI::chestOpened(getChestDataPool().getChestDataPtr(openedChestID));
@@ -2581,7 +2587,14 @@ void Game::closeChest(std::optional<ObjectReference> chestObjectRef, std::option
 {
     if (!chestObjectRef.has_value())
     {
+        // Default chest to this player's currently open chest
         chestObjectRef = openedChest;
+
+        // If this player does not have a chest open (and has defaulted to this player), then do not attempt to close chest
+        if (openedChestID == 0xFFFF)
+        {
+            return;
+        }
     }
 
     if (!chestLocationState.has_value())
@@ -2610,7 +2623,7 @@ void Game::closeChest(std::optional<ObjectReference> chestObjectRef, std::option
     }
 
     // Close chest
-    BuildableObject* object = getObjectFromLocation(chestObjectRef.value(), locationState);
+    BuildableObject* object = getObjectFromLocation(chestObjectRef.value(), chestLocationState.value());
     if (object)
     {
         object->triggerBehaviour(*this, ObjectBehaviourTrigger::ChestClose);
@@ -3497,8 +3510,8 @@ void Game::joinWorld(const PacketDataJoinInfo& joinInfo)
 
     currentSaveFileSummary.playerName = joinInfo.playerData.name;
 
-    InventoryGUI::setSeenRecipes(joinInfo.playerData.recipesSeen);
     InventoryGUI::reset();
+    InventoryGUI::setSeenRecipes(joinInfo.playerData.recipesSeen);
 
     changePlayerTool();
 
