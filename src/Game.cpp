@@ -1952,6 +1952,8 @@ void Game::itemPickupsCreated(const std::vector<ItemPickupReference>& itemPickup
 
     // Alert clients of item pickups created
     PacketDataItemPickupsCreated packetData;
+    packetData.locationState = pickupsLocationState.value();
+    
     for (auto& itemPickupReference : itemPickupsCreated)
     {
         Chunk* chunkPtr = getChunkManager(pickupsLocationState->getPlanetType()).getChunk(itemPickupReference.chunk);
