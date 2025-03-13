@@ -61,7 +61,7 @@ public:
     bool unloadChunksOutOfView(const std::vector<ChunkViewRange>& chunkViewRanges);
 
     // Forces a reload of chunks, used when wrapping around world
-    void reloadChunks();
+    void reloadChunks(ChunkViewRange chunkViewRange);
 
     // Used when a chunk is required to have no structure generated to ensure no collision interference
     // E.g. when travelling to a new planet and rocket is placed, rocket may be placed inside structure (if there is one)

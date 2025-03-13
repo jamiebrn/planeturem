@@ -175,7 +175,7 @@ bool ChunkManager::unloadChunksOutOfView(const std::vector<ChunkViewRange>& chun
     return hasUnloadedChunks;
 }
 
-void ChunkManager::reloadChunks()
+void ChunkManager::reloadChunks(ChunkViewRange chunkViewRange)
 {
     for (auto iter = loadedChunks.begin(); iter != loadedChunks.end();)
     {
@@ -184,9 +184,12 @@ void ChunkManager::reloadChunks()
         // Store chunk in chunk memory
         storedChunks[chunkPos] = std::move(iter->second);
 
-        // Reset chunk entity spawn cooldown to prevent chunks spawning new entities when reloaded
-        // e.g. when world boundary crossed, prevent new entities from spawning on loaded chunks
-        resetChunkEntitySpawnCooldown(iter->first);
+        if (!chunkViewRange.isChunkInRange(chunkPos, worldSize))
+        {
+            // Reset chunk entity spawn cooldown to prevent chunks spawning new entities when reloaded
+            // e.g. when world boundary crossed, prevent new entities from spawning on loaded chunks
+            resetChunkEntitySpawnCooldown(chunkPos);
+        }
 
         // Unload chunk
         iter = loadedChunks.erase(iter);
@@ -853,22 +856,56 @@ std::vector<WorldObject*> ChunkManager::getItemPickups(ChunkViewRange chunkViewR
 bool ChunkManager::collisionRectChunkStaticCollisionX(CollisionRect& collisionRect, float dx) const
 {
     bool collision = false;
-    for (auto& chunkPair : loadedChunks)
+
+    ChunkPosition centreChunk = WorldObject::getChunkInside(sf::Vector2f(collisionRect.x, collisionRect.y), worldSize);
+    for (int y = centreChunk.y - 1; y <= centreChunk.y + 1; y++)
     {
-        if (chunkPair.second->collisionRectStaticCollisionX(collisionRect, dx))
-            collision = true;
+        for (int x = centreChunk.x - 1; x <= centreChunk.x + 1; x++)
+        {
+            ChunkPosition wrappedChunk;
+            wrappedChunk.x = Helper::wrap(x, worldSize);
+            wrappedChunk.y = Helper::wrap(y, worldSize);
+
+            if (!loadedChunks.contains(wrappedChunk))
+            {
+                continue;
+            }
+
+            if (loadedChunks.at(wrappedChunk)->collisionRectStaticCollisionX(collisionRect, dx))
+            {
+                collision = true;
+            }
+        }
     }
+    
     return collision;
 }
 
 bool ChunkManager::collisionRectChunkStaticCollisionY(CollisionRect& collisionRect, float dy) const
 {
     bool collision = false;
-    for (auto& chunkPair : loadedChunks)
+
+    ChunkPosition centreChunk = WorldObject::getChunkInside(sf::Vector2f(collisionRect.x, collisionRect.y), worldSize);
+    for (int y = centreChunk.y - 1; y <= centreChunk.y + 1; y++)
     {
-        if (chunkPair.second->collisionRectStaticCollisionY(collisionRect, dy))
-            collision = true;
+        for (int x = centreChunk.x - 1; x <= centreChunk.x + 1; x++)
+        {
+            ChunkPosition wrappedChunk;
+            wrappedChunk.x = Helper::wrap(x, worldSize);
+            wrappedChunk.y = Helper::wrap(y, worldSize);
+
+            if (!loadedChunks.contains(wrappedChunk))
+            {
+                continue;
+            }
+
+            if (loadedChunks.at(wrappedChunk)->collisionRectStaticCollisionY(collisionRect, dy))
+            {
+                collision = true;
+            }
+        }
     }
+    
     return collision;
 }
 

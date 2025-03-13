@@ -785,11 +785,6 @@ void Game::runInGame(float dt)
             travelToDestination();
         }
 
-        if (networkHandler.getIsLobbyHost())
-        {
-            updateActivePlanets(dt);
-        }
-
         // Update depending on game state
         switch (gameState)
         {
@@ -807,6 +802,12 @@ void Game::runInGame(float dt)
                 updateInRoom(dt, getRoomDestination(), false);
                 break;
             }
+        }
+
+        // Update active planets if host in multiplayer
+        if (networkHandler.getIsLobbyHost())
+        {
+            updateActivePlanets(dt);
         }
 
         Cursor::setCursorHidden(!player.canReachPosition(camera.screenToWorldTransform(mouseScreenPos)));
@@ -1074,7 +1075,7 @@ void Game::updateOnPlanet(float dt)
         camera.handleWorldWrap(wrapPositionDelta);
         Cursor::handleWorldWrap(wrapPositionDelta);
         // handleOpenChestPositionWorldWrap(wrapPositionDelta);
-        getChunkManager().reloadChunks();
+        getChunkManager().reloadChunks(camera.getChunkViewRange());
 
         // Wrap bosses
         getBossManager().handleWorldWrap(wrapPositionDelta);
@@ -3677,6 +3678,9 @@ void Game::handleZoom(int zoomChange)
     float afterScale = ResolutionHandler::getScale();
 
     camera.handleScaleChange(beforeScale, afterScale, player.getPosition());
+
+    // Recalculate lighting
+    lightingTick = LIGHTING_TICK;
 }
 
 void Game::handleEventsWindow(sf::Event& event)

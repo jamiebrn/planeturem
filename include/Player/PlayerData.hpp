@@ -65,6 +65,11 @@ inline void from_json(const nlohmann::json& json, PlayerData& data)
     data.maxHealth = json["max-health"];
     data.locationState = json["location-state"];
 
+    if (json.contains("structure-exit-pos"))
+    {
+        data.structureExitPos = json.at("structure-exit-pos");
+    }
+
     for (const std::string& recipeStr : json["recipes-seen"])
     {
         data.recipesSeen.insert(ItemDataLoader::getItemTypeFromName(recipeStr));
@@ -90,6 +95,11 @@ inline void to_json(nlohmann::json& json, const PlayerData& data)
     json["armour-inventory"] = data.armourInventory;
     json["max-health"] = data.maxHealth;
     json["location-state"] = data.locationState;
+
+    if (data.locationState.isInStructure())
+    {
+        json["structure-exit-pos"] = data.structureExitPos;
+    }
 
     std::vector<std::string> recipesSeenStrings;
     for (ItemType itemType : data.recipesSeen)
