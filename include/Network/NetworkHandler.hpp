@@ -80,6 +80,9 @@ public:
 
     std::vector<ChunkViewRange> getNetworkPlayersChunkViewRanges(PlanetType planetType);
 
+    std::unordered_set<PlanetType> getPlayersPlanetTypeSet(std::optional<PlanetType> thisPlayerPlanetType);
+    std::unordered_set<RoomType> getPlayersRoomDestTypeSet(std::optional<RoomType> thisPlayerRoomType);
+
     std::string getPlayerName(uint64_t id);
 
     const PlayerData* getSavedNetworkPlayerData(uint64_t id);

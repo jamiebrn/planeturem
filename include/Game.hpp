@@ -220,6 +220,9 @@ private:
     void updateOnPlanet(float dt);
     void drawOnPlanet(float dt);
 
+    // Used when host
+    void updateActivePlanets(float dt);
+
     void drawLighting(float dt, std::vector<WorldObject*>& worldObjects);
     void drawLandmarks();
 

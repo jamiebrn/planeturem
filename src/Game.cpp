@@ -785,6 +785,11 @@ void Game::runInGame(float dt)
             travelToDestination();
         }
 
+        if (networkHandler.getIsLobbyHost())
+        {
+            updateActivePlanets(dt);
+        }
+
         // Update depending on game state
         switch (gameState)
         {
@@ -1090,31 +1095,26 @@ void Game::updateOnPlanet(float dt)
 
     // Update (loaded) chunks
     // Enable / disable chunk generation depending on multiplayer state
-    std::vector<ChunkPosition> chunksToRequestFromHost;
-
-    std::vector<ChunkViewRange> chunkViewRanges = {camera.getChunkViewRange()};
-    if (networkHandler.getIsLobbyHost())
+    if (!networkHandler.isMultiplayerGame() || networkHandler.isClient())
     {
-        // TODO: Update all network planet types
-        std::vector<ChunkViewRange> networkPlayerChunkViewRanges = networkHandler.getNetworkPlayersChunkViewRanges(locationState.getPlanetType());
-        chunkViewRanges.insert(chunkViewRanges.end(), networkPlayerChunkViewRanges.begin(), networkPlayerChunkViewRanges.end());
-    }
-
-    bool hasLoadedChunks = getChunkManager().updateChunks(*this, chunkViewRanges, networkHandler.isClient(), &chunksToRequestFromHost);
-    bool hasUnloadedChunks = getChunkManager().unloadChunksOutOfView(chunkViewRanges);
-
-    if (networkHandler.isClient() && chunksToRequestFromHost.size() > 0)
-    {
-        networkHandler.requestChunksFromHost(locationState.getPlanetType(), chunksToRequestFromHost);
-    }
-
-    getChunkManager().updateChunksObjects(*this, dt);
-    getChunkManager().updateChunksEntities(dt, getProjectileManager(), *this);
-
-    // If modified chunks, force a lighting recalculation
-    if (hasLoadedChunks || hasUnloadedChunks)
-    {
-        lightingTick = LIGHTING_TICK;
+        std::vector<ChunkPosition> chunksToRequestFromHost;
+        
+        bool hasLoadedChunks = getChunkManager().updateChunks(*this, {camera.getChunkViewRange()}, networkHandler.isClient(), &chunksToRequestFromHost);
+        bool hasUnloadedChunks = getChunkManager().unloadChunksOutOfView({camera.getChunkViewRange()});
+    
+        if (networkHandler.isClient() && chunksToRequestFromHost.size() > 0)
+        {
+            networkHandler.requestChunksFromHost(locationState.getPlanetType(), chunksToRequestFromHost);
+        }
+    
+        getChunkManager().updateChunksObjects(*this, dt);
+        getChunkManager().updateChunksEntities(dt, getProjectileManager(), *this);
+    
+        // If modified chunks, force a lighting recalculation
+        if (hasLoadedChunks || hasUnloadedChunks)
+        {
+            lightingTick = LIGHTING_TICK;
+        }
     }
     
     // Get nearby crafting stations
@@ -1186,6 +1186,37 @@ void Game::updateOnPlanet(float dt)
     if (!isStateTransitioning() && !player.isInRocket() && player.isAlive())
     {
         testEnterStructure();
+    }
+}
+
+void Game::updateActivePlanets(float dt)
+{
+    // Host function
+    // Update all active planets for all clients and view ranges
+
+    std::unordered_set<PlanetType> planetTypeSet = networkHandler.getPlayersPlanetTypeSet(locationState.getPlanetType());
+
+    for (PlanetType planetType : planetTypeSet)
+    {
+        std::vector<ChunkViewRange> chunkViewRanges = networkHandler.getNetworkPlayersChunkViewRanges(planetType);
+
+        // Add this player (host) chunk view range, if also on this planet
+        if (locationState.getPlanetType() == planetType)
+        {
+            chunkViewRanges.push_back(camera.getChunkViewRange());
+        }
+        
+        bool hasLoadedChunks = getChunkManager(planetType).updateChunks(*this, chunkViewRanges);
+        bool hasUnloadedChunks = getChunkManager(planetType).unloadChunksOutOfView(chunkViewRanges);
+    
+        getChunkManager(planetType).updateChunksObjects(*this, dt);
+        getChunkManager(planetType).updateChunksEntities(dt, getProjectileManager(planetType), *this);
+
+        // If modified chunks (and this player (host) is on this planet), force a lighting recalculation
+        if (locationState.getPlanetType() == planetType && (hasLoadedChunks || hasUnloadedChunks))
+        {
+            lightingTick = LIGHTING_TICK;
+        }
     }
 }
 
@@ -3121,32 +3152,8 @@ bool Game::saveGame(bool gettingInRocket)
     playerGameSave.playerData = createPlayerData();
 
     // Keep track of which planets / room dests require saving
-    std::unordered_set<PlanetType> planetTypesToSave;
-    std::unordered_set<RoomType> roomDestsToSave;
-
-    if (locationState.isOnPlanet())
-    {
-        planetTypesToSave.insert(locationState.getPlanetType());
-    }
-    else if (locationState.isInRoomDest())
-    {
-        roomDestsToSave.insert(locationState.getRoomDestType());
-    }
-
-    playerGameSave.networkPlayerDatas = networkHandler.getSavedNetworkPlayerDataMap();
-
-    // Get planets to save from network player activity
-    for (auto& networkPlayerPair : networkHandler.getNetworkPlayers())
-    {
-        if (networkPlayerPair.second.getPlayerData().locationState.isOnPlanet())
-        {
-            planetTypesToSave.insert(networkPlayerPair.second.getPlayerData().locationState.getPlanetType());
-        }
-        else if (networkPlayerPair.second.getPlayerData().locationState.isInRoomDest())
-        {
-            roomDestsToSave.insert(networkPlayerPair.second.getPlayerData().locationState.getRoomDestType());
-        }
-    }
+    std::unordered_set<PlanetType> planetTypesToSave = networkHandler.getPlayersPlanetTypeSet(locationState.getPlanetType());
+    std::unordered_set<RoomType> roomDestsToSave = networkHandler.getPlayersRoomDestTypeSet(locationState.getRoomDestType());
 
     // Add play time
     currentSaveFileSummary.timePlayed += std::round(saveSessionPlayTime);

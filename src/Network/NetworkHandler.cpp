@@ -200,6 +200,53 @@ std::vector<ChunkViewRange> NetworkHandler::getNetworkPlayersChunkViewRanges(Pla
     return chunkViewRanges;
 }
 
+std::unordered_set<PlanetType> NetworkHandler::getPlayersPlanetTypeSet(std::optional<PlanetType> thisPlayerPlanetType)
+{
+    std::unordered_set<PlanetType> planetTypeSet;
+    for (auto iter = networkPlayers.begin(); iter != networkPlayers.end(); iter++)
+    {
+        if (!iter->second.getPlayerData().locationState.isOnPlanet())
+        {
+            continue;
+        }
+
+        planetTypeSet.insert(iter->second.getPlayerData().locationState.getPlanetType());
+    }
+
+    if (thisPlayerPlanetType.has_value())
+    {
+        if (thisPlayerPlanetType.value() >= 0)
+        {
+            planetTypeSet.insert(thisPlayerPlanetType.value());
+        }
+    }
+
+    return planetTypeSet;
+}
+
+std::unordered_set<RoomType> NetworkHandler::getPlayersRoomDestTypeSet(std::optional<RoomType> thisPlayerRoomType)
+{
+    std::unordered_set<RoomType> roomDestTypeSet;
+    for (auto iter = networkPlayers.begin(); iter != networkPlayers.end(); iter++)
+    {
+        if (!iter->second.getPlayerData().locationState.isInRoomDest())
+        {
+            continue;
+        }
+
+        roomDestTypeSet.insert(iter->second.getPlayerData().locationState.getRoomDestType());
+    }
+
+    if (thisPlayerRoomType.has_value())
+    {
+        if (thisPlayerRoomType.value() >= 0)
+        {
+            roomDestTypeSet.insert(thisPlayerRoomType.value());
+        }
+    }
+
+    return roomDestTypeSet;
+}
 
 const PlayerData* NetworkHandler::getSavedNetworkPlayerData(uint64_t id)
 {
