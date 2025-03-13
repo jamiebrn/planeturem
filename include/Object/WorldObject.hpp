@@ -46,7 +46,7 @@ public:
 
     int getDrawLayer() const;
 
-    // Overriden by inherited classes (specific)
+    // Overridden by inherited classes (specific)
     virtual void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
         const sf::Color& color) const = 0;
 

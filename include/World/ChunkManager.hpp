@@ -148,7 +148,7 @@ public:
     bool canDestroyObject(ChunkPosition chunk, sf::Vector2i tile, const CollisionRect& playerCollisionRect);
 
     // Get all objects in loaded chunks (used for drawing)
-    std::vector<WorldObject*> getChunkObjects();
+    std::vector<WorldObject*> getChunkObjects(ChunkViewRange chunkViewRange);
 
 
     // -- Entities -- //
@@ -165,7 +165,7 @@ public:
     Entity* getSelectedEntity(ChunkPosition chunk, sf::Vector2f cursorPos);
 
     // Get all entities in loaded chunks (used for drawing)
-    std::vector<WorldObject*> getChunkEntities();
+    std::vector<WorldObject*> getChunkEntities(ChunkViewRange chunkViewRange);
 
     int getChunkEntitySpawnCooldown(ChunkPosition chunk);
 
@@ -183,7 +183,7 @@ public:
     std::optional<ItemPickupReference> getCollidingItemPickup(const CollisionRect& playerCollision, float gameTime);
     void deleteItemPickup(const ItemPickupReference& itemPickupReference);
 
-    std::vector<WorldObject*> getItemPickups();
+    std::vector<WorldObject*> getItemPickups(ChunkViewRange chunkViewRange);
 
 
     // -- Collision -- //

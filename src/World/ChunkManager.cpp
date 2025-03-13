@@ -670,12 +670,19 @@ bool ChunkManager::canDestroyObject(ChunkPosition chunk, sf::Vector2i tile, cons
     return true;
 }
 
-std::vector<WorldObject*> ChunkManager::getChunkObjects()
+std::vector<WorldObject*> ChunkManager::getChunkObjects(ChunkViewRange chunkViewRange)
 {
     std::vector<WorldObject*> objects;
-    for (auto& chunkPair : loadedChunks)
+    for (auto iter = chunkViewRange.begin(); iter != chunkViewRange.end(); iter++)
     {
-        std::vector<WorldObject*> chunkObjects = chunkPair.second->getObjects();
+        ChunkPosition chunkPos = iter.get(worldSize);
+        
+        if (!loadedChunks.contains(chunkPos))
+        {
+            continue;
+        }
+
+        std::vector<WorldObject*> chunkObjects = loadedChunks[chunkPos]->getObjects();
         objects.insert(objects.end(), chunkObjects.begin(), chunkObjects.end());
     }
     return objects;
@@ -733,12 +740,19 @@ Entity* ChunkManager::getSelectedEntity(ChunkPosition chunk, sf::Vector2f cursor
     return nullptr;
 }
 
-std::vector<WorldObject*> ChunkManager::getChunkEntities()
+std::vector<WorldObject*> ChunkManager::getChunkEntities(ChunkViewRange chunkViewRange)
 {
     std::vector<WorldObject*> entities;
-    for (auto& chunkPair : loadedChunks)
+    for (auto iter = chunkViewRange.begin(); iter != chunkViewRange.end(); iter++)
     {
-        std::vector<WorldObject*> chunkEntities = chunkPair.second->getEntities();
+        ChunkPosition chunkPos = iter.get(worldSize);
+
+        if (!loadedChunks.contains(chunkPos))
+        {
+            continue;
+        }
+
+        std::vector<WorldObject*> chunkEntities = loadedChunks[chunkPos]->getEntities();
         entities.insert(entities.end(), chunkEntities.begin(), chunkEntities.end());
     }
     return entities;
@@ -815,15 +829,20 @@ void ChunkManager::deleteItemPickup(const ItemPickupReference& itemPickupReferen
     chunkPtr->deleteItemPickup(itemPickupReference.id);
 }
 
-std::vector<WorldObject*> ChunkManager::getItemPickups()
+std::vector<WorldObject*> ChunkManager::getItemPickups(ChunkViewRange chunkViewRange)
 {
     std::vector<WorldObject*> itemPickupWorldObjects;
 
-    for (auto iter = loadedChunks.begin(); iter != loadedChunks.end(); iter++)
+    for (auto iter = chunkViewRange.begin(); iter != chunkViewRange.end(); iter++)
     {
-        Chunk* chunkPtr = iter->second.get();
+        ChunkPosition chunkPos = iter.get(worldSize);
 
-        std::vector<WorldObject*> itemPickupChunkWorldObjects = chunkPtr->getItemPickups();
+        if (!loadedChunks.contains(chunkPos))
+        {
+            continue;
+        }
+
+        std::vector<WorldObject*> itemPickupChunkWorldObjects = loadedChunks[chunkPos]->getItemPickups();
 
         itemPickupWorldObjects.insert(itemPickupWorldObjects.end(), itemPickupChunkWorldObjects.begin(), itemPickupChunkWorldObjects.end());
     }

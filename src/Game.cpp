@@ -1223,9 +1223,11 @@ void Game::updateActivePlanets(float dt)
 void Game::drawOnPlanet(float dt)
 {
     // Get world objects
-    std::vector<WorldObject*> worldObjects = getChunkManager().getChunkObjects();
-    std::vector<WorldObject*> entities = getChunkManager().getChunkEntities();
-    std::vector<WorldObject*> itemPickups = getChunkManager().getItemPickups();
+    ChunkViewRange chunkViewRange = camera.getChunkViewRange();
+
+    std::vector<WorldObject*> worldObjects = getChunkManager().getChunkObjects(chunkViewRange);
+    std::vector<WorldObject*> entities = getChunkManager().getChunkEntities(chunkViewRange);
+    std::vector<WorldObject*> itemPickups = getChunkManager().getItemPickups(chunkViewRange);
     std::vector<WorldObject*> weatherParticles = weatherSystem.getWeatherParticles();
     worldObjects.insert(worldObjects.end(), entities.begin(), entities.end());
     worldObjects.insert(worldObjects.end(), itemPickups.begin(), itemPickups.end());
@@ -3150,6 +3152,8 @@ bool Game::saveGame(bool gettingInRocket)
 
     // Add this player data to save
     playerGameSave.playerData = createPlayerData();
+
+    playerGameSave.networkPlayerDatas = networkHandler.getSavedNetworkPlayerDataMap();
 
     // Keep track of which planets / room dests require saving
     std::unordered_set<PlanetType> planetTypesToSave = networkHandler.getPlayersPlanetTypeSet(locationState.getPlanetType());
