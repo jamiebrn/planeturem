@@ -48,8 +48,8 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
     sf::Vector2f resolution = static_cast<sf::Vector2f>(ResolutionHandler::getResolution());
     
     // Draw background chunks / world
-    std::vector<WorldObject*> worldObjects = menuWorldData.chunkManager.getChunkObjects();
-    std::vector<WorldObject*> entities = menuWorldData.chunkManager.getChunkEntities();
+    std::vector<WorldObject*> worldObjects = menuWorldData.chunkManager.getChunkObjects(menuCamera.getChunkViewRange());
+    std::vector<WorldObject*> entities = menuWorldData.chunkManager.getChunkEntities(menuCamera.getChunkViewRange());
     worldObjects.insert(worldObjects.end(), entities.begin(), entities.end());
 
     sf::RenderTexture worldTexture;
