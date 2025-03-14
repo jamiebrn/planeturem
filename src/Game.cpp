@@ -3321,6 +3321,8 @@ bool Game::loadGame(const SaveFileSummary& saveFileSummary)
         // structureRoomPool = planetGameSave.structureRoomPool;
 
         nextGameState = GameState::OnPlanet;
+
+        camera.instantUpdate(player.getPosition());
         
         if (playerGameSave.playerData.locationState.isInStructure())
         {
@@ -3336,8 +3338,6 @@ bool Game::loadGame(const SaveFileSummary& saveFileSummary)
         weatherSystem.presimulateWeather(gameTime, camera, getChunkManager());
         
         getChunkManager().updateChunks(*this, {camera.getChunkViewRange()});
-        
-        camera.instantUpdate(player.getPosition());
 
         lightingTick = LIGHTING_TICK;
     }
