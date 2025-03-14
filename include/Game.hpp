@@ -162,7 +162,7 @@ public:
     void hitObject(ChunkPosition chunk, sf::Vector2i tile, int damage, std::optional<PlanetType> planetType = std::nullopt,
         bool sentFromHost = false, std::optional<uint64_t> userId = std::nullopt);
     void buildObject(ChunkPosition chunk, sf::Vector2i tile, ObjectType objectType, std::optional<PlanetType> planetType = std::nullopt,
-        bool sentFromHost = false);
+        bool sentFromHost = false, bool builtByPlayer = true);
     void destroyObjectFromHost(ChunkPosition chunk, sf::Vector2i tile, std::optional<PlanetType> planetType);
 
     // Networking
@@ -171,6 +171,7 @@ public:
     void handleChunkRequestsFromClient(const PacketDataChunkRequests& chunkRequests, const SteamNetworkingIdentity& client);
     void handleChunkDataFromHost(const PacketDataChunkDatas& chunkDataPacket);
 
+    ObjectReference setupPlanetTravel(PlanetType planetType, std::optional<uint64_t> clientID);
     void travelToPlanetFromHost(const PacketDataPlanetTravelReply& planetTravelReplyPacket);
 
     PlayerData createPlayerData();
@@ -279,8 +280,6 @@ private:
 
     void travelToDestination();
     void deleteUsedRocket(ObjectReference rocketObjectReference, PlanetType planetType);
-    ObjectReference setupPlanetTravel(PlanetType planetType, ObjectReference rocketUsedObjectReference, std::optional<uint64_t> clientID);
-    void handleRocketCleanup(PlanetType currentPlanetType, RoomType currentRoomDestType, ObjectReference rocketObjectReference);
     void travelToPlanet(PlanetType planetType, ObjectReference newRocketObjectReference);
 
     void travelToRoomDestination(RoomType destinationRoomType);

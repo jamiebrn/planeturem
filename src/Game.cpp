@@ -1875,7 +1875,8 @@ void Game::hitObject(ChunkPosition chunk, sf::Vector2i tile, int damage, std::op
     }
 }
 
-void Game::buildObject(ChunkPosition chunk, sf::Vector2i tile, ObjectType objectType, std::optional<PlanetType> planetType, bool sentFromHost)
+void Game::buildObject(ChunkPosition chunk, sf::Vector2i tile, ObjectType objectType, std::optional<PlanetType> planetType, bool sentFromHost,
+    bool builtByPlayer)
 {
     // If multiplayer game and this client builds object, send build object packet to host
     if (networkHandler.isClient() && !sentFromHost)
@@ -1938,7 +1939,13 @@ void Game::buildObject(ChunkPosition chunk, sf::Vector2i tile, ObjectType object
 
     // Build object
     getChunkManager(planetType).setObject(chunk, tile, objectType, *this);
-    
+
+    // If not built by player, don't create build particles or play build sound
+    if (!builtByPlayer)
+    {
+        return;
+    }
+
     // Create build particles
     BuildableObject* placedObject = getChunkManager(planetType).getChunkObject(chunk, tile);
     if (placedObject)
@@ -2701,13 +2708,32 @@ void Game::travelToDestination()
 {
     travelTrigger = false;
 
+    // If client, request travel from host
+    if (networkHandler.isClient())
+    {
+        Packet packet;
+        if (destinationLocationState.isOnPlanet())
+        {
+            PacketDataPlanetTravelRequest packetData;
+            packetData.planetType = destinationLocationState.getPlanetType();
+            packet.set(packetData);
+        }
+        else if (destinationLocationState.isInRoomDest())
+        {
+            // TODO: Room travel request
+        }
+
+        networkHandler.sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
+        return;
+    }
+
     LocationState previousLocationState = locationState;
     
     player.exitRocket();
 
     if (destinationLocationState.isOnPlanet())
     {
-        ObjectReference newRocket = setupPlanetTravel(destinationLocationState.getPlanetType(), rocketEnteredReference, std::nullopt);
+        ObjectReference newRocket = setupPlanetTravel(destinationLocationState.getPlanetType(), std::nullopt);
         deleteUsedRocket(rocketEnteredReference, locationState.getPlanetType());
         travelToPlanet(destinationLocationState.getPlanetType(), newRocket);
     }
@@ -2731,7 +2757,6 @@ void Game::travelToDestination()
 
     particleSystem.clear();
     nearbyCraftingStationLevels.clear();
-
 
     destinationLocationState.setToNull();
 }
@@ -2767,7 +2792,7 @@ void Game::deleteUsedRocket(ObjectReference rocketObjectReference, PlanetType pl
     networkHandler.sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0);
 }
 
-ObjectReference Game::setupPlanetTravel(PlanetType planetType, ObjectReference rocketUsedObjectReference, std::optional<uint64_t> clientID)
+ObjectReference Game::setupPlanetTravel(PlanetType planetType, std::optional<uint64_t> clientID)
 {
     assert(networkHandler.isLobbyHostOrSolo());
 
@@ -2801,30 +2826,32 @@ ObjectReference Game::setupPlanetTravel(PlanetType planetType, ObjectReference r
         // Create rocket at previously used rocket location
         placeRocketReference = planetRocketsUsedPtr->at(planetType);
     }
+
+    ChunkViewRange playerChunkViewRange = camera.getChunkViewRange();
+    if (clientID.has_value())
+    {
+        playerChunkViewRange = networkHandler.getNetworkPlayer(clientID.value())->getChunkViewRange();
+    }
+
+    playerChunkViewRange = playerChunkViewRange.copyAndCentre(placeRocketReference.chunk);
     
     // Update chunks at rocket position
-    Camera generationCamera = camera;
-    generationCamera.instantUpdate(sf::Vector2f(placeRocketReference.chunk.x, placeRocketReference.chunk.y) * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED);
-    getChunkManager(planetType).updateChunks(*this, {generationCamera.getChunkViewRange()});
+    getChunkManager(planetType).updateChunks(*this, {playerChunkViewRange});
     
     // Place rocket
-    getChunkManager(planetType).setObject(placeRocketReference.chunk, placeRocketReference.tile, ObjectDataLoader::getObjectTypeFromName("Rocket Launch Pad"), *this);
-    
+    buildObject(placeRocketReference.chunk, placeRocketReference.tile, ObjectDataLoader::getObjectTypeFromName("Rocket Launch Pad"), planetType, false, false);
 
     // Send chunks of new planet to client if client is travelling
     if (clientID.has_value() && networkHandler.getIsLobbyHost())
     {
-        // Get chunks to send to to client
-        std::vector<ChunkPosition> chunksToSend;
-        getChunkManager(planetType).updateChunks(*this, {generationCamera.getChunkViewRange()}, true, &chunksToSend);
-        
         // Send chunks to client
         PacketDataPlanetTravelReply packetData;
         packetData.chunkDatas.planetType = planetType;
-        
-        for (ChunkPosition chunk : chunksToSend)
+
+        for (auto iter = playerChunkViewRange.begin(); iter != playerChunkViewRange.end(); iter++)
         {
-            packetData.chunkDatas.chunkDatas.push_back(getChunkManager(planetType).getChunkDataAndGenerate(chunk, *this));
+            ChunkPosition chunkPos = iter.get(getChunkManager(planetType).getWorldSize());
+            packetData.chunkDatas.chunkDatas.push_back(getChunkManager(planetType).getChunkDataAndGenerate(chunkPos, *this));
         }
 
         printf(("PLANET TRAVEL: Sending planet travel data to client for planet type " + std::to_string(planetType) + "\n").c_str());
@@ -2835,17 +2862,6 @@ ObjectReference Game::setupPlanetTravel(PlanetType planetType, ObjectReference r
     }
 
     return placeRocketReference;
-}
-
-void Game::handleRocketCleanup(PlanetType currentPlanetType, RoomType currentRoomDestType, ObjectReference rocketObjectReference)
-{
-    if (currentPlanetType < 0 || currentRoomDestType >= 0)
-    {
-        return;
-    }
-    
-
-    getChunkManager(currentPlanetType).deleteObject(rocketObjectReference.chunk, rocketObjectReference.tile);
 }
 
 void Game::travelToPlanet(PlanetType planetType, ObjectReference newRocketObjectReference)
@@ -2874,6 +2890,7 @@ void Game::travelToPlanet(PlanetType planetType, ObjectReference newRocketObject
     RocketObject* rocketObject = getObjectFromLocation<RocketObject>(rocketEnteredReference, locationState);
     if (rocketObject)
     {
+        // TODO: Find empty tile around rocket
         player.setPosition(rocketObject->getPosition() - sf::Vector2f(1, 1) * TILE_SIZE_PIXELS_UNSCALED);
         rocketObject->triggerBehaviour(*this, ObjectBehaviourTrigger::RocketFlyDown);
     }
@@ -2903,6 +2920,8 @@ void Game::travelToPlanetFromHost(const PacketDataPlanetTravelReply& planetTrave
     {
         getChunkManager(planetTravelReplyPacket.chunkDatas.planetType).setChunkData(chunkData, *this);
     }
+
+    player.exitRocket();
 
     travelToPlanet(planetTravelReplyPacket.chunkDatas.planetType, planetTravelReplyPacket.rocketObjectReference);
 }

@@ -100,6 +100,20 @@ struct ChunkViewRange
         return (chunkInRangeX && chunkInRangeY);
     }
 
+    inline ChunkViewRange copyAndCentre(ChunkPosition centre)
+    {
+        int width = (bottomRight.x - topLeft.x) + 1;
+        int height = (bottomRight.y - topLeft.y) + 1;
+
+        ChunkViewRange newViewRange;
+        newViewRange.topLeft.x = centre.x - std::floor(width / 2.0f);
+        newViewRange.topLeft.y = centre.y - std::floor(height / 2.0f);
+        newViewRange.bottomRight.x = centre.x + std::ceil(width / 2.0f);
+        newViewRange.bottomRight.y = centre.y + std::ceil(height / 2.0f);
+
+        return newViewRange;
+    }
+
     inline std::unordered_set<ChunkPosition> getChunkSet(int worldSize) const
     {
         std::unordered_set<ChunkPosition> chunkSet;

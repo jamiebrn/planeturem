@@ -758,6 +758,13 @@ void NetworkHandler::processMessageAsHost(const SteamNetworkingMessage_t& messag
             printf(("NETWORK: Received chest data from " + std::string(SteamFriends()->GetFriendPersonaName(message.m_identityPeer.GetSteamID())) + "\n").c_str());
             break;
         }
+        case PacketType::PlanetTravelRequest:
+        {
+            PacketDataPlanetTravelRequest packetData;
+            packetData.deserialise(packet.data);
+            game->setupPlanetTravel(packetData.planetType, message.m_identityPeer.GetSteamID64());
+            break;
+        }
     }
 }
 
@@ -843,6 +850,13 @@ void NetworkHandler::processMessageAsClient(const SteamNetworkingMessage_t& mess
             PacketDataChunkDatas packetData;
             packetData.deserialise(packet.data);
             handleChunkDatasFromHost(packetData);
+            break;
+        }
+        case PacketType::PlanetTravelReply:
+        {
+            PacketDataPlanetTravelReply packetData;
+            packetData.deserialise(packet.data);
+            game->travelToPlanetFromHost(packetData);
             break;
         }
     }
