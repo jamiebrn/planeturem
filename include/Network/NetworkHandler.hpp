@@ -49,6 +49,9 @@ public:
     void queueSendPlayerData();
     void sendPlayerData();
 
+    bool canSendStructureRequest();
+    void structureRequestSent();
+
     bool isMultiplayerGame();
     bool isLobbyHostOrSolo();
     bool getIsLobbyHost();
@@ -108,6 +111,9 @@ private:
     static constexpr float SEND_PLAYER_DATA_QUEUE_TIME = 1.0f;
     bool sendPlayerDataQueued;
     float sendPlayerDataQueueTime;
+
+    static constexpr float STRUCTURE_ENTER_REQUEST_COOLDOWN = 0.5f;
+    float structureEnterRequestCooldown;
 
     // Client-specific
     static constexpr float CHUNK_REQUEST_OUTSTANDING_MAX_TIME = 2.0f;

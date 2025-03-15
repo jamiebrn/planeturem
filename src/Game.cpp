@@ -1476,7 +1476,7 @@ void Game::testEnterStructure()
     // Structure has been entered
 
     // If client, request structure enter from host
-    if (networkHandler.isClient())
+    if (networkHandler.isClient() && networkHandler.canSendStructureRequest())
     {
         PacketDataStructureEnterRequest packetDataRequest;
         packetDataRequest.planetType = locationState.getPlanetType();
@@ -1484,11 +1484,18 @@ void Game::testEnterStructure()
         Packet packet;
         packet.set(packetDataRequest);
         networkHandler.sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
+        networkHandler.structureRequestSent();
         return;
     }
 
     // Host / solo
-    initialiseStructureOrGet(locationState.getPlanetType(), structureEnteredChunk.value(), &structureEnteredPos, nullptr);
+    std::optional<uint32_t> structureID = initialiseStructureOrGet(locationState.getPlanetType(), structureEnteredChunk.value(), &structureEnteredPos, nullptr);
+    if (!structureID.has_value())
+    {
+        return;
+    }
+
+    locationState.setInStructureID(structureID.value());
 
     // changeState(GameState::InStructure);
     startChangeStateTransition(GameState::InStructure);
@@ -1521,6 +1528,8 @@ void Game::enterStructureFromHost(PlanetType planetType, ChunkPosition chunk, ui
     structureObject->setStructureID(structureID);
     getStructureRoomPool(planetType).overwriteRoomData(structureID, Room(roomType, nullptr));
     structureEnteredPos = entrancePos;
+
+    locationState.setInStructureID(structureID);
 
     startChangeStateTransition(GameState::InStructure);
 }

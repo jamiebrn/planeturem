@@ -23,6 +23,8 @@ void NetworkHandler::reset(Game* game)
 
     sendPlayerDataQueued = false;
     sendPlayerDataQueueTime = 0.0f;
+
+    structureEnterRequestCooldown = 0.0f;
 }
 
 void NetworkHandler::startHostServer()
@@ -414,6 +416,8 @@ void NetworkHandler::update(float dt)
             sendPlayerData();
         }
     }
+
+    structureEnterRequestCooldown = std::max(structureEnterRequestCooldown - dt, 0.0f);
 }
 
 void NetworkHandler::receiveMessages()
@@ -838,7 +842,7 @@ void NetworkHandler::processMessageAsClient(const SteamNetworkingMessage_t& mess
             break;
         }
         case PacketType::PlayerDisconnected:
-        {    
+        {
             uint64_t id;
             memcpy(&id, packet.data.data(), sizeof(id));
             deleteNetworkPlayer(id);
@@ -1154,4 +1158,14 @@ void NetworkHandler::sendPlayerDataToClients(const PacketDataPlayerData& playerD
 
         sendPacketToClient(client->first, packet, k_nSteamNetworkingSend_Reliable, 0);
     }
+}
+
+bool NetworkHandler::canSendStructureRequest()
+{
+    return (structureEnterRequestCooldown <= 0.0f);
+}
+
+void NetworkHandler::structureRequestSent()
+{
+    structureEnterRequestCooldown = STRUCTURE_ENTER_REQUEST_COOLDOWN;
 }
