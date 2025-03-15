@@ -885,6 +885,7 @@ void NetworkHandler::processMessageAsClient(const SteamNetworkingMessage_t& mess
         {
             PacketDataStructureEnterReply packetData;
             packetData.deserialise(packet.data);
+            game->enterStructureFromHost(packetData.planetType, packetData.chunkPos, packetData.structureID, packetData.structureEntrancePos, packetData.roomType);
             break;
         }
     }
