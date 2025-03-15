@@ -39,7 +39,7 @@ class Room
 {
 public:
     Room();
-    Room(RoomType roomType, ChestDataPool& chestDataPool);
+    Room(RoomType roomType, ChestDataPool* chestDataPool);
 
     // Copying
     Room(const Room& room);

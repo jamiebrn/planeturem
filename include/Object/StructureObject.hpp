@@ -10,6 +10,7 @@
 #include "Core/CollisionRect.hpp"
 
 #include "Object/WorldObject.hpp"
+#include "Object/ObjectReference.hpp"
 
 #include "World/LightingEngine.hpp"
 
@@ -23,18 +24,18 @@
 
 // Forward declare
 class Game;
-class StructureObject;
+// class StructureObject;
 
-struct StructureEnterEvent
-{
-    StructureObject* enteredStructure;
-    // StructureType enteredStructureType;
+// struct StructureEnterEvent
+// {
+//     StructureObject* enteredStructure;
+//     // StructureType enteredStructureType;
 
-    // uint32_t structureID;
+//     // uint32_t structureID;
 
-    // Top-left of warp collision / entrance
-    sf::Vector2f entrancePosition;
-};
+//     // Top-left of warp collision / entrance
+//     sf::Vector2f entrancePosition;
+// };
 
 class StructureObject : public WorldObject
 {
@@ -43,7 +44,9 @@ public:
 
     void createWarpRect(sf::Vector2f rectPosition);
 
-    bool isPlayerInEntrance(sf::Vector2f playerPos, StructureEnterEvent& enterEvent);
+    bool isPlayerInEntrance(sf::Vector2f playerPos);
+
+    sf::Vector2f getEntrancePosition();
 
     void setWorldPosition(sf::Vector2f newPosition);
 

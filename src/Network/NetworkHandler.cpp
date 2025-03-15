@@ -765,6 +765,28 @@ void NetworkHandler::processMessageAsHost(const SteamNetworkingMessage_t& messag
             game->setupPlanetTravel(packetData.planetType, message.m_identityPeer.GetSteamID64());
             break;
         }
+        case PacketType::StructureEnterRequest:
+        {
+            PacketDataStructureEnterRequest packetData;
+            packetData.deserialise(packet.data);
+
+            PacketDataStructureEnterReply packetDataReply;
+            std::optional<uint32_t> structureID = game->initialiseStructureOrGet(packetData.planetType, packetData.chunkPos,
+                &packetDataReply.structureEntrancePos, &packetDataReply.roomType);
+            if (structureID.has_value())
+            {
+                printf(("NETWORK: Sending structure enter reply to " +
+                    std::string(SteamFriends()->GetFriendPersonaName(message.m_identityPeer.GetSteamID())) + "\n").c_str());
+
+                packetDataReply.structureID = structureID.value();
+                packetDataReply.planetType = packetData.planetType;
+                packetDataReply.chunkPos = packetData.chunkPos;
+                Packet replyPacket;
+                replyPacket.set(packetDataReply);
+                sendPacketToClient(message.m_identityPeer.GetSteamID64(), replyPacket, k_nSteamNetworkingSend_Reliable, 0);
+            }
+            break;
+        }
     }
 }
 
@@ -857,6 +879,12 @@ void NetworkHandler::processMessageAsClient(const SteamNetworkingMessage_t& mess
             PacketDataPlanetTravelReply packetData;
             packetData.deserialise(packet.data);
             game->travelToPlanetFromHost(packetData);
+            break;
+        }
+        case PacketType::StructureEnterReply:
+        {
+            PacketDataStructureEnterReply packetData;
+            packetData.deserialise(packet.data);
             break;
         }
     }

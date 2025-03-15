@@ -57,7 +57,7 @@ public:
         }
     }
 
-    void mapVersions(const std::unordered_map<ItemType, ItemType> itemVersionMap)
+    void mapVersions(const std::unordered_map<ItemType, ItemType>& itemVersionMap)
     {
         for (auto& chestContents : chestData)
         {

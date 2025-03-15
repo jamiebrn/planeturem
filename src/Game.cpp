@@ -1415,31 +1415,113 @@ void Game::drawLandmarks()
 
 
 // Structure
+std::optional<uint32_t> Game::initialiseStructureOrGet(PlanetType planetType, ChunkPosition chunk, sf::Vector2f* entrancePos, RoomType* roomType)
+{
+    assert(networkHandler.isLobbyHostOrSolo());
+
+    if (!worldDatas.contains(planetType))
+    {
+        printf(("ERROR: Attempted to access null planet type " + std::to_string(planetType) + " while initialising structure" + "\n").c_str());
+        return std::nullopt;
+    }
+
+    Chunk* chunkPtr = getChunkManager(planetType).getChunk(chunk);
+    if (!chunkPtr)
+    {
+        printf(("ERROR: Attempted to access null chunk " + chunk.toString() + " while initialising structure" + "\n").c_str());
+        return std::nullopt;
+    }
+
+    StructureObject* enteredStructure = chunkPtr->getStructureObject();
+    if (!enteredStructure)
+    {
+        printf(("ERROR: Attempted to initialise null structure in chunk " + chunk.toString() + "\n").c_str());
+        return std::nullopt;
+    }
+
+    uint32_t structureID = enteredStructure->getStructureID();
+    const StructureData& structureData = StructureDataLoader::getStructureData(enteredStructure->getStructureType());
+    
+    // Initialise
+    if (structureID == 0xFFFFFFFF)
+    {
+        structureID = getStructureRoomPool(planetType).createRoom(structureData.roomType, getChestDataPool(planetType));
+        enteredStructure->setStructureID(structureID);
+    }
+
+    if (entrancePos)
+    {
+        // TODO: May break chunk positions when transmitting to client
+        sf::Vector2f structureEntrancePos = enteredStructure->getEntrancePosition();
+        entrancePos->x = (std::floor(structureEntrancePos.x / TILE_SIZE_PIXELS_UNSCALED) + 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
+        entrancePos->y = (std::floor(structureEntrancePos.y / TILE_SIZE_PIXELS_UNSCALED) + 1.5f) * TILE_SIZE_PIXELS_UNSCALED;
+    }
+    if (roomType)
+    {
+        *roomType = structureData.roomType;
+    }
+    
+    return structureID;
+}
+
 void Game::testEnterStructure()
 {
-    StructureEnterEvent enterEvent;
-    if (!getChunkManager().isPlayerInStructureEntrance(player.getPosition(), enterEvent))
+    std::optional<ChunkPosition> structureEnteredChunk = getChunkManager().isPlayerInStructureEntrance(player.getPosition());
+
+    if (!structureEnteredChunk.has_value())
+    {
         return;
+    }
     
     // Structure has been entered
 
-    // Create room data
-    if (enterEvent.enteredStructure->getStructureID() == 0xFFFFFFFF)
+    // If client, request structure enter from host
+    if (networkHandler.isClient())
     {
-        const StructureData& structureData = StructureDataLoader::getStructureData(enterEvent.enteredStructure->getStructureType());
-        locationState.setInStructureID(getStructureRoomPool().createRoom(structureData.roomType, getChestDataPool()));
-        enterEvent.enteredStructure->setStructureID(locationState.getInStructureID());
-    }
-    else
-    {
-        // Get ID from structure as room has previously been initialised
-        locationState.setInStructureID(enterEvent.enteredStructure->getStructureID());
+        PacketDataStructureEnterRequest packetDataRequest;
+        packetDataRequest.planetType = locationState.getPlanetType();
+        packetDataRequest.chunkPos = structureEnteredChunk.value();
+        Packet packet;
+        packet.set(packetDataRequest);
+        networkHandler.sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
+        return;
     }
 
-    structureEnteredPos.x = (std::floor(enterEvent.entrancePosition.x / TILE_SIZE_PIXELS_UNSCALED) + 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
-    structureEnteredPos.y = (std::floor(enterEvent.entrancePosition.y / TILE_SIZE_PIXELS_UNSCALED) + 1.5f) * TILE_SIZE_PIXELS_UNSCALED;
+    // Host / solo
+    initialiseStructureOrGet(locationState.getPlanetType(), structureEnteredChunk.value(), &structureEnteredPos, nullptr);
 
     // changeState(GameState::InStructure);
+    startChangeStateTransition(GameState::InStructure);
+}
+
+void Game::enterStructureFromHost(PlanetType planetType, ChunkPosition chunk, uint32_t structureID, sf::Vector2f entrancePos, RoomType roomType)
+{
+    if (locationState.getPlanetType() != planetType)
+    {
+        printf(("ERROR: Received enter structure reply for incorrect planet type " + std::to_string(planetType) + "\n").c_str());
+        return;
+    }
+
+    Chunk* chunkPtr = getChunkManager(planetType).getChunk(chunk);
+    if (!chunkPtr)
+    {
+        printf(("ERROR: Received enter structure reply for null chunk " + chunk.toString() + "\n").c_str());
+        return;
+    }
+
+    StructureObject* structureObject = chunkPtr->getStructureObject();
+    if (!structureObject)
+    {
+        printf("ERROR: Received enter structure reply for null structure\n");
+        return;
+    }
+
+    printf("NETWORK: Entering structure from host\n");
+
+    structureObject->setStructureID(structureID);
+    getStructureRoomPool(planetType).overwriteRoomData(structureID, Room(roomType, nullptr));
+    structureEnteredPos = entrancePos;
+
     startChangeStateTransition(GameState::InStructure);
 }
 
@@ -1890,6 +1972,7 @@ void Game::buildObject(ChunkPosition chunk, sf::Vector2i tile, ObjectType object
         packetData.objectReference.chunk = chunk;
         packetData.objectReference.tile = tile;
         packetData.objectType = objectType;
+        packetData.builtByPlayer = builtByPlayer;
         packetData.userId = SteamUser()->GetSteamID().ConvertToUint64();
 
         Packet packet;
@@ -1918,6 +2001,7 @@ void Game::buildObject(ChunkPosition chunk, sf::Vector2i tile, ObjectType object
         packetData.objectReference.chunk = chunk;
         packetData.objectReference.tile = tile;
         packetData.objectType = objectType;
+        packetData.builtByPlayer = builtByPlayer;
         packetData.userId = SteamUser()->GetSteamID().ConvertToUint64();
 
         Packet packet;
@@ -2911,6 +2995,11 @@ void Game::travelToPlanetFromHost(const PacketDataPlanetTravelReply& planetTrave
         return;
     }
 
+    particleSystem.clear();
+    nearbyCraftingStationLevels.clear();
+
+    destinationLocationState.setToNull();
+
     worldDatas.clear();
     roomDestDatas.clear();
 
@@ -2947,7 +3036,7 @@ void Game::travelToRoomDestination(RoomType destinationRoomType)
     else
     {
         getChestDataPool() = ChestDataPool();
-        getRoomDestination() = Room(destinationRoomType, getChestDataPool());
+        getRoomDestination() = Room(destinationRoomType, &getChestDataPool());
     }
 
     if (getRoomDestination().getFirstRocketObjectReference(rocketEnteredReference))
@@ -3075,6 +3164,8 @@ void Game::changeState(GameState newState)
             camera.instantUpdate(player.getPosition());
 
             player.enterStructure();
+
+            networkHandler.sendPlayerData();
             break;
         }
         case GameState::OnPlanet:
@@ -3087,6 +3178,8 @@ void Game::changeState(GameState newState)
                 player.setPosition(structureEnteredPos);
                 camera.instantUpdate(player.getPosition());
             }
+
+            networkHandler.sendPlayerData();
             break;
         }
     }

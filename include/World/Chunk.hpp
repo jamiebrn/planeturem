@@ -197,9 +197,9 @@ public:
 
 
     // -- Structures -- //
-    bool isPlayerInStructureEntrance(sf::Vector2f playerPos, StructureEnterEvent& enterEvent);
+    bool isPlayerInStructureEntrance(sf::Vector2f playerPos);
 
-    bool hasStructure();
+    StructureObject* getStructureObject();
 
 
     // Save / load

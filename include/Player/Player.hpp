@@ -41,7 +41,7 @@
 
 #include "GUI/HitMarkers.hpp"
 
-#include "Network/PacketDataPlayerCharacterInfo.hpp"
+#include "Network/PacketData/PacketDataPlayer/PacketDataPlayerCharacterInfo.hpp"
 
 #include "GameConstants.hpp"
 #include "DebugOptions.hpp"

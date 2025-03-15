@@ -967,17 +967,17 @@ void ChunkManager::placeLand(ChunkPosition chunk, sf::Vector2i tile)
     }
 }
 
-bool ChunkManager::isPlayerInStructureEntrance(sf::Vector2f playerPos, StructureEnterEvent& enterEvent)
+std::optional<ChunkPosition> ChunkManager::isPlayerInStructureEntrance(sf::Vector2f playerPos)
 {
     for (auto chunkIter = loadedChunks.begin(); chunkIter != loadedChunks.end(); chunkIter++)
     {
-        if (chunkIter->second->isPlayerInStructureEntrance(playerPos, enterEvent))
+        if (chunkIter->second->isPlayerInStructureEntrance(playerPos))
         {
-            return true;
+            return chunkIter->first;
         }
     }
 
-    return false;   
+    return std::nullopt;
 }
 
 std::vector<ChunkPOD> ChunkManager::getChunkPODs()

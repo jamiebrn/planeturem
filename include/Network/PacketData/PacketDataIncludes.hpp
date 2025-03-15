@@ -1,0 +1,27 @@
+#pragma once
+
+#include "Network/PacketData/PacketDataServer/PacketDataJoinQuery.hpp"
+#include "Network/PacketData/PacketDataServer/PacketDataJoinReply.hpp"
+#include "Network/PacketData/PacketDataServer/PacketDataJoinInfo.hpp"
+#include "Network/PacketData/PacketDataServer/PacketDataServerInfo.hpp"
+
+#include "Network/PacketData/PacketDataPlayer/PacketDataPlayerData.hpp"
+#include "Network/PacketData/PacketDataPlayer/PacketDataPlayerCharacterInfo.hpp"
+#include "Network/PacketData/PacketDataPlayer/PacketDataInventoryAddItem.hpp"
+
+#include "Network/PacketData/PacketDataWorld/PacketDataObjectHit.hpp"
+#include "Network/PacketData/PacketDataWorld/PacketDataObjectBuilt.hpp"
+#include "Network/PacketData/PacketDataWorld/PacketDataObjectDestroyed.hpp"
+#include "Network/PacketData/PacketDataWorld/PacketDataItemPickupsCreated.hpp"
+#include "Network/PacketData/PacketDataWorld/PacketDataItemPickupDeleted.hpp"
+#include "Network/PacketData/PacketDataWorld/PacketDataItemPickupsCreateRequest.hpp"
+#include "Network/PacketData/PacketDataWorld/PacketDataChestOpened.hpp"
+#include "Network/PacketData/PacketDataWorld/PacketDataChestClosed.hpp"
+#include "Network/PacketData/PacketDataWorld/PacketDataChestDataModified.hpp"
+#include "Network/PacketData/PacketDataWorld/PacketDataChunkDatas.hpp"
+#include "Network/PacketData/PacketDataWorld/PacketDataChunkRequests.hpp"
+
+#include "Network/PacketData/PacketDataTravel/PacketDataPlanetTravelRequest.hpp"
+#include "Network/PacketData/PacketDataTravel/PacketDataPlanetTravelReply.hpp"
+#include "Network/PacketData/PacketDataTravel/PacketDataStructureEnterRequest.hpp"
+#include "Network/PacketData/PacketDataTravel/PacketDataStructureEnterReply.hpp"

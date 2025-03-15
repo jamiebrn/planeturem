@@ -5,11 +5,11 @@ Room::Room()
     
 }
 
-Room::Room(RoomType roomType, ChestDataPool& chestDataPool)
+Room::Room(RoomType roomType, ChestDataPool* chestDataPool)
 {
     this->roomType = roomType;
 
-    createObjects(&chestDataPool);
+    createObjects(chestDataPool);
 
     createCollisionRects();
 }

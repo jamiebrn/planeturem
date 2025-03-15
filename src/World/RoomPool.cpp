@@ -5,9 +5,14 @@ uint32_t RoomPool::createRoom(RoomType roomType, ChestDataPool& chestDataPool)
     if (std::make_signed_t<std::size_t>(rooms.size()) - 1 >= 0xFFFFFFFF)
         return 0xFFFFFFFF;
     
-    rooms.emplace_back(roomType, chestDataPool);
+    rooms[topDataSlot] = Room(roomType, &chestDataPool);
 
-    return (rooms.size() - 1);
+    return topDataSlot++;
+}
+
+void RoomPool::overwriteRoomData(uint32_t id, const Room& room)
+{
+    rooms[id] = room;
 }
 
 Room& RoomPool::getRoom(uint32_t structureID)
@@ -17,5 +22,5 @@ Room& RoomPool::getRoom(uint32_t structureID)
 
 bool RoomPool::isIDValid(uint32_t structureID)
 {
-    return (structureID < rooms.size());
+    return rooms.contains(structureID);
 }

@@ -6,7 +6,7 @@
 #include <SFML/Graphics.hpp>
 
 #include <extlib/cereal/archives/binary.hpp>
-#include <extlib/cereal/types/vector.hpp>
+#include <extlib/cereal/types/unordered_map.hpp>
 
 #include "World/Room.hpp"
 #include "World/ChestDataPool.hpp"
@@ -21,6 +21,8 @@ public:
 
     uint32_t createRoom(RoomType roomType, ChestDataPool& chestDataPool);
 
+    void overwriteRoomData(uint32_t id, const Room& room);
+
     Room& getRoom(uint32_t structureID);
 
     bool isIDValid(uint32_t structureID);
@@ -30,20 +32,25 @@ public:
     template<class Archive>
     void serialize(Archive& archive, const std::uint32_t version)
     {
-        archive(rooms);
+        if (version == 2)
+        {
+            archive(rooms);
+        }
     }
 
     void mapVersions(const std::unordered_map<ObjectType, ObjectType>& objectVersionMap)
     {
-        for (Room& room : rooms)
+        for (auto& roomPair : rooms)
         {
-            room.mapVersions(objectVersionMap);
+            roomPair.second.mapVersions(objectVersionMap);
         }
     }
 
 private:
     // 0xFFFFFFFF reserved for uninitialised room
-    std::vector<Room> rooms;
+    std::unordered_map<uint32_t, Room> rooms;
+    uint32_t topDataSlot = 0;
+
 };
 
-CEREAL_CLASS_VERSION(RoomPool, 1);
+CEREAL_CLASS_VERSION(RoomPool, 2);

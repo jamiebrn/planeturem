@@ -1312,12 +1312,12 @@ void Chunk::placeLand(sf::Vector2i tile, int worldSize, const FastNoise& heightN
     recalculateCollisionRects(chunkManager, &pathfindingEngine);
 }
 
-bool Chunk::isPlayerInStructureEntrance(sf::Vector2f playerPos, StructureEnterEvent& enterEvent)
+bool Chunk::isPlayerInStructureEntrance(sf::Vector2f playerPos)
 {
     if (!structureObject.has_value())
         return false;
    
-    bool inEntrance = structureObject->isPlayerInEntrance(playerPos, enterEvent);
+    bool inEntrance = structureObject->isPlayerInEntrance(playerPos);
 
     if (inEntrance)
     {
@@ -1329,9 +1329,13 @@ bool Chunk::isPlayerInStructureEntrance(sf::Vector2f playerPos, StructureEnterEv
     return inEntrance;
 }
 
-bool Chunk::hasStructure()
+StructureObject* Chunk::getStructureObject()
 {
-    return (structureObject.has_value());
+    if (!structureObject.has_value())
+    {
+        return nullptr;
+    }
+    return &structureObject.value();
 }
 
 ChunkPOD Chunk::getChunkPOD(bool includeEntities)

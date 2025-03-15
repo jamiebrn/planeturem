@@ -32,7 +32,7 @@
 #include "Data/PlanetGenData.hpp"
 #include "Data/PlanetGenDataLoader.hpp"
 
-#include "Network/PacketDataChunkDatas.hpp"
+#include "Network/PacketData/PacketDataWorld/PacketDataChunkDatas.hpp"
 
 // Forward declaration
 class Game;
@@ -207,7 +207,9 @@ public:
 
 
     // -- Structures -- //
-    bool isPlayerInStructureEntrance(sf::Vector2f playerPos, StructureEnterEvent& enterEvent);
+
+    // Returns chunk containing structure entered, if any
+    std::optional<ChunkPosition> isPlayerInStructureEntrance(sf::Vector2f playerPos);
 
 
     // Save / load

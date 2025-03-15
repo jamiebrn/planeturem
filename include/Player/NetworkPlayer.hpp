@@ -18,7 +18,7 @@
 #include "Data/typedefs.hpp"
 #include "Types/GameState.hpp"
 
-#include "Network/PacketDataPlayerCharacterInfo.hpp"
+#include "Network/PacketData/PacketDataPlayer/PacketDataPlayerCharacterInfo.hpp"
 
 #include "Player/Player.hpp"
 #include "Player/PlayerData.hpp"

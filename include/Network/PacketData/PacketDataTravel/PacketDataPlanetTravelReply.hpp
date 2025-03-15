@@ -3,7 +3,7 @@
 #include <extlib/cereal/archives/binary.hpp>
 
 #include "Network/IPacketData.hpp"
-#include "Network/PacketDataChunkDatas.hpp"
+#include "Network/PacketData/PacketDataWorld/PacketDataChunkDatas.hpp"
 #include "Object/ObjectReference.hpp"
 
 struct PacketDataPlanetTravelReply : public IPacketData

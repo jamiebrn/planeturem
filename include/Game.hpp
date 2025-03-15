@@ -92,24 +92,7 @@
 
 #include "Network/Packet.hpp"
 #include "Network/IPacketData.hpp"
-#include "Network/PacketDataJoinInfo.hpp"
-#include "Network/PacketDataPlayerData.hpp"
-#include "Network/PacketDataPlayerCharacterInfo.hpp"
-#include "Network/PacketDataServerInfo.hpp"
-#include "Network/PacketDataObjectHit.hpp"
-#include "Network/PacketDataObjectBuilt.hpp"
-#include "Network/PacketDataObjectDestroyed.hpp"
-#include "Network/PacketDataItemPickupsCreated.hpp"
-#include "Network/PacketDataItemPickupDeleted.hpp"
-#include "Network/PacketDataItemPickupsCreateRequest.hpp"
-#include "Network/PacketDataInventoryAddItem.hpp"
-#include "Network/PacketDataChestOpened.hpp"
-#include "Network/PacketDataChestClosed.hpp"
-#include "Network/PacketDataChestDataModified.hpp"
-#include "Network/PacketDataChunkDatas.hpp"
-#include "Network/PacketDataChunkRequests.hpp"
-#include "Network/PacketDataPlanetTravelRequest.hpp"
-#include "Network/PacketDataPlanetTravelReply.hpp"
+#include "Network/PacketData/PacketDataIncludes.hpp"
 
 #include "Network/NetworkHandler.hpp"
 
@@ -173,6 +156,9 @@ public:
 
     ObjectReference setupPlanetTravel(PlanetType planetType, std::optional<uint64_t> clientID);
     void travelToPlanetFromHost(const PacketDataPlanetTravelReply& planetTravelReplyPacket);
+
+    std::optional<uint32_t> initialiseStructureOrGet(PlanetType planetType, ChunkPosition chunk, sf::Vector2f* entrancePos, RoomType* roomType);
+    void enterStructureFromHost(PlanetType planetType, ChunkPosition chunk, uint32_t structureID, sf::Vector2f entrancePos, RoomType roomType);
 
     PlayerData createPlayerData();
 

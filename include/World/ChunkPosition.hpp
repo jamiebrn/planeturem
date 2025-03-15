@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <cstdint>
+#include <string>
 
 #include <extlib/cereal/archives/binary.hpp>
 
@@ -39,6 +40,11 @@ struct ChunkPosition
     void serialize(Archive& ar)
     {
         ar(x, y);
+    }
+
+    inline std::string toString()
+    {
+        return "(" + std::to_string(x) + ", " + std::to_string(y) + ")";
     }
 };
 

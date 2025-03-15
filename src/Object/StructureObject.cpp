@@ -18,20 +18,17 @@ void StructureObject::createWarpRect(sf::Vector2f rectPosition)
     warpEntranceRect->height = TILE_SIZE_PIXELS_UNSCALED;
 }
 
-bool StructureObject::isPlayerInEntrance(sf::Vector2f playerPos, StructureEnterEvent& enterEvent)
+bool StructureObject::isPlayerInEntrance(sf::Vector2f playerPos)
 {
     if (!warpEntranceRect.has_value())
         return false;
 
-    if (warpEntranceRect->isPointInRect(playerPos.x, playerPos.y))
-    {
-        enterEvent.enteredStructure = this;
-        enterEvent.entrancePosition = sf::Vector2f(warpEntranceRect->x, warpEntranceRect->y);
+    return warpEntranceRect->isPointInRect(playerPos.x, playerPos.y);
+}
 
-        return true;
-    }
-
-    return false;
+sf::Vector2f StructureObject::getEntrancePosition()
+{
+    return sf::Vector2f(warpEntranceRect->x, warpEntranceRect->y);
 }
 
 void StructureObject::setWorldPosition(sf::Vector2f newPosition)

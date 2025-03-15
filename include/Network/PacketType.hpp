@@ -35,6 +35,9 @@ enum class PacketType : uint8_t
     ChunkDatas,
     ChunkRequests,
 
+    StructureEnterRequest,
+    StructureEnterReply,
+
     PlanetTravelRequest,
     PlanetTravelReply,
     RoomTravelRequest,
