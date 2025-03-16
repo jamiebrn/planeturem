@@ -41,7 +41,7 @@ public:
             {
                 return (inStructureID.value() == other.getInStructureID());
             }
-            return true;
+            return (isInStructure() == other.isInStructure());
         }
         else if (isInRoomDest() && other.isInRoomDest() && currentRoomDestType == other.getRoomDestType())
         {
