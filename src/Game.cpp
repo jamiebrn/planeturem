@@ -1476,15 +1476,18 @@ void Game::testEnterStructure()
     // Structure has been entered
 
     // If client, request structure enter from host
-    if (networkHandler.isClient() && networkHandler.canSendStructureRequest())
+    if (networkHandler.isClient())
     {
-        PacketDataStructureEnterRequest packetDataRequest;
-        packetDataRequest.planetType = locationState.getPlanetType();
-        packetDataRequest.chunkPos = structureEnteredChunk.value();
-        Packet packet;
-        packet.set(packetDataRequest);
-        networkHandler.sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
-        networkHandler.structureRequestSent();
+        if (networkHandler.canSendStructureRequest())
+        {
+            PacketDataStructureEnterRequest packetDataRequest;
+            packetDataRequest.planetType = locationState.getPlanetType();
+            packetDataRequest.chunkPos = structureEnteredChunk.value();
+            Packet packet;
+            packet.set(packetDataRequest);
+            networkHandler.sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
+            networkHandler.structureRequestSent();
+        }
         return;
     }
 
