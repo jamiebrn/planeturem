@@ -462,14 +462,6 @@ void Game::runInGame(float dt)
 
     bool shiftMode = InputManager::isActionActive(InputAction::UI_SHIFT);
 
-    LocationState roomLocationState;
-    roomLocationState.setPlanetType(0);
-    roomLocationState.setInStructureID(0);
-    if (locationState == roomLocationState)
-    {
-        printf("Location state equal\n");
-    }
-
     // Handle events
     for (auto event = sf::Event{}; window.pollEvent(event);)
     {
