@@ -803,7 +803,7 @@ std::optional<ItemPickupReference> ChunkManager::addItemPickup(const ItemPickup&
     return ItemPickupReference{chunkInside->getChunkPosition(), chunkInside->addItemPickup(itemPickup, idOverride)};
 }
 
-std::optional<ItemPickupReference>ChunkManager::getCollidingItemPickup(const CollisionRect& playerCollision, float gameTime)
+std::optional<ItemPickupReference> ChunkManager::getCollidingItemPickup(const CollisionRect& playerCollision, float gameTime)
 {
     // Get chunk player is in
     ChunkPosition chunk = WorldObject::getChunkInside(sf::Vector2f(playerCollision.x, playerCollision.y), worldSize);

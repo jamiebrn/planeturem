@@ -159,7 +159,7 @@ void Player::updateMovement(float dt, ChunkManager& chunkManager, bool isLocalPl
     // Test collision after x movement
     collisionRect.x += direction.x * speed * dt * speedMult;
     #if (!RELEASE_BUILD)
-    if (!DebugOptions::godMode && isLocalPlayer)
+    if (!DebugOptions::godMode || !isLocalPlayer)
     #endif
     {
         chunkManager.collisionRectChunkStaticCollisionX(collisionRect, direction.x);
@@ -168,7 +168,7 @@ void Player::updateMovement(float dt, ChunkManager& chunkManager, bool isLocalPl
     // Test collision after y movement
     collisionRect.y += direction.y * speed * dt * speedMult;
     #if (!RELEASE_BUILD)
-    if (!DebugOptions::godMode && isLocalPlayer)
+    if (!DebugOptions::godMode || !isLocalPlayer)
     #endif
     {
         chunkManager.collisionRectChunkStaticCollisionY(collisionRect, direction.y);
@@ -187,7 +187,7 @@ void Player::updateMovementInRoom(float dt, const Room& room, bool isLocalPlayer
 
     collisionRect.x += direction.x * speed * dt * speedMult;
     #if (!RELEASE_BUILD)
-    if (!DebugOptions::godMode && isLocalPlayer)
+    if (!DebugOptions::godMode || !isLocalPlayer)
     #endif
     {
         room.handleStaticCollisionX(collisionRect, direction.x);
@@ -195,7 +195,7 @@ void Player::updateMovementInRoom(float dt, const Room& room, bool isLocalPlayer
 
     collisionRect.y += direction.y * speed * dt * speedMult;
     #if (!RELEASE_BUILD)
-    if (!DebugOptions::godMode && isLocalPlayer)
+    if (!DebugOptions::godMode || !isLocalPlayer)
     #endif
     {
         room.handleStaticCollisionY(collisionRect, direction.y);

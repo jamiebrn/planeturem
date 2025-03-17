@@ -8,6 +8,7 @@ NetworkPlayer::NetworkPlayer(sf::Vector2f position, int maxHealth)
 
 void NetworkPlayer::updateOnPlanet(float dt, ChunkManager& chunkManager)
 {
+    updateAnimation(dt);
     updateMovement(dt, chunkManager, false);
     position.x = collisionRect.x + collisionRect.width / 2.0f;
     position.y = collisionRect.y + collisionRect.height / 2.0f;
@@ -15,6 +16,7 @@ void NetworkPlayer::updateOnPlanet(float dt, ChunkManager& chunkManager)
 
 void NetworkPlayer::updateInRoom(float dt, const Room& room)
 {
+    updateAnimation(dt);
     updateMovementInRoom(dt, room, false);
     position.x = collisionRect.x + collisionRect.width / 2.0f;
     position.y = collisionRect.y + collisionRect.height / 2.0f;
