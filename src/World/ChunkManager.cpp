@@ -55,77 +55,89 @@ void ChunkManager::deleteAllChunks()
     chunkLastEntitySpawnTime.clear();
 }
 
-bool ChunkManager::updateChunks(Game& game, const std::vector<ChunkViewRange>& chunkViewRanges, bool isClient, std::vector<ChunkPosition>* chunksToRequestFromHost)
+bool ChunkManager::updateChunks(Game& game, std::optional<sf::Vector2f> localPlayerPos, const std::vector<ChunkViewRange>& chunkViewRanges,
+    bool isClient, std::vector<ChunkPosition>* chunksToRequestFromHost)
 {
     // Chunk load/unload
 
     bool hasModifiedChunks = false;
 
     // Check any chunks needed to load
-    for (const ChunkViewRange& chunkViewRange : chunkViewRanges)
+    for (ChunkPosition chunkPos : ChunkViewRange::getCombinedChunkSet(chunkViewRanges, worldSize))
     {
-        for (auto iter = chunkViewRange.begin(); iter != chunkViewRange.end(); iter++)
+        // ChunkPosition chunkPos = iter.get(worldSize);
+        
+        // Chunk not loaded
+        hasModifiedChunks = true;
+    
+        // Calculate chunk world pos
+        sf::Vector2f chunkWorldPos;
+        chunkWorldPos.x = chunkPos.x * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
+        chunkWorldPos.y = chunkPos.y * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
+        if (localPlayerPos.has_value())
         {
-            ChunkPosition chunkPos = iter.get(worldSize);
-            
-            // Chunk already loaded
-            if (loadedChunks.count(chunkPos))
-            {
-                continue;
-            }
-            
-            // Chunk not loaded
-            hasModifiedChunks = true;
-        
-            // Calculate chunk world pos
-            sf::Vector2f chunkWorldPos;
-            chunkWorldPos.x = iter.getUnwrapped().x * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
-            chunkWorldPos.y = iter.getUnwrapped().y * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
-        
-            // Check if chunk is in memory, and load if so
-            if (storedChunks.count(chunkPos))
-            {
-                // Move chunk into loaded chunks for rendering
-                loadedChunks[chunkPos] = std::move(storedChunks[chunkPos]);
-                storedChunks.erase(chunkPos);
-        
-                auto& chunk = loadedChunks[chunkPos];
-        
-                // Update chunk position
-                chunk->setWorldPosition(chunkWorldPos, *this);
-        
-                // If chunk was loaded through POD / save file, has not yet been initialised (tilemaps, collision, pathfinding etc)
-                // Therefore must initialise
-                if (chunk->wasGeneratedFromPOD())
-                {
-                    chunk->generateTilemapsAndInit(*this, pathfindingEngine);
-                }
-                else
-                {
-                    // Spawn entities if enough time has passed
-        
-                    // Only attempt if chunk was not generated / loaded from POD, otherwise each time save is loaded
-                    // more entities will spawn in player view (meaning previous state is not retained from player perspective)
-        
-                    if (getChunkEntitySpawnCooldown(chunkPos) >= MAX_CHUNK_ENTITY_SPAWN_COOLDOWN)
-                    {
-                        chunk->spawnChunkEntities(worldSize, heightNoise, biomeNoise, riverNoise, planetType);
-                        resetChunkEntitySpawnCooldown(chunkPos);
-                    }
-                }
-        
-                continue;
-            }
-
-            if (isClient && chunksToRequestFromHost != nullptr)
-            {
-                chunksToRequestFromHost->push_back(chunkPos);
-                continue;
-            }
-        
-            // Generate new chunk if does not exist (only if host / solo)
-            generateChunk(chunkPos, game, true, chunkWorldPos);
+            chunkWorldPos = translatePositionAroundWorld(chunkWorldPos, localPlayerPos.value());
         }
+        
+        // Chunk already loaded
+        if (loadedChunks.count(chunkPos))
+        {
+            // Chunk already in correct world position, skip
+            if (loadedChunks.at(chunkPos)->getWorldPosition() == chunkWorldPos)
+            {
+                continue;
+            }
+            else
+            {
+                // Chunk is loaded but in incorrect position, reload
+                storedChunks[chunkPos] = std::move(loadedChunks[chunkPos]);
+                loadedChunks.erase(chunkPos);
+            }
+        }
+    
+        // Check if chunk is in memory, and load if so
+        if (storedChunks.count(chunkPos))
+        {
+            // Move chunk into loaded chunks for rendering
+            loadedChunks[chunkPos] = std::move(storedChunks[chunkPos]);
+            storedChunks.erase(chunkPos);
+    
+            auto& chunk = loadedChunks[chunkPos];
+    
+            // Update chunk position
+            chunk->setWorldPosition(chunkWorldPos, *this);
+    
+            // If chunk was loaded through POD / save file, has not yet been initialised (tilemaps, collision, pathfinding etc)
+            // Therefore must initialise
+            if (chunk->wasGeneratedFromPOD())
+            {
+                chunk->generateTilemapsAndInit(*this, pathfindingEngine);
+            }
+            else
+            {
+                // Spawn entities if enough time has passed
+    
+                // Only attempt if chunk was not generated / loaded from POD, otherwise each time save is loaded
+                // more entities will spawn in player view (meaning previous state is not retained from player perspective)
+    
+                if (getChunkEntitySpawnCooldown(chunkPos) >= MAX_CHUNK_ENTITY_SPAWN_COOLDOWN)
+                {
+                    chunk->spawnChunkEntities(worldSize, heightNoise, biomeNoise, riverNoise, planetType);
+                    resetChunkEntitySpawnCooldown(chunkPos);
+                }
+            }
+    
+            continue;
+        }
+
+        if (isClient && chunksToRequestFromHost != nullptr)
+        {
+            chunksToRequestFromHost->push_back(chunkPos);
+            continue;
+        }
+    
+        // Generate new chunk if does not exist (only if host / solo)
+        generateChunk(chunkPos, game, true, chunkWorldPos);
     }
 
     return hasModifiedChunks;
@@ -1188,14 +1200,14 @@ std::unordered_map<std::string, int> ChunkManager::getNearbyCraftingStationLevel
     return craftingStationLevels;
 }
 
-sf::Vector2f ChunkManager::translatePositionAroundWorld(sf::Vector2f position, sf::Vector2f playerPosition) const
+sf::Vector2f ChunkManager::translatePositionAroundWorld(sf::Vector2f position, sf::Vector2f originPosition) const
 {
     int worldPixelSize = worldSize * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
     float halfWorldPixelSize = worldPixelSize / 2.0f;
 
-    if (std::abs(playerPosition.x - position.x) >= halfWorldPixelSize)
+    if (std::abs(originPosition.x - position.x) >= halfWorldPixelSize)
     {
-        if (playerPosition.x >= halfWorldPixelSize)
+        if (originPosition.x >= halfWorldPixelSize)
         {
             if (position.x < halfWorldPixelSize)
             {
@@ -1211,9 +1223,9 @@ sf::Vector2f ChunkManager::translatePositionAroundWorld(sf::Vector2f position, s
         }
     }
 
-    if (std::abs(playerPosition.y - position.y) >= halfWorldPixelSize)
+    if (std::abs(originPosition.y - position.y) >= halfWorldPixelSize)
     {
-        if (playerPosition.y >= halfWorldPixelSize)
+        if (originPosition.y >= halfWorldPixelSize)
         {
             if (position.y < halfWorldPixelSize)
             {

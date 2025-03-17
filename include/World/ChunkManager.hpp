@@ -56,7 +56,8 @@ public:
 
     // Load chunks every frame
     // Returns true if any chunks loaded
-    bool updateChunks(Game& game, const std::vector<ChunkViewRange>& chunkViewRanges, bool isClient = false, std::vector<ChunkPosition>* chunksToRequestFromHost = nullptr);
+    bool updateChunks(Game& game, std::optional<sf::Vector2f> localPlayerPos, const std::vector<ChunkViewRange>& chunkViewRanges,
+            bool isClient = false, std::vector<ChunkPosition>* chunksToRequestFromHost = nullptr);
     
     bool unloadChunksOutOfView(const std::vector<ChunkViewRange>& chunkViewRanges);
 
@@ -249,7 +250,7 @@ public:
     
     // Translate position relative to player position and world size, to make position closest possible to player
     // Provides planet / wraparound effect
-    sf::Vector2f translatePositionAroundWorld(sf::Vector2f position, sf::Vector2f playerPosition) const;
+    sf::Vector2f translatePositionAroundWorld(sf::Vector2f position, sf::Vector2f originPosition) const;
 
     // Used to calculate chunk and tile positions from an offset value, from another chunk and tile
     // Correct for offsets < worldSize * CHUNK_TILE_SIZE
