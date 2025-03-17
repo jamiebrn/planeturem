@@ -520,6 +520,11 @@ const BiomeGenData* ChunkManager::getChunkBiome(ChunkPosition chunk)
 
     const BiomeGenData* biomeGenData = Chunk::getBiomeGenAtWorldTile(chunkTopLeft, worldSize, biomeNoise, planetType);
 
+    if (biomeGenData == nullptr)
+    {
+        return nullptr;
+    }
+
     // Store in cache
     chunkBiomeCache[chunk] = biomeGenData;
 

@@ -351,10 +351,14 @@ FN_DECIMAL FastNoise::GetNoiseSeamless2D(FN_DECIMAL x, FN_DECIMAL y, FN_DECIMAL 
 	return GetSimplexFractal(nx, ny, nz, nw);
 }
 
-FN_DECIMAL FastNoise::Normalise(FN_DECIMAL noiseValue)
+FN_DECIMAL FastNoise::Normalise(FN_DECIMAL noiseValue, bool clamp)
 {
 	static const float sqrt2Div2 = 0.70710678119f;
 	float noiseValueNormalised = (noiseValue + sqrt2Div2) / (sqrt2Div2 * 2);
+	if (clamp)
+	{
+		noiseValueNormalised = std::clamp(noiseValueNormalised, 0.0f, 1.0f);
+	}
 	return noiseValueNormalised;
 }
 
