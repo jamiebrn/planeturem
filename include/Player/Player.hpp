@@ -112,12 +112,15 @@ public:
     PacketDataPlayerCharacterInfo getNetworkPlayerInfo(const Camera* camera, uint64_t steamID);
 
 
-private:
+protected:
     void updateDirection(sf::Vector2f mouseWorldPos);
+    void updateMovement(float dt, ChunkManager& chunkManager, bool isLocalPlayer = true);
+    void updateMovementInRoom(float dt, const Room& room, bool isLocalPlayer = true);
     void updateAnimation(float dt);
     void updateToolRotation(sf::Vector2f mouseWorldPos);
     void updateTimers(float dt);
 
+private:
     bool testWorldWrap(int worldSize, sf::Vector2f& wrapPositionDelta);
 
     bool takeDamage(float rawAmount);

@@ -420,6 +420,30 @@ void NetworkHandler::update(float dt)
     structureEnterRequestCooldown = std::max(structureEnterRequestCooldown - dt, 0.0f);
 }
 
+void NetworkHandler::updateNetworkPlayersInLocation(LocationState locationState, float dt)
+{
+    for (auto& networkPlayerPair : networkPlayers)
+    {
+        if (networkPlayerPair.second.getPlayerData().locationState != locationState)
+        {
+            continue;
+        }
+
+        switch (locationState.getGameState())
+        {
+            case GameState::OnPlanet:
+                networkPlayerPair.second.updateOnPlanet(dt, game->getChunkManager(locationState.getPlanetType()));
+                break;
+            case GameState::InStructure:
+                networkPlayerPair.second.updateInRoom(dt, game->getStructureRoomPool(locationState.getPlanetType()).getRoom(locationState.getInStructureID()));
+                break;
+            case GameState::InRoomDestination:
+                networkPlayerPair.second.updateInRoom(dt, game->getRoomDestination(locationState.getRoomDestType()));
+                break;
+        }
+    }
+}
+
 void NetworkHandler::receiveMessages()
 {
     static const int MAX_MESSAGES = 10;

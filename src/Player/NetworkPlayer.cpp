@@ -6,6 +6,20 @@ NetworkPlayer::NetworkPlayer(sf::Vector2f position, int maxHealth)
 
 }
 
+void NetworkPlayer::updateOnPlanet(float dt, ChunkManager& chunkManager)
+{
+    updateMovement(dt, chunkManager, false);
+    position.x = collisionRect.x + collisionRect.width / 2.0f;
+    position.y = collisionRect.y + collisionRect.height / 2.0f;
+}
+
+void NetworkPlayer::updateInRoom(float dt, const Room& room)
+{
+    updateMovementInRoom(dt, room, false);
+    position.x = collisionRect.x + collisionRect.width / 2.0f;
+    position.y = collisionRect.y + collisionRect.height / 2.0f;
+}
+
 void NetworkPlayer::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const sf::Color& color) const
 {
     Player::draw(window, spriteBatch, game, camera, dt, gameTime, worldSize, color);
@@ -26,7 +40,9 @@ void NetworkPlayer::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Gam
 void NetworkPlayer::setNetworkPlayerCharacterInfo(const PacketDataPlayerCharacterInfo& info)
 {
     // position = chunkManager.translatePositionAroundWorld(sf::Vector2f(info.positionX, info.positionY), playerPosition);
-    playerData.position = sf::Vector2f(info.positionX, info.positionY);
+    playerData.position = info.position;
+    direction = info.direction;
+    speed = info.speed;
 
     collisionRect.x = position.x - collisionRect.width / 2.0f;
     collisionRect.y = position.y - collisionRect.height / 2.0f;
@@ -48,6 +64,8 @@ void NetworkPlayer::setNetworkPlayerCharacterInfo(const PacketDataPlayerCharacte
     playerYScaleMult = info.yScaleMult;
 
     onWater = info.onWater;
+
+    inRocket = info.inRocket;
 
     equippedTool = info.toolType;
     toolRotation = info.toolRotation;

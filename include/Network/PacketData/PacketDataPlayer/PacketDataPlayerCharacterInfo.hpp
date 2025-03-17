@@ -12,14 +12,17 @@
 
 struct PacketDataPlayerCharacterInfo : public IPacketData
 {
-    float positionX;
-    float positionY;
+    sf::Vector2f position;
+    sf::Vector2f direction;
+    float speed;
 
     int animationFrame;
     bool flipped;
     float yScaleMult;
 
     bool onWater;
+
+    bool inRocket;
     
     ToolType toolType;
     float toolRotation;
@@ -35,7 +38,7 @@ struct PacketDataPlayerCharacterInfo : public IPacketData
     template <class Archive>
     void serialize(Archive& ar)
     {
-        ar(positionX, positionY, animationFrame, flipped, yScaleMult, onWater, toolType, toolRotation,
+        ar(position.x, position.y, direction.x, direction.y, speed, animationFrame, flipped, yScaleMult, onWater, inRocket, toolType, toolRotation,
             fishingRodCasted, fishBitingLine, fishingRodBobWorldTile.x, fishingRodBobWorldTile.y, armour,
             chunkViewRange, userID);
     }

@@ -32,6 +32,9 @@ public:
     NetworkPlayer() = default;
     NetworkPlayer(sf::Vector2f position, int maxHealth = 0);
 
+    void updateOnPlanet(float dt, ChunkManager& chunkManager);
+    void updateInRoom(float dt, const Room& room);
+
     void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const sf::Color& color) const override;
 
     // Multiplayer

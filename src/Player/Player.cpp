@@ -63,31 +63,7 @@ void Player::update(float dt, sf::Vector2f mouseWorldPos, ChunkManager& chunkMan
 
     // Handle collision with world (tiles, object)
 
-    float speedMult = 1.0f;
-    #if (!RELEASE_BUILD)
-    if (DebugOptions::godMode)
-    {
-        speedMult = DebugOptions::godSpeedMultiplier;
-    }
-    #endif
-
-    // Test collision after x movement
-    collisionRect.x += direction.x * speed * dt * speedMult;
-    #if (!RELEASE_BUILD)
-    if (!DebugOptions::godMode)
-    #endif
-    {
-        chunkManager.collisionRectChunkStaticCollisionX(collisionRect, direction.x);
-    }
-
-    // Test collision after y movement
-    collisionRect.y += direction.y * speed * dt * speedMult;
-    #if (!RELEASE_BUILD)
-    if (!DebugOptions::godMode)
-    #endif
-    {
-        chunkManager.collisionRectChunkStaticCollisionY(collisionRect, direction.y);
-    }
+    updateMovement(dt, chunkManager);
     
     wrappedAroundWorld = testWorldWrap(chunkManager.getWorldSize(), wrapPositionDelta);
 
@@ -127,11 +103,7 @@ void Player::updateInRoom(float dt, sf::Vector2f mouseWorldPos, const Room& room
     updateAnimation(dt);
     updateToolRotation(mouseWorldPos);
 
-    collisionRect.x += direction.x * speed * dt;
-    room.handleStaticCollisionX(collisionRect, direction.x);
-
-    collisionRect.y += direction.y * speed * dt;
-    room.handleStaticCollisionY(collisionRect, direction.y);
+    updateMovementInRoom(dt, room);
 
     position.x = collisionRect.x + collisionRect.width / 2.0f;
     position.y = collisionRect.y + collisionRect.height / 2.0f;
@@ -170,6 +142,63 @@ void Player::updateDirection(sf::Vector2f mouseWorldPos)
 
         if (direction.x != 0)
             flippedTexture = direction.x < 0;
+    }
+}
+
+
+void Player::updateMovement(float dt, ChunkManager& chunkManager, bool isLocalPlayer)
+{
+    float speedMult = 1.0f;
+    #if (!RELEASE_BUILD)
+    if (DebugOptions::godMode && isLocalPlayer)
+    {
+        speedMult = DebugOptions::godSpeedMultiplier;
+    }
+    #endif
+
+    // Test collision after x movement
+    collisionRect.x += direction.x * speed * dt * speedMult;
+    #if (!RELEASE_BUILD)
+    if (!DebugOptions::godMode && isLocalPlayer)
+    #endif
+    {
+        chunkManager.collisionRectChunkStaticCollisionX(collisionRect, direction.x);
+    }
+
+    // Test collision after y movement
+    collisionRect.y += direction.y * speed * dt * speedMult;
+    #if (!RELEASE_BUILD)
+    if (!DebugOptions::godMode && isLocalPlayer)
+    #endif
+    {
+        chunkManager.collisionRectChunkStaticCollisionY(collisionRect, direction.y);
+    }
+}
+
+void Player::updateMovementInRoom(float dt, const Room& room, bool isLocalPlayer)
+{
+    float speedMult = 1.0f;
+    #if (!RELEASE_BUILD)
+    if (DebugOptions::godMode && isLocalPlayer)
+    {
+        speedMult = DebugOptions::godSpeedMultiplier;
+    }
+    #endif
+
+    collisionRect.x += direction.x * speed * dt * speedMult;
+    #if (!RELEASE_BUILD)
+    if (!DebugOptions::godMode && isLocalPlayer)
+    #endif
+    {
+        room.handleStaticCollisionX(collisionRect, direction.x);
+    }
+
+    collisionRect.y += direction.y * speed * dt * speedMult;
+    #if (!RELEASE_BUILD)
+    if (!DebugOptions::godMode && isLocalPlayer)
+    #endif
+    {
+        room.handleStaticCollisionY(collisionRect, direction.y);
     }
 }
 
@@ -963,8 +992,9 @@ bool Player::isAlive() const
 PacketDataPlayerCharacterInfo Player::getNetworkPlayerInfo(const Camera* camera, uint64_t steamID)
 {
     PacketDataPlayerCharacterInfo info;
-    info.positionX = position.x;
-    info.positionY = position.y;
+    info.position = position;
+    info.direction = direction;
+    info.speed = speed;
 
     if (direction.x == 0 && direction.y == 0)
     {
@@ -979,6 +1009,8 @@ PacketDataPlayerCharacterInfo Player::getNetworkPlayerInfo(const Camera* camera,
     info.yScaleMult = playerYScaleMult;
 
     info.onWater = onWater;
+
+    info.inRocket = inRocket;
 
     info.toolType = equippedTool;
     info.toolRotation = toolRotation;
