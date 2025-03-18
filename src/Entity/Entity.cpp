@@ -260,6 +260,8 @@ void Entity::loadFromPOD(const EntityPOD& pod, sf::Vector2f chunkPosition)
 {
     entityType = pod.entityType;
     position = pod.chunkRelativePosition + chunkPosition;
+    collisionRect.x = position.x - collisionRect.width / 2.0f;
+    collisionRect.y = position.y - collisionRect.height / 2.0f;
     velocity = pod.velocity;
 }
 

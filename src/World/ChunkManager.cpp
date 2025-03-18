@@ -809,10 +809,10 @@ PacketDataEntities ChunkManager::getEntityPacketDatas(ChunkViewRange chunkViewRa
             continue;
         }
         
-        std::vector<PacketDataEntities::EntityPacketData> entities = loadedChunks[chunkPos]->getEntityPacketDatas();
-        if (entities.size() > 0)
+        std::vector<PacketDataEntities::EntityPacketData> packetEntities = loadedChunks[chunkPos]->getEntityPacketDatas();
+        if (packetEntities.size() > 0)
         {
-            entityPacketData.entities[chunkPos] = entities;
+            entityPacketData.entities[chunkPos] = packetEntities;
         }
     }
 
