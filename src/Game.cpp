@@ -1,8 +1,5 @@
 #include "Game.hpp"
 
-// FIX: Object deletion bug when not updating chunks (when client destroyed object outside of host update range)
-    // Maybe keep chunk range for each client, and update chunks in client range (also no more explicit chunk data requests?)
-
 // TODO: Night and menu music
 
 // PRIORITY: LOW
@@ -752,7 +749,7 @@ void Game::runInGame(float dt)
     {
         networkHandler.update(dt);
         networkHandler.updateNetworkPlayersInLocation(locationState, dt);
-        networkHandler.sendGameUpdates(camera);
+        networkHandler.sendGameUpdates(dt, camera);
     }
 
     //
@@ -1111,7 +1108,7 @@ void Game::updateOnPlanet(float dt)
         }
     
         getChunkManager().updateChunksObjects(*this, dt);
-        getChunkManager().updateChunksEntities(dt, getProjectileManager(), *this);
+        getChunkManager().updateChunksEntities(dt, getProjectileManager(), *this, !networkHandler.isClient());
     
         // If modified chunks, force a lighting recalculation
         if (hasLoadedChunks || hasUnloadedChunks)
@@ -1216,7 +1213,7 @@ void Game::updateActivePlanets(float dt)
         bool hasUnloadedChunks = getChunkManager(planetType).unloadChunksOutOfView(chunkViewRanges);
     
         getChunkManager(planetType).updateChunksObjects(*this, dt);
-        getChunkManager(planetType).updateChunksEntities(dt, getProjectileManager(planetType), *this);
+        getChunkManager(planetType).updateChunksEntities(dt, getProjectileManager(planetType), *this, true);
 
         // If modified chunks (and this player (host) is on this planet), force a lighting recalculation
         if (locationState.getPlanetType() == planetType && (hasLoadedChunks || hasUnloadedChunks))
@@ -1697,7 +1694,7 @@ void Game::updateInRoom(float dt, Room& room, bool inStructure)
     {
         // Continue to update objects and entities in world
         getChunkManager().updateChunksObjects(*this, dt);
-        getChunkManager().updateChunksEntities(dt, getProjectileManager(), *this);
+        getChunkManager().updateChunksEntities(dt, getProjectileManager(), *this, !networkHandler.isClient());
             
         weatherSystem.update(dt, gameTime, camera, getChunkManager());
 

@@ -964,7 +964,7 @@ bool Chunk::canPlaceObject(sf::Vector2i position, ObjectType objectType, int wor
     return true;
 }
 
-void Chunk::updateChunkEntities(float dt, int worldSize, ProjectileManager& projectileManager, ChunkManager& chunkManager, Game& game)
+void Chunk::updateChunkEntities(float dt, int worldSize, ProjectileManager& projectileManager, ChunkManager& chunkManager, Game& game, bool allowEntityChunkMove)
 {
     for (std::vector<std::unique_ptr<Entity>>::iterator entityIter = entities.begin(); entityIter != entities.end();)
     {
@@ -982,38 +982,41 @@ void Chunk::updateChunkEntities(float dt, int worldSize, ProjectileManager& proj
             continue;
         }
 
-        // Check if requires moving to different chunk
-        sf::Vector2f relativePosition = entity->getPosition() - worldPosition;
-
-        bool requiresMove = false;
-        ChunkPosition newChunk(chunkPosition.x, chunkPosition.y);
-
-        if (relativePosition.x < 0)
+        if (allowEntityChunkMove)
         {
-            newChunk.x = (((chunkPosition.x - 1) % worldSize) + worldSize) % worldSize;
-            requiresMove = true;
-        }
-        else if (relativePosition.x > TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE)
-        {
-            newChunk.x = (((chunkPosition.x + 1) % worldSize) + worldSize) % worldSize;
-            requiresMove = true;
-        }
-        else if (relativePosition.y < 0)
-        {
-            newChunk.y = (((chunkPosition.y - 1) % worldSize) + worldSize) % worldSize;
-            requiresMove = true;
-        }
-        else if (relativePosition.y > TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE)
-        {
-            newChunk.y = (((chunkPosition.y + 1) % worldSize) + worldSize) % worldSize;
-            requiresMove = true;
-        }
-
-        if (requiresMove)
-        {
-            chunkManager.moveEntityToChunkFromChunk(std::move(entity), newChunk);
-            entityIter = entities.erase(entityIter);
-            continue;
+            // Check if requires moving to different chunk
+            sf::Vector2f relativePosition = entity->getPosition() - worldPosition;
+    
+            bool requiresMove = false;
+            ChunkPosition newChunk(chunkPosition.x, chunkPosition.y);
+    
+            if (relativePosition.x < 0)
+            {
+                newChunk.x = (((chunkPosition.x - 1) % worldSize) + worldSize) % worldSize;
+                requiresMove = true;
+            }
+            else if (relativePosition.x > TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE)
+            {
+                newChunk.x = (((chunkPosition.x + 1) % worldSize) + worldSize) % worldSize;
+                requiresMove = true;
+            }
+            else if (relativePosition.y < 0)
+            {
+                newChunk.y = (((chunkPosition.y - 1) % worldSize) + worldSize) % worldSize;
+                requiresMove = true;
+            }
+            else if (relativePosition.y > TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE)
+            {
+                newChunk.y = (((chunkPosition.y + 1) % worldSize) + worldSize) % worldSize;
+                requiresMove = true;
+            }
+    
+            if (requiresMove)
+            {
+                chunkManager.moveEntityToChunkFromChunk(std::move(entity), newChunk);
+                entityIter = entities.erase(entityIter);
+                continue;
+            }
         }
 
         entityIter++;
@@ -1062,8 +1065,6 @@ void Chunk::loadEntityPacketDatas(const std::vector<PacketDataEntities::EntityPa
         entity->loadFromPacketData(packetData, worldPosition);
         entities.push_back(std::move(entity));
     }
-
-    printf(("Added " + std::to_string(entities.size()) + " entities\n").c_str());
 }
 
 uint64_t Chunk::addItemPickup(const ItemPickup& itemPickup, std::optional<uint64_t> idOverride)

@@ -20,6 +20,8 @@ void NetworkHandler::reset(Game* game)
     lobbyHost = 0;
     networkPlayers.clear();
     networkPlayerDatasSaved.clear();
+    
+    updateTick = 0.0f;
 
     sendPlayerDataQueued = false;
     sendPlayerDataQueueTime = 0.0f;
@@ -935,8 +937,17 @@ void NetworkHandler::processMessageAsClient(const SteamNetworkingMessage_t& mess
     }
 }
 
-void NetworkHandler::sendGameUpdates(const Camera& camera)
+void NetworkHandler::sendGameUpdates(float dt, const Camera& camera)
 {
+    updateTick += dt;
+    if (updateTick < SERVER_UPDATE_TICK)
+    {
+        return;
+    }
+
+    // Update tick
+    updateTick = 0.0f;
+
     if (isLobbyHost)
     {
         sendGameUpdatesToClients();

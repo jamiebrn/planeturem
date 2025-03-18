@@ -36,7 +36,7 @@ public:
 
     void updateNetworkPlayersInLocation(LocationState locationState, float dt);
 
-    void sendGameUpdates(const Camera& camera);
+    void sendGameUpdates(float dt, const Camera& camera);
     void sendGameUpdatesToClients();
     void sendGameUpdatesToHost(const Camera& camera);
 
@@ -106,6 +106,9 @@ private:
     uint64_t lobbyHost;
 
     Game* game = nullptr;
+
+    static constexpr float SERVER_UPDATE_TICK = 1 / 30.0f;
+    float updateTick;
 
     std::unordered_map<uint64_t, NetworkPlayer> networkPlayers;
     std::unordered_map<uint64_t, PlayerData> networkPlayerDatasSaved;

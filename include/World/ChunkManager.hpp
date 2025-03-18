@@ -156,7 +156,7 @@ public:
 
     // -- Entities -- //
     // Update all entities in loaded chunks
-    void updateChunksEntities(float dt, ProjectileManager& projectileManager, Game& game);
+    void updateChunksEntities(float dt, ProjectileManager& projectileManager, Game& game, bool allowEntityChunkMove);
 
     // Damages any entities hit by any hit rect
     void testChunkEntityHitCollision(const std::vector<HitRect>& hitRects, Game& game, float gameTime);

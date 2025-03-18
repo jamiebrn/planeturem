@@ -708,11 +708,11 @@ std::vector<WorldObject*> ChunkManager::getChunkObjects(ChunkViewRange chunkView
     return objects;
 }
 
-void ChunkManager::updateChunksEntities(float dt, ProjectileManager& projectileManager, Game& game)
+void ChunkManager::updateChunksEntities(float dt, ProjectileManager& projectileManager, Game& game, bool allowEntityChunkMove)
 {
     for (auto& chunkPair : loadedChunks)
     {
-        chunkPair.second->updateChunkEntities(dt, worldSize, projectileManager, *this, game);
+        chunkPair.second->updateChunkEntities(dt, worldSize, projectileManager, *this, game, allowEntityChunkMove);
     }
 }
 

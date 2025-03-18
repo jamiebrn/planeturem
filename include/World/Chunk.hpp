@@ -147,7 +147,7 @@ public:
 
 
     // -- Entity handling -- //
-    void updateChunkEntities(float dt, int worldSize, ProjectileManager& projectileManager, ChunkManager& chunkManager, Game& game);
+    void updateChunkEntities(float dt, int worldSize, ProjectileManager& projectileManager, ChunkManager& chunkManager, Game& game, bool allowEntityChunkMove = true);
 
     void testEntityHitCollision(const std::vector<HitRect>& hitRects, ChunkManager& chunkManager, Game& game, float gameTime);
 
