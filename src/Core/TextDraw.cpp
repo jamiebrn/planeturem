@@ -30,7 +30,7 @@ bool TextDraw::loadFont(std::string path)
 }
 
 // Draw text using draw data
-void TextDraw::drawText(sf::RenderTarget& window, TextDrawData drawData)
+void TextDraw::drawText(sf::RenderTarget& window, const TextDrawData& drawData)
 {
     // If font not loaded, do not draw text
     if (!loadedFont)
@@ -43,18 +43,20 @@ void TextDraw::drawText(sf::RenderTarget& window, TextDrawData drawData)
     text.setOutlineColor(drawData.outlineColour);
     text.setOutlineThickness(drawData.outlineThickness);
 
+    sf::Vector2f drawPos = drawData.position;
+
     // Clamp to edges of screen if required
     if (drawData.containOnScreenX)
     {
         float width = text.getLocalBounds().width;
         if (drawData.centeredX)
         {
-            drawData.position.x = std::min(std::max(
-                drawData.position.x, width / 2.0f + drawData.containPaddingLeft), window.getSize().x - width / 2.0f - drawData.containPaddingRight);
+            drawPos.x = std::min(std::max(
+                drawPos.x, width / 2.0f + drawData.containPaddingLeft), window.getSize().x - width / 2.0f - drawData.containPaddingRight);
         }
         else
         {
-            drawData.position.x = std::min(std::max(drawData.position.x, drawData.containPaddingLeft), window.getSize().x - width - drawData.containPaddingRight);
+            drawPos.x = std::min(std::max(drawPos.x, drawData.containPaddingLeft), window.getSize().x - width - drawData.containPaddingRight);
         }
     }
     if (drawData.containOnScreenY)
@@ -62,17 +64,17 @@ void TextDraw::drawText(sf::RenderTarget& window, TextDrawData drawData)
         float height = text.getLocalBounds().height;
         if (drawData.centeredY)
         {
-            drawData.position.y = std::min(std::max(
-                drawData.position.y, height / 2.0f + drawData.containPaddingTop), window.getSize().y - height / 2.0f - drawData.containPaddingBottom);
+            drawPos.y = std::min(std::max(
+                drawPos.y, height / 2.0f + drawData.containPaddingTop), window.getSize().y - height / 2.0f - drawData.containPaddingBottom);
         }
         else
         {
-            drawData.position.y = std::min(std::max(drawData.position.y, drawData.containPaddingTop), window.getSize().y - height - drawData.containPaddingBottom);
+            drawPos.y = std::min(std::max(drawPos.y, drawData.containPaddingTop), window.getSize().y - height - drawData.containPaddingBottom);
         }
     }
 
     // Set position
-    text.setPosition(sf::Vector2f(static_cast<int>(drawData.position.x), static_cast<int>(drawData.position.y)));
+    text.setPosition(sf::Vector2f(static_cast<int>(drawPos.x), static_cast<int>(drawPos.y)));
 
     // Set text centre to top left by default
     sf::Vector2f textCentre(0, 0);

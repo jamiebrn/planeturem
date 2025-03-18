@@ -745,6 +745,7 @@ void Game::runInGame(float dt)
     //
     // -- NETWORKING --
     //
+    
     if (networkHandler.isMultiplayerGame())
     {
         networkHandler.update(dt);

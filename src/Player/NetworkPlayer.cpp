@@ -46,19 +46,15 @@ void NetworkPlayer::setNetworkPlayerCharacterInfo(const PacketDataPlayerCharacte
     direction = info.direction;
     speed = info.speed;
 
-    collisionRect.x = position.x - collisionRect.width / 2.0f;
-    collisionRect.y = position.y - collisionRect.height / 2.0f;
+    collisionRect.x = playerData.position.x - collisionRect.width / 2.0f;
+    collisionRect.y = playerData.position.y - collisionRect.height / 2.0f;
 
     if (info.animationFrame < idleAnimation.getFrameCount())
     {
-        // Idle
-        direction = sf::Vector2f(0, 0);
         idleAnimation.setFrame(info.animationFrame);
     }
     else
     {
-        // Running
-        direction = sf::Vector2f(1, 0); // non-zero
         runAnimation.setFrame(info.animationFrame - idleAnimation.getFrameCount());
     }
 

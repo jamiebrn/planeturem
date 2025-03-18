@@ -39,7 +39,7 @@ public:
     static bool loadFont(std::string path);
 
     // Draw text using draw data
-    static void drawText(sf::RenderTarget& window, TextDrawData drawData);
+    static void drawText(sf::RenderTarget& window, const TextDrawData& drawData);
 
     static sf::FloatRect getTextSize(const TextDrawData& drawData);
 
