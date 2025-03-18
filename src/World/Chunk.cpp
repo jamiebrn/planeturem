@@ -15,7 +15,7 @@ Chunk::Chunk(ChunkPosition chunkPosition)
 void Chunk::reset(bool fullReset)
 {
     containsWater = false;
-    modified = true;
+    modified = false;
 
     for (int i = 0; i < groundTileGrid.size(); i++)
     {

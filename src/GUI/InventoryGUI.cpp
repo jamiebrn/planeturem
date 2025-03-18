@@ -2316,23 +2316,36 @@ bool InventoryGUI::canQuickTransfer(sf::Vector2f mouseScreenPos, bool shiftMode,
         return false;
     
     InventoryData* hoveredInventory = &inventory;
+    InventoryData* toTransferInventory = chestData;
     
     int itemHovered = getHoveredItemSlotIndex(inventoryItemSlots, mouseScreenPos);
     if (itemHovered < 0)
     {
         itemHovered = getHoveredItemSlotIndex(chestItemSlots, mouseScreenPos);
         hoveredInventory = chestData;
+        toTransferInventory = &inventory;
     }
 
     // Not hovered over inventory / chest
     if (itemHovered < 0)
+    {
         return false;
-    
+    }
+
     std::optional<ItemCount>& itemSlotData = hoveredInventory->getItemSlotData(itemHovered);
 
     // No item in hovered slot
     if (!itemSlotData.has_value())
+    {
         return false;
-    
+    }
+
+    // Check available space in inventory to transfer to
+    int spaceToAdd = toTransferInventory->addItem(itemSlotData->first, itemSlotData->second, false, false, false);
+    if (spaceToAdd <= 0)
+    {
+        return false;
+    }
+        
     return true;
 }
