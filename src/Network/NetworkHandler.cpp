@@ -455,7 +455,7 @@ void NetworkHandler::updateNetworkPlayersInLocation(LocationState locationState,
 
 void NetworkHandler::receiveMessages()
 {
-    static const int MAX_MESSAGES = 10;
+    static const int MAX_MESSAGES = 100;
 
     SteamNetworkingMessage_t* messages[MAX_MESSAGES];
     int messageCount = SteamNetworkingMessages()->ReceiveMessagesOnChannel(0, messages, MAX_MESSAGES);

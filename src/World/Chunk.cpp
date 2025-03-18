@@ -1062,6 +1062,8 @@ void Chunk::loadEntityPacketDatas(const std::vector<PacketDataEntities::EntityPa
         entity->loadFromPacketData(packetData, worldPosition);
         entities.push_back(std::move(entity));
     }
+
+    printf(("Added " + std::to_string(entities.size()) + " entities\n").c_str());
 }
 
 uint64_t Chunk::addItemPickup(const ItemPickup& itemPickup, std::optional<uint64_t> idOverride)

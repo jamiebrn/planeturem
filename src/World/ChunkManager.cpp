@@ -808,8 +808,12 @@ PacketDataEntities ChunkManager::getEntityPacketDatas(ChunkViewRange chunkViewRa
         {
             continue;
         }
-
-        entityPacketData.entities[chunkPos] = loadedChunks[chunkPos]->getEntityPacketDatas();
+        
+        std::vector<PacketDataEntities::EntityPacketData> entities = loadedChunks[chunkPos]->getEntityPacketDatas();
+        if (entities.size() > 0)
+        {
+            entityPacketData.entities[chunkPos] = entities;
+        }
     }
 
     return entityPacketData;
