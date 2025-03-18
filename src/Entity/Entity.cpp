@@ -24,7 +24,7 @@ Entity::Entity(sf::Vector2f position, EntityType entityType)
 
     drawLayer = 0;
 
-    flash_amount = 0.0f;
+    flashAmount = 0.0f;
     
     idleAnim.setFrame(rand() % entityData.idleTextureRects.size());
     walkAnim.setFrame(rand() % entityData.walkTextureRects.size());
@@ -70,7 +70,7 @@ void Entity::update(float dt, ProjectileManager& projectileManager, ChunkManager
     }
 
     // Update animations
-    flash_amount = std::max(flash_amount - dt * 3.0f, 0.0f);
+    flashAmount = std::max(flashAmount - dt * 3.0f, 0.0f);
 
     idleAnim.update(dt * animationSpeed, 1, entityData.idleTextureRects.size(), entityData.idleAnimSpeed);
     walkAnim.update(dt * animationSpeed, 1, entityData.walkTextureRects.size(), entityData.walkAnimSpeed);
@@ -100,7 +100,7 @@ void Entity::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game
         scale.x *= -1;
     
     sf::Shader* shader = Shaders::getShader(ShaderType::Flash);
-    shader->setUniform("flash_amount", flash_amount);
+    shader->setUniform("flash_amount", flashAmount);
 
     sf::IntRect textureRect;
     if (velocity.x == 0 && velocity.y == 0)
@@ -155,7 +155,7 @@ void Entity::testHitCollision(const std::vector<HitRect>& hitRects, ChunkManager
 
 void Entity::damage(int amount, ChunkManager& chunkManager, float gameTime)
 {
-    flash_amount = 1.0f;
+    flashAmount = 1.0f;
     health -= amount;
 
     const EntityData& entityData = EntityDataLoader::getEntityData(entityType);
@@ -261,4 +261,34 @@ void Entity::loadFromPOD(const EntityPOD& pod, sf::Vector2f chunkPosition)
     entityType = pod.entityType;
     position = pod.chunkRelativePosition + chunkPosition;
     velocity = pod.velocity;
+}
+
+PacketDataEntities::EntityPacketData Entity::getPacketData(sf::Vector2f chunkPosition)
+{
+    EntityPOD pod = getPOD(chunkPosition);
+    
+    PacketDataEntities::EntityPacketData packetData;
+    packetData.entityType = pod.entityType;
+    packetData.chunkRelativePosition = pod.chunkRelativePosition;
+    packetData.velocity = velocity;
+    packetData.health = health;
+    packetData.flashAmount = flashAmount;
+    packetData.idleAnimFrame = idleAnim.getFrame();
+    packetData.walkAnimFrame = walkAnim.getFrame();
+
+    return packetData;
+}
+
+void Entity::loadFromPacketData(const PacketDataEntities::EntityPacketData& packetData, sf::Vector2f chunkPosition)
+{
+    EntityPOD pod;
+    pod.entityType = packetData.entityType;
+    pod.chunkRelativePosition = packetData.chunkRelativePosition;
+    pod.velocity = packetData.velocity;
+    loadFromPOD(pod, chunkPosition);
+
+    health = packetData.health;
+    flashAmount = packetData.flashAmount;
+    idleAnim.setFrame(packetData.idleAnimFrame);
+    walkAnim.setFrame(packetData.walkAnimFrame);
 }

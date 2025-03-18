@@ -33,6 +33,7 @@
 #include "Data/PlanetGenDataLoader.hpp"
 
 #include "Network/PacketData/PacketDataWorld/PacketDataChunkDatas.hpp"
+#include "Network/PacketData/PacketDataWorld/PacketDataEntities.hpp"
 
 // Forward declaration
 class Game;
@@ -118,6 +119,7 @@ public:
     int getChunkTileTypeOrPredicted(ChunkPosition chunk, sf::Vector2i tile);
 
 
+
     // -- Objects -- //
     // Update objects in all chunks
     void updateChunksObjects(Game& game, float dt);
@@ -171,6 +173,9 @@ public:
     int getChunkEntitySpawnCooldown(ChunkPosition chunk);
 
     void resetChunkEntitySpawnCooldown(ChunkPosition chunk);
+
+    PacketDataEntities getEntityPacketDatas(ChunkViewRange chunkViewRange);
+    void loadEntityPacketDatas(const PacketDataEntities& entityPacketDatas);
 
 
     // -- Item pickups -- //

@@ -796,6 +796,44 @@ void ChunkManager::resetChunkEntitySpawnCooldown(ChunkPosition chunk)
     chunkLastEntitySpawnTime[chunk] = time;
 }
 
+PacketDataEntities ChunkManager::getEntityPacketDatas(ChunkViewRange chunkViewRange)
+{
+    PacketDataEntities entityPacketData;
+    entityPacketData.planetType = planetType;
+
+    for (auto iter = chunkViewRange.begin(); iter != chunkViewRange.end(); iter++)
+    {
+        ChunkPosition chunkPos = iter.get(worldSize);
+        if (!loadedChunks.contains(chunkPos))
+        {
+            continue;
+        }
+
+        entityPacketData.entities[chunkPos] = loadedChunks[chunkPos]->getEntityPacketDatas();
+    }
+
+    return entityPacketData;
+}
+
+void ChunkManager::loadEntityPacketDatas(const PacketDataEntities& entityPacketDatas)
+{
+    if (entityPacketDatas.planetType != planetType)
+    {
+        printf(("ERROR: Received entity packet for incorrect planet type " + std::to_string(entityPacketDatas.planetType) + "\n").c_str());
+        return;
+    }
+
+    for (const auto& chunkEntityData : entityPacketDatas.entities)
+    {
+        if (!loadedChunks.contains(chunkEntityData.first))
+        {
+            continue;
+        }
+
+        loadedChunks[chunkEntityData.first]->loadEntityPacketDatas(chunkEntityData.second);
+    }
+}
+
 std::optional<ItemPickupReference> ChunkManager::addItemPickup(const ItemPickup& itemPickup, std::optional<uint64_t> idOverride)
 {
     Chunk* chunkInside = getChunk(itemPickup.getChunkInside(worldSize));

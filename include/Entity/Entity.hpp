@@ -23,6 +23,8 @@
 #include "Entity/Projectile/ProjectileManager.hpp"
 #include "Entity/EntityBehaviour/EntityBehaviour.hpp"
 
+#include "Network/PacketData/PacketDataWorld/PacketDataEntities.hpp"
+
 #include "GUI/InventoryGUI.hpp"
 #include "GUI/HitMarkers.hpp"
 
@@ -67,6 +69,9 @@ public:
     EntityPOD getPOD(sf::Vector2f chunkPosition);
     void loadFromPOD(const EntityPOD& pod, sf::Vector2f chunkPosition);
 
+    PacketDataEntities::EntityPacketData getPacketData(sf::Vector2f chunkPosition);
+    void loadFromPacketData(const PacketDataEntities::EntityPacketData& packetData, sf::Vector2f chunkPosition);
+
 private:
     bool isProjectileColliding(Projectile& projectile);
 
@@ -75,7 +80,7 @@ private:
 private:
     EntityType entityType;
     int health;
-    float flash_amount;
+    float flashAmount;
 
     std::unique_ptr<EntityBehaviour> behaviour;
 

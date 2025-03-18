@@ -35,6 +35,10 @@ enum class PacketType : uint8_t
     ChunkDatas,
     ChunkRequests,
 
+    Entities,
+    Projectiles,
+    Bosses,
+
     StructureEnterRequest,
     StructureEnterReply,
 

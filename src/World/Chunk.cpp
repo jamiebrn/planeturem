@@ -1043,6 +1043,27 @@ Entity* Chunk::getSelectedEntity(sf::Vector2f cursorPos)
     return nullptr;
 }
 
+std::vector<PacketDataEntities::EntityPacketData> Chunk::getEntityPacketDatas()
+{
+    std::vector<PacketDataEntities::EntityPacketData> entityPacketDatas;
+    for (auto& entity : entities)
+    {
+        entityPacketDatas.push_back(entity->getPacketData(worldPosition));
+    }
+    return entityPacketDatas;
+}
+
+void Chunk::loadEntityPacketDatas(const std::vector<PacketDataEntities::EntityPacketData>& entityPacketDatas)
+{
+    entities.clear();
+    for (const auto& packetData : entityPacketDatas)
+    {
+        auto entity = std::make_unique<Entity>(sf::Vector2f(0, 0), 0);
+        entity->loadFromPacketData(packetData, worldPosition);
+        entities.push_back(std::move(entity));
+    }
+}
+
 uint64_t Chunk::addItemPickup(const ItemPickup& itemPickup, std::optional<uint64_t> idOverride)
 {
     if (idOverride.has_value())

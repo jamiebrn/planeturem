@@ -46,6 +46,8 @@
 #include "Data/StructureData.hpp"
 #include "Data/StructureDataLoader.hpp"
 
+#include "Network/PacketData/PacketDataWorld/PacketDataEntities.hpp"
+
 #include "World/ChunkPOD.hpp"
 
 #include "GameConstants.hpp"
@@ -154,6 +156,8 @@ public:
     // Cursor position IS IN WORLD SPACE
     Entity* getSelectedEntity(sf::Vector2f cursorPos);
 
+    std::vector<PacketDataEntities::EntityPacketData> getEntityPacketDatas();
+    void loadEntityPacketDatas(const std::vector<PacketDataEntities::EntityPacketData>& entityPacketDatas);
 
     // -- Item pickups -- //
     uint64_t addItemPickup(const ItemPickup& itemPickup, std::optional<uint64_t> idOverride = std::nullopt);

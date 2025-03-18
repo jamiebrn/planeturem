@@ -250,6 +250,15 @@ std::unordered_set<RoomType> NetworkHandler::getPlayersRoomDestTypeSet(std::opti
     return roomDestTypeSet;
 }
 
+std::string NetworkHandler::getPlayerName(uint64_t id)
+{
+    if (!networkPlayers.contains(id))
+    {
+        return "";
+    }
+    return networkPlayers[id].getPlayerData().name;
+}
+
 const PlayerData* NetworkHandler::getSavedNetworkPlayerData(uint64_t id)
 {
     if (!networkPlayerDatasSaved.contains(id))
@@ -902,6 +911,13 @@ void NetworkHandler::processMessageAsClient(const SteamNetworkingMessage_t& mess
             handleChunkDatasFromHost(packetData);
             break;
         }
+        case PacketType::Entities:
+        {
+            PacketDataEntities packetData;
+            packetData.deserialise(packet.data);
+            game->getChunkManager().loadEntityPacketDatas(packetData);
+            break;
+        }
         case PacketType::PlanetTravelReply:
         {
             PacketDataPlanetTravelReply packetData;
@@ -986,6 +1002,26 @@ void NetworkHandler::sendGameUpdatesToClients()
         
         // Send host player data
         playerInfoPackets[steamID].sendToUser(identity, k_nSteamNetworkingSend_Unreliable, 0);
+    }
+
+    // Send entity datas to each client as required
+    for (auto iter = networkPlayers.begin(); iter != networkPlayers.end(); iter++)
+    {
+        if (!iter->second.getPlayerData().locationState.isOnPlanet())
+        {
+            continue;
+        }
+        
+        PlanetType playerPlanetType = iter->second.getPlayerData().locationState.getPlanetType();
+
+        PacketDataEntities packetData = game->getChunkManager(playerPlanetType).getEntityPacketDatas(iter->second.getChunkViewRange());
+
+        Packet packet;
+        packet.set(packetData, true);
+
+        printf(("NETWORK: Sending entity data to " + getPlayerName(iter->first) + " " + packet.getSizeStr() + "\n").c_str());
+
+        sendPacketToClient(iter->first, packet, k_nSteamNetworkingSend_Reliable, 0);
     }
 }
 
