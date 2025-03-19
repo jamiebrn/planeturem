@@ -749,7 +749,7 @@ void Game::runInGame(float dt)
     if (networkHandler.isMultiplayerGame())
     {
         networkHandler.update(dt);
-        networkHandler.updateNetworkPlayersInLocation(locationState, dt);
+        networkHandler.updateNetworkPlayers(dt);
         networkHandler.sendGameUpdates(dt, camera);
     }
 
@@ -1109,7 +1109,7 @@ void Game::updateOnPlanet(float dt)
         }
     
         getChunkManager().updateChunksObjects(*this, dt);
-        getChunkManager().updateChunksEntities(dt, getProjectileManager(), *this, !networkHandler.isClient());
+        getChunkManager().updateChunksEntities(dt, getProjectileManager(), *this, networkHandler.isClient());
     
         // If modified chunks, force a lighting recalculation
         if (hasLoadedChunks || hasUnloadedChunks)
@@ -1214,7 +1214,7 @@ void Game::updateActivePlanets(float dt)
         bool hasUnloadedChunks = getChunkManager(planetType).unloadChunksOutOfView(chunkViewRanges);
     
         getChunkManager(planetType).updateChunksObjects(*this, dt);
-        getChunkManager(planetType).updateChunksEntities(dt, getProjectileManager(planetType), *this, true);
+        getChunkManager(planetType).updateChunksEntities(dt, getProjectileManager(planetType), *this, false);
 
         // If modified chunks (and this player (host) is on this planet), force a lighting recalculation
         if (locationState.getPlanetType() == planetType && (hasLoadedChunks || hasUnloadedChunks))
@@ -1695,7 +1695,7 @@ void Game::updateInRoom(float dt, Room& room, bool inStructure)
     {
         // Continue to update objects and entities in world
         getChunkManager().updateChunksObjects(*this, dt);
-        getChunkManager().updateChunksEntities(dt, getProjectileManager(), *this, !networkHandler.isClient());
+        getChunkManager().updateChunksEntities(dt, getProjectileManager(), *this, networkHandler.isClient());
             
         weatherSystem.update(dt, gameTime, camera, getChunkManager());
 

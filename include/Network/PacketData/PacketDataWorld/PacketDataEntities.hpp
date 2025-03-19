@@ -10,19 +10,22 @@
 #include <extlib/cereal/types/optional.hpp>
 #include <extlib/cereal/types/vector.hpp>
 #include <extlib/cereal/types/unordered_map.hpp>
+#include <extlib/cereal/types/string.hpp>
 
 #include <SFML/System/Vector2.hpp>
 
 #include "Network/IPacketData.hpp"
+#include "Network/IPacketTimeDependent.hpp"
 
 #include "Data/typedefs.hpp"
 #include "World/ChunkPosition.hpp"
 #include "Entity/EntityPOD.hpp"
 
-struct PacketDataEntities : public IPacketData
+struct PacketDataEntities : public IPacketData, public IPacketTimeDependent
 {
     struct EntityPacketData : public EntityPOD
     {
+        // TODO: On water
         int health;
         float flashAmount;
         int8_t idleAnimFrame;
@@ -36,13 +39,20 @@ struct PacketDataEntities : public IPacketData
         }
     };
 
+    float pingTime;
+
     PlanetType planetType;
     std::unordered_map<ChunkPosition, std::vector<EntityPacketData>> entities;
+
+    inline virtual void applyPingCorrection(float pingTimeSecs) override
+    {
+        pingTime = pingTimeSecs;
+    }
 
     template <class Archive>
     void serialize(Archive& ar)
     {
-        ar(planetType, entities);
+        ar(hostPingLocation, planetType, entities);
     }
 
     PACKET_SERIALISATION();

@@ -109,7 +109,7 @@ public:
 
     // Multiplayer
     
-    PacketDataPlayerCharacterInfo getNetworkPlayerInfo(const Camera* camera, uint64_t steamID);
+    virtual PacketDataPlayerCharacterInfo getNetworkPlayerInfo(const Camera* camera, uint64_t steamID);
 
 
 protected:

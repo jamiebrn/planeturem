@@ -708,11 +708,11 @@ std::vector<WorldObject*> ChunkManager::getChunkObjects(ChunkViewRange chunkView
     return objects;
 }
 
-void ChunkManager::updateChunksEntities(float dt, ProjectileManager& projectileManager, Game& game, bool allowEntityChunkMove)
+void ChunkManager::updateChunksEntities(float dt, ProjectileManager& projectileManager, Game& game, bool networkUpdateOnly)
 {
     for (auto& chunkPair : loadedChunks)
     {
-        chunkPair.second->updateChunkEntities(dt, worldSize, projectileManager, *this, game, allowEntityChunkMove);
+        chunkPair.second->updateChunkEntities(dt, worldSize, &projectileManager, *this, &game, networkUpdateOnly);
     }
 }
 
@@ -827,6 +827,12 @@ void ChunkManager::loadEntityPacketDatas(const PacketDataEntities& entityPacketD
         return;
     }
 
+    // Clear loaded chunk entities
+    for (auto& chunk : loadedChunks)
+    {
+        chunk.second->clearEntities();
+    }
+
     for (const auto& chunkEntityData : entityPacketDatas.entities)
     {
         if (!loadedChunks.contains(chunkEntityData.first))
@@ -835,6 +841,9 @@ void ChunkManager::loadEntityPacketDatas(const PacketDataEntities& entityPacketD
         }
 
         loadedChunks[chunkEntityData.first]->loadEntityPacketDatas(chunkEntityData.second);
+
+        // Update entities with ping time
+        loadedChunks[chunkEntityData.first]->updateChunkEntities(entityPacketDatas.pingTime, worldSize, nullptr, *this, nullptr, true);
     }
 }
 

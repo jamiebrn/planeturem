@@ -431,27 +431,11 @@ void NetworkHandler::update(float dt)
     structureEnterRequestCooldown = std::max(structureEnterRequestCooldown - dt, 0.0f);
 }
 
-void NetworkHandler::updateNetworkPlayersInLocation(LocationState locationState, float dt)
+void NetworkHandler::updateNetworkPlayers(float dt)
 {
     for (auto& networkPlayerPair : networkPlayers)
     {
-        if (networkPlayerPair.second.getPlayerData().locationState != locationState)
-        {
-            continue;
-        }
-
-        switch (locationState.getGameState())
-        {
-            case GameState::OnPlanet:
-                networkPlayerPair.second.updateOnPlanet(dt, game->getChunkManager(locationState.getPlanetType()));
-                break;
-            case GameState::InStructure:
-                networkPlayerPair.second.updateInRoom(dt, game->getStructureRoomPool(locationState.getPlanetType()).getRoom(locationState.getInStructureID()));
-                break;
-            case GameState::InRoomDestination:
-                networkPlayerPair.second.updateInRoom(dt, game->getRoomDestination(locationState.getRoomDestType()));
-                break;
-        }
+        networkPlayerPair.second.updateNetworkPlayer(dt, *game);
     }
 }
 
@@ -500,6 +484,7 @@ void NetworkHandler::processMessage(const SteamNetworkingMessage_t& message, con
     
             PacketDataPlayerCharacterInfo packetData;
             packetData.deserialise(packet.data);
+            packetData.applyPingEstimate();
     
             if (networkPlayers.contains(packetData.userID))
             {
@@ -512,6 +497,9 @@ void NetworkHandler::processMessage(const SteamNetworkingMessage_t& message, con
                 // packetData.positionY = playerPos.y;
     
                 networkPlayers[packetData.userID].setNetworkPlayerCharacterInfo(packetData);
+
+                // Update with ping time
+                networkPlayers[packetData.userID].updateNetworkPlayer(packetData.pingTime, *game);
             }
             break;
         }
@@ -917,6 +905,7 @@ void NetworkHandler::processMessageAsClient(const SteamNetworkingMessage_t& mess
         {
             PacketDataEntities packetData;
             packetData.deserialise(packet.data);
+            packetData.applyPingEstimate();
             game->getChunkManager().loadEntityPacketDatas(packetData);
             break;
         }
@@ -984,14 +973,20 @@ void NetworkHandler::sendGameUpdatesToClients()
     }
 
     std::unordered_map<uint64_t, Packet> playerInfoPackets;
+    
+    // Set own player info
     playerInfoPackets[steamID] = Packet();
-    playerInfoPackets[steamID].set(game->getPlayer().getNetworkPlayerInfo(nullptr, steamID));
+    PacketDataPlayerCharacterInfo localCharacterPacketData = game->getPlayer().getNetworkPlayerInfo(nullptr, steamID);
+    localCharacterPacketData.setHostPingLocation();
+    playerInfoPackets[steamID].set(localCharacterPacketData);
 
     // Get player infos
     for (auto iter = networkPlayers.begin(); iter != networkPlayers.end(); iter++)
     {
         playerInfoPackets[iter->first] = Packet();
-        playerInfoPackets[iter->first].set(iter->second.getNetworkPlayerInfo(nullptr, iter->first));
+        PacketDataPlayerCharacterInfo playerCharacterPacketData = iter->second.getNetworkPlayerInfo(nullptr, iter->first);
+        playerCharacterPacketData.setHostPingLocation();
+        playerInfoPackets[iter->first].set(playerCharacterPacketData);
     }
 
     // Send player info
@@ -1026,6 +1021,7 @@ void NetworkHandler::sendGameUpdatesToClients()
         PlanetType playerPlanetType = iter->second.getPlayerData().locationState.getPlanetType();
 
         PacketDataEntities packetData = game->getChunkManager(playerPlanetType).getEntityPacketDatas(iter->second.getChunkViewRange());
+        packetData.setHostPingLocation();
 
         Packet packet;
         packet.set(packetData, true);
@@ -1040,8 +1036,11 @@ void NetworkHandler::sendGameUpdatesToHost(const Camera& camera)
 {
     uint64_t steamID = SteamUser()->GetSteamID().ConvertToUint64();
 
+    PacketDataPlayerCharacterInfo playerInfoPacketData = game->getPlayer().getNetworkPlayerInfo(&camera, steamID);
+    playerInfoPacketData.setHostPingLocation();
+
     Packet packet;
-    packet.set(game->getPlayer().getNetworkPlayerInfo(&camera, steamID));
+    packet.set(playerInfoPacketData);
 
     SteamNetworkingIdentity hostIdentity;
     hostIdentity.SetSteamID64(lobbyHost);

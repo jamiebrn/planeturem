@@ -78,6 +78,20 @@ void Entity::update(float dt, ProjectileManager& projectileManager, ChunkManager
     this->onWater = onWater;
 }
 
+void Entity::updateNetwork(float dt, ChunkManager& chunkManager)
+{
+    // Test collision after x movement
+    collisionRect.x += velocity.x * dt;
+    chunkManager.collisionRectChunkStaticCollisionX(collisionRect, velocity.x);
+
+    // Test collision after y movement
+    collisionRect.y += velocity.y * dt;
+    chunkManager.collisionRectChunkStaticCollisionY(collisionRect, velocity.y);
+
+    position.x = collisionRect.x + collisionRect.width / 2.0f;
+    position.y = collisionRect.y + collisionRect.height / 2.0f;
+}
+
 bool Entity::isProjectileColliding(Projectile& projectile)
 {
     return (hitCollision.isPointInRect(projectile.getPosition().x, projectile.getPosition().y));

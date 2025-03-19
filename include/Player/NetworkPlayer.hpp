@@ -24,6 +24,7 @@
 #include "Player/PlayerData.hpp"
 #include "World/ChunkViewRange.hpp"
 
+class Game;
 class ChunkManager;
 
 class NetworkPlayer : public Player
@@ -32,6 +33,7 @@ public:
     NetworkPlayer() = default;
     NetworkPlayer(sf::Vector2f position, int maxHealth = 0);
 
+    void updateNetworkPlayer(float dt, Game& game);
     void updateOnPlanet(float dt, ChunkManager& chunkManager);
     void updateInRoom(float dt, const Room& room);
 
@@ -39,6 +41,7 @@ public:
 
     // Multiplayer
 
+    virtual PacketDataPlayerCharacterInfo getNetworkPlayerInfo(const Camera* camera, uint64_t steamID) override;
     void setNetworkPlayerCharacterInfo(const PacketDataPlayerCharacterInfo& info);
     
     // Player position is of player on this machine, not for this network player

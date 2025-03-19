@@ -1,4 +1,5 @@
 #include "Player/NetworkPlayer.hpp"
+#include "Game.hpp"
 
 NetworkPlayer::NetworkPlayer(sf::Vector2f position, int maxHealth)
     : Player(position, maxHealth)
@@ -6,20 +7,37 @@ NetworkPlayer::NetworkPlayer(sf::Vector2f position, int maxHealth)
 
 }
 
+void NetworkPlayer::updateNetworkPlayer(float dt, Game& game)
+{
+    switch (playerData.locationState.getGameState())
+    {
+        case GameState::OnPlanet:
+            updateOnPlanet(dt, game.getChunkManager(playerData.locationState.getPlanetType()));
+            break;
+        case GameState::InStructure:
+            updateInRoom(dt, game.getStructureRoomPool(playerData.locationState.getPlanetType())
+                .getRoom(playerData.locationState.getInStructureID()));
+            break;
+        case GameState::InRoomDestination:
+            updateInRoom(dt, game.getRoomDestination(playerData.locationState.getRoomDestType()));
+            break;
+    }
+}
+
 void NetworkPlayer::updateOnPlanet(float dt, ChunkManager& chunkManager)
 {
     updateAnimation(dt);
     updateMovement(dt, chunkManager, false);
-    position.x = collisionRect.x + collisionRect.width / 2.0f;
-    position.y = collisionRect.y + collisionRect.height / 2.0f;
+    playerData.position.x = collisionRect.x + collisionRect.width / 2.0f;
+    playerData.position.y = collisionRect.y + collisionRect.height / 2.0f;
 }
 
 void NetworkPlayer::updateInRoom(float dt, const Room& room)
 {
     updateAnimation(dt);
     updateMovementInRoom(dt, room, false);
-    position.x = collisionRect.x + collisionRect.width / 2.0f;
-    position.y = collisionRect.y + collisionRect.height / 2.0f;
+    playerData.position.x = collisionRect.x + collisionRect.width / 2.0f;
+    playerData.position.y = collisionRect.y + collisionRect.height / 2.0f;
 }
 
 void NetworkPlayer::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const sf::Color& color) const
@@ -37,6 +55,13 @@ void NetworkPlayer::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Gam
     nameDrawData.outlineColour = sf::Color(46, 34, 47);
     nameDrawData.outlineThickness = 0.6f * ResolutionHandler::getScale();
     TextDraw::drawText(window, nameDrawData);
+}
+
+PacketDataPlayerCharacterInfo NetworkPlayer::getNetworkPlayerInfo(const Camera* camera, uint64_t steamID)
+{
+    PacketDataPlayerCharacterInfo playerInfo = Player::getNetworkPlayerInfo(camera, steamID);
+    playerInfo.position = playerData.position;
+    return playerInfo;
 }
 
 void NetworkPlayer::setNetworkPlayerCharacterInfo(const PacketDataPlayerCharacterInfo& info)
@@ -66,13 +91,20 @@ void NetworkPlayer::setNetworkPlayerCharacterInfo(const PacketDataPlayerCharacte
     inRocket = info.inRocket;
 
     equippedTool = info.toolType;
-    toolRotation = info.toolRotation;
     fishingRodCasted = info.fishingRodCasted;
     fishBitingLine = info.fishBitingLine;
     
     if (fishingRodCasted)
     {
         fishingRodBobWorldPosUnwrapped = (static_cast<sf::Vector2f>(info.fishingRodBobWorldTile) + sf::Vector2f(0.5f, 0.5f)) * TILE_SIZE_PIXELS_UNSCALED;
+    }
+
+    usingTool = info.usingTool;
+
+    if (usingTool)
+    {
+        rotationTweenID = info.toolRotTweenID;
+        toolTweener.overwriteTweenData(rotationTweenID, info.toolTweenData);
     }
 
     armour = info.armour;

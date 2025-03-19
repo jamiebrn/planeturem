@@ -147,7 +147,7 @@ public:
 
 
     // -- Entity handling -- //
-    void updateChunkEntities(float dt, int worldSize, ProjectileManager& projectileManager, ChunkManager& chunkManager, Game& game, bool allowEntityChunkMove = true);
+    void updateChunkEntities(float dt, int worldSize, ProjectileManager* projectileManager, ChunkManager& chunkManager, Game* game, bool networkUpdateOnly);
 
     void testEntityHitCollision(const std::vector<HitRect>& hitRects, ChunkManager& chunkManager, Game& game, float gameTime);
 
@@ -158,6 +158,8 @@ public:
 
     std::vector<PacketDataEntities::EntityPacketData> getEntityPacketDatas();
     void loadEntityPacketDatas(const std::vector<PacketDataEntities::EntityPacketData>& entityPacketDatas);
+    void clearEntities();
+
 
     // -- Item pickups -- //
     uint64_t addItemPickup(const ItemPickup& itemPickup, std::optional<uint64_t> idOverride = std::nullopt);

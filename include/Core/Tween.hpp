@@ -5,6 +5,8 @@
 #include <cmath>
 #include <cassert>
 
+#include <extlib/cereal/archives/binary.hpp>
+
 enum TweenTransition
 {
     Linear,
@@ -38,6 +40,12 @@ struct TweenData
     float progress;
     TweenTransition transitionType;
     TweenEasing easingType;
+
+    template <class Archive>
+    void serialize(Archive& ar)
+    {
+        ar(start, end, duration, progress, transitionType, easingType);
+    }
 };
 
 template <typename T>
@@ -144,6 +152,22 @@ public:
             }
 
             tweenIter++;
+        }
+    }
+
+    inline TweenData<T> getTweenData(TweenID tween)
+    {
+        assert(activeTweens.contains(tween));
+        return activeTweens.at(tween).front();
+    }
+
+    inline void overwriteTweenData(TweenID tween, const TweenData<T>& tweenData)
+    {
+        activeTweens[tween] = std::queue<TweenData<T>>();
+        activeTweens[tween].push(tweenData);
+        if (tween >= topTweenID)
+        {
+            topTweenID = tween + 1;
         }
     }
 
