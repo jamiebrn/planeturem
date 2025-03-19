@@ -109,7 +109,9 @@ void NetworkPlayer::setNetworkPlayerCharacterInfo(const PacketDataPlayerCharacte
     if (usingTool)
     {
         rotationTweenID = info.toolRotTweenID;
-        toolTweener.overwriteTweenData(rotationTweenID, info.toolTweenData);
+        TweenData tweenData = info.toolTweenData;
+        tweenData.value = &toolRotation;
+        toolTweener.overwriteTweenData(rotationTweenID, tweenData);
     }
 
     armour = info.armour;
