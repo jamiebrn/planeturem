@@ -9,6 +9,11 @@ NetworkPlayer::NetworkPlayer(sf::Vector2f position, int maxHealth)
 
 void NetworkPlayer::updateNetworkPlayer(float dt, Game& game)
 {
+    if (playerData.locationState.isNull())
+    {
+        return;
+    }
+
     switch (playerData.locationState.getGameState())
     {
         case GameState::OnPlanet:
