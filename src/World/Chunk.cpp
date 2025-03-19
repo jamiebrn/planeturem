@@ -978,6 +978,7 @@ void Chunk::updateChunkEntities(float dt, int worldSize, ProjectileManager* proj
         if (networkUpdateOnly)
         {
             entity->updateNetwork(dt, chunkManager);
+            entityIter++;
             continue;
         }
 

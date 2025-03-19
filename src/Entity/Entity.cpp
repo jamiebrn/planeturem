@@ -90,6 +90,14 @@ void Entity::updateNetwork(float dt, ChunkManager& chunkManager)
 
     position.x = collisionRect.x + collisionRect.width / 2.0f;
     position.y = collisionRect.y + collisionRect.height / 2.0f;
+
+    const EntityData& entityData = EntityDataLoader::getEntityData(entityType);
+
+    // Update animations
+    flashAmount = std::max(flashAmount - dt * 3.0f, 0.0f);
+
+    idleAnim.update(dt * animationSpeed, 1, entityData.idleTextureRects.size(), entityData.idleAnimSpeed);
+    walkAnim.update(dt * animationSpeed, 1, entityData.walkTextureRects.size(), entityData.walkAnimSpeed);
 }
 
 bool Entity::isProjectileColliding(Projectile& projectile)
