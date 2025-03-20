@@ -71,7 +71,9 @@ public:
     std::unordered_set<PlanetType> getPlayersPlanetTypeSet(std::optional<PlanetType> thisPlayerPlanetType);
     std::unordered_set<RoomType> getPlayersRoomDestTypeSet(std::optional<RoomType> thisPlayerRoomType);
 
-    std::string getPlayerName(uint64_t id);
+    const std::string& getPlayerName(uint64_t id);
+    const std::string& getPlayerPingLocation(uint64_t id);
+    std::string getLocalPingLocation();
 
     const PlayerData* getSavedNetworkPlayerData(uint64_t id);
     void setSavedNetworkPlayerData(uint64_t id, const PlayerData& networkPlayerData);
@@ -84,7 +86,7 @@ private:
     
     void callbackLobbyCreated(LobbyCreated_t* pCallback, bool bIOFailure);
     
-    void registerNetworkPlayer(uint64_t id, bool notify = true);
+    void registerNetworkPlayer(uint64_t id, const std::string& pingLocation, bool notify = true);
     void deleteNetworkPlayer(uint64_t id);
 
     void handleChunkDatasFromHost(const PacketDataChunkDatas& chunkDatas);

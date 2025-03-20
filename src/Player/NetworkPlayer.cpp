@@ -141,7 +141,12 @@ PlayerData& NetworkPlayer::getPlayerData()
 
 void NetworkPlayer::setPlayerData(const PlayerData& playerData)
 {
+    // Retain ping location
+    std::string pingLocation = playerData.pingLocation;
+
     this->playerData = playerData;
+
+    this->playerData.pingLocation = pingLocation;
 }
 
 const ChunkViewRange& NetworkPlayer::getChunkViewRange()

@@ -46,6 +46,9 @@ struct PlayerData
     
     int maxHealth = 0;
 
+    // Do not save
+    std::string pingLocation;
+
     template <class Archive>
     void serialize(Archive& ar, uint32_t version)
     {

@@ -6,29 +6,29 @@
 // If used, remember to also serialise hostPingLocation
 struct IPacketTimeDependent
 {
-    std::string hostPingLocation;
+    // std::string hostPingLocation;
 
     // Sets ping location to this computer's ping location (call if host)
-    inline bool setHostPingLocation()
-    {
-        SteamNetworkPingLocation_t pingLocation;
-        if (!SteamNetworkingUtils()->GetLocalPingLocation(pingLocation))
-        {
-            return false;
-        }
+    // inline bool setHostPingLocation()
+    // {
+    //     SteamNetworkPingLocation_t pingLocation;
+    //     if (!SteamNetworkingUtils()->GetLocalPingLocation(pingLocation))
+    //     {
+    //         return false;
+    //     }
         
-        char pingLocationStrBuffer[k_cchMaxSteamNetworkingPingLocationString];
-        SteamNetworkingUtils()->ConvertPingLocationToString(pingLocation, pingLocationStrBuffer, k_cchMaxSteamNetworkingPingLocationString);
-        hostPingLocation = pingLocationStrBuffer;
+    //     char pingLocationStrBuffer[k_cchMaxSteamNetworkingPingLocationString];
+    //     SteamNetworkingUtils()->ConvertPingLocationToString(pingLocation, pingLocationStrBuffer, k_cchMaxSteamNetworkingPingLocationString);
+    //     // hostPingLocation = pingLocationStrBuffer;
         
-        return true;
-    }
+    //     return true;
+    // }
     
-    // Parses host ping location from packet string and corrects time values
-    inline bool applyPingEstimate()
+    // Parses host ping location from string and corrects time values
+    inline bool applyPingEstimate(const std::string& senderPingLocation)
     {
         SteamNetworkPingLocation_t pingLocation;
-        if (!SteamNetworkingUtils()->ParsePingLocationString(hostPingLocation.c_str(), pingLocation))
+        if (!SteamNetworkingUtils()->ParsePingLocationString(senderPingLocation.c_str(), pingLocation))
         {
             return false;
         }
