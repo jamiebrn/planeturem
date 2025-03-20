@@ -1060,19 +1060,18 @@ std::vector<PacketDataEntities::EntityPacketData> Chunk::getEntityPacketDatas()
     std::vector<PacketDataEntities::EntityPacketData> entityPacketDatas;
     for (auto& entity : entities)
     {
-        entityPacketDatas.push_back(entity->getPacketData(worldPosition));
+        PacketDataEntities::EntityPacketData packetData = entity->getPacketData(worldPosition);
+        packetData.chunkPosition = chunkPosition;
+        entityPacketDatas.push_back(packetData);
     }
     return entityPacketDatas;
 }
 
-void Chunk::loadEntityPacketDatas(const std::vector<PacketDataEntities::EntityPacketData>& entityPacketDatas)
+void Chunk::loadEntityPacketData(const PacketDataEntities::EntityPacketData& packetData)
 {
-    for (const auto& packetData : entityPacketDatas)
-    {
-        auto entity = std::make_unique<Entity>(sf::Vector2f(0, 0), 0);
-        entity->loadFromPacketData(packetData, worldPosition);
-        entities.push_back(std::move(entity));
-    }
+    auto entity = std::make_unique<Entity>(sf::Vector2f(0, 0), 0);
+    entity->loadFromPacketData(packetData, worldPosition);
+    entities.push_back(std::move(entity));
 }
 
 void Chunk::clearEntities()

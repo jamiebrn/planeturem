@@ -83,13 +83,13 @@ void NetworkPlayer::setNetworkPlayerCharacterInfo(const PacketDataPlayerCharacte
     {
         idleAnimation.setFrame(info.animationFrame);
         idleAnimation.setFrameTick(info.animationFrameTick);
-        // idleAnimation.update(info.pingTime);
+        idleAnimation.update(info.pingTime);
     }
     else
     {
         runAnimation.setFrame(info.animationFrame);
         runAnimation.setFrameTick(info.animationFrameTick);
-        // runAnimation.update(info.pingTime);
+        runAnimation.update(info.pingTime);
     }
 
 

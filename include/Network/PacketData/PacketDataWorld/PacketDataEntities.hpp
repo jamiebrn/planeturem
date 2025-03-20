@@ -9,7 +9,6 @@
 #include <extlib/cereal/types/array.hpp>
 #include <extlib/cereal/types/optional.hpp>
 #include <extlib/cereal/types/vector.hpp>
-#include <extlib/cereal/types/unordered_map.hpp>
 #include <extlib/cereal/types/string.hpp>
 
 #include <SFML/System/Vector2.hpp>
@@ -25,6 +24,8 @@ struct PacketDataEntities : public IPacketData, public IPacketTimeDependent
 {
     struct EntityPacketData : public EntityPOD
     {
+        ChunkPosition chunkPosition;
+
         // TODO: On water
         int health;
         float flashAmount;
@@ -35,14 +36,14 @@ struct PacketDataEntities : public IPacketData, public IPacketTimeDependent
         void serialize(Archive& ar, const std::uint32_t version)
         {
             ar(entityType, chunkRelativePosition.x, chunkRelativePosition.y, velocity.x, velocity.y,
-                health, flashAmount, idleAnimFrame, walkAnimFrame);
+                chunkPosition, health, flashAmount, idleAnimFrame, walkAnimFrame);
         }
     };
 
     float pingTime;
 
     PlanetType planetType;
-    std::unordered_map<ChunkPosition, std::vector<EntityPacketData>> entities;
+    std::vector<EntityPacketData> entities;
 
     inline virtual void applyPingCorrection(float pingTimeSecs) override
     {

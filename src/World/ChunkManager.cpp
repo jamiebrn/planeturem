@@ -812,7 +812,7 @@ PacketDataEntities ChunkManager::getEntityPacketDatas(ChunkViewRange chunkViewRa
         std::vector<PacketDataEntities::EntityPacketData> packetEntities = loadedChunks[chunkPos]->getEntityPacketDatas();
         if (packetEntities.size() > 0)
         {
-            entityPacketData.entities[chunkPos] = packetEntities;
+            entityPacketData.entities.insert(entityPacketData.entities.end(), packetEntities.begin(), packetEntities.end());
         }
     }
 
@@ -833,14 +833,14 @@ void ChunkManager::loadEntityPacketDatas(const PacketDataEntities& entityPacketD
         chunk.second->clearEntities();
     }
 
-    for (const auto& chunkEntityData : entityPacketDatas.entities)
+    for (const auto& entityPacketData : entityPacketDatas.entities)
     {
-        if (!loadedChunks.contains(chunkEntityData.first))
+        if (!loadedChunks.contains(entityPacketData.chunkPosition))
         {
             continue;
         }
 
-        loadedChunks[chunkEntityData.first]->loadEntityPacketDatas(chunkEntityData.second);
+        loadedChunks[entityPacketData.chunkPosition]->loadEntityPacketData(entityPacketData);
 
         // Update entities with ping time
         // loadedChunks[chunkEntityData.first]->updateChunkEntities(entityPacketDatas.pingTime, worldSize, nullptr, *this, nullptr, true);

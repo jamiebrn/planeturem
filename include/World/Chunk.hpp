@@ -157,7 +157,7 @@ public:
     Entity* getSelectedEntity(sf::Vector2f cursorPos);
 
     std::vector<PacketDataEntities::EntityPacketData> getEntityPacketDatas();
-    void loadEntityPacketDatas(const std::vector<PacketDataEntities::EntityPacketData>& entityPacketDatas);
+    void loadEntityPacketData(const PacketDataEntities::EntityPacketData& packetData);
     void clearEntities();
 
 
