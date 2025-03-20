@@ -499,7 +499,7 @@ void NetworkHandler::processMessage(const SteamNetworkingMessage_t& message, con
                 networkPlayers[packetData.userID].setNetworkPlayerCharacterInfo(packetData);
 
                 // Update with ping time
-                // networkPlayers[packetData.userID].updateNetworkPlayer(packetData.pingTime, *game);
+                networkPlayers[packetData.userID].updateNetworkPlayer(packetData.pingTime, *game);
             }
             break;
         }

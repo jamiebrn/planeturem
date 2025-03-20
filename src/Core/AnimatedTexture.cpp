@@ -25,7 +25,7 @@ void AnimatedTexture::update(float dt, int direction)
     frameTick += dt;
     if (frameTick >= maxFrameTick)
     {
-        frameTick = 0;
+        frameTick -= maxFrameTick;
         frame += direction;
 
         if (direction > 0)
@@ -45,6 +45,16 @@ void AnimatedTexture::update(float dt, int direction)
             }
         }
     }
+}
+
+void AnimatedTexture::setFrameTick(float frameTick)
+{
+    this->frameTick = frameTick;
+}
+
+int AnimatedTexture::getFrameTick()
+{
+    return frameTick;
 }
 
 sf::IntRect AnimatedTexture::getTextureRect() const

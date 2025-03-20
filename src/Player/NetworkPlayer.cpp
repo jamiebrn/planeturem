@@ -79,18 +79,19 @@ void NetworkPlayer::setNetworkPlayerCharacterInfo(const PacketDataPlayerCharacte
     collisionRect.x = playerData.position.x - collisionRect.width / 2.0f;
     collisionRect.y = playerData.position.y - collisionRect.height / 2.0f;
 
-    if (info.animationFrame < idleAnimation.getFrameCount())
+    if (direction == sf::Vector2f(0, 0))
     {
         idleAnimation.setFrame(info.animationFrame);
+        idleAnimation.setFrameTick(info.animationFrameTick);
+        // idleAnimation.update(info.pingTime);
     }
     else
     {
-        runAnimation.setFrame(info.animationFrame - idleAnimation.getFrameCount());
+        runAnimation.setFrame(info.animationFrame);
+        runAnimation.setFrameTick(info.animationFrameTick);
+        // runAnimation.update(info.pingTime);
     }
 
-    // Update animations with ping time
-    idleAnimation.update(info.pingTime);
-    runAnimation.update(info.pingTime);
 
     flippedTexture = info.flipped;
     playerYScaleMult = info.yScaleMult;

@@ -9,8 +9,11 @@ public:
     AnimatedTexture(int frameCount, int frameWidth, int frameHeight, int xStart, int y, float maxFrameTick, bool looping = true);
 
     void create(int frameCount, int frameWidth, int frameHeight, int xStart, int y, float maxFrameTick, bool looping = true);
-    
+
     void update(float dt, int direction = 1);
+
+    void setFrameTick(float frameTick);
+    int getFrameTick();
 
     sf::IntRect getTextureRect() const;
 

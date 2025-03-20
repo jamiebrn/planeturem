@@ -996,13 +996,15 @@ PacketDataPlayerCharacterInfo Player::getNetworkPlayerInfo(const Camera* camera,
     info.direction = direction;
     info.speed = speed;
 
-    if (direction.x == 0 && direction.y == 0)
+    if (direction == sf::Vector2f(0, 0))
     {
         info.animationFrame = idleAnimation.getFrame();
+        info.animationFrameTick = idleAnimation.getFrameTick();
     }
     else
     {
-        info.animationFrame = idleAnimation.getFrameCount() + runAnimation.getFrame();
+        info.animationFrame = runAnimation.getFrame();
+        info.animationFrameTick = runAnimation.getFrameTick();
     }
     
     info.flipped = flippedTexture;

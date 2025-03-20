@@ -23,6 +23,7 @@ struct PacketDataPlayerCharacterInfo : public IPacketData, public IPacketTimeDep
     float speed;
 
     int animationFrame;
+    float animationFrameTick;
     bool flipped;
     float yScaleMult;
 
