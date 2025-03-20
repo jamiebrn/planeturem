@@ -88,6 +88,10 @@ void NetworkPlayer::setNetworkPlayerCharacterInfo(const PacketDataPlayerCharacte
         runAnimation.setFrame(info.animationFrame - idleAnimation.getFrameCount());
     }
 
+    // Update animations with ping time
+    idleAnimation.update(info.pingTime);
+    runAnimation.update(info.pingTime);
+
     flippedTexture = info.flipped;
     playerYScaleMult = info.yScaleMult;
 
@@ -109,7 +113,7 @@ void NetworkPlayer::setNetworkPlayerCharacterInfo(const PacketDataPlayerCharacte
     if (usingTool)
     {
         rotationTweenID = info.toolRotTweenID;
-        TweenData tweenData = info.toolTweenData;
+        TweenData<float> tweenData = info.toolTweenData;
         tweenData.value = &toolRotation;
         toolTweener.overwriteTweenData(rotationTweenID, tweenData);
     }

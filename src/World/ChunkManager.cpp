@@ -843,7 +843,7 @@ void ChunkManager::loadEntityPacketDatas(const PacketDataEntities& entityPacketD
         loadedChunks[chunkEntityData.first]->loadEntityPacketDatas(chunkEntityData.second);
 
         // Update entities with ping time
-        loadedChunks[chunkEntityData.first]->updateChunkEntities(entityPacketDatas.pingTime, worldSize, nullptr, *this, nullptr, true);
+        // loadedChunks[chunkEntityData.first]->updateChunkEntities(entityPacketDatas.pingTime, worldSize, nullptr, *this, nullptr, true);
     }
 }
 
