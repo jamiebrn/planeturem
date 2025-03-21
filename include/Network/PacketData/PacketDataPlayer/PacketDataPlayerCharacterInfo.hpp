@@ -54,7 +54,7 @@ struct PacketDataPlayerCharacterInfo : public IPacketData, public IPacketTimeDep
     template <class Archive>
     void serialize(Archive& ar)
     {
-        ar(hostPingLocation, position.x, position.y, direction.x, direction.y, speed, animationFrame, flipped, yScaleMult, onWater, inRocket, toolType,
+        ar(position.x, position.y, direction.x, direction.y, speed, animationFrame, flipped, yScaleMult, onWater, inRocket, toolType,
             fishingRodCasted, fishBitingLine, fishingRodBobWorldTile.x, fishingRodBobWorldTile.y, usingTool, toolRotTweenID, toolTweenData, armour,
             chunkViewRange, userID);
     }

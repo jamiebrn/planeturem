@@ -3,6 +3,7 @@
 #include "Network/PacketData/PacketDataServer/PacketDataJoinQuery.hpp"
 #include "Network/PacketData/PacketDataServer/PacketDataJoinReply.hpp"
 #include "Network/PacketData/PacketDataServer/PacketDataJoinInfo.hpp"
+#include "Network/PacketData/PacketDataServer/PacketDataPlayerJoined.hpp"
 #include "Network/PacketData/PacketDataServer/PacketDataServerInfo.hpp"
 
 #include "Network/PacketData/PacketDataPlayer/PacketDataPlayerData.hpp"

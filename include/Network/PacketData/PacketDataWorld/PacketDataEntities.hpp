@@ -53,7 +53,7 @@ struct PacketDataEntities : public IPacketData, public IPacketTimeDependent
     template <class Archive>
     void serialize(Archive& ar)
     {
-        ar(hostPingLocation, planetType, entities);
+        ar(planetType, entities);
     }
 
     PACKET_SERIALISATION();

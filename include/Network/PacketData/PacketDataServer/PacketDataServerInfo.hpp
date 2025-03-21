@@ -20,7 +20,7 @@ struct PacketDataServerInfo : public IPacketData, public IPacketTimeDependent
     template <class Archive>
     void serialize(Archive& ar)
     {
-        ar(hostPingLocation, gameTime, day, time);
+        ar(gameTime, day, time);
     }
 
     PACKET_SERIALISATION();

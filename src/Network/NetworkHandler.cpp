@@ -276,7 +276,7 @@ std::string NetworkHandler::getLocalPingLocation()
     SteamNetworkPingLocation_t pingLocation;
     if (!SteamNetworkingUtils()->GetLocalPingLocation(pingLocation))
     {
-        return false;
+        return "";
     }
     
     char pingLocationStrBuffer[k_cchMaxSteamNetworkingPingLocationString];
@@ -313,11 +313,12 @@ void NetworkHandler::registerNetworkPlayer(uint64_t id, const std::string& pingL
     // Alert connected players
     if (isLobbyHost)
     {
+        PacketDataPlayerJoined packetData;
+        packetData.id = id;
+        packetData.pingLocation = pingLocation;
         Packet packet;
-        packet.type = PacketType::PlayerJoined;
-        packet.data.resize(sizeof(id));
-        memcpy(packet.data.data(), &id, sizeof(id));
-    
+        packet.set(packetData);
+
         for (auto iter = networkPlayers.begin(); iter != networkPlayers.end(); iter++)
         {
             SteamNetworkingIdentity identity;
@@ -502,7 +503,8 @@ void NetworkHandler::processMessage(const SteamNetworkingMessage_t& message, con
             {
                 if (!networkPlayers.contains(message.m_identityPeer.GetSteamID64()))
                 {
-                    registerNetworkPlayer(message.m_identityPeer.GetSteamID64());
+                    // registerNetworkPlayer(message.m_identityPeer.GetSteamID64());
+                    printf(("ERROR: Received player character info for unregistered player ID " + std::to_string(message.m_identityPeer.GetSteamID64()) + "\n").c_str());
                 }
             }
     
@@ -697,6 +699,9 @@ void NetworkHandler::processMessageAsHost(const SteamNetworkingMessage_t& messag
         {
             const char* steamName = SteamFriends()->GetFriendPersonaName(message.m_identityPeer.GetSteamID());
             std::cout << "NETWORK: Player joined: " << steamName << " (" << message.m_identityPeer.GetSteamID64() << ")\n";
+
+            PacketDataJoinReply packetDataJoinReply;
+            packetDataJoinReply.deserialise(packet.data);
             
             // Send world info
             PacketDataJoinInfo packetData;
@@ -714,13 +719,12 @@ void NetworkHandler::processMessageAsHost(const SteamNetworkingMessage_t& messag
                 // Player data does not exist - initialise
                 
                 // Get name from join reply packet
-                PacketDataJoinReply packetData;
-                packetData.deserialise(packet.data);
+                
                 networkPlayerDatasSaved[message.m_identityPeer.GetSteamID64()] = PlayerData();
 
                 PlayerData& playerData = networkPlayerDatasSaved[message.m_identityPeer.GetSteamID64()];
 
-                playerData.name = packetData.playerName;
+                playerData.name = packetDataJoinReply.playerName;
 
                 playerData.locationState.setPlanetType(PlanetGenDataLoader::getPlanetTypeFromName("Earthlike"));
 
@@ -746,7 +750,7 @@ void NetworkHandler::processMessageAsHost(const SteamNetworkingMessage_t& messag
                 packetData.currentPlayerDatas[iter->first] = iter->second.getPlayerData();
             }
     
-            registerNetworkPlayer(message.m_identityPeer.GetSteamID64());
+            registerNetworkPlayer(message.m_identityPeer.GetSteamID64(), packetDataJoinReply.pingLocation);
             
             Packet packetToSend;
             packetToSend.set(packetData, true);
@@ -886,9 +890,11 @@ void NetworkHandler::processMessageAsClient(const SteamNetworkingMessage_t& mess
         }
         case PacketType::PlayerJoined:
         {
-            uint64_t id;
-            memcpy(&id, packet.data.data(), sizeof(id));
-            registerNetworkPlayer(id);
+            PacketDataPlayerJoined packetData;
+            packetData.deserialise(packet.data);
+            // uint64_t id;
+            // memcpy(&id, packet.data.data(), sizeof(id));
+            registerNetworkPlayer(packetData.id, packetData.pingLocation);
             break;
         }
         case PacketType::PlayerDisconnected:
