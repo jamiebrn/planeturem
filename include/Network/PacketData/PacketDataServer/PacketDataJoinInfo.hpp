@@ -12,6 +12,7 @@
 
 #include "Player/PlayerData.hpp"
 #include "World/ChestDataPool.hpp"
+#include "Entity/Projectile/ProjectileManager.hpp"
 
 struct PacketDataJoinInfo : public IPacketData
 {

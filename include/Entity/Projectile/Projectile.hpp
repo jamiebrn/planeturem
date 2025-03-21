@@ -3,6 +3,8 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 
+#include <extlib/cereal/archives/binary.hpp>
+
 #include <SFML/Graphics.hpp>
 
 #include "Core/SpriteBatch.hpp"
@@ -40,6 +42,12 @@ public:
 
     CollisionCircle getCollisionCircle() const;
 
+    template <class Archive>
+    void serialize(Archive& ar, const std::uint32_t version)
+    {
+        ar(projectileType, speed, position.x, position.y, velocity.x, velocity.y, angle);
+    }
+
 private:
     ProjectileType projectileType;
     int damage;
@@ -54,3 +62,5 @@ private:
     float timeAlive;
 
 };
+
+CEREAL_CLASS_VERSION(Projectile, 1);

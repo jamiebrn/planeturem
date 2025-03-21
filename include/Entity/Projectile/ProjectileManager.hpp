@@ -4,6 +4,9 @@
 #include <memory>
 #include <cstdint>
 
+#include <extlib/cereal/archives/binary.hpp>
+#include <extlib/cereal/types/unordered_map.hpp>
+
 #include <SFML/Graphics.hpp>
 
 #include "Core/SpriteBatch.hpp"
@@ -29,8 +32,16 @@ public:
 
     void clear();
 
+    template <class Archive>
+    void serialize(Archive& ar, const std::uint32_t version)
+    {
+        ar(projectiles);
+    }
+
 private:
     std::unordered_map<uint64_t, Projectile> projectiles;
     uint64_t projectileCounter = 0;
 
 };
+
+CEREAL_CLASS_VERSION(ProjectileManager, 1);
