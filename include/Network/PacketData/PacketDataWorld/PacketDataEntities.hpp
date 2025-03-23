@@ -16,26 +16,33 @@
 #include "Network/IPacketData.hpp"
 #include "Network/IPacketTimeDependent.hpp"
 
+#include "Network/CompactFloat.hpp"
+
 #include "Data/typedefs.hpp"
 #include "World/ChunkPosition.hpp"
-#include "Entity/EntityPOD.hpp"
 
 struct PacketDataEntities : public IPacketData, public IPacketTimeDependent
 {
-    struct EntityPacketData : public EntityPOD
+    struct EntityPacketData
     {
+        uint8_t entityType;
+        CompactFloat<uint16_t> chunkRelativePositionX;
+        CompactFloat<uint16_t> chunkRelativePositionY;
+        CompactFloat<uint16_t> velocityX;
+        CompactFloat<uint16_t> velocityY;
+
         ChunkPosition chunkPosition;
 
         // TODO: On water
-        int health;
-        float flashAmount;
-        int8_t idleAnimFrame;
-        int8_t walkAnimFrame;
+        uint8_t health;
+        CompactFloat<uint8_t> flashAmount;
+        uint8_t idleAnimFrame;
+        uint8_t walkAnimFrame;
 
         template <class Archive>
         void serialize(Archive& ar, const std::uint32_t version)
         {
-            ar(entityType, chunkRelativePosition.x, chunkRelativePosition.y, velocity.x, velocity.y,
+            ar(entityType, chunkRelativePositionX, chunkRelativePositionY, velocityX, velocityY,
                 chunkPosition, health, flashAmount, idleAnimFrame, walkAnimFrame);
         }
     };

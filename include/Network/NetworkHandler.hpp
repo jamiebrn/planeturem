@@ -71,8 +71,8 @@ public:
     std::unordered_set<PlanetType> getPlayersPlanetTypeSet(std::optional<PlanetType> thisPlayerPlanetType);
     std::unordered_set<RoomType> getPlayersRoomDestTypeSet(std::optional<RoomType> thisPlayerRoomType);
 
-    const std::string& getPlayerName(uint64_t id);
-    const std::string& getPlayerPingLocation(uint64_t id);
+    const std::string getPlayerName(uint64_t id);
+    const std::string getPlayerPingLocation(uint64_t id);
     std::string getLocalPingLocation();
 
     const PlayerData* getSavedNetworkPlayerData(uint64_t id);

@@ -253,7 +253,7 @@ std::unordered_set<RoomType> NetworkHandler::getPlayersRoomDestTypeSet(std::opti
     return roomDestTypeSet;
 }
 
-const std::string& NetworkHandler::getPlayerName(uint64_t id)
+const std::string NetworkHandler::getPlayerName(uint64_t id)
 {
     if (!networkPlayers.contains(id))
     {
@@ -262,7 +262,7 @@ const std::string& NetworkHandler::getPlayerName(uint64_t id)
     return networkPlayers[id].getPlayerData().name;
 }
 
-const std::string& NetworkHandler::getPlayerPingLocation(uint64_t id)
+const std::string NetworkHandler::getPlayerPingLocation(uint64_t id)
 {
     if (!networkPlayers.contains(id))
     {

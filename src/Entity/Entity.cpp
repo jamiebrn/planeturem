@@ -293,10 +293,12 @@ PacketDataEntities::EntityPacketData Entity::getPacketData(sf::Vector2f chunkPos
     
     PacketDataEntities::EntityPacketData packetData;
     packetData.entityType = pod.entityType;
-    packetData.chunkRelativePosition = pod.chunkRelativePosition;
-    packetData.velocity = velocity;
+    packetData.chunkRelativePositionX = CompactFloat<uint16_t>(pod.chunkRelativePosition.x, 2);
+    packetData.chunkRelativePositionY = CompactFloat<uint16_t>(pod.chunkRelativePosition.y, 2);
+    packetData.velocityX = CompactFloat<uint16_t>(pod.chunkRelativePosition.x, 2);
+    packetData.velocityY = CompactFloat<uint16_t>(pod.chunkRelativePosition.y, 2);
     packetData.health = health;
-    packetData.flashAmount = flashAmount;
+    packetData.flashAmount = CompactFloat<uint8_t>(flashAmount, 2);
     packetData.idleAnimFrame = idleAnim.getFrame();
     packetData.walkAnimFrame = walkAnim.getFrame();
 
@@ -307,12 +309,14 @@ void Entity::loadFromPacketData(const PacketDataEntities::EntityPacketData& pack
 {
     EntityPOD pod;
     pod.entityType = packetData.entityType;
-    pod.chunkRelativePosition = packetData.chunkRelativePosition;
-    pod.velocity = packetData.velocity;
+    pod.chunkRelativePosition.x = packetData.chunkRelativePositionX.getValue(2);
+    pod.chunkRelativePosition.y = packetData.chunkRelativePositionY.getValue(2);
+    pod.velocity.x = packetData.velocityX.getValue(2);
+    pod.velocity.y = packetData.velocityY.getValue(2);
     loadFromPOD(pod, chunkPosition);
 
     health = packetData.health;
-    flashAmount = packetData.flashAmount;
+    flashAmount = packetData.flashAmount.getValue(2);
     idleAnim.setFrame(packetData.idleAnimFrame);
     walkAnim.setFrame(packetData.walkAnimFrame);
 }

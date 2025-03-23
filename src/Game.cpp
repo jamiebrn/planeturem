@@ -3783,7 +3783,7 @@ void Game::joinedLobby(bool requiresNameInput)
         networkHandler.leaveLobby();
         return;
     }
-
+    
     if (requiresNameInput)
     {
         mainMenuGUI.setMainMenuJoinGame();
