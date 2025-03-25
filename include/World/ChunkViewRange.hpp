@@ -21,7 +21,7 @@ struct ChunkViewRange
         }
         inline iterator& operator++(int)
         {
-            index = std::min(index + 1, maxSize - 1);
+            index = std::min(index + 1, maxSize);
             return *this;
         }
         inline iterator& operator--(int)
@@ -75,7 +75,7 @@ struct ChunkViewRange
 
     inline iterator end() const
     {
-        return iterator(*this, getSize() - 1);
+        return iterator(*this, getSize());
     }
 
     inline bool isChunkInRange(ChunkPosition chunkPos, int worldSize) const

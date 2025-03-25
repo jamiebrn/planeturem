@@ -3,7 +3,6 @@
 #include <string>
 #include <extlib/steam/steam_api.h>
 
-// If used, remember to also serialise hostPingLocation
 struct IPacketTimeDependent
 {
     // std::string hostPingLocation;
