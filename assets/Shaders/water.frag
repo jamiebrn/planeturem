@@ -1,4 +1,4 @@
-#version 120
+#version 330 core
 
 uniform sampler2D texture;
 uniform sampler2D noise;

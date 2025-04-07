@@ -4,12 +4,12 @@
 bool TextureManager::loadedTextures = false;
 
 // Stores loaded textures
-std::unordered_map<TextureType, sf::Texture> TextureManager::textureMap;
+std::unordered_map<TextureType, std::unique_ptr<pl::Texture>> TextureManager::textureMap;
 
 // Stores sprites
-std::unordered_map<TextureType, sf::Sprite> TextureManager::spriteMap;
+// std::unordered_map<TextureType, pl::Sprite> TextureManager::spriteMap;
 
-std::unordered_map<BitmaskType, sf::Image> TextureManager::bitmasks;
+std::unordered_map<BitmaskType, std::unique_ptr<pl::Image>> TextureManager::bitmasks;
 
 // All file paths for textures are listed here
 const std::unordered_map<TextureType, std::string> TextureManager::texturePaths = {
@@ -33,7 +33,7 @@ const std::unordered_map<BitmaskType, std::string> TextureManager::bitmaskPaths 
 };
 
 // Loads all textures from paths specified into texture map
-bool TextureManager::loadTextures(sf::RenderWindow& window)
+bool TextureManager::loadTextures()
 {
     // If textures already loaded, return true by default
     if (loadedTextures)
@@ -48,16 +48,15 @@ bool TextureManager::loadTextures(sf::RenderWindow& window)
     // Iterate over each texture file path
     for (std::pair<TextureType, std::string> texturePair : texturePaths)
     {
-
         // Get texture type and file path from map
         TextureType textureType = texturePair.first;
         std::string texturePath = texturePair.second;
 
         // Create texture object
-        sf::Texture texture;
+        std::unique_ptr<pl::Texture> texture = std::make_unique<pl::Texture>();
 
         // Attempt to load stream into texture object
-        if (!texture.loadFromFile(texturePath))
+        if (!texture->loadTexture(texturePath))
         {
             // If failed, set loaded textures to false
             loadedTextures = false;
@@ -66,19 +65,19 @@ bool TextureManager::loadTextures(sf::RenderWindow& window)
         }
 
         // Set texture repeating (tiling) to true by default
-        texture.setRepeated(true);
+        texture->setTextureRepeat(true);
 
         // Store texture object in texture map
-        textureMap[textureType] = texture;
+        textureMap[textureType] = std::move(texture);
 
         // Create sprite object to interface with the texture
-        sf::Sprite sprite;
+        // sf::Sprite sprite;
 
         // Set sprite texture from texture map
-        sprite.setTexture(textureMap[textureType]);
+        // sprite.setTexture(textureMap[textureType]);
 
         // Store sprite in sprite map
-        spriteMap[textureType] = sprite;
+        // spriteMap[textureType] = sprite;
 
         // Increment texture loaded count
         texturesLoaded++;
@@ -87,9 +86,9 @@ bool TextureManager::loadTextures(sf::RenderWindow& window)
     // Load bitmasks
     for (std::pair<BitmaskType, std::string> bitmaskPair : bitmaskPaths)
     {
-        sf::Image bitmaskImage;
+        std::unique_ptr<pl::Image> bitmaskImage = std::make_unique<pl::Image>();
 
-        if (!bitmaskImage.loadFromFile(bitmaskPair.second))
+        if (!bitmaskImage->loadFromFile(bitmaskPair.second))
         {
             // If failed, set loaded textures to false
             loadedTextures = false;
@@ -97,7 +96,7 @@ bool TextureManager::loadTextures(sf::RenderWindow& window)
             break;
         }
 
-        bitmasks[bitmaskPair.first] = bitmaskImage;
+        bitmasks[bitmaskPair.first] = std::move(bitmaskImage);
 
         // Increment texture loaded count
         texturesLoaded++;
@@ -112,38 +111,71 @@ bool TextureManager::loadTextures(sf::RenderWindow& window)
 }
 
 // Draw texture with specified data
-void TextureManager::drawTexture(sf::RenderTarget& window, TextureDrawData drawData, const sf::RenderStates& renderState)
+void TextureManager::drawTexture(pl::RenderTarget& window, const TextureDrawData& drawData, const pl::Shader& shader)
 {
     // If not loaded textures, return by default
     if (!loadedTextures)
+    {
         return;
+    }
+
+    const pl::Texture& texture = *textureMap[drawData.type].get();
+
+    drawSubTexture(window, drawData, pl::Rect<float>(0, 0, texture.getWidth(), texture.getHeight()), shader);
     
     // Get sprite from sprite map
-    sf::Sprite& sprite = spriteMap.at(drawData.type);
+    // sf::Sprite& sprite = spriteMap.at(drawData.type);
 
     // Apply draw data to texture
-    applyTextureData(drawData);
+    // applyTextureData(drawData);
 
-    window.draw(sprite, renderState);
+    // window.draw(sprite, renderState);
 }
 
 // Draw texture using a subrectangle, useful for spritesheets and tiling textures (subrectangle bigger than texture, texture repeats)
-void TextureManager::drawSubTexture(sf::RenderTarget& window, TextureDrawData drawData, sf::IntRect boundRect, const sf::RenderStates& renderState)
+void TextureManager::drawSubTexture(pl::RenderTarget& window, const TextureDrawData& drawData, pl::Rect<float> boundRect, const pl::Shader& shader)
 {
     // If not loaded textures, return by default
     if (!loadedTextures)
+    {
         return;
+    }
 
     // Get sprite from sprite map
-    sf::Sprite& sprite = spriteMap.at(drawData.type);
+    // sf::Sprite& sprite = spriteMap.at(drawData.type);
 
     // Apply subrectangle to sprite
-    sprite.setTextureRect(boundRect);
+    // sprite.setTextureRect(boundRect);
 
     // Apply draw data to texture
-    applyTextureData(drawData);
-    
-    window.draw(sprite, renderState);
+    // applyTextureData(drawData);
+
+    pl::Rect<float> quad;
+    if (drawData.useCentreAbsolute)
+    {
+        quad.x = drawData.position.x - drawData.centerRatio.x;
+        quad.y = drawData.position.y - drawData.centerRatio.y;
+    }
+    else
+    {
+        quad.x = drawData.position.x - boundRect.width * drawData.centerRatio.x;
+        quad.y = drawData.position.y - boundRect.height * drawData.centerRatio.y;
+    }
+
+    quad.width = boundRect.width;
+    quad.height = boundRect.height;
+
+    const pl::Texture& texture = *textureMap[drawData.type].get();
+
+    boundRect.x /= texture.getWidth();
+    boundRect.y /= texture.getHeight();
+    boundRect.width /= texture.getWidth();
+    boundRect.height /= texture.getHeight();
+
+    pl::VertexArray vertexArray;
+    vertexArray.addQuad(quad, drawData.colour, boundRect);
+
+    window.draw(vertexArray, shader, texture, pl::BlendMode::Alpha);
     // Draw with shader if required
     // if (shader)
     // {
@@ -156,25 +188,25 @@ void TextureManager::drawSubTexture(sf::RenderTarget& window, TextureDrawData dr
 }
 
 // Apply draw data before drawing a texture
-void TextureManager::applyTextureData(TextureDrawData drawData)
-{
-    // Get sprite from sprite map
-    sf::Sprite& sprite = spriteMap.at(drawData.type);
+// void TextureManager::applyTextureData(TextureDrawData drawData)
+// {
+//     // Get sprite from sprite map
+//     sf::Sprite& sprite = spriteMap.at(drawData.type);
 
-    // Set scale of sprite from draw data
-    sprite.setScale(drawData.scale);
+//     // Set scale of sprite from draw data
+//     sprite.setScale(drawData.scale);
 
-    // Get size of sprite
-    sf::FloatRect sizeRect = sprite.getLocalBounds();
-    // Calculate middle point of sprite
-    sf::Vector2f origin = drawData.useCentreAbsolute ? drawData.centerRatio : sf::Vector2f(sizeRect.width * drawData.centerRatio.x, sizeRect.height * drawData.centerRatio.y);
-    // Set origin of sprite to middle
-    sprite.setOrigin(origin);
+//     // Get size of sprite
+//     sf::FloatRect sizeRect = sprite.getLocalBounds();
+//     // Calculate middle point of sprite
+//     sf::Vector2f origin = drawData.useCentreAbsolute ? drawData.centerRatio : sf::Vector2f(sizeRect.width * drawData.centerRatio.x, sizeRect.height * drawData.centerRatio.y);
+//     // Set origin of sprite to middle
+//     sprite.setOrigin(origin);
 
-    // Set position and rotation from draw data
-    sprite.setPosition(drawData.position);
-    sprite.setRotation(drawData.rotation);
+//     // Set position and rotation from draw data
+//     sprite.setPosition(drawData.position);
+//     sprite.setRotation(drawData.rotation);
 
-    // Set colour from draw data
-    sprite.setColor(drawData.colour);
-}
+//     // Set colour from draw data
+//     sprite.setColor(drawData.colour);
+// }

@@ -1,9 +1,18 @@
 #pragma once
 
 // Include libraries
-#include <SFML/Graphics.hpp>
+// #include <SFML/Graphics.hpp>
+#include "Graphics/RenderTarget.hpp"
+#include "Graphics/Image.hpp"
+#include "Graphics/Texture.hpp"
+#include "Graphics/Shader.hpp"
+#include "Graphics/VertexArray.hpp"
+#include "Rect.hpp"
+#include "Vector.hpp"
+
 #include <unordered_map>
 #include <string>
+#include <memory>
 
 #include "Types/TextureType.hpp"
 
@@ -13,15 +22,15 @@ struct TextureDrawData
     // Type of texture
     TextureType type;
     // Draw position on screen
-    sf::Vector2f position;
+    pl::Vector2f position;
     // Rotation
     float rotation = 0.0f;
     // Scale
-    sf::Vector2f scale;
+    pl::Vector2f scale;
     // Whether texture should be drawn centred about its position
-    sf::Vector2f centerRatio = sf::Vector2f(0, 0);
+    pl::Vector2f centerRatio = pl::Vector2f(0, 0);
     // The base colour the texture should be drawn in (white in most cases)
-    sf::Color colour = sf::Color(255, 255, 255);
+    pl::Color colour = pl::Color(255, 255, 255);
     
     bool useCentreAbsolute = false;
 };
@@ -38,25 +47,25 @@ private:
 // Public functions
 public:
     // Load all textures into memory
-    static bool loadTextures(sf::RenderWindow& window);
+    static bool loadTextures();
 
     // Draw texture using draw data
-    static void drawTexture(sf::RenderTarget& window, TextureDrawData drawData, const sf::RenderStates& renderState = sf::RenderStates::Default);
+    static void drawTexture(pl::RenderTarget& window, const TextureDrawData& drawData, const pl::Shader& shader);
 
     // Draw a section of a texture using draw data
-    static void drawSubTexture(sf::RenderTarget& window, TextureDrawData drawData, sf::IntRect boundRect, const sf::RenderStates& renderState = sf::RenderStates::Default);
+    static void drawSubTexture(pl::RenderTarget& window, const TextureDrawData& drawData, pl::Rect<float> boundRect, const pl::Shader& shader);
 
     // Get the size of a specific texture (width x height)
-    inline static sf::Vector2u getTextureSize(TextureType type) {return textureMap[type].getSize();}
+    inline static pl::Vector2<int> getTextureSize(TextureType type) {return pl::Vector2<int>(textureMap[type]->getWidth(), textureMap[type]->getHeight());}
 
-    inline static sf::Texture* getTexture(TextureType type) {return &textureMap[type];}
+    inline static pl::Texture* getTexture(TextureType type) {return textureMap[type].get();}
 
-    inline static const sf::Image& getBitmask(BitmaskType type) {return bitmasks[type];}
+    inline static const pl::Image& getBitmask(BitmaskType type) {return *bitmasks[type].get();}
 
 // Private functions
 private:
     // Apply draw data before drawing a texture
-    static void applyTextureData(TextureDrawData drawData);
+    // static void applyTextureData(TextureDrawData drawData);
 
 // Private member variables
 private:
@@ -64,15 +73,15 @@ private:
     static bool loadedTextures;
 
     // Stores loaded textures
-    static std::unordered_map<TextureType, sf::Texture> textureMap;
+    static std::unordered_map<TextureType, std::unique_ptr<pl::Texture>> textureMap;
 
     // Stores sprites, which provide an interface over the textures
-    static std::unordered_map<TextureType, sf::Sprite> spriteMap;
+    // static std::unordered_map<TextureType, sf::Sprite> spriteMap;
 
     // Stores file path to each texture, so each texture can be loaded
     static const std::unordered_map<TextureType, std::string> texturePaths;
 
-    static std::unordered_map<BitmaskType, sf::Image> bitmasks;
+    static std::unordered_map<BitmaskType, std::unique_ptr<pl::Image>> bitmasks;
 
     static const std::unordered_map<BitmaskType, std::string> bitmaskPaths;
 

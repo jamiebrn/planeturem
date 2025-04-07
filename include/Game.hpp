@@ -1,9 +1,9 @@
 #pragma once
 
-#include <SFML/Graphics.hpp>
+// #include <SFML/Graphics.hpp>
 #include <SDL2/SDL.h>
 #include <imgui.h>
-#include <imgui-SFML.h>
+// #include <imgui-SFML.h>
 #include <extlib/steam/steam_api.h>
 #include <chrono>
 

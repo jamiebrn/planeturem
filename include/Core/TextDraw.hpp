@@ -1,29 +1,32 @@
 #pragma once
 
-#include <SFML/Graphics.hpp>
+// #include <SFML/Graphics.hpp>
+#include "Graphics/Font.hpp"
+#include "Graphics/TextDrawData.hpp"
+#include "Graphics/Shader.hpp"
 #include <string>
 
 // Struct containing all data required when drawing text
-struct TextDrawData
-{
-    std::string text;
-    sf::Vector2f position;
-    sf::Color colour;
-    unsigned int size;
+// struct TextDrawData
+// {
+//     std::string text;
+//     sf::Vector2f position;
+//     sf::Color colour;
+//     unsigned int size;
 
-    sf::Color outlineColour = sf::Color(0, 0, 0);
-    float outlineThickness = 0;
+//     sf::Color outlineColour = sf::Color(0, 0, 0);
+//     float outlineThickness = 0;
 
-    bool centeredX = false;
-    bool centeredY = false;
+//     bool centeredX = false;
+//     bool centeredY = false;
 
-    bool containOnScreenX = false;
-    bool containOnScreenY = false;
-    float containPaddingLeft = 0;
-    float containPaddingRight = 0;
-    float containPaddingTop = 0;
-    float containPaddingBottom = 0;
-};
+//     bool containOnScreenX = false;
+//     bool containOnScreenY = false;
+//     float containPaddingLeft = 0;
+//     float containPaddingRight = 0;
+//     float containPaddingTop = 0;
+//     float containPaddingBottom = 0;
+// };
 
 // Declare text renderer class
 class TextDraw
@@ -36,12 +39,12 @@ private:
 // Public class functions
 public:
     // Load font into memory
-    static bool loadFont(std::string path);
+    static bool loadFont(const std::string& path, const std::string& vertexShaderPath, const std::string& fragmentShaderPath);
 
     // Draw text using draw data
-    static void drawText(sf::RenderTarget& window, const TextDrawData& drawData);
+    static void drawText(pl::RenderTarget& window, const pl::TextDrawData& drawData);
 
-    static sf::FloatRect getTextSize(const TextDrawData& drawData);
+    static pl::Rect<float> getTextSize(const pl::TextDrawData& drawData);
 
 // Private member variables
 private:
@@ -49,9 +52,11 @@ private:
     static bool loadedFont;
 
     // Stores font
-    static sf::Font font;
+    static pl::Font font;
+
+    static pl::Shader fontShader;
 
     // Text object used for drawing to screen
-    static sf::Text text;
+    // static sf::Text text;
 
 };
