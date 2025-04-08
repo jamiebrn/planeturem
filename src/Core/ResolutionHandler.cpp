@@ -1,15 +1,15 @@
 #include "Core/ResolutionHandler.hpp"
 
-sf::Vector2u ResolutionHandler::currentResolution = {0, 0};
+pl::Vector2<uint32_t>ResolutionHandler::currentResolution = {0, 0};
 int ResolutionHandler::scale = 3;
 int ResolutionHandler::currentZoom = 0;
 
-void ResolutionHandler::setResolution(sf::Vector2u resolution)
+void ResolutionHandler::setResolution(pl::Vector2<uint32_t>resolution)
 {
     currentResolution = resolution;
 }
 
-const sf::Vector2u& ResolutionHandler::getResolution()
+const pl::Vector2<uint32_t>& ResolutionHandler::getResolution()
 {
     return currentResolution;
 }

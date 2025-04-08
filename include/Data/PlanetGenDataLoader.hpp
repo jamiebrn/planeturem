@@ -1,10 +1,13 @@
 #pragma once
 
-#include <SFML/Graphics.hpp>
+// #include <SFML/Graphics.hpp>
 #include <vector>
 #include <fstream>
 #include <string>
 #include <unordered_map>
+
+#include <Vector.hpp>
+#include <Rect.hpp>
 
 #include "Core/json.hpp"
 #include "Data/PlanetGenData.hpp"

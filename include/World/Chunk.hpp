@@ -1,6 +1,6 @@
 #pragma once
 
-#include <SFML/Graphics.hpp>
+// #include <SFML/Graphics.hpp>
 #include <World/FastNoise.h>
 #include <array>
 #include <vector>
@@ -12,11 +12,17 @@
 #include <iostream>
 #include <type_traits>
 
+#include <Graphics/SpriteBatch.hpp>
+#include <Graphics/Color.hpp>
+#include <Graphics/RenderTarget.hpp>
+#include <Vector.hpp>
+#include <Rect.hpp>
+
 #include "Core/TextureManager.hpp"
 #include "Core/Camera.hpp"
 #include "Core/ResolutionHandler.hpp"
 #include "Core/CollisionRect.hpp"
-#include "Core/SpriteBatch.hpp"
+// #include "Core/SpriteBatch.hpp"
 #include "Core/Helper.hpp"
 #include "Core/Random.hpp"
 

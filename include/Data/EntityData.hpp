@@ -1,9 +1,12 @@
 #pragma once
 
-#include <SFML/Graphics.hpp>
+// #include <SFML/Graphics.hpp>
 #include <string>
 #include <unordered_map>
 #include <vector>
+
+#include <Vector.hpp>
+#include <Rect.hpp>
 
 #include "Core/CollisionRect.hpp"
 #include "Data/typedefs.hpp"
@@ -15,16 +18,16 @@ struct EntityData
     int health;
 
     // sf::IntRect textureRect;
-    std::vector<sf::IntRect> idleTextureRects;
-    std::vector<sf::IntRect> walkTextureRects;
+    std::vector<pl::Rect<int>> idleTextureRects;
+    std::vector<pl::Rect<int>> walkTextureRects;
     float idleAnimSpeed;
     float walkAnimSpeed;
 
-    sf::Vector2f textureOrigin;
+    pl::Vector2f textureOrigin;
 
     // Size of entity IN TILES
     // e.g. (1, 1) size means screen size is (tileSize * scale, tileSize * scale)
-    sf::Vector2f size;
+    pl::Vector2f size;
 
     std::vector<ItemDrop> itemDrops;
     CollisionRect hitCollision;

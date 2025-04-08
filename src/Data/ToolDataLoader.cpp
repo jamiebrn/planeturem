@@ -29,8 +29,8 @@ bool ToolDataLoader::loadData(std::string toolDataPath)
 
         auto textureRectPos = jsonProjectileData.at("texture");
 
-        projectileData.textureRect.top = textureRectPos[1];
-        projectileData.textureRect.left = textureRectPos[0];
+        projectileData.textureRect.x = textureRectPos[1];
+        projectileData.textureRect.y = textureRectPos[0];
         projectileData.textureRect.width = jsonProjectileData.at("texture-width");
         projectileData.textureRect.height = jsonProjectileData.at("texture-height");
 
@@ -73,9 +73,9 @@ bool ToolDataLoader::loadData(std::string toolDataPath)
         auto textures = jsonToolData.at("textures");
         for (nlohmann::json::iterator texturePositionIter = textures.begin(); texturePositionIter != textures.end(); ++texturePositionIter)
         {
-            sf::IntRect textureRect;
-            textureRect.left = texturePositionIter.value()[0];
-            textureRect.top = texturePositionIter.value()[1];
+            pl::Rect<int> textureRect;
+            textureRect.x = texturePositionIter.value()[0];
+            textureRect.y = texturePositionIter.value()[1];
             textureRect.width = textureWidth;
             textureRect.height = textureHeight;
 

@@ -1,8 +1,14 @@
 #pragma once
 
-#include <SFML/Graphics.hpp>
+// #include <SFML/Graphics.hpp>
 #include <cmath>
 #include <algorithm>
+
+#include <Graphics/VertexArray.hpp>
+#include <Graphics/RenderTarget.hpp>
+#include <Vector.hpp>
+
+#include <Core/Shaders.hpp>
 
 #include <extlib/cereal/archives/binary.hpp>
 
@@ -27,9 +33,9 @@ struct CollisionRect
     bool isColliding(const CollisionCircle& circle) const;
     bool isPointInRect(float x, float y) const;
 
-    sf::Vector2f getCentre() const;
+    pl::Vector2f getCentre() const;
 
-    void debugDraw(sf::RenderTarget& window, const Camera& camera, sf::Color color = {255, 0, 0, 120}) const;
+    void debugDraw(pl::RenderTarget& window, const Camera& camera, pl::Color color = {255, 0, 0, 120}) const;
 
     template <class Archive>
     void serialize(Archive& ar, const std::uint32_t version)

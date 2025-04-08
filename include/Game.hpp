@@ -16,6 +16,14 @@
 #include <string>
 #include <memory>
 
+#include <Graphics/TextDrawData.hpp>
+#include <Graphics/Color.hpp>
+#include <Graphics/Framebuffer.hpp>
+#include <Graphics/SpriteBatch.hpp>
+#include <Graphics/Texture.hpp>
+#include <Graphics/VertexArray.hpp>
+#include <Window.hpp>
+
 #include "Core/TextureManager.hpp"
 #include "Core/Shaders.hpp"
 #include "Core/Sounds.hpp"
@@ -23,7 +31,7 @@
 #include "Core/ResolutionHandler.hpp"
 #include "Core/Helper.hpp"
 #include "Core/Tween.hpp"
-#include "Core/SpriteBatch.hpp"
+// #include "Core/SpriteBatch.hpp"
 #include "Core/InputManager.hpp"
 
 #include "World/ChunkManager.hpp"

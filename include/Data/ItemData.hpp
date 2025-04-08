@@ -1,9 +1,13 @@
 #pragma once
 
-#include <SFML/Graphics.hpp>
+// #include <SFML/Graphics.hpp>
 #include <string>
 #include <optional>
 #include <cmath>
+
+#include <Graphics/Color.hpp>
+#include <Vector.hpp>
+#include <Rect.hpp>
 
 #include "Data/typedefs.hpp"
 #include "Data/ObjectData.hpp"
@@ -26,7 +30,7 @@ struct ItemData
     std::string name;
     std::optional<std::string> displayName;
     std::string description;
-    sf::IntRect textureRect;
+    pl::Rect<int> textureRect;
 
     unsigned int maxStackSize = 99;
 
@@ -45,7 +49,7 @@ struct ItemData
     float sellValue = 0;
 
     // 0, 0, 0 reserved for rainbow effect
-    sf::Color nameColor = sf::Color(255, 255, 255);
+    pl::Color nameColor = pl::Color(255, 255, 255);
 
     inline const std::string& getDisplayName() const
     {
@@ -56,11 +60,11 @@ struct ItemData
         return name;
     }
 
-    inline sf::Color getNameColor(float gameTime) const
+    inline pl::Color getNameColor(float gameTime) const
     {
-        if (nameColor == sf::Color(0, 0, 0))
+        if (nameColor == pl::Color(0, 0, 0))
         {
-            sf::Color rainbowColor;
+            pl::Color rainbowColor;
             rainbowColor.r = 255.0f * (std::sin(gameTime * 2.0f) + 1) / 2.0f;
             rainbowColor.g = 255.0f * (std::cos(gameTime * 2.0f) + 1) / 2.0f;
             rainbowColor.b = 255.0f * (std::sin(gameTime * 2.0f + 3 * 3.14 / 2) + 1) / 2.0f;

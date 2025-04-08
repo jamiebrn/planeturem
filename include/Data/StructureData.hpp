@@ -1,9 +1,12 @@
 #pragma once
 
-#include <SFML/Graphics.hpp>
+// #include <SFML/Graphics.hpp>
 #include <string>
 #include <unordered_map>
 #include <optional>
+
+#include <Vector.hpp>
+#include <Rect.hpp>
 
 #include <extlib/cereal/archives/binary.hpp>
 #include <extlib/cereal/types/unordered_map.hpp>
@@ -28,11 +31,11 @@ struct RoomObjectData
 
 struct RoomData
 {
-    sf::Vector2i tileSize;
+    pl::Vector2<int> tileSize;
 
-    sf::IntRect textureRect;
+    pl::Rect<int> textureRect;
 
-    sf::Vector2i collisionBitmaskOffset;
+    pl::Vector2<int> collisionBitmaskOffset;
 
     std::string name;
     std::string displayName;
@@ -52,13 +55,13 @@ struct StructureData
 {
     std::string name;
 
-    sf::Vector2i size;
+    pl::Vector2<int> size;
 
-    sf::IntRect textureRect;
-    sf::Vector2f textureOrigin;
+    pl::Rect<int> textureRect;
+    pl::Vector2f textureOrigin;
 
-    sf::Vector2i collisionBitmaskOffset;
-    sf::Vector2i lightBitmaskOffset;
+    pl::Vector2<int> collisionBitmaskOffset;
+    pl::Vector2<int> lightBitmaskOffset;
 
     // RoomData roomData;
     RoomType roomType;

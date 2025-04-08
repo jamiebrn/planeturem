@@ -57,11 +57,11 @@ int AnimatedTexture::getFrameTick()
     return frameTick;
 }
 
-sf::IntRect AnimatedTexture::getTextureRect() const
+pl::Rect<int> AnimatedTexture::getTextureRect() const
 {
-    sf::IntRect textureRect;
-    textureRect.left = xStart + frame * frameWidth;
-    textureRect.top = y;
+    pl::Rect<int> textureRect;
+    textureRect.x = xStart + frame * frameWidth;
+    textureRect.y = y;
     textureRect.width = frameWidth;
     textureRect.height = frameHeight;
 

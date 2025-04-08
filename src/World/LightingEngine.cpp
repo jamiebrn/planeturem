@@ -68,7 +68,7 @@ void LightingEngine::addObstacle(int x, int y, float absorption)
     obstacles[y * width + x] = absorption;
 }
 
-void LightingEngine::calculateLighting(const sf::Color& lightingColour)
+void LightingEngine::calculateLighting(const pl::Color& lightingColor)
 {
     // Initialise light sources and put indexes into queue
     std::queue<LightPropagationNode> lightQueue;
@@ -139,7 +139,7 @@ void LightingEngine::calculateLighting(const sf::Color& lightingColour)
         lightQueue.pop();
     }
 
-    buildVertexArray(lightingColour);
+    buildVertexArray(lightingColor);
 }
 
 void LightingEngine::propagateLight(const LightPropagationNode& lightNode, float previousIntensity, std::queue<LightPropagationNode>& lightQueue)
@@ -158,7 +158,7 @@ void LightingEngine::propagateLight(const LightPropagationNode& lightNode, float
     // lightQueue.emplace(index);
 }
 
-void LightingEngine::buildVertexArray(const sf::Color& lightingColour)
+void LightingEngine::buildVertexArray(const pl::Color& lightingColor)
 {
     lightingVertexArray.clear();
 
@@ -173,55 +173,59 @@ void LightingEngine::buildVertexArray(const sf::Color& lightingColour)
         int y = static_cast<int>(std::floor(i / width));
         int x = i % width;
 
-        sf::Color colour(lightingColour.r * intensity, lightingColour.g * intensity, lightingColour.b * intensity);
+        pl::Color color(lightingColor.r * intensity, lightingColor.g * intensity, lightingColor.b * intensity);
 
-        lightingVertexArray.push_back(sf::Vertex(sf::Vector2f(x, y), colour));
-        lightingVertexArray.push_back(sf::Vertex(sf::Vector2f(x + 1, y), colour));
-        lightingVertexArray.push_back(sf::Vertex(sf::Vector2f(x + 1, y + 1), colour));
-        lightingVertexArray.push_back(sf::Vertex(sf::Vector2f(x, y + 1), colour));
+        lightingVertexArray.addQuad(pl::Rect<float>(x, y, 1, 1), color, pl::Rect<float>(0, 0, 0, 0));
+
+        // lightingVertexArray.push_back(sf::Vertex(sf::Vector2f(x, y), colour));
+        // lightingVertexArray.push_back(sf::Vertex(sf::Vector2f(x + 1, y), colour));
+        // lightingVertexArray.push_back(sf::Vertex(sf::Vector2f(x + 1, y + 1), colour));
+        // lightingVertexArray.push_back(sf::Vertex(sf::Vector2f(x, y + 1), colour));
     }
 }
 
-void LightingEngine::drawObstacles(sf::RenderTarget& window, int scale)
-{
-    static const sf::Color wallColour = sf::Color(122, 48, 69);
-    static const float ambientLight = 0.3f;
+// void LightingEngine::drawObstacles(pl::RenderTarget& window, int scale)
+// {
+//     static const sf::Color wallColour = sf::Color(122, 48, 69);
+//     static const float ambientLight = 0.3f;
 
-    sf::VertexArray obstacleVertexArray;
+//     sf::VertexArray obstacleVertexArray;
 
-    for (int i = 0; i < obstacles.size(); i++)
-    {
-        const float& absorption = obstacles[i];
-        if (absorption <= 0)
-        {
-            continue;
-        }
+//     for (int i = 0; i < obstacles.size(); i++)
+//     {
+//         const float& absorption = obstacles[i];
+//         if (absorption <= 0)
+//         {
+//             continue;
+//         }
 
-        const float& lightIntensity = std::max(lighting[i], ambientLight);
+//         const float& lightIntensity = std::max(lighting[i], ambientLight);
 
-        int y = static_cast<int>(std::floor(i / width));
-        int x = i % width;
+//         int y = static_cast<int>(std::floor(i / width));
+//         int x = i % width;
 
-        obstacleVertexArray.append(sf::Vertex(sf::Vector2f(x, y) * (float)scale, wallColour));
-        obstacleVertexArray.append(sf::Vertex(sf::Vector2f(x + 1, y) * (float)scale, wallColour));
-        obstacleVertexArray.append(sf::Vertex(sf::Vector2f(x + 1, y + 1) * (float)scale, wallColour));
-        obstacleVertexArray.append(sf::Vertex(sf::Vector2f(x, y + 1) * (float)scale, wallColour));
-    }
+//         obstacleVertexArray.append(sf::Vertex(sf::Vector2f(x, y) * (float)scale, wallColour));
+//         obstacleVertexArray.append(sf::Vertex(sf::Vector2f(x + 1, y) * (float)scale, wallColour));
+//         obstacleVertexArray.append(sf::Vertex(sf::Vector2f(x + 1, y + 1) * (float)scale, wallColour));
+//         obstacleVertexArray.append(sf::Vertex(sf::Vector2f(x, y + 1) * (float)scale, wallColour));
+//     }
     
-    if (obstacleVertexArray.getVertexCount() <= 0)
-    {
-        return;
-    }
+//     if (obstacleVertexArray.getVertexCount() <= 0)
+//     {
+//         return;
+//     }
 
-    window.draw(&(obstacleVertexArray[0]), obstacleVertexArray.getVertexCount(), sf::Quads);
-}
+//     window.draw(&(obstacleVertexArray[0]), obstacleVertexArray.getVertexCount(), sf::Quads);
+// }
 
-void LightingEngine::drawLighting(sf::RenderTarget& window)
+void LightingEngine::drawLighting(pl::RenderTarget& window)
 {
     if (lightingVertexArray.size() <= 0)
     {
         return;
     }
 
-    window.draw(&(lightingVertexArray[0]), lightingVertexArray.size(), sf::Quads, sf::BlendAdd);
+    window.draw(lightingVertexArray, *Shaders::getShader(ShaderType::DefaultNoTexture), nullptr, pl::BlendMode::Add);
+
+    // window.draw(&(lightingVertexArray[0]), lightingVertexArray.size(), sf::Quads, sf::BlendAdd);
 }

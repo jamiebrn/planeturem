@@ -2,14 +2,14 @@
 
 #include <memory>
 
-#include <SFML/Graphics.hpp>
+// #include <SFML/Graphics.hpp>
 
 #include "Core/TextureManager.hpp"
 #include "Core/Camera.hpp"
 #include "Core/ResolutionHandler.hpp"
 #include "Core/CollisionRect.hpp"
 #include "Core/AnimatedTexture.hpp"
-#include "Core/SpriteBatch.hpp"
+// #include "Core/SpriteBatch.hpp"
 
 #include "Object/WorldObject.hpp"
 #include "World/ChunkManager.hpp"

@@ -1,39 +1,47 @@
 #pragma once
 
-#include <SFML/Graphics.hpp>
+// #include <SFML/Graphics.hpp>
 #include <vector>
+
+#include <Graphics/SpriteBatch.hpp>
+#include <Graphics/Color.hpp>
+#include <Graphics/RenderTarget.hpp>
+#include <Graphics/DrawData.hpp>
+#include <Vector.hpp>
+#include <Rect.hpp>
 
 #include "Core/Camera.hpp"
 #include "Core/ResolutionHandler.hpp"
 #include "Core/Helper.hpp"
-#include "Core/SpriteBatch.hpp"
+// #include "Core/SpriteBatch.hpp"
 #include "Core/TextureManager.hpp"
+#include "Core/Shaders.hpp"
 
 struct ParticleStyle
 {
-    std::vector<sf::IntRect> textureRects;
+    std::vector<pl::Rect<int>> textureRects;
     float timePerFrame;
 };
 
 class Particle
 {
 public:
-    Particle(sf::Vector2f position, sf::Vector2f velocity, sf::Vector2f acceleration, const ParticleStyle& style);
+    Particle(pl::Vector2f position, pl::Vector2f velocity, pl::Vector2f acceleration, const ParticleStyle& style);
 
     void update(float dt);
 
-    void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Camera& camera) const;
+    void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera) const;
 
     bool isAlive();
 
-    void handleWorldWrap(sf::Vector2f positionDelta);
+    void handleWorldWrap(pl::Vector2f positionDelta);
 
 private:
-    sf::Vector2f position;
-    sf::Vector2f velocity;
-    sf::Vector2f acceleration;
+    pl::Vector2f position;
+    pl::Vector2f velocity;
+    pl::Vector2f acceleration;
 
-    std::vector<sf::IntRect> textureRects;
+    std::vector<pl::Rect<int>> textureRects;
     int currentFrame;
     float frameTimer;
     float timePerFrame;
@@ -48,9 +56,9 @@ public:
 
     void update(float dt);
 
-    void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Camera& camera) const;
+    void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera) const;
 
-    void handleWorldWrap(sf::Vector2f positionDelta);
+    void handleWorldWrap(pl::Vector2f positionDelta);
 
     void clear();
 

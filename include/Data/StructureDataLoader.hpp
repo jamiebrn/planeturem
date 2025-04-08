@@ -1,9 +1,12 @@
 #pragma once
 
-#include <SFML/Graphics.hpp>
+// #include <SFML/Graphics.hpp>
 #include <fstream>
 #include <vector>
 #include <unordered_map>
+
+#include <Vector.hpp>
+#include <Rect.hpp>
 
 #include "Core/json.hpp"
 #include "Data/StructureData.hpp"

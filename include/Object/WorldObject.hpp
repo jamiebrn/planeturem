@@ -1,9 +1,15 @@
 #pragma once
 
-#include <SFML/Graphics.hpp>
+// #include <SFML/Graphics.hpp>
 #include <cmath>
 
-#include "Core/SpriteBatch.hpp"
+#include <Graphics/SpriteBatch.hpp>
+#include <Graphics/Color.hpp>
+#include <Graphics/RenderTarget.hpp>
+#include <Vector.hpp>
+#include <Rect.hpp>
+
+// #include "Core/SpriteBatch.hpp"
 #include "Core/Camera.hpp"
 #include "World/ChunkPosition.hpp"
 #include "Object/ObjectReference.hpp"
@@ -16,44 +22,44 @@ class WorldObject
 {
 public:
     WorldObject() = default;
-    WorldObject(sf::Vector2f position) : position(position) {}
+    WorldObject(pl::Vector2f position) : position(position) {}
 
     // General world object functionality
 
-    virtual sf::Vector2f getPosition() const;
-    void setPosition(sf::Vector2f pos);
+    virtual pl::Vector2f getPosition() const;
+    void setPosition(pl::Vector2f pos);
 
-    static ChunkPosition getChunkInside(sf::Vector2f position, int worldSize);
+    static ChunkPosition getChunkInside(pl::Vector2f position, int worldSize);
     ChunkPosition getChunkInside(int worldSize) const;
 
-    static sf::Vector2i getChunkTileInside(sf::Vector2f position, int worldSize);
+    static pl::Vector2<uint8_t> getChunkTileInside(pl::Vector2f position, int worldSize);
 
-    sf::Vector2i getChunkTileInside(int worldSize) const;
+    pl::Vector2<uint8_t> getChunkTileInside(int worldSize) const;
 
-    static ObjectReference getObjectReferenceFromPosition(sf::Vector2f position, int worldSize);
+    static ObjectReference getObjectReferenceFromPosition(pl::Vector2f position, int worldSize);
     ObjectReference getThisObjectReference(int worldSize) const;
 
-    static sf::Vector2i getTileInside(sf::Vector2f position);
-    sf::Vector2i getTileInside() const;
+    static pl::Vector2<uint8_t> getTileInside(pl::Vector2f position);
+    pl::Vector2<uint8_t> getTileInside() const;
 
-    static sf::Vector2i getWorldTileInside(sf::Vector2f position, int worldSize);
-    sf::Vector2i getWorldTileInside(int worldSize) const;
+    static pl::Vector2<uint8_t> getWorldTileInside(pl::Vector2f position, int worldSize);
+    pl::Vector2<uint8_t> getWorldTileInside(int worldSize) const;
 
     // Assumes on water
-    static float getWaterBobYOffset(sf::Vector2f position, int worldSize, float gameTime);
+    static float getWaterBobYOffset(pl::Vector2f position, int worldSize, float gameTime);
 
     float getWaterBobYOffset(int worldSize, float gameTime) const;
 
     int getDrawLayer() const;
 
     // Overridden by inherited classes (specific)
-    virtual void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
-        const sf::Color& color) const = 0;
+    virtual void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
+        const pl::Color& color) const = 0;
 
-    virtual void createLightSource(LightingEngine& lightingEngine, sf::Vector2f topLeftChunkPos) const {};
+    virtual void createLightSource(LightingEngine& lightingEngine, pl::Vector2f topLeftChunkPos) const {};
 
 protected:
-    sf::Vector2f position;
+    pl::Vector2f position;
     int drawLayer = 0;
     bool onWater = false;
 

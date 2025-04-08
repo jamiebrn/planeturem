@@ -2,13 +2,14 @@
 
 // Include libraries
 // #include <SFML/Graphics.hpp>
-#include "Graphics/RenderTarget.hpp"
-#include "Graphics/Image.hpp"
-#include "Graphics/Texture.hpp"
-#include "Graphics/Shader.hpp"
-#include "Graphics/VertexArray.hpp"
-#include "Rect.hpp"
-#include "Vector.hpp"
+#include <Graphics/RenderTarget.hpp>
+#include <Graphics/Image.hpp>
+#include <Graphics/Texture.hpp>
+#include <Graphics/Shader.hpp>
+#include <Graphics/VertexArray.hpp>
+#include <Graphics/DrawData.hpp>
+#include <Rect.hpp>
+#include <Vector.hpp>
 
 #include <unordered_map>
 #include <string>
@@ -17,23 +18,23 @@
 #include "Types/TextureType.hpp"
 
 // Struct containing data required to draw texture
-struct TextureDrawData
-{
-    // Type of texture
-    TextureType type;
-    // Draw position on screen
-    pl::Vector2f position;
-    // Rotation
-    float rotation = 0.0f;
-    // Scale
-    pl::Vector2f scale;
-    // Whether texture should be drawn centred about its position
-    pl::Vector2f centerRatio = pl::Vector2f(0, 0);
-    // The base colour the texture should be drawn in (white in most cases)
-    pl::Color colour = pl::Color(255, 255, 255);
+// struct TextureDrawData
+// {
+//     // Type of texture
+//     TextureType type;
+//     // Draw position on screen
+//     pl::Vector2f position;
+//     // Rotation
+//     float rotation = 0.0f;
+//     // Scale
+//     pl::Vector2f scale;
+//     // Whether texture should be drawn centred about its position
+//     pl::Vector2f centerRatio = pl::Vector2f(0, 0);
+//     // The base colour the texture should be drawn in (white in most cases)
+//     pl::Color colour = pl::Color(255, 255, 255);
     
-    bool useCentreAbsolute = false;
-};
+//     bool useCentreAbsolute = false;
+// };
 
 // Declaration of TextureManager class
 class TextureManager
@@ -50,10 +51,10 @@ public:
     static bool loadTextures();
 
     // Draw texture using draw data
-    static void drawTexture(pl::RenderTarget& window, const TextureDrawData& drawData, const pl::Shader& shader);
+    static void drawTexture(pl::RenderTarget& window, pl::DrawData drawData);
 
     // Draw a section of a texture using draw data
-    static void drawSubTexture(pl::RenderTarget& window, const TextureDrawData& drawData, pl::Rect<float> boundRect, const pl::Shader& shader);
+    static void drawSubTexture(pl::RenderTarget& window, const pl::DrawData& drawData);
 
     // Get the size of a specific texture (width x height)
     inline static pl::Vector2<int> getTextureSize(TextureType type) {return pl::Vector2<int>(textureMap[type]->getWidth(), textureMap[type]->getHeight());}

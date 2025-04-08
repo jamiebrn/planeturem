@@ -9,11 +9,17 @@
 
 #include <World/FastNoise.h>
 
+#include <Graphics/SpriteBatch.hpp>
+#include <Graphics/Color.hpp>
+#include <Graphics/RenderTarget.hpp>
+#include <Vector.hpp>
+#include <Rect.hpp>
+
 #include "Core/ResolutionHandler.hpp"
 #include "Core/Camera.hpp"
 #include "Core/CollisionRect.hpp"
 #include "Core/Shaders.hpp"
-#include "Core/SpriteBatch.hpp"
+// #include "Core/SpriteBatch.hpp"
 #include "World/Chunk.hpp"
 #include "World/ChunkPosition.hpp"
 #include "World/TileMap.hpp"

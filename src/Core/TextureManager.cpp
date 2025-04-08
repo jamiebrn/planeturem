@@ -111,7 +111,7 @@ bool TextureManager::loadTextures()
 }
 
 // Draw texture with specified data
-void TextureManager::drawTexture(pl::RenderTarget& window, const TextureDrawData& drawData, const pl::Shader& shader)
+void TextureManager::drawTexture(pl::RenderTarget& window, pl::DrawData drawData)
 {
     // If not loaded textures, return by default
     if (!loadedTextures)
@@ -119,9 +119,9 @@ void TextureManager::drawTexture(pl::RenderTarget& window, const TextureDrawData
         return;
     }
 
-    const pl::Texture& texture = *textureMap[drawData.type].get();
+    drawData.textureRect = pl::Rect<int>(0, 0, drawData.texture->getWidth(), drawData.texture->getHeight());
 
-    drawSubTexture(window, drawData, pl::Rect<float>(0, 0, texture.getWidth(), texture.getHeight()), shader);
+    drawSubTexture(window, drawData);
     
     // Get sprite from sprite map
     // sf::Sprite& sprite = spriteMap.at(drawData.type);
@@ -133,7 +133,7 @@ void TextureManager::drawTexture(pl::RenderTarget& window, const TextureDrawData
 }
 
 // Draw texture using a subrectangle, useful for spritesheets and tiling textures (subrectangle bigger than texture, texture repeats)
-void TextureManager::drawSubTexture(pl::RenderTarget& window, const TextureDrawData& drawData, pl::Rect<float> boundRect, const pl::Shader& shader)
+void TextureManager::drawSubTexture(pl::RenderTarget& window, const pl::DrawData& drawData)
 {
     // If not loaded textures, return by default
     if (!loadedTextures)
@@ -150,6 +150,8 @@ void TextureManager::drawSubTexture(pl::RenderTarget& window, const TextureDrawD
     // Apply draw data to texture
     // applyTextureData(drawData);
 
+    pl::Rect<float> boundRect = drawData.textureRect;
+
     pl::Rect<float> quad;
     if (drawData.useCentreAbsolute)
     {
@@ -165,17 +167,15 @@ void TextureManager::drawSubTexture(pl::RenderTarget& window, const TextureDrawD
     quad.width = boundRect.width;
     quad.height = boundRect.height;
 
-    const pl::Texture& texture = *textureMap[drawData.type].get();
-
-    boundRect.x /= texture.getWidth();
-    boundRect.y /= texture.getHeight();
-    boundRect.width /= texture.getWidth();
-    boundRect.height /= texture.getHeight();
+    boundRect.x /= drawData.texture->getWidth();
+    boundRect.y /= drawData.texture->getHeight();
+    boundRect.width /= drawData.texture->getWidth();
+    boundRect.height /= drawData.texture->getHeight();
 
     pl::VertexArray vertexArray;
     vertexArray.addQuad(quad, drawData.colour, boundRect);
 
-    window.draw(vertexArray, shader, texture, pl::BlendMode::Alpha);
+    window.draw(vertexArray, *drawData.shader, drawData.texture, pl::BlendMode::Alpha);
     // Draw with shader if required
     // if (shader)
     // {

@@ -1,7 +1,15 @@
 #pragma once
 
-#include <SFML/Graphics.hpp>
+// #include <SFML/Graphics.hpp>
 #include <optional>
+
+#include <Graphics/SpriteBatch.hpp>
+#include <Graphics/Color.hpp>
+#include <Graphics/RenderTarget.hpp>
+#include <Graphics/DrawData.hpp>
+#include <Graphics/TextDrawData.hpp>
+#include <Vector.hpp>
+#include <Rect.hpp>
 
 #include "Core/ResolutionHandler.hpp"
 #include "Core/TextureManager.hpp"
@@ -26,35 +34,35 @@ class ItemSlot
 {
 public:
     ItemSlot() = default;
-    ItemSlot(sf::Vector2f position, int itemBoxSize, bool affectedByIntScale = true);
+    ItemSlot(pl::Vector2f position, int itemBoxSize, bool affectedByIntScale = true);
 
-    void update(sf::Vector2f mouseScreenPos, float dt, bool forceItemScaleUp = false);
+    void update(pl::Vector2f mouseScreenPos, float dt, bool forceItemScaleUp = false);
 
     bool isHovered() const;
 
-    sf::Vector2f getPosition();
+    pl::Vector2f getPosition();
 
     inline int getItemBoxSize() {return boxSize;}
 
     void overrideItemScaleMult(float scale);
 
-    void draw(sf::RenderTarget& window,
+    void draw(pl::RenderTarget& window,
               std::optional<ItemType> itemType = std::nullopt,
               std::optional<int> itemAmount = std::nullopt,
               bool hiddenBackground = false,
               bool selectHighlight = false,
-              std::optional<sf::IntRect> emptyIconTexture = std::nullopt,
+              std::optional<pl::Rect<int>> emptyIconTexture = std::nullopt,
               InventoryData* inventory = nullptr // give pointer to inventory if amount of projectiles etc required to be drawn
               );
     
-    static void drawItem(sf::RenderTarget& window, ItemType itemType, sf::Vector2f position, float scaleMult = 1.0f, bool centred = true, int alpha = 255,
+    static void drawItem(pl::RenderTarget& window, ItemType itemType, pl::Vector2f position, float scaleMult = 1.0f, bool centred = true, int alpha = 255,
         float flashAmount = 0.0f);
 
 private:
-    void drawEmptyIconTexture(sf::RenderTarget& window, sf::IntRect emptyIconTexture);
+    void drawEmptyIconTexture(pl::RenderTarget& window, pl::Rect<int> emptyIconTexture);
 
 private:
-    sf::Vector2f position;
+    pl::Vector2f position;
     
     int boxSize = 0;
 

@@ -2,7 +2,7 @@
 
 #include <string>
 
-#define RELEASE_BUILD 0
+#define RELEASE_BUILD 1
 
 static const std::string GAME_TITLE = "Planeturem";
 static const std::string GAME_VERSION = "alpha-v1.5";

@@ -5,8 +5,10 @@
 // #include <SFML/Window/Joystick.hpp>
 // #include <SFML/Window/Event.hpp>
 // #include <SFML/Window/Window.hpp>
-#include <SFML/System/Vector2.hpp>
+// #include <SFML/System/Vector2.hpp>
 #include <SDL2/SDL_events.h>
+
+#include <Vector.hpp>
 
 #include <algorithm>
 #include <vector>
@@ -132,7 +134,7 @@ public:
     // Disables other actions with same key bindings
     static void consumeInputAction(InputAction action);
 
-    static sf::Vector2f getMousePosition(SDL_Window* window, float dt);
+    static pl::Vector2f getMousePosition(SDL_Window* window, float dt);
 
     static void recentreControllerCursor(SDL_Window* window);
 

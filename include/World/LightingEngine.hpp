@@ -5,7 +5,16 @@
 #include <algorithm>
 #include <cmath>
 
-#include <SFML/Graphics.hpp>
+// #include <SFML/Graphics.hpp>
+
+#include <Graphics/Vertex.hpp>
+#include <Graphics/VertexArray.hpp>
+#include <Graphics/Color.hpp>
+#include <Graphics/RenderTarget.hpp>
+#include <Vector.hpp>
+#include <Rect.hpp>
+
+#include "Core/Shaders.hpp"
 
 class LightingEngine
 {
@@ -28,14 +37,14 @@ public:
 
     void addObstacle(int x, int y, float absorption = 1.0f);
 
-    void calculateLighting(const sf::Color& lightingColour);
+    void calculateLighting(const pl::Color& lightingColor);
 
-    void drawObstacles(sf::RenderTarget& window, int scale);
+    // void drawObstacles(pl::RenderTarget& window, int scale);
 
-    void drawLighting(sf::RenderTarget& window);
+    void drawLighting(pl::RenderTarget& window);
 
 private:
-    void buildVertexArray(const sf::Color& lightingColour);
+    void buildVertexArray(const pl::Color& lightingColor);
 
 private:
     struct LightPropagationNode
@@ -52,7 +61,9 @@ private:
     std::vector<float> lightSources;
     std::vector<float> obstacles;
 
-    std::vector<sf::Vertex> lightingVertexArray;
+    // std::vector<sf::Vertex> lightingVertexArray;
+
+    pl::VertexArray lightingVertexArray;
 
     int width;
     int height;

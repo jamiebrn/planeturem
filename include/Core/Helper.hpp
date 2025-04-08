@@ -4,7 +4,8 @@
 #include <cmath>
 #include <string>
 #include <format>
-#include <SFML/System/Vector2.hpp>
+// #include <SFML/System/Vector2.hpp>
+#include <Vector.hpp>
 
 namespace Helper
 {
@@ -62,28 +63,28 @@ inline int wrap(int value, int max)
 };
 
 // Angle in radians
-inline sf::Vector2f rotateVector(sf::Vector2f vector, float angle)
+inline pl::Vector2f rotateVector(pl::Vector2f vector, float angle)
 {
-    sf::Vector2f rotatedVector;
+    pl::Vector2f rotatedVector;
     rotatedVector.x = vector.x * std::cos(angle) - vector.y * std::sin(angle);
     rotatedVector.y = vector.x * std::sin(angle) + vector.y * std::cos(angle);
 
     return rotatedVector;
 }
 
-inline float getVectorLength(sf::Vector2f vector)
+inline float getVectorLength(pl::Vector2f vector)
 {
     return std::sqrt(vector.x * vector.x + vector.y * vector.y);
 }
 
-inline sf::Vector2f normaliseVector(sf::Vector2f vector)
+inline pl::Vector2f normaliseVector(pl::Vector2f vector)
 {
     float length = getVectorLength(vector);
     if (length > 0)
     {
         return vector / length;
     }
-    return sf::Vector2f(0, 0);
+    return pl::Vector2f(0, 0);
 }
 
 }

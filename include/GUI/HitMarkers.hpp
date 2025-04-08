@@ -3,7 +3,12 @@
 #include <vector>
 #include <string>
 
-#include <SFML/Graphics.hpp>
+#include <Graphics/Color.hpp>
+#include <Graphics/RenderTarget.hpp>
+#include <Graphics/DrawData.hpp>
+#include <Graphics/TextDrawData.hpp>
+#include <Vector.hpp>
+#include <Rect.hpp>
 
 #include "Core/TextDraw.hpp"
 #include "Core/Camera.hpp"
@@ -12,13 +17,13 @@
 namespace HitMarkers
 {
 
-void addHitMarker(sf::Vector2f position, int damageAmount, sf::Color colour = sf::Color(247, 150, 23));
+void addHitMarker(pl::Vector2f position, int damageAmount, pl::Color colour = pl::Color(247, 150, 23));
 
 void update(float dt);
 
-void draw(sf::RenderTarget& window, const Camera& camera);
+void draw(pl::RenderTarget& window, const Camera& camera);
 
-void handleWorldWrap(sf::Vector2f positionDelta);
+void handleWorldWrap(pl::Vector2f positionDelta);
 
 // Private
 namespace 
@@ -29,14 +34,14 @@ namespace
 
     struct HitMarker
     {
-        sf::Vector2f position;
+        pl::Vector2f position;
         int damageAmount;
-        sf::Color colour;
+        pl::Color colour;
         float lifetime = 0.0f;
 
         void update(float dt);
         bool isAlive() const;
-        void draw(sf::RenderTarget& window, const Camera& camera) const;
+        void draw(pl::RenderTarget& window, const Camera& camera) const;
     };
 
     static std::vector<HitMarker> hitMarkers;

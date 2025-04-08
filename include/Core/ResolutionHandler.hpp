@@ -1,6 +1,8 @@
 #pragma once
 
-#include <SFML/Graphics.hpp>
+// #include <SFML/Graphics.hpp>
+
+#include "Vector.hpp"
 
 #include "GameConstants.hpp"
 #include "DebugOptions.hpp"
@@ -10,8 +12,8 @@ class ResolutionHandler
     ResolutionHandler() = delete;
 
 public:
-    static void setResolution(sf::Vector2u resolution);
-    static const sf::Vector2u& getResolution();
+    static void setResolution(pl::Vector2<uint32_t> resolution);
+    static const pl::Vector2<uint32_t>& getResolution();
 
     // static void changeScale(int amount);
     static void changeZoom(int amount);
@@ -26,7 +28,7 @@ public:
     static int getResolutionIntegerScale();
 
 private:
-    static sf::Vector2u currentResolution;
+    static pl::Vector2<uint32_t> currentResolution;
 
     static int scale;
 
