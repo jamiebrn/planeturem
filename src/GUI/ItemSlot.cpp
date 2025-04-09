@@ -240,7 +240,7 @@ void ItemSlot::drawItem(pl::RenderTarget& window, ItemType itemType, pl::Vector2
     drawData.position = position;
     drawData.scale = scale;
     drawData.centerRatio = origin;
-    drawData.colour = colour;
+    drawData.color = colour;
     drawData.textureRect = textureRect;
 
     if (flashAmount > 0.0f)

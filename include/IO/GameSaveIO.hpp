@@ -19,8 +19,6 @@
 
 #include <Core/json.hpp>
 
-#include <SFML/System/Vector2.hpp>
-
 #include "World/ChunkPOD.hpp"
 #include "World/ChestDataPool.hpp"
 #include "World/RoomPool.hpp"

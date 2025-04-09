@@ -29,30 +29,30 @@ void MainMenuGUI::initialisePauseMenu()
     resetHoverRect();
 }
 
-void MainMenuGUI::update(float dt, sf::Vector2f mouseScreenPos, Game& game)
+void MainMenuGUI::update(float dt, pl::Vector2f mouseScreenPos, Game& game)
 {
     // Update background world / chunk manager
     worldViewPosition.x += 20.0f * dt;
     worldViewPosition.y += 30.0f * dt;
 
-    menuCamera.update(worldViewPosition, sf::Vector2f(0, 0), dt);
+    menuCamera.update(worldViewPosition, pl::Vector2f(0, 0), dt);
 
     menuWorldData.chunkManager.updateChunks(game, worldViewPosition, {menuCamera.getChunkViewRange()});
     menuWorldData.chunkManager.updateChunksObjects(game, dt);
     menuWorldData.chunkManager.updateChunksEntities(dt, menuWorldData.projectileManager, game, false);
 }
 
-std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, float dt, float gameTime)
+std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, float dt, float gameTime)
 {
     float intScale = ResolutionHandler::getResolutionIntegerScale();
-    sf::Vector2f resolution = static_cast<sf::Vector2f>(ResolutionHandler::getResolution());
+    pl::Vector2f resolution = static_cast<pl::Vector2f>(ResolutionHandler::getResolution());
     
     // Draw background chunks / world
     std::vector<WorldObject*> worldObjects = menuWorldData.chunkManager.getChunkObjects(menuCamera.getChunkViewRange());
     std::vector<WorldObject*> entities = menuWorldData.chunkManager.getChunkEntities(menuCamera.getChunkViewRange());
     worldObjects.insert(worldObjects.end(), entities.begin(), entities.end());
 
-    sf::RenderTexture worldTexture;
+    pl::Framebuffer worldTexture;
     game.drawWorld(worldTexture, dt, worldObjects, menuWorldData, menuCamera);
 
     sf::Sprite worldTextureSprite(worldTexture.getTexture());
@@ -65,9 +65,9 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
     // Draw title
     TextureDrawData titleDrawData;
     titleDrawData.type = TextureType::UI;
-    titleDrawData.scale = sf::Vector2f(3, 3) * intScale;
-    titleDrawData.position = sf::Vector2f(scaledPanelPaddingX + panelWidth / 2 * intScale, std::round((140 + std::sin(gameTime) * 20) * intScale));
-    titleDrawData.centerRatio = sf::Vector2f(0.5f, 0.5f);
+    titleDrawData.scale = pl::Vector2f(3, 3) * intScale;
+    titleDrawData.position = pl::Vector2f(scaledPanelPaddingX + panelWidth / 2 * intScale, std::round((140 + std::sin(gameTime) * 20) * intScale));
+    titleDrawData.centerRatio = pl::Vector2f(0.5f, 0.5f);
 
     TextureManager::drawSubTexture(window, titleDrawData, sf::IntRect(21, 160, 212, 32));
 
@@ -249,7 +249,7 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
             {
                 TextDrawData textDrawData;
                 textDrawData.text = "No save files found";
-                textDrawData.position = sf::Vector2f((scaledPanelPaddingX + panelWidth / 2) * intScale, elementYPos);
+                textDrawData.position = pl::Vector2f((scaledPanelPaddingX + panelWidth / 2) * intScale, elementYPos);
                 textDrawData.size = 24 * intScale;
                 textDrawData.centeredX = true;
                 textDrawData.centeredY = true;
@@ -307,7 +307,7 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
         {
             TextDrawData textDrawData;
             textDrawData.text = "Join Multiplayer";
-            textDrawData.position = sf::Vector2f((scaledPanelPaddingX + panelWidth / 2) * intScale, elementYPos);
+            textDrawData.position = pl::Vector2f((scaledPanelPaddingX + panelWidth / 2) * intScale, elementYPos);
             textDrawData.size = 24 * intScale;
             textDrawData.centeredX = true;
             textDrawData.centeredY = true;
@@ -365,8 +365,8 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
     if (mainMenuState == MainMenuState::SelectingLoad && deletingSaveIndex >= 0)
     {
         sf::RectangleShape deleteRectDraw;
-        deleteRectDraw.setPosition(sf::Vector2f(deletingRect.left, deletingRect.top));
-        deleteRectDraw.setSize(sf::Vector2f(deletingRect.width, deletingRect.height));
+        deleteRectDraw.setPosition(pl::Vector2f(deletingRect.left, deletingRect.top));
+        deleteRectDraw.setSize(pl::Vector2f(deletingRect.width, deletingRect.height));
         deleteRectDraw.setFillColor(sf::Color(230, 20, 20, 150));
 
         window.draw(deleteRectDraw);
@@ -386,7 +386,7 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
     versionTextDrawData.text = GAME_VERSION;
     versionTextDrawData.colour = sf::Color(255, 255, 255);
     versionTextDrawData.size = 24 * intScale;
-    versionTextDrawData.position = sf::Vector2f(10 * intScale, resolution.y - (24 + 10 ) * intScale);
+    versionTextDrawData.position = pl::Vector2f(10 * intScale, resolution.y - (24 + 10 ) * intScale);
 
     TextDraw::drawText(window, versionTextDrawData);
 
@@ -399,7 +399,7 @@ void MainMenuGUI::setMainMenuJoinGame()
     changeUIState(MainMenuState::JoiningGame, mainMenuState);
 }
 
-bool MainMenuGUI::createOptionsMenu(sf::RenderTarget& window, int startElementYPos)
+bool MainMenuGUI::createOptionsMenu(pl::RenderTarget& window, int startElementYPos)
 {
     float intScale = ResolutionHandler::getResolutionIntegerScale();
 
@@ -447,7 +447,7 @@ bool MainMenuGUI::createOptionsMenu(sf::RenderTarget& window, int startElementYP
     // Text showing current controller glyph type
     TextDrawData glyphTypeDrawData;
     glyphTypeDrawData.text = "Controller Glyph " + std::to_string(InputManager::getGlyphType() + 1);
-    glyphTypeDrawData.position = sf::Vector2f(scaledPanelPaddingX + panelWidth / 2 * intScale, startElementYPos + 50 * 0.5f * intScale);
+    glyphTypeDrawData.position = pl::Vector2f(scaledPanelPaddingX + panelWidth / 2 * intScale, startElementYPos + 50 * 0.5f * intScale);
     glyphTypeDrawData.centeredX = true;
     glyphTypeDrawData.centeredY = true;
     glyphTypeDrawData.size = 24 * intScale;
@@ -465,11 +465,11 @@ bool MainMenuGUI::createOptionsMenu(sf::RenderTarget& window, int startElementYP
     return false;
 }
 
-std::optional<PauseMenuEventType> MainMenuGUI::createAndDrawPauseMenu(sf::RenderTarget& window, float dt, float gameTime, bool steamInitialised,
+std::optional<PauseMenuEventType> MainMenuGUI::createAndDrawPauseMenu(pl::RenderTarget& window, float dt, float gameTime, bool steamInitialised,
     std::optional<uint64_t> lobbyId)
 {
     float intScale = ResolutionHandler::getResolutionIntegerScale();
-    sf::Vector2f resolution = static_cast<sf::Vector2f>(ResolutionHandler::getResolution());
+    pl::Vector2f resolution = static_cast<pl::Vector2f>(ResolutionHandler::getResolution());
     
     drawPanel(window);
 
@@ -478,9 +478,9 @@ std::optional<PauseMenuEventType> MainMenuGUI::createAndDrawPauseMenu(sf::Render
     // Draw title
     TextureDrawData titleDrawData;
     titleDrawData.type = TextureType::UI;
-    titleDrawData.scale = sf::Vector2f(3, 3) * intScale;
-    titleDrawData.position = sf::Vector2f((scaledPanelPaddingX + panelWidth / 2 * intScale), std::round((140 + std::sin(gameTime) * 20) * intScale));
-    titleDrawData.centerRatio = sf::Vector2f(0.5f, 0.5f);
+    titleDrawData.scale = pl::Vector2f(3, 3) * intScale;
+    titleDrawData.position = pl::Vector2f((scaledPanelPaddingX + panelWidth / 2 * intScale), std::round((140 + std::sin(gameTime) * 20) * intScale));
+    titleDrawData.centerRatio = pl::Vector2f(0.5f, 0.5f);
 
     TextureManager::drawSubTexture(window, titleDrawData, sf::IntRect(21, 160, 212, 32));
 

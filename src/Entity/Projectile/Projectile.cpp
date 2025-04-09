@@ -1,6 +1,6 @@
 #include "Entity/Projectile/Projectile.hpp"
 
-Projectile::Projectile(sf::Vector2f position, float angle, ProjectileType type, float damageMult, float shootPower)
+Projectile::Projectile(pl::Vector2f position, float angle, ProjectileType type, float damageMult, float shootPower)
 {
     this->position = position;
 
@@ -38,21 +38,22 @@ void Projectile::update(float dt)
     }
 }
 
-void Projectile::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Camera& camera)
+void Projectile::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera)
 {
     const ProjectileData& projectileData = ToolDataLoader::getProjectileData(projectileType);
 
-    TextureDrawData drawData;
-    drawData.type = TextureType::Tools;
+    pl::DrawData drawData;
+    drawData.texture = TextureManager::getTexture(TextureType::Tools);
+    drawData.shader = Shaders::getShader(ShaderType::Default);
     drawData.position = camera.worldToScreenTransform(position);
     drawData.rotation = angle;
+    drawData.textureRect = projectileData.textureRect;
 
     float scale = ResolutionHandler::getScale();
-    drawData.scale = sf::Vector2f(scale, scale);
+    drawData.scale = pl::Vector2f(scale, scale);
     drawData.centerRatio = projectileData.origin;
 
-    // TextureManager::drawSubTexture(window, drawData, projectileData.textureRect);
-    spriteBatch.draw(window, drawData, projectileData.textureRect);
+    spriteBatch.draw(window, drawData);
 }
 
 int Projectile::getDamage() const
@@ -65,12 +66,12 @@ void Projectile::onCollision()
     alive = false;
 }
 
-sf::Vector2f Projectile::getPosition() const
+pl::Vector2f Projectile::getPosition() const
 {
     return position;
 }
 
-void Projectile::handleWorldWrap(sf::Vector2f positionDelta)
+void Projectile::handleWorldWrap(pl::Vector2f positionDelta)
 {
     position += positionDelta;
 }
@@ -84,8 +85,8 @@ CollisionCircle Projectile::getCollisionCircle() const
 {
     const ProjectileData& projectileData = ToolDataLoader::getProjectileData(projectileType);
 
-    sf::Vector2f collisionPos = position;
-    collisionPos += Helper::rotateVector(projectileData.collisionOffset, angle / 180.0f * M_PI);
+    pl::Vector2f collisionPos = position;
+    collisionPos += projectileData.collisionOffset.rotate(angle / 180.0f * M_PI);
 
     return CollisionCircle(collisionPos.x, collisionPos.y, projectileData.collisionRadius);
 }

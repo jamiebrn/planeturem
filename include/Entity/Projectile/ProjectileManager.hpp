@@ -4,12 +4,15 @@
 #include <memory>
 #include <cstdint>
 
+#include <Graphics/SpriteBatch.hpp>
+#include <Graphics/Color.hpp>
+#include <Graphics/RenderTarget.hpp>
+#include <Vector.hpp>
+#include <Rect.hpp>
+
 #include <extlib/cereal/archives/binary.hpp>
 #include <extlib/cereal/types/unordered_map.hpp>
 
-#include <SFML/Graphics.hpp>
-
-#include "Core/SpriteBatch.hpp"
 #include "Core/Camera.hpp"
 
 #include "Projectile.hpp"
@@ -21,14 +24,14 @@ public:
 
     void update(float dt);
 
-    void drawProjectiles(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Camera& camera);
+    void drawProjectiles(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera);
 
     void addProjectile(const Projectile& projectile);
     void createProjectileWithID(uint64_t id, const Projectile& projectile);
 
     std::unordered_map<uint64_t, Projectile>& getProjectiles();
 
-    void handleWorldWrap(sf::Vector2f positionDelta);
+    void handleWorldWrap(pl::Vector2f positionDelta);
 
     void clear();
 

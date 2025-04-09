@@ -66,10 +66,12 @@ bool Button::hasJustReleased() const
     return justReleased;
 }
 
-void Button::draw(sf::RenderTarget& window)
+void Button::draw(pl::RenderTarget& window)
 {
     // Draw rect
-    sf::RectangleShape rect;
+    pl::VertexArray rect;
+    
+
     rect.setPosition(x, y);
     rect.setSize(sf::Vector2f(width, height));
     rect.setFillColor(style.colour);

@@ -55,7 +55,7 @@ void ChunkManager::deleteAllChunks()
     chunkLastEntitySpawnTime.clear();
 }
 
-bool ChunkManager::updateChunks(Game& game, std::optional<sf::Vector2f> localPlayerPos, const std::vector<ChunkViewRange>& chunkViewRanges,
+bool ChunkManager::updateChunks(Game& game, std::optional<pl::Vector2f> localPlayerPos, const std::vector<ChunkViewRange>& chunkViewRanges,
     bool isClient, std::vector<ChunkPosition>* chunksToRequestFromHost)
 {
     // Chunk load/unload
@@ -71,7 +71,7 @@ bool ChunkManager::updateChunks(Game& game, std::optional<sf::Vector2f> localPla
         hasModifiedChunks = true;
     
         // Calculate chunk world pos
-        sf::Vector2f chunkWorldPos;
+        pl::Vector2f chunkWorldPos;
         chunkWorldPos.x = chunkPos.x * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
         chunkWorldPos.y = chunkPos.y * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
         if (localPlayerPos.has_value())
@@ -224,7 +224,7 @@ void ChunkManager::regenerateChunkWithoutStructure(ChunkPosition chunk, Game& ga
     chunkPtr->generateChunk(heightNoise, biomeNoise, riverNoise, planetType, game, *this, pathfindingEngine, false);
 }
 
-void ChunkManager::drawChunkTerrain(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Camera& camera, float time)
+void ChunkManager::drawChunkTerrain(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera, float time)
 {
     ChunkViewRange chunkViewRange = camera.getChunkViewRange();
     
@@ -255,11 +255,11 @@ void ChunkManager::drawChunkTerrain(sf::RenderTarget& window, SpriteBatch& sprit
     }
 }
 
-void ChunkManager::drawChunkWater(sf::RenderTarget& window, const Camera& camera, float time)
+void ChunkManager::drawChunkWater(pl::RenderTarget& window, const Camera& camera, float time)
 {
     // Set shader time paramenter
-    sf::Shader* waterShader = Shaders::getShader(ShaderType::Water);
-    waterShader->setUniform("time", time);
+    pl::Shader* waterShader = Shaders::getShader(ShaderType::Water);
+    waterShader->setUniform1f("time", time);
 
     ChunkViewRange chunkViewRange = camera.getChunkViewRange();
 
@@ -310,7 +310,7 @@ TileMap* ChunkManager::getChunkTileMap(ChunkPosition chunk, int tileMap)
     return chunkPtr->getTileMap(tileMap);
 }
 
-std::set<int> ChunkManager::setChunkTile(ChunkPosition chunk, int tileMap, sf::Vector2i position, bool tileGraphicUpdate)
+std::set<int> ChunkManager::setChunkTile(ChunkPosition chunk, int tileMap, pl::Vector2<int> position, bool tileGraphicUpdate)
 {
     if (!isChunkGenerated(chunk))
         return {};
@@ -333,10 +333,10 @@ std::set<int> ChunkManager::setChunkTile(ChunkPosition chunk, int tileMap, sf::V
     return tileMapsModified;
 }
 
-std::set<int> ChunkManager::setBackgroundAdjacentTilesForTile(ChunkPosition chunk, int tileMap, sf::Vector2i position)
+std::set<int> ChunkManager::setBackgroundAdjacentTilesForTile(ChunkPosition chunk, int tileMap, pl::Vector2<int> position)
 {
     // Update surrounding tiles for "underneath" tile placements
-    std::pair<ChunkPosition, sf::Vector2i> chunkTileOffsets[4] = {
+    std::pair<ChunkPosition, pl::Vector2<int>> chunkTileOffsets[4] = {
         getChunkTileFromOffset(chunk, position, 0, -1, worldSize),  // up
         getChunkTileFromOffset(chunk, position, 0, 1, worldSize),   // down
         getChunkTileFromOffset(chunk, position, -1, 0, worldSize),  // left
@@ -456,7 +456,7 @@ void ChunkManager::performChunkSetTileUpdate(ChunkPosition chunk, std::set<int> 
     }
 }
 
-int ChunkManager::getLoadedChunkTileType(ChunkPosition chunk, sf::Vector2i tile) const
+int ChunkManager::getLoadedChunkTileType(ChunkPosition chunk, pl::Vector2<int> tile) const
 {
     // Chunk does not exist
     if (loadedChunks.count(chunk) <= 0)
@@ -465,7 +465,7 @@ int ChunkManager::getLoadedChunkTileType(ChunkPosition chunk, sf::Vector2i tile)
     return loadedChunks.at(chunk)->getTileType(tile);
 }
 
-int ChunkManager::getChunkTileType(ChunkPosition chunk, sf::Vector2i tile) const
+int ChunkManager::getChunkTileType(ChunkPosition chunk, pl::Vector2<int> tile) const
 {
     // Chunk is not generated
     if (!isChunkGenerated(chunk))
@@ -478,7 +478,7 @@ int ChunkManager::getChunkTileType(ChunkPosition chunk, sf::Vector2i tile) const
     return loadedChunks.at(chunk)->getTileType(tile);
 }
 
-int ChunkManager::getChunkTileTypeOrPredicted(ChunkPosition chunk, sf::Vector2i tile)
+int ChunkManager::getChunkTileTypeOrPredicted(ChunkPosition chunk, pl::Vector2<int> tile)
 {
     Chunk* chunkPtr = getChunk(chunk);
 
@@ -489,7 +489,7 @@ int ChunkManager::getChunkTileTypeOrPredicted(ChunkPosition chunk, sf::Vector2i 
     }
 
     // Chunk has not been generated, so predict tile from proc gen
-    sf::Vector2i worldTile;
+    pl::Vector2<int> worldTile;
     worldTile.x = chunk.x * CHUNK_TILE_SIZE + tile.x;
     worldTile.y = chunk.y * CHUNK_TILE_SIZE + tile.y;
 
@@ -516,7 +516,7 @@ const BiomeGenData* ChunkManager::getChunkBiome(ChunkPosition chunk)
 
     // Biome for chunk has not been stored
     // Get chunk biome using centre chunk tile
-    sf::Vector2i chunkTopLeft((chunk.x + 0.5f) * CHUNK_TILE_SIZE, (chunk.y + 0.5f) * CHUNK_TILE_SIZE);
+    pl::Vector2<int> chunkTopLeft((chunk.x + 0.5f) * CHUNK_TILE_SIZE, (chunk.y + 0.5f) * CHUNK_TILE_SIZE);
 
     const BiomeGenData* biomeGenData = Chunk::getBiomeGenAtWorldTile(chunkTopLeft, worldSize, biomeNoise, planetType);
 
@@ -531,7 +531,7 @@ const BiomeGenData* ChunkManager::getChunkBiome(ChunkPosition chunk)
     return biomeGenData;
 }
 
-void ChunkManager::setObject(ChunkPosition chunk, sf::Vector2i tile, ObjectType objectType, Game& game)
+void ChunkManager::setObject(ChunkPosition chunk, pl::Vector2<int> tile, ObjectType objectType, Game& game)
 {
     Chunk* chunkPtr = getChunk(chunk);
     // Chunk does not exist
@@ -544,7 +544,7 @@ void ChunkManager::setObject(ChunkPosition chunk, sf::Vector2i tile, ObjectType 
     chunkPtr->setObject(tile, objectType, game, *this, &pathfindingEngine);
 }
 
-void ChunkManager::deleteObject(ChunkPosition chunk, sf::Vector2i tile)
+void ChunkManager::deleteObject(ChunkPosition chunk, pl::Vector2<int> tile)
 {
     // Chunk does not exist
     Chunk* chunkPtr = getChunk(chunk);
@@ -556,7 +556,7 @@ void ChunkManager::deleteObject(ChunkPosition chunk, sf::Vector2i tile)
     chunkPtr->deleteObject(tile, *this, pathfindingEngine);
 }
 
-void ChunkManager::deleteSingleObject(ChunkPosition chunk, sf::Vector2i tile)
+void ChunkManager::deleteSingleObject(ChunkPosition chunk, pl::Vector2<int> tile)
 {
     Chunk* chunkPtr = getChunk(chunk);
     if (!chunkPtr)
@@ -567,7 +567,7 @@ void ChunkManager::deleteSingleObject(ChunkPosition chunk, sf::Vector2i tile)
     chunkPtr->deleteSingleObject(tile, *this, pathfindingEngine);
 }
 
-void ChunkManager::setObjectReference(const ChunkPosition& chunk, const ObjectReference& objectReference, sf::Vector2i tile)
+void ChunkManager::setObjectReference(const ChunkPosition& chunk, const ObjectReference& objectReference, pl::Vector2<int> tile)
 {
     // Chunk does not exist
     Chunk* chunkPtr = getChunk(chunk);
@@ -579,7 +579,7 @@ void ChunkManager::setObjectReference(const ChunkPosition& chunk, const ObjectRe
     chunkPtr->setObjectReference(objectReference, tile, *this, pathfindingEngine);
 }
 
-bool ChunkManager::canPlaceObject(ChunkPosition chunk, sf::Vector2i tile, ObjectType objectType, const CollisionRect& playerCollisionRect)
+bool ChunkManager::canPlaceObject(ChunkPosition chunk, pl::Vector2<int> tile, ObjectType objectType, const CollisionRect& playerCollisionRect)
 {
     // Chunk does not exist
     Chunk* chunkPtr = getChunk(chunk);
@@ -593,7 +593,7 @@ bool ChunkManager::canPlaceObject(ChunkPosition chunk, sf::Vector2i tile, Object
     if (objectData.hasCollision)
     {
         // Create collision rect for object using world position
-        sf::Vector2f chunkWorldPosition = loadedChunks[chunk]->getWorldPosition();
+        pl::Vector2f chunkWorldPosition = loadedChunks[chunk]->getWorldPosition();
 
         CollisionRect objectCollisionRect;
         objectCollisionRect.x = chunkWorldPosition.x + tile.x * TILE_SIZE_PIXELS_UNSCALED;
@@ -629,7 +629,7 @@ bool ChunkManager::canPlaceObject(ChunkPosition chunk, sf::Vector2i tile, Object
     return chunkPtr->canPlaceObject(tile, objectType, worldSize, *this);
 }
 
-bool ChunkManager::canDestroyObject(ChunkPosition chunk, sf::Vector2i tile, const CollisionRect& playerCollisionRect)
+bool ChunkManager::canDestroyObject(ChunkPosition chunk, pl::Vector2<int> tile, const CollisionRect& playerCollisionRect)
 {
     Chunk* chunkPtr = getChunk(chunk);
 
@@ -654,7 +654,7 @@ bool ChunkManager::canDestroyObject(ChunkPosition chunk, sf::Vector2i tile, cons
     if (objectData.placeOnWater)
     {
         // Create collision rect for object using world position
-        sf::Vector2f chunkWorldPosition = chunkPtr->getWorldPosition();
+        pl::Vector2f chunkWorldPosition = chunkPtr->getWorldPosition();
 
         CollisionRect objectCollisionRect;
         objectCollisionRect.x = chunkWorldPosition.x + tile.x * TILE_SIZE_PIXELS_UNSCALED;
@@ -732,7 +732,7 @@ void ChunkManager::moveEntityToChunkFromChunk(std::unique_ptr<Entity> entity, Ch
     loadedChunks[newChunk]->moveEntityToChunk(std::move(entity));
 }
 
-Entity* ChunkManager::getSelectedEntity(ChunkPosition chunk, sf::Vector2f cursorPos)
+Entity* ChunkManager::getSelectedEntity(ChunkPosition chunk, pl::Vector2f cursorPos)
 {
     // Check entities in chunks around cursor in 3x3 area
     // i.e. chunk.x - 1 to chunk.x + 1 and chunk.y - 1 to chunk.y + 1
@@ -862,7 +862,7 @@ std::optional<ItemPickupReference> ChunkManager::addItemPickup(const ItemPickup&
 std::optional<ItemPickupReference> ChunkManager::getCollidingItemPickup(const CollisionRect& playerCollision, float gameTime)
 {
     // Get chunk player is in
-    ChunkPosition chunk = WorldObject::getChunkInside(sf::Vector2f(playerCollision.x, playerCollision.y), worldSize);
+    ChunkPosition chunk = WorldObject::getChunkInside(pl::Vector2f(playerCollision.x, playerCollision.y), worldSize);
 
     // Check for pickups colliding in 3x3 chunk area around player
     for (int x = chunk.x - 1; x <= chunk.x + 1; x++)
@@ -925,7 +925,7 @@ bool ChunkManager::collisionRectChunkStaticCollisionX(CollisionRect& collisionRe
 {
     bool collision = false;
 
-    ChunkPosition centreChunk = WorldObject::getChunkInside(sf::Vector2f(collisionRect.x, collisionRect.y), worldSize);
+    ChunkPosition centreChunk = WorldObject::getChunkInside(pl::Vector2f(collisionRect.x, collisionRect.y), worldSize);
     for (int y = centreChunk.y - 1; y <= centreChunk.y + 1; y++)
     {
         for (int x = centreChunk.x - 1; x <= centreChunk.x + 1; x++)
@@ -953,7 +953,7 @@ bool ChunkManager::collisionRectChunkStaticCollisionY(CollisionRect& collisionRe
 {
     bool collision = false;
 
-    ChunkPosition centreChunk = WorldObject::getChunkInside(sf::Vector2f(collisionRect.x, collisionRect.y), worldSize);
+    ChunkPosition centreChunk = WorldObject::getChunkInside(pl::Vector2f(collisionRect.x, collisionRect.y), worldSize);
     for (int y = centreChunk.y - 1; y <= centreChunk.y + 1; y++)
     {
         for (int x = centreChunk.x - 1; x <= centreChunk.x + 1; x++)
@@ -989,7 +989,7 @@ std::vector<CollisionRect*> ChunkManager::getChunkCollisionRects()
     return collisionRects;
 }
 
-bool ChunkManager::canPlaceLand(ChunkPosition chunk, sf::Vector2i tile)
+bool ChunkManager::canPlaceLand(ChunkPosition chunk, pl::Vector2<int> tile)
 {
     // Chunk not loaded
     Chunk* chunkPtr = getChunk(chunk);
@@ -1001,7 +1001,7 @@ bool ChunkManager::canPlaceLand(ChunkPosition chunk, sf::Vector2i tile)
     return chunkPtr->canPlaceLand(tile);
 }
 
-void ChunkManager::placeLand(ChunkPosition chunk, sf::Vector2i tile)
+void ChunkManager::placeLand(ChunkPosition chunk, pl::Vector2<int> tile)
 {
     // Chunk not loaded
     Chunk* chunkPtr = getChunk(chunk);
@@ -1035,7 +1035,7 @@ void ChunkManager::placeLand(ChunkPosition chunk, sf::Vector2i tile)
     }
 }
 
-std::optional<ChunkPosition> ChunkManager::isPlayerInStructureEntrance(sf::Vector2f playerPos)
+std::optional<ChunkPosition> ChunkManager::isPlayerInStructureEntrance(pl::Vector2f playerPos)
 {
     for (auto chunkIter = loadedChunks.begin(); chunkIter != loadedChunks.end(); chunkIter++)
     {
@@ -1190,7 +1190,7 @@ ChunkPosition ChunkManager::findValidSpawnChunk(int waterlessAreaSize)
                 continue;
             
             // Is valid spawn - calculate position of centre of chunk and return
-            // sf::Vector2f spawnPosition;
+            // pl::Vector2f spawnPosition;
             // spawnPosition.x = x * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED + 0.5f * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
             // spawnPosition.y = y * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED + 0.5f * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
 
@@ -1206,7 +1206,7 @@ ChunkPosition ChunkManager::findValidSpawnChunk(int waterlessAreaSize)
     return ChunkPosition(0, 0);
 }
 
-std::unordered_map<std::string, int> ChunkManager::getNearbyCraftingStationLevels(ChunkPosition playerChunk, sf::Vector2i playerTile, int searchArea)
+std::unordered_map<std::string, int> ChunkManager::getNearbyCraftingStationLevels(ChunkPosition playerChunk, pl::Vector2<int> playerTile, int searchArea)
 {
     std::unordered_map<std::string, int> craftingStationLevels;
 
@@ -1216,7 +1216,7 @@ std::unordered_map<std::string, int> ChunkManager::getNearbyCraftingStationLevel
         for (int yOffset = -searchArea; yOffset <= searchArea; yOffset++)
         {
             // Get chunk and tile
-            std::pair<ChunkPosition, sf::Vector2i> chunkTile = getChunkTileFromOffset(playerChunk, playerTile, xOffset, yOffset, worldSize);
+            std::pair<ChunkPosition, pl::Vector2<int>> chunkTile = getChunkTileFromOffset(playerChunk, playerTile, xOffset, yOffset, worldSize);
 
             // If chunk not loaded, do not get object
             if (loadedChunks.count(chunkTile.first) <= 0)
@@ -1256,7 +1256,7 @@ std::unordered_map<std::string, int> ChunkManager::getNearbyCraftingStationLevel
     return craftingStationLevels;
 }
 
-sf::Vector2f ChunkManager::translatePositionAroundWorld(sf::Vector2f position, sf::Vector2f originPosition) const
+pl::Vector2f ChunkManager::translatePositionAroundWorld(pl::Vector2f position, pl::Vector2f originPosition) const
 {
     int worldPixelSize = worldSize * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
     float halfWorldPixelSize = worldPixelSize / 2.0f;
@@ -1300,11 +1300,11 @@ sf::Vector2f ChunkManager::translatePositionAroundWorld(sf::Vector2f position, s
     return position;
 }
 
-Chunk* ChunkManager::generateChunk(const ChunkPosition& chunkPosition, Game& game, bool putInLoaded, std::optional<sf::Vector2f> positionOverride)
+Chunk* ChunkManager::generateChunk(const ChunkPosition& chunkPosition, Game& game, bool putInLoaded, std::optional<pl::Vector2f> positionOverride)
 {
     std::unique_ptr<Chunk> chunk = std::make_unique<Chunk>(chunkPosition);
 
-    sf::Vector2f chunkWorldPos;
+    pl::Vector2f chunkWorldPos;
     if (positionOverride.has_value())
     {
         chunkWorldPos.x = positionOverride->x;
@@ -1355,7 +1355,7 @@ void ChunkManager::clearUnmodifiedStoredChunks()
 }
 
 // Static method
-std::pair<ChunkPosition, sf::Vector2i> ChunkManager::getChunkTileFromOffset(ChunkPosition chunk, sf::Vector2i tile, int xOffset, int yOffset, int worldSize)
+std::pair<ChunkPosition, pl::Vector2<int>> ChunkManager::getChunkTileFromOffset(ChunkPosition chunk, pl::Vector2<int> tile, int xOffset, int yOffset, int worldSize)
 {
     tile.x += xOffset;
     tile.y += yOffset;
@@ -1386,29 +1386,29 @@ std::pair<ChunkPosition, sf::Vector2i> ChunkManager::getChunkTileFromOffset(Chun
     return {chunk, tile};
 }
 
-sf::Vector2i ChunkManager::getChunksSizeInView(const Camera& camera)
+pl::Vector2<int> ChunkManager::getChunksSizeInView(const Camera& camera)
 {
-    sf::Vector2f screenTopLeft = camera.screenToWorldTransform({0, 0});
-    sf::Vector2f screenBottomRight = camera.screenToWorldTransform(static_cast<sf::Vector2f>(ResolutionHandler::getResolution()));
+    pl::Vector2f screenTopLeft = camera.screenToWorldTransform({0, 0});
+    pl::Vector2f screenBottomRight = camera.screenToWorldTransform(static_cast<pl::Vector2f>(ResolutionHandler::getResolution()));
 
     // Convert screen bounds to chunk units
-    sf::Vector2i screenTopLeftGrid;
-    sf::Vector2i screenBottomRightGrid;
+    pl::Vector2<int> screenTopLeftGrid;
+    pl::Vector2<int> screenBottomRightGrid;
 
     screenTopLeftGrid.y = std::floor(screenTopLeft.y / (TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE));
     screenTopLeftGrid.x = std::floor(screenTopLeft.x / (TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE));
     screenBottomRightGrid.x = std::ceil(screenBottomRight.x / (TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE));
     screenBottomRightGrid.y = std::ceil(screenBottomRight.y / (TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE));
 
-    sf::Vector2i chunkSizeInView;
+    pl::Vector2<int> chunkSizeInView;
     chunkSizeInView.x = screenBottomRightGrid.x + CHUNK_VIEW_LOAD_BORDER - (screenTopLeftGrid.x - CHUNK_VIEW_LOAD_BORDER);
     chunkSizeInView.y = screenBottomRightGrid.y + CHUNK_VIEW_LOAD_BORDER - (screenTopLeftGrid.y - CHUNK_VIEW_LOAD_BORDER);
     return chunkSizeInView;
 }
 
-sf::Vector2f ChunkManager::topLeftChunkPosInView(const Camera& camera)
+pl::Vector2f ChunkManager::topLeftChunkPosInView(const Camera& camera)
 {
-    sf::Vector2f screenTopLeft = camera.screenToWorldTransform({0, 0});
+    pl::Vector2f screenTopLeft = camera.screenToWorldTransform({0, 0});
     screenTopLeft.y = (std::floor(screenTopLeft.y / (TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE)) - CHUNK_VIEW_LOAD_BORDER) * TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE;
     screenTopLeft.x = (std::floor(screenTopLeft.x / (TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE)) - CHUNK_VIEW_LOAD_BORDER) * TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE;
     return screenTopLeft;

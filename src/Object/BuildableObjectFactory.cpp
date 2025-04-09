@@ -3,7 +3,7 @@
 namespace BuildableObjectFactory
 {
 
-std::unique_ptr<BuildableObject> create(sf::Vector2f position, ObjectType objectType, Game* game, bool placedByPlayer,
+std::unique_ptr<BuildableObject> create(pl::Vector2f position, ObjectType objectType, Game* game, bool placedByPlayer,
     bool placedByThisPlayer, ChunkManager* chunkManager)
 {
     if (objectType >= 0)

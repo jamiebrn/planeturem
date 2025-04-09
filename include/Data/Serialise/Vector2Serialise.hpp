@@ -1,7 +1,6 @@
 #pragma once
 
 #include <Core/json.hpp>
-// #include <SFML/System/Vector2.hpp>
 
 #include <Vector.hpp>
 

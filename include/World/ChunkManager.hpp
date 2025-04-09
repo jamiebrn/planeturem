@@ -63,7 +63,7 @@ public:
 
     // Load chunks every frame
     // Returns true if any chunks loaded
-    bool updateChunks(Game& game, std::optional<sf::Vector2f> localPlayerPos, const std::vector<ChunkViewRange>& chunkViewRanges,
+    bool updateChunks(Game& game, std::optional<pl::Vector2f> localPlayerPos, const std::vector<ChunkViewRange>& chunkViewRanges,
             bool isClient = false, std::vector<ChunkPosition>* chunksToRequestFromHost = nullptr);
     
     bool unloadChunksOutOfView(const std::vector<ChunkViewRange>& chunkViewRanges);
@@ -76,8 +76,8 @@ public:
     void regenerateChunkWithoutStructure(ChunkPosition chunk, Game& game);
 
     // Drawing functions for chunk terrain
-    void drawChunkTerrain(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Camera& camera, float time);
-    void drawChunkWater(sf::RenderTarget& window, const Camera& camera, float time);
+    void drawChunkTerrain(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera, float time);
+    void drawChunkWater(pl::RenderTarget& window, const Camera& camera, float time);
 
     // Returns a pointer to the chunk with ChunkPosition key
     // Chunk can be in loaded chunks or stored chunks
@@ -94,12 +94,12 @@ public:
 
     // Returns tilemaps which have been modified
     // IF GRAPHIC UPDATE IS DISABLED, ENSURE TO CALL performChunkSetTileUpdate AFTER
-    std::set<int> setChunkTile(ChunkPosition chunk, int tileMap, sf::Vector2i position, bool tileGraphicUpdate = true);
+    std::set<int> setChunkTile(ChunkPosition chunk, int tileMap, pl::Vector2<int> position, bool tileGraphicUpdate = true);
 
     // Sets tilemap tiles for the current tile for background, depending on adjacent tiles
     // Also sets adjacent tilemap tiles to have backing for the current tile
     // Returns set of tilemaps modified
-    std::set<int> setBackgroundAdjacentTilesForTile(ChunkPosition chunk, int tileMap, sf::Vector2i position);
+    std::set<int> setBackgroundAdjacentTilesForTile(ChunkPosition chunk, int tileMap, pl::Vector2<int> position);
 
     // Updates chunks edge tiles, adjacent to a chunk
     void updateAdjacentChunkTiles(ChunkPosition chunk, int tileMap);
@@ -115,14 +115,14 @@ public:
     void performChunkSetTileUpdate(ChunkPosition chunk, std::set<int> tileMapsModified);
 
     // Get tile type from loaded chunks (used in object placement/collisions)
-    int getLoadedChunkTileType(ChunkPosition chunk, sf::Vector2i tile) const;
+    int getLoadedChunkTileType(ChunkPosition chunk, pl::Vector2<int> tile) const;
 
     // Get tile type from all generated chunks (used in chunk visual detail generation)
-    int getChunkTileType(ChunkPosition chunk, sf::Vector2i tile) const;
+    int getChunkTileType(ChunkPosition chunk, pl::Vector2<int> tile) const;
 
     // Gets tile type from all generated chunks
     // Falls back to generation prediction if chunk has not yet been generated
-    int getChunkTileTypeOrPredicted(ChunkPosition chunk, sf::Vector2i tile);
+    int getChunkTileTypeOrPredicted(ChunkPosition chunk, pl::Vector2<int> tile);
 
 
 
@@ -133,28 +133,28 @@ public:
     // Get object at certain world position
     // Returns actual object if object reference is at position requested
     template <class T = BuildableObject>
-    T* getChunkObject(ChunkPosition chunk, sf::Vector2i tile);
+    T* getChunkObject(ChunkPosition chunk, pl::Vector2<int> tile);
 
     // Sets object in chunk at tile
     // Places object references if required
-    void setObject(ChunkPosition chunk, sf::Vector2i tile, ObjectType objectType, Game& game);
+    void setObject(ChunkPosition chunk, pl::Vector2<int> tile, ObjectType objectType, Game& game);
 
     // Deletes object in chunk at tile
     // Deletes object references if required
-    void deleteObject(ChunkPosition chunk, sf::Vector2i tile);
+    void deleteObject(ChunkPosition chunk, pl::Vector2<int> tile);
 
     // Deletes single object (does not delete object references)
     // Used in deleteObject function
-    void deleteSingleObject(ChunkPosition chunk, sf::Vector2i tile);
+    void deleteSingleObject(ChunkPosition chunk, pl::Vector2<int> tile);
 
     // Creates an object reference object in chunk at tile, with given data
-    void setObjectReference(const ChunkPosition& chunk, const ObjectReference& objectReference, sf::Vector2i tile);
+    void setObjectReference(const ChunkPosition& chunk, const ObjectReference& objectReference, pl::Vector2<int> tile);
 
     // Tests whether an object can be placed in chunk at tile, taking into account object size etc
-    bool canPlaceObject(ChunkPosition chunk, sf::Vector2i tile, ObjectType objectType, const CollisionRect& playerCollisionRect);
+    bool canPlaceObject(ChunkPosition chunk, pl::Vector2<int> tile, ObjectType objectType, const CollisionRect& playerCollisionRect);
 
     // Tests whether an object can be destroyed, e.g. can't destroy bridge object if player or entity is on it
-    bool canDestroyObject(ChunkPosition chunk, sf::Vector2i tile, const CollisionRect& playerCollisionRect);
+    bool canDestroyObject(ChunkPosition chunk, pl::Vector2<int> tile, const CollisionRect& playerCollisionRect);
 
     // Get all objects in loaded chunks (used for drawing)
     std::vector<WorldObject*> getChunkObjects(ChunkViewRange chunkViewRange);
@@ -171,7 +171,7 @@ public:
     void moveEntityToChunkFromChunk(std::unique_ptr<Entity> entity, ChunkPosition newChunk);
 
     // Get entity selected at cursor position (IN WORLD SPACE), if any
-    Entity* getSelectedEntity(ChunkPosition chunk, sf::Vector2f cursorPos);
+    Entity* getSelectedEntity(ChunkPosition chunk, pl::Vector2f cursorPos);
 
     // Get all entities in loaded chunks (used for drawing)
     std::vector<WorldObject*> getChunkEntities(ChunkViewRange chunkViewRange);
@@ -212,16 +212,16 @@ public:
 
     // -- Land -- //
     // Check whether land can be placed at position
-    bool canPlaceLand(ChunkPosition chunk, sf::Vector2i tile);
+    bool canPlaceLand(ChunkPosition chunk, pl::Vector2<int> tile);
 
     // Place land at position
-    void placeLand(ChunkPosition chunk, sf::Vector2i tile);
+    void placeLand(ChunkPosition chunk, pl::Vector2<int> tile);
 
 
     // -- Structures -- //
 
     // Returns chunk containing structure entered, if any
-    std::optional<ChunkPosition> isPlayerInStructureEntrance(sf::Vector2f playerPos);
+    std::optional<ChunkPosition> isPlayerInStructureEntrance(pl::Vector2f playerPos);
 
 
     // Save / load
@@ -256,28 +256,28 @@ public:
     // Search area grows with one extra tile in each direction per 1 increase
     // E.g. 0 search area searches only player tile, 1 searches 3x3 area around player, 2 searches 5x5 etc
     std::unordered_map<std::string, int> getNearbyCraftingStationLevels(ChunkPosition playerChunk,
-                                                                        sf::Vector2i playerTile,
+                                                                        pl::Vector2<int> playerTile,
                                                                         int searchArea);
     
     // Translate position relative to player position and world size, to make position closest possible to player
     // Provides planet / wraparound effect
-    sf::Vector2f translatePositionAroundWorld(sf::Vector2f position, sf::Vector2f originPosition) const;
+    pl::Vector2f translatePositionAroundWorld(pl::Vector2f position, pl::Vector2f originPosition) const;
 
     // Used to calculate chunk and tile positions from an offset value, from another chunk and tile
     // Correct for offsets < worldSize * CHUNK_TILE_SIZE
-    static std::pair<ChunkPosition, sf::Vector2i> getChunkTileFromOffset(ChunkPosition chunk, sf::Vector2i tile, int xOffset, int yOffset, int worldSize);
+    static std::pair<ChunkPosition, pl::Vector2<int>> getChunkTileFromOffset(ChunkPosition chunk, pl::Vector2<int> tile, int xOffset, int yOffset, int worldSize);
 
     // Returns rectangle area of size containing chunks in view
     // Used in lighting calculations
-    static sf::Vector2i getChunksSizeInView(const Camera& camera);
-    static sf::Vector2f topLeftChunkPosInView(const Camera& camera);
+    static pl::Vector2<int> getChunksSizeInView(const Camera& camera);
+    static pl::Vector2f topLeftChunkPosInView(const Camera& camera);
 
 private:
     // Generates a chunk and stores it
     Chunk* generateChunk(const ChunkPosition& chunkPosition,
                        Game& game,
                        bool putInLoaded = true,
-                       std::optional<sf::Vector2f> positionOverride = std::nullopt);
+                       std::optional<pl::Vector2f> positionOverride = std::nullopt);
 
     void clearUnmodifiedStoredChunks();
 
@@ -304,7 +304,7 @@ private:
 };
 
 template <class T>
-inline T* ChunkManager::getChunkObject(ChunkPosition chunk, sf::Vector2i tile)
+inline T* ChunkManager::getChunkObject(ChunkPosition chunk, pl::Vector2<int> tile)
 {
     Chunk* chunkPtr = getChunk(chunk);
 

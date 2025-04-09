@@ -7,7 +7,7 @@
 #include "Network/IPacketData.hpp"
 #include "Network/IPacketTimeDependent.hpp"
 
-#include <SFML/System/Vector2.hpp>
+#include <Vector.hpp>
 
 #include "Core/Tween.hpp"
 
@@ -18,8 +18,8 @@ struct PacketDataPlayerCharacterInfo : public IPacketData, public IPacketTimeDep
 {
     float pingTime;
 
-    sf::Vector2f position;
-    sf::Vector2f direction;
+    pl::Vector2f position;
+    pl::Vector2f direction;
     float speed;
 
     int animationFrame;
@@ -35,7 +35,7 @@ struct PacketDataPlayerCharacterInfo : public IPacketData, public IPacketTimeDep
     // float toolRotation;
     bool fishingRodCasted;
     bool fishBitingLine;
-    sf::Vector2i fishingRodBobWorldTile;
+    pl::Vector2i fishingRodBobWorldTile;
 
     bool usingTool;
     TweenID toolRotTweenID;

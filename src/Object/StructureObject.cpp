@@ -1,12 +1,12 @@
 #include "Object/StructureObject.hpp"
 
-StructureObject::StructureObject(sf::Vector2f position, StructureType structureType)
+StructureObject::StructureObject(pl::Vector2f position, StructureType structureType)
     : WorldObject(position)
 {
     this->structureType = structureType;
 }
 
-void StructureObject::createWarpRect(sf::Vector2f rectPosition)
+void StructureObject::createWarpRect(pl::Vector2f rectPosition)
 {
     if (warpEntranceRect.has_value())
         return;
@@ -18,7 +18,7 @@ void StructureObject::createWarpRect(sf::Vector2f rectPosition)
     warpEntranceRect->height = TILE_SIZE_PIXELS_UNSCALED;
 }
 
-bool StructureObject::isPlayerInEntrance(sf::Vector2f playerPos)
+bool StructureObject::isPlayerInEntrance(pl::Vector2f playerPos)
 {
     if (!warpEntranceRect.has_value())
         return false;
@@ -26,14 +26,14 @@ bool StructureObject::isPlayerInEntrance(sf::Vector2f playerPos)
     return warpEntranceRect->isPointInRect(playerPos.x, playerPos.y);
 }
 
-sf::Vector2f StructureObject::getEntrancePosition()
+pl::Vector2f StructureObject::getEntrancePosition()
 {
-    return sf::Vector2f(warpEntranceRect->x, warpEntranceRect->y);
+    return pl::Vector2f(warpEntranceRect->x, warpEntranceRect->y);
 }
 
-void StructureObject::setWorldPosition(sf::Vector2f newPosition)
+void StructureObject::setWorldPosition(pl::Vector2f newPosition)
 {
-    sf::Vector2f entranceRelativePos = sf::Vector2f(warpEntranceRect->x, warpEntranceRect->y) - position;
+    pl::Vector2f entranceRelativePos = pl::Vector2f(warpEntranceRect->x, warpEntranceRect->y) - position;
 
     warpEntranceRect->x = newPosition.x + entranceRelativePos.x;
     warpEntranceRect->y = newPosition.y + entranceRelativePos.y;
@@ -41,27 +41,29 @@ void StructureObject::setWorldPosition(sf::Vector2f newPosition)
     position = newPosition;
 }
 
-void StructureObject::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
-    const sf::Color& color) const
+void StructureObject::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
+    const pl::Color& color) const
 {
     const StructureData& structureData = StructureDataLoader::getStructureData(structureType);
 
-    TextureDrawData textureDrawData;
-    textureDrawData.type = TextureType::Objects;
-    textureDrawData.position = camera.worldToScreenTransform(position);
-    textureDrawData.scale = sf::Vector2f(ResolutionHandler::getScale(), ResolutionHandler::getScale());
-    textureDrawData.centerRatio = structureData.textureOrigin;
+    pl::DrawData drawData;
+    drawData.texture = TextureManager::getTexture(TextureType::Objects);
+    drawData.shader = Shaders::getShader(ShaderType::Default);
+    drawData.position = camera.worldToScreenTransform(position);
+    drawData.scale = pl::Vector2f(ResolutionHandler::getScale(), ResolutionHandler::getScale());
+    drawData.centerRatio = structureData.textureOrigin;
+    drawData.textureRect = structureData.textureRect;
     
-    spriteBatch.draw(window, textureDrawData, structureData.textureRect);
+    spriteBatch.draw(window, drawData);
 }
 
-void StructureObject::createLightSource(LightingEngine& lightingEngine, sf::Vector2f topLeftChunkPos) const
+void StructureObject::createLightSource(LightingEngine& lightingEngine, pl::Vector2f topLeftChunkPos) const
 {
-    const sf::Image& bitmaskImage = TextureManager::getBitmask(BitmaskType::Structures);
+    const pl::Image& bitmaskImage = TextureManager::getBitmask(BitmaskType::Structures);
 
     const StructureData& structureData = StructureDataLoader::getStructureData(structureType);
     
-    sf::Vector2f relativePos = position - topLeftChunkPos;
+    pl::Vector2f relativePos = position - topLeftChunkPos;
 
     // Lighting tile is top left of structure
     int lightingTileX = std::floor(relativePos.x / TILE_SIZE_PIXELS_UNSCALED) * TILE_LIGHTING_RESOLUTION;
@@ -72,7 +74,7 @@ void StructureObject::createLightSource(LightingEngine& lightingEngine, sf::Vect
     {
         for (int y = 0; y < structureData.size.y; y++)
         {
-            sf::Color bitmaskColor = bitmaskImage.getPixel(structureData.lightBitmaskOffset.x + x, structureData.lightBitmaskOffset.y + y);
+            pl::Color bitmaskColor = bitmaskImage.getPixel(structureData.lightBitmaskOffset.x + x, structureData.lightBitmaskOffset.y + y);
 
             void (LightingEngine::*lightingFunction)(int, int, float) = nullptr;
             float lightingValue = 0.0f;
@@ -105,7 +107,7 @@ void StructureObject::createLightSource(LightingEngine& lightingEngine, sf::Vect
     }
 }
 
-StructureObjectPOD StructureObject::getPOD(sf::Vector2f chunkPosition)
+StructureObjectPOD StructureObject::getPOD(pl::Vector2f chunkPosition)
 {
     StructureObjectPOD pod;
     pod.structureType = structureType;
@@ -120,7 +122,7 @@ StructureObjectPOD StructureObject::getPOD(sf::Vector2f chunkPosition)
     return pod;
 }
 
-void StructureObject::loadFromPOD(const StructureObjectPOD& pod, sf::Vector2f chunkPosition)
+void StructureObject::loadFromPOD(const StructureObjectPOD& pod, pl::Vector2f chunkPosition)
 {
     structureType = pod.structureType;
     structureID = pod.structureID;

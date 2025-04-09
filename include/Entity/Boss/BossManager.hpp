@@ -7,7 +7,13 @@
 #include <optional>
 #include <unordered_set>
 
-#include <SFML/Graphics.hpp>
+#include <Graphics/SpriteBatch.hpp>
+#include <Graphics/Color.hpp>
+#include <Graphics/RenderTarget.hpp>
+#include <Graphics/Shader.hpp>
+#include <Graphics/Texture.hpp>
+#include <Vector.hpp>
+#include <Rect.hpp>
 
 #include "Core/Sounds.hpp"
 #include "Core/Camera.hpp"

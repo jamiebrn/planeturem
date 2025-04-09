@@ -7,7 +7,15 @@
 #include <optional>
 #include <iostream>
 
-#include <SFML/Graphics.hpp>
+#include <Graphics/SpriteBatch.hpp>
+#include <Graphics/Color.hpp>
+#include <Graphics/RenderTarget.hpp>
+#include <Graphics/Texture.hpp>
+#include <Vector.hpp>
+#include <Rect.hpp>
+
+#include "Core/TextDraw.hpp"
+#include "Core/Shaders.hpp"
 
 #include "GUIInputState.hpp"
 #include "GUIElement.hpp"

@@ -1,12 +1,20 @@
 #pragma once
 
-#include <SFML/Graphics.hpp>
 #include <array>
 #include <vector>
 #include <optional>
 #include <memory>
 
+#include <Graphics/SpriteBatch.hpp>
+#include <Graphics/Color.hpp>
+#include <Graphics/RenderTarget.hpp>
+#include <Graphics/Shader.hpp>
+#include <Graphics/Texture.hpp>
+#include <Vector.hpp>
+#include <Rect.hpp>
+
 #include "Core/TextureManager.hpp"
+#include "Core/Shaders.hpp"
 #include "Core/ResolutionHandler.hpp"
 #include "Core/AnimatedTexture.hpp"
 #include "Core/Camera.hpp"
@@ -29,14 +37,14 @@
 enum CursorDrawState
 {
     Hidden,
-    Tile,
-    Dynamic
+    Tile
+    // Dynamic
 };
 
 struct CursorCornerPosition
 {
-    sf::Vector2f worldPositionDestination = {0, 0};
-    sf::Vector2f worldPosition = {0, 0};
+    pl::Vector2f worldPositionDestination = {0, 0};
+    pl::Vector2f worldPosition = {0, 0};
 };
 
 // TODO: Probably needs to be rewritten at some point
@@ -46,42 +54,42 @@ class Cursor
     Cursor() = delete;
 
 public:
-    static void updateTileCursor(sf::Vector2f mouseWorldPos,
+    static void updateTileCursor(pl::Vector2f mouseWorldPos,
                                  float dt,
                                  ChunkManager& chunkManager,
                                  const CollisionRect& playerCollisionRect,
                                  ItemType heldItemType,
                                  ToolType toolType);
 
-    static void updateTileCursorInRoom(sf::Vector2f mouseWorldPos,
+    static void updateTileCursorInRoom(pl::Vector2f mouseWorldPos,
                                        float dt,
                                        const Room& room,
                                        ItemType heldItemType,
                                        ToolType toolType);
 
     static ChunkPosition getSelectedChunk(int worldSize);
-    static sf::Vector2i getSelectedChunkTile();
-    static sf::Vector2i getSelectedWorldTile(int worldSize);
-    static sf::Vector2i getSelectedTile();
+    static pl::Vector2<int> getSelectedChunkTile();
+    static pl::Vector2<int> getSelectedWorldTile(int worldSize);
+    static pl::Vector2<int> getSelectedTile();
 
-    // static sf::Vector2f getMouseWorldPos(sf::RenderWindow& window, const Camera& camera);
+    // static pl::Vector2f getMouseWorldPos(pl::RenderTarget& window, const Camera& camera);
 
-    static inline const sf::Vector2f& getSelectPos() {return selectPos;}
-    static inline const sf::Vector2f& getLerpedSelectPos() {return cursorCornerPositions[0].worldPosition;}
+    static inline const pl::Vector2f& getSelectPos() {return selectPos;}
+    static inline const pl::Vector2f& getLerpedSelectPos() {return cursorCornerPositions[0].worldPosition;}
 
     static void setCursorCornersToDestination();
 
-    static void drawCursor(sf::RenderWindow& window, const Camera& camera);
+    static void drawCursor(pl::RenderTarget& window, const Camera& camera);
 
     static void setCursorHidden(bool canReach);
 
-    static void handleWorldWrap(sf::Vector2f positionDelta);
+    static void handleWorldWrap(pl::Vector2f positionDelta);
 
 private:
     static void updateTileCursorOnPlanetPlaceObject(ObjectType objectType);
     static void updateTileCursorOnPlanetPlaceLand();
     
-    static void updateTileCursorOnPlanetToolPickaxe(sf::Vector2f mouseWorldPos, float dt, ChunkManager& chunkManager, const CollisionRect& playerCollisionRect);
+    static void updateTileCursorOnPlanetToolPickaxe(pl::Vector2f mouseWorldPos, float dt, ChunkManager& chunkManager, const CollisionRect& playerCollisionRect);
     static void updateTileCursorOnPlanetToolFishingRod(float dt, ChunkManager& chunkManager);
 
     static void updateTileCursorOnPlanetNoItem(float dt, ChunkManager& chunkManager);
@@ -89,10 +97,10 @@ private:
 
     static void updateTileCursorAnimation(float dt);
     
-    static void drawTileCursor(sf::RenderWindow& window, const Camera& camera);
+    static void drawTileCursor(pl::RenderTarget& window, const Camera& camera);
 
     // Used for drawing cursor when not full tile size, e.g. when selected entity
-    static void drawDynamicCursor(sf::RenderWindow& window, const Camera& camera);
+    // static void drawDynamicCursor(pl::RenderTarget& window, const Camera& camera);
 
 private:
     // Position of each corner in tile cursor
@@ -102,7 +110,8 @@ private:
     static CursorDrawState drawState;
 
     // Position of tile cursor
-    static sf::Vector2f selectPos;
-    static sf::Vector2i selectPosTile;
-    static sf::Vector2i selectSize;
+    static pl::Vector2f selectPos;
+    static pl::Vector2<int> selectPosTile;
+    static pl::Vector2<int> selectSize;
+
 };

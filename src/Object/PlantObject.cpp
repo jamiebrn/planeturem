@@ -2,7 +2,7 @@
 #include "Game.hpp"
 #include "World/ChunkManager.hpp"
 
-PlantObject::PlantObject(sf::Vector2f position, ObjectType objectType, Game& game, const ChunkManager* chunkManager, bool randomiseAge)
+PlantObject::PlantObject(pl::Vector2f position, ObjectType objectType, Game& game, const ChunkManager* chunkManager, bool randomiseAge)
     : BuildableObject(position, objectType, false)
 {
     int currentDay = game.getDayCycleManager().getCurrentDay();
@@ -11,7 +11,7 @@ PlantObject::PlantObject(sf::Vector2f position, ObjectType objectType, Game& gam
     {
         // Set seed for randgen
         unsigned long int chunkSeed = (game.getPlanetSeed() + chunkManager->getPlanetType()) ^ getChunkInside(chunkManager->getWorldSize()).hash();
-        sf::Vector2i tile = getChunkTileInside(position, chunkManager->getWorldSize());
+        pl::Vector2<int> tile = getChunkTileInside(position, chunkManager->getWorldSize());
         chunkSeed |= tile.x | tile.y;
 
         RandInt randGen(chunkSeed);
@@ -97,7 +97,7 @@ bool PlantObject::damage(int amount, Game& game, ChunkManager& chunkManager, Par
     return false;
 }
 
-void PlantObject::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const sf::Color& color) const
+void PlantObject::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const sf::Color& color) const
 {
     // int currentDay = game.getDayCycleManager().getCurrentDay();
 

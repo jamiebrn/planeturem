@@ -1,6 +1,12 @@
 #pragma once
 
-#include <SFML/Graphics.hpp>
+// #include <SFML/Graphics.hpp>
+
+#include <Graphics/SpriteBatch.hpp>
+#include <Graphics/Color.hpp>
+#include <Graphics/RenderTarget.hpp>
+#include <Vector.hpp>
+#include <Rect.hpp>
 
 #include <cstdint>
 
@@ -19,7 +25,7 @@ class ChunkManager;
 class PlantObject : public BuildableObject
 {
 public:
-    PlantObject(sf::Vector2f position, ObjectType objectType, Game& game, const ChunkManager* chunkManager = nullptr, bool randomiseAge = false);
+    PlantObject(pl::Vector2f position, ObjectType objectType, Game& game, const ChunkManager* chunkManager = nullptr, bool randomiseAge = false);
 
     BuildableObject* clone() override;
 
@@ -27,7 +33,7 @@ public:
 
     bool damage(int amount, Game& game, ChunkManager& chunkManager, ParticleSystem& particleSystem, bool giveItems = true) override;
 
-    void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const sf::Color& color) const override;
+    void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const sf::Color& color) const override;
 
     // Save / load
     BuildableObjectPOD getPOD() const override;

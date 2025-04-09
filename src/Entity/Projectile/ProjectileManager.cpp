@@ -20,7 +20,7 @@ void ProjectileManager::update(float dt)
     }
 }
 
-void ProjectileManager::drawProjectiles(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Camera& camera)
+void ProjectileManager::drawProjectiles(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera)
 {
     for (auto& projectilePair : projectiles)
     {
@@ -44,7 +44,7 @@ std::unordered_map<uint64_t, Projectile>& ProjectileManager::getProjectiles()
     return projectiles;
 }
 
-void ProjectileManager::handleWorldWrap(sf::Vector2f positionDelta)
+void ProjectileManager::handleWorldWrap(pl::Vector2f positionDelta)
 {
     for (auto& projectilePair : projectiles)
     {

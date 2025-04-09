@@ -2,7 +2,13 @@
 
 #include <vector>
 
-#include <SFML/Graphics.hpp>
+// #include <SFML/Graphics.hpp>
+
+#include <Graphics/SpriteBatch.hpp>
+#include <Graphics/Color.hpp>
+#include <Graphics/RenderTarget.hpp>
+#include <Vector.hpp>
+#include <Rect.hpp>
 
 #include "Core/Tween.hpp"
 
@@ -18,13 +24,13 @@ class Game;
 class RocketObject : public BuildableObject
 {
 public:
-    RocketObject(sf::Vector2f position, ObjectType objectType);
+    RocketObject(pl::Vector2f position, ObjectType objectType);
 
     BuildableObject* clone() override;
 
     void update(Game& game, float dt, bool onWater, bool loopAnimation = true) override;
 
-    void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const sf::Color& color) const override;
+    void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const sf::Color& color) const override;
 
     void interact(Game& game, bool isClient) override;
     bool isInteractable() const override;
@@ -37,8 +43,8 @@ public:
     void getRocketAvailableDestinations(PlanetType currentPlanetType, RoomType currentRoomType,
         std::vector<PlanetType>& planetDestinations, std::vector<RoomType>& roomDestinations);
 
-    sf::Vector2f getRocketPosition();
-    sf::Vector2f getRocketBottomPosition();
+    pl::Vector2f getRocketPosition();
+    pl::Vector2f getRocketBottomPosition();
 
     void setRocketYOffset(float offset);
     float getRocketYOffset();
@@ -46,7 +52,7 @@ public:
     void createRocketParticles();
 
 private:
-    void drawRocket(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Camera& camera, const sf::Color& color) const;
+    void drawRocket(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera, const sf::Color& color) const;
 
 private:
     bool flyingUp = false;

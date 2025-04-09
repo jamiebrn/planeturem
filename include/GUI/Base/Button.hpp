@@ -3,8 +3,15 @@
 #include <string>
 #include <optional>
 
-#include <SFML/Graphics.hpp>
+#include <Graphics/SpriteBatch.hpp>
+#include <Graphics/Color.hpp>
+#include <Graphics/RenderTarget.hpp>
+#include <Graphics/Texture.hpp>
+#include <Graphics/VertexArray.hpp>
+#include <Vector.hpp>
+#include <Rect.hpp>
 
+#include "Core/Shaders.hpp"
 #include "Core/TextDraw.hpp"
 #include "Core/CollisionRect.hpp"
 #include "Core/Sounds.hpp"
@@ -14,12 +21,12 @@
 
 struct ButtonStyle
 {
-    sf::Color colour = sf::Color(255, 255, 255);
-    sf::Color hoveredColour = sf::Color(0, 240, 0);
-    sf::Color clickedColour = sf::Color(60, 140, 60);
-    sf::Color textColour = sf::Color(0, 0, 0);
-    sf::Color hoveredTextColour = sf::Color(0, 0, 0);
-    sf::Color clickedTextColour = sf::Color(0, 0, 0);
+    pl::Color colour = pl::Color(255, 255, 255);
+    pl::Color hoveredColour = pl::Color(0, 240, 0);
+    pl::Color clickedColour = pl::Color(60, 140, 60);
+    pl::Color textColour = pl::Color(0, 0, 0);
+    pl::Color hoveredTextColour = pl::Color(0, 0, 0);
+    pl::Color clickedTextColour = pl::Color(0, 0, 0);
 };
 
 class Button : public GUIElement
@@ -33,9 +40,9 @@ public:
     // virtual bool isHovered() const override;
     bool hasJustReleased() const;
 
-    void draw(sf::RenderTarget& window) override;
+    void draw(pl::RenderTarget& window) override;
 
-    sf::IntRect getBoundingBox() const override;
+    pl::Rect<int> getBoundingBox() const override;
 
 protected:
     bool clicked;

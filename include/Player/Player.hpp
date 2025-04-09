@@ -10,6 +10,14 @@
 #include <optional>
 #include <vector>
 
+#include <Graphics/SpriteBatch.hpp>
+#include <Graphics/Color.hpp>
+#include <Graphics/RenderTarget.hpp>
+#include <Graphics/Shader.hpp>
+#include <Graphics/Texture.hpp>
+#include <Vector.hpp>
+#include <Rect.hpp>
+
 #include "Core/ResolutionHandler.hpp"
 #include "Core/CollisionRect.hpp"
 #include "Core/AnimatedTexture.hpp"
@@ -17,7 +25,6 @@
 #include "Core/Helper.hpp"
 #include "Core/TextureManager.hpp"
 #include "Core/TextDraw.hpp"
-#include "Core/SpriteBatch.hpp"
 #include "Core/InputManager.hpp"
 #include "Core/Camera.hpp"
 #include "Object/WorldObject.hpp"
