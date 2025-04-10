@@ -17,7 +17,7 @@ class ChunkManager;
 struct LandmarkSummaryData
 {
     pl::Vector2f worldPos;
-    pl::Color colourA, colourB;
+    pl::Color colorA, colorB;
 };
 
 class LandmarkManager

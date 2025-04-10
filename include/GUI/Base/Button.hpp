@@ -21,12 +21,12 @@
 
 struct ButtonStyle
 {
-    pl::Color colour = pl::Color(255, 255, 255);
-    pl::Color hoveredColour = pl::Color(0, 240, 0);
-    pl::Color clickedColour = pl::Color(60, 140, 60);
-    pl::Color textColour = pl::Color(0, 0, 0);
-    pl::Color hoveredTextColour = pl::Color(0, 0, 0);
-    pl::Color clickedTextColour = pl::Color(0, 0, 0);
+    pl::Color color = pl::Color(255, 255, 255);
+    pl::Color hoveredColor = pl::Color(0, 240, 0);
+    pl::Color clickedColor = pl::Color(60, 140, 60);
+    pl::Color textColor = pl::Color(0, 0, 0);
+    pl::Color hoveredTextColor = pl::Color(0, 0, 0);
+    pl::Color clickedTextColor = pl::Color(0, 0, 0);
 };
 
 class Button : public GUIElement

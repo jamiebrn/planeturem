@@ -59,19 +59,19 @@ class Player : public WorldObject
 {
 public:
     Player() = default;
-    Player(sf::Vector2f position, int maxHealth = 0);
+    Player(pl::Vector2f position, int maxHealth = 0);
 
-    void update(float dt, sf::Vector2f mouseWorldPos, ChunkManager& chunkManager, ProjectileManager& projectileManager,
-        bool& wrappedAroundWorld, sf::Vector2f& wrapPositionDelta);
-    void updateInRoom(float dt, sf::Vector2f mouseWorldPos, const Room& room);
+    void update(float dt, pl::Vector2f mouseWorldPos, ChunkManager& chunkManager, ProjectileManager& projectileManager,
+        bool& wrappedAroundWorld, pl::Vector2f& wrapPositionDelta);
+    void updateInRoom(float dt, pl::Vector2f mouseWorldPos, const Room& room);
 
-    virtual void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const sf::Color& color) const override;
-    void createLightSource(LightingEngine& lightingEngine, sf::Vector2f topLeftChunkPos) const override;
+    virtual void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const pl::Color& color) const override;
+    void createLightSource(LightingEngine& lightingEngine, pl::Vector2f topLeftChunkPos) const override;
 
     void setTool(ToolType toolType);
     ToolType getTool();
 
-    void useTool(ProjectileManager& projectileManager, InventoryData& inventory, sf::Vector2f mouseWorldPos, Game& game);
+    void useTool(ProjectileManager& projectileManager, InventoryData& inventory, pl::Vector2f mouseWorldPos, Game& game);
     bool isUsingTool();
 
     void startUseToolTimer();
@@ -90,21 +90,21 @@ public:
     bool useConsumable(const ConsumableData& consumable);
 
     // Fishing rod specific
-    void swingFishingRod(sf::Vector2f mouseWorldPos, sf::Vector2i selectedWorldTile);
-    sf::Vector2i reelInFishingRod();
+    void swingFishingRod(pl::Vector2f mouseWorldPos, pl::Vector2<int> selectedWorldTile);
+    pl::Vector2<int> reelInFishingRod();
     bool isFishBitingLine();
 
     // Structure specific
     void enterStructure();
 
     // Rocket state specific
-    void enterRocket(sf::Vector2f positionOverride);
+    void enterRocket(pl::Vector2f positionOverride);
     void exitRocket();
     bool isInRocket();
 
-    bool canReachPosition(sf::Vector2f worldPos);
+    bool canReachPosition(pl::Vector2f worldPos);
 
-    void setPosition(sf::Vector2f worldPos);
+    void setPosition(pl::Vector2f worldPos);
 
     const CollisionRect& getCollisionRect();
 
@@ -120,15 +120,15 @@ public:
 
 
 protected:
-    void updateDirection(sf::Vector2f mouseWorldPos);
+    void updateDirection(pl::Vector2f mouseWorldPos);
     void updateMovement(float dt, ChunkManager& chunkManager, bool isLocalPlayer = true);
     void updateMovementInRoom(float dt, const Room& room, bool isLocalPlayer = true);
     void updateAnimation(float dt);
-    void updateToolRotation(sf::Vector2f mouseWorldPos);
+    void updateToolRotation(pl::Vector2f mouseWorldPos);
     void updateTimers(float dt);
 
 private:
-    bool testWorldWrap(int worldSize, sf::Vector2f& wrapPositionDelta);
+    bool testWorldWrap(int worldSize, pl::Vector2f& wrapPositionDelta);
 
     bool takeDamage(float rawAmount);
 
@@ -137,15 +137,15 @@ private:
     void updateFishingRodCatch(float dt);
     void castFishingRod();
 
-    void drawFishingRodCast(sf::RenderTarget& window, const Camera& camera, float gameTime, int worldSize, float waterYOffset) const;
+    void drawFishingRodCast(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera, float gameTime, int worldSize, float waterYOffset) const;
 
-    void drawMeleeSwing(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Camera& camera) const;
+    void drawMeleeSwing(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera) const;
 
-    void drawArmour(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Camera& camera, float waterYOffset) const;
+    void drawArmour(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera, float waterYOffset) const;
 
 protected:
     CollisionRect collisionRect;
-    sf::Vector2f direction;
+    pl::Vector2f direction;
     bool flippedTexture;
 
     AnimatedTexture idleAnimation;
@@ -194,8 +194,8 @@ protected:
     bool swingingFishingRod;
     float fishingRodCastedTime;
     bool fishBitingLine;
-    sf::Vector2f fishingRodBobWorldPos;
-    sf::Vector2i fishingRodBobWorldTile;
+    pl::Vector2f fishingRodBobWorldPos;
+    pl::Vector2<int> fishingRodBobWorldTile;
 
     // Consumable
     float healthConsumableTimerMax;
@@ -203,7 +203,7 @@ protected:
 
     // In rocket state
     bool inRocket;
-    sf::Vector2f rocketExitPos;
+    pl::Vector2f rocketExitPos;
 
     static constexpr std::array<float, 5> runningShadowScale = {1.0f, 0.8f, 0.7f, 0.8f, 0.9f};
     

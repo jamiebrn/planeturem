@@ -173,7 +173,7 @@ void TextureManager::drawSubTexture(pl::RenderTarget& window, const pl::DrawData
     boundRect.height /= drawData.texture->getHeight();
 
     pl::VertexArray vertexArray;
-    vertexArray.addQuad(quad, drawData.colour, boundRect);
+    vertexArray.addQuad(quad, drawData.color, boundRect);
 
     window.draw(vertexArray, *drawData.shader, drawData.texture, pl::BlendMode::Alpha);
     // Draw with shader if required

@@ -142,8 +142,7 @@ void Entity::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& 
         entityDrawData.shader = Shaders::getShader(ShaderType::Flash);
         entityDrawData.shader->setUniform1f("flash_amount", flashAmount);
     }
-
-    sf::IntRect textureRect;
+    
     if (velocity.x == 0 && velocity.y == 0)
     {
         entityDrawData.textureRect = entityData.idleTextureRects[idleAnim.getFrame()];
@@ -172,7 +171,7 @@ void Entity::createLightSource(LightingEngine& lightingEngine, pl::Vector2f topL
 
     // pl::Vector2f scale((float)ResolutionHandler::getScale() * lightScale, (float)ResolutionHandler::getScale() * lightScale);
 
-    // sf::IntRect lightMaskRect(0, 0, 256, 256);
+    // pl::Rect<int> lightMaskRect(0, 0, 256, 256);
 
     // TextureManager::drawSubTexture(lightTexture, {
     //     TextureType::LightMask, Camera::worldToScreenTransform(position), 0, scale, {0.5, 0.5}, lightColor

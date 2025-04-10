@@ -16,10 +16,10 @@ void NPCInteractionGUI::close()
     currentNPCObjectData = nullptr;
 }
 
-std::optional<NPCInteractionGUIEvent> NPCInteractionGUI::createAndDraw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime)
+std::optional<NPCInteractionGUIEvent> NPCInteractionGUI::createAndDraw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, float dt, float gameTime)
 {
     float intScale = ResolutionHandler::getResolutionIntegerScale();
-    sf::Vector2f resolution = static_cast<sf::Vector2f>(ResolutionHandler::getResolution());
+    pl::Vector2f resolution = static_cast<pl::Vector2f>(ResolutionHandler::getResolution());
 
     drawPanel(window);
 
@@ -128,10 +128,10 @@ bool NPCInteractionGUI::updateDialogue(float dt)
     return true;
 }
 
-void NPCInteractionGUI::drawDialogueBox(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime)
+void NPCInteractionGUI::drawDialogueBox(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, float dt, float gameTime)
 {
     float intScale = ResolutionHandler::getResolutionIntegerScale();
-    sf::Vector2f resolution = static_cast<sf::Vector2f>(ResolutionHandler::getResolution());
+    pl::Vector2f resolution = static_cast<pl::Vector2f>(ResolutionHandler::getResolution());
 
     static const int boxXPadding = 50;
     static const int boxHeight = 200;
@@ -141,30 +141,31 @@ void NPCInteractionGUI::drawDialogueBox(sf::RenderTarget& window, SpriteBatch& s
     int boxYPos = resolution.y / 2.0f - (boxHeight / 2.0f) * intScale;
 
     // Draw background panel
-    sf::RectangleShape backgroundPanel;
-    backgroundPanel.setPosition(sf::Vector2f(boxXPos, boxYPos));
-    backgroundPanel.setSize(sf::Vector2f(boxWidth, boxHeight) * intScale);
-    backgroundPanel.setFillColor(sf::Color(30, 30, 30, 180));
+    pl::VertexArray backgroundPanel;
 
-    window.draw(backgroundPanel);
+    backgroundPanel.addQuad(pl::Rect<float>(boxXPos, boxYPos, boxWidth, boxHeight), pl::Color(30, 30, 30, 180), pl::Rect<float>());
+
+    window.draw(backgroundPanel, *Shaders::getShader(ShaderType::DefaultNoTexture), nullptr, pl::BlendMode::Alpha);
 
     // Draw name
-    TextDrawData nameTextDrawData;
+    pl::TextDrawData nameTextDrawData;
     nameTextDrawData.text = currentNPCObjectData->npcName;
-    nameTextDrawData.position = sf::Vector2f(boxXPos + 20 * intScale, boxYPos + 25 * intScale);
+    nameTextDrawData.position = pl::Vector2f(boxXPos + 20 * intScale, boxYPos + 25 * intScale);
     nameTextDrawData.centeredY = true;
-    nameTextDrawData.colour = sf::Color(255, 255, 255);
+    nameTextDrawData.color = pl::Color(255, 255, 255);
     nameTextDrawData.size = 32 * intScale;
 
     TextDraw::drawText(window, nameTextDrawData);
 
     // Draw portrait
-    TextureDrawData portraitTextureDrawData;
-    portraitTextureDrawData.type = TextureType::Portraits;
-    portraitTextureDrawData.position = sf::Vector2f(boxXPos + 20 * intScale, boxYPos + 60 * intScale);
-    portraitTextureDrawData.scale = sf::Vector2f(3, 3) * intScale;
+    pl::DrawData portraitTextureDrawData;
+    portraitTextureDrawData.texture = TextureManager::getTexture(TextureType::Portraits);
+    portraitTextureDrawData.shader = Shaders::getShader(ShaderType::Default);
+    portraitTextureDrawData.position = pl::Vector2f(boxXPos + 20 * intScale, boxYPos + 60 * intScale);
+    portraitTextureDrawData.scale = pl::Vector2f(3, 3) * intScale;
+    portraitTextureDrawData.textureRect = pl::Rect<int>(currentNPCObjectData->portraitTextureOffset, pl::Vector2<int>(32, 32));
 
-    spriteBatch.draw(window, portraitTextureDrawData, sf::IntRect(currentNPCObjectData->portraitTextureOffset, sf::Vector2i(32, 32)));
+    spriteBatch.draw(window, portraitTextureDrawData);
 
     // Update dialogue timer
     updateDialogue(dt);
@@ -172,10 +173,10 @@ void NPCInteractionGUI::drawDialogueBox(sf::RenderTarget& window, SpriteBatch& s
     if (currentDiagloueIndex < currentNPCObjectData->dialogueLines.size())
     {
         // Draw dialogue
-        TextDrawData dialogueTextDrawDraw;
+        pl::TextDrawData dialogueTextDrawDraw;
         dialogueTextDrawDraw.text = dialogueBoxText + dialogueBoxCurrentWordBuffer;
-        dialogueTextDrawDraw.position = sf::Vector2f(boxXPos + 140 * intScale, boxYPos + 90 * intScale);
-        dialogueTextDrawDraw.colour = sf::Color(255, 255, 255);
+        dialogueTextDrawDraw.position = pl::Vector2f(boxXPos + 140 * intScale, boxYPos + 90 * intScale);
+        dialogueTextDrawDraw.color = pl::Color(255, 255, 255);
         dialogueTextDrawDraw.size = 24 * intScale;
 
         TextDraw::drawText(window, dialogueTextDrawDraw);

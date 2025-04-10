@@ -12,6 +12,11 @@ uniform vec4 waterColor;
 
 uniform float time;
 
+out vec4 FragColor;
+
+in vec4 fragColor;
+in vec2 fragUV;
+
 float mod_range(float value, float low, float high)
 {
     return mod(value - low, high - low) + low;
@@ -32,8 +37,8 @@ void main()
     float texWidth = textureRect.z / spriteSheetSize.x;
     float texHeight = textureRect.w / spriteSheetSize.y;
 
-    float normalizedTexX = (gl_TexCoord[0].x - texU) / texWidth;
-    float normalizedTexY = (gl_TexCoord[0].y - texV) / texHeight;
+    float normalizedTexX = (fragUV.x - texU) / texWidth;
+    float normalizedTexY = (fragUV.y - texV) / texHeight;
 
     vec2 noiseSampleCoords;
     noiseSampleCoords.x = mod(normalizedTexX / noiseSampleDivide + time * noiseSpeed, 1.0);
@@ -51,10 +56,10 @@ void main()
     float noiseCoordOffset = noiseMixed.r * noiseDampen;
 
     vec2 texCoord;
-    texCoord.x = mod_range(gl_TexCoord[0].x + noiseCoordOffset * texWidth, texU, texU + texWidth);
+    texCoord.x = mod_range(fragUV.x + noiseCoordOffset * texWidth, texU, texU + texWidth);
 
     float wave = sin(waveFrequency * normalizedTexX + time) * noiseCoordOffset * 0.15;
-    texCoord.y = mod_range(gl_TexCoord[0].y + noiseCoordOffset * texHeight + wave * texHeight, texV, texV + texHeight);
+    texCoord.y = mod_range(fragUV.y + noiseCoordOffset * texHeight + wave * texHeight, texV, texV + texHeight);
 
     vec4 texColor = texture2D(texture, texCoord);
 
@@ -80,5 +85,5 @@ void main()
     if (texColor.a == 0.0) color = adjustedWaterColor;
     else if (waterColor != vec4(1.0, 1.0, 1.0, 1.0)) color = mix(texColor, adjustedWaterColor, 0.7);
 
-    gl_FragColor = color * gl_Color;
+    FragColor = color * fragColor;
 }

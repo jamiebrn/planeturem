@@ -1,6 +1,5 @@
 #pragma once
 
-// #include <SFML/Graphics.hpp>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -43,7 +42,7 @@ struct NPCObjectData
 {
     std::string npcName;
     NPCObjectBehaviour behaviour;
-    sf::Vector2i portraitTextureOffset;
+    pl::Vector2<int> portraitTextureOffset;
     std::vector<std::string> dialogueLines;
     
     std::vector<ItemCount> shopItems;
@@ -61,7 +60,7 @@ struct ObjectData
 
     pl::Vector2f textureOrigin;
 
-    sf::Vector2i size = {1, 1};
+    pl::Vector2<int> size = {1, 1};
 
     std::vector<float> lightEmissionFrames;
     float lightAbsorption = 0.0f;

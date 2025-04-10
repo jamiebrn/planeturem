@@ -1,31 +1,31 @@
 #include "GUI/DefaultGUIPanel.hpp"
 
 const ButtonStyle DefaultGUIPanel::buttonStyle = {
-    .colour = sf::Color(0, 0, 0, 0),
-    .hoveredColour = sf::Color(0, 0, 0, 0),
-    .clickedColour = sf::Color(0, 0, 0, 0),
-    .textColour = sf::Color(200, 200, 200),
-    .hoveredTextColour = sf::Color(50, 50, 50),
-    .clickedTextColour = sf::Color(255, 255, 255)
+    .color = pl::Color(0, 0, 0, 0),
+    .hoveredColor = pl::Color(0, 0, 0, 0),
+    .clickedColor = pl::Color(0, 0, 0, 0),
+    .textColor = pl::Color(200, 200, 200),
+    .hoveredTextColor = pl::Color(50, 50, 50),
+    .clickedTextColor = pl::Color(255, 255, 255)
 };
 
-void DefaultGUIPanel::handleEvent(sf::Event& event)
+void DefaultGUIPanel::handleEvent(const SDL_Event& event)
 {
     guiContext.processEvent(event);
 }
 
-void DefaultGUIPanel::drawPanel(sf::RenderTarget& window)
+void DefaultGUIPanel::drawPanel(pl::RenderTarget& window)
 {
     float intScale = ResolutionHandler::getResolutionIntegerScale();
-    sf::Vector2f resolution = static_cast<sf::Vector2f>(ResolutionHandler::getResolution());
+    pl::Vector2f resolution = static_cast<pl::Vector2f>(ResolutionHandler::getResolution());
 
     int scaledPanelPaddingX = getScaledPanelPaddingX();
 
-    sf::RectangleShape panelRect(sf::Vector2f(panelWidth * intScale, resolution.y));
-    panelRect.setPosition(sf::Vector2f(scaledPanelPaddingX, 0));
-    panelRect.setFillColor(sf::Color(30, 30, 30, 180));
+    pl::VertexArray panelRect;
 
-    window.draw(panelRect);
+    panelRect.addQuad(pl::Rect<float>(scaledPanelPaddingX, 0, panelWidth * intScale, resolution.y), pl::Color(30, 30, 30, 180), pl::Rect<float>());
+
+    window.draw(panelRect, *Shaders::getShader(ShaderType::DefaultNoTexture), nullptr, pl::BlendMode::Alpha);
 
     if (deferForceElementActivation)
     {
@@ -36,14 +36,14 @@ void DefaultGUIPanel::drawPanel(sf::RenderTarget& window)
 
 int DefaultGUIPanel::getScaledPanelPaddingX()
 {
-    sf::Vector2f resolution = static_cast<sf::Vector2f>(ResolutionHandler::getResolution());
+    pl::Vector2f resolution = static_cast<pl::Vector2f>(ResolutionHandler::getResolution());
     return panelPaddingX * resolution.x / 1920.0f;
 }
 
-void DefaultGUIPanel::updateAndDrawSelectionHoverRect(sf::RenderTarget& window, float dt)
+void DefaultGUIPanel::updateAndDrawSelectionHoverRect(pl::RenderTarget& window, float dt)
 {
     float intScale = ResolutionHandler::getResolutionIntegerScale();
-    sf::Vector2f resolution = static_cast<sf::Vector2f>(ResolutionHandler::getResolution());
+    pl::Vector2f resolution = static_cast<pl::Vector2f>(ResolutionHandler::getResolution());
 
     int scaledPanelPaddingX = getScaledPanelPaddingX();
 
@@ -115,10 +115,10 @@ void DefaultGUIPanel::updateAndDrawSelectionHoverRect(sf::RenderTarget& window, 
     const GUIElement* selectedElement = guiContext.getElementByID(selectedElementId);
     if (selectedElement)
     {
-        sf::FloatRect selectionHoverRectDestination = static_cast<sf::FloatRect>(selectedElement->getBoundingBox());
+        pl::Rect<float> selectionHoverRectDestination = static_cast<pl::Rect<float>>(selectedElement->getBoundingBox());
 
-        selectionHoverRect.left = Helper::lerp(selectionHoverRect.left, selectionHoverRectDestination.left, 15.0f * dt);
-        selectionHoverRect.top = Helper::lerp(selectionHoverRect.top, selectionHoverRectDestination.top, 15.0f * dt);
+        selectionHoverRect.x = Helper::lerp(selectionHoverRect.x, selectionHoverRectDestination.x, 15.0f * dt);
+        selectionHoverRect.y = Helper::lerp(selectionHoverRect.y, selectionHoverRectDestination.y, 15.0f * dt);
         selectionHoverRect.width = Helper::lerp(selectionHoverRect.width, selectionHoverRectDestination.width, 15.0f * dt);
         selectionHoverRect.height = Helper::lerp(selectionHoverRect.height, selectionHoverRectDestination.height, 15.0f * dt);
     }
@@ -127,13 +127,11 @@ void DefaultGUIPanel::updateAndDrawSelectionHoverRect(sf::RenderTarget& window, 
         resetHoverRect();
     }
 
-    // Draw
-    sf::RectangleShape selectionRect;
-    selectionRect.setPosition(sf::Vector2f(selectionHoverRect.left, selectionHoverRect.top));
-    selectionRect.setSize(sf::Vector2f(selectionHoverRect.width, selectionHoverRect.height));
-    selectionRect.setFillColor(sf::Color(200, 200, 200, 150));
+    pl::VertexArray selectionRect;
 
-    window.draw(selectionRect);
+    selectionRect.addQuad(selectionHoverRect, pl::Color(200, 200, 200, 150), pl::Rect<float>());
+
+    window.draw(selectionRect, *Shaders::getShader(ShaderType::DefaultNoTexture), nullptr, pl::BlendMode::Alpha);
 }
 
 void DefaultGUIPanel::setSelectedElement(ElementID selected)
@@ -144,7 +142,7 @@ void DefaultGUIPanel::setSelectedElement(ElementID selected)
         const GUIElement* selectedElement = guiContext.getElementByID(selected);
         if (selectedElement)
         {
-            selectionHoverRect = static_cast<sf::FloatRect>(selectedElement->getBoundingBox());
+            selectionHoverRect = static_cast<pl::Rect<float>>(selectedElement->getBoundingBox());
         }
     }
 
@@ -153,9 +151,9 @@ void DefaultGUIPanel::setSelectedElement(ElementID selected)
 
 void DefaultGUIPanel::resetHoverRect()
 {
-    // selectionHoverRectDestination = sf::FloatRect(0, 0, 0, 0);
+    // selectionHoverRectDestination = pl::Rect<float>(0, 0, 0, 0);
     selectedElementId = std::numeric_limits<uint64_t>::max();
-    selectionHoverRect = sf::FloatRect(0, 0, 0, 0);
+    selectionHoverRect = pl::Rect<float>(0, 0, 0, 0);
     deferHoverRectReset = false;
 }
 

@@ -10,7 +10,10 @@
 #include <optional>
 #include <vector>
 
-#include <SFML/Graphics.hpp>
+#include <Graphics/SpriteBatch.hpp>
+#include <Graphics/Color.hpp>
+#include <Graphics/RenderTarget.hpp>
+#include <Vector.hpp>
 
 #include "Core/ResolutionHandler.hpp"
 #include "Core/TextDraw.hpp"
@@ -31,13 +34,13 @@ class NetworkPlayer : public Player
 {
 public:
     NetworkPlayer() = default;
-    NetworkPlayer(sf::Vector2f position, int maxHealth = 0);
+    NetworkPlayer(pl::Vector2f position, int maxHealth = 0);
 
     void updateNetworkPlayer(float dt, Game& game);
     void updateOnPlanet(float dt, ChunkManager& chunkManager);
     void updateInRoom(float dt, const Room& room);
 
-    void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const sf::Color& color) const override;
+    void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const pl::Color& color) const override;
 
     // Multiplayer
 
@@ -45,7 +48,7 @@ public:
     void setNetworkPlayerCharacterInfo(const PacketDataPlayerCharacterInfo& info);
     
     // Player position is of player on this machine, not for this network player
-    void applyWorldWrapTranslation(sf::Vector2f playerPosition, const ChunkManager& chunkManager);
+    void applyWorldWrapTranslation(pl::Vector2f playerPosition, const ChunkManager& chunkManager);
 
     PlayerData& getPlayerData();
     void setPlayerData(const PlayerData& playerData);
@@ -58,6 +61,6 @@ private:
     ChunkViewRange chunkViewRange;
 
     // Before world wrap translation applied
-    sf::Vector2f fishingRodBobWorldPosUnwrapped;
+    pl::Vector2f fishingRodBobWorldPosUnwrapped;
 
 };

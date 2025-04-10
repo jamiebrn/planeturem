@@ -15,49 +15,45 @@ Checkbox::Checkbox(const GUIInputState& inputState, ElementID id, int x, int y, 
     }
 }
 
-void Checkbox::draw(sf::RenderTarget& window)
+void Checkbox::draw(pl::RenderTarget& window)
 {
     // Draw rect
-    sf::RectangleShape rect;
-    rect.setPosition(x, y);
-    rect.setSize(sf::Vector2f(width, height));
-    rect.setFillColor(sf::Color(200, 200, 200));
-
+    pl::Color rectColor(200, 200, 200);
     if (hovered)
     {
-        rect.setFillColor(sf::Color(245, 245, 245));
+        rectColor = pl::Color(245, 245, 245);
     }
 
-    window.draw(rect);
-
+    pl::VertexArray rect;
+    rect.addQuad(pl::Rect<float>(x, y, width, height), rectColor, pl::Rect<float>());
+    
     // Draw inner rect
     if (value || held)
     {
-        sf::RectangleShape innerRect;
-        innerRect.setPosition(x + width * 0.15f, y + height * 0.15f);
-        innerRect.setSize(sf::Vector2f(width * 0.7f, height * 0.7f));
-        innerRect.setFillColor(sf::Color(30, 30, 30));
-
+        pl::Color innerRectColor(30, 30, 30);
+        
         if (clicked || held)
         {
-            innerRect.setFillColor(sf::Color(100, 100, 100));
+            innerRectColor = pl::Color(100, 100, 100);
         }
-
-        window.draw(innerRect);
+        
+        rect.addQuad(pl::Rect<float>(x + width * 0.15f, y + height * 0.15f, width * 0.7f, height * 0.7f),  innerRectColor, pl::Rect<float>());
     }
+    
+    window.draw(rect, *Shaders::getShader(ShaderType::DefaultNoTexture), nullptr, pl::BlendMode::Alpha);
 
     // Draw text
-    TextDrawData textDrawData;
+    pl::TextDrawData textDrawData;
     textDrawData.text = text;
     textDrawData.size = textSize;
-    textDrawData.colour = sf::Color(255, 255, 255);
-    textDrawData.position = sf::Vector2f(x - paddingLeft + 20.0f, y + height / 2.0f);
+    textDrawData.color = pl::Color(255, 255, 255);
+    textDrawData.position = pl::Vector2f(x - paddingLeft + 20.0f, y + height / 2.0f);
     textDrawData.centeredY = true;
 
     TextDraw::drawText(window, textDrawData);
 }
 
-sf::IntRect Checkbox::getBoundingBox() const
+pl::Rect<int> Checkbox::getBoundingBox() const
 {
-    return sf::IntRect(x - paddingLeft, y - paddingY / 2, width + paddingLeft + paddingRight, height + paddingY);
+    return pl::Rect<int>(x - paddingLeft, y - paddingY / 2, width + paddingLeft + paddingRight, height + paddingY);
 }

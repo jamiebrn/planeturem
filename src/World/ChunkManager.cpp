@@ -36,7 +36,7 @@ void ChunkManager::setPlanetType(PlanetType planetType)
 
     // // Set water colour
     // sf::Shader* waterShader = Shaders::getShader(ShaderType::Water);
-    // waterShader->setUniform("waterColor", sf::Glsl::Vec4(planetGenData.waterColour));
+    // waterShader->setUniform("waterColor", sf::Glsl::Vec4(planetGenData.waterColor));
 
     // Set planet size
     worldSize = planetGenData.worldSize;

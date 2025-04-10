@@ -27,9 +27,9 @@ void LandmarkObject::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch
     std::vector<float> replaceValues = {colorA.r / 255.0f, colorA.g / 255.0f, colorA.b / 255.0f, 1.0f, colorB.r / 255.0f, colorB.g / 255.0f, colorB.b / 255.0f, 1.0f};
 
     pl::Shader* replaceColorShader = Shaders::getShader(ShaderType::ReplaceColour);
-    replaceColourShader->setUniform1i("replaceKeyCount", 2);
-    replaceColourShader->setUniform4fv("replaceKeys", replaceKeys);
-    replaceColourShader->setUniform4fv("replaceValues", replaceValues);
+    replaceColorShader->setUniform1i("replaceKeyCount", replaceKeys.size());
+    replaceColorShader->setUniform4fv("replaceKeys", replaceKeys);
+    replaceColorShader->setUniform4fv("replaceValues", replaceValues);
 
     pl::VertexArray rect;
     rect.addQuad(pl::Rect<int>(0, 0, coloredTexture.getWidth(), coloredTexture.getHeight()), pl::Color(255, 255, 255, 255), textureRect);
@@ -61,33 +61,33 @@ bool LandmarkObject::isInteractable() const
     return true;
 }
 
-void LandmarkObject::setLandmarkColour(const pl::Color& colourA, const pl::Color& colourB)
+void LandmarkObject::setLandmarkColour(const pl::Color& colorA, const pl::Color& colorB)
 {
-    this->colourA = colourA;
-    this->colourB = colourB;
+    this->colorA = colorA;
+    this->colorB = colorB;
 }
 
-const pl::Color& LandmarkObject::getColourA() const
+const pl::Color& LandmarkObject::getColorA() const
 {
-    return colourA;
+    return colorA;
 }
 
-const pl::Color& LandmarkObject::getColourB() const
+const pl::Color& LandmarkObject::getColorB() const
 {
-    return colourB;
+    return colorB;
 }
 
 BuildableObjectPOD LandmarkObject::getPOD() const
 {
     BuildableObjectPOD pod = BuildableObject::getPOD();
-    pod.landmarkColourA = colourA;
-    pod.landmarkColourB = colourB;
+    pod.landmarkColorA = colorA;
+    pod.landmarkColorB = colorB;
     return pod;
 }
 
 void LandmarkObject::loadFromPOD(const BuildableObjectPOD& pod)
 {
     BuildableObject::loadFromPOD(pod);
-    colourA = pod.landmarkColourA.value();
-    colourB = pod.landmarkColourB.value();
+    colorA = pod.landmarkColorA.value();
+    colorB = pod.landmarkColorB.value();
 }

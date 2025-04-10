@@ -17,9 +17,9 @@
 #include <Graphics/TextDrawData.hpp>
 #include <Graphics/Color.hpp>
 #include <Graphics/Framebuffer.hpp>
-#include <Graphics/SpriteBatch.hpp>
 #include <Graphics/Texture.hpp>
 #include <Graphics/VertexArray.hpp>
+#include <Graphics/SpriteBatch.hpp>
 #include <Window.hpp>
 
 #include "Core/TextureManager.hpp"
@@ -29,7 +29,6 @@
 #include "Core/ResolutionHandler.hpp"
 #include "Core/Helper.hpp"
 #include "Core/Tween.hpp"
-// #include "Core/SpriteBatch.hpp"
 #include "Core/InputManager.hpp"
 
 #include "World/ChunkManager.hpp"
@@ -143,16 +142,16 @@ public:
     // Item pickups created alert
     void itemPickupsCreated(const std::vector<ItemPickupReference>& itemPickupsCreated, std::optional<LocationState> pickupsLocationState);
 
-    void drawWorld(sf::RenderTexture& renderTexture, float dt, std::vector<WorldObject*>& worldObjects, WorldData& worldData, const Camera& cameraArg);
+    void drawWorld(pl::Framebuffer& renderTexture, float dt, std::vector<WorldObject*>& worldObjects, WorldData& worldData, const Camera& cameraArg);
 
     void joinWorld(const PacketDataJoinInfo& joinInfo);
     void quitWorld();
 
-    void hitObject(ChunkPosition chunk, sf::Vector2i tile, int damage, std::optional<PlanetType> planetType = std::nullopt,
+    void hitObject(ChunkPosition chunk, pl::Vector2<int> tile, int damage, std::optional<PlanetType> planetType = std::nullopt,
         bool sentFromHost = false, std::optional<uint64_t> userId = std::nullopt);
-    void buildObject(ChunkPosition chunk, sf::Vector2i tile, ObjectType objectType, std::optional<PlanetType> planetType = std::nullopt,
+    void buildObject(ChunkPosition chunk, pl::Vector2<int> tile, ObjectType objectType, std::optional<PlanetType> planetType = std::nullopt,
         bool sentFromHost = false, bool builtByPlayer = true);
-    void destroyObjectFromHost(ChunkPosition chunk, sf::Vector2i tile, std::optional<PlanetType> planetType);
+    void destroyObjectFromHost(ChunkPosition chunk, pl::Vector2<int> tile, std::optional<PlanetType> planetType);
 
     // Networking
     void joinedLobby(bool requiresNameInput);
@@ -163,8 +162,8 @@ public:
     ObjectReference setupPlanetTravel(PlanetType planetType, std::optional<uint64_t> clientID);
     void travelToPlanetFromHost(const PacketDataPlanetTravelReply& planetTravelReplyPacket);
 
-    std::optional<uint32_t> initialiseStructureOrGet(PlanetType planetType, ChunkPosition chunk, sf::Vector2f* entrancePos, RoomType* roomType);
-    void enterStructureFromHost(PlanetType planetType, ChunkPosition chunk, uint32_t structureID, sf::Vector2f entrancePos, RoomType roomType);
+    std::optional<uint32_t> initialiseStructureOrGet(PlanetType planetType, ChunkPosition chunk, pl::Vector2f* entrancePos, RoomType* roomType);
+    void enterStructureFromHost(PlanetType planetType, ChunkPosition chunk, uint32_t structureID, pl::Vector2f entrancePos, RoomType roomType);
 
     PlayerData createPlayerData();
 
@@ -237,7 +236,7 @@ private:
     void attemptUseToolFishingRod();
     void attemptUseToolWeapon();
 
-    void catchRandomFish(sf::Vector2i fishedTile);
+    void catchRandomFish(pl::Vector2<int> fishedTile);
     
     void attemptObjectInteract();
     void attemptBuildObject();
@@ -265,7 +264,7 @@ private:
     void handleInventoryClose();
 
     void checkChestOpenInRange();
-    // void handleOpenChestPositionWorldWrap(sf::Vector2f positionDelta);
+    // void handleOpenChestPositionWorldWrap(pl::Vector2f positionDelta);
 
 
     // -- Planet travelling -- //
@@ -308,11 +307,11 @@ private:
 
     void handleZoom(int zoomChange);
 
-    void handleEventsWindow(sf::Event& event);
+    void handleEventsWindow(const SDL_Event& event);
     void handleSDLEvents();
 
     void toggleFullScreen();
-    void handleWindowResize(sf::Vector2u newSize);
+    void handleWindowResize(pl::Vector2<uint32_t> newSize);
 
 
     // -- Misc -- //
@@ -331,21 +330,17 @@ private:
 
 
 private:
-    sf::RenderWindow window;
-    SDL_Window* sdlWindow = nullptr;
-    sf::View view;
-    sf::Image icon;
-    bool fullScreen = true;
+    pl::Window window;
+    pl::Image icon;
 
     SaveFileSummary currentSaveFileSummary;
     float saveSessionPlayTime;
 
-    SpriteBatch spriteBatch;
-    sf::RenderTexture worldTexture;
+    pl::SpriteBatch spriteBatch;
+    pl::Framebuffer worldTexture;
 
     bool steamInitialised;
 
-    sf::Clock clock;
     float gameTime;
 
     bool isDay;
@@ -359,7 +354,7 @@ private:
     NPCInteractionGUI npcInteractionGUI;
     TravelSelectGUI travelSelectGUI;
     LandmarkSetGUI landmarkSetGUI;
-    sf::Vector2f mouseScreenPos;
+    pl::Vector2f mouseScreenPos;
 
     // Game general data
     Player player;
@@ -384,7 +379,7 @@ private:
 
     NetworkHandler networkHandler;
 
-    std::array<sf::Texture, 2> waterNoiseTextures;
+    std::array<pl::Texture, 2> waterNoiseTextures;
 
     GameState gameState;
     GameState destinationGameState;
@@ -398,10 +393,10 @@ private:
     // 0xFFFF chest ID reserved for no chest opened / non-initialised chest
     uint16_t openedChestID;
     ObjectReference openedChest;
-    // sf::Vector2f openedChestPos;
+    // pl::Vector2f openedChestPos;
 
     // Structure
-    sf::Vector2f structureEnteredPos;
+    pl::Vector2f structureEnteredPos;
 
     // Rocket
     ObjectReference rocketEnteredReference;
@@ -409,4 +404,5 @@ private:
     bool travelTrigger = false;
 
     Tween<float> floatTween;
+
 };

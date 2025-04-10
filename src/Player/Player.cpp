@@ -2,7 +2,7 @@
 #include "Player/Cursor.hpp"
 #include "Game.hpp"
 
-Player::Player(sf::Vector2f position, int maxHealth)
+Player::Player(pl::Vector2f position, int maxHealth)
     : WorldObject(position)
 {
     collisionRect.width = 12.0f;
@@ -47,8 +47,8 @@ Player::Player(sf::Vector2f position, int maxHealth)
     inRocket = false;
 }
 
-void Player::update(float dt, sf::Vector2f mouseWorldPos, ChunkManager& chunkManager, ProjectileManager& projectileManager,
-    bool& wrappedAroundWorld, sf::Vector2f& wrapPositionDelta)
+void Player::update(float dt, pl::Vector2f mouseWorldPos, ChunkManager& chunkManager, ProjectileManager& projectileManager,
+    bool& wrappedAroundWorld, pl::Vector2f& wrapPositionDelta)
 {
     updateTimers(dt);
 
@@ -90,7 +90,7 @@ void Player::update(float dt, sf::Vector2f mouseWorldPos, ChunkManager& chunkMan
     onWater = (chunkManager.getLoadedChunkTileType(getChunkInside(chunkManager.getWorldSize()), getChunkTileInside(chunkManager.getWorldSize())) == 0);
 }
 
-void Player::updateInRoom(float dt, sf::Vector2f mouseWorldPos, const Room& room)
+void Player::updateInRoom(float dt, pl::Vector2f mouseWorldPos, const Room& room)
 {
     // updateTimers(dt);
     
@@ -109,7 +109,7 @@ void Player::updateInRoom(float dt, sf::Vector2f mouseWorldPos, const Room& room
     position.y = collisionRect.y + collisionRect.height / 2.0f;
 }
 
-void Player::updateDirection(sf::Vector2f mouseWorldPos)
+void Player::updateDirection(pl::Vector2f mouseWorldPos)
 {
     if (!canMove)
     {
@@ -248,7 +248,7 @@ void Player::updateAnimation(float dt)
     }
 }
 
-void Player::updateToolRotation(sf::Vector2f mouseWorldPos)
+void Player::updateToolRotation(pl::Vector2f mouseWorldPos)
 {
     // Rotate bow if tool is of type
     if (equippedTool < 0)
@@ -319,7 +319,7 @@ void Player::updateTimers(float dt)
     useToolCooldown = std::max(useToolCooldown - dt, 0.0f);
 }
 
-bool Player::testWorldWrap(int worldSize, sf::Vector2f& wrapPositionDelta)
+bool Player::testWorldWrap(int worldSize, pl::Vector2f& wrapPositionDelta)
 {
     bool wrapped = false;
 
@@ -383,14 +383,14 @@ void Player::updateFishingRodCatch(float dt)
     }
 }
 
-void Player::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const sf::Color& color) const
+void Player::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const pl::Color& color) const
 {
     if (inRocket || !isAlive())
+    {
         return;
+    }
 
-    spriteBatch.endDrawing(window);
-
-    sf::Vector2f playerScale((float)ResolutionHandler::getScale(), (float)ResolutionHandler::getScale());
+    pl::Vector2f playerScale((float)ResolutionHandler::getScale(), (float)ResolutionHandler::getScale());
 
     float waterYOffset = getWaterBobYOffset(worldSize, gameTime);
 
@@ -399,7 +399,7 @@ void Player::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game
 
     float shadowScale = 1.0f;
     
-    sf::IntRect animationRect;
+    pl::Rect<int> animationRect;
     if (direction.x == 0 && direction.y == 0)
     {
         animationRect = idleAnimation.getTextureRect();
@@ -410,9 +410,15 @@ void Player::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game
         animationRect = runAnimation.getTextureRect();
     }
 
-    TextureManager::drawTexture(window, {
-        TextureType::Shadow, camera.worldToScreenTransform(position + sf::Vector2f(0, waterYOffset)), 0, playerScale * shadowScale, {0.5, 0.85}
-        });
+    pl::DrawData shadowDrawData;
+    shadowDrawData.texture = TextureManager::getTexture(TextureType::Shadow);
+    shadowDrawData.shader = Shaders::getShader(ShaderType::Default);
+    shadowDrawData.position = camera.worldToScreenTransform(position + pl::Vector2f(0, waterYOffset));
+    shadowDrawData.scale = playerScale * shadowScale;
+    shadowDrawData.centerRatio = pl::Vector2f(0.5f, 0.85f);
+    shadowDrawData.textureRect = pl::Rect<int>(0, 0, shadowDrawData.texture->getWidth(), shadowDrawData.texture->getHeight());
+
+    spriteBatch.draw(window, shadowDrawData);
     
     // Draw melee swing behind player if required
     bool meleeSwingDrawn = false;
@@ -425,17 +431,24 @@ void Player::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game
             meleeSwingDrawn = true;
         }
     }
-    
-    std::optional<ShaderType> flashShader;
-    if (damageCooldownTimer > 0.0f)
-    {
-        flashShader = ShaderType::Flash;
-        Shaders::getShader(flashShader.value())->setUniform("flash_amount", damageCooldownTimer / MAX_DAMAGE_COOLDOWN_TIMER);
-    }
 
     playerScale.y *= playerYScaleMult;
-    spriteBatch.draw(window, {TextureType::Player, camera.worldToScreenTransform(position + sf::Vector2f(0, waterYOffset)), 0, playerScale, {0.5, 1}}, 
-        animationRect, flashShader);
+
+    pl::DrawData playerDrawData;
+    playerDrawData.texture = TextureManager::getTexture(TextureType::Player);
+    playerDrawData.shader = Shaders::getShader(ShaderType::Default);
+    playerDrawData.position = camera.worldToScreenTransform(position + pl::Vector2f(0, waterYOffset));
+    playerDrawData.scale = playerScale;
+    playerDrawData.centerRatio = pl::Vector2f(0.5f, 1.0f);
+    playerDrawData.textureRect = animationRect;
+    
+    if (damageCooldownTimer > 0.0f)
+    {
+        playerDrawData.shader = Shaders::getShader(ShaderType::Flash);
+        playerDrawData.shader->setUniform1f("flash_amount", damageCooldownTimer / MAX_DAMAGE_COOLDOWN_TIMER);
+    }
+
+    spriteBatch.draw(window, playerDrawData);
     
     // Draw armour
     drawArmour(window, spriteBatch, camera, waterYOffset);
@@ -445,8 +458,8 @@ void Player::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game
     {
         const ToolData& toolData = ToolDataLoader::getToolData(equippedTool);
 
-        sf::Vector2f toolPos = (camera.worldToScreenTransform(position + sf::Vector2f(0, waterYOffset)) +
-            sf::Vector2f(playerScale.x * toolData.holdOffset.x, playerScale.y * toolData.holdOffset.y));
+        pl::Vector2f toolPos = (camera.worldToScreenTransform(position + pl::Vector2f(0, waterYOffset)) +
+            pl::Vector2f(playerScale.x * toolData.holdOffset.x, playerScale.y * toolData.holdOffset.y));
 
         float pivotYOffset = 0.0f;
         
@@ -475,9 +488,16 @@ void Player::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game
             drawMeleeSwing(window, spriteBatch, camera);
         }
 
-        spriteBatch.draw(window, {
-            TextureType::Tools, toolPos, correctedToolRotation, playerScale, {toolData.pivot.x, toolData.pivot.y + pivotYOffset
-            }}, toolData.textureRects[textureRectIndex]);
+        pl::DrawData toolDrawData;
+        toolDrawData.texture = TextureManager::getTexture(TextureType::Tools);
+        toolDrawData.shader = Shaders::getShader(ShaderType::Default);
+        toolDrawData.position = toolPos;
+        toolDrawData.rotation = correctedToolRotation;
+        toolDrawData.scale = playerScale;
+        toolDrawData.centerRatio = pl::Vector2f(toolData.pivot.x, toolData.pivot.y + pivotYOffset);
+        toolDrawData.textureRect = toolData.textureRects[textureRectIndex];
+
+        spriteBatch.draw(window, toolDrawData);
         
         #if (!RELEASE_BUILD)
         // DEBUG
@@ -498,7 +518,7 @@ void Player::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game
     // Draw fishing line if casted rod
     if (fishingRodCasted)
     {
-        drawFishingRodCast(window, camera, gameTime, worldSize, waterYOffset);
+        drawFishingRodCast(window, spriteBatch, camera, gameTime, worldSize, waterYOffset);
     }
 
     #if (!RELEASE_BUILD)
@@ -510,12 +530,12 @@ void Player::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game
     #endif
 }
 
-void Player::createLightSource(LightingEngine& lightingEngine, sf::Vector2f topLeftChunkPos) const
+void Player::createLightSource(LightingEngine& lightingEngine, pl::Vector2f topLeftChunkPos) const
 {
     // if (inRocket || !isAlive())
     //     return;
     
-    // sf::Vector2f topLeftRelativePos = position - topLeftChunkPos;
+    // pl::Vector2f topLeftRelativePos = position - topLeftChunkPos;
 
     // int lightingTileX = std::floor(topLeftRelativePos.x / (TILE_SIZE_PIXELS_UNSCALED / TILE_LIGHTING_RESOLUTION));
     // int lightingTileY = std::floor(topLeftRelativePos.y / (TILE_SIZE_PIXELS_UNSCALED / TILE_LIGHTING_RESOLUTION));
@@ -530,22 +550,22 @@ void Player::createLightSource(LightingEngine& lightingEngine, sf::Vector2f topL
     // }
 
     // static constexpr float lightScale = 0.7f;
-    // static const sf::Color lightColor(255, 220, 140);
+    // static const pl::Color lightColor(255, 220, 140);
 
-    // sf::Vector2f scale((float)ResolutionHandler::getScale() * lightScale, (float)ResolutionHandler::getScale() * lightScale);
+    // pl::Vector2f scale((float)ResolutionHandler::getScale() * lightScale, (float)ResolutionHandler::getScale() * lightScale);
 
-    // static const sf::IntRect lightMaskRect(0, 0, 256, 256);
+    // static const pl::Rect<int> lightMaskRect(0, 0, 256, 256);
 
     // TextureManager::drawSubTexture(lightTexture, {
     //     TextureType::LightMask, camera.worldToScreenTransform(position), 0, scale, {0.5, 0.5}, lightColor
     //     }, lightMaskRect, sf::BlendAdd);
 }
 
-void Player::drawFishingRodCast(sf::RenderTarget& window, const Camera& camera, float gameTime, int worldSize, float waterYOffset) const
-{
+void Player::drawFishingRodCast(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera, float gameTime, int worldSize, float waterYOffset) const
+{   
     // Draw bob
-    sf::Vector2f bobPosition = fishingRodBobWorldPos + sf::Vector2f(0, WorldObject::getWaterBobYOffset(fishingRodBobWorldPos, worldSize, gameTime));
-
+    pl::Vector2f bobPosition = fishingRodBobWorldPos + pl::Vector2f(0, WorldObject::getWaterBobYOffset(fishingRodBobWorldPos, worldSize, gameTime));
+    
     // If fish is biting line, shake bob
     if (fishBitingLine)
     {
@@ -555,61 +575,68 @@ void Player::drawFishingRodCast(sf::RenderTarget& window, const Camera& camera, 
     else
     {
         // Only draw bob if fish not on line
-        TextureDrawData bobDrawData;
+        pl::DrawData bobDrawData;
+        bobDrawData.texture = TextureManager::getTexture(TextureType::Tools);
+        bobDrawData.shader = Shaders::getShader(ShaderType::Default);
         bobDrawData.position = camera.worldToScreenTransform(bobPosition);
-        bobDrawData.type = TextureType::Tools;
-        bobDrawData.scale = sf::Vector2f(ResolutionHandler::getScale(), ResolutionHandler::getScale());
-        bobDrawData.centerRatio = sf::Vector2f(0.5, 0.5);
-
-        TextureManager::drawSubTexture(window, bobDrawData, sf::IntRect(0, 112, 16, 16));
+        bobDrawData.scale = pl::Vector2f(ResolutionHandler::getScale(), ResolutionHandler::getScale());
+        bobDrawData.centerRatio = pl::Vector2f(0.5, 0.5);
+        bobDrawData.textureRect = pl::Rect<int>(0, 112, 16, 16);
+        
+        spriteBatch.draw(window, bobDrawData);
     }
+    
+    spriteBatch.endDrawing(window);
 
     // Draw line
-    sf::VertexArray line;
-    line.setPrimitiveType(sf::Lines);
+    // TODO: Make line constant thickness (not 1 pixel)
+    pl::VertexArray line;
+    line.setPrimitiveMode(pl::PrimitiveMode::Lines);
 
     // Calculate line origin position
     const ToolData& toolData = ToolDataLoader::getToolData(equippedTool);
 
-    sf::Vector2f lineOrigin;
+    pl::Vector2f lineOrigin;
     int lineOffsetXMult = 1;
     if (flippedTexture)
     {
         lineOffsetXMult = -1;
     }
 
-    sf::Vector2f rotatedLineOffset = Helper::rotateVector(toolData.fishingRodLineOffset, 3.14159 * toolRotation / 180.0f);
+    pl::Vector2f rotatedLineOffset = Helper::rotateVector(toolData.fishingRodLineOffset, 3.14159 * toolRotation / 180.0f);
 
     lineOrigin.x = position.x + (toolData.holdOffset.x + rotatedLineOffset.x) * lineOffsetXMult;
     lineOrigin.y = position.y + waterYOffset + toolData.holdOffset.y + rotatedLineOffset.y;
 
-    line.append(sf::Vertex(camera.worldToScreenTransform(lineOrigin), sf::Color(255, 255, 255)));
-    line.append(sf::Vertex(camera.worldToScreenTransform(bobPosition), sf::Color(255, 255, 255)));
+    line.addVertex(pl::Vertex(camera.worldToScreenTransform(lineOrigin), pl::Color(255, 255, 255)));
+    line.addVertex(pl::Vertex(camera.worldToScreenTransform(bobPosition), pl::Color(255, 255, 255)));
 
-    window.draw(line);
+    window.draw(line, *Shaders::getShader(ShaderType::DefaultNoTexture), nullptr, pl::BlendMode::Alpha);
 }
 
-void Player::drawMeleeSwing(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Camera& camera) const
+void Player::drawMeleeSwing(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera) const
 {
-    sf::Vector2f swingWorldPos = sf::Vector2f(std::cos(meleeSwingAnimationRotation), std::sin(meleeSwingAnimationRotation)) * MELEE_SWING_RADIUS + position;
+    pl::Vector2f swingWorldPos = pl::Vector2f(std::cos(meleeSwingAnimationRotation), std::sin(meleeSwingAnimationRotation)) * MELEE_SWING_RADIUS + position;
     swingWorldPos.y += MELEE_SWING_Y_ORIGIN_OFFSET;
 
-    TextureDrawData meleeSwingDrawData;
-    meleeSwingDrawData.type = TextureType::Tools;
-    meleeSwingDrawData.centerRatio = sf::Vector2f(0.5f, 0.5f);
+    pl::DrawData meleeSwingDrawData;
+    meleeSwingDrawData.texture = TextureManager::getTexture(TextureType::Tools);
+    meleeSwingDrawData.shader = Shaders::getShader(ShaderType::Default);
+    meleeSwingDrawData.centerRatio = pl::Vector2f(0.5f, 0.5f);
     meleeSwingDrawData.position = camera.worldToScreenTransform(swingWorldPos);
     meleeSwingDrawData.rotation = meleeSwingAnimationRotation / M_PI * 180.0f;
-    meleeSwingDrawData.scale = sf::Vector2f((float)ResolutionHandler::getScale(), -(float)ResolutionHandler::getScale());
+    meleeSwingDrawData.scale = pl::Vector2f((float)ResolutionHandler::getScale(), -(float)ResolutionHandler::getScale());
+    meleeSwingDrawData.textureRect = meleeSwingAnimation.getTextureRect();
 
     if (flippedTexture)
     {
         meleeSwingDrawData.scale.y *= -1;
     }
 
-    spriteBatch.draw(window, meleeSwingDrawData, meleeSwingAnimation.getTextureRect());
+    spriteBatch.draw(window, meleeSwingDrawData);
 }
 
-void Player::drawArmour(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Camera& camera, float waterYOffset) const
+void Player::drawArmour(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera, float waterYOffset) const
 {
     float scale = ResolutionHandler::getScale();
 
@@ -619,15 +646,19 @@ void Player::drawArmour(sf::RenderTarget& window, SpriteBatch& spriteBatch, cons
         xScaleMult = -1;
     }
 
-    sf::Vector2f armourOrigin = position - sf::Vector2f(8 * xScaleMult, 0);
+    pl::Vector2f armourOrigin = position - pl::Vector2f(8 * xScaleMult, 0);
 
-    std::optional<ShaderType> flashShader;
+    pl::DrawData armourDrawData;
+    armourDrawData.texture = TextureManager::getTexture(TextureType::Tools);
+    armourDrawData.shader = Shaders::getShader(ShaderType::Default);
+    armourDrawData.scale = pl::Vector2f(scale * xScaleMult, scale * playerYScaleMult);
+    armourDrawData.useCentreAbsolute = true;
+
     if (damageCooldownTimer > 0.0f)
     {
-        flashShader = ShaderType::Flash;
-        Shaders::getShader(flashShader.value())->setUniform("flash_amount", damageCooldownTimer / MAX_DAMAGE_COOLDOWN_TIMER);
+        armourDrawData.shader = Shaders::getShader(ShaderType::Flash);
+        armourDrawData.shader->setUniform1f("flash_amount", damageCooldownTimer / MAX_DAMAGE_COOLDOWN_TIMER);
     }
-    spriteBatch.endDrawing(window);
 
     // Draw headpiece, chest, and boots
     for (int i = 2; i >= 0; i--)
@@ -649,16 +680,13 @@ void Player::drawArmour(sf::RenderTarget& window, SpriteBatch& spriteBatch, cons
             frame = idleAnimation.getFrameCount() + runAnimation.getFrame();
         }
 
-        const sf::IntRect& armourTextureRect = armourData.wearTextures[frame];
+        const pl::Rect<int>& armourTextureRect = armourData.wearTextures[frame];
 
-        TextureDrawData drawData;
-        drawData.type = TextureType::Tools;
-        drawData.position = camera.worldToScreenTransform(armourOrigin + sf::Vector2f(armourData.wearTextureOffset.x * xScaleMult, waterYOffset));
-        drawData.scale = sf::Vector2f(scale * xScaleMult, scale * playerYScaleMult);
-        drawData.centerRatio = sf::Vector2f(0, armourTextureRect.height - armourData.wearTextureOffset.y);
-        drawData.useCentreAbsolute = true;
-        
-        spriteBatch.draw(window, drawData, armourTextureRect);
+        armourDrawData.position = camera.worldToScreenTransform(armourOrigin + pl::Vector2f(armourData.wearTextureOffset.x * xScaleMult, waterYOffset));
+        armourDrawData.centerRatio = pl::Vector2f(0, armourTextureRect.height - armourData.wearTextureOffset.y);
+        armourDrawData.textureRect = armourTextureRect;
+
+        spriteBatch.draw(window, armourDrawData);
     }
 }
 
@@ -681,7 +709,7 @@ ToolType Player::getTool()
     return equippedTool;
 }
 
-void Player::useTool(ProjectileManager& projectileManager, InventoryData& inventory, sf::Vector2f mouseWorldPos, Game& game)
+void Player::useTool(ProjectileManager& projectileManager, InventoryData& inventory, pl::Vector2f mouseWorldPos, Game& game)
 {
     // swingingTool = true;
 
@@ -727,7 +755,7 @@ void Player::useTool(ProjectileManager& projectileManager, InventoryData& invent
             // Calculate projectile position and angle
             float angle = 180.0f * std::atan2(mouseWorldPos.y - position.y, mouseWorldPos.x - position.x) / M_PI;
 
-            sf::Vector2f spawnPos = static_cast<sf::Vector2f>(toolData.holdOffset) + Helper::rotateVector(static_cast<sf::Vector2f>(toolData.shootOffset), toolRotation);
+            pl::Vector2f spawnPos = static_cast<pl::Vector2f>(toolData.holdOffset) + Helper::rotateVector(static_cast<pl::Vector2f>(toolData.shootOffset), toolRotation);
 
             if (flippedTexture)
             {
@@ -800,7 +828,7 @@ void Player::setArmourFromInventory(const InventoryData& armourInventory)
 void Player::setCanMove(bool value)
 {
     canMove = value;
-    direction = sf::Vector2f(0, 0);
+    direction = pl::Vector2f(0, 0);
 }
 
 bool Player::testHitCollision(const Projectile& projectile)
@@ -851,7 +879,7 @@ bool Player::takeDamage(float rawAmount)
         
         health -= damageAmount;
 
-        HitMarkers::addHitMarker(position, damageAmount, sf::Color(208, 15, 30));
+        HitMarkers::addHitMarker(position, damageAmount, pl::Color(208, 15, 30));
 
         healthRegenCooldownTimer = MAX_HEALTH_REGEN_COOLDOWN_TIMER;
         damageCooldownTimer = MAX_DAMAGE_COOLDOWN_TIMER;
@@ -873,7 +901,7 @@ bool Player::useConsumable(const ConsumableData& consumable)
     {
         int healthIncrease = std::min(static_cast<float>(consumable.healthIncrease), maxHealth - health);
         health += healthIncrease;;
-        HitMarkers::addHitMarker(position, healthIncrease, sf::Color(30, 188, 28));
+        HitMarkers::addHitMarker(position, healthIncrease, pl::Color(30, 188, 28));
 
         healthConsumableTimerMax = consumable.cooldownTime;
         healthConsumableTimer = healthConsumableTimerMax;
@@ -884,7 +912,7 @@ bool Player::useConsumable(const ConsumableData& consumable)
     if (consumable.permanentHealthIncrease > 0)
     {
         maxHealth += consumable.permanentHealthIncrease;
-        HitMarkers::addHitMarker(position, consumable.permanentHealthIncrease, sf::Color(35, 144, 99));
+        HitMarkers::addHitMarker(position, consumable.permanentHealthIncrease, pl::Color(35, 144, 99));
 
         usedConsumable = true;
     }
@@ -892,7 +920,7 @@ bool Player::useConsumable(const ConsumableData& consumable)
     return usedConsumable;
 }
 
-void Player::swingFishingRod(sf::Vector2f mouseWorldPos, sf::Vector2i selectedWorldTile)
+void Player::swingFishingRod(pl::Vector2f mouseWorldPos, pl::Vector2<int> selectedWorldTile)
 {
     swingingFishingRod = true;
     fishingRodCasted = false;
@@ -903,7 +931,7 @@ void Player::swingFishingRod(sf::Vector2f mouseWorldPos, sf::Vector2i selectedWo
     fishingRodBobWorldTile = selectedWorldTile;
 }
 
-sf::Vector2i Player::reelInFishingRod()
+pl::Vector2<int> Player::reelInFishingRod()
 {
     fishingRodCasted = false;
     fishBitingLine = false;
@@ -925,7 +953,7 @@ void Player::castFishingRod()
     fishingRodCastedTime = 0;
 }
 
-bool Player::canReachPosition(sf::Vector2f worldPos)
+bool Player::canReachPosition(pl::Vector2f worldPos)
 {
     // Calculate centre of tile based on world pos
     worldPos.x = (std::floor(worldPos.x / TILE_SIZE_PIXELS_UNSCALED) + 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
@@ -941,7 +969,7 @@ void Player::enterStructure()
     onWater = false;
 }
 
-void Player::enterRocket(sf::Vector2f positionOverride)
+void Player::enterRocket(pl::Vector2f positionOverride)
 {
     if (inRocket)
         return;
@@ -968,7 +996,7 @@ bool Player::isInRocket()
     return inRocket;
 }
 
-void Player::setPosition(sf::Vector2f worldPos)
+void Player::setPosition(pl::Vector2f worldPos)
 {
     collisionRect.x = worldPos.x - collisionRect.width / 2.0f;
     collisionRect.y = worldPos.y - collisionRect.height / 2.0f;
@@ -996,7 +1024,7 @@ PacketDataPlayerCharacterInfo Player::getNetworkPlayerInfo(const Camera* camera,
     info.direction = direction;
     info.speed = speed;
 
-    if (direction == sf::Vector2f(0, 0))
+    if (direction == pl::Vector2f(0, 0))
     {
         info.animationFrame = idleAnimation.getFrame();
         info.animationFrameTick = idleAnimation.getFrameTick();

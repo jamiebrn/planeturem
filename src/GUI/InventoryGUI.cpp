@@ -57,7 +57,7 @@ void InventoryGUI::initialise(InventoryData& inventory)
 
 void InventoryGUI::initialiseInventory(InventoryData& inventory)
 {
-    sf::Vector2f itemBoxPosition = sf::Vector2f(itemBoxPadding, itemBoxPadding);
+    pl::Vector2f itemBoxPosition = pl::Vector2f(itemBoxPadding, itemBoxPadding);
 
     int currentRowIndex = 0;
 
@@ -79,7 +79,7 @@ void InventoryGUI::initialiseInventory(InventoryData& inventory)
     }
 
     // Start armour boxes at right end of inventory, one item box down
-    sf::Vector2f armourBoxPosition(ITEM_BOX_PER_ROW * (itemBoxSize + itemBoxSpacing) + itemBoxPadding, itemBoxPadding + itemBoxSize + itemBoxSpacing);
+    pl::Vector2f armourBoxPosition(ITEM_BOX_PER_ROW * (itemBoxSize + itemBoxSpacing) + itemBoxPadding, itemBoxPadding + itemBoxSize + itemBoxSpacing);
 
     // Initialise armour item slots
     for (int i = 0; i < ARMOUR_SLOTS; i++)
@@ -90,7 +90,7 @@ void InventoryGUI::initialiseInventory(InventoryData& inventory)
     }
 
     // Initialise bin item slot
-    sf::Vector2f binPos;
+    pl::Vector2f binPos;
     binPos.x = (itemBoxPadding + (itemBoxSize + itemBoxSpacing) * static_cast<float>(ITEM_BOX_PER_ROW + 1));
     binPos.y = itemBoxPadding;
     binItemSlot = {ItemSlot(binPos, itemBoxSize)};
@@ -98,7 +98,7 @@ void InventoryGUI::initialiseInventory(InventoryData& inventory)
 
 void InventoryGUI::initialiseHotbar()
 {
-    sf::Vector2f itemBoxPosition = sf::Vector2f(itemBoxPadding, itemBoxPadding);
+    pl::Vector2f itemBoxPosition = pl::Vector2f(itemBoxPadding, itemBoxPadding);
 
     for (int itemIndex = 0; itemIndex < ITEM_BOX_PER_ROW; itemIndex++)
     {
@@ -126,7 +126,7 @@ void InventoryGUI::createRecipeItemSlots(InventoryData& inventory)
     for (int i = recipeCurrentPage * RECIPE_MAX_ROWS * ITEM_BOX_PER_ROW;
          i < std::min(static_cast<int>(availableRecipes.size()), (recipeCurrentPage + 1) * RECIPE_MAX_ROWS * ITEM_BOX_PER_ROW); i++)
     {
-        ItemSlot recipeItemSlot(sf::Vector2f(xPos, yPos), itemBoxSize);
+        ItemSlot recipeItemSlot(pl::Vector2f(xPos, yPos), itemBoxSize);
 
         recipeItemSlots.push_back(recipeItemSlot);
 
@@ -149,7 +149,7 @@ void InventoryGUI::createRecipeItemSlots(InventoryData& inventory)
     }
 }
 
-void InventoryGUI::updateInventory(sf::Vector2f mouseScreenPos, float dt, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData)
+void InventoryGUI::updateInventory(pl::Vector2f mouseScreenPos, float dt, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData)
 {
     // Update controller navigation
     if (!InputManager::isControllerActive())
@@ -160,7 +160,7 @@ void InventoryGUI::updateInventory(sf::Vector2f mouseScreenPos, float dt, Invent
     else
     {
         // If controller is being used, do not update item slots based on mouse position
-        mouseScreenPos = sf::Vector2f(0, 0);
+        mouseScreenPos = pl::Vector2f(0, 0);
     }
 
     // Update bin animation
@@ -270,7 +270,7 @@ void InventoryGUI::updateInventory(sf::Vector2f mouseScreenPos, float dt, Invent
     }
 }
 
-void InventoryGUI::handleLeftClick(Game& game, sf::Vector2f mouseScreenPos, bool shiftMode, NetworkHandler& networkHandler,
+void InventoryGUI::handleLeftClick(Game& game, pl::Vector2f mouseScreenPos, bool shiftMode, NetworkHandler& networkHandler,
     InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData)
 {
     if (isItemPickedUp)
@@ -331,7 +331,7 @@ void InventoryGUI::handleLeftClick(Game& game, sf::Vector2f mouseScreenPos, bool
     networkHandler.queueSendPlayerData();
 }
 
-void InventoryGUI::handleRightClick(Game& game, sf::Vector2f mouseScreenPos, bool shiftMode, NetworkHandler& networkHandler,
+void InventoryGUI::handleRightClick(Game& game, pl::Vector2f mouseScreenPos, bool shiftMode, NetworkHandler& networkHandler,
     InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData)
 {
     if (canQuickTransfer(mouseScreenPos, shiftMode, inventory, chestData) && !openShopData.has_value())
@@ -351,7 +351,7 @@ void InventoryGUI::handleRightClick(Game& game, sf::Vector2f mouseScreenPos, boo
     networkHandler.queueSendPlayerData();
 }
 
-bool InventoryGUI::handleScroll(sf::Vector2f mouseScreenPos, int direction, InventoryData& inventory)
+bool InventoryGUI::handleScroll(pl::Vector2f mouseScreenPos, int direction, InventoryData& inventory)
 {
     // Mouse must be over recipe slots
     if (getHoveredItemSlotIndex(recipeItemSlots, mouseScreenPos) < 0)
@@ -375,7 +375,7 @@ bool InventoryGUI::handleScroll(sf::Vector2f mouseScreenPos, int direction, Inve
     return true;
 }
 
-void InventoryGUI::pickUpItem(Game& game, sf::Vector2f mouseScreenPos, unsigned int amount, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData)
+void InventoryGUI::pickUpItem(Game& game, pl::Vector2f mouseScreenPos, unsigned int amount, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData)
 {
     // Get item selected at mouse
     int itemIndex = getHoveredItemSlotIndex(inventoryItemSlots, mouseScreenPos);
@@ -463,7 +463,7 @@ void InventoryGUI::pickUpItem(Game& game, sf::Vector2f mouseScreenPos, unsigned 
     }
 }
 
-void InventoryGUI::putDownItem(Game& game, sf::Vector2f mouseScreenPos, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData)
+void InventoryGUI::putDownItem(Game& game, pl::Vector2f mouseScreenPos, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData)
 {
     if (!isItemPickedUp)
         return;
@@ -573,7 +573,7 @@ void InventoryGUI::putDownItem(Game& game, sf::Vector2f mouseScreenPos, Inventor
     }
 }
 
-int InventoryGUI::getHoveredItemSlotIndex(const std::vector<ItemSlot>& itemSlots, sf::Vector2f mouseScreenPos)
+int InventoryGUI::getHoveredItemSlotIndex(const std::vector<ItemSlot>& itemSlots, pl::Vector2f mouseScreenPos)
 {
     if (InputManager::isControllerActive() && controllerSelectedItemSlots == &itemSlots)
     {
@@ -594,17 +594,17 @@ int InventoryGUI::getHoveredItemSlotIndex(const std::vector<ItemSlot>& itemSlots
     return -1;
 }
 
-bool InventoryGUI::isBinSelected(sf::Vector2f mouseScreenPos)
+bool InventoryGUI::isBinSelected(pl::Vector2f mouseScreenPos)
 {
     return (getHoveredItemSlotIndex(binItemSlot, mouseScreenPos) >= 0);
 }
 
-bool InventoryGUI::isInventorySelected(sf::Vector2f mouseScreenPos)
+bool InventoryGUI::isInventorySelected(pl::Vector2f mouseScreenPos)
 {
     return (getHoveredItemSlotIndex(inventoryItemSlots, mouseScreenPos) >= 0);
 }
 
-bool InventoryGUI::isCraftingSelected(sf::Vector2f mouseScreenPos)
+bool InventoryGUI::isCraftingSelected(pl::Vector2f mouseScreenPos)
 {
     return (getHoveredItemSlotIndex(recipeItemSlots, mouseScreenPos) >= 0);
 }
@@ -680,7 +680,7 @@ void InventoryGUI::handleClose(InventoryData& inventory, InventoryData* chestDat
     }
 }
 
-bool InventoryGUI::isMouseOverUI(sf::Vector2f mouseScreenPos)
+bool InventoryGUI::isMouseOverUI(pl::Vector2f mouseScreenPos)
 {
     return (isInventorySelected(mouseScreenPos) || isCraftingSelected(mouseScreenPos) || isBinSelected(mouseScreenPos) || (getHoveredItemSlotIndex(armourItemSlots, mouseScreenPos) >= 0) ||
         (getHoveredItemSlotIndex(chestItemSlots, mouseScreenPos) >= 0));
@@ -896,7 +896,7 @@ bool InventoryGUI::heldItemPlacesLand(InventoryData& inventory)
     return hotbarItemPlacesLand(inventory);
 }
 
-void InventoryGUI::draw(sf::RenderTarget& window, float gameTime, sf::Vector2f mouseScreenPos, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData)
+void InventoryGUI::draw(pl::RenderTarget& window, float gameTime, pl::Vector2f mouseScreenPos, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData)
 {
     if (openShopData.has_value())
     {
@@ -922,7 +922,7 @@ void InventoryGUI::draw(sf::RenderTarget& window, float gameTime, sf::Vector2f m
     drawHoveredItemInfoBox(window, gameTime, mouseScreenPos, inventory, armourInventory, chestData);
 }
 
-void InventoryGUI::drawInventory(sf::RenderTarget& window, InventoryData& inventory)
+void InventoryGUI::drawInventory(pl::RenderTarget& window, InventoryData& inventory)
 {
     for (int itemIdx = 0; itemIdx < inventoryItemSlots.size(); itemIdx++)
     {
@@ -950,39 +950,41 @@ void InventoryGUI::drawInventory(sf::RenderTarget& window, InventoryData& invent
     }
 }
 
-void InventoryGUI::drawArmourInventory(sf::RenderTarget& window, InventoryData& armourInventory)
+void InventoryGUI::drawArmourInventory(pl::RenderTarget& window, InventoryData& armourInventory)
 {
-    static const std::array<sf::IntRect, ARMOUR_SLOTS> emptyArmourSlotIcons = {{
+    static const std::array<pl::Rect<int>, ARMOUR_SLOTS> emptyArmourSlotIcons = {{
         {176, 32, 15, 10},
         {192, 32, 11, 10},
         {208, 32, 9, 9}
     }};
 
-    static const sf::IntRect defenceIconTextureRect = sf::IntRect(160, 32, 16, 16);
+    static const pl::Rect<int> defenceIconTextureRect = pl::Rect<int>(160, 32, 16, 16);
 
     float intScale = ResolutionHandler::getResolutionIntegerScale();
 
     // Draw defence
-    sf::Vector2f defenceDisplayPos;
+    pl::Vector2f defenceDisplayPos;
     defenceDisplayPos.x = (itemBoxPadding + (itemBoxSize + itemBoxSpacing) * (static_cast<float>(ITEM_BOX_PER_ROW) + 0.5f)) * intScale;
     defenceDisplayPos.y = (itemBoxPadding + itemBoxSize * 0.5f) * intScale;
 
-    TextureDrawData defenceDrawData;
+    pl::DrawData defenceDrawData;
+    defenceDrawData.texture = TextureManager::getTexture(TextureType::UI);
+    defenceDrawData.shader = Shaders::getShader(ShaderType::Default);
     defenceDrawData.position = defenceDisplayPos;
-    defenceDrawData.type = TextureType::UI;
-    defenceDrawData.scale = sf::Vector2f(3, 3) * intScale;
-    defenceDrawData.centerRatio = sf::Vector2f(0.5f, 0.5f);
+    defenceDrawData.scale = pl::Vector2f(3, 3) * intScale;
+    defenceDrawData.centerRatio = pl::Vector2f(0.5f, 0.5f);
+    defenceDrawData.textureRect = defenceIconTextureRect;
 
-    TextureManager::drawSubTexture(window, defenceDrawData, defenceIconTextureRect);
+    TextureManager::drawSubTexture(window, defenceDrawData);
 
     // Draw defence text
     int defence = PlayerStats::calculateDefence(armourInventory);
 
-    TextDrawData defenceTextDrawData;
-    defenceTextDrawData.position = defenceDisplayPos + sf::Vector2f(itemBoxSize, itemBoxSize) * 0.25f * intScale;
+    pl::TextDrawData defenceTextDrawData;
+    defenceTextDrawData.position = defenceDisplayPos + pl::Vector2f(itemBoxSize, itemBoxSize) * 0.25f * intScale;
     defenceTextDrawData.size = 24 * static_cast<unsigned int>(intScale);
-    defenceTextDrawData.colour = sf::Color(255, 255, 255);
-    defenceTextDrawData.outlineColour = sf::Color(46, 34, 47);
+    defenceTextDrawData.color = pl::Color(255, 255, 255);
+    defenceTextDrawData.outlineColor = pl::Color(46, 34, 47);
     defenceTextDrawData.outlineThickness = 2 * intScale;
     defenceTextDrawData.text = std::to_string(defence);
     defenceTextDrawData.centeredX = true;
@@ -1016,26 +1018,26 @@ void InventoryGUI::drawArmourInventory(sf::RenderTarget& window, InventoryData& 
     }
 }
 
-void InventoryGUI::drawBin(sf::RenderTarget& window)
+void InventoryGUI::drawBin(pl::RenderTarget& window)
 {
     float intScale = ResolutionHandler::getResolutionIntegerScale();
 
-    sf::Vector2f binPosition;
+    pl::Vector2f binPosition;
     binPosition.x = binItemSlot[0].getPosition().x * intScale + binItemSlot[0].getItemBoxSize() / 2;
     binPosition.y = binItemSlot[0].getPosition().y * intScale + binItemSlot[0].getItemBoxSize() / 2;
-    // binPosition.x = itemBoxPadding * intScale + (itemBoxSize + itemBoxSpacing) * static_cast<float>(ITEM_BOX_PER_ROW) * intScale + (itemBoxSize * 1.5f) * intScale;
-    // binPosition.y = (itemBoxPadding + itemBoxSize * 0.5f) * intScale;
 
-    TextureManager::drawSubTexture(window, {
-        TextureType::UI,
-        binPosition,
-        0,
-        {3 * binScale * intScale, 3 * binScale * intScale},
-        {0.5, 0.5}
-    }, binAnimation.getTextureRect());
+    pl::DrawData drawData;
+    drawData.texture = TextureManager::getTexture(TextureType::UI);
+    drawData.shader = Shaders::getShader(ShaderType::Default);
+    drawData.position = binPosition;
+    drawData.scale = pl::Vector2f(3, 3) * binScale * intScale;
+    drawData.centerRatio = pl::Vector2f(0.5f, 0.5f);
+    drawData.textureRect = binAnimation.getTextureRect();
+
+    TextureManager::drawSubTexture(window, drawData);
 }
 
-void InventoryGUI::drawRecipes(sf::RenderTarget& window)
+void InventoryGUI::drawRecipes(pl::RenderTarget& window)
 {
     float intScale = ResolutionHandler::getResolutionIntegerScale();
 
@@ -1080,12 +1082,15 @@ void InventoryGUI::drawRecipes(sf::RenderTarget& window)
         }
 
         // Draw hammer icon
-        TextureManager::drawSubTexture(window, {
-            TextureType::UI,
-            (recipeItemSlots.back().getPosition() + sf::Vector2f(itemBoxSize + itemBoxSpacing, 0)) * intScale,
-            0,
-            {3 * intScale, 3 * intScale},
-        }, sf::IntRect(80, 16, 16, 16));
+        pl::DrawData hammerDrawData;
+        hammerDrawData.texture = TextureManager::getTexture(TextureType::UI);
+        hammerDrawData.shader = Shaders::getShader(ShaderType::Default);
+        hammerDrawData.position = (recipeItemSlots.back().getPosition() + pl::Vector2f(itemBoxSize + itemBoxSpacing, 0)) * intScale;
+        hammerDrawData.scale = pl::Vector2f(3, 3) * intScale;
+        hammerDrawData.centerRatio = pl::Vector2f(0.5f, 0.5f);
+        hammerDrawData.textureRect = pl::Rect<int>(80, 16, 16, 16);
+
+        TextureManager::drawSubTexture(window, hammerDrawData);
 
         static constexpr int RECIPE_PAGE_COUNT_HAMMMER_OFFSET_Y = 45;
 
@@ -1093,12 +1098,12 @@ void InventoryGUI::drawRecipes(sf::RenderTarget& window)
         if (recipePageCount > 1)
         {
             // Draw recipe page index
-            TextDrawData textDrawData;
+            pl::TextDrawData textDrawData;
             textDrawData.text = std::to_string(recipeCurrentPage + 1) + "/" + std::to_string(recipePageCount);
-            textDrawData.position = (recipeItemSlots.back().getPosition() + sf::Vector2f(itemBoxSize + itemBoxSpacing + 10, RECIPE_PAGE_COUNT_HAMMMER_OFFSET_Y)) * intScale;
-            textDrawData.colour = sf::Color(255, 255, 255);
+            textDrawData.position = (recipeItemSlots.back().getPosition() + pl::Vector2f(itemBoxSize + itemBoxSpacing + 10, RECIPE_PAGE_COUNT_HAMMMER_OFFSET_Y)) * intScale;
+            textDrawData.color = pl::Color(255, 255, 255);
             textDrawData.size = 24 * intScale;
-            textDrawData.outlineColour = sf::Color(46, 34, 47);
+            textDrawData.outlineColor = pl::Color(46, 34, 47);
             textDrawData.outlineThickness = 2 * intScale;
             TextDraw::drawText(window, textDrawData);
         }
@@ -1111,7 +1116,7 @@ void InventoryGUI::drawRecipes(sf::RenderTarget& window)
     }
 }
 
-void InventoryGUI::drawChest(sf::RenderTarget& window, InventoryData* chestData)
+void InventoryGUI::drawChest(pl::RenderTarget& window, InventoryData* chestData)
 {
     if (chestData == nullptr)
     {
@@ -1144,7 +1149,7 @@ void InventoryGUI::drawChest(sf::RenderTarget& window, InventoryData* chestData)
     }
 }
 
-void InventoryGUI::drawPickedUpItem(sf::RenderTarget& window, float gameTime, sf::Vector2f mouseScreenPos)
+void InventoryGUI::drawPickedUpItem(pl::RenderTarget& window, float gameTime, pl::Vector2f mouseScreenPos)
 {
     if (!isItemPickedUp)
     {
@@ -1157,7 +1162,7 @@ void InventoryGUI::drawPickedUpItem(sf::RenderTarget& window, float gameTime, sf
         float intScale = ResolutionHandler::getResolutionIntegerScale();
         ItemSlot& itemSlot = controllerSelectedItemSlots->at(controllerSelectedSlotIndex);
         int itemBoxOffset = itemSlot.getItemBoxSize() * 0.75f;
-        mouseScreenPos = (itemSlot.getPosition() + sf::Vector2f(itemBoxOffset, itemBoxOffset)) * intScale;
+        mouseScreenPos = (itemSlot.getPosition() + pl::Vector2f(itemBoxOffset, itemBoxOffset)) * intScale;
     }
 
     // Create dummy item slot at cursor
@@ -1166,7 +1171,7 @@ void InventoryGUI::drawPickedUpItem(sf::RenderTarget& window, float gameTime, sf
     pickedUpItemSlot.draw(window, pickedUpItem, pickedUpItemCount, true);
 }
 
-void InventoryGUI::drawHoveredItemInfoBox(sf::RenderTarget& window, float gameTime, sf::Vector2f mouseScreenPos, InventoryData& inventory,
+void InventoryGUI::drawHoveredItemInfoBox(pl::RenderTarget& window, float gameTime, pl::Vector2f mouseScreenPos, InventoryData& inventory,
     InventoryData& armourInventory, InventoryData* chestData)
 {
     // Do not draw info box if an item is picked up
@@ -1177,11 +1182,11 @@ void InventoryGUI::drawHoveredItemInfoBox(sf::RenderTarget& window, float gameTi
 
     // Create texture to draw info box on
     // Allows info box to be kept on screen
-    sf::RenderTexture infoBoxTexture;
-    infoBoxTexture.create(window.getSize().x, window.getSize().y);
-    infoBoxTexture.clear(sf::Color(0, 0, 0, 0));
+    pl::Framebuffer infoBoxTexture;
+    infoBoxTexture.create(window.getWidth(), window.getHeight());
+    infoBoxTexture.clear(pl::Color(0, 0, 0, 0));
 
-    sf::Vector2f infoBoxSize;
+    pl::Vector2f infoBoxSize;
 
     // Get currently hovered over item
     int hoveredItemIndex = getHoveredItemSlotIndex(inventoryItemSlots, mouseScreenPos);
@@ -1199,22 +1204,22 @@ void InventoryGUI::drawHoveredItemInfoBox(sf::RenderTarget& window, float gameTi
     {
         ItemSlot& itemSlot = controllerSelectedItemSlots->at(controllerSelectedSlotIndex);
         int itemBoxOffset = itemSlot.getItemBoxSize() * 0.75f;
-        mouseScreenPos = (itemSlot.getPosition() + sf::Vector2f(itemBoxOffset, itemBoxOffset)) * intScale;
+        mouseScreenPos = (itemSlot.getPosition() + pl::Vector2f(itemBoxOffset, itemBoxOffset)) * intScale;
     }
 
     // If an item is hovered over, draw item info box
     if (hoveredItemIndex >= 0)
     {
-        infoBoxSize = drawItemInfoBox(infoBoxTexture, gameTime, hoveredItemIndex, inventory, sf::Vector2f(0, 0), InventoryShopInfoMode::Sell);
+        infoBoxSize = drawItemInfoBox(infoBoxTexture, gameTime, hoveredItemIndex, inventory, pl::Vector2f(0, 0), InventoryShopInfoMode::Sell);
     }
     else if (hoveredArmourIndex >= 0)
     {
-        infoBoxSize = drawItemInfoBox(infoBoxTexture, gameTime, hoveredArmourIndex, armourInventory, sf::Vector2f(0, 0), InventoryShopInfoMode::Sell);
+        infoBoxSize = drawItemInfoBox(infoBoxTexture, gameTime, hoveredArmourIndex, armourInventory, pl::Vector2f(0, 0), InventoryShopInfoMode::Sell);
     }
     else if (hoveredRecipeSlotIndex >= 0)
     {
         int hoveredRecipeIndex = hoveredRecipeSlotIndex + recipeCurrentPage * RECIPE_MAX_ROWS * ITEM_BOX_PER_ROW;
-        infoBoxSize = drawItemInfoBoxRecipe(infoBoxTexture, gameTime, availableRecipes[hoveredRecipeIndex], sf::Vector2f(0, 0));
+        infoBoxSize = drawItemInfoBoxRecipe(infoBoxTexture, gameTime, availableRecipes[hoveredRecipeIndex], pl::Vector2f(0, 0));
     }
     else if (chestData != nullptr || openShopData.has_value())
     {
@@ -1224,44 +1229,44 @@ void InventoryGUI::drawHoveredItemInfoBox(sf::RenderTarget& window, float gameTi
         {
             if (chestData != nullptr)
             {
-                infoBoxSize = drawItemInfoBox(infoBoxTexture, gameTime, chestHoveredItemIndex, *chestData, sf::Vector2f(0, 0), InventoryShopInfoMode::None);
+                infoBoxSize = drawItemInfoBox(infoBoxTexture, gameTime, chestHoveredItemIndex, *chestData, pl::Vector2f(0, 0), InventoryShopInfoMode::None);
             }
             else
             {
-                infoBoxSize = drawItemInfoBox(infoBoxTexture, gameTime, chestHoveredItemIndex, openShopData.value(), sf::Vector2f(0, 0), InventoryShopInfoMode::Buy);
+                infoBoxSize = drawItemInfoBox(infoBoxTexture, gameTime, chestHoveredItemIndex, openShopData.value(), pl::Vector2f(0, 0), InventoryShopInfoMode::Buy);
             }
         }
     }
 
     if (infoBoxSize.x > 0 && infoBoxSize.y > 0)
     {
-        infoBoxTexture.display();
-
         // Keep on screen
-        sf::Vector2f drawPos = mouseScreenPos;
-        drawPos.x = std::min(window.getSize().x - infoBoxSize.x, drawPos.x);
-        drawPos.y = std::min(window.getSize().y - infoBoxSize.y, drawPos.y);
+        pl::Vector2f drawPos = mouseScreenPos;
+        drawPos.x = std::min(window.getWidth() - infoBoxSize.x, drawPos.x);
+        drawPos.y = std::min(window.getHeight() - infoBoxSize.y, drawPos.y);
 
-        sf::Sprite infoBoxSprite(infoBoxTexture.getTexture());
-        infoBoxSprite.setPosition(drawPos);
+        pl::VertexArray box;
 
-        window.draw(infoBoxSprite);
+        box.addQuad(pl::Rect<float>(drawPos, pl::Vector2f(infoBoxTexture.getWidth(), infoBoxTexture.getHeight())), pl::Color(),
+            pl::Rect<float>(0, 0, infoBoxTexture.getWidth(), infoBoxTexture.getHeight()));
+
+        window.draw(box, *Shaders::getShader(ShaderType::Default), &infoBoxTexture.getTexture(), pl::BlendMode::Alpha);
     }
 }
 
-sf::Vector2f InventoryGUI::drawItemInfoBox(sf::RenderTarget& window, float gameTime, int itemIndex, InventoryData& inventory, sf::Vector2f mouseScreenPos,
+pl::Vector2f InventoryGUI::drawItemInfoBox(pl::RenderTarget& window, float gameTime, int itemIndex, InventoryData& inventory, pl::Vector2f mouseScreenPos,
     InventoryShopInfoMode shopInfoMode)
 {
     const std::optional<ItemCount>& itemSlot = inventory.getItemSlotData(itemIndex);
 
     // If no item in slot, do not draw box
     if (!itemSlot.has_value())
-        return sf::Vector2f(0, 0);
+        return pl::Vector2f(0, 0);
     
     return drawItemInfoBox(window, gameTime, itemSlot.value(), mouseScreenPos, shopInfoMode);
 }
 
-sf::Vector2f InventoryGUI::drawItemInfoBox(sf::RenderTarget& window, float gameTime, ItemCount itemCount, sf::Vector2f mouseScreenPos, InventoryShopInfoMode shopInfoMode)
+pl::Vector2f InventoryGUI::drawItemInfoBox(pl::RenderTarget& window, float gameTime, ItemCount itemCount, pl::Vector2f mouseScreenPos, InventoryShopInfoMode shopInfoMode)
 {
     ItemType itemType = itemCount.first;
     unsigned int itemAmount = itemCount.second;
@@ -1272,7 +1277,7 @@ sf::Vector2f InventoryGUI::drawItemInfoBox(sf::RenderTarget& window, float gameT
 
     std::vector<ItemInfoString> infoStrings;
 
-    sf::Color itemNameColor = itemData.getNameColor(gameTime);
+    pl::Color itemNameColor = itemData.getNameColor(gameTime);
 
     infoStrings.push_back({itemData.getDisplayName(), 24, itemNameColor});
 
@@ -1415,16 +1420,16 @@ sf::Vector2f InventoryGUI::drawItemInfoBox(sf::RenderTarget& window, float gameT
         }
     }
 
-    return drawInfoBox(window, mouseScreenPos + sf::Vector2f(8, 8) * 3.0f * intScale, infoStrings);
+    return drawInfoBox(window, mouseScreenPos + pl::Vector2f(8, 8) * 3.0f * intScale, infoStrings);
 }
 
-sf::Vector2f InventoryGUI::drawItemInfoBoxRecipe(sf::RenderTarget& window, float gameTime, int recipeIdx, sf::Vector2f mouseScreenPos)
+pl::Vector2f InventoryGUI::drawItemInfoBoxRecipe(pl::RenderTarget& window, float gameTime, int recipeIdx, pl::Vector2f mouseScreenPos)
 {
     float intScale = ResolutionHandler::getResolutionIntegerScale();
 
     const RecipeData& recipeData = RecipeDataLoader::getRecipeData()[recipeIdx];
 
-    sf::Vector2f itemInfoBoxSize = drawItemInfoBox(window, gameTime, {recipeData.product, recipeData.productAmount}, mouseScreenPos, InventoryShopInfoMode::None);
+    pl::Vector2f itemInfoBoxSize = drawItemInfoBox(window, gameTime, {recipeData.product, recipeData.productAmount}, mouseScreenPos, InventoryShopInfoMode::None);
 
     std::vector<ItemInfoString> infoStrings;
 
@@ -1439,12 +1444,12 @@ sf::Vector2f InventoryGUI::drawItemInfoBoxRecipe(sf::RenderTarget& window, float
         itemRequirement.string = itemData.getDisplayName();
         itemRequirement.size = 20;
 
-        itemRequirement.color = sf::Color(232, 59, 59);
+        itemRequirement.color = pl::Color(232, 59, 59);
         if (previous_inventoryItemCount.count(item.first) >= 0)
         {
             if (previous_inventoryItemCount[item.first] >= item.second)
             {
-                itemRequirement.color = sf::Color(255, 255, 255);
+                itemRequirement.color = pl::Color(255, 255, 255);
             }
         }
 
@@ -1471,26 +1476,26 @@ sf::Vector2f InventoryGUI::drawItemInfoBoxRecipe(sf::RenderTarget& window, float
         }
     }
 
-    sf::Vector2f recipeInfoBoxSize = drawInfoBox(window, mouseScreenPos + sf::Vector2f(8, 8 + 6) * 3.0f * intScale + sf::Vector2f(0, itemInfoBoxSize.y), infoStrings);
+    pl::Vector2f recipeInfoBoxSize = drawInfoBox(window, mouseScreenPos + pl::Vector2f(8, 8 + 6) * 3.0f * intScale + pl::Vector2f(0, itemInfoBoxSize.y), infoStrings);
 
-    return (itemInfoBoxSize + recipeInfoBoxSize + sf::Vector2f(0, 8 + 6 + 5) * 3.0f * intScale);
+    return (itemInfoBoxSize + recipeInfoBoxSize + pl::Vector2f(0, 8 + 6 + 5) * 3.0f * intScale);
 }
 
-sf::Vector2f InventoryGUI::drawInfoBox(sf::RenderTarget& window, sf::Vector2f position, const std::vector<ItemInfoString>& infoStrings, int alpha, float flashAmount)
+pl::Vector2f InventoryGUI::drawInfoBox(pl::RenderTarget& window, pl::Vector2f position, const std::vector<ItemInfoString>& infoStrings, int alpha, float flashAmount)
 {
-    static const std::array<sf::IntRect, 4> sides = {
-        sf::IntRect(20, 80, 1, 3), // top
-        sf::IntRect(22, 84, 3, 1), // right
-        sf::IntRect(20, 86, 1, 3), // bottom
-        sf::IntRect(16, 84, 3, 1)  // left
+    static const std::array<pl::Rect<int>, 4> sides = {
+        pl::Rect<int>(20, 80, 1, 3), // top
+        pl::Rect<int>(22, 84, 3, 1), // right
+        pl::Rect<int>(20, 86, 1, 3), // bottom
+        pl::Rect<int>(16, 84, 3, 1)  // left
     };
-    static const std::array<sf::IntRect, 4> corners = {
-        sf::IntRect(16, 80, 3, 3), // top left
-        sf::IntRect(22, 80, 3, 3), // top right
-        sf::IntRect(22, 86, 3, 3),  // bottom right
-        sf::IntRect(16, 86, 3, 3) // bottom left
+    static const std::array<pl::Rect<int>, 4> corners = {
+        pl::Rect<int>(16, 80, 3, 3), // top left
+        pl::Rect<int>(22, 80, 3, 3), // top right
+        pl::Rect<int>(22, 86, 3, 3),  // bottom right
+        pl::Rect<int>(16, 86, 3, 3) // bottom left
     };
-    static const sf::IntRect centre(20, 84, 1, 1);
+    static const pl::Rect<int> centre(20, 84, 1, 1);
 
     int intScale = ResolutionHandler::getResolutionIntegerScale();
 
@@ -1504,7 +1509,7 @@ sf::Vector2f InventoryGUI::drawInfoBox(sf::RenderTarget& window, sf::Vector2f po
 
     for (const ItemInfoString& infoString : infoStrings)
     {
-        TextDrawData textDrawData = {
+        pl::TextDrawData textDrawData = {
             .text = infoString.string,
             .size = infoString.size * static_cast<unsigned int>(intScale)
         };
@@ -1522,41 +1527,63 @@ sf::Vector2f InventoryGUI::drawInfoBox(sf::RenderTarget& window, sf::Vector2f po
     }
 
     // Draw box
-    SpriteBatch spriteBatch;
+    pl::SpriteBatch spriteBatch;
+    
+    pl::DrawData boxDrawData;
+    boxDrawData.texture = TextureManager::getTexture(TextureType::UI);
+    boxDrawData.shader = Shaders::getShader(ShaderType::Default);
+    boxDrawData.color = pl::Color(255, 255, 255, alpha);
 
-    std::optional<ShaderType> shader = std::nullopt;
     if (flashAmount > 0.0f)
     {
-        shader = ShaderType::Flash;
-        sf::Shader* flashShader = Shaders::getShader(shader.value());
-        flashShader->setUniform("flash_amount", flashAmount);
+        boxDrawData.shader = Shaders::getShader(ShaderType::Flash);
+        boxDrawData.shader->setUniform1f("flash_amount", flashAmount);
     }
 
-    sf::Vector2f scale(3 * intScale, 3 * intScale);
-
-    sf::Color colour(255, 255, 255, alpha);
+    pl::Vector2f scale(3 * intScale, 3 * intScale);
 
     // Draw corners
-    spriteBatch.draw(window, {TextureType::UI, position, 0, scale, {0, 0}, colour}, corners[0], shader);
-    spriteBatch.draw(window, {TextureType::UI, position + sf::Vector2f(width + sides[1].width * scale.y, 0), 0, scale, {0, 0}, colour}, corners[1], shader);
-    spriteBatch.draw(window, {TextureType::UI,
-        position + sf::Vector2f(width + sides[1].width * scale.x, height + sides[0].height * scale.y), 0, scale, {0, 0}, colour}, corners[2], shader);
-    spriteBatch.draw(window, {TextureType::UI, position + sf::Vector2f(0, height + sides[0].height * scale.y), 0, scale, {0, 0}, colour}, corners[3], shader);
+    boxDrawData.position = position;
+    boxDrawData.textureRect = corners[0];
+    spriteBatch.draw(window, boxDrawData);
+
+    boxDrawData.position = position + pl::Vector2f(width + sides[1].width * scale.y, 0);
+    boxDrawData.textureRect = corners[1];
+    spriteBatch.draw(window, boxDrawData);
+
+    boxDrawData.position = position + pl::Vector2f(width + sides[1].width * scale.x, height + sides[0].height * scale.y);
+    boxDrawData.textureRect = corners[2];
+    spriteBatch.draw(window, boxDrawData);
+
+    boxDrawData.position = position + pl::Vector2f(0, height + sides[0].height * scale.y);
+    boxDrawData.textureRect = corners[3];
+    spriteBatch.draw(window, boxDrawData);
 
     // Draw sides
-    spriteBatch.draw(window, {TextureType::UI,
-        position + sf::Vector2f(sides[3].width * scale.x, 0), 0, sf::Vector2f(width, scale.y), {0, 0}, colour}, sides[0], shader);
-    spriteBatch.draw(window, {TextureType::UI,
-        position + sf::Vector2f(sides[3].width * scale.x + width, sides[0].height * scale.y), 0, sf::Vector2f(scale.x, height), {0, 0}, colour}, sides[1], shader);
-    spriteBatch.draw(window, {TextureType::UI,
-        position + sf::Vector2f(sides[3].width * scale.x, sides[0].height * scale.y + height), 0, sf::Vector2f(width, scale.y), {0, 0}, colour}, sides[2], shader);
-    spriteBatch.draw(window, {TextureType::UI,
-        position + sf::Vector2f(0, sides[0].height * scale.x), 0, sf::Vector2f(scale.x, height), {0, 0}, colour}, sides[3], shader);
-
-    // Draw centre
-    spriteBatch.draw(window, {TextureType::UI,
-        position + sf::Vector2f(sides[3].width * scale.x, sides[0].height * scale.y), 0,
-        sf::Vector2f(width,  height), {0, 0}, colour}, centre, shader);
+    boxDrawData.position = position + pl::Vector2f(sides[3].width * scale.x, 0);
+    boxDrawData.scale = pl::Vector2f(width, scale.y);
+    boxDrawData.textureRect = sides[0];
+    spriteBatch.draw(window, boxDrawData);
+    
+    boxDrawData.position = position + pl::Vector2f(sides[3].width * scale.x + width, sides[0].height * scale.y);
+    boxDrawData.scale = pl::Vector2f(scale.x, height);
+    boxDrawData.textureRect = sides[1];
+    spriteBatch.draw(window, boxDrawData);
+    
+    boxDrawData.position = position + pl::Vector2f(sides[3].width * scale.x, sides[0].height * scale.y + height);
+    boxDrawData.scale = pl::Vector2f(width, scale.y);
+    boxDrawData.textureRect = sides[2];
+    spriteBatch.draw(window, boxDrawData);
+        
+    boxDrawData.position = position + pl::Vector2f(0, sides[0].height * scale.x);
+    boxDrawData.scale = pl::Vector2f(scale.x, height);
+    boxDrawData.textureRect = sides[3];
+    spriteBatch.draw(window, boxDrawData);
+    
+    boxDrawData.position = position + pl::Vector2f(sides[3].width * scale.x, sides[0].height * scale.y);
+    boxDrawData.scale = pl::Vector2f(width, height);
+    boxDrawData.textureRect = centre;
+    spriteBatch.draw(window, boxDrawData);
 
     spriteBatch.endDrawing(window);
 
@@ -1568,11 +1595,11 @@ sf::Vector2f InventoryGUI::drawInfoBox(sf::RenderTarget& window, sf::Vector2f po
     {
         const ItemInfoString& infoString = infoStrings[i];
 
-        TextDrawData textDrawData = {
+        pl::TextDrawData textDrawData = {
             .text = infoString.string,
-            .position = position + sf::Vector2f(sides[3].width * 3 * intScale + textXPadding * intScale,
+            .position = position + pl::Vector2f(sides[3].width * 3 * intScale + textXPadding * intScale,
                 sides[0].height * 3 * intScale + textYOffset - textYShift * intScale),
-            .colour = sf::Color(infoString.color.r, infoString.color.g, infoString.color.b, alpha),
+            .color = pl::Color(infoString.color.r, infoString.color.g, infoString.color.b, alpha),
             .size = infoString.size * static_cast<unsigned int>(intScale)
         };
 
@@ -1585,15 +1612,15 @@ sf::Vector2f InventoryGUI::drawInfoBox(sf::RenderTarget& window, sf::Vector2f po
             // itemSlot.draw(window, itemCount.first, itemCount.second, true);
             // Offset text draw data position downwards
             textDrawData.position.y += textYPadding * intScale;
-            ItemSlot::drawItem(window, itemCount.first, textDrawData.position + sf::Vector2f(itemSize, itemSize) * 0.5f * static_cast<float>(intScale), 1.0f, true, alpha);
+            ItemSlot::drawItem(window, itemCount.first, textDrawData.position + pl::Vector2f(itemSize, itemSize) * 0.5f * static_cast<float>(intScale), 1.0f, true, alpha);
 
             // Draw item amount
             if (infoString.drawItemCountNumberWhenOne || !infoString.drawItemCountNumberWhenOne && itemCount.second > 1)
             {
-                TextDrawData itemAmountText = {
+                pl::TextDrawData itemAmountText = {
                     .text = std::to_string(itemCount.second),
-                    .position = textDrawData.position + sf::Vector2f(itemSize, itemSize) * 0.85f * static_cast<float>(intScale),
-                    .colour = sf::Color(255, 255, 255, alpha),
+                    .position = textDrawData.position + pl::Vector2f(itemSize, itemSize) * 0.85f * static_cast<float>(intScale),
+                    .color = pl::Color(255, 255, 255, alpha),
                     .size = textDrawData.size,
                     .centeredX = true,
                     .centeredY = true
@@ -1625,7 +1652,7 @@ sf::Vector2f InventoryGUI::drawInfoBox(sf::RenderTarget& window, sf::Vector2f po
     float totalWidth = ((sides[3].width + sides[1].width) * 3 + boxXPadding) * intScale + width;
     float totalHeight = (sides[0].width + sides[2].width) * 3 * intScale + height;
 
-    return sf::Vector2f(totalWidth, totalHeight);
+    return pl::Vector2f(totalWidth, totalHeight);
 }
 
 bool InventoryGUI::canPutDownItemInArmourInventory(int hoveredIndex)
@@ -1655,12 +1682,12 @@ bool InventoryGUI::canPutDownItemInArmourInventory(int hoveredIndex)
 
 // -- Hotbar -- //
 
-void InventoryGUI::updateHotbar(float dt, sf::Vector2f mouseScreenPos)
+void InventoryGUI::updateHotbar(float dt, pl::Vector2f mouseScreenPos)
 {
     if (InputManager::isControllerActive())
     {
         // If controller is being used, do not update item slots based on mouse position
-        mouseScreenPos = sf::Vector2f(0, 0);
+        mouseScreenPos = pl::Vector2f(0, 0);
     }
 
     for (int i = 0; i < hotbarItemSlots.size(); i++)
@@ -1676,7 +1703,7 @@ void InventoryGUI::updateHotbar(float dt, sf::Vector2f mouseScreenPos)
     hotbarItemStringTimer = std::max(hotbarItemStringTimer - dt, 0.0f);
 }
 
-bool InventoryGUI::handleLeftClickHotbar(sf::Vector2f mouseScreenPos)
+bool InventoryGUI::handleLeftClickHotbar(pl::Vector2f mouseScreenPos)
 {
     // Get hovered index
     int hoveredIndex = getHoveredItemSlotIndex(hotbarItemSlots, mouseScreenPos);
@@ -1765,10 +1792,10 @@ void InventoryGUI::handleHotbarItemChange()
     hotbarItemStringTimer = HOTBAR_ITEM_STRING_OPAQUE_TIME + HOTBAR_ITEM_STRING_FADE_TIME;
 }
 
-void InventoryGUI::drawHotbar(sf::RenderTarget& window, sf::Vector2f mouseScreenPos, InventoryData& inventory)
+void InventoryGUI::drawHotbar(pl::RenderTarget& window, pl::Vector2f mouseScreenPos, InventoryData& inventory)
 {
     // Get resolution
-    const sf::Vector2u& resolution = ResolutionHandler::getResolution();
+    const pl::Vector2<uint32_t>& resolution = ResolutionHandler::getResolution();
     float intScale = ResolutionHandler::getResolutionIntegerScale();
 
     std::string selectedItemName = "";
@@ -1810,10 +1837,10 @@ void InventoryGUI::drawHotbar(sf::RenderTarget& window, sf::Vector2f mouseScreen
         // Draw text
         TextDraw::drawText(window, {
             .text = selectedItemName,
-            .position = (hotbarItemSlots[0].getPosition() + sf::Vector2f(0, itemBoxSize)) * intScale,
-            .colour = sf::Color(255, 255, 255, alpha),
+            .position = (hotbarItemSlots[0].getPosition() + pl::Vector2f(0, itemBoxSize)) * intScale,
+            .color = pl::Color(255, 255, 255, alpha),
             .size = 24 * static_cast<unsigned int>(intScale),
-            .outlineColour = sf::Color(46, 34, 47, alpha),
+            .outlineColor = pl::Color(46, 34, 47, alpha),
             .outlineThickness = 2 * intScale
         });
     }
@@ -1845,11 +1872,11 @@ void InventoryGUI::createChestItemSlots(InventoryData* chestData)
     
     chestItemSlots.clear();
 
-    sf::Vector2f resolution = static_cast<sf::Vector2f>(ResolutionHandler::getResolution());
+    pl::Vector2f resolution = static_cast<pl::Vector2f>(ResolutionHandler::getResolution());
 
     static const float xStart = itemBoxPadding + (ITEM_BOX_PER_ROW + 4) * itemBoxSize;
 
-    sf::Vector2f chestItemBoxPosition = sf::Vector2f(xStart, itemBoxPadding);
+    pl::Vector2f chestItemBoxPosition = pl::Vector2f(xStart, itemBoxPadding);
 
     int currentRowIndex = 0;
     int currentColumnIndex = 0;
@@ -1879,7 +1906,7 @@ void InventoryGUI::createChestItemSlots(InventoryData* chestData)
     }
 }
 
-void InventoryGUI::inventoryChestItemQuickTransfer(Game& game, sf::Vector2f mouseScreenPos, unsigned int amount, InventoryData& inventory, InventoryData& chestData)
+void InventoryGUI::inventoryChestItemQuickTransfer(Game& game, pl::Vector2f mouseScreenPos, unsigned int amount, InventoryData& inventory, InventoryData& chestData)
 {
     InventoryData* hoveredInventory = &inventory;
     InventoryData* destinationInventory = &chestData;
@@ -2061,18 +2088,18 @@ void InventoryGUI::pushItemPopup(const ItemCount& itemCount, bool notEnoughSpace
     }
 }
 
-void InventoryGUI::drawItemPopups(sf::RenderTarget& window, float gameTime)
+void InventoryGUI::drawItemPopups(pl::RenderTarget& window, float gameTime)
 {
     if (itemPopups.size() <= 0)
         return;
 
-    sf::RenderTexture popupTexture;
-    popupTexture.create(window.getSize().x, window.getSize().y);
-    popupTexture.clear(sf::Color(0, 0, 0, 0));
+    pl::Framebuffer popupTexture;
+    popupTexture.create(window.getWidth(), window.getHeight());
+    popupTexture.clear(pl::Color(0, 0, 0, 0));
 
     int intScale = ResolutionHandler::getResolutionIntegerScale();
 
-    sf::Vector2f popupPos(itemBoxPadding * intScale, itemBoxPadding * intScale);
+    pl::Vector2f popupPos(itemBoxPadding * intScale, itemBoxPadding * intScale);
 
     for (const ItemPopup& itemPopup : itemPopups)
     {
@@ -2091,7 +2118,7 @@ void InventoryGUI::drawItemPopups(sf::RenderTarget& window, float gameTime)
         else if (itemPopup.notEnoughSpace)
         {
             infoString.string += " - Inventory Full";
-            infoString.color = sf::Color(232, 59, 59);
+            infoString.color = pl::Color(232, 59, 59);
         }
 
         infoString.size = 20;
@@ -2101,16 +2128,19 @@ void InventoryGUI::drawItemPopups(sf::RenderTarget& window, float gameTime)
 
         float flashAmount = std::max(POPUP_FLASH_TIME - itemPopup.timeAlive, 0.0f) / POPUP_FLASH_TIME;
 
-        sf::Vector2f boxSize = drawInfoBox(popupTexture, popupPos, {infoString}, alpha, flashAmount);
+        pl::Vector2f boxSize = drawInfoBox(popupTexture, popupPos, {infoString}, alpha, flashAmount);
         popupPos.y += boxSize.y + (itemBoxSpacing + 6) * intScale;
     }
 
-    popupTexture.display();
+    pl::DrawData hammerDrawData;
+    hammerDrawData.texture = TextureManager::getTexture(TextureType::UI);
+    hammerDrawData.shader = Shaders::getShader(ShaderType::Default);
+    hammerDrawData.position = (recipeItemSlots.back().getPosition() + pl::Vector2f(itemBoxSize + itemBoxSpacing, 0)) * intScale;
+    hammerDrawData.scale = pl::Vector2f(3, 3) * intScale;
+    hammerDrawData.centerRatio = pl::Vector2f(0.5f, 0.5f);
+    hammerDrawData.textureRect = pl::Rect<int>(80, 16, 16, 16);
 
-    sf::Sprite popupTextureSprite(popupTexture.getTexture());
-    popupTextureSprite.setPosition(sf::Vector2f(0, window.getSize().y - popupPos.y - 9 * intScale));
-
-    window.draw(popupTextureSprite);
+    TextureManager::drawSubTexture(window, hammerDrawData);
 }
 
 
@@ -2293,12 +2323,12 @@ bool InventoryGUI::handleControllerInput(Game& game, NetworkHandler& networkHand
 
     if (InputManager::isActionJustActivated(InputAction::UI_CONFIRM))
     {
-        handleLeftClick(game, sf::Vector2f(0, 0), InputManager::isActionActive(InputAction::UI_SHIFT), networkHandler, inventory, armourInventory, chestData);
+        handleLeftClick(game, pl::Vector2f(0, 0), InputManager::isActionActive(InputAction::UI_SHIFT), networkHandler, inventory, armourInventory, chestData);
         return true;
     }
     if (InputManager::isActionJustActivated(InputAction::UI_CONFIRM_OTHER))
     {
-        handleRightClick(game, sf::Vector2f(0, 0), InputManager::isActionActive(InputAction::UI_SHIFT), networkHandler, inventory, armourInventory, chestData);
+        handleRightClick(game, pl::Vector2f(0, 0), InputManager::isActionActive(InputAction::UI_SHIFT), networkHandler, inventory, armourInventory, chestData);
         return true;
     }
 
@@ -2307,7 +2337,7 @@ bool InventoryGUI::handleControllerInput(Game& game, NetworkHandler& networkHand
 
 
 // -- Misc -- //
-bool InventoryGUI::canQuickTransfer(sf::Vector2f mouseScreenPos, bool shiftMode, InventoryData& inventory, InventoryData* chestData)
+bool InventoryGUI::canQuickTransfer(pl::Vector2f mouseScreenPos, bool shiftMode, InventoryData& inventory, InventoryData* chestData)
 {
     if (!shiftMode)
         return false;

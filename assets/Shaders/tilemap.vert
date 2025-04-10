@@ -12,7 +12,7 @@ layout(location = 2) in vec2 inTextureUV;
 
 void main()
 {
-    gl_Position = vec4(inPosition.x * scale.x + position.x, inPosition.y * scale.y + position.y, 0.0, 1.0);
+    gl_Position = vec4(inPosition.x * scale.x + position.x, (1.0 - (1.0 - inPosition.y) * scale.y) + position.y, 0.0, 1.0);
     fragColor = inColor;
     fragUV = inTextureUV;
 }

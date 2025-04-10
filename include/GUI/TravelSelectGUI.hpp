@@ -1,8 +1,15 @@
 #pragma once
 
-#include <SFML/Graphics.hpp>
 #include <vector>
 
+#include <Graphics/VertexArray.hpp>
+#include <Graphics/Color.hpp>
+#include <Graphics/RenderTarget.hpp>
+#include <Graphics/Texture.hpp>
+#include <Vector.hpp>
+#include <Rect.hpp>
+
+#include "Core/Shaders.hpp"
 #include "Core/ResolutionHandler.hpp"
 #include "Core/TextDraw.hpp"
 
@@ -22,7 +29,7 @@ public:
 
     void setAvailableDestinations(const std::vector<PlanetType>& availablePlanetDestinations, const std::vector<RoomType>& availableRoomDestinations);
 
-    bool createAndDraw(sf::RenderWindow& window, float dt, LocationState& selectedLocationState);
+    bool createAndDraw(pl::RenderTarget& window, float dt, LocationState& selectedLocationState);
 
 private:
     std::vector<PlanetType> availablePlanetDestinations;

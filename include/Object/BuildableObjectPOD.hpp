@@ -23,7 +23,7 @@ struct BuildableObjectPOD
 
     std::optional<ObjectReference> objectReference;
 
-    std::optional<pl::Color> landmarkColourA, landmarkColourB;
+    std::optional<pl::Color> landmarkColorA, landmarkColorB;
 
     template <class Archive>
     void serialize(Archive& ar, const std::uint32_t version)
@@ -34,26 +34,26 @@ struct BuildableObjectPOD
         }
         else if (version == 2)
         {
-            uint8_t loadLandmarkColourAR, loadLandmarkColourAG, loadLandmarkColourAB, loadLandmarkColourBR, loadLandmarkColourBG, loadLandmarkColourBB;
+            uint8_t loadLandmarkColorAR, loadLandmarkColorAG, loadLandmarkColorAB, loadLandmarkColouBR, loadLandmarkColouBG, loadLandmarkColouBB;
             ar(objectType, chestID, objectReference, plantDayPlanted,
-                loadLandmarkColourAR, loadLandmarkColourAG, loadLandmarkColourAB,
-                loadLandmarkColourBR, loadLandmarkColourBG, loadLandmarkColourBB);
+                loadLandmarkColorAR, loadLandmarkColorAG, loadLandmarkColorAB,
+                loadLandmarkColouBR, loadLandmarkColouBG, loadLandmarkColouBB);
             
-            landmarkColourA = pl::Color(loadLandmarkColourAR, loadLandmarkColourAG, loadLandmarkColourAB);
-            landmarkColourB = pl::Color(loadLandmarkColourBR, loadLandmarkColourBG, loadLandmarkColourBB);
+            landmarkColorA = pl::Color(loadLandmarkColorAR, loadLandmarkColorAG, loadLandmarkColorAB);
+            landmarkColorB = pl::Color(loadLandmarkColouBR, loadLandmarkColouBG, loadLandmarkColouBB);
         }
         else if (version == 3)
         {
-            uint8_t loadLandmarkColourAR, loadLandmarkColourAG, loadLandmarkColourAB, loadLandmarkColourBR, loadLandmarkColourBG, loadLandmarkColourBB;
+            uint8_t loadLandmarkColorAR, loadLandmarkColorAG, loadLandmarkColorAB, loadLandmarkColouBR, loadLandmarkColouBG, loadLandmarkColouBB;
             ar(objectType, chestID, objectReference, plantDayPlanted,
-                loadLandmarkColourAR, loadLandmarkColourAG, loadLandmarkColourAB, loadLandmarkColourBR, loadLandmarkColourBG, loadLandmarkColourBB);
+                loadLandmarkColorAR, loadLandmarkColorAG, loadLandmarkColorAB, loadLandmarkColouBR, loadLandmarkColouBG, loadLandmarkColouBB);
 
-            landmarkColourA = pl::Color(loadLandmarkColourAR, loadLandmarkColourAG, loadLandmarkColourAB);
-            landmarkColourB = pl::Color(loadLandmarkColourBR, loadLandmarkColourBG, loadLandmarkColourBB);
+            landmarkColorA = pl::Color(loadLandmarkColorAR, loadLandmarkColorAG, loadLandmarkColorAB);
+            landmarkColorB = pl::Color(loadLandmarkColouBR, loadLandmarkColouBG, loadLandmarkColouBB);
         }
         if (version == 4)
         {
-            ar(objectType, chestID, objectReference, plantDayPlanted, landmarkColourA, landmarkColourB);
+            ar(objectType, chestID, objectReference, plantDayPlanted, landmarkColorA, landmarkColorB);
         }
     }
 

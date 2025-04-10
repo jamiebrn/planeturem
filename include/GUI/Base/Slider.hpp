@@ -3,8 +3,14 @@
 #include <string>
 #include <optional>
 
-#include <SFML/Graphics.hpp>
+#include <Graphics/VertexArray.hpp>
+#include <Graphics/Color.hpp>
+#include <Graphics/RenderTarget.hpp>
+#include <Graphics/Texture.hpp>
+#include <Vector.hpp>
+#include <Rect.hpp>
 
+#include "Core/Shaders.hpp"
 #include "Core/TextDraw.hpp"
 #include "Core/CollisionRect.hpp"
 #include "Core/InputManager.hpp"
@@ -21,9 +27,9 @@ public:
     bool isHeld() const;
     bool hasReleased() const;
 
-    void draw(sf::RenderTarget& window) override;
+    void draw(pl::RenderTarget& window) override;
 
-    sf::IntRect getBoundingBox() const override;
+    pl::Rect<int> getBoundingBox() const override;
 
 private:
     bool held;

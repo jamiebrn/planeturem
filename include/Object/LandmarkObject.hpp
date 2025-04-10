@@ -39,8 +39,8 @@ public:
     virtual bool isInteractable() const override;
 
     void setLandmarkColour(const pl::Color& colourA, const pl::Color& colourB);
-    const pl::Color& getColourA() const;
-    const pl::Color& getColourB() const;
+    const pl::Color& getColorA() const;
+    const pl::Color& getColorB() const;
 
     virtual BuildableObjectPOD getPOD() const override;
     virtual void loadFromPOD(const BuildableObjectPOD& pod) override;

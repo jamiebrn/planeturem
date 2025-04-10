@@ -1,57 +1,49 @@
 #include "GUI/Base/GUIContext.hpp"
 
-void GUIContext::processEvent(const sf::Event& event)
+void GUIContext::processEvent(const SDL_Event& event)
 {
-    if (event.type == sf::Event::MouseButtonPressed)
+    if (event.type == SDL_MOUSEBUTTONDOWN)
     {
-        if (event.mouseButton.button == sf::Mouse::Left)
+        if (event.button.button == SDL_BUTTON_LEFT)
         {
             inputState.leftMouseJustDown = true;
             inputState.leftMousePressed = true;
         }
-        if (event.mouseButton.button == sf::Mouse::Right)
+        if (event.button.button == SDL_BUTTON_RIGHT)
         {
             inputState.rightMouseJustDown = true;
             inputState.rightMousePressed = true;
         }
     }
 
-    if (event.type == sf::Event::MouseButtonReleased)
+    if (event.type == SDL_MOUSEBUTTONUP)
     {
-        if (event.mouseButton.button == sf::Mouse::Left)
+        if (event.button.button == SDL_BUTTON_LEFT)
         {
             inputState.leftMouseJustUp = true;
             inputState.leftMousePressed = false;
-
-            // activeElementRequiresReset = true;
         }
-        if (event.mouseButton.button == sf::Mouse::Right)
+        if (event.button.button == SDL_BUTTON_RIGHT)
         {
             inputState.rightMouseJustUp = true;
             inputState.rightMousePressed = false;
         }
     }
 
-    if (event.type == sf::Event::MouseMoved)
+    if (event.type == SDL_MOUSEMOTION)
     {
-        inputState.mouseX = event.mouseMove.x;
-        inputState.mouseY = event.mouseMove.y;
+        inputState.mouseX = event.motion.x;
+        inputState.mouseY = event.motion.y;
     }
 
-    if (event.type == sf::Event::TextEntered)
+    if (event.type == SDL_TEXTINPUT)
     {
-        if (event.text.unicode <= 90 && event.text.unicode >= 65 ||
-            event.text.unicode >= 97 && event.text.unicode <= 122 ||
-            event.text.unicode >= 48 && event.text.unicode <= 57 ||
-            event.text.unicode == 95)
-        {
-            inputState.charEnterBuffer.push_back(event.text.unicode);
-        }
+        inputState.charEnterBuffer += event.text.text;
     }
 
-    if (event.type == sf::Event::KeyPressed)
+    if (event.type == SDL_KEYDOWN)
     {
-        if (event.key.code == sf::Keyboard::Backspace)
+        if (event.key.keysym.scancode == SDL_SCANCODE_BACKSPACE)
         {
             inputState.backspaceJustPressed = true;
         }
@@ -167,7 +159,7 @@ const TextEnter& GUIContext::createTextEnter(int x, int y, int width, int height
     return *static_cast<TextEnter*>(elements.back().get());
 }
 
-void GUIContext::draw(sf::RenderTarget& window)
+void GUIContext::draw(pl::RenderTarget& window)
 {
     for (auto& guiElement : elements)
     {

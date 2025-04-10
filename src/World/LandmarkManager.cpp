@@ -29,8 +29,8 @@ std::vector<LandmarkSummaryData> LandmarkManager::getLandmarkSummaryDatas(const 
         }
 
         landmarkSummary.worldPos = landmarkObjectPtr->getPosition();
-        landmarkSummary.colourA = landmarkObjectPtr->getColourA();
-        landmarkSummary.colourB = landmarkObjectPtr->getColourB();
+        landmarkSummary.colorA = landmarkObjectPtr->getColorA();
+        landmarkSummary.colorB = landmarkObjectPtr->getColorB();
 
         landmarkSummary.worldPos = chunkManager.translatePositionAroundWorld(landmarkSummary.worldPos, player.getPosition());
 
