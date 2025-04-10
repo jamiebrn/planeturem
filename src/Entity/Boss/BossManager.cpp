@@ -4,7 +4,7 @@
 #include "Entity/Boss/BossSandSerpent.hpp"
 #include "Entity/Boss/BossGlacialBrute.hpp"
 
-bool BossManager::createBoss(const std::string& name, sf::Vector2f playerPosition, Game& game)
+bool BossManager::createBoss(const std::string& name, pl::Vector2f playerPosition, Game& game)
 {
     if (bossAliveNames.contains(name))
     {
@@ -87,7 +87,7 @@ void BossManager::testHitRectCollision(const std::vector<HitRect>& hitRects)
     }
 }
 
-void BossManager::handleWorldWrap(sf::Vector2f positionDelta)
+void BossManager::handleWorldWrap(pl::Vector2f positionDelta)
 {
     for (auto& boss : bosses)
     {
@@ -135,7 +135,7 @@ void BossManager::clearBosses()
     bossAliveNames.clear();
 }
 
-// void BossManager::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch)
+// void BossManager::draw(pl::RenderTarget& window, SpriteBatch& spriteBatch)
 // {
 //     for (auto& boss : bosses)
 //     {
@@ -143,11 +143,11 @@ void BossManager::clearBosses()
 //     }
 // }
 
-void BossManager::drawStatsAtCursor(sf::RenderTarget& window, const Camera& camera, sf::Vector2f mouseScreenPos)
+void BossManager::drawStatsAtCursor(pl::RenderTarget& window, const Camera& camera, pl::Vector2f mouseScreenPos)
 {
     std::vector<std::string> hoverStats;
 
-    sf::Vector2f mouseWorldPos = camera.screenToWorldTransform(mouseScreenPos);
+    pl::Vector2f mouseWorldPos = camera.screenToWorldTransform(mouseScreenPos);
 
     for (auto& boss : bosses)
     {
@@ -156,16 +156,16 @@ void BossManager::drawStatsAtCursor(sf::RenderTarget& window, const Camera& came
 
     float intScale = ResolutionHandler::getResolutionIntegerScale();
 
-    sf::Vector2f statPos = mouseScreenPos + sf::Vector2f(STATS_DRAW_OFFSET_X, STATS_DRAW_OFFSET_Y) * intScale;
+    pl::Vector2f statPos = mouseScreenPos + pl::Vector2f(STATS_DRAW_OFFSET_X, STATS_DRAW_OFFSET_Y) * intScale;
 
     for (const std::string& bossStat : hoverStats)
     {
-        TextDrawData textDrawData;
+        pl::TextDrawData textDrawData;
         textDrawData.text = bossStat;
         textDrawData.position = statPos;
-        textDrawData.colour = sf::Color(255, 255, 255, 255);
+        textDrawData.color = pl::Color(255, 255, 255, 255);
         textDrawData.size = STATS_DRAW_SIZE * intScale;
-        textDrawData.outlineColour = sf::Color(46, 34, 47);
+        textDrawData.outlineColor = pl::Color(46, 34, 47);
         textDrawData.outlineThickness = STATS_DRAW_OUTLINE_THICKNESS * intScale;
         textDrawData.containOnScreenX = true;
         textDrawData.containOnScreenY = true;

@@ -3,7 +3,7 @@
 
 bool BossEntity::inPlayerRange(Player& player)
 {
-    return (playerMaxRange >= Helper::getVectorLength(player.getPosition() - position));
+    return (playerMaxRange >= (player.getPosition() - position).getLength());
 }
 
 void BossEntity::createItemPickups(ChunkManager& chunkManager, float gameTime)
@@ -20,7 +20,7 @@ void BossEntity::createItemPickups(ChunkManager& chunkManager, float gameTime)
 
         for (int i = 0; i < itemAmount; i++)
         {
-            sf::Vector2f spawnPos = position - sf::Vector2f(0.5f, 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
+            pl::Vector2f spawnPos = position - pl::Vector2f(0.5f, 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
             spawnPos.x += Helper::randFloat(-itemPickupDropRadius, itemPickupDropRadius);
             spawnPos.y += Helper::randFloat(-itemPickupDropRadius, itemPickupDropRadius);
 

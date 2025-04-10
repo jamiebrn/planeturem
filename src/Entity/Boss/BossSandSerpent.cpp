@@ -1,16 +1,16 @@
 #include "Entity/Boss/BossSandSerpent.hpp"
 #include "Game.hpp"
 
-const std::array<sf::IntRect, 4> BossSandSerpent::HEAD_FRAMES = {
-    sf::IntRect(0, 384, 48, 32),
-    sf::IntRect(48, 384, 48, 32),
-    sf::IntRect(96, 384, 48, 32),
-    sf::IntRect(144, 384, 48, 32),
+const std::array<pl::Rect<int>, 4> BossSandSerpent::HEAD_FRAMES = {
+    pl::Rect<int>(0, 384, 48, 32),
+    pl::Rect<int>(48, 384, 48, 32),
+    pl::Rect<int>(96, 384, 48, 32),
+    pl::Rect<int>(144, 384, 48, 32),
 };
 
-const sf::IntRect BossSandSerpent::SHOOTING_HEAD_FRAME = sf::IntRect(192, 416, 48, 32);
+const pl::Rect<int> BossSandSerpent::SHOOTING_HEAD_FRAME = pl::Rect<int>(192, 416, 48, 32);
 
-BossSandSerpent::BossSandSerpent(sf::Vector2f playerPosition, Game& game)
+BossSandSerpent::BossSandSerpent(pl::Vector2f playerPosition, Game& game)
 {
     // Sounds::playSound(SoundType::Crow);
     Sounds::playMusic(MusicType::BossTheme1);
@@ -23,11 +23,11 @@ BossSandSerpent::BossSandSerpent(sf::Vector2f playerPosition, Game& game)
         {{ItemDataLoader::getItemTypeFromName("Serpent Sceptre"), 1, 1}, 0.1}
     };
 
-    sf::Vector2i playerTile = getWorldTileInside(playerPosition, game.getChunkManager().getWorldSize());
+    pl::Vector2<int> playerTile = getWorldTileInside(playerPosition, game.getChunkManager().getWorldSize());
 
     PathfindGridCoordinate spawnTileRelative = game.getChunkManager().getPathfindingEngine().findFurthestOpenTile(playerTile.x, playerTile.y, 40, true);
 
-    position = sf::Vector2f(playerTile.x + spawnTileRelative.x + 0.5f, playerTile.y + spawnTileRelative.y + 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
+    position = pl::Vector2f(playerTile.x + spawnTileRelative.x + 0.5f, playerTile.y + spawnTileRelative.y + 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
 
     animations[BossSandSerpentState::IdleStage1] = AnimatedTexture(4, 80, 51, 0, 301, 0.1);
     animations[BossSandSerpentState::ShootingStage1] = AnimatedTexture(3, 80, 51, 0, 301, 0.1, false);
@@ -73,8 +73,8 @@ void BossSandSerpent::update(Game& game, ProjectileManager& enemyProjectileManag
 
                 int worldSize = game.getChunkManager().getWorldSize();
 
-                sf::Vector2i tile = getWorldTileInside(worldSize);
-                sf::Vector2i playerTile = player.getWorldTileInside(worldSize);
+                pl::Vector2<int> tile = getWorldTileInside(worldSize);
+                pl::Vector2<int> playerTile = player.getWorldTileInside(worldSize);
 
                 std::vector<PathfindGridCoordinate> pathfindResult;
                 if (pathfindingEngine.findPath(tile.x, tile.y, playerTile.x, playerTile.y, pathfindResult, false, 50))
@@ -105,7 +105,7 @@ void BossSandSerpent::update(Game& game, ProjectileManager& enemyProjectileManag
             {
                 shootProjectileCooldownTime = 0.0f;
                 float angle = std::atan2(player.getPosition().y - 4 - (position.y - 50), player.getPosition().x - position.x) * 180.0f / M_PI;
-                enemyProjectileManager.addProjectile(Projectile(position - sf::Vector2f(0, 50), angle,
+                enemyProjectileManager.addProjectile(Projectile(position - pl::Vector2f(0, 50), angle,
                     ToolDataLoader::getProjectileTypeFromName("Serpent Venom BOSS"), 1.0f, 1.0f));
             }
             break;
@@ -155,7 +155,7 @@ void BossSandSerpent::update(Game& game, ProjectileManager& enemyProjectileManag
     int worldPixelSize = game.getChunkManager().getWorldSize() * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
 
     // Update head direction
-    sf::Vector2f playerPosDiff = player.getPosition() - position;
+    pl::Vector2f playerPosDiff = player.getPosition() - position;
     int xWidth = animations[behaviourState].getTextureRect().width;
     
     if (std::abs(playerPosDiff.x) > std::abs(playerPosDiff.y) && std::abs(playerPosDiff.x) > xWidth / 2)
@@ -183,7 +183,7 @@ void BossSandSerpent::updateCollision()
     bodyCollision = CollisionRect(position.x - BODY_HITBOX_WIDTH / 2, position.y - BODY_HITBOX_HEIGHT, BODY_HITBOX_WIDTH, BODY_HITBOX_HEIGHT);
 }
 
-bool BossSandSerpent::takeHeadDamage(int damage, sf::Vector2f damagePosition)
+bool BossSandSerpent::takeHeadDamage(int damage, pl::Vector2f damagePosition)
 {
     if (headHealth <= 0)
     {
@@ -198,7 +198,7 @@ bool BossSandSerpent::takeHeadDamage(int damage, sf::Vector2f damagePosition)
     return true;
 }
 
-void BossSandSerpent::takeBodyDamage(int damage, sf::Vector2f damagePosition)
+void BossSandSerpent::takeBodyDamage(int damage, pl::Vector2f damagePosition)
 {
     if (headHealth > 0)
     {
@@ -226,15 +226,15 @@ bool BossSandSerpent::isAlive()
     return (bodyHealth > 0);
 }
 
-void BossSandSerpent::handleWorldWrap(sf::Vector2f positionDelta)
+void BossSandSerpent::handleWorldWrap(pl::Vector2f positionDelta)
 {
     position += positionDelta;
 
     pathFollower.handleWorldWrap(positionDelta);
 }
 
-void BossSandSerpent::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
-    const sf::Color& color) const
+void BossSandSerpent::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
+    const pl::Color& color) const
 {
     float scale = ResolutionHandler::getScale();
 
@@ -243,21 +243,22 @@ void BossSandSerpent::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, G
         case BossSandSerpentState::IdleStage1: // fallthrough
         case BossSandSerpentState::ShootingStage1:
         {
-            TextureDrawData drawData;
-            drawData.type = TextureType::Entities;
+            pl::DrawData drawData;
+            drawData.texture = TextureManager::getTexture(TextureType::Entities);
+            drawData.shader = Shaders::getShader(ShaderType::Default);
             drawData.position = camera.worldToScreenTransform(position);
-            drawData.centerRatio = sf::Vector2f(0.5f, 1.0f);
-            drawData.scale = sf::Vector2f(scale, scale);
+            drawData.centerRatio = pl::Vector2f(0.5f, 1.0f);
+            drawData.scale = pl::Vector2f(scale, scale);
+            drawData.textureRect = animations.at(behaviourState).getTextureRect();
 
-            std::optional<ShaderType> shader;
             if (bodyFlashTime > 0)
             {
-                shader = ShaderType::Flash;
-                Shaders::getShader(shader.value())->setUniform("flash_amount", bodyFlashTime / MAX_FLASH_TIME);
+                drawData.shader = Shaders::getShader(ShaderType::Flash);
+                drawData.shader->setUniform1f("flash_amount", bodyFlashTime / MAX_FLASH_TIME);
             }
 
             // Draw body
-            spriteBatch.draw(window, drawData, animations.at(behaviourState).getTextureRect(), shader);
+            spriteBatch.draw(window, drawData);
 
             // Draw head
             if (headHealth <= 0)
@@ -268,10 +269,10 @@ void BossSandSerpent::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, G
             static const int HEAD_Y_OFFSET = -51;
             static const int HEAD_TEXTURE_Y_OFFSET = 32;
 
-            drawData.position = camera.worldToScreenTransform(position + sf::Vector2f(0, HEAD_Y_OFFSET));
-            drawData.centerRatio = sf::Vector2f(0.5f, 0.5f); 
+            drawData.position = camera.worldToScreenTransform(position + pl::Vector2f(0, HEAD_Y_OFFSET));
+            drawData.centerRatio = pl::Vector2f(0.5f, 0.5f); 
 
-            sf::IntRect headTextureRect = HEAD_FRAMES[headAnimation.getFrame()];
+            pl::Rect<int> headTextureRect = HEAD_FRAMES[headAnimation.getFrame()];
 
             if (behaviourState == BossSandSerpentState::ShootingStage1)
             {
@@ -282,37 +283,41 @@ void BossSandSerpent::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, G
                 if (headDirection != 0)
                 {
                     drawData.scale.x *= headDirection;
-                    headTextureRect.top += HEAD_TEXTURE_Y_OFFSET;
+                    headTextureRect.x += HEAD_TEXTURE_Y_OFFSET;
                 }
             }
 
-            shader = std::nullopt;
+            drawData.shader = Shaders::getShader(ShaderType::Default);
+            drawData.textureRect = headTextureRect;
+
             if (headFlashTime > 0)
             {
-                shader = ShaderType::Flash;
-                Shaders::getShader(shader.value())->setUniform("flash_amount", headFlashTime / MAX_FLASH_TIME);
+                drawData.shader = Shaders::getShader(ShaderType::Flash);
+                drawData.shader->setUniform1f("flash_amount", headFlashTime / MAX_FLASH_TIME);
             }
 
-            spriteBatch.draw(window, drawData, headTextureRect, shader);
+            spriteBatch.draw(window, drawData);
             break;
         }
         case BossSandSerpentState::MovingToPlayer: // fallthrough
         case BossSandSerpentState::Leaving:
         {
-            TextureDrawData drawData;
-            drawData.type = TextureType::Entities;
+            pl::DrawData drawData;
+            drawData.texture = TextureManager::getTexture(TextureType::Entities);
+            drawData.shader = Shaders::getShader(ShaderType::Default);
             drawData.position = camera.worldToScreenTransform(position);
-            drawData.centerRatio = sf::Vector2f(0.5f, 1.0f);
-            drawData.scale = sf::Vector2f(scale, scale);
+            drawData.centerRatio = pl::Vector2f(0.5f, 1.0f);
+            drawData.scale = pl::Vector2f(scale, scale);
+            drawData.textureRect = animations.at(behaviourState).getTextureRect();
 
             // Draw tail
-            spriteBatch.draw(window, drawData, animations.at(behaviourState).getTextureRect());
+            spriteBatch.draw(window, drawData);
             break;
         }
     }
 }
 
-void BossSandSerpent::getHoverStats(sf::Vector2f mouseWorldPos, std::vector<std::string>& hoverStats)
+void BossSandSerpent::getHoverStats(pl::Vector2f mouseWorldPos, std::vector<std::string>& hoverStats)
 {
     if (behaviourState == BossSandSerpentState::Leaving || behaviourState == BossSandSerpentState::MovingToPlayer)
     {

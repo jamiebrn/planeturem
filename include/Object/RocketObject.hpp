@@ -30,7 +30,7 @@ public:
 
     void update(Game& game, float dt, bool onWater, bool loopAnimation = true) override;
 
-    void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const sf::Color& color) const override;
+    void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const pl::Color& color) const override;
 
     void interact(Game& game, bool isClient) override;
     bool isInteractable() const override;
@@ -52,7 +52,7 @@ public:
     void createRocketParticles();
 
 private:
-    void drawRocket(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera, const sf::Color& color) const;
+    void drawRocket(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera, const pl::Color& color) const;
 
 private:
     bool flyingUp = false;

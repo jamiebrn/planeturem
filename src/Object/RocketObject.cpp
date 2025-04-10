@@ -46,7 +46,7 @@ void RocketObject::update(Game& game, float dt, bool onWater, bool loopAnimation
     }
 }
 
-void RocketObject::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const sf::Color& color) const
+void RocketObject::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const pl::Color& color) const
 {
     BuildableObject::draw(window, spriteBatch, game, camera, dt, gameTime, worldSize, color);
 
@@ -190,9 +190,9 @@ void RocketObject::createRocketParticles()
 
     for (int i = 0; i < 4; i++)
     {
-        sf::IntRect textureRect;
-        textureRect.left = i * 16;
-        textureRect.top = 384 + particleType * 16;
+        pl::Rect<int> textureRect;
+        textureRect.x = i * 16;
+        textureRect.y = 384 + particleType * 16;
         textureRect.height = 16;
         textureRect.width = 16;
         style.textureRects.push_back(textureRect);
@@ -205,11 +205,13 @@ void RocketObject::createRocketParticles()
     particleSystem.addParticle(Particle(position, velocity, acceleration, style));
 }
 
-void RocketObject::drawRocket(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera, const sf::Color& color) const
+void RocketObject::drawRocket(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera, const pl::Color& color) const
 {
     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
 
     pl::Vector2f scale(ResolutionHandler::getScale(), ResolutionHandler::getScale());
+
+    pl::Vector2f rocketPosOffset = objectData.rocketObjectData->launchPosition - pl::Vector2f(TILE_SIZE_PIXELS_UNSCALED, TILE_SIZE_PIXELS_UNSCALED) * 0.5f;
 
     pl::DrawData rocketDrawData;
     rocketDrawData.texture = TextureManager::getTexture(TextureType::Objects);

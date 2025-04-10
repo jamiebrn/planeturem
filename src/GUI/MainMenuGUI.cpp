@@ -55,21 +55,26 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(pl::RenderTarget& window
     pl::Framebuffer worldTexture;
     game.drawWorld(worldTexture, dt, worldObjects, menuWorldData, menuCamera);
 
-    sf::Sprite worldTextureSprite(worldTexture.getTexture());
-    window.draw(worldTextureSprite);
+    pl::VertexArray worldRect;
+    worldRect.addQuad(pl::Rect<float>(0, 0, worldTexture.getWidth(), worldTexture.getHeight()), pl::Color(),
+        pl::Rect<float>(0, 0, worldTexture.getWidth(), worldTexture.getHeight()));
+    
+    window.draw(worldRect, *Shaders::getShader(ShaderType::Default), &worldTexture.getTexture(), pl::BlendMode::Alpha);
 
     drawPanel(window);
 
     int scaledPanelPaddingX = getScaledPanelPaddingX();
 
     // Draw title
-    TextureDrawData titleDrawData;
-    titleDrawData.type = TextureType::UI;
+    pl::DrawData titleDrawData;
+    titleDrawData.texture = TextureManager::getTexture(TextureType::UI);
+    titleDrawData.shader = Shaders::getShader(ShaderType::Default);
     titleDrawData.scale = pl::Vector2f(3, 3) * intScale;
     titleDrawData.position = pl::Vector2f(scaledPanelPaddingX + panelWidth / 2 * intScale, std::round((140 + std::sin(gameTime) * 20) * intScale));
     titleDrawData.centerRatio = pl::Vector2f(0.5f, 0.5f);
+    titleDrawData.textureRect = pl::Rect<int>(21, 160, 212, 32);
 
-    TextureManager::drawSubTexture(window, titleDrawData, sf::IntRect(21, 160, 212, 32));
+    TextureManager::drawSubTexture(window, titleDrawData);
 
     MainMenuState nextUIState = mainMenuState;
 
@@ -226,7 +231,7 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(pl::RenderTarget& window
                 if (deletingSaveElement)
                 {
                     deleteSaveHoldTime += dt;
-                    deletingRect = static_cast<sf::FloatRect>(deletingSaveElement->getBoundingBox());
+                    deletingRect = deletingSaveElement->getBoundingBox();
                     deletingRect.width *= deleteSaveHoldTime / DELETE_SAVE_MAX_HOLD_TIME;
                 }
                 else
@@ -247,13 +252,13 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(pl::RenderTarget& window
             // Text if no save files
             if (saveFileSummaries.size() <= 0)
             {
-                TextDrawData textDrawData;
+                pl::TextDrawData textDrawData;
                 textDrawData.text = "No save files found";
                 textDrawData.position = pl::Vector2f((scaledPanelPaddingX + panelWidth / 2) * intScale, elementYPos);
                 textDrawData.size = 24 * intScale;
                 textDrawData.centeredX = true;
                 textDrawData.centeredY = true;
-                textDrawData.colour = sf::Color(255, 255, 255);
+                textDrawData.color = pl::Color(255, 255, 255);
 
                 TextDraw::drawText(window, textDrawData);
             }
@@ -305,13 +310,13 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(pl::RenderTarget& window
         }
         case MainMenuState::JoiningGame:
         {
-            TextDrawData textDrawData;
+            pl::TextDrawData textDrawData;
             textDrawData.text = "Join Multiplayer";
             textDrawData.position = pl::Vector2f((scaledPanelPaddingX + panelWidth / 2) * intScale, elementYPos);
             textDrawData.size = 24 * intScale;
             textDrawData.centeredX = true;
             textDrawData.centeredY = true;
-            textDrawData.colour = sf::Color(255, 255, 255);
+            textDrawData.color = pl::Color(255, 255, 255);
 
             TextDraw::drawText(window, textDrawData);
 
@@ -364,12 +369,10 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(pl::RenderTarget& window
 
     if (mainMenuState == MainMenuState::SelectingLoad && deletingSaveIndex >= 0)
     {
-        sf::RectangleShape deleteRectDraw;
-        deleteRectDraw.setPosition(pl::Vector2f(deletingRect.left, deletingRect.top));
-        deleteRectDraw.setSize(pl::Vector2f(deletingRect.width, deletingRect.height));
-        deleteRectDraw.setFillColor(sf::Color(230, 20, 20, 150));
+        pl::VertexArray deleteRect;
+        deleteRect.addQuad(deletingRect, pl::Color(230, 20, 20, 150), pl::Rect<float>());
 
-        window.draw(deleteRectDraw);
+        window.draw(deleteRect, *Shaders::getShader(ShaderType::DefaultNoTexture), nullptr, pl::BlendMode::Alpha);
     }
 
     if (nextUIState != mainMenuState)
@@ -382,9 +385,9 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(pl::RenderTarget& window
     guiContext.endGUI();
 
     // Version number text
-    TextDrawData versionTextDrawData;
+    pl::TextDrawData versionTextDrawData;
     versionTextDrawData.text = GAME_VERSION;
-    versionTextDrawData.colour = sf::Color(255, 255, 255);
+    versionTextDrawData.color = pl::Color(255, 255, 255);
     versionTextDrawData.size = 24 * intScale;
     versionTextDrawData.position = pl::Vector2f(10 * intScale, resolution.y - (24 + 10 ) * intScale);
 
@@ -445,13 +448,13 @@ bool MainMenuGUI::createOptionsMenu(pl::RenderTarget& window, int startElementYP
     }
 
     // Text showing current controller glyph type
-    TextDrawData glyphTypeDrawData;
+    pl::TextDrawData glyphTypeDrawData;
     glyphTypeDrawData.text = "Controller Glyph " + std::to_string(InputManager::getGlyphType() + 1);
     glyphTypeDrawData.position = pl::Vector2f(scaledPanelPaddingX + panelWidth / 2 * intScale, startElementYPos + 50 * 0.5f * intScale);
     glyphTypeDrawData.centeredX = true;
     glyphTypeDrawData.centeredY = true;
     glyphTypeDrawData.size = 24 * intScale;
-    glyphTypeDrawData.colour = sf::Color(255, 255, 255);
+    glyphTypeDrawData.color = pl::Color(255, 255, 255);
     TextDraw::drawText(window, glyphTypeDrawData);
 
     startElementYPos += 200 * intScale;
@@ -476,13 +479,15 @@ std::optional<PauseMenuEventType> MainMenuGUI::createAndDrawPauseMenu(pl::Render
     int scaledPanelPaddingX = getScaledPanelPaddingX();
 
     // Draw title
-    TextureDrawData titleDrawData;
-    titleDrawData.type = TextureType::UI;
+    pl::DrawData titleDrawData;
+    titleDrawData.texture = TextureManager::getTexture(TextureType::UI);
+    titleDrawData.shader = Shaders::getShader(ShaderType::Default);
     titleDrawData.scale = pl::Vector2f(3, 3) * intScale;
-    titleDrawData.position = pl::Vector2f((scaledPanelPaddingX + panelWidth / 2 * intScale), std::round((140 + std::sin(gameTime) * 20) * intScale));
+    titleDrawData.position = pl::Vector2f(scaledPanelPaddingX + panelWidth / 2 * intScale, std::round((140 + std::sin(gameTime) * 20) * intScale));
     titleDrawData.centerRatio = pl::Vector2f(0.5f, 0.5f);
+    titleDrawData.textureRect = pl::Rect<int>(21, 160, 212, 32);
 
-    TextureManager::drawSubTexture(window, titleDrawData, sf::IntRect(21, 160, 212, 32));
+    TextureManager::drawSubTexture(window, titleDrawData);
 
     const int startElementYPos = resolution.y * 0.37f;
     int elementYPos = startElementYPos;

@@ -5,6 +5,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include <Vector.hpp>
+
 #include "Core/Camera.hpp"
 
 #include "Network/Packet.hpp"
@@ -64,7 +66,7 @@ public:
     NetworkPlayer* getNetworkPlayer(uint64_t id);
     std::unordered_map<uint64_t, NetworkPlayer>& getNetworkPlayers();
 
-    std::vector<WorldObject*> getNetworkPlayersToDraw(const LocationState& locationState, sf::Vector2f playerPosition);
+    std::vector<WorldObject*> getNetworkPlayersToDraw(const LocationState& locationState, pl::Vector2f playerPosition);
 
     std::vector<ChunkViewRange> getNetworkPlayersChunkViewRanges(PlanetType planetType);
 

@@ -56,7 +56,7 @@ include_directories(include/)
 include_directories(include/steam/)
 include_directories(include/extlib/)
 include_directories(${imgui_SOURCE_DIR})
-include_directories(${PlaneturemFramework_INCLUDE_DIR})
+include_directories(${PlaneturemFramework_SRC_DIR}/include)
 file(GLOB_RECURSE SRC_FILES src/*.cpp)
 file(GLOB IMGUI_FILES ${imgui_SOURCE_DIR}/*.cpp)
 

@@ -117,7 +117,7 @@ private:
     static constexpr float DELETE_SAVE_MAX_HOLD_TIME = 3.0f;
     float deleteSaveHoldTime;
     int deletingSaveIndex;
-    sf::FloatRect deletingRect;
+    pl::Rect<float> deletingRect;
 
     bool canInteract;
 
