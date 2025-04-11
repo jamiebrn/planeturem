@@ -66,6 +66,7 @@ bool TextureManager::loadTextures()
 
         // Set texture repeating (tiling) to true by default
         texture->setTextureRepeat(true);
+        texture->setLinearFilter(false);
 
         // Store texture object in texture map
         textureMap[textureType] = std::move(texture);

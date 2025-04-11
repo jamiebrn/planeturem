@@ -25,7 +25,7 @@ bool Sounds::loadSounds()
         // Create sound buffer object to store file stream data
         // sf::SoundBuffer soundBuffer;
 
-        std::unique_ptr<pl::Sound> sound;
+        std::unique_ptr<pl::Sound> sound = std::make_unique<pl::Sound>();
 
         // Load sound data from file stream - set loaded sound to false and stop loading if failed
         if (!sound->loadFromFile(soundPath))

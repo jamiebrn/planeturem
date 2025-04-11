@@ -35,7 +35,7 @@ struct PacketDataPlayerCharacterInfo : public IPacketData, public IPacketTimeDep
     // float toolRotation;
     bool fishingRodCasted;
     bool fishBitingLine;
-    pl::Vector2i fishingRodBobWorldTile;
+    pl::Vector2<int> fishingRodBobWorldTile;
 
     bool usingTool;
     TweenID toolRotTweenID;

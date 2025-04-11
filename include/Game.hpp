@@ -1,5 +1,6 @@
 #pragma once
 
+#define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
 #include <imgui.h>
 #include <extlib/steam/steam_api.h>

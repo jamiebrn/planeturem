@@ -68,7 +68,7 @@ void TileMap::draw(pl::RenderTarget& window, pl::Vector2f position, pl::Vector2f
 
     pl::Shader* shader = Shaders::getShader(ShaderType::TileMap);
 
-    shader->setUniform2f("position", position.x / window.getWidth(), (window.getHeight() - position.y) / window.getHeight());
+    shader->setUniform2f("position", (position.x - window.getWidth() / 2) / window.getWidth(), -(position.y - window.getHeight() / 2) / window.getHeight());
 
     // TODO: Probably fix this (opengl coordinate system etc)
     shader->setUniform2f("scale", scale.x, scale.y);
@@ -159,17 +159,19 @@ void TileMap::refreshVerticiesForTile(int x, int y)
             
     pl::Vector2<int> textureOffset = getTextureOffsetForTile(x, y);
 
-    int vertexIndex = (y * tiles[0].size() + x) * 4;
+    int vertexIndex = (y * tiles[0].size() + x) * 6;
 
     //if (tileVertexArray.getVertexCount() < vertexIndex + 4)
         //return;
 
     tileVertexArray[vertexIndex].textureUV = {static_cast<float>(tilesetOffset.x) + textureOffset.x + 0, static_cast<float>(tilesetOffset.y) + textureOffset.y + 0};
     tileVertexArray[vertexIndex + 1].textureUV = {static_cast<float>(tilesetOffset.x) + textureOffset.x + 16, static_cast<float>(tilesetOffset.y) + textureOffset.y + 0};
-    tileVertexArray[vertexIndex + 3].textureUV = {static_cast<float>(tilesetOffset.x) + textureOffset.x + 0, static_cast<float>(tilesetOffset.y) + textureOffset.y + 16};
-    tileVertexArray[vertexIndex + 2].textureUV = {static_cast<float>(tilesetOffset.x) + textureOffset.x + 16, static_cast<float>(tilesetOffset.y) + textureOffset.y + 16};
-
-    for (int i = 0; i < 4; i++)
+    tileVertexArray[vertexIndex + 2].textureUV = {static_cast<float>(tilesetOffset.x) + textureOffset.x + 0, static_cast<float>(tilesetOffset.y) + textureOffset.y + 16};
+    tileVertexArray[vertexIndex + 3].textureUV = {static_cast<float>(tilesetOffset.x) + textureOffset.x + 16, static_cast<float>(tilesetOffset.y) + textureOffset.y + 0};
+    tileVertexArray[vertexIndex + 4].textureUV = {static_cast<float>(tilesetOffset.x) + textureOffset.x + 16, static_cast<float>(tilesetOffset.y) + textureOffset.y + 16};
+    tileVertexArray[vertexIndex + 5].textureUV = {static_cast<float>(tilesetOffset.x) + textureOffset.x + 0, static_cast<float>(tilesetOffset.y) + textureOffset.y + 16};
+    
+    for (int i = 0; i < 6; i++)
     {
         tileVertexArray[vertexIndex + i].color = pl::Color(255, 255, 255, 255);
     }
@@ -285,6 +287,8 @@ void TileMap::buildVertexArray()
         {
             if (!isTilePresent(tiles[y][x]))
             {
+                tileVertexArray.addQuad(pl::Rect<float>(pl::Vector2f(x, y) * TILE_SIZE_PIXELS_UNSCALED, pl::Vector2f(1, 1) * TILE_SIZE_PIXELS_UNSCALED),
+                    pl::Color(0, 0, 0, 0), pl::Rect<float>());
                 continue;
             }
 

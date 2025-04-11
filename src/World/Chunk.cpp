@@ -750,24 +750,25 @@ void Chunk::drawChunkWater(pl::RenderTarget& window, const Camera& camera, Chunk
         surroundingWaterColors[i * 4 + 3] = waterColorNormalised.a;
     }
 
-    pl::DrawData waterDrawData;
-    waterDrawData.texture = TextureManager::getTexture(TextureType::Water);
-    waterDrawData.shader = Shaders::getShader(ShaderType::Water);
+    pl::Texture* waterTexture = TextureManager::getTexture(TextureType::Water);
+    pl::Shader* waterShader = Shaders::getShader(ShaderType::Water);
 
-    waterDrawData.shader->setUniformColor("waterColor", chunkBiome->waterColor);
-    waterDrawData.shader->setUniform4fv("surroundingWaterColors", surroundingWaterColors);
-    waterDrawData.shader->setUniform2f("spriteSheetSize", waterDrawData.texture->getWidth(), waterDrawData.texture->getHeight());
+    waterShader->setUniformColor("waterColor", chunkBiome->waterColor);
+    waterShader->setUniform4fv("surroundingWaterColors", surroundingWaterColors);
+    waterShader->setUniform2f("spriteSheetSize", waterTexture->getWidth(), waterTexture->getHeight());
 
     const PlanetGenData& planetGenData = PlanetGenDataLoader::getPlanetGenData(chunkManager.getPlanetType());
 
-    waterDrawData.shader->setUniform4f("textureRect", planetGenData.waterTextureOffset.x, planetGenData.waterTextureOffset.y, 32, 32);
+    waterShader->setUniform4f("textureRect", planetGenData.waterTextureOffset.x, planetGenData.waterTextureOffset.y, 32, 32);
 
     // Draw water
     pl::Vector2f waterPos = camera.worldToScreenTransform(worldPosition);
-    pl::Rect<int> waterRect(waterPos.x, waterPos.y, TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE, TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE);
+    pl::Rect<int> waterRect(waterPos.x, waterPos.y, TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE * scale, TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE * scale);
 
     pl::VertexArray waterVertices;
-    waterVertices.addQuad(waterRect, pl::Color(), pl::Rect<float>(planetGenData.waterTextureOffset.x, planetGenData.waterTextureOffset.y, 32, 32));
+    waterVertices.addQuad(waterRect, pl::Color(), pl::Rect<float>(planetGenData.waterTextureOffset.x, planetGenData.waterTextureOffset.y, 32 * scale, 32 * scale));
+
+    window.draw(waterVertices, *waterShader, waterTexture, pl::BlendMode::Alpha);
 }
 
 void Chunk::updateChunkObjects(Game& game, float dt, int worldSize, ChunkManager& chunkManager, PathfindingEngine& pathfindingEngine)

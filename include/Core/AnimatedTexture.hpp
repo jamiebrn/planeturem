@@ -2,6 +2,7 @@
 
 // #include <SFML/Graphics.hpp>
 
+#include <cstdint>
 #include <Rect.hpp>
 
 class AnimatedTexture

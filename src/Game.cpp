@@ -34,7 +34,7 @@ bool Game::initialise()
     SDL_SetCursor(SDL_DISABLE);
 
     // Set resolution handler values
-    ResolutionHandler::setResolution({displayMode.w, displayMode.h});
+    ResolutionHandler::setResolution({static_cast<uint32_t>(displayMode.w), static_cast<uint32_t>(displayMode.h)});
 
     // Load assets
     if(!TextureManager::loadTextures()) return false;
@@ -1316,9 +1316,9 @@ void Game::drawLighting(float dt, std::vector<WorldObject*>& worldObjects)
 {
     float lightLevel = dayCycleManager.getLightLevel();
 
-    unsigned char ambientRedLight = Helper::lerp(2, 255 * weatherSystem.getRedLightBias(), lightLevel);
-    unsigned char ambientGreenLight = Helper::lerp(7, 244 * weatherSystem.getGreenLightBias(), lightLevel);
-    unsigned char ambientBlueLight = Helper::lerp(14, 234 * weatherSystem.getBlueLightBias(), lightLevel);
+    float ambientRedLight = Helper::lerp(2, 255 * weatherSystem.getRedLightBias(), lightLevel);
+    float ambientGreenLight = Helper::lerp(7, 244 * weatherSystem.getGreenLightBias(), lightLevel);
+    float ambientBlueLight = Helper::lerp(14, 234 * weatherSystem.getBlueLightBias(), lightLevel);
 
     pl::Vector2<int> chunksSizeInView = getChunkManager().getChunksSizeInView(camera);
     pl::Vector2f topLeftChunkPos = getChunkManager().topLeftChunkPosInView(camera);

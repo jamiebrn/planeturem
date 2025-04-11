@@ -2,6 +2,8 @@
 
 // #include <SFML/Graphics.hpp>
 
+#include <cstdint>
+
 #include "Vector.hpp"
 
 #include "GameConstants.hpp"

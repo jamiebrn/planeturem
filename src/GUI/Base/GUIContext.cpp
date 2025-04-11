@@ -32,8 +32,7 @@ void GUIContext::processEvent(const SDL_Event& event)
 
     if (event.type == SDL_MOUSEMOTION)
     {
-        inputState.mouseX = event.motion.x;
-        inputState.mouseY = event.motion.y;
+        SDL_GetMouseState(&inputState.mouseX, &inputState.mouseY);
     }
 
     if (event.type == SDL_TEXTINPUT)
