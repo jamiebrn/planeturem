@@ -71,15 +71,6 @@ bool TextureManager::loadTextures()
         // Store texture object in texture map
         textureMap[textureType] = std::move(texture);
 
-        // Create sprite object to interface with the texture
-        // sf::Sprite sprite;
-
-        // Set sprite texture from texture map
-        // sprite.setTexture(textureMap[textureType]);
-
-        // Store sprite in sprite map
-        // spriteMap[textureType] = sprite;
-
         // Increment texture loaded count
         texturesLoaded++;
     }
@@ -123,14 +114,6 @@ void TextureManager::drawTexture(pl::RenderTarget& window, pl::DrawData drawData
     drawData.textureRect = pl::Rect<int>(0, 0, drawData.texture->getWidth(), drawData.texture->getHeight());
 
     drawSubTexture(window, drawData);
-    
-    // Get sprite from sprite map
-    // sf::Sprite& sprite = spriteMap.at(drawData.type);
-
-    // Apply draw data to texture
-    // applyTextureData(drawData);
-
-    // window.draw(sprite, renderState);
 }
 
 // Draw texture using a subrectangle, useful for spritesheets and tiling textures (subrectangle bigger than texture, texture repeats)
@@ -142,72 +125,69 @@ void TextureManager::drawSubTexture(pl::RenderTarget& window, const pl::DrawData
         return;
     }
 
-    // Get sprite from sprite map
-    // sf::Sprite& sprite = spriteMap.at(drawData.type);
+    pl::VertexArray vertexArray;
 
-    // Apply subrectangle to sprite
-    // sprite.setTextureRect(boundRect);
+    pl::Vertex vertices[4];
+    
+    pl::Vector2f size;
+    size.x = drawData.textureRect.width * drawData.scale.x;
+    size.y = drawData.textureRect.height * drawData.scale.y;
 
-    // Apply draw data to texture
-    // applyTextureData(drawData);
+    float centreRatioX = drawData.centerRatio.x;
+    float centreRatioY = drawData.centerRatio.y;
 
-    pl::Rect<float> boundRect = drawData.textureRect;
-
-    pl::Rect<float> quad;
     if (drawData.useCentreAbsolute)
     {
-        quad.x = drawData.position.x - drawData.centerRatio.x;
-        quad.y = drawData.position.y - drawData.centerRatio.y;
+        centreRatioX /= drawData.textureRect.width;
+        centreRatioY /= drawData.textureRect.height;
+    }
+    
+    if (drawData.rotation == 0)
+    {
+        // Simple case, no rotation
+        // Separate from rotation calculation in order to save performance
+        pl::Vector2f topLeft;
+        topLeft.x = drawData.position.x - (size.x * centreRatioX);
+        topLeft.y = drawData.position.y - (size.y * centreRatioY);
+
+        vertices[0].position = topLeft;
+        vertices[1].position = topLeft + pl::Vector2f(size.x, 0);
+        vertices[2].position = topLeft + pl::Vector2f(size.x, size.y);
+        vertices[3].position = topLeft + pl::Vector2f(0, size.y);
     }
     else
     {
-        quad.x = drawData.position.x - boundRect.width * drawData.centerRatio.x;
-        quad.y = drawData.position.y - boundRect.height * drawData.centerRatio.y;
+        // Apply rotation
+        float angleRadians = M_PI * drawData.rotation / 180.0f;
+
+        float nX = -size.x * centreRatioX;
+        float pX = (1.0f - centreRatioX) * size.x;
+        float nY = -size.y * centreRatioY;
+        float pY = (1.0f - centreRatioY) * size.y;
+
+        vertices[0].position = pl::Vector2f(nX, nY).rotate(angleRadians) + drawData.position;
+        vertices[1].position = pl::Vector2f(pX, nY).rotate(angleRadians) + drawData.position;
+        vertices[2].position = pl::Vector2f(pX, pY).rotate(angleRadians) + drawData.position;
+        vertices[3].position = pl::Vector2f(nX, pY).rotate(angleRadians) + drawData.position;
     }
 
-    quad.width = boundRect.width;
-    quad.height = boundRect.height;
+    // Set UV coords
+    vertices[0].textureUV = static_cast<pl::Vector2f>(drawData.textureRect.getPosition());
+    vertices[1].textureUV = vertices[0].textureUV + pl::Vector2f(drawData.textureRect.width, 0);
+    vertices[2].textureUV = vertices[0].textureUV + pl::Vector2f(drawData.textureRect.width, drawData.textureRect.height);
+    vertices[3].textureUV = vertices[0].textureUV + pl::Vector2f(0, drawData.textureRect.height);
 
-    boundRect.x /= drawData.texture->getWidth();
-    boundRect.y /= drawData.texture->getHeight();
-    boundRect.width /= drawData.texture->getWidth();
-    boundRect.height /= drawData.texture->getHeight();
-
-    pl::VertexArray vertexArray;
-    vertexArray.addQuad(quad, drawData.color, boundRect);
+    for (int i = 0; i < 4; i++)
+    {
+        vertices[i].color = drawData.color;
+    }
+    
+    vertexArray.addVertex(vertices[0]);
+    vertexArray.addVertex(vertices[1]);
+    vertexArray.addVertex(vertices[2]);
+    vertexArray.addVertex(vertices[0]);
+    vertexArray.addVertex(vertices[2]);
+    vertexArray.addVertex(vertices[3]);
 
     window.draw(vertexArray, *drawData.shader, drawData.texture, pl::BlendMode::Alpha);
-    // Draw with shader if required
-    // if (shader)
-    // {
-    //     return;
-    // }
-
-    // // Draw sprite
-    // window.draw(sprite);
-
 }
-
-// Apply draw data before drawing a texture
-// void TextureManager::applyTextureData(TextureDrawData drawData)
-// {
-//     // Get sprite from sprite map
-//     sf::Sprite& sprite = spriteMap.at(drawData.type);
-
-//     // Set scale of sprite from draw data
-//     sprite.setScale(drawData.scale);
-
-//     // Get size of sprite
-//     sf::FloatRect sizeRect = sprite.getLocalBounds();
-//     // Calculate middle point of sprite
-//     sf::Vector2f origin = drawData.useCentreAbsolute ? drawData.centerRatio : sf::Vector2f(sizeRect.width * drawData.centerRatio.x, sizeRect.height * drawData.centerRatio.y);
-//     // Set origin of sprite to middle
-//     sprite.setOrigin(origin);
-
-//     // Set position and rotation from draw data
-//     sprite.setPosition(drawData.position);
-//     sprite.setRotation(drawData.rotation);
-
-//     // Set colour from draw data
-//     sprite.setColor(drawData.colour);
-// }

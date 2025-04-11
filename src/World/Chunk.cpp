@@ -766,7 +766,7 @@ void Chunk::drawChunkWater(pl::RenderTarget& window, const Camera& camera, Chunk
     pl::Rect<int> waterRect(waterPos.x, waterPos.y, TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE * scale, TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE * scale);
 
     pl::VertexArray waterVertices;
-    waterVertices.addQuad(waterRect, pl::Color(), pl::Rect<float>(planetGenData.waterTextureOffset.x, planetGenData.waterTextureOffset.y, 32 * scale, 32 * scale));
+    waterVertices.addQuad(waterRect, pl::Color(), pl::Rect<float>(planetGenData.waterTextureOffset.x, planetGenData.waterTextureOffset.y, 32 * 4, 32 * 4));
 
     window.draw(waterVertices, *waterShader, waterTexture, pl::BlendMode::Alpha);
 }

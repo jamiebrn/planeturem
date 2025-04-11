@@ -102,6 +102,7 @@ void BuildableObject::drawObject(pl::RenderTarget& window, pl::SpriteBatch& spri
     drawData.scale = scale;
     drawData.centerRatio = objectData.textureOrigin;
     drawData.color = color;
+    drawData.textureRect = *textureRect;
     
     if (textureOriginOverride.has_value())
     {

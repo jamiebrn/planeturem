@@ -77,7 +77,7 @@ void Button::draw(pl::RenderTarget& window)
     textDrawData.centeredX = true;
     textDrawData.centeredY = true;
 
-    pl::Color rectColor;
+    pl::Color rectColor = style.color;
 
     if (clicked || held)
     {

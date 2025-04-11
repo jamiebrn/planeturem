@@ -220,6 +220,7 @@ void RocketObject::drawRocket(pl::RenderTarget& window, pl::SpriteBatch& spriteB
     rocketDrawData.color = color;
     rocketDrawData.scale = scale;
     rocketDrawData.centerRatio = objectData.rocketObjectData->textureOrigin;
+    rocketDrawData.textureRect = objectData.rocketObjectData->textureRect;
 
     if (flash_amount > 0)
     {

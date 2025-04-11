@@ -1,7 +1,8 @@
 #pragma once
 
-// Include libraries
-// #include <SFML/Graphics.hpp>
+#define _USE_MATH_DEFINES
+#include <cmath>
+
 #include <Graphics/RenderTarget.hpp>
 #include <Graphics/Image.hpp>
 #include <Graphics/Texture.hpp>

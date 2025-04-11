@@ -68,14 +68,14 @@ void TileMap::draw(pl::RenderTarget& window, pl::Vector2f position, pl::Vector2f
 
     pl::Shader* shader = Shaders::getShader(ShaderType::TileMap);
 
-    shader->setUniform2f("position", (position.x - window.getWidth() / 2) / window.getWidth(), -(position.y - window.getHeight() / 2) / window.getHeight());
+    shader->setUniform2f("position", (position.x - window.getWidth() / 2) / window.getWidth() / 2, (position.y - window.getHeight() / 2) / window.getHeight() / 2);
 
     // TODO: Probably fix this (opengl coordinate system etc)
     shader->setUniform2f("scale", scale.x, scale.y);
 
     window.draw(tileVertexArray, *shader, TextureManager::getTexture(TextureType::GroundTiles), pl::BlendMode::Alpha);
 
-    // sf::RenderStates renderState;
+    // sf::RenderStates renderState;P
     // renderState.transform.translate(position);
     // renderState.transform.scale(scale);
     // renderState.texture = TextureManager::getTexture(TextureType::GroundTiles);
@@ -288,14 +288,14 @@ void TileMap::buildVertexArray()
             if (!isTilePresent(tiles[y][x]))
             {
                 tileVertexArray.addQuad(pl::Rect<float>(pl::Vector2f(x, y) * TILE_SIZE_PIXELS_UNSCALED, pl::Vector2f(1, 1) * TILE_SIZE_PIXELS_UNSCALED),
-                    pl::Color(0, 0, 0, 0), pl::Rect<float>());
+                    pl::Color(), pl::Rect<float>());
                 continue;
             }
 
             pl::Vector2<int> textureOffset = getTextureOffsetForTile(x, y);
             
             tileVertexArray.addQuad(pl::Rect<float>(pl::Vector2f(x, y) * TILE_SIZE_PIXELS_UNSCALED, pl::Vector2f(1, 1) * TILE_SIZE_PIXELS_UNSCALED),
-                pl::Color(255, 255, 255), pl::Rect<float>(pl::Vector2f(textureOffset.x, textureOffset.y), pl::Vector2f(16, 16)));
+                pl::Color(), pl::Rect<float>(pl::Vector2f(textureOffset.x, textureOffset.y), pl::Vector2f(16, 16)));
         }
     }
 }
