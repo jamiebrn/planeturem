@@ -7,6 +7,7 @@ int main(int argv, char** args)
         return -1;
     
     game.run();
+    game.deinit();
 
     return 0;
 }

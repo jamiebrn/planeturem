@@ -28,10 +28,10 @@ bool Game::initialise()
     window.create(GAME_TITLE, displayMode.w * 0.75f, displayMode.h * 0.75f, SDL_WINDOW_FULLSCREEN_DESKTOP | SDL_WINDOW_RESIZABLE);
 
     // Enable VSync
-    window.setVSync(true);
+    // window.setVSync(true);
 
     // Hide mouse cursor
-    SDL_SetCursor(SDL_DISABLE);
+    SDL_ShowCursor(SDL_DISABLE);
 
     // Set resolution handler values
     ResolutionHandler::setResolution({static_cast<uint32_t>(displayMode.w), static_cast<uint32_t>(displayMode.h)});
@@ -182,6 +182,12 @@ bool Game::initialise()
     return true;
 }
 
+void Game::deinit()
+{
+    Sounds::unloadSounds();
+    pl::Sound::deinit();
+}
+
 void Game::run()
 {
     std::chrono::high_resolution_clock clock;
@@ -244,117 +250,6 @@ void Game::run()
 
     SDL_Quit();
 }
-
-#if (!RELEASE_BUILD)
-void Game::runFeatureTest()
-{
-    // static std::optional<std::pair<int, int>> start, end;
-    // static int pathfindTick = 0;
-
-    // const int SCALE = 12;
-
-    // pl::Vector2<int> mousePos = sf::Mouse::getPosition(window);
-    // int mouseTileX = mousePos.x / SCALE;
-    // int mouseTileY = mousePos.y / SCALE;
-
-    for (auto event = sf::Event{}; window.pollEvent(event);)
-    {
-        handleEventsWindow(event);
-
-        if (event.type == sf::Event::KeyPressed)
-        {
-            // if (event.key.code == sf::Keyboard::R || event.key.code == sf::Keyboard::Tab)
-            // {
-            //     start = std::nullopt;
-            //     end = std::nullopt;
-            //     pathfindingEngine.resize(160, 90);
-            // }
-            // if (event.key.code == sf::Keyboard::P)
-            // {
-            //     start = {mouseTileX, mouseTileY};
-            // }
-            // if (event.key.code == sf::Keyboard::L)
-            // {
-            //     end = {mouseTileX, mouseTileY};
-            // }
-            // if (event.key.code == sf::Keyboard::Tab)
-            // {
-            //     for (int x = 0; x < 190; x++)
-            //     {
-            //         for (int y = 0; y < 90; y++)
-            //         {
-            //             if (rand() % 4 <= 1)
-            //             {
-            //                 pathfindingEngine.setObstacle(x, y, true);
-            //             }
-            //         }
-            //     }
-            // }
-        }
-    }
-
-    // if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
-    // {
-    //     pathfindingEngine.setObstacle(mouseTileX, mouseTileY, true);
-    // }
-    // if (sf::Keyboard::isKeyPressed(sf::Keyboard::Backspace))
-    // {
-    //     pathfindingEngine.setObstacle(mouseTileX, mouseTileY, false);
-    // }
-
-    // window.clear();
-
-    // auto& obstacles = pathfindingEngine.getObstacles();
-    // for (int i = 0; i < obstacles.size(); i++)
-    // {
-    //     if (!obstacles[i])
-    //     {
-    //         continue;
-    //     }
-
-    //     sf::RectangleShape rect({SCALE, SCALE});
-    //     rect.setPosition(pl::Vector2f(i % 160, std::floor(i / 160)) * static_cast<float>(SCALE));
-    //     window.draw(rect);
-    // }
-
-    // pathfindTick++;
-
-    // if (start.has_value() && end.has_value())
-    // {
-    //     static std::vector<PathfindGridCoordinate> pathFound;
-    //     if (pathfindTick > 0)
-    //     {
-    //         pathFound.clear();
-    //         pathfindTick = 0;
-    //         pathfindingEngine.findPath(start->first, start->second, end->first, end->second, pathFound);
-    //     }
-
-    //     for (const auto& coord : pathFound)
-    //     {
-    //         sf::RectangleShape rect({ SCALE, SCALE });
-    //         rect.setPosition(pl::Vector2f(coord.x, coord.y) * static_cast<float>(SCALE));
-    //         rect.setFillColor(pl::Color(0, 0, 255));
-    //         window.draw(rect);
-    //     }
-    // }
-
-    // if (start.has_value())
-    // {
-    //     sf::RectangleShape rect({SCALE, SCALE});
-    //     rect.setPosition(pl::Vector2f(start->first, start->second) * static_cast<float>(SCALE));
-    //     rect.setFillColor(pl::Color(0, 255, 0));
-    //     window.draw(rect);
-    // }
-
-    // if (end.has_value())
-    // {
-    //     sf::RectangleShape rect({SCALE, SCALE});
-    //     rect.setPosition(pl::Vector2f(end->first, end->second) * static_cast<float>(SCALE));
-    //     rect.setFillColor(pl::Color(255, 0, 0));
-    //     window.draw(rect);
-    // }
-}
-#endif
 
 // -- Main Menu -- //
 
@@ -3834,7 +3729,7 @@ void Game::handleEventsWindow(const SDL_Event& event)
         }
 
         #if (!RELEASE_BUILD)
-        if (event.key.code == sf::Keyboard::F1)
+        if (event.key.keysym.scancode == SDL_SCANCODE_F1)
         {
             DebugOptions::debugOptionsMenuOpen = !DebugOptions::debugOptionsMenuOpen;
             return;

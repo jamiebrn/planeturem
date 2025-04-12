@@ -257,9 +257,14 @@ void ChunkManager::drawChunkTerrain(pl::RenderTarget& window, pl::SpriteBatch& s
 
 void ChunkManager::drawChunkWater(pl::RenderTarget& window, const Camera& camera, float time)
 {
+    pl::Texture* waterTexture = TextureManager::getTexture(TextureType::Water);
+    const PlanetGenData& planetGenData = PlanetGenDataLoader::getPlanetGenData(planetType);
+
     // Set shader time paramenter
     pl::Shader* waterShader = Shaders::getShader(ShaderType::Water);
     waterShader->setUniform1f("time", time);
+    waterShader->setUniform2f("spriteSheetSize", waterTexture->getWidth(), waterTexture->getHeight());
+    waterShader->setUniform4f("textureRect", planetGenData.waterTextureOffset.x, planetGenData.waterTextureOffset.y, 32, 32);
 
     ChunkViewRange chunkViewRange = camera.getChunkViewRange();
 

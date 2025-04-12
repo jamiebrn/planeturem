@@ -14,7 +14,7 @@ include(FetchContent)
 FetchContent_Declare(
   SDL2
   GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
-  GIT_TAG release-2.30.5
+  GIT_TAG release-2.32.4
   GIT_SHALLOW TRUE
   GIT_PROGRESS TRUE
 )

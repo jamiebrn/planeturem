@@ -612,33 +612,33 @@ void Chunk::drawChunkTerrain(pl::RenderTarget& window, const Camera& camera, flo
 
 
     #if (!RELEASE_BUILD)
+    pl::VertexArray debugLines;
+    debugLines.setPrimitiveMode(pl::PrimitiveMode::Lines);
+
     // DEBUG DRAW LINE TO ENTITIES
     if (DebugOptions::drawEntityChunkParents)
     {
         for (auto& entity : entities)
         {
-            sf::VertexArray lines(sf::Lines, 2);
-            lines[0].position = camera.worldToScreenTransform(worldPosition);
-            lines[1].position = camera.worldToScreenTransform(entity->getPosition());
-            window.draw(lines);
+            debugLines.addVertex(pl::Vertex(camera.worldToScreenTransform(worldPosition)));
+            debugLines.addVertex(pl::Vertex(camera.worldToScreenTransform(entity->getPosition())));
         }
     }
 
     // DEBUG CHUNK OUTLINE DRAW
     if (DebugOptions::drawChunkBoundaries)
     {
-        sf::VertexArray lines(sf::Lines, 8);
-        lines[0].position = camera.worldToScreenTransform(worldPosition);
-        lines[1].position = camera.worldToScreenTransform(worldPosition + pl::Vector2f(CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED, 0));
-        lines[2].position = camera.worldToScreenTransform(worldPosition);
-        lines[3].position = camera.worldToScreenTransform(worldPosition + pl::Vector2f(0, CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED));
-        lines[4].position = camera.worldToScreenTransform(worldPosition + pl::Vector2f(CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED, 0));
-        lines[5].position = camera.worldToScreenTransform(worldPosition + pl::Vector2f(CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED, CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED));
-        lines[6].position = camera.worldToScreenTransform(worldPosition + pl::Vector2f(0, CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED));
-        lines[7].position = camera.worldToScreenTransform(worldPosition + pl::Vector2f(CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED, CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED));
-        
-        window.draw(lines);
+        debugLines.addVertex(pl::Vertex(camera.worldToScreenTransform(worldPosition)));
+        debugLines.addVertex(pl::Vertex(camera.worldToScreenTransform(worldPosition + pl::Vector2f(CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED, 0))));
+        debugLines.addVertex(pl::Vertex(camera.worldToScreenTransform(worldPosition)));
+        debugLines.addVertex(pl::Vertex(camera.worldToScreenTransform(worldPosition + pl::Vector2f(0, CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED))));
+        debugLines.addVertex(pl::Vertex(camera.worldToScreenTransform(worldPosition + pl::Vector2f(CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED, 0))));
+        debugLines.addVertex(pl::Vertex(camera.worldToScreenTransform(worldPosition + pl::Vector2f(CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED, CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED))));
+        debugLines.addVertex(pl::Vertex(camera.worldToScreenTransform(worldPosition + pl::Vector2f(0, CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED))));
+        debugLines.addVertex(pl::Vertex(camera.worldToScreenTransform(worldPosition + pl::Vector2f(CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED, CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED))));
     }
+
+    window.draw(debugLines, *Shaders::getShader(ShaderType::DefaultNoTexture), nullptr, pl::BlendMode::Alpha);
 
     // DRAW COLLISIONS
     if (DebugOptions::drawCollisionRects)
@@ -755,11 +755,8 @@ void Chunk::drawChunkWater(pl::RenderTarget& window, const Camera& camera, Chunk
 
     waterShader->setUniformColor("waterColor", chunkBiome->waterColor);
     waterShader->setUniform4fv("surroundingWaterColors", surroundingWaterColors);
-    waterShader->setUniform2f("spriteSheetSize", waterTexture->getWidth(), waterTexture->getHeight());
 
     const PlanetGenData& planetGenData = PlanetGenDataLoader::getPlanetGenData(chunkManager.getPlanetType());
-
-    waterShader->setUniform4f("textureRect", planetGenData.waterTextureOffset.x, planetGenData.waterTextureOffset.y, 32, 32);
 
     // Draw water
     pl::Vector2f waterPos = camera.worldToScreenTransform(worldPosition);

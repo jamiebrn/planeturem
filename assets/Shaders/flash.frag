@@ -16,5 +16,5 @@ void main()
     color.g = color.g * (1 - flash_amount) + flash_amount;
     color.b = color.b * (1 - flash_amount) + flash_amount;
 
-    FragColor = color * color;
+    FragColor = color * fragColor;
 }
