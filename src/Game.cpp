@@ -25,7 +25,7 @@ bool Game::initialise()
     SDL_GetCurrentDisplayMode(0, &displayMode);
 
     // Create window
-    window.create(GAME_TITLE, displayMode.w, displayMode.h, SDL_WINDOW_FULLSCREEN_DESKTOP);
+    window.create(GAME_TITLE, displayMode.w * 0.75f, displayMode.h * 0.75f, SDL_WINDOW_FULLSCREEN_DESKTOP | SDL_WINDOW_RESIZABLE);
 
     // Enable VSync
     window.setVSync(true);
@@ -202,10 +202,6 @@ void Game::run()
         
         InputManager::update();
         mouseScreenPos = InputManager::getMousePosition(window.getSDLWindow(), dt);
-
-        // window.setView(view);
-
-        handleSDLEvents();
 
         if (networkHandler.isMultiplayerGame())
         {
@@ -469,7 +465,9 @@ void Game::runInGame(float dt)
     }
 
     // Input testing
-    if (!isStateTransitioning() && player.isAlive() && !(ImGui::GetIO().WantCaptureKeyboard || ImGui::GetIO().WantCaptureMouse))
+    // TODO: reenable imgui
+    // if (!isStateTransitioning() && player.isAlive() && !(ImGui::GetIO().WantCaptureKeyboard || ImGui::GetIO().WantCaptureMouse))
+    if (!isStateTransitioning() && player.isAlive())
     {
         // Left click / use tool
         {
@@ -1359,7 +1357,7 @@ void Game::drawLighting(float dt, std::vector<WorldObject*>& worldObjects)
     pl::VertexArray lightRect;
     lightRect.addQuad(pl::Rect<float>(camera.worldToScreenTransform(topLeftChunkPos), pl::Vector2f(lightTexture.getWidth(), lightTexture.getHeight()) *
         ResolutionHandler::getScale() * TILE_SIZE_PIXELS_UNSCALED / static_cast<float>(TILE_LIGHTING_RESOLUTION)), pl::Color(),
-        pl::Rect<float>(0, 0, lightTexture.getWidth(), lightTexture.getHeight()));
+        pl::Rect<float>(0, lightTexture.getHeight(), lightTexture.getWidth(), -lightTexture.getHeight()));
 
     worldTexture.draw(lightRect, *Shaders::getShader(ShaderType::Default), &lightTexture.getTexture(), pl::BlendMode::Multiply);
 
@@ -3817,10 +3815,14 @@ void Game::handleZoom(int zoomChange)
 
 void Game::handleEventsWindow(const SDL_Event& event)
 {
-    if (event.type == SDL_WINDOWEVENT_RESIZED)
+    if (event.type == SDL_WINDOWEVENT)
     {
-        handleWindowResize(pl::Vector2<uint32_t>(event.window.data1, event.window.data2));
-        return;
+        if (event.window.type == SDL_WINDOWEVENT_SIZE_CHANGED)
+        {
+            handleWindowResize(pl::Vector2<uint32_t>(event.window.data1, event.window.data2));
+            printf("d\n");
+            return;
+        }
     }
 
     if (event.type == SDL_KEYDOWN)
@@ -3840,17 +3842,10 @@ void Game::handleEventsWindow(const SDL_Event& event)
         #endif
     }
 
+    InputManager::processEvent(event);
+
     // ImGui
     // ImGui::SFML::ProcessEvent(window, event);
-}
-
-void Game::handleSDLEvents()
-{
-    SDL_Event event;
-    while (SDL_PollEvent(&event))
-    {
-        InputManager::processEvent(event);
-    }
 }
 
 void Game::toggleFullScreen()

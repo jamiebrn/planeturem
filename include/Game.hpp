@@ -309,7 +309,6 @@ private:
     void handleZoom(int zoomChange);
 
     void handleEventsWindow(const SDL_Event& event);
-    void handleSDLEvents();
 
     void toggleFullScreen();
     void handleWindowResize(pl::Vector2<uint32_t> newSize);

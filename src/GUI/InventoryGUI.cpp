@@ -1248,7 +1248,7 @@ void InventoryGUI::drawHoveredItemInfoBox(pl::RenderTarget& window, float gameTi
         pl::VertexArray box;
 
         box.addQuad(pl::Rect<float>(drawPos, pl::Vector2f(infoBoxTexture.getWidth(), infoBoxTexture.getHeight())), pl::Color(),
-            pl::Rect<float>(0, 0, infoBoxTexture.getWidth(), infoBoxTexture.getHeight()));
+            pl::Rect<float>(0, infoBoxTexture.getHeight(), infoBoxTexture.getWidth(), -infoBoxTexture.getHeight()));
 
         window.draw(box, *Shaders::getShader(ShaderType::Default), &infoBoxTexture.getTexture(), pl::BlendMode::Alpha);
     }
@@ -1579,7 +1579,8 @@ pl::Vector2f InventoryGUI::drawInfoBox(pl::RenderTarget& window, pl::Vector2f po
     boxDrawData.scale = pl::Vector2f(scale.x, height);
     boxDrawData.textureRect = sides[3];
     spriteBatch.draw(window, boxDrawData);
-    
+
+    // Draw centre
     boxDrawData.position = position + pl::Vector2f(sides[3].width * scale.x, sides[0].height * scale.y);
     boxDrawData.scale = pl::Vector2f(width, height);
     boxDrawData.textureRect = centre;
@@ -2132,15 +2133,11 @@ void InventoryGUI::drawItemPopups(pl::RenderTarget& window, float gameTime)
         popupPos.y += boxSize.y + (itemBoxSpacing + 6) * intScale;
     }
 
-    pl::DrawData hammerDrawData;
-    hammerDrawData.texture = TextureManager::getTexture(TextureType::UI);
-    hammerDrawData.shader = Shaders::getShader(ShaderType::Default);
-    hammerDrawData.position = (recipeItemSlots.back().getPosition() + pl::Vector2f(itemBoxSize + itemBoxSpacing, 0)) * intScale;
-    hammerDrawData.scale = pl::Vector2f(3, 3) * intScale;
-    hammerDrawData.centerRatio = pl::Vector2f(0.5f, 0.5f);
-    hammerDrawData.textureRect = pl::Rect<int>(80, 16, 16, 16);
+    pl::VertexArray popupRect;
+    popupRect.addQuad(pl::Rect<float>(0, window.getHeight() - popupPos.y - 9 * intScale, popupTexture.getWidth(), popupTexture.getHeight()),
+        pl::Color(), pl::Rect<float>(0, popupTexture.getHeight(), popupTexture.getWidth(), -popupTexture.getHeight()));
 
-    TextureManager::drawSubTexture(window, hammerDrawData);
+    window.draw(popupRect, *Shaders::getShader(ShaderType::Default), &popupTexture.getTexture(), pl::BlendMode::Alpha);
 }
 
 
