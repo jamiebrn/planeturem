@@ -68,14 +68,16 @@ void TileMap::draw(pl::RenderTarget& window, pl::Vector2f position, pl::Vector2f
 
     pl::Shader* shader = Shaders::getShader(ShaderType::TileMap);
 
-    shader->setUniform2f("position", (position.x - window.getWidth() / 2) / window.getWidth() / 2, (position.y - window.getHeight() / 2) / window.getHeight() / 2);
+    float halfTargetWidth = window.getWidth() / 2.0f;
+    float halfTargetHeight = window.getHeight() / 2.0f;
 
-    // TODO: Probably fix this (opengl coordinate system etc)
+    shader->setUniform2f("position", (position.x - halfTargetWidth) / halfTargetWidth, -(position.y - halfTargetHeight) / halfTargetHeight);
+
     shader->setUniform2f("scale", scale.x, scale.y);
 
     window.draw(tileVertexArray, *shader, TextureManager::getTexture(TextureType::GroundTiles), pl::BlendMode::Alpha);
 
-    // sf::RenderStates renderState;P
+    // sf::RenderStates renderState;
     // renderState.transform.translate(position);
     // renderState.transform.scale(scale);
     // renderState.texture = TextureManager::getTexture(TextureType::GroundTiles);
@@ -154,15 +156,23 @@ void TileMap::refreshRightEdge(TileMap* upTiles, TileMap* downTiles, TileMap* le
 
 void TileMap::refreshVerticiesForTile(int x, int y)
 {
-    if (!isTilePresent(tiles[y][x]))
-        return;
-            
-    pl::Vector2<int> textureOffset = getTextureOffsetForTile(x, y);
-
     int vertexIndex = (y * tiles[0].size() + x) * 6;
 
-    //if (tileVertexArray.getVertexCount() < vertexIndex + 4)
-        //return;
+    if (tileVertexArray.size() < vertexIndex + 4)
+    {
+        return;
+    }
+
+    if (!isTilePresent(tiles[y][x]))
+    {
+        for (int i = 0; i < 6; i++)
+        {
+            tileVertexArray[vertexIndex + i].color = pl::Color(0, 0, 0, 0);
+        }
+        return;
+    }
+            
+    pl::Vector2<int> textureOffset = getTextureOffsetForTile(x, y);
 
     tileVertexArray[vertexIndex].textureUV = {static_cast<float>(tilesetOffset.x) + textureOffset.x + 0, static_cast<float>(tilesetOffset.y) + textureOffset.y + 0};
     tileVertexArray[vertexIndex + 1].textureUV = {static_cast<float>(tilesetOffset.x) + textureOffset.x + 16, static_cast<float>(tilesetOffset.y) + textureOffset.y + 0};
@@ -288,7 +298,7 @@ void TileMap::buildVertexArray()
             if (!isTilePresent(tiles[y][x]))
             {
                 tileVertexArray.addQuad(pl::Rect<float>(pl::Vector2f(x, y) * TILE_SIZE_PIXELS_UNSCALED, pl::Vector2f(1, 1) * TILE_SIZE_PIXELS_UNSCALED),
-                    pl::Color(), pl::Rect<float>());
+                    pl::Color(0, 0, 0, 0), pl::Rect<float>());
                 continue;
             }
 
