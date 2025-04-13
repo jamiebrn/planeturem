@@ -1,38 +1,14 @@
 #pragma once
 
-// #include <SFML/Graphics.hpp>
+#include <string>
+#include <memory>
+
 #include "Graphics/Font.hpp"
 #include "Graphics/TextDrawData.hpp"
 #include "Graphics/Shader.hpp"
-#include <string>
 
-// Struct containing all data required when drawing text
-// struct TextDrawData
-// {
-//     std::string text;
-//     sf::Vector2f position;
-//     sf::Color colour;
-//     unsigned int size;
-
-//     sf::Color outlineColour = sf::Color(0, 0, 0);
-//     float outlineThickness = 0;
-
-//     bool centeredX = false;
-//     bool centeredY = false;
-
-//     bool containOnScreenX = false;
-//     bool containOnScreenY = false;
-//     float containPaddingLeft = 0;
-//     float containPaddingRight = 0;
-//     float containPaddingTop = 0;
-//     float containPaddingBottom = 0;
-// };
-
-// Declare text renderer class
 class TextDraw
 {
-
-// Delete constructor, as is static class
 private:
     TextDraw() = delete;
 
@@ -40,6 +16,8 @@ private:
 public:
     // Load font into memory
     static bool loadFont(const std::string& path, const std::string& vertexShaderPath, const std::string& fragmentShaderPath);
+
+    static void unloadFont();
 
     // Draw text using draw data
     static void drawText(pl::RenderTarget& window, const pl::TextDrawData& drawData);
@@ -52,9 +30,9 @@ private:
     static bool loadedFont;
 
     // Stores font
-    static pl::Font font;
+    static std::unique_ptr<pl::Font> font;
 
-    static pl::Shader fontShader;
+    static std::unique_ptr<pl::Shader> fontShader;
 
     // Text object used for drawing to screen
     // static sf::Text text;

@@ -51,6 +51,8 @@ public:
     // Load all textures into memory
     static bool loadTextures();
 
+    static void unloadTextures();
+
     // Draw texture using draw data
     static void drawTexture(pl::RenderTarget& window, pl::DrawData drawData);
 

@@ -638,7 +638,10 @@ void Chunk::drawChunkTerrain(pl::RenderTarget& window, const Camera& camera, flo
         debugLines.addVertex(pl::Vertex(camera.worldToScreenTransform(worldPosition + pl::Vector2f(CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED, CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED))));
     }
 
-    window.draw(debugLines, *Shaders::getShader(ShaderType::DefaultNoTexture), nullptr, pl::BlendMode::Alpha);
+    if (debugLines.size() > 0)
+    {
+        window.draw(debugLines, *Shaders::getShader(ShaderType::DefaultNoTexture), nullptr, pl::BlendMode::Alpha);
+    }
 
     // DRAW COLLISIONS
     if (DebugOptions::drawCollisionRects)

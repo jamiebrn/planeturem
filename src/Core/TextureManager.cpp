@@ -46,7 +46,7 @@ bool TextureManager::loadTextures()
     float texturesLoaded = 0;
 
     // Iterate over each texture file path
-    for (std::pair<TextureType, std::string> texturePair : texturePaths)
+    for (const std::pair<TextureType, std::string>& texturePair : texturePaths)
     {
         // Get texture type and file path from map
         TextureType textureType = texturePair.first;
@@ -76,7 +76,7 @@ bool TextureManager::loadTextures()
     }
 
     // Load bitmasks
-    for (std::pair<BitmaskType, std::string> bitmaskPair : bitmaskPaths)
+    for (const std::pair<BitmaskType, std::string>& bitmaskPair : bitmaskPaths)
     {
         std::unique_ptr<pl::Image> bitmaskImage = std::make_unique<pl::Image>();
 
@@ -100,6 +100,19 @@ bool TextureManager::loadTextures()
     
     // Return true by default
     return true;
+}
+
+void TextureManager::unloadTextures()
+{
+    for (auto iter = textureMap.begin(); iter != textureMap.end();)
+    {
+        iter = textureMap.erase(iter);
+    }
+
+    for (auto iter = bitmasks.begin(); iter != bitmasks.end();)
+    {
+        iter = bitmasks.erase(iter);
+    }
 }
 
 // Draw texture with specified data

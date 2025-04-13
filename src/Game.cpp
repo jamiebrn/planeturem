@@ -25,10 +25,10 @@ bool Game::initialise()
     SDL_GetCurrentDisplayMode(0, &displayMode);
 
     // Create window
-    window.create(GAME_TITLE, displayMode.w * 0.75f, displayMode.h * 0.75f, SDL_WINDOW_FULLSCREEN_DESKTOP | SDL_WINDOW_RESIZABLE);
+    window.create(GAME_TITLE, displayMode.w * 0.75f, displayMode.h * 0.75f, SDL_WINDOW_FULLSCREEN_DESKTOP | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN);
 
     // Enable VSync
-    // window.setVSync(true);
+    window.setVSync(true);
 
     // Hide mouse cursor
     SDL_ShowCursor(SDL_DISABLE);
@@ -184,6 +184,8 @@ bool Game::initialise()
 
 void Game::deinit()
 {
+    TextureManager::unloadTextures();
+    TextDraw::unloadFont();
     Sounds::unloadSounds();
     pl::Sound::deinit();
 }
@@ -246,6 +248,7 @@ void Game::run()
 
         // window.display();
         window.swapBuffers();
+        window.showWindow();
     }
 
     SDL_Quit();
