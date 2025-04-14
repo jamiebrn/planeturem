@@ -61,6 +61,12 @@ bool Game::initialise()
 
     // Init ImGui
     // if (!ImGui::SFML::Init(window)) return false;
+    #if (!RELEASE_BUILD)
+    ImGui::CreateContext();
+    ImGui::StyleColorsDark();
+    ImGui_ImplSDL2_InitForOpenGL(window.getSDLWindow(), window.getGLContext());
+    ImGui_ImplOpenGL3_Init("#version 330 core");
+    #endif
 
     // Load Steam API
     steamInitialised = SteamAPI_Init();
@@ -184,10 +190,20 @@ bool Game::initialise()
 
 void Game::deinit()
 {
+    #if (!RELEASE_BUILD)
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplSDL2_Shutdown();
+    ImGui::DestroyContext();
+    #endif
+
     TextureManager::unloadTextures();
     TextDraw::unloadFont();
     Sounds::unloadSounds();
     pl::Sound::deinit();
+
+    window.~Window();
+
+    SDL_Quit();
 }
 
 void Game::run()
@@ -240,11 +256,9 @@ void Game::run()
 
         #if (!RELEASE_BUILD)
         drawDebugMenu(dt);
+
+        ImGui::SetMouseCursor(ImGui::GetIO().WantCaptureMouse ? ImGuiMouseCursor_Arrow : ImGuiMouseCursor_None);
         #endif
-
-        // ImGui::SetMouseCursor(ImGui::GetIO().WantCaptureMouse ? ImGuiMouseCursor_Arrow : ImGuiMouseCursor_None);
-
-        // ImGui::SFML::Render(window);
 
         // window.display();
         window.swapBuffers();
@@ -3715,10 +3729,9 @@ void Game::handleEventsWindow(const SDL_Event& event)
 {
     if (event.type == SDL_WINDOWEVENT)
     {
-        if (event.window.type == SDL_WINDOWEVENT_SIZE_CHANGED)
+        if (event.window.event == SDL_WINDOWEVENT_RESIZED)
         {
             handleWindowResize(pl::Vector2<uint32_t>(event.window.data1, event.window.data2));
-            printf("d\n");
             return;
         }
     }
@@ -3742,8 +3755,9 @@ void Game::handleEventsWindow(const SDL_Event& event)
 
     InputManager::processEvent(event);
 
-    // ImGui
-    // ImGui::SFML::ProcessEvent(window, event);
+    #if (!RELEASE_BUILD)
+    ImGui_ImplSDL2_ProcessEvent(&event);
+    #endif
 }
 
 void Game::toggleFullScreen()
@@ -3753,6 +3767,12 @@ void Game::toggleFullScreen()
     // Set window stuff
     window.setIcon(icon);
     window.setVSync(true);
+
+    // Reinitialise ImGui
+    #if (!RELEASE_BUILD)
+    ImGui_ImplSDL2_Shutdown();
+    ImGui_ImplSDL2_InitForOpenGL(window.getSDLWindow(), window.getGLContext());
+    #endif
 
     handleWindowResize(pl::Vector2<uint32_t>(window.getWidth(), window.getHeight()));
 }
@@ -4136,6 +4156,10 @@ void Game::drawDebugMenu(float dt)
 {
     if (!DebugOptions::debugOptionsMenuOpen)
         return;
+    
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplSDL2_NewFrame();
+    ImGui::NewFrame();
 
     ImGui::Begin("Debug Options", &DebugOptions::debugOptionsMenuOpen);
 
@@ -4245,6 +4269,9 @@ void Game::drawDebugMenu(float dt)
     ImGui::Text(("Weather value: " + std::to_string(weatherSystem.sampleWeatherFunction(gameTime))).c_str());
     ImGui::Text(("Weather transition: " + std::to_string(weatherSystem.getDestinationTransitionProgress())).c_str());
 
-    ImGui::End();   
+    ImGui::End();
+
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 #endif
