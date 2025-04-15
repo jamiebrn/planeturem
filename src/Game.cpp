@@ -196,6 +196,9 @@ void Game::deinit()
     ImGui::DestroyContext();
     #endif
 
+    worldDatas.clear();
+    lightingEngine.~LightingEngine();
+
     TextureManager::unloadTextures();
     TextDraw::unloadFont();
     Sounds::unloadSounds();
@@ -377,9 +380,7 @@ void Game::runInGame(float dt)
     }
 
     // Input testing
-    // TODO: reenable imgui
-    // if (!isStateTransitioning() && player.isAlive() && !(ImGui::GetIO().WantCaptureKeyboard || ImGui::GetIO().WantCaptureMouse))
-    if (!isStateTransitioning() && player.isAlive())
+    if (!isStateTransitioning() && player.isAlive() && !(ImGui::GetIO().WantCaptureKeyboard || ImGui::GetIO().WantCaptureMouse))
     {
         // Left click / use tool
         {
@@ -786,7 +787,7 @@ void Game::runInGame(float dt)
         {
             case WorldMenuState::Main:
             {
-                InventoryGUI::drawHotbar(window, mouseScreenPos, inventory);
+                InventoryGUI::drawHotbar(window, spriteBatch, mouseScreenPos, inventory);
                 InventoryGUI::drawItemPopups(window, gameTime);
                 HealthGUI::drawHealth(window, spriteBatch, player, gameTime, extraInfoStrings);
 
@@ -826,7 +827,7 @@ void Game::runInGame(float dt)
                     chestDataPtr = getChestDataPool().getChestDataPtr(openedChestID);
                 }
 
-                InventoryGUI::draw(window, gameTime, mouseScreenPos, inventory, armourInventory, chestDataPtr);
+                InventoryGUI::draw(window, spriteBatch, gameTime, mouseScreenPos, inventory, armourInventory, chestDataPtr);
 
                 // Controller glyphs
                 if (InputManager::isControllerActive())
@@ -1255,14 +1256,14 @@ void Game::drawLighting(float dt, std::vector<WorldObject*>& worldObjects)
             worldObject->createLightSource(lightingEngine, topLeftChunkPos);
         }
 
-        lightingEngine.calculateLighting(pl::Color(255, 220, 140));
+        lightingEngine.calculateLighting();
     }
 
 
     lightTexture.clear({ambientRedLight, ambientGreenLight, ambientBlueLight, 255});
 
     // draw from lighting engine
-    lightingEngine.drawLighting(lightTexture);
+    lightingEngine.drawLighting(lightTexture, pl::Color(255, 220, 140));
 
     lightTexture.setLinearFilter(smoothLighting);
 

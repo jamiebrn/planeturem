@@ -134,8 +134,8 @@ public:
 
     static bool heldItemPlacesLand(InventoryData& inventory);
 
-    static void draw(pl::RenderTarget& window, float gameTime, pl::Vector2f mouseScreenPos, InventoryData& inventory, InventoryData& armourInventory,
-        InventoryData* chestData = nullptr);
+    static void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, float gameTime, pl::Vector2f mouseScreenPos,
+        InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData = nullptr);
 
     static inline const std::vector<int>& getAvailableRecipes() {return availableRecipes;}
 
@@ -155,7 +155,7 @@ public:
     static void subtractHotbarItem(InventoryData& inventory);
 
     // Hotbar drawn when not in inventory
-    static void drawHotbar(pl::RenderTarget& window, pl::Vector2f mouseScreenPos, InventoryData& inventory);
+    static void drawHotbar(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, pl::Vector2f mouseScreenPos, InventoryData& inventory);
 
     // -- Chest -- //
     static void chestOpened(InventoryData* chestData);
@@ -196,12 +196,12 @@ private:
     // Attempt to craft recipe selected
     static void craftRecipe(InventoryData& inventory, int selectedRecipe);
 
-    static void drawInventory(pl::RenderTarget& window, InventoryData& inventory);
-    static void drawArmourInventory(pl::RenderTarget& window, InventoryData& armourInventory);
-    static void drawBin(pl::RenderTarget& window);
-    static void drawRecipes(pl::RenderTarget& window);
-    static void drawChest(pl::RenderTarget& window, InventoryData* chestData);
-    static void drawPickedUpItem(pl::RenderTarget& window, float gameTime, pl::Vector2f mouseScreenPos);
+    static void drawInventory(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, InventoryData& inventory);
+    static void drawArmourInventory(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, InventoryData& armourInventory);
+    static void drawBin(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch);
+    static void drawRecipes(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch);
+    static void drawChest(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, InventoryData* chestData);
+    static void drawPickedUpItem(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, float gameTime, pl::Vector2f mouseScreenPos);
     static void drawHoveredItemInfoBox(pl::RenderTarget& window, float gameTime, pl::Vector2f mouseScreenPos, InventoryData& inventory,
         InventoryData& armourInventory, InventoryData* chestData);
 

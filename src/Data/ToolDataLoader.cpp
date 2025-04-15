@@ -29,8 +29,8 @@ bool ToolDataLoader::loadData(std::string toolDataPath)
 
         auto textureRectPos = jsonProjectileData.at("texture");
 
-        projectileData.textureRect.x = textureRectPos[1];
-        projectileData.textureRect.y = textureRectPos[0];
+        projectileData.textureRect.x = textureRectPos[0];
+        projectileData.textureRect.y = textureRectPos[1];
         projectileData.textureRect.width = jsonProjectileData.at("texture-width");
         projectileData.textureRect.height = jsonProjectileData.at("texture-height");
 

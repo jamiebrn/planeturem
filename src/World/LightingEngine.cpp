@@ -5,7 +5,7 @@ void LightingEngine::resize(int width, int height)
     this->width = width;
     this->height = height;
     
-    lightingVertexArray.reserve(width * height * 4);
+    // lightingVertexArray.reserve(width * height * 4);
     
     resetLighting();
     resetLightSources();
@@ -68,7 +68,7 @@ void LightingEngine::addObstacle(int x, int y, float absorption)
     obstacles[y * width + x] = absorption;
 }
 
-void LightingEngine::calculateLighting(const pl::Color& lightingColor)
+void LightingEngine::calculateLighting()
 {
     // Initialise light sources and put indexes into queue
     std::queue<LightPropagationNode> lightQueue;
@@ -139,7 +139,8 @@ void LightingEngine::calculateLighting(const pl::Color& lightingColor)
         lightQueue.pop();
     }
 
-    buildVertexArray(lightingColor);
+    // buildVertexArray(lightingColor);
+    generateLightingTexture();
 }
 
 void LightingEngine::propagateLight(const LightPropagationNode& lightNode, float previousIntensity, std::queue<LightPropagationNode>& lightQueue)
@@ -158,30 +159,48 @@ void LightingEngine::propagateLight(const LightPropagationNode& lightNode, float
     // lightQueue.emplace(index);
 }
 
-void LightingEngine::buildVertexArray(const pl::Color& lightingColor)
+// void LightingEngine::buildVertexArray(const pl::Color& lightingColor)
+// {
+//     lightingVertexArray.clear();
+
+//     for (int i = 0; i < lighting.size(); i++)
+//     {
+//         const float& intensity = lighting[i];
+//         if (intensity <= 0)
+//         {
+//             continue;
+//         }
+
+//         int y = static_cast<int>(std::floor(i / width));
+//         int x = i % width;
+
+//         pl::Color color(lightingColor.r * intensity, lightingColor.g * intensity, lightingColor.b * intensity);
+
+//         lightingVertexArray.addQuad(pl::Rect<float>(x, y, 1, 1), color, pl::Rect<float>(0, 0, 0, 0));
+
+//         // lightingVertexArray.push_back(sf::Vertex(sf::Vector2f(x, y), colour));
+//         // lightingVertexArray.push_back(sf::Vertex(sf::Vector2f(x + 1, y), colour));
+//         // lightingVertexArray.push_back(sf::Vertex(sf::Vector2f(x + 1, y + 1), colour));
+//         // lightingVertexArray.push_back(sf::Vertex(sf::Vector2f(x, y + 1), colour));
+//     }
+// }
+
+void LightingEngine::generateLightingTexture()
 {
-    lightingVertexArray.clear();
-
-    for (int i = 0; i < lighting.size(); i++)
+    if (lightingTexture.getID() == 0)
     {
-        const float& intensity = lighting[i];
-        if (intensity <= 0)
-        {
-            continue;
-        }
+        GLuint textureId;
+        glGenTextures(1, &textureId);
+        pl::Texture::bindTextureID(textureId, 0);
+        
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-        int y = static_cast<int>(std::floor(i / width));
-        int x = i % width;
-
-        pl::Color color(lightingColor.r * intensity, lightingColor.g * intensity, lightingColor.b * intensity);
-
-        lightingVertexArray.addQuad(pl::Rect<float>(x, y, 1, 1), color, pl::Rect<float>(0, 0, 0, 0));
-
-        // lightingVertexArray.push_back(sf::Vertex(sf::Vector2f(x, y), colour));
-        // lightingVertexArray.push_back(sf::Vertex(sf::Vector2f(x + 1, y), colour));
-        // lightingVertexArray.push_back(sf::Vertex(sf::Vector2f(x + 1, y + 1), colour));
-        // lightingVertexArray.push_back(sf::Vertex(sf::Vector2f(x, y + 1), colour));
+        lightingTexture.setFromAllocated(textureId, width, height);
+        lightingTexture.setLinearFilter(false);
     }
+
+    lightingTexture.overwriteData(width, height, lighting.data(), GL_RED, GL_FLOAT);
 }
 
 // void LightingEngine::drawObstacles(pl::RenderTarget& window, int scale)
@@ -218,14 +237,17 @@ void LightingEngine::buildVertexArray(const pl::Color& lightingColor)
 //     window.draw(&(obstacleVertexArray[0]), obstacleVertexArray.getVertexCount(), sf::Quads);
 // }
 
-void LightingEngine::drawLighting(pl::RenderTarget& window)
+void LightingEngine::drawLighting(pl::RenderTarget& window, const pl::Color& lightingColor)
 {
-    if (lightingVertexArray.size() <= 0)
+    if (lightingTexture.getID() <= 0)
     {
         return;
     }
 
-    window.draw(lightingVertexArray, *Shaders::getShader(ShaderType::DefaultNoTexture), nullptr, pl::BlendMode::Add);
+    pl::VertexArray lightingRect;
+    lightingRect.addQuad(pl::Rect<float>(0, 0, window.getWidth(), window.getHeight()), lightingColor, pl::Rect<float>(0, 0, width, height));
+
+    window.draw(lightingRect, *Shaders::getShader(ShaderType::Lighting), &lightingTexture, pl::BlendMode::Add);
 
     // window.draw(&(lightingVertexArray[0]), lightingVertexArray.size(), sf::Quads, sf::BlendAdd);
 }

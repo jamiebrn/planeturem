@@ -896,33 +896,37 @@ bool InventoryGUI::heldItemPlacesLand(InventoryData& inventory)
     return hotbarItemPlacesLand(inventory);
 }
 
-void InventoryGUI::draw(pl::RenderTarget& window, float gameTime, pl::Vector2f mouseScreenPos, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData)
+void InventoryGUI::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, float gameTime, pl::Vector2f mouseScreenPos,
+    InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData)
 {
     if (openShopData.has_value())
     {
         assert(chestData == nullptr);
     }
 
-    drawInventory(window, inventory);
-    drawArmourInventory(window, armourInventory);
-    drawBin(window);
+    drawInventory(window, spriteBatch, inventory);
+    drawArmourInventory(window, spriteBatch, armourInventory);
+    drawBin(window, spriteBatch);
 
     if (openShopData.has_value())
     {
-        drawChest(window, &openShopData.value());
+        drawChest(window, spriteBatch, &openShopData.value());
     }
     else
     {
-        drawChest(window, chestData);
+        drawChest(window, spriteBatch, chestData);
     }
 
-    drawRecipes(window);
+    drawRecipes(window, spriteBatch);
 
-    drawPickedUpItem(window, gameTime, mouseScreenPos);
+    drawPickedUpItem(window, spriteBatch, gameTime, mouseScreenPos);
+
+    spriteBatch.endDrawing(window);
+
     drawHoveredItemInfoBox(window, gameTime, mouseScreenPos, inventory, armourInventory, chestData);
 }
 
-void InventoryGUI::drawInventory(pl::RenderTarget& window, InventoryData& inventory)
+void InventoryGUI::drawInventory(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, InventoryData& inventory)
 {
     for (int itemIdx = 0; itemIdx < inventoryItemSlots.size(); itemIdx++)
     {
@@ -940,17 +944,17 @@ void InventoryGUI::drawInventory(pl::RenderTarget& window, InventoryData& invent
         {
             const ItemCount& itemCount = itemSlotData.value();
 
-            itemSlot.draw(window, itemCount.first, itemCount.second, false, selectedByController, std::nullopt, &inventory);
+            itemSlot.draw(window, spriteBatch, itemCount.first, itemCount.second, false, selectedByController, std::nullopt, &inventory);
         }
         else
         {
             // Draw blank item box
-            itemSlot.draw(window, std::nullopt, std::nullopt, false, selectedByController);
+            itemSlot.draw(window, spriteBatch, std::nullopt, std::nullopt, false, selectedByController);
         }
     }
 }
 
-void InventoryGUI::drawArmourInventory(pl::RenderTarget& window, InventoryData& armourInventory)
+void InventoryGUI::drawArmourInventory(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, InventoryData& armourInventory)
 {
     static const std::array<pl::Rect<int>, ARMOUR_SLOTS> emptyArmourSlotIcons = {{
         {176, 32, 15, 10},
@@ -1009,16 +1013,16 @@ void InventoryGUI::drawArmourInventory(pl::RenderTarget& window, InventoryData& 
         {
             const ItemCount& itemCount = itemSlotData.value();
 
-            itemSlot.draw(window, itemCount.first, itemCount.second, false, selectedByController);
+            itemSlot.draw(window, spriteBatch, itemCount.first, itemCount.second, false, selectedByController);
         }
         else
         {
-            itemSlot.draw(window, std::nullopt, std::nullopt, false, selectedByController, emptyArmourSlotIcons[i]);
+            itemSlot.draw(window, spriteBatch, std::nullopt, std::nullopt, false, selectedByController, emptyArmourSlotIcons[i]);
         }
     }
 }
 
-void InventoryGUI::drawBin(pl::RenderTarget& window)
+void InventoryGUI::drawBin(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch)
 {
     float intScale = ResolutionHandler::getResolutionIntegerScale();
 
@@ -1034,10 +1038,10 @@ void InventoryGUI::drawBin(pl::RenderTarget& window)
     drawData.centerRatio = pl::Vector2f(0.5f, 0.5f);
     drawData.textureRect = binAnimation.getTextureRect();
 
-    TextureManager::drawSubTexture(window, drawData);
+    spriteBatch.draw(window, drawData);
 }
 
-void InventoryGUI::drawRecipes(pl::RenderTarget& window)
+void InventoryGUI::drawRecipes(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch)
 {
     float intScale = ResolutionHandler::getResolutionIntegerScale();
 
@@ -1072,7 +1076,7 @@ void InventoryGUI::drawRecipes(pl::RenderTarget& window)
 
             // Draw item box for product
             // itemSlot.draw(window, recipeData.product, recipeData.productAmount, false, selected);
-            itemSlot.draw(window, recipeData.product, recipeData.productAmount, false, selectedByController);
+            itemSlot.draw(window, spriteBatch, recipeData.product, recipeData.productAmount, false, selectedByController);
             
             // Test whether mouse is over - if so, store recipe index for drawing info later
             // if (itemSlot.isHovered())
@@ -1087,10 +1091,9 @@ void InventoryGUI::drawRecipes(pl::RenderTarget& window)
         hammerDrawData.shader = Shaders::getShader(ShaderType::Default);
         hammerDrawData.position = (recipeItemSlots.back().getPosition() + pl::Vector2f(itemBoxSize + itemBoxSpacing, 0)) * intScale;
         hammerDrawData.scale = pl::Vector2f(3, 3) * intScale;
-        hammerDrawData.centerRatio = pl::Vector2f(0.5f, 0.5f);
         hammerDrawData.textureRect = pl::Rect<int>(80, 16, 16, 16);
 
-        TextureManager::drawSubTexture(window, hammerDrawData);
+        spriteBatch.draw(window, hammerDrawData);
 
         static constexpr int RECIPE_PAGE_COUNT_HAMMMER_OFFSET_Y = 45;
 
@@ -1116,7 +1119,7 @@ void InventoryGUI::drawRecipes(pl::RenderTarget& window)
     }
 }
 
-void InventoryGUI::drawChest(pl::RenderTarget& window, InventoryData* chestData)
+void InventoryGUI::drawChest(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, InventoryData* chestData)
 {
     if (chestData == nullptr)
     {
@@ -1139,17 +1142,17 @@ void InventoryGUI::drawChest(pl::RenderTarget& window, InventoryData* chestData)
         {
             const ItemCount& itemCount = itemSlotData.value();
 
-            itemSlot.draw(window, itemCount.first, itemCount.second, false, selectedByController);
+            itemSlot.draw(window, spriteBatch, itemCount.first, itemCount.second, false, selectedByController);
         }
         else
         {
             // Draw blank item box
-            itemSlot.draw(window, std::nullopt, std::nullopt, false, selectedByController);
+            itemSlot.draw(window, spriteBatch, std::nullopt, std::nullopt, false, selectedByController);
         }
     }
 }
 
-void InventoryGUI::drawPickedUpItem(pl::RenderTarget& window, float gameTime, pl::Vector2f mouseScreenPos)
+void InventoryGUI::drawPickedUpItem(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, float gameTime, pl::Vector2f mouseScreenPos)
 {
     if (!isItemPickedUp)
     {
@@ -1168,7 +1171,7 @@ void InventoryGUI::drawPickedUpItem(pl::RenderTarget& window, float gameTime, pl
     // Create dummy item slot at cursor
     ItemSlot pickedUpItemSlot(mouseScreenPos, itemBoxSize, false);
     pickedUpItemSlot.overrideItemScaleMult(1.0f + std::pow(std::sin(gameTime * 3.5f), 2) / 8.0f);
-    pickedUpItemSlot.draw(window, pickedUpItem, pickedUpItemCount, true);
+    pickedUpItemSlot.draw(window, spriteBatch, pickedUpItem, pickedUpItemCount, true);
 }
 
 void InventoryGUI::drawHoveredItemInfoBox(pl::RenderTarget& window, float gameTime, pl::Vector2f mouseScreenPos, InventoryData& inventory,
@@ -1533,14 +1536,15 @@ pl::Vector2f InventoryGUI::drawInfoBox(pl::RenderTarget& window, pl::Vector2f po
     boxDrawData.texture = TextureManager::getTexture(TextureType::UI);
     boxDrawData.shader = Shaders::getShader(ShaderType::Default);
     boxDrawData.color = pl::Color(255, 255, 255, alpha);
-
+    
     if (flashAmount > 0.0f)
     {
         boxDrawData.shader = Shaders::getShader(ShaderType::Flash);
         boxDrawData.shader->setUniform1f("flash_amount", flashAmount);
     }
-
+    
     pl::Vector2f scale(3 * intScale, 3 * intScale);
+    boxDrawData.scale = scale;
 
     // Draw corners
     boxDrawData.position = position;
@@ -1613,7 +1617,8 @@ pl::Vector2f InventoryGUI::drawInfoBox(pl::RenderTarget& window, pl::Vector2f po
             // itemSlot.draw(window, itemCount.first, itemCount.second, true);
             // Offset text draw data position downwards
             textDrawData.position.y += textYPadding * intScale;
-            ItemSlot::drawItem(window, itemCount.first, textDrawData.position + pl::Vector2f(itemSize, itemSize) * 0.5f * static_cast<float>(intScale), 1.0f, true, alpha);
+            ItemSlot::drawItem(window, spriteBatch, itemCount.first, textDrawData.position + pl::Vector2f(itemSize, itemSize) * 0.5f * static_cast<float>(intScale), 1.0f, true, alpha);
+            spriteBatch.endDrawing(window);
 
             // Draw item amount
             if (infoString.drawItemCountNumberWhenOne || !infoString.drawItemCountNumberWhenOne && itemCount.second > 1)
@@ -1793,7 +1798,7 @@ void InventoryGUI::handleHotbarItemChange()
     hotbarItemStringTimer = HOTBAR_ITEM_STRING_OPAQUE_TIME + HOTBAR_ITEM_STRING_FADE_TIME;
 }
 
-void InventoryGUI::drawHotbar(pl::RenderTarget& window, pl::Vector2f mouseScreenPos, InventoryData& inventory)
+void InventoryGUI::drawHotbar(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, pl::Vector2f mouseScreenPos, InventoryData& inventory)
 {
     // Get resolution
     const pl::Vector2<uint32_t>& resolution = ResolutionHandler::getResolution();
@@ -1813,7 +1818,7 @@ void InventoryGUI::drawHotbar(pl::RenderTarget& window, pl::Vector2f mouseScreen
         {
             const ItemCount& itemCount = itemSlotData.value();
 
-            itemSlot.draw(window, itemCount.first, itemCount.second, false, selected, std::nullopt, &inventory);
+            itemSlot.draw(window, spriteBatch, itemCount.first, itemCount.second, false, selected, std::nullopt, &inventory);
 
             // Set item name string if selected
             if (selected)
@@ -1825,9 +1830,11 @@ void InventoryGUI::drawHotbar(pl::RenderTarget& window, pl::Vector2f mouseScreen
         else
         {
             // Draw blank item box
-            itemSlot.draw(window, std::nullopt, std::nullopt, false, selected);
+            itemSlot.draw(window, spriteBatch, std::nullopt, std::nullopt, false, selected);
         }
     }
+
+    spriteBatch.endDrawing(window);
 
     // Draw item name string
     if (hotbarItemStringTimer > 0)
@@ -1842,7 +1849,7 @@ void InventoryGUI::drawHotbar(pl::RenderTarget& window, pl::Vector2f mouseScreen
             .color = pl::Color(255, 255, 255, alpha),
             .size = 24 * static_cast<unsigned int>(intScale),
             .outlineColor = pl::Color(46, 34, 47, alpha),
-            .outlineThickness = 2 * intScale
+            .outlineThickness = 2 * static_cast<unsigned int>(intScale)
         });
     }
 }

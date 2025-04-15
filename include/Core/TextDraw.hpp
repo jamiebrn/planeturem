@@ -7,6 +7,8 @@
 #include "Graphics/TextDrawData.hpp"
 #include "Graphics/Shader.hpp"
 
+#include "Core/Shaders.hpp"
+
 class TextDraw
 {
 private:

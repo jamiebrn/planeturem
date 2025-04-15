@@ -52,6 +52,7 @@ void ItemSlot::overrideItemScaleMult(float scale)
 }
 
 void ItemSlot::draw(pl::RenderTarget& window,
+                    pl::SpriteBatch& spriteBatch,
                     std::optional<ItemType> itemType,
                     std::optional<int> itemAmount,
                     bool hiddenBackground,
@@ -84,14 +85,14 @@ void ItemSlot::draw(pl::RenderTarget& window,
         drawData.textureRect = boxRect;
         drawData.centerRatio = origin;
 
-        TextureManager::drawSubTexture(window, drawData);
+        spriteBatch.draw(window, drawData);
     }
 
     // Draw item
     if (itemType.has_value())
     {
         pl::Vector2f itemPos = position * positionIntScale + (pl::Vector2f(std::round(boxSize / 2.0f), std::round(boxSize / 2.0f))) * intScale;
-        drawItem(window, itemType.value(), itemPos, itemScaleMult);
+        drawItem(window, spriteBatch, itemType.value(), itemPos, itemScaleMult);
 
         // If inventory data given, search for projectile counts if required
         if (inventory)
@@ -123,7 +124,7 @@ void ItemSlot::draw(pl::RenderTarget& window,
     else if (emptyIconTexture.has_value())
     {
         // If no item and empty icon texture is supplied, draw empty icon in item place
-        drawEmptyIconTexture(window, emptyIconTexture.value());
+        drawEmptyIconTexture(window, spriteBatch, emptyIconTexture.value());
     }
 
     // Draw item count (if > 1)
@@ -144,7 +145,7 @@ void ItemSlot::draw(pl::RenderTarget& window,
     }
 }
 
-void ItemSlot::drawEmptyIconTexture(pl::RenderTarget& window, pl::Rect<int> emptyIconTexture)
+void ItemSlot::drawEmptyIconTexture(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, pl::Rect<int> emptyIconTexture)
 {
     float intScale = ResolutionHandler::getResolutionIntegerScale();
 
@@ -162,10 +163,11 @@ void ItemSlot::drawEmptyIconTexture(pl::RenderTarget& window, pl::Rect<int> empt
     drawData.centerRatio = pl::Vector2f(0.5f, 0.5f);
     drawData.textureRect = emptyIconTexture;
 
-    TextureManager::drawSubTexture(window, drawData);
+    spriteBatch.draw(window, drawData);
 }
 
-void ItemSlot::drawItem(pl::RenderTarget& window, ItemType itemType, pl::Vector2f position, float scaleMult, bool centred, int alpha, float flashAmount)
+void ItemSlot::drawItem(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, ItemType itemType, pl::Vector2f position, float scaleMult,
+    bool centred, int alpha, float flashAmount)
 {
     float intScale = ResolutionHandler::getResolutionIntegerScale();
 
@@ -250,5 +252,5 @@ void ItemSlot::drawItem(pl::RenderTarget& window, ItemType itemType, pl::Vector2
     }
     
     // Draw item / tool / object
-    TextureManager::drawSubTexture(window, drawData);
+    spriteBatch.draw(window, drawData);
 }

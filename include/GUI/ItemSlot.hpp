@@ -47,6 +47,7 @@ public:
     void overrideItemScaleMult(float scale);
 
     void draw(pl::RenderTarget& window,
+              pl::SpriteBatch& spriteBatch,
               std::optional<ItemType> itemType = std::nullopt,
               std::optional<int> itemAmount = std::nullopt,
               bool hiddenBackground = false,
@@ -55,11 +56,11 @@ public:
               InventoryData* inventory = nullptr // give pointer to inventory if amount of projectiles etc required to be drawn
               );
     
-    static void drawItem(pl::RenderTarget& window, ItemType itemType, pl::Vector2f position, float scaleMult = 1.0f, bool centred = true, int alpha = 255,
-        float flashAmount = 0.0f);
+    static void drawItem(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, ItemType itemType, pl::Vector2f position, float scaleMult = 1.0f,
+        bool centred = true, int alpha = 255, float flashAmount = 0.0f);
 
 private:
-    void drawEmptyIconTexture(pl::RenderTarget& window, pl::Rect<int> emptyIconTexture);
+    void drawEmptyIconTexture(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, pl::Rect<int> emptyIconTexture);
 
 private:
     pl::Vector2f position;

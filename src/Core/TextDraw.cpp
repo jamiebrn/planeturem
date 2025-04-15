@@ -49,6 +49,11 @@ void TextDraw::drawText(pl::RenderTarget& window, const pl::TextDrawData& drawDa
         return;
     }
 
+    pl::Rect<float> textSize = font->measureText(drawData);
+    pl::VertexArray textBoundingBox;
+    textBoundingBox.addQuad(textSize, pl::Color(200, 30, 30), pl::Rect<float>());
+    window.draw(textBoundingBox, *Shaders::getShader(ShaderType::DefaultNoTexture), nullptr, pl::BlendMode::Alpha);
+
     font->draw(window, *fontShader, drawData);
 }
 

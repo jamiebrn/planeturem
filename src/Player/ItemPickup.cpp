@@ -45,5 +45,5 @@ void ItemPickup::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Ga
 
     float flashAmount = std::max(SPAWN_FLASH_TIME - (gameTime - spawnGameTime), 0.0f) / SPAWN_FLASH_TIME;
 
-    ItemSlot::drawItem(window, itemType, screenPos, scaleMult, true, 255, flashAmount);
+    ItemSlot::drawItem(window, spriteBatch, itemType, screenPos, scaleMult, true, 255, flashAmount);
 }

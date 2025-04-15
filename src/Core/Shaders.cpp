@@ -6,7 +6,7 @@ const std::unordered_map<ShaderType, ShaderFilePath> Shaders::shaderFilePaths = 
     {ShaderType::TileMap, {"Data/Shaders/tilemap.vert", "Data/Shaders/default.frag"}},
     {ShaderType::Flash, {"Data/Shaders/default.vert", "Data/Shaders/flash.frag"}},
     {ShaderType::Water, {"Data/Shaders/default.vert", "Data/Shaders/water.frag"}},
-    // {ShaderType::Lighting, {"", "Data/Shaders/lighting.frag"}},
+    {ShaderType::Lighting, {"Data/Shaders/default.vert", "Data/Shaders/lighting.frag"}},
     {ShaderType::Progress, {"Data/Shaders/default.vert", "Data/Shaders/progress.frag"}},
     {ShaderType::ProgressCircle, {"Data/Shaders/default.vert", "Data/Shaders/progress_circle.frag"}},
     // {ShaderType::Blur, {"", "Data/Shaders/blur.frag"}},

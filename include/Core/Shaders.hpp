@@ -13,7 +13,7 @@ enum class ShaderType
     TileMap,
     Flash,
     Water,
-    // Lighting,
+    Lighting,
     Progress,
     ProgressCircle,
     // Blur,
