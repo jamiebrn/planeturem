@@ -132,6 +132,8 @@ void ItemSlot::draw(pl::RenderTarget& window,
     {
         if (itemAmount.value() > 1)
         {
+            spriteBatch.endDrawing(window);
+            
             TextDraw::drawText(window, {
                 std::to_string(itemAmount.value()),
                 position * positionIntScale + (pl::Vector2f(std::round(boxSize / 4.0f) * 3.0f, std::round(boxSize / 4.0f) * 3.0f)) * intScale,

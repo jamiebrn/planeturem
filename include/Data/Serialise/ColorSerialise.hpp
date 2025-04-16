@@ -1,7 +1,6 @@
 #pragma once
 
 #include <Core/json.hpp>
-// #include <SFML/Graphics/Color.hpp>
 
 #include <Graphics/Color.hpp>
 

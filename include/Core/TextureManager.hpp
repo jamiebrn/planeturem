@@ -8,6 +8,7 @@
 #include <Graphics/Texture.hpp>
 #include <Graphics/Shader.hpp>
 #include <Graphics/VertexArray.hpp>
+#include <Graphics/SpriteBatch.hpp>
 #include <Graphics/DrawData.hpp>
 #include <Rect.hpp>
 #include <Vector.hpp>

@@ -1,7 +1,5 @@
 #pragma once
 
-// #include <SFML/Graphics.hpp>
-
 #include <cstdint>
 
 #include "Vector.hpp"
@@ -29,10 +27,16 @@ public:
     // Get scale integer scale based on 1080p (used for UI etc)
     static int getResolutionIntegerScale();
 
+    static bool getVSync();
+    static void setVSync(bool enabled);
+
 private:
     static pl::Vector2<uint32_t> currentResolution;
 
     static int scale;
 
     static int currentZoom;
+
+    static bool vSync;
+
 };

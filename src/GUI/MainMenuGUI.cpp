@@ -389,7 +389,7 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(pl::RenderTarget& window
     versionTextDrawData.text = GAME_VERSION;
     versionTextDrawData.color = pl::Color(255, 255, 255);
     versionTextDrawData.size = 24 * intScale;
-    versionTextDrawData.position = pl::Vector2f(10 * intScale, resolution.y - (24 + 10 ) * intScale);
+    versionTextDrawData.position = pl::Vector2f(10 * intScale, resolution.y - (24 + 10) * intScale);
 
     TextDraw::drawText(window, versionTextDrawData);
 
@@ -428,6 +428,16 @@ bool MainMenuGUI::createOptionsMenu(pl::RenderTarget& window, int startElementYP
         Camera::setScreenShakeEnabled(screenShakeEnabled);
     }
     
+    startElementYPos += 100 * intScale;
+
+    bool vSyncEnabled = ResolutionHandler::getVSync();
+    if (guiContext.createCheckbox(scaledPanelPaddingX, startElementYPos, panelWidth * intScale, 75 * intScale, 20 * intScale, "V-Sync", &vSyncEnabled,
+        (panelWidth / 2 + 80) * intScale, (panelWidth / 10 + 80) * intScale, 40 * intScale)
+        .isClicked())
+    {
+        ResolutionHandler::setVSync(vSyncEnabled);
+    }
+
     startElementYPos += 100 * intScale;
     
     // Create button glyph switch buttons

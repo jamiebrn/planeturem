@@ -8,8 +8,6 @@
 #include <extlib/cereal/types/optional.hpp>
 #include "Data/Serialise/ColorSerialise.hpp"
 
-// #include <SFML/Graphics/Color.hpp>
-
 #include <Graphics/Color.hpp>
 
 #include "Data/typedefs.hpp"

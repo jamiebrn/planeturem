@@ -23,6 +23,7 @@ void HealthGUI::drawHealth(pl::RenderTarget& window, pl::SpriteBatch& spriteBatc
         drawData.position = pl::Vector2f(resolution.x - xPos  * intScale, HEART_Y_PADDING  * intScale);
         drawData.scale = pl::Vector2f(3, 3) * intScale;
         drawData.textureRect = heartEmptyRect;
+        drawData.vertexPixelClamp = false;
 
         bool useProgressShader = false;
 

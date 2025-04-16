@@ -138,69 +138,7 @@ void TextureManager::drawSubTexture(pl::RenderTarget& window, const pl::DrawData
         return;
     }
 
-    pl::VertexArray vertexArray;
-
-    pl::Vertex vertices[4];
-    
-    pl::Vector2f size;
-    size.x = drawData.textureRect.width * drawData.scale.x;
-    size.y = drawData.textureRect.height * drawData.scale.y;
-
-    float centreRatioX = drawData.centerRatio.x;
-    float centreRatioY = drawData.centerRatio.y;
-
-    if (drawData.useCentreAbsolute)
-    {
-        centreRatioX /= drawData.textureRect.width;
-        centreRatioY /= drawData.textureRect.height;
-    }
-    
-    if (drawData.rotation == 0)
-    {
-        // Simple case, no rotation
-        // Separate from rotation calculation in order to save performance
-        pl::Vector2f topLeft;
-        topLeft.x = drawData.position.x - (size.x * centreRatioX);
-        topLeft.y = drawData.position.y - (size.y * centreRatioY);
-
-        vertices[0].position = topLeft;
-        vertices[1].position = topLeft + pl::Vector2f(size.x, 0);
-        vertices[2].position = topLeft + pl::Vector2f(size.x, size.y);
-        vertices[3].position = topLeft + pl::Vector2f(0, size.y);
-    }
-    else
-    {
-        // Apply rotation
-        float angleRadians = M_PI * drawData.rotation / 180.0f;
-
-        float nX = -size.x * centreRatioX;
-        float pX = (1.0f - centreRatioX) * size.x;
-        float nY = -size.y * centreRatioY;
-        float pY = (1.0f - centreRatioY) * size.y;
-
-        vertices[0].position = pl::Vector2f(nX, nY).rotate(angleRadians) + drawData.position;
-        vertices[1].position = pl::Vector2f(pX, nY).rotate(angleRadians) + drawData.position;
-        vertices[2].position = pl::Vector2f(pX, pY).rotate(angleRadians) + drawData.position;
-        vertices[3].position = pl::Vector2f(nX, pY).rotate(angleRadians) + drawData.position;
-    }
-
-    // Set UV coords
-    vertices[0].textureUV = static_cast<pl::Vector2f>(drawData.textureRect.getPosition());
-    vertices[1].textureUV = vertices[0].textureUV + pl::Vector2f(drawData.textureRect.width, 0);
-    vertices[2].textureUV = vertices[0].textureUV + pl::Vector2f(drawData.textureRect.width, drawData.textureRect.height);
-    vertices[3].textureUV = vertices[0].textureUV + pl::Vector2f(0, drawData.textureRect.height);
-
-    for (int i = 0; i < 4; i++)
-    {
-        vertices[i].color = drawData.color;
-    }
-    
-    vertexArray.addVertex(vertices[0]);
-    vertexArray.addVertex(vertices[1]);
-    vertexArray.addVertex(vertices[2]);
-    vertexArray.addVertex(vertices[0]);
-    vertexArray.addVertex(vertices[2]);
-    vertexArray.addVertex(vertices[3]);
-
-    window.draw(vertexArray, *drawData.shader, drawData.texture, pl::BlendMode::Alpha);
+    pl::SpriteBatch spriteBatch;
+    spriteBatch.draw(window, drawData);
+    spriteBatch.endDrawing(window);
 }

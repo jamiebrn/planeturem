@@ -5,9 +5,6 @@
 #include <vector>
 #include <unordered_set>
 
-// #include <SFML/System/Vector2.hpp>
-// #include <SFML/Graphics/Color.hpp>
-
 #include <Graphics/Color.hpp>
 #include <Vector.hpp>
 

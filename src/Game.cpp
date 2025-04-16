@@ -27,9 +27,6 @@ bool Game::initialise()
     // Create window
     window.create(GAME_TITLE, displayMode.w * 0.75f, displayMode.h * 0.75f, SDL_WINDOW_FULLSCREEN_DESKTOP | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN);
 
-    // Enable VSync
-    window.setVSync(true);
-
     // Hide mouse cursor
     SDL_ShowCursor(SDL_DISABLE);
 
@@ -255,17 +252,17 @@ void Game::run()
             drawStateTransition();
         }
 
-        drawMouseCursor();
-
         #if (!RELEASE_BUILD)
         drawDebugMenu(dt);
-
-        ImGui::SetMouseCursor(ImGui::GetIO().WantCaptureMouse ? ImGuiMouseCursor_Arrow : ImGuiMouseCursor_None);
+        ImGui::SetMouseCursor(ImGuiMouseCursor_None);
         #endif
+        
+        drawMouseCursor();
 
         // window.display();
         window.swapBuffers();
         window.showWindow();
+        window.setVSync(ResolutionHandler::getVSync());
     }
 
     SDL_Quit();
@@ -350,7 +347,6 @@ void Game::runMainMenu(float dt)
             case MainMenuEventType::Quit:
             {
                 window.close();
-                // ImGui::SFML::Shutdown(window);
                 break;
             }
         }
@@ -3519,6 +3515,7 @@ void Game::saveOptions()
     optionsSave.musicVolume = Sounds::getMusicVolume();
     optionsSave.screenShakeEnabled = Camera::getScreenShakeEnabled();
     optionsSave.controllerGlyphType = InputManager::getGlyphType();
+    optionsSave.vSync = ResolutionHandler::getVSync();
 
     GameSaveIO optionsIO;
     optionsIO.writeOptionsSave(optionsSave);
@@ -3534,6 +3531,7 @@ void Game::loadOptions()
     Sounds::setMusicVolume(optionsSave.musicVolume);
     Camera::setScreenShakeEnabled(optionsSave.screenShakeEnabled);
     InputManager::setGlyphType(optionsSave.controllerGlyphType);
+    ResolutionHandler::setVSync(optionsSave.vSync);
 }
 
 void Game::quitWorld()
