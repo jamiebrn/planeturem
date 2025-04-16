@@ -608,8 +608,31 @@ void Player::drawFishingRodCast(pl::RenderTarget& window, pl::SpriteBatch& sprit
     lineOrigin.x = position.x + (toolData.holdOffset.x + rotatedLineOffset.x) * lineOffsetXMult;
     lineOrigin.y = position.y + waterYOffset + toolData.holdOffset.y + rotatedLineOffset.y;
 
-    line.addVertex(pl::Vertex(camera.worldToScreenTransform(lineOrigin), pl::Color(255, 255, 255)));
-    line.addVertex(pl::Vertex(camera.worldToScreenTransform(bobPosition), pl::Color(255, 255, 255)));
+    // Add line drooping
+    pl::Vector2f droopLineOrigin = lineOrigin;
+    pl::Vector2f droopLineBob = bobPosition;
+    if (bobPosition.y < lineOrigin.y)
+    {
+        droopLineOrigin = bobPosition;
+        droopLineBob = lineOrigin;
+    }
+    
+    line.addVertex(pl::Vertex(camera.worldToScreenTransform(droopLineOrigin), pl::Color(255, 255, 255)));
+    
+    static constexpr int lineXStep = 1;
+    int xDiff = std::abs(bobPosition.x - lineOrigin.x);
+    for (int x = 0; x < xDiff; x += lineXStep)
+    {
+        // Add first vertex
+        float yProgress = (xDiff / (x + 0.5f * xDiff) - 2.0f / 3.0f) / (4.0f / 3.0f);
+        pl::Vector2f originOffset;
+        originOffset.x = x * Helper::sign(droopLineBob.x - droopLineOrigin.x);
+        originOffset.y = (droopLineBob.y - droopLineOrigin.y) * (1.0f - yProgress);
+        line.addVertex(pl::Vertex(camera.worldToScreenTransform(originOffset + droopLineOrigin), pl::Color(255, 255, 255)));
+        line.addVertex(pl::Vertex(camera.worldToScreenTransform(originOffset + droopLineOrigin), pl::Color(255, 255, 255)));
+    }
+
+    line.addVertex(pl::Vertex(camera.worldToScreenTransform(droopLineBob), pl::Color(255, 255, 255)));
 
     window.draw(line, *Shaders::getShader(ShaderType::DefaultNoTexture), nullptr, pl::BlendMode::Alpha);
 }
