@@ -2473,7 +2473,11 @@ void Game::openChest(ChestObject& chest, std::optional<LocationState> chestLocat
     {
         packetData.chestObject.tile = chest.getTileInside();
     }
-    packetData.userID = SteamUser()->GetSteamID().ConvertToUint64();
+
+    if (networkHandler.isMultiplayerGame())
+    {
+        packetData.userID = SteamUser()->GetSteamID().ConvertToUint64();
+    }
 
     Packet packet;
     packet.set(packetData);
