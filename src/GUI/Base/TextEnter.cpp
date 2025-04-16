@@ -96,6 +96,7 @@ void TextEnter::draw(pl::RenderTarget& window)
         textDrawData.position = pl::Vector2f(x + 10, y + height / 2.0f);
         textDrawData.size = textSize;
         textDrawData.centeredY = true;
+        textDrawData.color = pl::Color(0, 0, 0);
         
         if (textPtr->empty())
         {
