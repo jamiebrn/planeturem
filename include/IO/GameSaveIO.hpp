@@ -19,8 +19,6 @@
 
 #include <Core/json.hpp>
 
-#include <SFML/System/Vector2.hpp>
-
 #include "World/ChunkPOD.hpp"
 #include "World/ChestDataPool.hpp"
 #include "World/RoomPool.hpp"
@@ -177,6 +175,7 @@ struct OptionsSave
     int musicVolume = 30;
     bool screenShakeEnabled = true;
     int controllerGlyphType = 0;
+    bool vSync = true;
 };
 
 struct CompressedData

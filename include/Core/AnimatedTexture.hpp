@@ -1,6 +1,9 @@
 #pragma once
 
-#include <SFML/Graphics.hpp>
+
+
+#include <cstdint>
+#include <Rect.hpp>
 
 class AnimatedTexture
 {
@@ -15,7 +18,7 @@ public:
     void setFrameTick(float frameTick);
     int getFrameTick();
 
-    sf::IntRect getTextureRect() const;
+    pl::Rect<int> getTextureRect() const;
 
     inline void setFrame(int frame) {this->frame = frame;}
     inline int getFrame() const {return frame;}

@@ -291,7 +291,7 @@ void InputManager::consumeInput(InputAction action, std::unordered_map<InputActi
     }
 }
 
-sf::Vector2f InputManager::getMousePosition(SDL_Window* window, float dt)
+pl::Vector2f InputManager::getMousePosition(SDL_Window* window, float dt)
 {
     int mouseX = 0;
     int mouseY = 0;
@@ -304,10 +304,10 @@ sf::Vector2f InputManager::getMousePosition(SDL_Window* window, float dt)
         {
             controllerMovedMouseThisFrame = true;
 
-            sf::Vector2f controllerMouseMovement;
+            pl::Vector2f controllerMouseMovement;
             controllerMouseMovement.x = getActionAxisActivation(InputAction::DIRECT_LEFT, InputAction::DIRECT_RIGHT);
             controllerMouseMovement.y = getActionAxisActivation(InputAction::DIRECT_UP, InputAction::DIRECT_DOWN);
-            controllerMouseMovement *= controllerMouseSens * dt;
+            controllerMouseMovement = controllerMouseMovement * controllerMouseSens * dt;
 
             controllerMousePosX += controllerMouseMovement.x;
             controllerMousePosY += controllerMouseMovement.y;
@@ -320,10 +320,10 @@ sf::Vector2f InputManager::getMousePosition(SDL_Window* window, float dt)
             controllerMousePosY = std::clamp(controllerMousePosY, 0, windowHeight);
         }
 
-        return sf::Vector2f(controllerMousePosX, controllerMousePosY);
+        return pl::Vector2f(controllerMousePosX, controllerMousePosY);
     }
 
-    return sf::Vector2f(mouseX, mouseY);
+    return pl::Vector2f(mouseX, mouseY);
 }
 
 void InputManager::recentreControllerCursor(SDL_Window* window)

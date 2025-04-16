@@ -161,7 +161,7 @@ std::unordered_map<uint64_t, NetworkPlayer>& NetworkHandler::getNetworkPlayers()
     return networkPlayers;
 }
 
-std::vector<WorldObject*> NetworkHandler::getNetworkPlayersToDraw(const LocationState& locationState, sf::Vector2f playerPosition)
+std::vector<WorldObject*> NetworkHandler::getNetworkPlayersToDraw(const LocationState& locationState, pl::Vector2f playerPosition)
 {
     std::vector<WorldObject*> networkPlayerObjects;
 
@@ -332,7 +332,7 @@ void NetworkHandler::registerNetworkPlayer(uint64_t id, const std::string& pingL
         InventoryGUI::pushItemPopup(ItemCount(0, 1), false, std::string(SteamFriends()->GetFriendPersonaName(id)) + " joined");
     }
 
-    networkPlayers[id] = NetworkPlayer(sf::Vector2f(0, 0));
+    networkPlayers[id] = NetworkPlayer(pl::Vector2f(0, 0));
     networkPlayers[id].getPlayerData().pingLocation = pingLocation;
 }
 
@@ -517,7 +517,7 @@ void NetworkHandler::processMessage(const SteamNetworkingMessage_t& message, con
                 // std::string playerName = SteamFriends()->GetFriendPersonaName(CSteamID(packetData.userID));
     
                 // Translate player position to wrap around world, relative to player
-                // sf::Vector2f playerPos = game->getChunkManager().translatePositionAroundWorld(sf::Vector2f(packetData.positionX, packetData.positionY),
+                // pl::Vector2f playerPos = game->getChunkManager().translatePositionAroundWorld(pl::Vector2f(packetData.positionX, packetData.positionY),
                 //     game->getPlayer().getPosition());
                 // packetData.positionX = playerPos.x;
                 // packetData.positionY = playerPos.y;

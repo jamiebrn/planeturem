@@ -23,10 +23,12 @@ bool Sounds::loadSounds()
         std::string soundPath = soundPair.second;
 
         // Create sound buffer object to store file stream data
-        sf::SoundBuffer soundBuffer;
+        // sf::SoundBuffer soundBuffer;
+
+        std::unique_ptr<pl::Sound> sound = std::make_unique<pl::Sound>();
 
         // Load sound data from file stream - set loaded sound to false and stop loading if failed
-        if (!soundBuffer.loadFromFile(soundPath))
+        if (!sound->loadFromFile(soundPath))
         {
             // Set loaded sounds to false
             loadedSounds = false;
@@ -35,15 +37,15 @@ bool Sounds::loadSounds()
         }
 
         // Store sound buffer in map
-        soundBufferMap[soundType] = soundBuffer;
+        // soundBufferMap[soundType] = soundBuffer;
 
         // Create a sound object to interface with the sound buffer
-        sf::Sound sound;
+        // sf::Sound sound;
         // Set the buffer object of the sound object to the sound buffer in the map
-        sound.setBuffer(soundBufferMap[soundType]);
+        // sound.setBuffer(soundBufferMap[soundType]);
 
         // Store sound object in map
-        soundMap[soundType] = sound;
+        soundMap[soundType] = std::move(sound);
 
         // Increment sounds loaded count
         soundsLoaded++;
@@ -57,10 +59,10 @@ bool Sounds::loadSounds()
         std::string musicPath = musicPair.second;
 
         // Create music object (on heap as music object is non-copyable)
-        std::unique_ptr<sf::Music> music = std::make_unique<sf::Music>();
+        std::unique_ptr<pl::Sound> music = std::make_unique<pl::Sound>();
 
         // Attempt to load the music stream object into the music object
-        if (!music->openFromFile(musicPath))
+        if (!music->loadFromFile(musicPath))
         {
             // If failed, set loaded sounds to false
             loadedSounds = false;
@@ -96,7 +98,7 @@ void Sounds::unloadSounds()
     // Delete all sound objects
     soundMap.clear();
     // Delete all sound buffers (must be deleted after sound objects)
-    soundBufferMap.clear();
+    // soundBufferMap.clear();
 
     // Delete all music objects
     musicMap.clear();
@@ -127,9 +129,9 @@ void Sounds::playSound(SoundType type, float volume)
     if (!loadedSounds)
         return;
 
-    sf::Sound& sound = soundMap.at(type);
+    pl::Sound& sound = *soundMap.at(type).get();
 
-    sound.setVolume(volume);
+    sound.setVolume(volume / 100.0f);
 
     // Play sound from sound map
     sound.play();
@@ -155,11 +157,11 @@ void Sounds::playMusic(MusicType type, float volume, float fadeTimeForCurrentMus
         // musicMap[currentlyPlayingMusic.value()]->stop();
     }
 
-    sf::Music* music = musicMap.at(type).get();
+    pl::Sound* music = musicMap.at(type).get();
 
     currentlyPlayingMusic = type;
 
-    music->setVolume(volume * musicVolume / 100.0f);
+    music->setVolume(volume / 100.0f * musicVolume / 100.0f);
     
     // Play music track from map
     music->play();
@@ -210,9 +212,9 @@ bool Sounds::isMusicFinished(MusicType type)
     if (!loadedSounds)
         return false;
 
-    sf::Music* music = musicMap.at(type).get();
+    pl::Sound* music = musicMap.at(type).get();
 
-    return (music->getStatus() == sf::Sound::Stopped);
+    return (music->isFinished());
 }
 
 int Sounds::getMusicVolume()
@@ -226,6 +228,6 @@ void Sounds::setMusicVolume(int volume)
 
     if (currentlyPlayingMusic.has_value())
     {
-        musicMap[currentlyPlayingMusic.value()]->setVolume(musicVolume);
+        musicMap[currentlyPlayingMusic.value()]->setVolume(musicVolume / 100.0f);
     }
 }

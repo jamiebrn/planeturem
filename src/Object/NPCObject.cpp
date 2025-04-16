@@ -1,7 +1,7 @@
 #include "Object/NPCObject.hpp"
 #include "Game.hpp"
 
-NPCObject::NPCObject(sf::Vector2f position, ObjectType objectType)
+NPCObject::NPCObject(pl::Vector2f position, ObjectType objectType)
     : BuildableObject(position, objectType, false)
 {
 

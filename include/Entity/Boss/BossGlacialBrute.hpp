@@ -4,13 +4,18 @@
 #include <vector>
 #include <array>
 
-#include <SFML/Graphics.hpp>
+#include <Graphics/SpriteBatch.hpp>
+#include <Graphics/Color.hpp>
+#include <Graphics/RenderTarget.hpp>
+#include <Graphics/Shader.hpp>
+#include <Graphics/Texture.hpp>
+#include <Vector.hpp>
+#include <Rect.hpp>
 
 #include "Core/TextureManager.hpp"
-#include "Core/SpriteBatch.hpp"
+#include "Core/Shaders.hpp"
 #include "Core/TextDraw.hpp"
 #include "Core/ResolutionHandler.hpp"
-#include "Core/Shaders.hpp"
 #include "Core/Camera.hpp"
 #include "Core/Tween.hpp"
 #include "Core/Helper.hpp"
@@ -38,21 +43,21 @@
 class BossGlacialBrute : public BossEntity
 {
 public:
-    BossGlacialBrute(sf::Vector2f playerPosition, Game& game);
+    BossGlacialBrute(pl::Vector2f playerPosition, Game& game);
 
     void update(Game& game, ProjectileManager& projectileManager, Player& player, float dt) override;
 
     bool isAlive() override;
 
-    void handleWorldWrap(sf::Vector2f positionDelta) override;
+    void handleWorldWrap(pl::Vector2f positionDelta) override;
 
-    // void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch) override;
-    void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
-        const sf::Color& color) const override;
+    // void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch) override;
+    void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
+        const pl::Color& color) const override;
 
-    inline void createLightSource(LightingEngine& lightingEngine, sf::Vector2f topLeftChunkPos) const override {}
+    inline void createLightSource(LightingEngine& lightingEngine, pl::Vector2f topLeftChunkPos) const override {}
 
-    void getHoverStats(sf::Vector2f mouseWorldPos, std::vector<std::string>& hoverStats) override;
+    void getHoverStats(pl::Vector2f mouseWorldPos, std::vector<std::string>& hoverStats) override;
 
     void testCollisionWithPlayer(Player& player) override;
 
@@ -63,7 +68,7 @@ public:
     void getWorldObjects(std::vector<WorldObject*>& worldObjects) override;
 
 private:
-    void damage(int amount, sf::Vector2f damageSource);
+    void damage(int amount, pl::Vector2f damageSource);
 
     void updateCollision();
 
@@ -80,11 +85,11 @@ private:
 private:
     BossGlacialBruteState behaviourState;
 
-    sf::Vector2f direction;
+    pl::Vector2f direction;
 
     AnimatedTexture walkAnimation;
 
-    static const sf::IntRect shadowTextureRect;
+    static const pl::Rect<int> shadowTextureRect;
 
     static constexpr int MAX_HEALTH = 3500;
     int health;

@@ -1,9 +1,9 @@
 #include "Entity/Boss/BossGlacialBrute.hpp"
 #include "Game.hpp"
 
-const sf::IntRect BossGlacialBrute::shadowTextureRect = sf::IntRect(64, 208, 48, 16);
+const pl::Rect<int> BossGlacialBrute::shadowTextureRect = pl::Rect<int>(64, 208, 48, 16);
 
-BossGlacialBrute::BossGlacialBrute(sf::Vector2f playerPosition, Game& game)
+BossGlacialBrute::BossGlacialBrute(pl::Vector2f playerPosition, Game& game)
 {
     itemDrops = {
         {{ItemDataLoader::getItemTypeFromName("Snowball Slingshot"), 1, 1}, 1.0},
@@ -12,11 +12,11 @@ BossGlacialBrute::BossGlacialBrute(sf::Vector2f playerPosition, Game& game)
 
     Sounds::playMusic(MusicType::BossTheme1);
 
-    sf::Vector2i playerTile = getWorldTileInside(playerPosition, game.getChunkManager().getWorldSize());
+    pl::Vector2<int> playerTile = getWorldTileInside(playerPosition, game.getChunkManager().getWorldSize());
 
     PathfindGridCoordinate spawnTileRelative = game.getChunkManager().getPathfindingEngine().findFurthestOpenTile(playerTile.x, playerTile.y, 40, true);
 
-    position = sf::Vector2f(playerTile.x + spawnTileRelative.x + 0.5f, playerTile.y + spawnTileRelative.y + 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
+    position = pl::Vector2f(playerTile.x + spawnTileRelative.x + 0.5f, playerTile.y + spawnTileRelative.y + 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
 
     behaviourState = BossGlacialBruteState::WalkingToPlayer;
 
@@ -39,8 +39,8 @@ void BossGlacialBrute::update(Game& game, ProjectileManager& enemyProjectileMana
 
                 int worldSize = game.getChunkManager().getWorldSize();
 
-                sf::Vector2i tile = getWorldTileInside(worldSize);
-                sf::Vector2i playerTile = player.getWorldTileInside(worldSize);
+                pl::Vector2<int> tile = getWorldTileInside(worldSize);
+                pl::Vector2<int> playerTile = player.getWorldTileInside(worldSize);
 
                 std::vector<PathfindGridCoordinate> pathfindResult;
                 if (pathfindingEngine.findPath(tile.x, tile.y, playerTile.x, playerTile.y, pathfindResult, true, 200))
@@ -50,7 +50,7 @@ void BossGlacialBrute::update(Game& game, ProjectileManager& enemyProjectileMana
             }
             else
             {
-                sf::Vector2f beforePos = position;
+                pl::Vector2f beforePos = position;
                 position = pathFollower.updateFollower(75.0f * dt);
                 direction = (position - beforePos) / dt;
             }
@@ -79,7 +79,7 @@ void BossGlacialBrute::update(Game& game, ProjectileManager& enemyProjectileMana
         {
             if (!pathFollower.isActive())
             {
-                sf::Vector2i tile = getWorldTileInside(game.getChunkManager().getWorldSize());
+                pl::Vector2<int> tile = getWorldTileInside(game.getChunkManager().getWorldSize());
                 PathfindGridCoordinate furthestTile = game.getChunkManager().getPathfindingEngine().findFurthestOpenTile(tile.x, tile.y, 200);
 
                 std::vector<PathfindGridCoordinate> pathfindResult;
@@ -90,7 +90,7 @@ void BossGlacialBrute::update(Game& game, ProjectileManager& enemyProjectileMana
             }
             else
             {
-                sf::Vector2f beforePos = position;
+                pl::Vector2f beforePos = position;
                 position = pathFollower.updateFollower(75.0f * LEAVE_SPEED_MULT * dt);
                 direction = (position - beforePos) / dt;
             }
@@ -127,7 +127,7 @@ void BossGlacialBrute::update(Game& game, ProjectileManager& enemyProjectileMana
 void BossGlacialBrute::throwSnowball(ProjectileManager& enemyProjectileManager, Player& player)
 {
     float angle = std::atan2(player.getPosition().y - 4 - (position.y - 50), player.getPosition().x - position.x) * 180.0f / M_PI;
-    enemyProjectileManager.addProjectile(Projectile(position - sf::Vector2f(0, 50), angle,
+    enemyProjectileManager.addProjectile(Projectile(position - pl::Vector2f(0, 50), angle,
         ToolDataLoader::getProjectileTypeFromName("Large Snowball"), 1.0f, 1.0f));
 }
 
@@ -142,36 +142,37 @@ bool BossGlacialBrute::isAlive()
     return (health > 0);
 }
 
-void BossGlacialBrute::handleWorldWrap(sf::Vector2f positionDelta)
+void BossGlacialBrute::handleWorldWrap(pl::Vector2f positionDelta)
 {
     position += positionDelta;
     pathFollower.handleWorldWrap(positionDelta);
 }
 
-void BossGlacialBrute::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
-    const sf::Color& color) const
+void BossGlacialBrute::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
+    const pl::Color& color) const
 {
     float scale = ResolutionHandler::getScale();
 
     // Draw shadow
-    TextureDrawData drawData;
-    drawData.type = TextureType::Entities;
+    pl::DrawData drawData;
+    drawData.texture = TextureManager::getTexture(TextureType::Entities);
+    drawData.shader = Shaders::getShader(ShaderType::Default);
     drawData.position = camera.worldToScreenTransform(position);
-    drawData.scale = sf::Vector2f(scale, scale);
-    drawData.centerRatio = sf::Vector2f(0.5f, 0.5f);
+    drawData.scale = pl::Vector2f(scale, scale);
+    drawData.centerRatio = pl::Vector2f(0.5f, 0.5f);
+    drawData.textureRect = shadowTextureRect;
 
-    spriteBatch.draw(window, drawData, shadowTextureRect);
+    spriteBatch.draw(window, drawData);
 
     // Draw brute
-    drawData.centerRatio = sf::Vector2f(0.5f, 1.0f);
+    drawData.centerRatio = pl::Vector2f(0.5f, 1.0f);
 
     std::optional<ShaderType> shaderType = std::nullopt;
 
     if (flashTime > 0)
     {
-        shaderType = ShaderType::Flash;
-        sf::Shader* flashShader = Shaders::getShader(shaderType.value());
-        flashShader->setUniform("flash_amount", flashTime / MAX_FLASH_TIME);
+        drawData.shader = Shaders::getShader(ShaderType::Flash);
+        drawData.shader->setUniform1f("flash_amount", flashTime / MAX_FLASH_TIME);
     }
 
     // Flip if required
@@ -185,20 +186,22 @@ void BossGlacialBrute::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, 
         case BossGlacialBruteState::WalkingToPlayer: // fallthrough
         case BossGlacialBruteState::LeavingPlayer:
         {
-            drawData.centerRatio = sf::Vector2f(25 / 48.0f, 62 / 67.0f);
-            spriteBatch.draw(window, drawData, walkAnimation.getTextureRect(), shaderType);
+            drawData.centerRatio = pl::Vector2f(25 / 48.0f, 62 / 67.0f);
+            drawData.textureRect = walkAnimation.getTextureRect();
             break;
         }
         case BossGlacialBruteState::ThrowSnowball:
         {
-            drawData.centerRatio = sf::Vector2f(25 / 48.0f, 62 / 67.0f);
-            spriteBatch.draw(window, drawData, sf::IntRect(496, 512, 48, 80), shaderType);
+            drawData.centerRatio = pl::Vector2f(25 / 48.0f, 62 / 67.0f);
+            drawData.textureRect = pl::Rect<int>(496, 512, 48, 80);
             break;
         }
     }
+
+    spriteBatch.draw(window, drawData);
 }
 
-void BossGlacialBrute::getHoverStats(sf::Vector2f mouseWorldPos, std::vector<std::string>& hoverStats)
+void BossGlacialBrute::getHoverStats(pl::Vector2f mouseWorldPos, std::vector<std::string>& hoverStats)
 {
     if (hitCollision.isPointInRect(mouseWorldPos.x, mouseWorldPos.y))
     {
@@ -234,7 +237,7 @@ void BossGlacialBrute::testHitRectCollision(const std::vector<HitRect>& hitRects
     }
 }
 
-void BossGlacialBrute::damage(int amount, sf::Vector2f damageSource)
+void BossGlacialBrute::damage(int amount, pl::Vector2f damageSource)
 {
     health -= amount;
     flashTime = MAX_FLASH_TIME;

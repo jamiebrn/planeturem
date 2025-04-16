@@ -1,7 +1,7 @@
 #include "Object/ChestObject.hpp"
 #include "Game.hpp"
 
-ChestObject::ChestObject(sf::Vector2f position, ObjectType objectType)
+ChestObject::ChestObject(pl::Vector2f position, ObjectType objectType)
     : BuildableObject(position, objectType, false)
 {
     closeChest();

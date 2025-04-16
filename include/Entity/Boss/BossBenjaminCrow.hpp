@@ -4,10 +4,16 @@
 #include <vector>
 #include <array>
 
-#include <SFML/Graphics.hpp>
+#include <Graphics/SpriteBatch.hpp>
+#include <Graphics/Color.hpp>
+#include <Graphics/RenderTarget.hpp>
+#include <Graphics/Shader.hpp>
+#include <Graphics/Texture.hpp>
+#include <Vector.hpp>
+#include <Rect.hpp>
 
 #include "Core/TextureManager.hpp"
-#include "Core/SpriteBatch.hpp"
+#include "Core/Shaders.hpp"
 #include "Core/TextDraw.hpp"
 #include "Core/ResolutionHandler.hpp"
 #include "Core/Shaders.hpp"
@@ -37,20 +43,19 @@
 class BossBenjaminCrow : public BossEntity
 {
 public:
-    BossBenjaminCrow(sf::Vector2f playerPosition);
+    BossBenjaminCrow(pl::Vector2f playerPosition);
 
     void update(Game& game, ProjectileManager& projectileManager, Player& player, float dt) override;
 
     bool isAlive() override;
 
-    void handleWorldWrap(sf::Vector2f positionDelta) override;
+    void handleWorldWrap(pl::Vector2f positionDelta) override;
 
-    // void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch) override;
-    void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const sf::Color& color) const override;
+    void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const pl::Color& color) const override;
 
-    inline void createLightSource(LightingEngine& lightingEngine, sf::Vector2f topLeftChunkPos) const override {}
+    inline void createLightSource(LightingEngine& lightingEngine, pl::Vector2f topLeftChunkPos) const override {}
 
-    void getHoverStats(sf::Vector2f mouseWorldPos, std::vector<std::string>& hoverStats) override;
+    void getHoverStats(pl::Vector2f mouseWorldPos, std::vector<std::string>& hoverStats) override;
 
     void testCollisionWithPlayer(Player& player) override;
 
@@ -61,7 +66,7 @@ public:
 private:
     void updateCollision();
 
-    void takeDamage(int damage, sf::Vector2f damagePosition);
+    void takeDamage(int damage, pl::Vector2f damagePosition);
     void applyKnockback(Projectile& projectile);
 
     bool isProjectileColliding(Projectile& projectile);
@@ -82,7 +87,7 @@ private:
 
     struct DashGhostEffect
     {
-        sf::Vector2f position;
+        pl::Vector2f position;
         int scaleX = 1;
         int stage;
 
@@ -94,8 +99,8 @@ private:
 
 private:
     static constexpr float VELOCITY_LERP_WEIGHT = 3.0f;
-    sf::Vector2f velocity;
-    sf::Vector2f direction;
+    pl::Vector2f velocity;
+    pl::Vector2f direction;
 
     static constexpr float HITBOX_SIZE = 16.0f;
     CollisionCircle collision;
@@ -112,7 +117,7 @@ private:
     static constexpr float DASH_TARGET_INITIATE_DISTANCE = 100.0f;
     static constexpr float DASH_TARGET_OVERSHOOT = 150.0f;
     static constexpr float DASH_TARGET_FINISH_DISTANCE = 20.0f;
-    sf::Vector2f dashTargetPosition;
+    pl::Vector2f dashTargetPosition;
 
     static constexpr float MAX_DASH_COOLDOWN_TIMER = 1.0f;
     static constexpr float SECOND_STAGE_MAX_DASH_COOLDOWN_TIMER = 0.6f;
@@ -143,7 +148,7 @@ private:
     TweenID fallingTweenID;
 
     std::array<AnimatedTexture, 2> idleAnims;
-    static const std::array<sf::IntRect, 2> dashGhostTextureRects;
-    static const sf::IntRect deadTextureRect;
-    static const sf::IntRect shadowTextureRect;
+    static const std::array<pl::Rect<int>, 2> dashGhostTextureRects;
+    static const pl::Rect<int> deadTextureRect;
+    static const pl::Rect<int> shadowTextureRect;
 };

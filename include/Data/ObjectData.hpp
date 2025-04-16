@@ -1,18 +1,20 @@
 #pragma once
 
-#include <SFML/Graphics.hpp>
 #include <string>
 #include <unordered_map>
 #include <vector>
 #include <optional>
+
+#include <Vector.hpp>
+#include <Rect.hpp>
 
 #include "Data/typedefs.hpp"
 #include "Data/ItemDrop.hpp"
 
 struct PlantStageObjectData
 {
-    std::vector<sf::IntRect> textureRects;
-    sf::Vector2f textureOrigin;
+    std::vector<pl::Rect<int>> textureRects;
+    pl::Vector2f textureOrigin;
     int health;
 
     int minDay = 0;
@@ -23,9 +25,9 @@ struct PlantStageObjectData
 
 struct RocketObjectData
 {
-    sf::IntRect textureRect;
-    sf::Vector2f textureOrigin;
-    sf::Vector2f launchPosition;
+    pl::Rect<int> textureRect;
+    pl::Vector2f textureOrigin;
+    pl::Vector2f launchPosition;
 
     std::vector<PlanetType> availableDestinations;
     std::vector<RoomType> availableRoomDestinations;
@@ -40,7 +42,7 @@ struct NPCObjectData
 {
     std::string npcName;
     NPCObjectBehaviour behaviour;
-    sf::Vector2i portraitTextureOffset;
+    pl::Vector2<int> portraitTextureOffset;
     std::vector<std::string> dialogueLines;
     
     std::vector<ItemCount> shopItems;
@@ -53,12 +55,12 @@ struct ObjectData
     std::string name;
     int health = 1;
     
-    std::vector<sf::IntRect> textureRects;
+    std::vector<pl::Rect<int>> textureRects;
     float textureFrameDelay = 0.0f;
 
-    sf::Vector2f textureOrigin;
+    pl::Vector2f textureOrigin;
 
-    sf::Vector2i size = {1, 1};
+    pl::Vector2<int> size = {1, 1};
 
     std::vector<float> lightEmissionFrames;
     float lightAbsorption = 0.0f;

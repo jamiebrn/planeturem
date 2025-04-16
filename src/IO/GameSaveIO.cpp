@@ -357,7 +357,8 @@ bool GameSaveIO::writeOptionsSave(const OptionsSave& optionsSave)
         json["music-volume"] = optionsSave.musicVolume;
         json["screen-shake-enabled"] = optionsSave.screenShakeEnabled;
         json["controller-glyph-type"] = optionsSave.controllerGlyphType;
-
+        json["v-sync"] = optionsSave.vSync;
+        
         out << json;
         out.close();
 
@@ -394,6 +395,11 @@ bool GameSaveIO::loadOptionsSave(OptionsSave& optionsSave)
         if (json.contains("controller-glyph-type"))
         {
             optionsSave.controllerGlyphType = json.at("controller-glyph-type");
+        }
+
+        if (json.contains("v-sync"))
+        {
+            optionsSave.vSync = json.at("v-sync");
         }
     }
     catch(const std::exception& e)

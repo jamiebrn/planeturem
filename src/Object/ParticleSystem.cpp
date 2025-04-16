@@ -1,6 +1,6 @@
 #include "Object/ParticleSystem.hpp"
 
-Particle::Particle(sf::Vector2f position, sf::Vector2f velocity, sf::Vector2f acceleration, const ParticleStyle& style)
+Particle::Particle(pl::Vector2f position, pl::Vector2f velocity, pl::Vector2f acceleration, const ParticleStyle& style)
 {
     this->position = position;
     this->velocity = velocity;
@@ -25,17 +25,19 @@ void Particle::update(float dt)
     }
 }
 
-void Particle::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Camera& camera) const
+void Particle::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera) const
 {
     float scale = ResolutionHandler::getScale();
 
-    TextureDrawData drawData;
+    pl::DrawData drawData;
     drawData.position = camera.worldToScreenTransform(position);
-    drawData.type = TextureType::Objects;
-    drawData.scale = sf::Vector2f(scale, scale);
-    drawData.centerRatio = sf::Vector2f(0.5, 0.5);
+    drawData.texture = TextureManager::getTexture(TextureType::Objects);
+    drawData.shader = Shaders::getShader(ShaderType::Default);
+    drawData.textureRect = textureRects[std::min(currentFrame, static_cast<int>(textureRects.size()) - 1)];
+    drawData.scale = pl::Vector2f(scale, scale);
+    drawData.centerRatio = pl::Vector2f(0.5, 0.5);
 
-    spriteBatch.draw(window, drawData, textureRects[std::min(currentFrame, static_cast<int>(textureRects.size()) - 1)]);
+    spriteBatch.draw(window, drawData);
 }
 
 bool Particle::isAlive()
@@ -43,7 +45,7 @@ bool Particle::isAlive()
     return (currentFrame < textureRects.size());
 }
 
-void Particle::handleWorldWrap(sf::Vector2f positionDelta)
+void Particle::handleWorldWrap(pl::Vector2f positionDelta)
 {
     position += positionDelta;
 }
@@ -67,7 +69,7 @@ void ParticleSystem::update(float dt)
     }
 }
 
-void ParticleSystem::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Camera& camera) const
+void ParticleSystem::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera) const
 {
     for (auto iter = particles.begin(); iter != particles.end(); iter++)
     {
@@ -75,7 +77,7 @@ void ParticleSystem::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, co
     }
 }
 
-void ParticleSystem::handleWorldWrap(sf::Vector2f positionDelta)
+void ParticleSystem::handleWorldWrap(pl::Vector2f positionDelta)
 {
     for (auto& particle : particles)
     {

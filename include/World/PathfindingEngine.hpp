@@ -10,7 +10,9 @@
 #include "Core/Helper.hpp"
 #include "Object/WorldObject.hpp"
 
-#include <SFML/Graphics.hpp>
+
+
+#include "Vector.hpp"
 
 struct PathfindGridCoordinate
 {
@@ -95,22 +97,22 @@ class PathFollower
 public:
     PathFollower() = default;
 
-    void beginPath(sf::Vector2f startPos, const std::vector<PathfindGridCoordinate>& pathfindStepSequence);
+    void beginPath(pl::Vector2f startPos, const std::vector<PathfindGridCoordinate>& pathfindStepSequence);
 
-    sf::Vector2f updateFollower(float speed);
+    pl::Vector2f updateFollower(float speed);
 
     bool isActive();
 
-    void handleWorldWrap(sf::Vector2f positionDelta);
+    void handleWorldWrap(pl::Vector2f positionDelta);
 
 private:
     void setPathfindStepIndex(int index);
 
 private:
     std::vector<PathfindGridCoordinate> stepSequence;
-    sf::Vector2f position;
-    sf::Vector2f lastStepPosition;
-    sf::Vector2f stepTargetPosition;
+    pl::Vector2f position;
+    pl::Vector2f lastStepPosition;
+    pl::Vector2f stepTargetPosition;
     int stepIndex = 0;
 
     static constexpr float TARGET_REACH_THRESHOLD = 2.0f;

@@ -5,8 +5,6 @@
 
 #include "Network/IPacketData.hpp"
 
-#include <SFML/System/Vector2.hpp>
-
 #include "Player/PlayerData.hpp"
 
 struct PacketDataPlayerData : public IPacketData

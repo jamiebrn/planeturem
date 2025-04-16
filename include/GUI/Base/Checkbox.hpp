@@ -2,8 +2,14 @@
 
 #include <string>
 
-#include <SFML/Graphics.hpp>
+#include <Graphics/VertexArray.hpp>
+#include <Graphics/Color.hpp>
+#include <Graphics/RenderTarget.hpp>
+#include <Graphics/Texture.hpp>
+#include <Vector.hpp>
+#include <Rect.hpp>
 
+#include "Core/Shaders.hpp"
 #include "Core/TextDraw.hpp"
 #include "Core/CollisionRect.hpp"
 
@@ -17,9 +23,9 @@ public:
     Checkbox(const GUIInputState& inputState, ElementID id, int x, int y, int width, int height, int textSize, const std::string& label, bool* value,
         int paddingLeft = 0, int paddingRight = 0, int paddingY = 0);
 
-    void draw(sf::RenderTarget& window) override;
+    void draw(pl::RenderTarget& window) override;
 
-    sf::IntRect getBoundingBox() const override;
+    pl::Rect<int> getBoundingBox() const override;
 
 private:
     bool value;

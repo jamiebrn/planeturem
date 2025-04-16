@@ -5,12 +5,20 @@
 #include <algorithm>
 #include <cmath>
 
-#include <SFML/Graphics.hpp>
+#include <Graphics/VertexArray.hpp>
+#include <Graphics/Color.hpp>
+#include <Graphics/RenderTarget.hpp>
+#include <Graphics/Texture.hpp>
+#include <Vector.hpp>
+#include <Rect.hpp>
+
+#include "Core/Shaders.hpp"
 
 class LightingEngine
 {
 public:
     LightingEngine() = default;
+    ~LightingEngine() = default;
 
     void resize(int width, int height);
 
@@ -28,14 +36,15 @@ public:
 
     void addObstacle(int x, int y, float absorption = 1.0f);
 
-    void calculateLighting(const sf::Color& lightingColour);
+    void calculateLighting();
 
-    void drawObstacles(sf::RenderTarget& window, int scale);
+    // void drawObstacles(pl::RenderTarget& window, int scale);
 
-    void drawLighting(sf::RenderTarget& window);
+    void drawLighting(pl::RenderTarget& window, const pl::Color& lightingColor);
 
 private:
-    void buildVertexArray(const sf::Color& lightingColour);
+    // void buildVertexArray(const pl::Color& lightingColor);
+    void generateLightingTexture();
 
 private:
     struct LightPropagationNode
@@ -52,7 +61,10 @@ private:
     std::vector<float> lightSources;
     std::vector<float> obstacles;
 
-    std::vector<sf::Vertex> lightingVertexArray;
+    // std::vector<sf::Vertex> lightingVertexArray;
+
+    // pl::VertexArray lightingVertexArray;
+    pl::Texture lightingTexture;
 
     int width;
     int height;

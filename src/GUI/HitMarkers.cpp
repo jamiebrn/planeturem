@@ -1,6 +1,6 @@
 #include "GUI/HitMarkers.hpp"
 
-void HitMarkers::addHitMarker(sf::Vector2f position, int damageAmount, sf::Color colour)
+void HitMarkers::addHitMarker(pl::Vector2f position, int damageAmount, pl::Color colour)
 {
     HitMarker hitMarker;
     hitMarker.position = position;
@@ -26,7 +26,7 @@ void HitMarkers::update(float dt)
     }
 }
 
-void HitMarkers::draw(sf::RenderTarget& window, const Camera& camera)
+void HitMarkers::draw(pl::RenderTarget& window, const Camera& camera)
 {
     for (const HitMarker& hitMarker : hitMarkers)
     {
@@ -34,7 +34,7 @@ void HitMarkers::draw(sf::RenderTarget& window, const Camera& camera)
     }
 }
 
-void HitMarkers::handleWorldWrap(sf::Vector2f positionDelta)
+void HitMarkers::handleWorldWrap(pl::Vector2f positionDelta)
 {
     for (HitMarker& hitMarker : hitMarkers)
     {
@@ -52,15 +52,15 @@ bool HitMarkers::HitMarker::isAlive() const
     return (lifetime < HIT_MARKER_LIFETIME);
 }
 
-void HitMarkers::HitMarker::draw(sf::RenderTarget& window, const Camera& camera) const
+void HitMarkers::HitMarker::draw(pl::RenderTarget& window, const Camera& camera) const
 {
-    TextDrawData drawData;
+    pl::TextDrawData drawData;
     drawData.text = std::to_string(damageAmount);
 
     float alpha = 1.0f - (lifetime / HIT_MARKER_LIFETIME);
-    drawData.colour = colour;
-    drawData.colour.a = 255 * alpha;
-    drawData.position = camera.worldToScreenTransform(position - sf::Vector2f(0.0f, LIFT_PER_SECOND * lifetime));
+    drawData.color = colour;
+    drawData.color.a = 255 * alpha;
+    drawData.position = camera.worldToScreenTransform(position - pl::Vector2f(0.0f, LIFT_PER_SECOND * lifetime));
     drawData.centeredX = true;
     drawData.centeredY = true;
     drawData.size = UNSCALED_FONT_SIZE * ResolutionHandler::getScale();

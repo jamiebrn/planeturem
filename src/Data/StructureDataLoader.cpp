@@ -35,8 +35,8 @@ bool StructureDataLoader::loadData(std::string structureDataPath)
         roomData.tileSize.y = tileSize[1];
 
         auto textureOffset = iter->at("texture");
-        roomData.textureRect.left = textureOffset[0];
-        roomData.textureRect.top = textureOffset[1];
+        roomData.textureRect.x = textureOffset[0];
+        roomData.textureRect.y = textureOffset[1];
         roomData.textureRect.width = roomData.tileSize.x * TILE_SIZE_PIXELS_UNSCALED;
         roomData.textureRect.height = roomData.tileSize.y * TILE_SIZE_PIXELS_UNSCALED;
 
@@ -86,8 +86,8 @@ bool StructureDataLoader::loadData(std::string structureDataPath)
         structureData.name = jsonStructureData.at("name");
 
         auto textureRect = jsonStructureData.at("texture");
-        structureData.textureRect.left = textureRect[0];
-        structureData.textureRect.top = textureRect[1];
+        structureData.textureRect.x = textureRect[0];
+        structureData.textureRect.y = textureRect[1];
         structureData.textureRect.width = textureRect[2];
         structureData.textureRect.height = textureRect[3];
 

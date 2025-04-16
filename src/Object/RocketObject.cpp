@@ -1,7 +1,7 @@
 #include "Object/RocketObject.hpp"
 #include "Game.hpp"
 
-RocketObject::RocketObject(sf::Vector2f position, ObjectType objectType)
+RocketObject::RocketObject(pl::Vector2f position, ObjectType objectType)
     : BuildableObject(position, objectType)
 {
 
@@ -46,7 +46,7 @@ void RocketObject::update(Game& game, float dt, bool onWater, bool loopAnimation
     }
 }
 
-void RocketObject::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const sf::Color& color) const
+void RocketObject::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const pl::Color& color) const
 {
     BuildableObject::draw(window, spriteBatch, game, camera, dt, gameTime, worldSize, color);
 
@@ -140,14 +140,14 @@ void RocketObject::getRocketAvailableDestinations(PlanetType currentPlanetType, 
     }
 }
 
-sf::Vector2f RocketObject::getRocketPosition()
+pl::Vector2f RocketObject::getRocketPosition()
 {
     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
     
     if (!objectData.rocketObjectData.has_value())
         return position;
     
-    sf::Vector2f rocketPos;
+    pl::Vector2f rocketPos;
     rocketPos.x = position.x + objectData.rocketObjectData->launchPosition.x - TILE_SIZE_PIXELS_UNSCALED * 0.5f;
     rocketPos.y = position.y + objectData.rocketObjectData->launchPosition.y - TILE_SIZE_PIXELS_UNSCALED * 0.5f;
 
@@ -157,14 +157,14 @@ sf::Vector2f RocketObject::getRocketPosition()
     return rocketPos;
 }
 
-sf::Vector2f RocketObject::getRocketBottomPosition()
+pl::Vector2f RocketObject::getRocketBottomPosition()
 {
     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
     
     if (!objectData.rocketObjectData.has_value())
         return position;
     
-    sf::Vector2f rocketPos;
+    pl::Vector2f rocketPos;
     rocketPos.x = position.x + objectData.rocketObjectData->launchPosition.x - TILE_SIZE_PIXELS_UNSCALED * 0.5f;
     rocketPos.y = position.y + objectData.rocketObjectData->launchPosition.y + rocketYOffset - TILE_SIZE_PIXELS_UNSCALED * 0.5f;
 
@@ -190,44 +190,43 @@ void RocketObject::createRocketParticles()
 
     for (int i = 0; i < 4; i++)
     {
-        sf::IntRect textureRect;
-        textureRect.left = i * 16;
-        textureRect.top = 384 + particleType * 16;
+        pl::Rect<int> textureRect;
+        textureRect.x = i * 16;
+        textureRect.y = 384 + particleType * 16;
         textureRect.height = 16;
         textureRect.width = 16;
         style.textureRects.push_back(textureRect);
     }
 
-    sf::Vector2f position = getRocketBottomPosition() + sf::Vector2f(Helper::randInt(-1, 1), Helper::randInt(-1, 1));
-    sf::Vector2f velocity(Helper::randFloat(-30.0f, 30.0f), Helper::randFloat(15.0f, 30.0f));
-    sf::Vector2f acceleration(Helper::randFloat(-0.6, 0.6), -Helper::randFloat(0.4f, 1.0f));
+    pl::Vector2f position = getRocketBottomPosition() + pl::Vector2f(Helper::randInt(-1, 1), Helper::randInt(-1, 1));
+    pl::Vector2f velocity(Helper::randFloat(-30.0f, 30.0f), Helper::randFloat(15.0f, 30.0f));
+    pl::Vector2f acceleration(Helper::randFloat(-0.6, 0.6), -Helper::randFloat(0.4f, 1.0f));
 
     particleSystem.addParticle(Particle(position, velocity, acceleration, style));
 }
 
-void RocketObject::drawRocket(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Camera& camera, const sf::Color& color) const
+void RocketObject::drawRocket(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera, const pl::Color& color) const
 {
     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
 
-    sf::Vector2f scale(ResolutionHandler::getScale(), ResolutionHandler::getScale());
+    pl::Vector2f scale(ResolutionHandler::getScale(), ResolutionHandler::getScale());
 
-    TextureDrawData drawData;
-    drawData.type = TextureType::Objects;
+    pl::Vector2f rocketPosOffset = objectData.rocketObjectData->launchPosition - pl::Vector2f(TILE_SIZE_PIXELS_UNSCALED, TILE_SIZE_PIXELS_UNSCALED) * 0.5f;
 
-    sf::Vector2f rocketPosOffset = objectData.rocketObjectData->launchPosition - sf::Vector2f(TILE_SIZE_PIXELS_UNSCALED, TILE_SIZE_PIXELS_UNSCALED) * 0.5f;
-    drawData.position = camera.worldToScreenTransform(position + rocketPosOffset + sf::Vector2f(0, rocketYOffset));
-    drawData.scale = scale;
-    drawData.centerRatio = objectData.rocketObjectData->textureOrigin;
-    drawData.colour = color;
-
-    std::optional<ShaderType> shaderType;
+    pl::DrawData rocketDrawData;
+    rocketDrawData.texture = TextureManager::getTexture(TextureType::Objects);
+    rocketDrawData.shader = Shaders::getShader(ShaderType::Default);
+    rocketDrawData.position = camera.worldToScreenTransform(position + rocketPosOffset + pl::Vector2f(0, rocketYOffset));
+    rocketDrawData.color = color;
+    rocketDrawData.scale = scale;
+    rocketDrawData.centerRatio = objectData.rocketObjectData->textureOrigin;
+    rocketDrawData.textureRect = objectData.rocketObjectData->textureRect;
 
     if (flash_amount > 0)
     {
-        shaderType = ShaderType::Flash;
-        sf::Shader* shader = Shaders::getShader(shaderType.value());
-        shader->setUniform("flash_amount", flash_amount);
+        rocketDrawData.shader = Shaders::getShader(ShaderType::Flash);
+        rocketDrawData.shader->setUniform1f("flash_amount", flash_amount);
     }
 
-    spriteBatch.draw(window, drawData, objectData.rocketObjectData->textureRect, shaderType);
+    spriteBatch.draw(window, rocketDrawData);
 }

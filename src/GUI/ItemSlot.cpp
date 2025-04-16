@@ -1,6 +1,6 @@
 #include "GUI/ItemSlot.hpp"
 
-ItemSlot::ItemSlot(sf::Vector2f position, int itemBoxSize, bool affectedByIntScale)
+ItemSlot::ItemSlot(pl::Vector2f position, int itemBoxSize, bool affectedByIntScale)
 {
     this->position = position;
 
@@ -9,7 +9,7 @@ ItemSlot::ItemSlot(sf::Vector2f position, int itemBoxSize, bool affectedByIntSca
     this->affectedByIntScale = affectedByIntScale;
 }
 
-void ItemSlot::update(sf::Vector2f mouseScreenPos, float dt, bool forceItemScaleUp)
+void ItemSlot::update(pl::Vector2f mouseScreenPos, float dt, bool forceItemScaleUp)
 {
     float intScale = ResolutionHandler::getResolutionIntegerScale();
 
@@ -41,7 +41,7 @@ bool ItemSlot::isHovered() const
     return hovered;
 }
 
-sf::Vector2f ItemSlot::getPosition()
+pl::Vector2f ItemSlot::getPosition()
 {
     return position;
 }
@@ -51,12 +51,13 @@ void ItemSlot::overrideItemScaleMult(float scale)
     itemScaleMult = scale;
 }
 
-void ItemSlot::draw(sf::RenderTarget& window,
+void ItemSlot::draw(pl::RenderTarget& window,
+                    pl::SpriteBatch& spriteBatch,
                     std::optional<ItemType> itemType,
                     std::optional<int> itemAmount,
                     bool hiddenBackground,
                     bool selectHighlight,
-                    std::optional<sf::IntRect> emptyIconTexture,
+                    std::optional<pl::Rect<int>> emptyIconTexture,
                     InventoryData* inventory)
 {
     float intScale = ResolutionHandler::getResolutionIntegerScale();
@@ -68,28 +69,30 @@ void ItemSlot::draw(sf::RenderTarget& window,
     // Draw background
     if (!hiddenBackground)
     {
-        sf::IntRect boxRect(16, 16, 25, 25);
-        sf::Vector2f origin(0, 0);
+        pl::Rect<int> boxRect(16, 16, 25, 25);
+        pl::Vector2f origin(0, 0);
         if (selectHighlight)
         {
-            boxRect = sf::IntRect(16, 48, 27, 27);
-            origin = sf::Vector2f(1 / 27.0f, 1 / 27.0f);
+            boxRect = pl::Rect<int>(16, 48, 27, 27);
+            origin = pl::Vector2f(1 / 27.0f, 1 / 27.0f);
         }
 
-        TextureManager::drawSubTexture(window, {
-            TextureType::UI,
-            position * positionIntScale,
-            0,
-            {3 * intScale, 3 * intScale},
-            origin
-        }, boxRect);
+        pl::DrawData drawData;
+        drawData.texture = TextureManager::getTexture(TextureType::UI);
+        drawData.shader = Shaders::getShader(ShaderType::Default);
+        drawData.position = position * positionIntScale;
+        drawData.scale = {3 * intScale, 3 * intScale};
+        drawData.textureRect = boxRect;
+        drawData.centerRatio = origin;
+
+        spriteBatch.draw(window, drawData);
     }
 
     // Draw item
     if (itemType.has_value())
     {
-        sf::Vector2f itemPos = position * positionIntScale + (sf::Vector2f(std::round(boxSize / 2.0f), std::round(boxSize / 2.0f))) * intScale;
-        drawItem(window, itemType.value(), itemPos, itemScaleMult);
+        pl::Vector2f itemPos = position * positionIntScale + (pl::Vector2f(std::round(boxSize / 2.0f), std::round(boxSize / 2.0f))) * intScale;
+        drawItem(window, spriteBatch, itemType.value(), itemPos, itemScaleMult);
 
         // If inventory data given, search for projectile counts if required
         if (inventory)
@@ -107,7 +110,7 @@ void ItemSlot::draw(sf::RenderTarget& window,
                     // Draw projectile count
                     TextDraw::drawText(window, {
                     std::to_string(projectileCount),
-                    position * positionIntScale + (sf::Vector2f(std::round(boxSize / 4.0f) * 3.0f, std::round(boxSize / 4.0f) * 3.0f)) * intScale,
+                    position * positionIntScale + (pl::Vector2f(std::round(boxSize / 4.0f) * 3.0f, std::round(boxSize / 4.0f) * 3.0f)) * intScale,
                     {255, 255, 255},
                     24 * static_cast<unsigned int>(intScale),
                     {0, 0, 0},
@@ -121,7 +124,7 @@ void ItemSlot::draw(sf::RenderTarget& window,
     else if (emptyIconTexture.has_value())
     {
         // If no item and empty icon texture is supplied, draw empty icon in item place
-        drawEmptyIconTexture(window, emptyIconTexture.value());
+        drawEmptyIconTexture(window, spriteBatch, emptyIconTexture.value());
     }
 
     // Draw item count (if > 1)
@@ -129,9 +132,11 @@ void ItemSlot::draw(sf::RenderTarget& window,
     {
         if (itemAmount.value() > 1)
         {
+            spriteBatch.endDrawing(window);
+            
             TextDraw::drawText(window, {
                 std::to_string(itemAmount.value()),
-                position * positionIntScale + (sf::Vector2f(std::round(boxSize / 4.0f) * 3.0f, std::round(boxSize / 4.0f) * 3.0f)) * intScale,
+                position * positionIntScale + (pl::Vector2f(std::round(boxSize / 4.0f) * 3.0f, std::round(boxSize / 4.0f) * 3.0f)) * intScale,
                 {255, 255, 255},
                 24 * static_cast<unsigned int>(intScale),
                 {0, 0, 0},
@@ -142,7 +147,7 @@ void ItemSlot::draw(sf::RenderTarget& window,
     }
 }
 
-void ItemSlot::drawEmptyIconTexture(sf::RenderTarget& window, sf::IntRect emptyIconTexture)
+void ItemSlot::drawEmptyIconTexture(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, pl::Rect<int> emptyIconTexture)
 {
     float intScale = ResolutionHandler::getResolutionIntegerScale();
 
@@ -150,34 +155,37 @@ void ItemSlot::drawEmptyIconTexture(sf::RenderTarget& window, sf::IntRect emptyI
     if (!affectedByIntScale)
         positionIntScale = 1.0f;
 
-    sf::Vector2f emptyIconPos = position * positionIntScale + (sf::Vector2f(std::round(boxSize / 2.0f), std::round(boxSize / 2.0f))) * intScale;
+    pl::Vector2f emptyIconPos = position * positionIntScale + (pl::Vector2f(std::round(boxSize / 2.0f), std::round(boxSize / 2.0f))) * intScale;
 
-    TextureDrawData drawData;
-    drawData.type = TextureType::UI;
+    pl::DrawData drawData;
+    drawData.texture = TextureManager::getTexture(TextureType::UI);
+    drawData.shader = Shaders::getShader(ShaderType::Default);
     drawData.position = emptyIconPos;
-    drawData.scale = sf::Vector2f(3, 3) * intScale;
-    drawData.centerRatio = sf::Vector2f(0.5f, 0.5f);
+    drawData.scale = pl::Vector2f(3, 3) * intScale;
+    drawData.centerRatio = pl::Vector2f(0.5f, 0.5f);
+    drawData.textureRect = emptyIconTexture;
 
-    TextureManager::drawSubTexture(window, drawData, emptyIconTexture);
+    spriteBatch.draw(window, drawData);
 }
 
-void ItemSlot::drawItem(sf::RenderTarget& window, ItemType itemType, sf::Vector2f position, float scaleMult, bool centred, int alpha, float flashAmount)
+void ItemSlot::drawItem(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, ItemType itemType, pl::Vector2f position, float scaleMult,
+    bool centred, int alpha, float flashAmount)
 {
     float intScale = ResolutionHandler::getResolutionIntegerScale();
 
     const ItemData& itemData = ItemDataLoader::getItemData(itemType);
 
-    sf::Vector2f origin(0, 0);
+    pl::Vector2f origin(0, 0);
     if (centred)
     {
-        origin = sf::Vector2f(0.5, 0.5);
+        origin = pl::Vector2f(0.5, 0.5);
     }
 
-    sf::Color colour(255, 255, 255, alpha);
+    pl::Color colour(255, 255, 255, alpha);
 
     TextureType textureType = TextureType::Items;
-    sf::IntRect textureRect = itemData.textureRect;
-    sf::Vector2f scale(3 * scaleMult * intScale, 3 * scaleMult * intScale);
+    pl::Rect<int> textureRect = itemData.textureRect;
+    pl::Vector2f scale(3 * scaleMult * intScale, 3 * scaleMult * intScale);
 
     // Draw object if item places object
     if (itemData.placesObjectType >= 0)
@@ -196,7 +204,7 @@ void ItemSlot::drawItem(sf::RenderTarget& window, ItemType itemType, sf::Vector2
         }
 
         float objectScale = (16.0f * 3) / std::max(textureRect.width, textureRect.height) * scaleMult;
-        scale = sf::Vector2f(objectScale * intScale, objectScale * intScale);
+        scale = pl::Vector2f(objectScale * intScale, objectScale * intScale);
     }
     else if (itemData.toolType >= 0)
     {
@@ -205,7 +213,7 @@ void ItemSlot::drawItem(sf::RenderTarget& window, ItemType itemType, sf::Vector2
         const ToolData& toolData = ToolDataLoader::getToolData(itemData.toolType);
 
         float toolScale = std::max(4 - std::max(toolData.textureRects[0].width / 16.0f, toolData.textureRects[0].height / 16.0f), 1.0f) * scaleMult;
-        scale = sf::Vector2f(toolScale * intScale, toolScale * intScale);
+        scale = pl::Vector2f(toolScale * intScale, toolScale * intScale);
 
         textureRect = toolData.textureRects[0];
     }
@@ -215,7 +223,7 @@ void ItemSlot::drawItem(sf::RenderTarget& window, ItemType itemType, sf::Vector2
         const ArmourData& armourData = ArmourDataLoader::getArmourData(itemData.armourType);
 
         float armourScale = std::max(4 - std::max(armourData.itemTexture.width / 16.0f, armourData.itemTexture.height / 16.0f), 1.0f) * scaleMult;
-        scale = sf::Vector2f(armourScale * intScale, armourScale * intScale);
+        scale = pl::Vector2f(armourScale * intScale, armourScale * intScale);
 
         textureRect = armourData.itemTexture;
     }
@@ -225,18 +233,26 @@ void ItemSlot::drawItem(sf::RenderTarget& window, ItemType itemType, sf::Vector2
         const ProjectileData& projectileData = ToolDataLoader::getProjectileData(itemData.projectileType);
 
         float projectileScale = std::max(4 - std::max(projectileData.textureRect.width / 16.0f, projectileData.textureRect.height / 16.0f), 1.0f) * scaleMult;
-        scale = sf::Vector2f(projectileScale * intScale, projectileScale * intScale);
+        scale = pl::Vector2f(projectileScale * intScale, projectileScale * intScale);
 
         textureRect = projectileData.textureRect;
     }
 
-    sf::Shader* shader = nullptr;
+    pl::DrawData drawData;
+    drawData.texture = TextureManager::getTexture(textureType);
+    drawData.shader = Shaders::getShader(ShaderType::Default);
+    drawData.position = position;
+    drawData.scale = scale;
+    drawData.centerRatio = origin;
+    drawData.color = colour;
+    drawData.textureRect = textureRect;
+
     if (flashAmount > 0.0f)
     {
-        shader = Shaders::getShader(ShaderType::Flash);
-        shader->setUniform("flash_amount", flashAmount);
+        drawData.shader = Shaders::getShader(ShaderType::Flash);
+        drawData.shader->setUniform1f("flash_amount", flashAmount);
     }
     
     // Draw item / tool / object
-    TextureManager::drawSubTexture(window, {textureType, position, 0, scale, origin, colour}, textureRect, shader);
+    spriteBatch.draw(window, drawData);
 }

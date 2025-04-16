@@ -1,14 +1,16 @@
 #pragma once
 
-#include <SFML/Graphics.hpp>
+
 #include "World/ChunkPosition.hpp"
+
+#include <Vector.hpp>
 
 #include <extlib/cereal/archives/binary.hpp>
 
 struct ObjectReference
 {
     ChunkPosition chunk;
-    sf::Vector2i tile;
+    pl::Vector2<uint8_t> tile;
 
     template <class Archive>
     void serialize(Archive& ar, const std::uint32_t version)

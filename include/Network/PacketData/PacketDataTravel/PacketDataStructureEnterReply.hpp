@@ -4,6 +4,8 @@
 
 #include "Network/IPacketData.hpp"
 
+#include <Vector.hpp>
+
 #include "Data/typedefs.hpp"
 #include "World/ChunkPosition.hpp"
 #include "World/Room.hpp"
@@ -14,7 +16,7 @@ struct PacketDataStructureEnterReply : public IPacketData
     ChunkPosition chunkPos;
 
     uint32_t structureID;
-    sf::Vector2f structureEntrancePos;
+    pl::Vector2f structureEntrancePos;
     RoomType roomType;
 
     template <class Archive>

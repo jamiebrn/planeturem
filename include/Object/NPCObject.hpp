@@ -1,6 +1,10 @@
 #pragma once
 
-#include <SFML/Graphics.hpp>
+
+
+#include <Graphics/Color.hpp>
+#include <Vector.hpp>
+#include <Rect.hpp>
 
 #include "Object/WorldObject.hpp"
 #include "Object/BuildableObject.hpp"
@@ -10,7 +14,7 @@ class Game;
 class NPCObject : public BuildableObject
 {
 public:
-    NPCObject(sf::Vector2f position, ObjectType objectType);
+    NPCObject(pl::Vector2f position, ObjectType objectType);
 
     BuildableObject* clone() override;
 

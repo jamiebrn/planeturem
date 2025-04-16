@@ -1,12 +1,16 @@
 #pragma once
 
-#include <SFML/Graphics.hpp>
+
 #include <fstream>
 #include <string>
 #include <unordered_map>
 
+#include <Vector.hpp>
+#include <Rect.hpp>
+
 #include "Core/json.hpp"
 #include "Data/Serialise/Vector2Serialise.hpp"
+#include "Data/Serialise/IntRectSerialise.hpp"
 #include "Data/typedefs.hpp"
 #include "Data/ToolData.hpp"
 #include "Data/ItemDataLoader.hpp"

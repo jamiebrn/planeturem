@@ -1,8 +1,10 @@
 #pragma once
 
-#include <SFML/Graphics.hpp>
+
 #include <algorithm>
 #include <cmath>
+
+#include "Vector.hpp"
 
 #include "Core/ResolutionHandler.hpp"
 #include "Core/Helper.hpp"
@@ -20,31 +22,31 @@ public:
     Camera() = default;
 
     // Update camera based on player position (or any position)
-    void update(sf::Vector2f playerPosition, sf::Vector2f mouseScreenPos, float deltaTime);
+    void update(pl::Vector2f playerPosition, pl::Vector2f mouseScreenPos, float deltaTime);
 
     // Instantly set position to centre on player
-    void instantUpdate(sf::Vector2f playerPosition);
+    void instantUpdate(pl::Vector2f playerPosition);
 
     // Get draw offset of camera
-    sf::Vector2f getDrawOffset() const;
+    pl::Vector2f getDrawOffset() const;
 
-    sf::Vector2f getIntegerDrawOffset() const;
+    pl::Vector2f getIntegerDrawOffset() const;
 
     // Get scaled draw offset (applies zoom etc)
-    sf::Vector2f worldToScreenTransform(sf::Vector2f worldPos) const;
+    pl::Vector2f worldToScreenTransform(pl::Vector2f worldPos) const;
 
-    sf::Vector2f screenToWorldTransform(sf::Vector2f screenPos) const;
+    pl::Vector2f screenToWorldTransform(pl::Vector2f screenPos) const;
 
-    void handleScaleChange(float beforeScale, float afterScale, sf::Vector2f playerPosition);
+    void handleScaleChange(float beforeScale, float afterScale, pl::Vector2f playerPosition);
 
-    void handleWorldWrap(sf::Vector2f positionDelta);
+    void handleWorldWrap(pl::Vector2f positionDelta);
 
     ChunkViewRange getChunkViewRange() const;
 
     // Set offset of camera
-    void setOffset(sf::Vector2f newOffset);
+    void setOffset(pl::Vector2f newOffset);
 
-    bool isInView(sf::Vector2f position) const;
+    bool isInView(pl::Vector2f position) const;
 
     void setScreenShakeTime(float time);
 
@@ -56,7 +58,7 @@ private:
     
     static constexpr float MOUSE_DELTA_DAMPEN = 15;
 
-    sf::Vector2f offset;
+    pl::Vector2f offset;
 
     float screenShakeTime = 0.0f;
 

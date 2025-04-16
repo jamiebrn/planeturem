@@ -11,47 +11,32 @@
 
 bool Game::initialise()
 {
-    // Get screen resolution
-    sf::VideoMode videoMode = sf::VideoMode::getDesktopMode();
-    
-    // Create window
-    window.create(sf::VideoMode(videoMode.width, videoMode.height), GAME_TITLE, sf::Style::None);
-
-    // Disable joystick events (using SDL for input)
-    window.setJoystickSensorEventsEnabled(false);
-
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER) != 0)
     {
         std::cerr << "Failed to initialise SDL: " << SDL_GetError() << std::endl;
         return false;
     }
 
-    sdlWindow = SDL_CreateWindowFrom(reinterpret_cast<void*>(window.getSystemHandle()));
-    if (!sdlWindow)
-    {
-        std::cerr << "Failed to create SDL window from handle: " << SDL_GetError() << std::endl;
-        window.close();
-        SDL_Quit();
-        return false;
-    }
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
 
-    // Enable VSync and frame limit
-    window.setFramerateLimit(165);
-    window.setVerticalSyncEnabled(true);
+    SDL_DisplayMode displayMode;
+    SDL_GetCurrentDisplayMode(0, &displayMode);
+
+    // Create window
+    window.create(GAME_TITLE, displayMode.w * 0.75f, displayMode.h * 0.75f, SDL_WINDOW_FULLSCREEN_DESKTOP | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN);
 
     // Hide mouse cursor
-    window.setMouseCursorVisible(false);
-
-    // Create game view from resolution
-    view = sf::View({videoMode.width / 2.0f, videoMode.height / 2.0f}, {(float)videoMode.width, (float)videoMode.height});
+    SDL_ShowCursor(SDL_DISABLE);
 
     // Set resolution handler values
-    ResolutionHandler::setResolution({videoMode.width, videoMode.height});
+    ResolutionHandler::setResolution({static_cast<uint32_t>(displayMode.w), static_cast<uint32_t>(displayMode.h)});
 
     // Load assets
-    if(!TextureManager::loadTextures(window)) return false;
+    if(!TextureManager::loadTextures()) return false;
     if(!Shaders::loadShaders()) return false;
-    if(!TextDraw::loadFont("Data/Fonts/upheavtt.ttf")) return false;
+    if(!TextDraw::loadFont("Data/Fonts/upheavtt.ttf", "Data/Shaders/default.vert", "Data/Shaders/font.frag")) return false;
     if(!Sounds::loadSounds()) return false;
 
     // Load data
@@ -69,10 +54,16 @@ bool Game::initialise()
 
     // Load icon
     if(!icon.loadFromFile("Data/Textures/icon.png")) return false;
-    window.setIcon(256, 256, icon.getPixelsPtr());
+    window.setIcon(icon);
 
     // Init ImGui
-    if (!ImGui::SFML::Init(window)) return false;
+    // if (!ImGui::SFML::Init(window)) return false;
+    #if (!RELEASE_BUILD)
+    ImGui::CreateContext();
+    ImGui::StyleColorsDark();
+    ImGui_ImplSDL2_InitForOpenGL(window.getSDLWindow(), window.getGLContext());
+    ImGui_ImplOpenGL3_Init("#version 330 core");
+    #endif
 
     // Load Steam API
     steamInitialised = SteamAPI_Init();
@@ -92,7 +83,7 @@ bool Game::initialise()
 
     loadOptions();
 
-    InputManager::initialise(sdlWindow);
+    InputManager::initialise(window.getSDLWindow());
 
     // Create key bindings
     InputManager::bindKey(InputAction::WALK_UP, SDL_Scancode::SDL_SCANCODE_W);
@@ -167,7 +158,7 @@ bool Game::initialise()
     musicGapTimer = 0.0f;
     musicGap = 0.0f;
 
-    player = Player(sf::Vector2f(0, 0));
+    player = Player(pl::Vector2f(0, 0));
     inventory = InventoryData(32);
     armourInventory = InventoryData(3);
 
@@ -182,7 +173,7 @@ bool Game::initialise()
     generateWaterNoiseTexture();
 
     // Find valid player spawn
-    // sf::Vector2f spawnPos = chunkManager.findValidSpawnPosition(2);
+    // pl::Vector2f spawnPos = chunkManager.findValidSpawnPosition(2);
     // player.setPosition(spawnPos);
 
     // Initialise inventory
@@ -194,24 +185,47 @@ bool Game::initialise()
     return true;
 }
 
+void Game::deinit()
+{
+    #if (!RELEASE_BUILD)
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplSDL2_Shutdown();
+    ImGui::DestroyContext();
+    #endif
+
+    worldDatas.clear();
+    lightingEngine.~LightingEngine();
+
+    TextureManager::unloadTextures();
+    TextDraw::unloadFont();
+    Sounds::unloadSounds();
+    pl::Sound::deinit();
+
+    window.~Window();
+
+    SDL_Quit();
+}
+
 void Game::run()
 {
+    std::chrono::high_resolution_clock clock;
+    auto nowTime = clock.now();
+    auto lastTime = nowTime;
+
     while (window.isOpen())
     {
-        float dt = clock.restart().asSeconds();
+        nowTime = clock.now();
+        float dt = std::chrono::duration_cast<std::chrono::microseconds>(nowTime - lastTime).count() / 1000000.0f;
+        lastTime = nowTime;
         gameTime += dt;
 
         SteamAPI_RunCallbacks();
-        ImGui::SFML::Update(window, sf::seconds(dt));
+        // ImGui::SFML::Update(window, sf::seconds(dt));
 
         Sounds::update(dt);
         
         InputManager::update();
-        mouseScreenPos = InputManager::getMousePosition(sdlWindow, dt);
-
-        window.setView(view);
-
-        handleSDLEvents();
+        mouseScreenPos = InputManager::getMousePosition(window.getSDLWindow(), dt);
 
         if (networkHandler.isMultiplayerGame())
         {
@@ -238,150 +252,39 @@ void Game::run()
             drawStateTransition();
         }
 
-        drawMouseCursor();
-
         #if (!RELEASE_BUILD)
         drawDebugMenu(dt);
+        ImGui::SetMouseCursor(ImGuiMouseCursor_None);
         #endif
+        
+        drawMouseCursor();
 
-        ImGui::SetMouseCursor(ImGui::GetIO().WantCaptureMouse ? ImGuiMouseCursor_Arrow : ImGuiMouseCursor_None);
-
-        ImGui::SFML::Render(window);
-
-        window.display();
+        // window.display();
+        window.swapBuffers();
+        window.showWindow();
+        window.setVSync(ResolutionHandler::getVSync());
     }
 
-    SDL_DestroyWindow(sdlWindow);
     SDL_Quit();
 }
-
-#if (!RELEASE_BUILD)
-void Game::runFeatureTest()
-{
-    // static std::optional<std::pair<int, int>> start, end;
-    // static int pathfindTick = 0;
-
-    // const int SCALE = 12;
-
-    // sf::Vector2i mousePos = sf::Mouse::getPosition(window);
-    // int mouseTileX = mousePos.x / SCALE;
-    // int mouseTileY = mousePos.y / SCALE;
-
-    for (auto event = sf::Event{}; window.pollEvent(event);)
-    {
-        handleEventsWindow(event);
-
-        if (event.type == sf::Event::KeyPressed)
-        {
-            // if (event.key.code == sf::Keyboard::R || event.key.code == sf::Keyboard::Tab)
-            // {
-            //     start = std::nullopt;
-            //     end = std::nullopt;
-            //     pathfindingEngine.resize(160, 90);
-            // }
-            // if (event.key.code == sf::Keyboard::P)
-            // {
-            //     start = {mouseTileX, mouseTileY};
-            // }
-            // if (event.key.code == sf::Keyboard::L)
-            // {
-            //     end = {mouseTileX, mouseTileY};
-            // }
-            // if (event.key.code == sf::Keyboard::Tab)
-            // {
-            //     for (int x = 0; x < 190; x++)
-            //     {
-            //         for (int y = 0; y < 90; y++)
-            //         {
-            //             if (rand() % 4 <= 1)
-            //             {
-            //                 pathfindingEngine.setObstacle(x, y, true);
-            //             }
-            //         }
-            //     }
-            // }
-        }
-    }
-
-    // if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
-    // {
-    //     pathfindingEngine.setObstacle(mouseTileX, mouseTileY, true);
-    // }
-    // if (sf::Keyboard::isKeyPressed(sf::Keyboard::Backspace))
-    // {
-    //     pathfindingEngine.setObstacle(mouseTileX, mouseTileY, false);
-    // }
-
-    // window.clear();
-
-    // auto& obstacles = pathfindingEngine.getObstacles();
-    // for (int i = 0; i < obstacles.size(); i++)
-    // {
-    //     if (!obstacles[i])
-    //     {
-    //         continue;
-    //     }
-
-    //     sf::RectangleShape rect({SCALE, SCALE});
-    //     rect.setPosition(sf::Vector2f(i % 160, std::floor(i / 160)) * static_cast<float>(SCALE));
-    //     window.draw(rect);
-    // }
-
-    // pathfindTick++;
-
-    // if (start.has_value() && end.has_value())
-    // {
-    //     static std::vector<PathfindGridCoordinate> pathFound;
-    //     if (pathfindTick > 0)
-    //     {
-    //         pathFound.clear();
-    //         pathfindTick = 0;
-    //         pathfindingEngine.findPath(start->first, start->second, end->first, end->second, pathFound);
-    //     }
-
-    //     for (const auto& coord : pathFound)
-    //     {
-    //         sf::RectangleShape rect({ SCALE, SCALE });
-    //         rect.setPosition(sf::Vector2f(coord.x, coord.y) * static_cast<float>(SCALE));
-    //         rect.setFillColor(sf::Color(0, 0, 255));
-    //         window.draw(rect);
-    //     }
-    // }
-
-    // if (start.has_value())
-    // {
-    //     sf::RectangleShape rect({SCALE, SCALE});
-    //     rect.setPosition(sf::Vector2f(start->first, start->second) * static_cast<float>(SCALE));
-    //     rect.setFillColor(sf::Color(0, 255, 0));
-    //     window.draw(rect);
-    // }
-
-    // if (end.has_value())
-    // {
-    //     sf::RectangleShape rect({SCALE, SCALE});
-    //     rect.setPosition(sf::Vector2f(end->first, end->second) * static_cast<float>(SCALE));
-    //     rect.setFillColor(sf::Color(255, 0, 0));
-    //     window.draw(rect);
-    // }
-}
-#endif
 
 // -- Main Menu -- //
 
 void Game::runMainMenu(float dt)
 {
-    for (auto event = sf::Event{}; window.pollEvent(event);)
+    SDL_Event event;
+    while (window.pollEvent(event))
     {
         handleEventsWindow(event);
 
         mainMenuGUI.handleEvent(event);
     }
 
-    // sf::Vector2f mouseScreenPos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
+    // pl::Vector2f mouseScreenPos = static_cast<pl::Vector2f>(sf::Mouse::getPosition(window));
 
     mainMenuGUI.update(dt, mouseScreenPos, *this);
 
-    window.clear();
+    window.clear(pl::Color(0, 0, 0, 255));
 
     std::optional<MainMenuEvent> menuEvent = mainMenuGUI.createAndDraw(window, spriteBatch, *this, dt, gameTime);
 
@@ -444,7 +347,6 @@ void Game::runMainMenu(float dt)
             case MainMenuEventType::Quit:
             {
                 window.close();
-                ImGui::SFML::Shutdown(window);
                 break;
             }
         }
@@ -455,12 +357,13 @@ void Game::runMainMenu(float dt)
 
 void Game::runInGame(float dt)
 {
-    // sf::Vector2f mouseScreenPos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
+    // pl::Vector2f mouseScreenPos = static_cast<pl::Vector2f>(sf::Mouse::getPosition(window));
 
     bool shiftMode = InputManager::isActionActive(InputAction::UI_SHIFT);
 
     // Handle events
-    for (auto event = sf::Event{}; window.pollEvent(event);)
+    SDL_Event event;
+    while (window.pollEvent(event))
     {
         handleEventsWindow(event);
 
@@ -738,7 +641,7 @@ void Game::runInGame(float dt)
 
         if (InputManager::isActionJustActivated(InputAction::RECENTRE_CONTROLLER_CURSOR))
         {
-            InputManager::recentreControllerCursor(sdlWindow);
+            InputManager::recentreControllerCursor(window.getSDLWindow());
         }
     }
 
@@ -844,7 +747,7 @@ void Game::runInGame(float dt)
     // -- DRAWING --
     //
 
-    window.clear();
+    window.clear(pl::Color(0, 0, 0));
 
     // Draw depending on game state
     switch (gameState)
@@ -880,7 +783,7 @@ void Game::runInGame(float dt)
         {
             case WorldMenuState::Main:
             {
-                InventoryGUI::drawHotbar(window, mouseScreenPos, inventory);
+                InventoryGUI::drawHotbar(window, spriteBatch, mouseScreenPos, inventory);
                 InventoryGUI::drawItemPopups(window, gameTime);
                 HealthGUI::drawHealth(window, spriteBatch, player, gameTime, extraInfoStrings);
 
@@ -920,7 +823,7 @@ void Game::runInGame(float dt)
                     chestDataPtr = getChestDataPool().getChestDataPtr(openedChestID);
                 }
 
-                InventoryGUI::draw(window, gameTime, mouseScreenPos, inventory, armourInventory, chestDataPtr);
+                InventoryGUI::draw(window, spriteBatch, gameTime, mouseScreenPos, inventory, armourInventory, chestDataPtr);
 
                 // Controller glyphs
                 if (InputManager::isControllerActive())
@@ -967,7 +870,7 @@ void Game::runInGame(float dt)
                     LandmarkObject* landmarkObjectPtr = getObjectFromLocation<LandmarkObject>(landmarkSetGUI.getLandmarkObjectReference(), locationState);
                     if (landmarkObjectPtr)
                     {
-                        landmarkObjectPtr->setLandmarkColour(landmarkSetGUI.getColourA(), landmarkSetGUI.getColourB());
+                        landmarkObjectPtr->setLandmarkColour(landmarkSetGUI.getColorA(), landmarkSetGUI.getColorB());
                     }
                 }
                 if (landmarkSetGUIEvent.closed)
@@ -1051,7 +954,7 @@ void Game::runInGame(float dt)
 
 void Game::updateOnPlanet(float dt)
 {
-    // sf::Vector2f mouseScreenPos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
+    // pl::Vector2f mouseScreenPos = static_cast<pl::Vector2f>(sf::Mouse::getPosition(window));
 
     int worldSize = getChunkManager().getWorldSize();
 
@@ -1061,7 +964,7 @@ void Game::updateOnPlanet(float dt)
 
     // Update player
     bool wrappedAroundWorld = false;
-    sf::Vector2f wrapPositionDelta;
+    pl::Vector2f wrapPositionDelta;
 
     if (!isStateTransitioning())
     {
@@ -1201,7 +1104,7 @@ void Game::updateActivePlanets(float dt)
     {
         std::vector<ChunkViewRange> chunkViewRanges = networkHandler.getNetworkPlayersChunkViewRanges(planetType);
 
-        std::optional<sf::Vector2f> localPlayerPosition;
+        std::optional<pl::Vector2f> localPlayerPosition;
 
         // Add this player (host) chunk view range and set player position, if also on this planet
         if (locationState.getPlanetType() == planetType)
@@ -1250,7 +1153,7 @@ void Game::drawOnPlanet(float dt)
     drawLighting(dt, worldObjects);
 
     // UI
-    // sf::Vector2f mouseScreenPos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
+    // pl::Vector2f mouseScreenPos = static_cast<pl::Vector2f>(sf::Mouse::getPosition(window));
 
     Cursor::drawCursor(window, camera);
 
@@ -1277,11 +1180,11 @@ void Game::drawOnPlanet(float dt)
     getBossManager().drawStatsAtCursor(window, camera, mouseScreenPos);
 }
 
-void Game::drawWorld(sf::RenderTexture& renderTexture, float dt, std::vector<WorldObject*>& worldObjects, WorldData& worldData, const Camera& cameraArg)
+void Game::drawWorld(pl::Framebuffer& renderTexture, float dt, std::vector<WorldObject*>& worldObjects, WorldData& worldData, const Camera& cameraArg)
 {
     // Draw all world onto texture for lighting
-    renderTexture.create(window.getSize().x, window.getSize().y);
-    renderTexture.clear();
+    renderTexture.create(window.getWidth(), window.getHeight());
+    renderTexture.clear(pl::Color(0, 0, 0));
 
     // Draw water
     worldData.chunkManager.drawChunkWater(renderTexture, cameraArg, gameTime);
@@ -1313,22 +1216,22 @@ void Game::drawWorld(sf::RenderTexture& renderTexture, float dt, std::vector<Wor
 
     spriteBatch.endDrawing(renderTexture);
 
-    renderTexture.display();
+    // renderTexture.display();
 }
 
 void Game::drawLighting(float dt, std::vector<WorldObject*>& worldObjects)
 {
     float lightLevel = dayCycleManager.getLightLevel();
 
-    unsigned char ambientRedLight = Helper::lerp(2, 255 * weatherSystem.getRedLightBias(), lightLevel);
-    unsigned char ambientGreenLight = Helper::lerp(7, 244 * weatherSystem.getGreenLightBias(), lightLevel);
-    unsigned char ambientBlueLight = Helper::lerp(14, 234 * weatherSystem.getBlueLightBias(), lightLevel);
+    float ambientRedLight = Helper::lerp(2, 255 * weatherSystem.getRedLightBias(), lightLevel);
+    float ambientGreenLight = Helper::lerp(7, 244 * weatherSystem.getGreenLightBias(), lightLevel);
+    float ambientBlueLight = Helper::lerp(14, 234 * weatherSystem.getBlueLightBias(), lightLevel);
 
-    sf::Vector2i chunksSizeInView = getChunkManager().getChunksSizeInView(camera);
-    sf::Vector2f topLeftChunkPos = getChunkManager().topLeftChunkPosInView(camera);
+    pl::Vector2<int> chunksSizeInView = getChunkManager().getChunksSizeInView(camera);
+    pl::Vector2f topLeftChunkPos = getChunkManager().topLeftChunkPosInView(camera);
     
     // Draw light sources on light texture
-    sf::RenderTexture lightTexture;
+    pl::Framebuffer lightTexture;
     lightTexture.create(chunksSizeInView.x * CHUNK_TILE_SIZE * TILE_LIGHTING_RESOLUTION, chunksSizeInView.y * CHUNK_TILE_SIZE * TILE_LIGHTING_RESOLUTION);
 
     lightingTick++;
@@ -1349,31 +1252,29 @@ void Game::drawLighting(float dt, std::vector<WorldObject*>& worldObjects)
             worldObject->createLightSource(lightingEngine, topLeftChunkPos);
         }
 
-        lightingEngine.calculateLighting(sf::Color(255, 220, 140));
+        lightingEngine.calculateLighting();
     }
 
 
     lightTexture.clear({ambientRedLight, ambientGreenLight, ambientBlueLight, 255});
 
     // draw from lighting engine
-    lightingEngine.drawLighting(lightTexture);
+    lightingEngine.drawLighting(lightTexture, pl::Color(255, 220, 140));
 
-    lightTexture.display();
-    lightTexture.setSmooth(smoothLighting);
+    lightTexture.setLinearFilter(smoothLighting);
 
-    sf::Sprite lightTextureSprite(lightTexture.getTexture());
-    // lightTextureSprite.setColor(sf::Color(255, 255, 255, 255));
+    pl::VertexArray lightRect;
+    lightRect.addQuad(pl::Rect<float>(camera.worldToScreenTransform(topLeftChunkPos), pl::Vector2f(lightTexture.getWidth(), lightTexture.getHeight()) *
+        ResolutionHandler::getScale() * TILE_SIZE_PIXELS_UNSCALED / static_cast<float>(TILE_LIGHTING_RESOLUTION)), pl::Color(),
+        pl::Rect<float>(0, lightTexture.getHeight(), lightTexture.getWidth(), -lightTexture.getHeight()));
 
-    lightTextureSprite.setPosition(camera.worldToScreenTransform(topLeftChunkPos));
-    lightTextureSprite.setScale(sf::Vector2f(ResolutionHandler::getScale(), ResolutionHandler::getScale()) * TILE_SIZE_PIXELS_UNSCALED / static_cast<float>(TILE_LIGHTING_RESOLUTION));
+    worldTexture.draw(lightRect, *Shaders::getShader(ShaderType::Default), &lightTexture.getTexture(), pl::BlendMode::Multiply);
 
-    worldTexture.draw(lightTextureSprite, sf::BlendMultiply);
+    pl::VertexArray worldRect;
+    worldRect.addQuad(pl::Rect<float>(0, 0, worldTexture.getWidth(), worldTexture.getHeight()), pl::Color(),
+        pl::Rect<float>(0, worldTexture.getHeight(), worldTexture.getWidth(), -worldTexture.getHeight()));
 
-    worldTexture.display();
-
-    sf::Sprite worldTextureSprite(worldTexture.getTexture());
-
-    window.draw(worldTextureSprite);
+    window.draw(worldRect, *Shaders::getShader(ShaderType::Default), &worldTexture.getTexture(), pl::BlendMode::Alpha);
 }
 
 void Game::drawLandmarks()
@@ -1382,43 +1283,52 @@ void Game::drawLandmarks()
 
     landmarkUIAnimation.setFrame(static_cast<int>(gameTime / 0.1) % 6);
 
+    static const int PADDING = 0;
+    float intScale = ResolutionHandler::getResolutionIntegerScale();
+    pl::Vector2<uint32_t> resolution = ResolutionHandler::getResolution();
+
+    pl::DrawData drawData;
+    drawData.texture = TextureManager::getTexture(TextureType::UI);
+    drawData.shader = Shaders::getShader(ShaderType::ReplaceColour);
+    drawData.scale = pl::Vector2f(3, 3) * intScale;
+    drawData.centerRatio = pl::Vector2f(0.5f, 0.5f);
+    drawData.color = pl::Color(255, 255, 255, 150);
+    
+    std::vector<float> replaceKeys = {1, 1, 1, 1, 0, 0, 0, 1};
+    drawData.shader->setUniform1i("replaceKeyCount", replaceKeys.size());
+    drawData.shader->setUniform4fv("replaceKeys", replaceKeys);
+    
     for (const LandmarkSummaryData& landmarkSummary : getLandmarkManager().getLandmarkSummaryDatas(player, getChunkManager()))
     {
         if (camera.isInView(landmarkSummary.worldPos))
         {
             continue;
         }
-
-        static const int PADDING = 0;
-        float intScale = ResolutionHandler::getResolutionIntegerScale();
-        sf::Vector2u resolution = ResolutionHandler::getResolution();
-
-        sf::Vector2f screenPos = camera.worldToScreenTransform(landmarkSummary.worldPos);
+        
+        pl::Vector2f screenPos = camera.worldToScreenTransform(landmarkSummary.worldPos);
         screenPos.x = std::clamp(screenPos.x, PADDING * intScale, resolution.x - PADDING * intScale);
         screenPos.y = std::clamp(screenPos.y, PADDING * intScale, resolution.y - PADDING * intScale);
-
-        TextureDrawData drawData;
-        drawData.type = TextureType::UI;
+        
+        pl::Color colorANormalised = landmarkSummary.colorA.normalise();
+        pl::Color colorBNormalised = landmarkSummary.colorB.normalise();
+        
+        std::vector<float> replaceValues = {
+            colorANormalised.r, colorANormalised.g, colorANormalised.b, colorANormalised.a,
+            colorBNormalised.r, colorBNormalised.g, colorBNormalised.b, colorBNormalised.a
+        };
+        
         drawData.position = screenPos;
-        drawData.scale = sf::Vector2f(3, 3) * intScale;
-        drawData.centerRatio = sf::Vector2f(0.5f, 0.5f);
-        drawData.colour = sf::Color(255, 255, 255, 150);
+        drawData.shader->setUniform4fv("replaceValues", replaceValues);
+        drawData.textureRect = landmarkUIAnimation.getTextureRect();
 
-        sf::Glsl::Vec4 replaceKeys[2] = {sf::Glsl::Vec4(sf::Color(255, 255, 255)), sf::Glsl::Vec4(sf::Color(0, 0, 0))};
-        sf::Glsl::Vec4 replaceValues[2] = {sf::Glsl::Vec4(landmarkSummary.colourA), sf::Glsl::Vec4(landmarkSummary.colourB)};
-
-        sf::Shader* replaceColourShader = Shaders::getShader(ShaderType::ReplaceColour);
-        replaceColourShader->setUniform("replaceKeyCount", 2);
-        replaceColourShader->setUniformArray("replaceKeys", replaceKeys, 2);
-        replaceColourShader->setUniformArray("replaceValues", replaceValues, 2);
-
-        TextureManager::drawSubTexture(window, drawData, landmarkUIAnimation.getTextureRect(), replaceColourShader);
+        spriteBatch.draw(window, drawData);
+        spriteBatch.endDrawing(window);
     }
 }
 
 
 // Structure
-std::optional<uint32_t> Game::initialiseStructureOrGet(PlanetType planetType, ChunkPosition chunk, sf::Vector2f* entrancePos, RoomType* roomType)
+std::optional<uint32_t> Game::initialiseStructureOrGet(PlanetType planetType, ChunkPosition chunk, pl::Vector2f* entrancePos, RoomType* roomType)
 {
     assert(networkHandler.isLobbyHostOrSolo());
 
@@ -1455,7 +1365,7 @@ std::optional<uint32_t> Game::initialiseStructureOrGet(PlanetType planetType, Ch
     if (entrancePos)
     {
         // TODO: May break chunk positions when transmitting to client
-        sf::Vector2f structureEntrancePos = enteredStructure->getEntrancePosition();
+        pl::Vector2f structureEntrancePos = enteredStructure->getEntrancePosition();
         entrancePos->x = (std::floor(structureEntrancePos.x / TILE_SIZE_PIXELS_UNSCALED) + 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
         entrancePos->y = (std::floor(structureEntrancePos.y / TILE_SIZE_PIXELS_UNSCALED) + 1.5f) * TILE_SIZE_PIXELS_UNSCALED;
     }
@@ -1507,7 +1417,7 @@ void Game::testEnterStructure()
     startChangeStateTransition(GameState::InStructure);
 }
 
-void Game::enterStructureFromHost(PlanetType planetType, ChunkPosition chunk, uint32_t structureID, sf::Vector2f entrancePos, RoomType roomType)
+void Game::enterStructureFromHost(PlanetType planetType, ChunkPosition chunk, uint32_t structureID, pl::Vector2f entrancePos, RoomType roomType)
 {
     if (locationState.getPlanetType() != planetType)
     {
@@ -1661,7 +1571,7 @@ void Game::landmarkPlaced(const LandmarkObject& landmark, bool createGUI)
     {
         handleInventoryClose();
         worldMenuState = WorldMenuState::SettingLandmark;
-        landmarkSetGUI.initialise(landmarkObjectReference, landmark.getColourA(), landmark.getColourB());
+        landmarkSetGUI.initialise(landmarkObjectReference, landmark.getColorA(), landmark.getColorB());
 
         player.setCanMove(false);
     }
@@ -1677,7 +1587,7 @@ void Game::landmarkDestroyed(const LandmarkObject& landmark)
 
 void Game::updateInRoom(float dt, Room& room, bool inStructure)
 {
-    // sf::Vector2f mouseScreenPos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
+    // pl::Vector2f mouseScreenPos = static_cast<pl::Vector2f>(sf::Mouse::getPosition(window));
 
     // Room& structureRoom = structureRoomPool.getRoom(structureEnteredID);
 
@@ -1731,7 +1641,7 @@ void Game::drawInRoom(float dt, const Room& room)
     for (const WorldObject* object : worldObjects)
     {
         // Use 1 for worldsize as dummy value
-        object->draw(window, spriteBatch, *this, camera, dt, gameTime, 1, sf::Color(255, 255, 255));
+        object->draw(window, spriteBatch, *this, camera, dt, gameTime, 1, pl::Color(255, 255, 255));
     }
 
     spriteBatch.endDrawing(window);
@@ -1793,7 +1703,7 @@ void Game::attemptUseTool()
 
 void Game::attemptUseToolPickaxe()
 {
-    sf::Vector2f mouseWorldPos = camera.screenToWorldTransform(mouseScreenPos);
+    pl::Vector2f mouseWorldPos = camera.screenToWorldTransform(mouseScreenPos);
     
     // Swing pickaxe
     player.useTool(getProjectileManager(), inventory, mouseWorldPos, *this);
@@ -1820,12 +1730,12 @@ void Game::attemptUseToolFishingRod()
     // Check if fish is biting line first - if so, reel in fishing rod and catch fish
     if (player.isFishBitingLine())
     {
-        sf::Vector2i fishedTile = player.reelInFishingRod();
+        pl::Vector2<int> fishedTile = player.reelInFishingRod();
         catchRandomFish(fishedTile);
         return;
     }
 
-    sf::Vector2f mouseWorldPos = camera.screenToWorldTransform(mouseScreenPos);
+    pl::Vector2f mouseWorldPos = camera.screenToWorldTransform(mouseScreenPos);
 
     if (!player.canReachPosition(mouseWorldPos))
     {
@@ -1835,7 +1745,7 @@ void Game::attemptUseToolFishingRod()
     
     // Determine whether can fish at selected tile
     ChunkPosition selectedChunk = Cursor::getSelectedChunk(getChunkManager().getWorldSize());
-    sf::Vector2i selectedTile = Cursor::getSelectedChunkTile();
+    pl::Vector2<int> selectedTile = Cursor::getSelectedChunkTile();
 
     // Test whether can fish on selected tile
     // Must have no object + be water
@@ -1859,12 +1769,12 @@ void Game::attemptUseToolWeapon()
     if (gameState != GameState::OnPlanet)
         return;
 
-    sf::Vector2f mouseWorldPos = camera.screenToWorldTransform(mouseScreenPos);
+    pl::Vector2f mouseWorldPos = camera.screenToWorldTransform(mouseScreenPos);
 
     player.useTool(getProjectileManager(), inventory, mouseWorldPos, *this);
 }
 
-void Game::hitObject(ChunkPosition chunk, sf::Vector2i tile, int damage, std::optional<PlanetType> planetType, bool sentFromHost, std::optional<uint64_t> userId)
+void Game::hitObject(ChunkPosition chunk, pl::Vector2<int> tile, int damage, std::optional<PlanetType> planetType, bool sentFromHost, std::optional<uint64_t> userId)
 {
     // If multiplayer and this client attempted to hit object, send hit object packet to host
     if (networkHandler.isClient() && !sentFromHost)
@@ -1972,7 +1882,7 @@ void Game::hitObject(ChunkPosition chunk, sf::Vector2i tile, int damage, std::op
     }
 }
 
-void Game::buildObject(ChunkPosition chunk, sf::Vector2i tile, ObjectType objectType, std::optional<PlanetType> planetType, bool sentFromHost,
+void Game::buildObject(ChunkPosition chunk, pl::Vector2<int> tile, ObjectType objectType, std::optional<PlanetType> planetType, bool sentFromHost,
     bool builtByPlayer)
 {
     // If multiplayer game and this client builds object, send build object packet to host
@@ -2062,7 +1972,7 @@ void Game::buildObject(ChunkPosition chunk, sf::Vector2i tile, ObjectType object
     }
 }
 
-void Game::destroyObjectFromHost(ChunkPosition chunk, sf::Vector2i tile, std::optional<PlanetType> planetType)
+void Game::destroyObjectFromHost(ChunkPosition chunk, pl::Vector2<int> tile, std::optional<PlanetType> planetType)
 {
     if (locationState.getPlanetType() != planetType)
     {
@@ -2129,7 +2039,7 @@ void Game::itemPickupsCreated(const std::vector<ItemPickupReference>& itemPickup
     networkHandler.sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0);
 }
 
-void Game::catchRandomFish(sf::Vector2i fishedTile)
+void Game::catchRandomFish(pl::Vector2<int> fishedTile)
 {
     const BiomeGenData* biomeGenData = getChunkManager().getChunkBiome(ChunkPosition(fishedTile.x / CHUNK_TILE_SIZE, fishedTile.y / CHUNK_TILE_SIZE));
 
@@ -2157,7 +2067,7 @@ void Game::catchRandomFish(sf::Vector2i fishedTile)
             // Create fish item pickups
             for (int i = 0; i < fishCatchData.count; i++)
             {
-                sf::Vector2f spawnPos = player.getPosition() + sf::Vector2f(
+                pl::Vector2f spawnPos = player.getPosition() + pl::Vector2f(
                     Helper::randFloat(-TILE_SIZE_PIXELS_UNSCALED / 2.0f, TILE_SIZE_PIXELS_UNSCALED / 2.0f),
                     Helper::randFloat(-TILE_SIZE_PIXELS_UNSCALED / 2.0f, TILE_SIZE_PIXELS_UNSCALED / 2.0f)
                 );
@@ -2216,7 +2126,7 @@ void Game::attemptObjectInteract()
     }
 
     // Get mouse position in screen space and world space
-    sf::Vector2f mouseWorldPos = camera.screenToWorldTransform(mouseScreenPos);
+    pl::Vector2f mouseWorldPos = camera.screenToWorldTransform(mouseScreenPos);
 
     if (!player.canReachPosition(mouseWorldPos))
         return;
@@ -2411,11 +2321,11 @@ void Game::drawGhostPlaceObjectAtCursor(ObjectType object)
 
     bool inRange = player.canReachPosition(camera.screenToWorldTransform(mouseScreenPos));
 
-    sf::Color drawColor(255, 0, 0, 180);
+    pl::Color drawColor(255, 0, 0, 180);
     if (canPlace && inRange)
-        drawColor = sf::Color(0, 255, 0, 180);
+        drawColor = pl::Color(0, 255, 0, 180);
     
-    BuildableObject objectGhost(Cursor::getLerpedSelectPos() + sf::Vector2f(TILE_SIZE_PIXELS_UNSCALED / 2.0f, TILE_SIZE_PIXELS_UNSCALED / 2.0f), object, false);
+    BuildableObject objectGhost(Cursor::getLerpedSelectPos() + pl::Vector2f(TILE_SIZE_PIXELS_UNSCALED / 2.0f, TILE_SIZE_PIXELS_UNSCALED / 2.0f), object, false);
 
     objectGhost.draw(window, spriteBatch, *this, camera, 0.0f, 0, getChunkManager().getWorldSize(), drawColor);
 
@@ -2424,15 +2334,15 @@ void Game::drawGhostPlaceObjectAtCursor(ObjectType object)
 
 void Game::drawGhostPlaceLandAtCursor()
 {
-    sf::Vector2f tileWorldPosition = Cursor::getLerpedSelectPos();
+    pl::Vector2f tileWorldPosition = Cursor::getLerpedSelectPos();
     int worldSize = getChunkManager().getWorldSize();
 
     // Change color depending on whether can place land or not
-    sf::Color landGhostColor(255, 0, 0, 180);
+    pl::Color landGhostColor(255, 0, 0, 180);
     if (getChunkManager().canPlaceLand(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile()) &&
         player.canReachPosition(camera.screenToWorldTransform(mouseScreenPos)))
     {
-        landGhostColor = sf::Color(0, 255, 0, 180);
+        landGhostColor = pl::Color(0, 255, 0, 180);
     }
 
     float scale = ResolutionHandler::getScale();
@@ -2447,23 +2357,26 @@ void Game::drawGhostPlaceLandAtCursor()
         return;
     
     // Get texture offset for tilemap
-    sf::Vector2i tileMapTextureOffset = biomeGenData->tileGenDatas[0].tileMap.textureOffset;
+    pl::Vector2<int> tileMapTextureOffset = biomeGenData->tileGenDatas[0].tileMap.textureOffset;
 
     // Create texture rect of centre tile from tilemap
-    sf::IntRect textureRect(tileMapTextureOffset.x + 16, tileMapTextureOffset.y + 16, 16, 16);
+    pl::Rect<int> textureRect(tileMapTextureOffset.x + 16, tileMapTextureOffset.y + 16, 16, 16);
+
+    pl::DrawData drawData;
+    drawData.texture = TextureManager::getTexture(TextureType::GroundTiles);
+    drawData.shader = Shaders::getShader(ShaderType::Default);
+    drawData.position = camera.worldToScreenTransform(tileWorldPosition);
+    drawData.scale = pl::Vector2f(scale, scale);
+    drawData.color = landGhostColor;
+    drawData.textureRect = textureRect;
 
     // Draw tile at screen position
-    TextureManager::drawSubTexture(window, {
-        .type = TextureType::GroundTiles,
-        .position = camera.worldToScreenTransform(tileWorldPosition),
-        .scale = {scale, scale},
-        .colour = landGhostColor
-    }, textureRect);
+    spriteBatch.draw(window, drawData);
 }
 
 BuildableObject* Game::getSelectedObjectFromChunkOrRoom()
 {
-    sf::Vector2f mouseWorldPos = camera.screenToWorldTransform(mouseScreenPos);
+    pl::Vector2f mouseWorldPos = camera.screenToWorldTransform(mouseScreenPos);
 
     switch (gameState)
     {
@@ -2560,7 +2473,11 @@ void Game::openChest(ChestObject& chest, std::optional<LocationState> chestLocat
     {
         packetData.chestObject.tile = chest.getTileInside();
     }
-    packetData.userID = SteamUser()->GetSteamID().ConvertToUint64();
+
+    if (networkHandler.isMultiplayerGame())
+    {
+        packetData.userID = SteamUser()->GetSteamID().ConvertToUint64();
+    }
 
     Packet packet;
     packet.set(packetData);
@@ -2796,8 +2713,8 @@ void Game::closeChest(std::optional<ObjectReference> chestObjectRef, std::option
 
     openedChestID = 0xFFFF;
     openedChest.chunk = ChunkPosition(0, 0);
-    openedChest.tile = sf::Vector2i(0, 0);
-    // openedChestPos = sf::Vector2f(0, 0);
+    openedChest.tile = pl::Vector2<int>(0, 0);
+    // openedChestPos = pl::Vector2f(0, 0);
 }
 
 
@@ -2918,7 +2835,7 @@ ObjectReference Game::setupPlanetTravel(PlanetType planetType, std::optional<uin
     {
         // Create rocket at default spawn location
         ChunkPosition rocketChunk = getChunkManager(planetType).findValidSpawnChunk(2);
-        placeRocketReference = ObjectReference{rocketChunk, sf::Vector2i(0, 0)};
+        placeRocketReference = ObjectReference{rocketChunk, pl::Vector2<int>(0, 0)};
     }
     else
     {
@@ -2990,7 +2907,7 @@ void Game::travelToPlanet(PlanetType planetType, ObjectReference newRocketObject
     if (rocketObject)
     {
         // TODO: Find empty tile around rocket
-        player.setPosition(rocketObject->getPosition() - sf::Vector2f(1, 1) * TILE_SIZE_PIXELS_UNSCALED);
+        player.setPosition(rocketObject->getPosition() - pl::Vector2f(1, 1) * TILE_SIZE_PIXELS_UNSCALED);
         rocketObject->triggerBehaviour(*this, ObjectBehaviourTrigger::RocketFlyDown);
     }
     else
@@ -3060,7 +2977,7 @@ void Game::travelToRoomDestination(RoomType destinationRoomType)
 
         if (rocketObject)
         {
-            player.setPosition(rocketObject->getPosition() - sf::Vector2f(TILE_SIZE_PIXELS_UNSCALED, 0));
+            player.setPosition(rocketObject->getPosition() - pl::Vector2f(TILE_SIZE_PIXELS_UNSCALED, 0));
 
             rocketObject->triggerBehaviour(*this, ObjectBehaviourTrigger::RocketFlyDown);
         }
@@ -3079,7 +2996,7 @@ ChunkPosition Game::initialiseNewPlanet(PlanetType planetType)
 
     ChunkPosition playerSpawnChunk = getChunkManager(planetType).findValidSpawnChunk(2);
 
-    // sf::Vector2f playerSpawnPos;
+    // pl::Vector2f playerSpawnPos;
     // playerSpawnPos.x = playerSpawnChunk.x * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED + 0.5f * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
     // playerSpawnPos.y = playerSpawnChunk.y * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED + 0.5f * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
     // player.setPosition(playerSpawnPos);
@@ -3102,9 +3019,9 @@ ChunkPosition Game::initialiseNewPlanet(PlanetType planetType)
     // // Place rocket
     // if (placeRocket)
     // {
-    //     getChunkManager(planetType).setObject(playerSpawnChunk, sf::Vector2i(0, 0), ObjectDataLoader::getObjectTypeFromName("Rocket Launch Pad"), *this);
+    //     getChunkManager(planetType).setObject(playerSpawnChunk, pl::Vector2<int>(0, 0), ObjectDataLoader::getObjectTypeFromName("Rocket Launch Pad"), *this);
     //     rocketEnteredReference.chunk = playerSpawnChunk;
-    //     rocketEnteredReference.tile = sf::Vector2i(0, 0);
+    //     rocketEnteredReference.tile = pl::Vector2<int>(0, 0);
     // }
 }
 
@@ -3125,13 +3042,12 @@ void Game::updateStateTransition(float dt)
 
 void Game::drawStateTransition()
 {
-    sf::RectangleShape fadeRectangle(static_cast<sf::Vector2f>(window.getSize()));
-
-    // Calculate alpha
     float alpha = 1.0f - transitionGameStateTimer / TRANSITION_STATE_FADE_TIME;
-    fadeRectangle.setFillColor(sf::Color(0, 0, 0, 255 * alpha));
+    
+    pl::VertexArray fadeRect;
+    fadeRect.addQuad(pl::Rect<float>(0, 0, window.getWidth(), window.getHeight()), pl::Color(0, 0, 0, 255 * alpha), pl::Rect<float>());
 
-    window.draw(fadeRectangle);
+    window.draw(fadeRect, *Shaders::getShader(ShaderType::DefaultNoTexture), nullptr, pl::BlendMode::Alpha);
 }
 
 bool Game::isStateTransitioning()
@@ -3165,12 +3081,12 @@ void Game::changeState(GameState newState)
             
             if (gameState == GameState::OnPlanet)
             {
-                std::optional<sf::Vector2f> roomEntrancePos = getStructureRoomPool().getRoom(locationState.getInStructureID()).getEntrancePosition();
+                std::optional<pl::Vector2f> roomEntrancePos = getStructureRoomPool().getRoom(locationState.getInStructureID()).getEntrancePosition();
 
                 //assert(roomEntrancePos.has_value());
                 if (!roomEntrancePos.has_value())
                 {
-                    roomEntrancePos = sf::Vector2f(50, 50);
+                    roomEntrancePos = pl::Vector2f(50, 50);
                 }
 
                 player.setPosition(roomEntrancePos.value());
@@ -3215,7 +3131,7 @@ void Game::startNewGame(int seed)
 {
     networkHandler.reset(this);
 
-    player = Player(sf::Vector2f(0, 0));
+    player = Player(pl::Vector2f(0, 0));
     inventory = InventoryData(32);
     inventory.giveStartingItems();
     armourInventory = InventoryData(3);
@@ -3232,7 +3148,7 @@ void Game::startNewGame(int seed)
 
     ChunkPosition spawnChunk = initialiseNewPlanet(locationState.getPlanetType());
 
-    player.setPosition(sf::Vector2f(spawnChunk.x + 0.5f, spawnChunk.y + 0.5f) * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED);
+    player.setPosition(pl::Vector2f(spawnChunk.x + 0.5f, spawnChunk.y + 0.5f) * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED);
     
     dayCycleManager.setCurrentTime(dayCycleManager.getDayLength() * 0.5f);
     dayCycleManager.setCurrentDay(1);
@@ -3603,6 +3519,7 @@ void Game::saveOptions()
     optionsSave.musicVolume = Sounds::getMusicVolume();
     optionsSave.screenShakeEnabled = Camera::getScreenShakeEnabled();
     optionsSave.controllerGlyphType = InputManager::getGlyphType();
+    optionsSave.vSync = ResolutionHandler::getVSync();
 
     GameSaveIO optionsIO;
     optionsIO.writeOptionsSave(optionsSave);
@@ -3618,6 +3535,7 @@ void Game::loadOptions()
     Sounds::setMusicVolume(optionsSave.musicVolume);
     Camera::setScreenShakeEnabled(optionsSave.screenShakeEnabled);
     InputManager::setGlyphType(optionsSave.controllerGlyphType);
+    ResolutionHandler::setVSync(optionsSave.vSync);
 }
 
 void Game::quitWorld()
@@ -3810,31 +3728,27 @@ void Game::handleZoom(int zoomChange)
     lightingTick = LIGHTING_TICK;
 }
 
-void Game::handleEventsWindow(sf::Event& event)
+void Game::handleEventsWindow(const SDL_Event& event)
 {
-    if (event.type == sf::Event::Closed)
+    if (event.type == SDL_WINDOWEVENT)
     {
-        window.close();
-        ImGui::SFML::Shutdown();
-        return;
+        if (event.window.event == SDL_WINDOWEVENT_RESIZED)
+        {
+            handleWindowResize(pl::Vector2<uint32_t>(event.window.data1, event.window.data2));
+            return;
+        }
     }
 
-    if (event.type == sf::Event::Resized)
+    if (event.type == SDL_KEYDOWN)
     {
-        handleWindowResize(sf::Vector2u(event.size.width, event.size.height));
-        return;
-    }
-
-    if (event.type == sf::Event::KeyPressed)
-    {
-        if (event.key.code == sf::Keyboard::F11)
+        if (event.key.keysym.scancode == SDL_SCANCODE_F11)
         {
             toggleFullScreen();
             return;
         }
 
         #if (!RELEASE_BUILD)
-        if (event.key.code == sf::Keyboard::F1)
+        if (event.key.keysym.scancode == SDL_SCANCODE_F1)
         {
             DebugOptions::debugOptionsMenuOpen = !DebugOptions::debugOptionsMenuOpen;
             return;
@@ -3842,61 +3756,42 @@ void Game::handleEventsWindow(sf::Event& event)
         #endif
     }
 
-    // ImGui
-    ImGui::SFML::ProcessEvent(window, event);
-}
+    InputManager::processEvent(event);
 
-void Game::handleSDLEvents()
-{
-    SDL_Event event;
-    while (SDL_PollEvent(&event))
-    {
-        InputManager::processEvent(event);
-    }
+    #if (!RELEASE_BUILD)
+    ImGui_ImplSDL2_ProcessEvent(&event);
+    #endif
 }
 
 void Game::toggleFullScreen()
 {
-    fullScreen = !fullScreen;
-
-    sf::VideoMode videoMode = sf::VideoMode::getDesktopMode();
-
-    unsigned int windowStyle = sf::Style::Default;
-    if (fullScreen) windowStyle = sf::Style::None;
-
-    SDL_DestroyWindow(sdlWindow);
-    
-    window.create(videoMode, GAME_TITLE, windowStyle);
-
-    sdlWindow = SDL_CreateWindowFrom(reinterpret_cast<void*>(window.getSystemHandle()));
+    window.toggleFullscreen();
 
     // Set window stuff
-    window.setIcon(256, 256, icon.getPixelsPtr());
-    window.setFramerateLimit(165);
-    window.setVerticalSyncEnabled(true);
-    window.setMouseCursorVisible(false);
-    window.setJoystickSensorEventsEnabled(false);
+    window.setIcon(icon);
+    window.setVSync(true);
 
-    handleWindowResize(sf::Vector2u(videoMode.width, videoMode.height));
+    // Reinitialise ImGui
+    #if (!RELEASE_BUILD)
+    ImGui_ImplSDL2_Shutdown();
+    ImGui_ImplSDL2_InitForOpenGL(window.getSDLWindow(), window.getGLContext());
+    #endif
+
+    handleWindowResize(pl::Vector2<uint32_t>(window.getWidth(), window.getHeight()));
 }
 
-void Game::handleWindowResize(sf::Vector2u newSize)
+void Game::handleWindowResize(pl::Vector2<uint32_t> newSize)
 {
     unsigned int newWidth = newSize.x;
     unsigned int newHeight = newSize.y;
 
-    if (!fullScreen)
+    if (!window.getIsFullscreen())
     {
         newWidth = std::max(newSize.x, 1280U);
         newHeight = std::max(newSize.y, 720U);
     }
 
-    window.setSize(sf::Vector2u(newWidth, newHeight));
-
-    view.setSize(newWidth, newHeight);
-    view.setCenter({newWidth / 2.0f, newHeight / 2.0f});
-
-    // float beforeScale = ResolutionHandler::getScale();
+    window.setWindowSize(newWidth, newHeight);
 
     ResolutionHandler::setResolution({newWidth, newHeight});
 
@@ -4067,8 +3962,8 @@ void Game::generateWaterNoiseTexture()
     static constexpr int waterNoiseSize = 16 * 8;
 
     // Create arrays to store sampled noise data
-    std::vector<sf::Uint8> noiseData(waterNoiseSize * waterNoiseSize * 4);
-    std::vector<sf::Uint8> noiseTwoData(waterNoiseSize * waterNoiseSize * 4);
+    std::vector<uint8_t> noiseData(waterNoiseSize * waterNoiseSize * 4);
+    std::vector<uint8_t> noiseTwoData(waterNoiseSize * waterNoiseSize * 4);
 
     // Sample noise data
     for (int y = 0; y < waterNoiseSize; y++)
@@ -4086,26 +3981,20 @@ void Game::generateWaterNoiseTexture()
 
             noiseValue = waterNoiseTwo.GetNoiseSeamless2D(x, y, waterNoiseSize, waterNoiseSize);
             noiseValue = FastNoise::Normalise(noiseValue);
-            noiseTwoData[index + 0] = noiseValue * 255;
+            noiseTwoData[index] = noiseValue * 255;
             noiseTwoData[index + 1] = noiseValue * 255;
             noiseTwoData[index + 2] = noiseValue * 255;
             noiseTwoData[index + 3] = 255;
         }
     }
 
-    // Load sampled data into images, then load into textures to pass into shader
-    std::array<sf::Image, 2> waterNoiseImages;
-
-    waterNoiseImages[0].create(waterNoiseSize, waterNoiseSize, noiseData.data());
-    waterNoiseImages[1].create(waterNoiseSize, waterNoiseSize, noiseTwoData.data());
-    
-    waterNoiseTextures[0].loadFromImage(waterNoiseImages[0]);
-    waterNoiseTextures[1].loadFromImage(waterNoiseImages[1]);
+    waterNoiseTextures[0].loadTexture(noiseData.data(), waterNoiseSize, waterNoiseSize);
+    waterNoiseTextures[1].loadTexture(noiseTwoData.data(), waterNoiseSize, waterNoiseSize);
 
     // Pass noise textures into water shader
-    sf::Shader* waterShader = Shaders::getShader(ShaderType::Water);
-    waterShader->setUniform("noise", waterNoiseTextures[0]);
-    waterShader->setUniform("noiseTwo", waterNoiseTextures[1]);
+    pl::Shader* waterShader = Shaders::getShader(ShaderType::Water);
+    waterShader->setUniformTexture("noise", waterNoiseTextures[0]);
+    waterShader->setUniformTexture("noiseTwo", waterNoiseTextures[1]);
 }
 
 void Game::updateMusic(float dt)
@@ -4133,8 +4022,8 @@ void Game::updateMusic(float dt)
 
 void Game::drawMouseCursor()
 {
-    sf::IntRect textureRect(80, 32, 8, 8);
-    sf::Vector2f textureCentreRatio;
+    pl::Rect<int> textureRect(80, 32, 8, 8);
+    pl::Vector2f textureCentreRatio;
 
     bool shiftMode = InputManager::isActionActive(InputAction::UI_SHIFT);
 
@@ -4151,23 +4040,23 @@ void Game::drawMouseCursor()
         {
             if (canQuickTransfer)
             {
-                textureRect = sf::IntRect(96, 48, 15, 15);
-                textureCentreRatio = sf::Vector2f(1.0f / 3.0f, 1.0f / 3.0f);
+                textureRect = pl::Rect<int>(96, 48, 15, 15);
+                textureCentreRatio = pl::Vector2f(1.0f / 3.0f, 1.0f / 3.0f);
             }
             else if (InputManager::isActionActive(InputAction::USE_TOOL))
             {
-                textureRect = sf::IntRect(80, 64, 8, 8);
-                textureCentreRatio = sf::Vector2f(0.5f, 0.5f);
+                textureRect = pl::Rect<int>(80, 64, 8, 8);
+                textureCentreRatio = pl::Vector2f(0.5f, 0.5f);
             }
             else if (InputManager::isActionActive(InputAction::INTERACT))
             {
-                textureRect = sf::IntRect(96, 64, 10, 10);
-                textureCentreRatio = sf::Vector2f(0.5f, 0.5f);
+                textureRect = pl::Rect<int>(96, 64, 10, 10);
+                textureCentreRatio = pl::Vector2f(0.5f, 0.5f);
             }
             else
             {
-                textureRect = sf::IntRect(80, 48, 10, 10);
-                textureCentreRatio = sf::Vector2f(0.5f, 0.5f);
+                textureRect = pl::Rect<int>(80, 48, 10, 10);
+                textureCentreRatio = pl::Vector2f(0.5f, 0.5f);
             }
         }
         else
@@ -4177,19 +4066,27 @@ void Game::drawMouseCursor()
     }
     else
     {
-        mouseScreenPos.x = std::max(std::min(mouseScreenPos.x, static_cast<float>(window.getSize().x)), 0.0f);
-        mouseScreenPos.y = std::max(std::min(mouseScreenPos.y, static_cast<float>(window.getSize().y)), 0.0f);
+        mouseScreenPos.x = std::max(std::min(mouseScreenPos.x, static_cast<float>(window.getWidth())), 0.0f);
+        mouseScreenPos.y = std::max(std::min(mouseScreenPos.y, static_cast<float>(window.getHeight())), 0.0f);
 
         // Switch mouse cursor mode
         if (canQuickTransfer)
         {
-            textureRect = sf::IntRect(96, 32, 12, 12);
+            textureRect = pl::Rect<int>(96, 32, 12, 12);
         }
     }
 
     float intScale = ResolutionHandler::getResolutionIntegerScale();
 
-    TextureManager::drawSubTexture(window, {TextureType::UI, mouseScreenPos, 0, {3 * intScale, 3 * intScale}, textureCentreRatio}, textureRect);
+    pl::DrawData cursorDrawData;
+    cursorDrawData.texture = TextureManager::getTexture(TextureType::UI);
+    cursorDrawData.shader = Shaders::getShader(ShaderType::Default);
+    cursorDrawData.position = mouseScreenPos;
+    cursorDrawData.scale = pl::Vector2f(3, 3) * intScale;
+    cursorDrawData.centerRatio = textureCentreRatio;
+    cursorDrawData.textureRect = textureRect;
+    
+    TextureManager::drawSubTexture(window, cursorDrawData);
 }
 
 void Game::drawControllerGlyphs(const std::vector<std::pair<InputAction, std::string>>& actionStrings)
@@ -4209,7 +4106,7 @@ void Game::drawControllerGlyphs(const std::vector<std::pair<InputAction, std::st
         {ControllerGlyph::START, 11 * 16}
     };
 
-    sf::Vector2f resolution = static_cast<sf::Vector2f>(ResolutionHandler::getResolution());
+    pl::Vector2f resolution = static_cast<pl::Vector2f>(ResolutionHandler::getResolution());
     float intScale = ResolutionHandler::getResolutionIntegerScale();
 
     static constexpr int GLYPH_SPACING = 50;
@@ -4217,35 +4114,37 @@ void Game::drawControllerGlyphs(const std::vector<std::pair<InputAction, std::st
 
     for (int i = 0; i < actionStrings.size(); i++)
     {
-        auto actionString = actionStrings[i];
+        const auto& actionString = actionStrings[i];
 
         std::optional<ControllerGlyph> glyph = InputManager::getBoundActionControllerGlyph(actionString.first);
 
         // Set to no bind glyph by default
-        sf::IntRect glyphTextureRect(192, 192, 16, 16);
+        pl::Rect<int> glyphTextureRect(192, 192, 16, 16);
 
         if (glyph.has_value())
         {
-            glyphTextureRect.left = buttonGlyphXOffset.at(glyph.value());
-            glyphTextureRect.top = 192 + InputManager::getGlyphType() * 16;
+            glyphTextureRect.x = buttonGlyphXOffset.at(glyph.value());
+            glyphTextureRect.y = 192 + InputManager::getGlyphType() * 16;
         }
 
         // Draw button glyph
-        TextureDrawData glyphDrawData;
-        glyphDrawData.type = TextureType::UI;
-        glyphDrawData.position = sf::Vector2f(resolution.x - GLYPH_X_PADDING / 2.0f * intScale, resolution.y - (i + 1) * GLYPH_SPACING * intScale);
-        glyphDrawData.centerRatio = sf::Vector2f(0.5f, 0.5f);
-        glyphDrawData.scale = sf::Vector2f(3, 3) * intScale;
+        pl::DrawData glyphDrawData;
+        glyphDrawData.texture = TextureManager::getTexture(TextureType::UI);
+        glyphDrawData.shader = Shaders::getShader(ShaderType::Default);
+        glyphDrawData.position = pl::Vector2f(resolution.x - GLYPH_X_PADDING / 2.0f * intScale, resolution.y - (i + 1) * GLYPH_SPACING * intScale);
+        glyphDrawData.centerRatio = pl::Vector2f(0.5f, 0.5f);
+        glyphDrawData.scale = pl::Vector2f(3, 3) * intScale;
+        glyphDrawData.textureRect = glyphTextureRect;
 
-        spriteBatch.draw(window, glyphDrawData, glyphTextureRect);
+        spriteBatch.draw(window, glyphDrawData);
 
         // Draw action text
-        TextDrawData textDrawData;
+        pl::TextDrawData textDrawData;
         textDrawData.text = actionString.second;
-        textDrawData.position = sf::Vector2f(resolution.x, resolution.y - (i + 1) * GLYPH_SPACING * intScale);
+        textDrawData.position = pl::Vector2f(resolution.x, resolution.y - (i + 1) * GLYPH_SPACING * intScale);
         textDrawData.size = 24 * intScale;
-        textDrawData.colour = sf::Color(255, 255, 255);
-        textDrawData.outlineColour = sf::Color(46, 34, 47);
+        textDrawData.color = pl::Color(255, 255, 255);
+        textDrawData.outlineColor = pl::Color(46, 34, 47);
         textDrawData.outlineThickness = 2 * intScale;
         textDrawData.containOnScreenX = true;
         textDrawData.containPaddingRight = GLYPH_X_PADDING * intScale;
@@ -4260,6 +4159,10 @@ void Game::drawDebugMenu(float dt)
 {
     if (!DebugOptions::debugOptionsMenuOpen)
         return;
+    
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplSDL2_NewFrame();
+    ImGui::NewFrame();
 
     ImGui::Begin("Debug Options", &DebugOptions::debugOptionsMenuOpen);
 
@@ -4369,6 +4272,9 @@ void Game::drawDebugMenu(float dt)
     ImGui::Text(("Weather value: " + std::to_string(weatherSystem.sampleWeatherFunction(gameTime))).c_str());
     ImGui::Text(("Weather transition: " + std::to_string(weatherSystem.getDestinationTransitionProgress())).c_str());
 
-    ImGui::End();   
+    ImGui::End();
+
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 #endif

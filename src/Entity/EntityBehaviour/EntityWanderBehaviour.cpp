@@ -5,7 +5,7 @@
 EntityWanderBehaviour::EntityWanderBehaviour(Entity& entity)
 {
     float velocityAngle = rand() % 360;
-    sf::Vector2f velocity;
+    pl::Vector2f velocity;
     velocity.x = std::cos(velocityAngle * 2 * 3.14 / 180) * 23.0f;
     velocity.y = std::sin(velocityAngle * 2 * 3.14 / 180) * 23.0f;
 
@@ -17,7 +17,7 @@ EntityWanderBehaviour::EntityWanderBehaviour(Entity& entity)
 void EntityWanderBehaviour::update(Entity& entity, ChunkManager& chunkManager, Game& game, float dt)
 {
     CollisionRect collisionRect = entity.getCollisionRect();
-    sf::Vector2f velocity = entity.getVelocity();
+    pl::Vector2f velocity = entity.getVelocity();
 
     // Test collision after x movement
     collisionRect.x += velocity.x * velocityMult * dt;
@@ -36,13 +36,13 @@ void EntityWanderBehaviour::update(Entity& entity, ChunkManager& chunkManager, G
     entity.setAnimationSpeed(1.0f + (velocityMult - 1.0f) * 0.4f);
 }
 
-void EntityWanderBehaviour::onHit(Entity& entity, Game& game, sf::Vector2f hitSource)
+void EntityWanderBehaviour::onHit(Entity& entity, Game& game, pl::Vector2f hitSource)
 {
-    sf::Vector2f relativePos = hitSource - entity.getPosition();
+    pl::Vector2f relativePos = hitSource - entity.getPosition();
 
-    sf::Vector2f oldVelocity = entity.getVelocity();
+    pl::Vector2f oldVelocity = entity.getVelocity();
 
-    sf::Vector2f velocity = -Helper::normaliseVector(relativePos) * Helper::getVectorLength(oldVelocity);
+    pl::Vector2f velocity = -Helper::normaliseVector(relativePos) * Helper::getVectorLength(oldVelocity);
 
     velocityMult = 2.2f;
     

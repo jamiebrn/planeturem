@@ -1,8 +1,14 @@
 #pragma once
 
-#include <SFML/Graphics.hpp>
+
 #include <cmath>
 #include <vector>
+
+#include <Graphics/SpriteBatch.hpp>
+#include <Graphics/Color.hpp>
+#include <Graphics/RenderTarget.hpp>
+#include <Vector.hpp>
+#include <Rect.hpp>
 
 #include <extlib/cereal/archives/binary.hpp>
 
@@ -10,8 +16,9 @@
 #include "Core/CollisionRect.hpp"
 #include "Core/CollisionCircle.hpp"
 #include "Core/TextureManager.hpp"
+#include "Core/Shaders.hpp"
 #include "Core/TextDraw.hpp"
-#include "Core/SpriteBatch.hpp"
+// #include "Core/SpriteBatch.hpp"
 
 #include "Data/typedefs.hpp"
 #include "Data/ItemData.hpp"
@@ -33,13 +40,13 @@ class ItemPickup : public WorldObject
 {
 public:
     ItemPickup() = default;
-    ItemPickup(sf::Vector2f position, ItemType itemType, float gameTime) : WorldObject(position), itemType(itemType), spawnGameTime(gameTime) {}
+    ItemPickup(pl::Vector2f position, ItemType itemType, float gameTime) : WorldObject(position), itemType(itemType), spawnGameTime(gameTime) {}
     void resetSpawnTime(float gameTime);
 
     bool isBeingPickedUp(const CollisionRect& playerCollision, float gameTime) const;
 
-    void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
-        const sf::Color& color) const override;
+    void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
+        const pl::Color& color) const override;
     
     inline ItemType getItemType() const {return itemType;}
 

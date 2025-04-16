@@ -6,8 +6,6 @@
 #include <extlib/cereal/types/unordered_map.hpp>
 #include <extlib/cereal/archives/binary.hpp>
 
-#include <SFML/System/Vector2.hpp>
-
 #include "Network/IPacketData.hpp"
 
 #include "Player/PlayerData.hpp"
@@ -20,12 +18,8 @@ struct PacketDataJoinInfo : public IPacketData
     float gameTime;
     float time;
     int day;
-    // std::string planetName;
-    // sf::Vector2f spawnPosition;
 
     PlayerData playerData;
-
-    // ChestDataPool chestDataPool;
 
     std::unordered_map<uint64_t, PlayerData> currentPlayerDatas;
 

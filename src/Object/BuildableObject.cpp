@@ -2,7 +2,7 @@
 #include "World/ChunkManager.hpp"
 #include "Game.hpp"
 
-BuildableObject::BuildableObject(sf::Vector2f position, ObjectType objectType, bool randomiseAnimation)
+BuildableObject::BuildableObject(pl::Vector2f position, ObjectType objectType, bool randomiseAnimation)
     : WorldObject(position)
 {
     this->objectType = objectType;
@@ -61,8 +61,8 @@ void BuildableObject::update(Game& game, float dt, bool onWater, bool loopAnimat
     this->onWater = onWater;
 }
 
-void BuildableObject::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
-    const sf::Color& color) const
+void BuildableObject::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
+    const pl::Color& color) const
 {
     if (objectType < 0)
         return;
@@ -70,15 +70,15 @@ void BuildableObject::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, G
     drawObject(window, spriteBatch, camera, gameTime, worldSize, color);
 }
 
-void BuildableObject::drawObject(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Camera& camera, float gameTime, int worldSize, const sf::Color& color,
-    std::optional<std::vector<sf::IntRect>> textureRectsOverride, std::optional<sf::Vector2f> textureOriginOverride, const sf::Texture* textureOverride) const
+void BuildableObject::drawObject(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera, float gameTime, int worldSize, const pl::Color& color,
+    std::optional<std::vector<pl::Rect<int>>> textureRectsOverride, std::optional<pl::Vector2f> textureOriginOverride, const pl::Texture* textureOverride) const
 {
     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
 
     float scaleMult = 0.4f * std::sin(3.14 / 2.0f * std::max(1.0f - flash_amount, 0.5f)) + 0.6f;
-    sf::Vector2f scale = sf::Vector2f((float)ResolutionHandler::getScale(), (float)ResolutionHandler::getScale() * scaleMult);
+    pl::Vector2f scale = pl::Vector2f((float)ResolutionHandler::getScale(), (float)ResolutionHandler::getScale() * scaleMult);
 
-    const sf::IntRect* textureRect = nullptr;
+    const pl::Rect<int>* textureRect = nullptr;
     if (textureRectsOverride.has_value())
     {
         textureRect = &textureRectsOverride->at(animatedTexture.getFrame());
@@ -95,50 +95,59 @@ void BuildableObject::drawObject(sf::RenderTarget& window, SpriteBatch& spriteBa
 
     float waterYOffset = getWaterBobYOffset(worldSize, gameTime);
 
-    TextureDrawData drawData = {
-        TextureType::Objects, camera.worldToScreenTransform(position + sf::Vector2f(0, waterYOffset)), 0, scale, objectData.textureOrigin, color
-        };
+    pl::DrawData drawData;
+    drawData.texture = TextureManager::getTexture(TextureType::Objects);
+    drawData.shader = Shaders::getShader(ShaderType::Default);
+    drawData.position = camera.worldToScreenTransform(position + pl::Vector2f(0, waterYOffset));
+    drawData.scale = scale;
+    drawData.centerRatio = objectData.textureOrigin;
+    drawData.color = color;
+    drawData.textureRect = *textureRect;
     
     if (textureOriginOverride.has_value())
     {
         drawData.centerRatio = textureOriginOverride.value();
     }
-    
-    std::optional<ShaderType> shaderType;
-
-    if (flash_amount > 0)
-    {
-        shaderType = ShaderType::Flash;
-        sf::Shader* shader = Shaders::getShader(shaderType.value());
-        shader->setUniform("flash_amount", flash_amount);
-    }
 
     if (textureOverride)
     {
-        spriteBatch.endDrawing(window);
-
-        sf::Sprite textureSprite;
-        textureSprite.setTexture(*textureOverride);
-        textureSprite.setPosition(drawData.position);
-        textureSprite.setScale(drawData.scale);
-        textureSprite.setOrigin(sf::Vector2f(textureOverride->getSize().x * drawData.centerRatio.x, textureOverride->getSize().y * drawData.centerRatio.y));
-        textureSprite.setColor(drawData.colour);
-
-        sf::Shader* shader = nullptr;
-        if (shaderType.has_value())
-        {
-            shader = Shaders::getShader(shaderType.value());
-        }
-
-        window.draw(textureSprite, shader);
+        drawData.texture = textureOverride;
     }
-    else
+
+    if (flash_amount > 0)
     {
-        spriteBatch.draw(window, drawData, *textureRect, shaderType);
+        drawData.shader = Shaders::getShader(ShaderType::Flash);
+        drawData.shader->setUniform1f("flash_amount", flash_amount);
     }
+
+    spriteBatch.draw(window, drawData);
+
+    // if (textureOverride)
+    // {
+    //     // sf::Sprite textureSprite;
+    //     // textureSprite.setTexture(*textureOverride);
+    //     // textureSprite.setPosition(drawData.position);
+    //     // textureSprite.setScale(drawData.scale);
+    //     // textureSprite.setOrigin(pl::Vector2f(textureOverride->getSize().x * drawData.centerRatio.x, textureOverride->getSize().y * drawData.centerRatio.y));
+    //     // textureSprite.setColor(drawData.colour);
+
+    //     // sf::Shader* shader = nullptr;
+    //     // if (shaderType.has_value())
+    //     // {
+    //     //     shader = Shaders::getShader(shaderType.value());
+    //     // }
+
+    //     // window.draw(textureSprite, shader);
+
+
+    // }
+    // else
+    // {
+    //     // spriteBatch.draw(window, drawData, *textureRect, shaderType);
+    // }
 }
 
-void BuildableObject::createLightSource(LightingEngine& lightingEngine, sf::Vector2f topLeftChunkPos) const
+void BuildableObject::createLightSource(LightingEngine& lightingEngine, pl::Vector2f topLeftChunkPos) const
 {
     if (objectType < 0)
     {
@@ -167,7 +176,7 @@ void BuildableObject::createLightSource(LightingEngine& lightingEngine, sf::Vect
     }
 
     // Create light emitter / absorber
-    sf::Vector2f topLeftRelativePos = position - topLeftChunkPos;
+    pl::Vector2f topLeftRelativePos = position - topLeftChunkPos;
     
     int lightingTileX = std::floor(topLeftRelativePos.x / TILE_SIZE_PIXELS_UNSCALED) * TILE_LIGHTING_RESOLUTION;
     int lightingTileY = std::floor(topLeftRelativePos.y / TILE_SIZE_PIXELS_UNSCALED) * TILE_LIGHTING_RESOLUTION;
@@ -182,20 +191,20 @@ void BuildableObject::createLightSource(LightingEngine& lightingEngine, sf::Vect
     }
 
     // // Calculate light position based on object size
-    // sf::Vector2f lightPos = position;
+    // pl::Vector2f lightPos = position;
     // if (objectData.size != sf::Vector2i(1, 1))
     // {
-    //     sf::Vector2f topLeftPos = position - sf::Vector2f(0.5f, 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
-    //     lightPos = topLeftPos + TILE_SIZE_PIXELS_UNSCALED * static_cast<sf::Vector2f>(objectData.size) / 2.0f;
+    //     pl::Vector2f topLeftPos = position - pl::Vector2f(0.5f, 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
+    //     lightPos = topLeftPos + TILE_SIZE_PIXELS_UNSCALED * static_cast<pl::Vector2f>(objectData.size) / 2.0f;
     // }
 
     // // Draw light
-    // static const sf::Color lightColor(255, 220, 140);
+    // static const pl::Color lightColor(255, 220, 140);
     // float lightScale = 0.3f * objectData.lightEmission;
 
-    // sf::Vector2f scale((float)ResolutionHandler::getScale() * lightScale, (float)ResolutionHandler::getScale() * lightScale);
+    // pl::Vector2f scale((float)ResolutionHandler::getScale() * lightScale, (float)ResolutionHandler::getScale() * lightScale);
 
-    // sf::IntRect lightMaskRect(0, 0, 256, 256);
+    // pl::Rect<int> lightMaskRect(0, 0, 256, 256);
 
     // TextureManager::drawSubTexture(lightTexture, {
     //     TextureType::LightMask, Camera::worldToScreenTransform(lightPos), 0, scale, {0.5, 0.5}, lightColor
@@ -251,12 +260,12 @@ void BuildableObject::createHitParticles(ParticleSystem& particleSystem)
     }
 
     ParticleStyle style;
-    style.textureRects = {sf::IntRect(0, 384, 16, 16), sf::IntRect(16, 384, 16, 16), sf::IntRect(32, 384, 16, 16), sf::IntRect(48, 384, 16, 16)};
+    style.textureRects = {pl::Rect<int>(0, 384, 16, 16), pl::Rect<int>(16, 384, 16, 16), pl::Rect<int>(32, 384, 16, 16), pl::Rect<int>(48, 384, 16, 16)};
     style.timePerFrame = 0.08f;
 
     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
 
-    // sf::Vector2f objectCentre = position + sf::Vector2f(objectData.size.x / 2.0f - 0.5f, objectData.size.y / 2.0f - 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
+    // pl::Vector2f objectCentre = position + pl::Vector2f(objectData.size.x / 2.0f - 0.5f, objectData.size.y / 2.0f - 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
 
     static const float PARTICLE_SPEED = 60.0f;
 
@@ -266,10 +275,10 @@ void BuildableObject::createHitParticles(ParticleSystem& particleSystem)
         static constexpr float upRotation = 0.75f * 2 * M_PI;
         static constexpr float downRotation = 0.25f * 2 * M_PI;
 
-        particleSystem.addParticle(Particle(position + sf::Vector2f(x, 0) * TILE_SIZE_PIXELS_UNSCALED,
-            sf::Vector2f(std::cos(upRotation), std::sin(upRotation)) * PARTICLE_SPEED, sf::Vector2f(0, 0), style));
-        particleSystem.addParticle(Particle(position + sf::Vector2f(x, objectData.size.y - 1) * TILE_SIZE_PIXELS_UNSCALED,
-            sf::Vector2f(std::cos(downRotation), std::sin(downRotation)) * PARTICLE_SPEED, sf::Vector2f(0, 0), style));
+        particleSystem.addParticle(Particle(position + pl::Vector2f(x, 0) * TILE_SIZE_PIXELS_UNSCALED,
+            pl::Vector2f(std::cos(upRotation), std::sin(upRotation)) * PARTICLE_SPEED, pl::Vector2f(0, 0), style));
+        particleSystem.addParticle(Particle(position + pl::Vector2f(x, objectData.size.y - 1) * TILE_SIZE_PIXELS_UNSCALED,
+            pl::Vector2f(std::cos(downRotation), std::sin(downRotation)) * PARTICLE_SPEED, pl::Vector2f(0, 0), style));
     }
 
     for (int y = 0; y < objectData.size.y; y++)
@@ -277,34 +286,34 @@ void BuildableObject::createHitParticles(ParticleSystem& particleSystem)
         static constexpr float leftRotation = 0.5f * 2 * M_PI;
         static constexpr float rightRotation = 1.0f * 2 * M_PI;
 
-        particleSystem.addParticle(Particle(position + sf::Vector2f(0, y) * TILE_SIZE_PIXELS_UNSCALED,
-            sf::Vector2f(std::cos(leftRotation), std::sin(leftRotation)) * PARTICLE_SPEED, sf::Vector2f(0, 0), style));
-        particleSystem.addParticle(Particle(position + sf::Vector2f(objectData.size.x - 1, y) * TILE_SIZE_PIXELS_UNSCALED,
-            sf::Vector2f(std::cos(rightRotation), std::sin(rightRotation)) * PARTICLE_SPEED, sf::Vector2f(0, 0), style));
+        particleSystem.addParticle(Particle(position + pl::Vector2f(0, y) * TILE_SIZE_PIXELS_UNSCALED,
+            pl::Vector2f(std::cos(leftRotation), std::sin(leftRotation)) * PARTICLE_SPEED, pl::Vector2f(0, 0), style));
+        particleSystem.addParticle(Particle(position + pl::Vector2f(objectData.size.x - 1, y) * TILE_SIZE_PIXELS_UNSCALED,
+            pl::Vector2f(std::cos(rightRotation), std::sin(rightRotation)) * PARTICLE_SPEED, pl::Vector2f(0, 0), style));
     }
 
     // Create particles on corners
-    particleSystem.addParticle(Particle(position, sf::Vector2f(std::cos(5 / 8.0f * 2 * M_PI), std::sin(5 / 8.0f * 2 * M_PI)) * PARTICLE_SPEED, sf::Vector2f(0, 0), style));
-    particleSystem.addParticle(Particle(position + sf::Vector2f(objectData.size.x - 1, 0) * TILE_SIZE_PIXELS_UNSCALED,
-        sf::Vector2f(std::cos(7 / 8.0f * 2 * M_PI), std::sin(7 / 8.0f * 2 * M_PI)) * PARTICLE_SPEED, sf::Vector2f(0, 0), style));
-    particleSystem.addParticle(Particle(position + sf::Vector2f(objectData.size.x - 1, objectData.size.y - 1) * TILE_SIZE_PIXELS_UNSCALED,
-        sf::Vector2f(std::cos(1 / 8.0f * 2 * M_PI), std::sin(1 / 8.0f * 2 * M_PI)) * PARTICLE_SPEED, sf::Vector2f(0, 0), style));
-    particleSystem.addParticle(Particle(position + sf::Vector2f(0, objectData.size.y - 1) * TILE_SIZE_PIXELS_UNSCALED,
-        sf::Vector2f(std::cos(3 / 8.0f * 2 * M_PI), std::sin(3 / 8.0f * 2 * M_PI)) * PARTICLE_SPEED, sf::Vector2f(0, 0), style));
+    particleSystem.addParticle(Particle(position, pl::Vector2f(std::cos(5 / 8.0f * 2 * M_PI), std::sin(5 / 8.0f * 2 * M_PI)) * PARTICLE_SPEED, pl::Vector2f(0, 0), style));
+    particleSystem.addParticle(Particle(position + pl::Vector2f(objectData.size.x - 1, 0) * TILE_SIZE_PIXELS_UNSCALED,
+        pl::Vector2f(std::cos(7 / 8.0f * 2 * M_PI), std::sin(7 / 8.0f * 2 * M_PI)) * PARTICLE_SPEED, pl::Vector2f(0, 0), style));
+    particleSystem.addParticle(Particle(position + pl::Vector2f(objectData.size.x - 1, objectData.size.y - 1) * TILE_SIZE_PIXELS_UNSCALED,
+        pl::Vector2f(std::cos(1 / 8.0f * 2 * M_PI), std::sin(1 / 8.0f * 2 * M_PI)) * PARTICLE_SPEED, pl::Vector2f(0, 0), style));
+    particleSystem.addParticle(Particle(position + pl::Vector2f(0, objectData.size.y - 1) * TILE_SIZE_PIXELS_UNSCALED,
+        pl::Vector2f(std::cos(3 / 8.0f * 2 * M_PI), std::sin(3 / 8.0f * 2 * M_PI)) * PARTICLE_SPEED, pl::Vector2f(0, 0), style));
 }
 
 void BuildableObject::createHitMarker(int amount)
 {
     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
 
-    sf::Vector2f spawnPos = position - sf::Vector2f(0.5f, 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
+    pl::Vector2f spawnPos = position - pl::Vector2f(0.5f, 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
     spawnPos.x += Helper::randFloat(0.0f, objectData.size.x * TILE_SIZE_PIXELS_UNSCALED);
     spawnPos.y += Helper::randFloat(0.0f, objectData.size.y * TILE_SIZE_PIXELS_UNSCALED);
 
-    sf::Color hitColour = sf::Color(247, 150, 23);
+    pl::Color hitColour = pl::Color(247, 150, 23);
     if (amount <= 0)
     {
-        hitColour = sf::Color(208, 15, 30);
+        hitColour = pl::Color(208, 15, 30);
     }
 
     HitMarkers::addHitMarker(spawnPos, amount, hitColour);
@@ -328,7 +337,7 @@ void BuildableObject::createItemPickups(ChunkManager& chunkManager, Game& game, 
 
             for (int i = 0; i < itemAmount; i++)
             {
-                sf::Vector2f spawnPos = position - sf::Vector2f(0.5f, 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
+                pl::Vector2f spawnPos = position - pl::Vector2f(0.5f, 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
                 spawnPos.x += Helper::randFloat(0.0f, objectData.size.x * TILE_SIZE_PIXELS_UNSCALED);
                 spawnPos.y += Helper::randFloat(0.0f, objectData.size.y * TILE_SIZE_PIXELS_UNSCALED);
 
@@ -364,7 +373,7 @@ void BuildableObject::triggerBehaviour(Game& game, ObjectBehaviourTrigger trigge
     // No behaviour trigger for regular object
 }
 
-void BuildableObject::setWorldPosition(sf::Vector2f position)
+void BuildableObject::setWorldPosition(pl::Vector2f position)
 {
     this->position = position;
 }

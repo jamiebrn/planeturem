@@ -1,9 +1,11 @@
 #pragma once
 
-#include <SFML/Graphics.hpp>
 #include <unordered_map>
 #include <string>
 #include <vector>
+
+#include <Vector.hpp>
+#include <Rect.hpp>
 
 enum ToolBehaviourType
 {
@@ -24,9 +26,9 @@ struct ProjectileData
 {
     std::string name;
 
-    sf::IntRect textureRect;
+    pl::Rect<int> textureRect;
 
-    sf::Vector2f origin;
+    pl::Vector2f origin;
 
     int damageLow = 0;
     int damageHigh = 0;
@@ -34,7 +36,7 @@ struct ProjectileData
     float speed = 0.0f;
 
     float collisionRadius = 1.0f;
-    sf::Vector2f collisionOffset;
+    pl::Vector2f collisionOffset;
 
     // Double link with item data, as projectiles are required to be dynamically taken from inventory
     // based on projectile type, not item type
@@ -47,21 +49,21 @@ struct ToolData
 
     ToolBehaviourType toolBehaviourType;
 
-    std::vector<sf::IntRect> textureRects;
-    sf::Vector2f pivot;
-    sf::Vector2i holdOffset;
+    std::vector<pl::Rect<int>> textureRects;
+    pl::Vector2f pivot;
+    pl::Vector2<int> holdOffset;
 
     int damage = 0;
     
     // Relative to pivot, pixel offset (can be float) to line origin
-    sf::Vector2f fishingRodLineOffset;
+    pl::Vector2f fishingRodLineOffset;
     float fishingEfficiency = 0.0f;
 
     // Bow weapon stuff
     std::vector<ProjectileType> projectileShootTypes;
     float shootPower = 1.0f;
     float projectileDamageMult = 1.0f;
-    sf::Vector2i shootOffset;
+    pl::Vector2<int> shootOffset;
 
     // Melee weapon stuff
     

@@ -3,8 +3,8 @@
 #include <unordered_set>
 #include <vector>
 
-#include <SFML/System/Vector2.hpp>
-#include <SFML/Graphics/Color.hpp>
+#include <Graphics/Color.hpp>
+#include <Vector.hpp>
 
 #include "GameConstants.hpp"
 #include "Object/ObjectReference.hpp"
@@ -16,8 +16,8 @@ class ChunkManager;
 
 struct LandmarkSummaryData
 {
-    sf::Vector2f worldPos;
-    sf::Color colourA, colourB;
+    pl::Vector2f worldPos;
+    pl::Color colorA, colorB;
 };
 
 class LandmarkManager

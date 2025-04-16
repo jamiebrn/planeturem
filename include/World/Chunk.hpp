@@ -1,6 +1,5 @@
 #pragma once
 
-#include <SFML/Graphics.hpp>
 #include <World/FastNoise.h>
 #include <array>
 #include <vector>
@@ -12,11 +11,17 @@
 #include <iostream>
 #include <type_traits>
 
+#include <Graphics/SpriteBatch.hpp>
+#include <Graphics/Color.hpp>
+#include <Graphics/RenderTarget.hpp>
+#include <Vector.hpp>
+#include <Rect.hpp>
+
 #include "Core/TextureManager.hpp"
+#include "Core/Shaders.hpp"
 #include "Core/Camera.hpp"
 #include "Core/ResolutionHandler.hpp"
 #include "Core/CollisionRect.hpp"
-#include "Core/SpriteBatch.hpp"
 #include "Core/Helper.hpp"
 #include "Core/Random.hpp"
 
@@ -96,25 +101,25 @@ public:
 
     // ALWAYS CALL THROUGH CHUNK MANAGER WHEN PLACING SINGLE TILE
     // to ensure adjacent chunk tilemaps are updated accordingly
-    void setTile(int tileMap, sf::Vector2i position,
+    void setTile(int tileMap, pl::Vector2<int> position,
         TileMap* upTiles = nullptr, TileMap* downTiles = nullptr, TileMap* leftTiles = nullptr, TileMap* rightTiles = nullptr,
         bool graphicsUpdate = true);
-    void setTile(int tileMap, sf::Vector2i position, Chunk* upChunk, Chunk* downChunk, Chunk* leftChunk, Chunk* rightChunk, bool graphicsUpdate = true);
+    void setTile(int tileMap, pl::Vector2<int> position, Chunk* upChunk, Chunk* downChunk, Chunk* leftChunk, Chunk* rightChunk, bool graphicsUpdate = true);
 
     // Update / refresh tilemap due to changes in another chunk
     // Pass in chunk position difference relative to modified chunk to update correct edge of tile map
     void updateTileMap(int tileMap, int xRel, int yRel, TileMap* upTiles, TileMap* downTiles, TileMap* leftTiles, TileMap* rightTiles);
 
     // Get (terrain) tile at position in chunk
-    int getTileType(sf::Vector2i position) const;
+    int getTileType(pl::Vector2<int> position) const;
 
     TileMap* getTileMap(int tileMap);
 
 
     // Drawing
-    void drawChunkTerrain(sf::RenderTarget& window, const Camera& camera, float time);
-    void drawChunkTerrainVisual(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Camera& camera, PlanetType planetType, float time);
-    void drawChunkWater(sf::RenderTarget& window, const Camera& camera, ChunkManager& chunkManager);
+    void drawChunkTerrain(pl::RenderTarget& window, const Camera& camera, float time);
+    void drawChunkTerrainVisual(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera, PlanetType planetType, float time);
+    void drawChunkWater(pl::RenderTarget& window, const Camera& camera, ChunkManager& chunkManager);
 
     // Get vector of chunk object/entities for drawing
     std::vector<WorldObject*> getObjects();
@@ -127,23 +132,23 @@ public:
     
     // Get object (optional) at position
     template <class T = BuildableObject>
-    T* getObject(sf::Vector2i position);
+    T* getObject(pl::Vector2<int> position);
 
     // Sets object (and object references if size > (1, 1), across chunks)
-    void setObject(sf::Vector2i position, ObjectType objectType, Game& game, ChunkManager& chunkManager, PathfindingEngine* pathfindingEngine,
+    void setObject(pl::Vector2<int> position, ObjectType objectType, Game& game, ChunkManager& chunkManager, PathfindingEngine* pathfindingEngine,
         bool recalculateCollision = true, bool calledWhileGenerating = false);
 
     // Deletes object (including object references if size > (1, 1), across chunks)
-    void deleteObject(sf::Vector2i position, ChunkManager& chunkManager, PathfindingEngine& pathfindingEngine);
+    void deleteObject(pl::Vector2<int> position, ChunkManager& chunkManager, PathfindingEngine& pathfindingEngine);
 
     // Delete single object (not reference)
-    void deleteSingleObject(sf::Vector2i position, ChunkManager& chunkManager, PathfindingEngine& pathfindingEngine);
+    void deleteSingleObject(pl::Vector2<int> position, ChunkManager& chunkManager, PathfindingEngine& pathfindingEngine);
 
     // Create object reference at position
-    void setObjectReference(const ObjectReference& objectReference, sf::Vector2i tile, ChunkManager& chunkManager, PathfindingEngine& pathfindingEngine);
+    void setObjectReference(const ObjectReference& objectReference, pl::Vector2<int> tile, ChunkManager& chunkManager, PathfindingEngine& pathfindingEngine);
 
     // Tests whether object can be placed, taking into account size and attributes (e.g. water placeable) at position
-    bool canPlaceObject(sf::Vector2i position, ObjectType objectType, int worldSize, ChunkManager& chunkManager);
+    bool canPlaceObject(pl::Vector2<int> position, ObjectType objectType, int worldSize, ChunkManager& chunkManager);
 
 
     // -- Entity handling -- //
@@ -154,7 +159,7 @@ public:
     void moveEntityToChunk(std::unique_ptr<Entity> entity);
 
     // Cursor position IS IN WORLD SPACE
-    Entity* getSelectedEntity(sf::Vector2f cursorPos);
+    Entity* getSelectedEntity(pl::Vector2f cursorPos);
 
     std::vector<PacketDataEntities::EntityPacketData> getEntityPacketDatas();
     void loadEntityPacketData(const PacketDataEntities::EntityPacketData& packetData);
@@ -193,17 +198,17 @@ public:
 
     // -- Land -- //
     // Check whether land can be placed
-    bool canPlaceLand(sf::Vector2i tile);
+    bool canPlaceLand(pl::Vector2<int> tile);
 
     // Place land and update visual tiles for chunk
     // Requires worldSize, noise, and chunk manager as regenerates visual tiles and collision rects
     // ONLY CALL IF CHECKED WHETHER CAN PLACE FIRST, DOES NOT RECHECK
-    void placeLand(sf::Vector2i tile, int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, ChunkManager& chunkManager,
+    void placeLand(pl::Vector2<int> tile, int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise, PlanetType planetType, ChunkManager& chunkManager,
         PathfindingEngine& pathfindingEngine);
 
 
     // -- Structures -- //
-    bool isPlayerInStructureEntrance(sf::Vector2f playerPos);
+    bool isPlayerInStructureEntrance(pl::Vector2f playerPos);
 
     StructureObject* getStructureObject();
 
@@ -215,28 +220,28 @@ public:
     
 
     // Misc
-    void setWorldPosition(sf::Vector2f position, ChunkManager& chunkManager);
-    sf::Vector2f getWorldPosition();
+    void setWorldPosition(pl::Vector2f position, ChunkManager& chunkManager);
+    pl::Vector2f getWorldPosition();
 
     bool getContainsWater();
     bool hasBeenModified();
 
     ChunkPosition getChunkPosition();
 
-    // bool isPointInChunk(sf::Vector2f position);
+    // bool isPointInChunk(pl::Vector2f position);
 
     // inline std::array<std::array<std::optional<BuildableObject>, 8>, 8>& getObjectGrid() {return objectGrid;}
 
     // May return nullptr
-    static const BiomeGenData* getBiomeGenAtWorldTile(sf::Vector2i worldTile, int worldSize, const FastNoise& biomeNoise, PlanetType planetType);
+    static const BiomeGenData* getBiomeGenAtWorldTile(pl::Vector2<int> worldTile, int worldSize, const FastNoise& biomeNoise, PlanetType planetType);
 
-    static const TileGenData* getTileGenAtWorldTile(sf::Vector2i worldTile, int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise, const FastNoise& riverNoise,
+    static const TileGenData* getTileGenAtWorldTile(pl::Vector2<int> worldTile, int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise, const FastNoise& riverNoise,
         PlanetType planetType);
 
-    static ObjectType getRandomObjectToSpawnAtWorldTile(sf::Vector2i worldTile, int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise,
+    static ObjectType getRandomObjectToSpawnAtWorldTile(pl::Vector2<int> worldTile, int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise,
         const FastNoise& riverNoise, RandInt& randGen, PlanetType planetType);
 
-    static EntityType getRandomEntityToSpawnAtWorldTile(sf::Vector2i worldTile, int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise,
+    static EntityType getRandomEntityToSpawnAtWorldTile(pl::Vector2<int> worldTile, int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise,
         const FastNoise& riverNoise, PlanetType planetType);
 
 private:
@@ -265,7 +270,7 @@ private:
     ChunkPosition chunkPosition;
     
     // Stores ACTUAL position in world, which may differ from grid position if repeating chunks
-    sf::Vector2f worldPosition;
+    pl::Vector2f worldPosition;
 
     // Structure data, if structure is in chunk
     std::optional<StructureObject> structureObject = std::nullopt;
@@ -281,7 +286,7 @@ private:
 };
 
 template <class T>
-inline T* Chunk::getObject(sf::Vector2i position)
+inline T* Chunk::getObject(pl::Vector2<int> position)
 {
     BuildableObject* objectPtr = objectGrid[position.y][position.x].get();
     if (!objectPtr)

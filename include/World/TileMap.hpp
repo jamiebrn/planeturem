@@ -1,10 +1,18 @@
 #pragma once
 
-#include <SFML/Graphics.hpp>
+
 #include <array>
 #include <vector>
 
+#include <Graphics/RenderTarget.hpp>
+#include <Graphics/Color.hpp>
+#include <Graphics/VertexArray.hpp>
+#include <Graphics/Shader.hpp>
+#include <Vector.hpp>
+#include <Rect.hpp>
+
 #include "Core/TextureManager.hpp"
+#include "Core/Shaders.hpp"
 
 #include "GameConstants.hpp"
 
@@ -12,9 +20,9 @@ class TileMap
 {
 public:
     TileMap();
-    TileMap(sf::Vector2i offset, int variation = 1);
+    TileMap(pl::Vector2<int> offset, int variation = 1);
 
-    void setTilesetOffset(sf::Vector2i offset);
+    void setTilesetOffset(pl::Vector2<int> offset);
     void setTilesetVariation(int variation);
 
     void setTile(int x, int y, TileMap* upTiles = nullptr, TileMap* downTiles = nullptr, TileMap* leftTiles = nullptr, TileMap* rightTiles = nullptr);
@@ -23,7 +31,7 @@ public:
     // Ensure buildVertexArray is called at the end of tile modification
     void setTileWithoutGraphicsUpdate(int x, int y, TileMap* upTiles = nullptr, TileMap* downTiles = nullptr, TileMap* leftTiles = nullptr, TileMap* rightTiles = nullptr);
 
-    void draw(sf::RenderTarget& window, sf::Vector2f position, sf::Vector2f scale);
+    void draw(pl::RenderTarget& window, pl::Vector2f position, pl::Vector2f scale);
 
     void refreshTile(int x, int y, TileMap* upTiles, TileMap* downTiles, TileMap* leftTiles, TileMap* rightTiles);
     void refreshTopEdge(TileMap* upTiles, TileMap* downTiles, TileMap* leftTiles, TileMap* rightTiles);
@@ -35,7 +43,7 @@ public:
 
     void buildVertexArray();
 
-    sf::Vector2i getTextureOffset();
+    pl::Vector2<int> getTextureOffset();
 
 private:
     void updateTiles(int xModified, int yModified, TileMap* upTiles, TileMap* downTiles, TileMap* leftTiles, TileMap* rightTiles, bool rebuildVertices = true);
@@ -43,15 +51,15 @@ private:
 
     void refreshVerticiesForTile(int x, int y);
 
-    sf::Vector2i getTextureOffsetForTile(int x, int y);
+    pl::Vector2<int> getTextureOffsetForTile(int x, int y);
 
     bool isTilePresent(int x, int y);
     bool isTilePresent(uint8_t tileValue);
 
 private:
-    sf::VertexArray tileVertexArray;
+    pl::VertexArray tileVertexArray;
 
-    sf::Vector2i tilesetOffset;
+    pl::Vector2<int> tilesetOffset;
 
     int variation;
 

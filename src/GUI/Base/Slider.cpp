@@ -69,48 +69,43 @@ bool Slider::hasReleased() const
     return released;
 }
 
-void Slider::draw(sf::RenderTarget& window)
+void Slider::draw(pl::RenderTarget& window)
 {
-    sf::RectangleShape sliderRect;
-    sliderRect.setPosition(x, y);
-    sliderRect.setSize(sf::Vector2f(width, height));
-    sliderRect.setFillColor(sf::Color(54, 83, 179));
+    pl::VertexArray rect;
 
+    pl::Color sliderRectColor(54, 83, 179);
     if (hovered || held)
     {
-        sliderRect.setFillColor(sf::Color(71, 96, 179));
+        sliderRectColor = pl::Color(71, 96, 179);
     }
 
-    window.draw(sliderRect);
+    rect.addQuad(pl::Rect<float>(x, y, width, height), sliderRectColor, pl::Rect<float>());
 
-    sf::RectangleShape valueRect;
-    int sliderXPos = ((value - minValue) / (maxValue - minValue)) * (width - height) + x + height / 2;
-    valueRect.setPosition(sf::Vector2f(sliderXPos, y + height / 2.0f));
-    valueRect.setSize(sf::Vector2f(height, height));
-    valueRect.setFillColor(sf::Color(110, 183, 219));
-    valueRect.setOrigin(sf::Vector2f(height / 2.0f, height / 2.0f));
-
+    pl::Color valueRectColor(110, 183, 219);
     if (held)
     {
-        valueRect.setFillColor(sf::Color(128, 226, 237));
+        valueRectColor = pl::Color(128, 226, 237);
     }
 
-    window.draw(valueRect);
+    int sliderXPos = ((value - minValue) / (maxValue - minValue)) * (width - height) + x + height / 2;
+    rect.addQuad(pl::Rect<float>(sliderXPos - height / 2.0f, y, height, height), valueRectColor, pl::Rect<float>());
 
-    TextDrawData textDrawData;
+    window.draw(rect, *Shaders::getShader(ShaderType::DefaultNoTexture), nullptr, pl::BlendMode::Alpha);
+
+    pl::TextDrawData textDrawData;
     textDrawData.text = std::to_string(static_cast<int>(value));
-    textDrawData.position = sf::Vector2f(x, y) + sf::Vector2f(width, height) / 2.0f;
+    textDrawData.position = pl::Vector2f(x, y) + pl::Vector2f(width, height) / 2.0f;
     textDrawData.size = textSize;
     textDrawData.centeredX = true;
     textDrawData.centeredY = true;
-    textDrawData.colour = sf::Color(255, 255, 255);
+    textDrawData.color = pl::Color(255, 255, 255);
     
     TextDraw::drawText(window, textDrawData);
 
     if (label.has_value())
     {
         textDrawData.text = label.value();
-        textDrawData.position = sf::Vector2f(x - paddingLeft + 20.0f, y + height / 2.0f);
+        textDrawData.position = pl::Vector2f(x - paddingLeft + 20.0f, y + height / 2.0f);
         textDrawData.centeredX = false;
         textDrawData.centeredY = true;
         
@@ -118,7 +113,7 @@ void Slider::draw(sf::RenderTarget& window)
     }
 }
 
-sf::IntRect Slider::getBoundingBox() const
+pl::Rect<int> Slider::getBoundingBox() const
 {
-    return sf::IntRect(x - paddingLeft, y - paddingY / 2, width + paddingLeft + paddingRight, height + paddingY);
+    return pl::Rect<int>(x - paddingLeft, y - paddingY / 2, width + paddingLeft + paddingRight, height + paddingY);
 }

@@ -20,7 +20,7 @@ bool ArmourDataLoader::loadData(std::string armourDataPath)
 
         armourData.itemTexture = jsonArmourData.at("texture");
 
-        sf::Vector2f wearTextureSize(16, 16);
+        pl::Vector2f wearTextureSize(16, 16);
         if (jsonArmourData.contains("wear-texture-size"))
         {
             wearTextureSize = jsonArmourData.at("wear-texture-size");
@@ -29,9 +29,9 @@ bool ArmourDataLoader::loadData(std::string armourDataPath)
         auto wearTextures = jsonArmourData.at("wear-textures");
         for (nlohmann::json::iterator texturePositionIter = wearTextures.begin(); texturePositionIter != wearTextures.end(); ++texturePositionIter)
         {
-            sf::IntRect textureRect;
-            textureRect.left = texturePositionIter.value()[0];
-            textureRect.top = texturePositionIter.value()[1];
+            pl::Rect<int> textureRect;
+            textureRect.x = texturePositionIter.value()[0];
+            textureRect.y = texturePositionIter.value()[1];
             textureRect.width = wearTextureSize.x;
             textureRect.height = wearTextureSize.y;
 

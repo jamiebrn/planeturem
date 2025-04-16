@@ -66,40 +66,39 @@ bool Button::hasJustReleased() const
     return justReleased;
 }
 
-void Button::draw(sf::RenderTarget& window)
+void Button::draw(pl::RenderTarget& window)
 {
-    // Draw rect
-    sf::RectangleShape rect;
-    rect.setPosition(x, y);
-    rect.setSize(sf::Vector2f(width, height));
-    rect.setFillColor(style.colour);
-
     // Draw text
-    TextDrawData textDrawData;
+    pl::TextDrawData textDrawData;
     textDrawData.text = text;
     textDrawData.size = textSize;
-    textDrawData.colour = style.textColour;
-    textDrawData.position = sf::Vector2f(x, y) + sf::Vector2f(width, height) / 2.0f;
+    textDrawData.color = style.textColor;
+    textDrawData.position = pl::Vector2f(x, y) + pl::Vector2f(width, height) / 2.0f;
     textDrawData.centeredX = true;
     textDrawData.centeredY = true;
-    
+
+    pl::Color rectColor = style.color;
+
     if (clicked || held)
     {
-        rect.setFillColor(style.clickedColour);
-        textDrawData.colour = style.clickedTextColour;
+        rectColor = style.clickedColor;
+        textDrawData.color = style.clickedTextColor;
     }
     else if (hovered)
     {
-        rect.setFillColor(style.hoveredColour);
-        textDrawData.colour = style.hoveredTextColour;
+        rectColor = style.hoveredColor;
+        textDrawData.color = style.hoveredTextColor;
     }
 
-    window.draw(rect);
+    // Draw rect
+    pl::VertexArray rect;
+    rect.addQuad(pl::Rect<float>(x, y, width, height), rectColor, pl::Rect<float>());
+    window.draw(rect, *Shaders::getShader(ShaderType::DefaultNoTexture), nullptr, pl::BlendMode::Alpha);
 
     TextDraw::drawText(window, textDrawData);
 }
 
-sf::IntRect Button::getBoundingBox() const
+pl::Rect<int> Button::getBoundingBox() const
 {
-    return sf::IntRect(x, y, width, height);
+    return pl::Rect<int>(x, y, width, height);
 }

@@ -11,8 +11,6 @@
 #include <extlib/cereal/types/vector.hpp>
 #include <extlib/cereal/types/string.hpp>
 
-#include <SFML/System/Vector2.hpp>
-
 #include "Network/IPacketData.hpp"
 #include "Network/IPacketTimeDependent.hpp"
 

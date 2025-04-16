@@ -7,7 +7,7 @@
 #include <extlib/cereal/types/vector.hpp>
 #include <extlib/cereal/types/utility.hpp>
 
-#include <SFML/System/Vector2.hpp>
+#include <Vector.hpp>
 
 #include "Network/IPacketData.hpp"
 
@@ -18,7 +18,7 @@
 struct ItemPickupRequest
 {
     ChunkPosition chunk;
-    sf::Vector2f positionRelative;
+    pl::Vector2f positionRelative;
     ItemType itemType;
 
     template <class Archive>

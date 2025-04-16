@@ -50,7 +50,8 @@ TextEnter::TextEnter(const GUIInputState& inputState, ElementID id, int x, int y
         if (inputState.backspaceJustPressed && textPtr->size() > 0)
         {
             textPtr->pop_back(); 
-            while (!textPtr->empty() && textPtr->back() == '\0') {
+            while (!textPtr->empty() && textPtr->back() == '\0')
+            {
                 textPtr->pop_back();
             }
         }
@@ -76,24 +77,23 @@ bool TextEnter::hasClickedAway() const
     return clickedAway;
 }
 
-void TextEnter::draw(sf::RenderTarget& window)
+void TextEnter::draw(pl::RenderTarget& window)
 {
-    sf::RectangleShape rect;
-    rect.setPosition(x, y);
-    rect.setSize(sf::Vector2f(width, height));
-    rect.setFillColor(sf::Color(180, 180, 180));
-
+    pl::VertexArray rect;
+    pl::Color rectColor(180, 180, 180);
     if (active)
     {
-        rect.setFillColor(sf::Color(225, 225, 225));
+        rectColor = pl::Color(225, 225, 225);
     }
 
-    window.draw(rect);
+    rect.addQuad(pl::Rect<float>(x, y, width, height), rectColor, pl::Rect<float>());
+
+    window.draw(rect, *Shaders::getShader(ShaderType::DefaultNoTexture), nullptr, pl::BlendMode::Alpha);
 
     if (textPtr)
     {
-        TextDrawData textDrawData;
-        textDrawData.position = sf::Vector2f(x + 10, y + height / 2.0f);
+        pl::TextDrawData textDrawData;
+        textDrawData.position = pl::Vector2f(x + 10, y + height / 2.0f);
         textDrawData.size = textSize;
         textDrawData.centeredY = true;
         
@@ -110,7 +110,7 @@ void TextEnter::draw(sf::RenderTarget& window)
     }
 }
 
-sf::IntRect TextEnter::getBoundingBox() const
+pl::Rect<int> TextEnter::getBoundingBox() const
 {
-    return sf::IntRect(x - paddingX / 2, y - paddingY / 2, width + paddingX, height + paddingY);
+    return pl::Rect<int>(x - paddingX / 2, y - paddingY / 2, width + paddingX, height + paddingY);
 }

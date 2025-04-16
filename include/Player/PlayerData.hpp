@@ -9,8 +9,9 @@
 #include <extlib/cereal/types/string.hpp>
 #include <extlib/cereal/archives/binary.hpp>
 
-#include <SFML/System/Vector2.hpp>
 #include <Core/json.hpp>
+
+#include <Vector.hpp>
 
 #include "Data/typedefs.hpp"
 #include "Data/Serialise/Vector2Serialise.hpp"
@@ -36,13 +37,13 @@ struct PlayerData
     
     std::string name;
     
-    sf::Vector2f position;
+    pl::Vector2f position;
     
     // Structure
     // bool isInStructure = false;
     
     LocationState locationState;
-    sf::Vector2f structureExitPos; // used to determine structure exit position on planet
+    pl::Vector2f structureExitPos; // used to determine structure exit position on planet
     
     int maxHealth = 0;
 

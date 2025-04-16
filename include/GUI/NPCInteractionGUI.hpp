@@ -2,10 +2,16 @@
 
 #include <optional>
 
-#include <SFML/Graphics.hpp>
+#include <Graphics/SpriteBatch.hpp>
+#include <Graphics/Color.hpp>
+#include <Graphics/RenderTarget.hpp>
+#include <Graphics/Texture.hpp>
+#include <Vector.hpp>
+#include <Rect.hpp>
 
+#include "Core/TextDraw.hpp"
+#include "Core/Shaders.hpp"
 #include "Core/TextureManager.hpp"
-#include "Core/SpriteBatch.hpp"
 
 #include "GUI/Base/GUIContext.hpp"
 #include "GUI/DefaultGUIPanel.hpp"
@@ -37,12 +43,12 @@ public:
 
     void close();
 
-    std::optional<NPCInteractionGUIEvent> createAndDraw(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime);
+    std::optional<NPCInteractionGUIEvent> createAndDraw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, float dt, float gameTime);
 
 private:
     bool updateDialogue(float dt);
 
-    void drawDialogueBox(sf::RenderTarget& window, SpriteBatch& spriteBatch, float dt, float gameTime);
+    void drawDialogueBox(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, float dt, float gameTime);
 
 private:
     const NPCObjectData* currentNPCObjectData = nullptr;

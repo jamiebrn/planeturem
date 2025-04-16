@@ -5,10 +5,14 @@
 
 #include <extlib/cereal/archives/binary.hpp>
 
-#include <SFML/Graphics.hpp>
+#include <Graphics/SpriteBatch.hpp>
+#include <Graphics/Color.hpp>
+#include <Graphics/RenderTarget.hpp>
+#include <Vector.hpp>
+#include <Rect.hpp>
 
-#include "Core/SpriteBatch.hpp"
 #include "Core/TextureManager.hpp"
+#include "Core/Shaders.hpp"
 #include "Core/ResolutionHandler.hpp"
 #include "Core/Camera.hpp"
 #include "Core/Helper.hpp"
@@ -23,20 +27,20 @@ class Projectile
 public:
     Projectile() = default;
     // Angle in DEGREES
-    Projectile(sf::Vector2f position, float angle, ProjectileType type, float damageMult, float shootPower);
+    Projectile(pl::Vector2f position, float angle, ProjectileType type, float damageMult, float shootPower);
 
     void update(float dt);
 
-    void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Camera& camera);
+    void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera);
 
     int getDamage() const;
 
     // Called on collision with entity
     void onCollision();
 
-    sf::Vector2f getPosition() const;
+    pl::Vector2f getPosition() const;
 
-    void handleWorldWrap(sf::Vector2f positionDelta);
+    void handleWorldWrap(pl::Vector2f positionDelta);
 
     bool isAlive();
 
@@ -54,8 +58,8 @@ private:
 
     float speed;
 
-    sf::Vector2f position;
-    sf::Vector2f velocity;
+    pl::Vector2f position;
+    pl::Vector2f velocity;
     float angle;
 
     bool alive;

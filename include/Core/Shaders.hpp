@@ -1,18 +1,22 @@
 #pragma once
 
-#include <SFML/Graphics.hpp>
+
+#include <Graphics/Shader.hpp>
 #include <unordered_map>
 #include <string>
 #include <memory>
 
 enum class ShaderType
 {
+    Default,
+    DefaultNoTexture,
+    TileMap,
     Flash,
     Water,
     Lighting,
     Progress,
     ProgressCircle,
-    Blur,
+    // Blur,
     ReplaceColour
 };
 
@@ -29,10 +33,10 @@ class Shaders
 public:
     static bool loadShaders();
 
-    static inline sf::Shader* getShader(ShaderType type) {return loadedShaders[type].get();}
+    static inline pl::Shader* getShader(ShaderType type) {return loadedShaders[type].get();}
 
 private:
     static const std::unordered_map<ShaderType, ShaderFilePath> shaderFilePaths;
-    static std::unordered_map<ShaderType, std::unique_ptr<sf::Shader>> loadedShaders;
+    static std::unordered_map<ShaderType, std::unique_ptr<pl::Shader>> loadedShaders;
 
 };

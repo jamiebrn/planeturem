@@ -1,10 +1,16 @@
 #pragma once
 
-#include <SFML/Graphics.hpp>
+
 #include <iostream>
 
+#include <Graphics/SpriteBatch.hpp>
+#include <Graphics/Color.hpp>
+#include <Graphics/RenderTarget.hpp>
+#include <Vector.hpp>
+#include <Rect.hpp>
+
 #include "Core/Camera.hpp"
-#include "Core/SpriteBatch.hpp"
+// #include "Core/SpriteBatch.hpp"
 #include "Core/TextureManager.hpp"
 #include "Core/ResolutionHandler.hpp"
 #include "Core/CollisionRect.hpp"
@@ -34,21 +40,21 @@ class Game;
 //     // uint32_t structureID;
 
 //     // Top-left of warp collision / entrance
-//     sf::Vector2f entrancePosition;
+//     pl::Vector2f entrancePosition;
 // };
 
 class StructureObject : public WorldObject
 {
 public:
-    StructureObject(sf::Vector2f position, StructureType structureType);
+    StructureObject(pl::Vector2f position, StructureType structureType);
 
-    void createWarpRect(sf::Vector2f rectPosition);
+    void createWarpRect(pl::Vector2f rectPosition);
 
-    bool isPlayerInEntrance(sf::Vector2f playerPos);
+    bool isPlayerInEntrance(pl::Vector2f playerPos);
 
-    sf::Vector2f getEntrancePosition();
+    pl::Vector2f getEntrancePosition();
 
-    void setWorldPosition(sf::Vector2f newPosition);
+    void setWorldPosition(pl::Vector2f newPosition);
 
     inline StructureType getStructureType() {return structureType;}
 
@@ -56,12 +62,12 @@ public:
 
     inline void setStructureID(uint32_t id) {structureID = id;}
 
-    void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const sf::Color& color) const override;
+    void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const pl::Color& color) const override;
 
-    void createLightSource(LightingEngine& lightingEngine, sf::Vector2f topLeftChunkPos) const override;
+    void createLightSource(LightingEngine& lightingEngine, pl::Vector2f topLeftChunkPos) const override;
 
-    StructureObjectPOD getPOD(sf::Vector2f chunkPosition);
-    void loadFromPOD(const StructureObjectPOD& pod, sf::Vector2f chunkPosition);
+    StructureObjectPOD getPOD(pl::Vector2f chunkPosition);
+    void loadFromPOD(const StructureObjectPOD& pod, pl::Vector2f chunkPosition);
 
 private:
     StructureType structureType;

@@ -1,8 +1,10 @@
 #pragma once
 
-#include <SFML/Graphics.hpp>
+
 
 #include <cstdint>
+
+#include <Vector.hpp>
 
 #include "Object/WorldObject.hpp"
 #include "Object/BuildableObject.hpp"
@@ -13,7 +15,7 @@ class Game;
 class ChestObject : public BuildableObject
 {
 public:
-    ChestObject(sf::Vector2f position, ObjectType objectType);
+    ChestObject(pl::Vector2f position, ObjectType objectType);
 
     BuildableObject* clone() override;
 

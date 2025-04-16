@@ -18,16 +18,16 @@ bool EntityDataLoader::loadData(std::string objectDataPath)
 
         entityData.name = jsonEntityData.at("name");
 
-        sf::Vector2f textureSize = jsonEntityData.at("texture-size");
+        pl::Vector2f textureSize = jsonEntityData.at("texture-size");
 
         if (jsonEntityData.contains("texture-idle"))
         {
             auto idleTexture = jsonEntityData.at("texture-idle");
             for (nlohmann::json::iterator texturePositionIter = idleTexture.begin(); texturePositionIter != idleTexture.end(); ++texturePositionIter)
             {
-                sf::IntRect textureRect;
-                textureRect.left = texturePositionIter.value()[0];
-                textureRect.top = texturePositionIter.value()[1];
+                pl::Rect<int> textureRect;
+                textureRect.x = texturePositionIter.value()[0];
+                textureRect.y = texturePositionIter.value()[1];
                 textureRect.width = textureSize.x;
                 textureRect.height = textureSize.y;
 
@@ -42,9 +42,9 @@ bool EntityDataLoader::loadData(std::string objectDataPath)
             auto walkTexture = jsonEntityData.at("texture-walk");
             for (nlohmann::json::iterator texturePositionIter = walkTexture.begin(); texturePositionIter != walkTexture.end(); ++texturePositionIter)
             {
-                sf::IntRect textureRect;
-                textureRect.left = texturePositionIter.value()[0];
-                textureRect.top = texturePositionIter.value()[1];
+                pl::Rect<int> textureRect;
+                textureRect.x = texturePositionIter.value()[0];
+                textureRect.y = texturePositionIter.value()[1];
                 textureRect.width = textureSize.x;
                 textureRect.height = textureSize.y;
 

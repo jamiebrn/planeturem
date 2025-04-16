@@ -1,8 +1,11 @@
 #pragma once
 
-#include <SFML/Graphics.hpp>
+
 #include <string>
 #include <vector>
+
+#include <Vector.hpp>
+#include <Rect.hpp>
 
 #include "Data/typedefs.hpp"
 
@@ -18,9 +21,9 @@ struct ArmourData
     std::string name;
     ArmourWearType armourWearType;
 
-    sf::IntRect itemTexture;
-    std::vector<sf::IntRect> wearTextures;
-    sf::Vector2f wearTextureOffset = sf::Vector2f(0, 0);
+    pl::Rect<int> itemTexture;
+    std::vector<pl::Rect<int>> wearTextures;
+    pl::Vector2f wearTextureOffset = pl::Vector2f(0, 0);
 
     int defence = 0;
 };

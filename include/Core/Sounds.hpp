@@ -1,7 +1,6 @@
 #pragma once
 
-// Include libraries
-#include <SFML/Audio.hpp>
+#include <Audio/Sound.hpp>
 #include <unordered_map>
 #include <string>
 #include <memory>
@@ -76,10 +75,10 @@ private:
     static Tween<float> fadeOutTween;
 
     // Map storing buffers, which store sound effect data
-    inline static std::unordered_map<SoundType, sf::SoundBuffer> soundBufferMap;
+    // inline static std::unordered_map<SoundType, sf::SoundBuffer> soundBufferMap;
 
     // Map storing sound objects which interface the sound buffers
-    inline static std::unordered_map<SoundType, sf::Sound> soundMap;
+    inline static std::unordered_map<SoundType, std::unique_ptr<pl::Sound>> soundMap;
 
     // Constant map storing file paths for all sound effects
     inline static const std::unordered_map<SoundType, std::string> soundPaths = {
@@ -98,7 +97,7 @@ private:
     };
 
     // Map storing music objects, which interface with the music streams
-    inline static std::unordered_map<MusicType, std::unique_ptr<sf::Music>> musicMap;
+    inline static std::unordered_map<MusicType, std::unique_ptr<pl::Sound>> musicMap;
 
     // Constant map storing file paths for all music tracks
     inline static const std::unordered_map<MusicType, std::string> musicPaths = {

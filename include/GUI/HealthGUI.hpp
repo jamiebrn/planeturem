@@ -3,10 +3,15 @@
 #include <cmath>
 #include <vector>
 
-#include <SFML/Graphics.hpp>
+#include <Graphics/VertexArray.hpp>
+#include <Graphics/SpriteBatch.hpp>
+#include <Graphics/Color.hpp>
+#include <Graphics/RenderTarget.hpp>
+#include <Graphics/Texture.hpp>
+#include <Vector.hpp>
+#include <Rect.hpp>
 
 #include "Core/TextureManager.hpp"
-#include "Core/SpriteBatch.hpp"
 #include "Core/Shaders.hpp"
 #include "Core/TextDraw.hpp"
 #include "Core/ResolutionHandler.hpp"
@@ -23,8 +28,8 @@ static constexpr int HEART_SIZE = 16;
 
 static constexpr int HEALTH_PER_HEART = 50;
 
-void drawHealth(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Player& player, float gameTime, const std::vector<std::string>& extraInfo);
+void drawHealth(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Player& player, float gameTime, const std::vector<std::string>& extraInfo);
 
-void drawDeadPrompt(sf::RenderTarget& window);
+void drawDeadPrompt(pl::RenderTarget& window);
 
 }

@@ -3,8 +3,6 @@
 #include <vector>
 #include <unordered_map>
 
-#include <SFML/Graphics.hpp>
-
 #include <extlib/cereal/archives/binary.hpp>
 #include <extlib/cereal/types/unordered_map.hpp>
 

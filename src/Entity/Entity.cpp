@@ -5,7 +5,7 @@
 #include "Entity/EntityBehaviour/EntityWanderBehaviour.hpp"
 #include "Entity/EntityBehaviour/EntityFollowAttackBehaviour.hpp"
 
-Entity::Entity(sf::Vector2f position, EntityType entityType)
+Entity::Entity(pl::Vector2f position, EntityType entityType)
     : WorldObject(position)
 {
     this->entityType = entityType;
@@ -105,37 +105,54 @@ bool Entity::isProjectileColliding(Projectile& projectile)
     return (hitCollision.isPointInRect(projectile.getPosition().x, projectile.getPosition().y));
 }
 
-void Entity::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const sf::Color& color) const
+void Entity::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const pl::Color& color) const
 {
-    spriteBatch.endDrawing(window);
-
     const EntityData& entityData = EntityDataLoader::getEntityData(entityType);
 
-    sf::Vector2f scale(ResolutionHandler::getScale(), ResolutionHandler::getScale());
+    pl::Vector2f scale(ResolutionHandler::getScale(), ResolutionHandler::getScale());
 
     float waterYOffset = getWaterBobYOffset(worldSize, gameTime);
 
     // Draw shadow
-    TextureManager::drawTexture(window, {TextureType::Shadow, camera.worldToScreenTransform(position + sf::Vector2f(0, waterYOffset)), 0, scale, {0.5, 0.85}});
+    pl::DrawData shadowDrawData;
+    shadowDrawData.texture = TextureManager::getTexture(TextureType::Shadow);
+    shadowDrawData.shader = Shaders::getShader(ShaderType::Default);
+    shadowDrawData.position = camera.worldToScreenTransform(position + pl::Vector2f(0, waterYOffset));
+    shadowDrawData.scale = scale;
+    shadowDrawData.centerRatio = pl::Vector2f(0.5, 0.85);
+    shadowDrawData.textureRect = pl::Rect<int>(0, 0, shadowDrawData.texture->getWidth(), shadowDrawData.texture->getHeight());
+
+    spriteBatch.draw(window, shadowDrawData);
 
     if (velocity.x < 0)
+    {
         scale.x *= -1;
-    
-    sf::Shader* shader = Shaders::getShader(ShaderType::Flash);
-    shader->setUniform("flash_amount", flashAmount);
+    }
 
-    sf::IntRect textureRect;
+    pl::DrawData entityDrawData;
+    entityDrawData.texture = TextureManager::getTexture(TextureType::Entities);
+    entityDrawData.shader = Shaders::getShader(ShaderType::Default);
+    entityDrawData.position = shadowDrawData.position;
+    entityDrawData.scale = scale;
+    entityDrawData.centerRatio = entityData.textureOrigin;
+    entityDrawData.color = color;
+
+    if (flashAmount > 0)
+    {
+        entityDrawData.shader = Shaders::getShader(ShaderType::Flash);
+        entityDrawData.shader->setUniform1f("flash_amount", flashAmount);
+    }
+    
     if (velocity.x == 0 && velocity.y == 0)
     {
-        textureRect = entityData.idleTextureRects[idleAnim.getFrame()];
+        entityDrawData.textureRect = entityData.idleTextureRects[idleAnim.getFrame()];
     }
     else
     {
-        textureRect = entityData.walkTextureRects[walkAnim.getFrame()];
+        entityDrawData.textureRect = entityData.walkTextureRects[walkAnim.getFrame()];
     }
 
-    TextureManager::drawSubTexture(window, {TextureType::Entities, camera.worldToScreenTransform(position + sf::Vector2f(0, waterYOffset)), 0, 
-        scale, entityData.textureOrigin, color}, textureRect, shader);
+    spriteBatch.draw(window, entityDrawData);
 
     #if (!RELEASE_BUILD)
     // DEBUG
@@ -147,14 +164,14 @@ void Entity::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game
     #endif
 }
 
-void Entity::createLightSource(LightingEngine& lightingEngine, sf::Vector2f topLeftChunkPos) const
+void Entity::createLightSource(LightingEngine& lightingEngine, pl::Vector2f topLeftChunkPos) const
 {
     // static constexpr float lightScale = 0.3f;
     // static const sf::Color lightColor(255, 220, 140);
 
-    // sf::Vector2f scale((float)ResolutionHandler::getScale() * lightScale, (float)ResolutionHandler::getScale() * lightScale);
+    // pl::Vector2f scale((float)ResolutionHandler::getScale() * lightScale, (float)ResolutionHandler::getScale() * lightScale);
 
-    // sf::IntRect lightMaskRect(0, 0, 256, 256);
+    // pl::Rect<int> lightMaskRect(0, 0, 256, 256);
 
     // TextureManager::drawSubTexture(lightTexture, {
     //     TextureType::LightMask, Camera::worldToScreenTransform(position), 0, scale, {0.5, 0.5}, lightColor
@@ -205,7 +222,7 @@ void Entity::damage(int amount, ChunkManager& chunkManager, float gameTime)
 
                 for (int i = 0; i < itemAmount; i++)
                 {
-                    sf::Vector2f spawnPos = position - sf::Vector2f(0.5f, 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
+                    pl::Vector2f spawnPos = position - pl::Vector2f(0.5f, 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
                     spawnPos.x += Helper::randFloat(0.0f, entityData.size.x * TILE_SIZE_PIXELS_UNSCALED);
                     spawnPos.y += Helper::randFloat(0.0f, entityData.size.y * TILE_SIZE_PIXELS_UNSCALED);
 
@@ -223,12 +240,12 @@ void Entity::interact()
 
 }
 
-bool Entity::isSelectedWithCursor(sf::Vector2f cursorWorldPos)
+bool Entity::isSelectedWithCursor(pl::Vector2f cursorWorldPos)
 {
     return collisionRect.isPointInRect(cursorWorldPos.x, cursorWorldPos.y);
 }
 
-void Entity::setWorldPosition(sf::Vector2f newPosition)
+void Entity::setWorldPosition(pl::Vector2f newPosition)
 {
     collisionRect.x = newPosition.x - collisionRect.width / 2.0f;
     collisionRect.y = newPosition.y - collisionRect.height / 2.0f;
@@ -239,9 +256,9 @@ EntityType Entity::getEntityType()
     return entityType;
 }
 
-sf::Vector2f Entity::getSize()
+pl::Vector2f Entity::getSize()
 {
-    return sf::Vector2f(collisionRect.width, collisionRect.height);
+    return pl::Vector2f(collisionRect.width, collisionRect.height);
 }
 
 const CollisionRect& Entity::getCollisionRect()
@@ -254,12 +271,12 @@ void Entity::setCollisionRect(const CollisionRect& rect)
     collisionRect = rect;
 }
 
-sf::Vector2f Entity::getVelocity()
+pl::Vector2f Entity::getVelocity()
 {
     return velocity;
 }
 
-void Entity::setVelocity(sf::Vector2f velocity)
+void Entity::setVelocity(pl::Vector2f velocity)
 {
     this->velocity = velocity;
 }
@@ -269,7 +286,7 @@ void Entity::setAnimationSpeed(float speed)
     animationSpeed = speed;
 }
 
-EntityPOD Entity::getPOD(sf::Vector2f chunkPosition)
+EntityPOD Entity::getPOD(pl::Vector2f chunkPosition)
 {
     EntityPOD pod;
     pod.entityType = entityType;
@@ -278,7 +295,7 @@ EntityPOD Entity::getPOD(sf::Vector2f chunkPosition)
     return pod;
 }
 
-void Entity::loadFromPOD(const EntityPOD& pod, sf::Vector2f chunkPosition)
+void Entity::loadFromPOD(const EntityPOD& pod, pl::Vector2f chunkPosition)
 {
     entityType = pod.entityType;
     position = pod.chunkRelativePosition + chunkPosition;
@@ -287,7 +304,7 @@ void Entity::loadFromPOD(const EntityPOD& pod, sf::Vector2f chunkPosition)
     velocity = pod.velocity;
 }
 
-PacketDataEntities::EntityPacketData Entity::getPacketData(sf::Vector2f chunkPosition)
+PacketDataEntities::EntityPacketData Entity::getPacketData(pl::Vector2f chunkPosition)
 {
     EntityPOD pod = getPOD(chunkPosition);
     
@@ -305,7 +322,7 @@ PacketDataEntities::EntityPacketData Entity::getPacketData(sf::Vector2f chunkPos
     return packetData;
 }
 
-void Entity::loadFromPacketData(const PacketDataEntities::EntityPacketData& packetData, sf::Vector2f chunkPosition)
+void Entity::loadFromPacketData(const PacketDataEntities::EntityPacketData& packetData, pl::Vector2f chunkPosition)
 {
     EntityPOD pod;
     pod.entityType = packetData.entityType;

@@ -1,17 +1,15 @@
-#version 120
+#version 330 core
 
-uniform sampler2D texture;
 uniform sampler2D lightingTexture;
 
-uniform vec4 unlitColor;
-uniform float darkness;
+out vec4 FragColor;
+
+in vec4 fragColor;
+in vec2 fragUV;
 
 void main()
 {
-    vec4 textureColor = texture2D(texture, gl_TexCoord[0].xy);
-    vec4 lightSample = texture2D(lightingTexture, gl_TexCoord[0].xy);
-
-    textureColor = mix(textureColor, vec4(0.02, 0.0, 0.05, 1.0), max(darkness - lightSample.a, 0.0f));
-
-    gl_FragColor = textureColor * gl_Color;
+    float lightStrength = texture(lightingTexture, fragUV).r;
+    vec4 textureColor = vec4(lightStrength, lightStrength, lightStrength, lightStrength);
+    FragColor = fragColor * textureColor;
 }

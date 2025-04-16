@@ -2,9 +2,14 @@
 
 #include <vector>
 
-#include <SFML/Graphics.hpp>
+#include <Graphics/SpriteBatch.hpp>
+#include <Graphics/Color.hpp>
+#include <Graphics/RenderTarget.hpp>
+#include <Graphics/Shader.hpp>
+#include <Graphics/Texture.hpp>
+#include <Vector.hpp>
+#include <Rect.hpp>
 
-#include "Core/SpriteBatch.hpp"
 #include "Core/Helper.hpp"
 
 #include "Player/InventoryData.hpp"
@@ -28,15 +33,14 @@ public:
 
     virtual bool isAlive() = 0;
 
-    virtual void handleWorldWrap(sf::Vector2f positionDelta) = 0;
+    virtual void handleWorldWrap(pl::Vector2f positionDelta) = 0;
+    
+    virtual void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
+        const pl::Color& color) const override = 0;
 
-    // virtual void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch) = 0;
-    virtual void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
-        const sf::Color& color) const override = 0;
+    virtual void createLightSource(LightingEngine& lightingEngine, pl::Vector2f topLeftChunkPos) const override = 0;
 
-    virtual void createLightSource(LightingEngine& lightingEngine, sf::Vector2f topLeftChunkPos) const override = 0;
-
-    virtual void getHoverStats(sf::Vector2f mouseWorldPos, std::vector<std::string>& hoverStats) = 0;
+    virtual void getHoverStats(pl::Vector2f mouseWorldPos, std::vector<std::string>& hoverStats) = 0;
 
     virtual void testCollisionWithPlayer(Player& player) = 0;
 

@@ -3,14 +3,14 @@
 bool Camera::screenShakeEnabled = true;
 
 // Update camera based on player position (or any position)
-void Camera::update(sf::Vector2f playerPosition, sf::Vector2f mouseScreenPos, float deltaTime)
+void Camera::update(pl::Vector2f playerPosition, pl::Vector2f mouseScreenPos, float deltaTime)
 {
     float scale = ResolutionHandler::getScale();
 
-    sf::Vector2f resolution = static_cast<sf::Vector2f>(ResolutionHandler::getResolution());
+    pl::Vector2f resolution = static_cast<pl::Vector2f>(ResolutionHandler::getResolution());
 
     // Calculate position/offset camera should be in
-    sf::Vector2f destinationOffset;
+    pl::Vector2f destinationOffset;
     destinationOffset.x = playerPosition.x - (resolution.x / scale) / 2.0f;
     destinationOffset.y = playerPosition.y - (resolution.y / scale) / 2.0f;
 
@@ -31,7 +31,7 @@ void Camera::update(sf::Vector2f playerPosition, sf::Vector2f mouseScreenPos, fl
     offset.y = Helper::lerp(offset.y, destinationOffset.y, MOVE_LERP_WEIGHT * deltaTime);
 }
 
-void Camera::instantUpdate(sf::Vector2f playerPosition)
+void Camera::instantUpdate(pl::Vector2f playerPosition)
 {
     float scale = ResolutionHandler::getScale();
 
@@ -41,60 +41,60 @@ void Camera::instantUpdate(sf::Vector2f playerPosition)
 }
 
 // Get draw offset of camera
-sf::Vector2f Camera::getDrawOffset() const
+pl::Vector2f Camera::getDrawOffset() const
 {
     // Draw offset is negative camera position/offset
-    sf::Vector2f drawOffset = -offset;
+    pl::Vector2f drawOffset = offset * -1;
     
     return drawOffset;
 }
 
-sf::Vector2f Camera::getIntegerDrawOffset() const
+pl::Vector2f Camera::getIntegerDrawOffset() const
 {
-    sf::Vector2f drawOffset;
+    pl::Vector2f drawOffset;
     drawOffset.x = static_cast<int>(-offset.x);
     drawOffset.y = static_cast<int>(-offset.y);
     
     return drawOffset;
 }
 
-sf::Vector2f Camera::worldToScreenTransform(sf::Vector2f worldPos) const
+pl::Vector2f Camera::worldToScreenTransform(pl::Vector2f worldPos) const
 {
     float scale = ResolutionHandler::getScale();
 
-    sf::Vector2f screenCentre = static_cast<sf::Vector2f>(ResolutionHandler::getResolution()) / 2.0f;
-    sf::Vector2f screenCentreWorld = screenCentre / scale;
+    pl::Vector2f screenCentre = static_cast<pl::Vector2f>(ResolutionHandler::getResolution()) / 2.0f;
+    pl::Vector2f screenCentreWorld = screenCentre / scale;
 
-    sf::Vector2f screenPos;
+    pl::Vector2f screenPos;
     screenPos.x = static_cast<int>(std::round((worldPos.x - std::round(offset.x * scale) / scale - screenCentreWorld.x) * scale + screenCentre.x));
     screenPos.y = static_cast<int>(std::round((worldPos.y - std::round(offset.y * scale) / scale - screenCentreWorld.y) * scale + screenCentre.y));
 
     return screenPos;
 }
 
-sf::Vector2f Camera::screenToWorldTransform(sf::Vector2f screenPos) const
+pl::Vector2f Camera::screenToWorldTransform(pl::Vector2f screenPos) const
 {
     float scale = ResolutionHandler::getScale();
 
-    sf::Vector2f screenCentre = static_cast<sf::Vector2f>(ResolutionHandler::getResolution()) / 2.0f;
-    sf::Vector2f screenCentreWorld = screenCentre / scale;
+    pl::Vector2f screenCentre = static_cast<pl::Vector2f>(ResolutionHandler::getResolution()) / 2.0f;
+    pl::Vector2f screenCentreWorld = screenCentre / scale;
 
-    sf::Vector2f worldPos;
+    pl::Vector2f worldPos;
     worldPos.x = (screenPos.x - screenCentre.x) / scale + screenCentreWorld.x + offset.x;
     worldPos.y = (screenPos.y - screenCentre.y) / scale + screenCentreWorld.y + offset.y;
 
     return worldPos;
 }
 
-void Camera::handleScaleChange(float beforeScale, float afterScale, sf::Vector2f playerPosition)
+void Camera::handleScaleChange(float beforeScale, float afterScale, pl::Vector2f playerPosition)
 {
-    sf::Vector2f adjustedCamPos;
+    pl::Vector2f adjustedCamPos;
     adjustedCamPos.x = playerPosition.x - ((playerPosition.x - offset.x) * beforeScale) / afterScale;
     adjustedCamPos.y = playerPosition.y - ((playerPosition.y - offset.y) * beforeScale) / afterScale;
     Camera::setOffset(adjustedCamPos);
 }
 
-void Camera::handleWorldWrap(sf::Vector2f positionDelta)
+void Camera::handleWorldWrap(pl::Vector2f positionDelta)
 {
     offset.x += positionDelta.x;
     offset.y += positionDelta.y;
@@ -102,8 +102,8 @@ void Camera::handleWorldWrap(sf::Vector2f positionDelta)
 
 ChunkViewRange Camera::getChunkViewRange() const
 {
-    sf::Vector2f screenTopLeft = screenToWorldTransform({0, 0});
-    sf::Vector2f screenBottomRight = screenToWorldTransform(static_cast<sf::Vector2f>(ResolutionHandler::getResolution()));
+    pl::Vector2f screenTopLeft = screenToWorldTransform({0, 0});
+    pl::Vector2f screenBottomRight = screenToWorldTransform(static_cast<pl::Vector2f>(ResolutionHandler::getResolution()));
 
     ChunkViewRange chunkViewRange;
 
@@ -116,15 +116,15 @@ ChunkViewRange Camera::getChunkViewRange() const
 }
 
 // Set offset of camera
-void Camera::setOffset(sf::Vector2f newOffset)
+void Camera::setOffset(pl::Vector2f newOffset)
 {
     offset = newOffset;
 }
 
 // Returns whether a specific world position with dimensions is in the camera view
-bool Camera::isInView(sf::Vector2f position) const
+bool Camera::isInView(pl::Vector2f position) const
 {
-    sf::Vector2f screenPos = worldToScreenTransform(position);
+    pl::Vector2f screenPos = worldToScreenTransform(position);
 
     return (screenPos.x >= 0 && screenPos.x <= ResolutionHandler::getResolution().x &&
             screenPos.y >= 0 && screenPos.y <= ResolutionHandler::getResolution().y);
