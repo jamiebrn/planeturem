@@ -139,6 +139,7 @@ void Player::updateDirection(pl::Vector2f mouseWorldPos)
         // Reel in fishing rod if moved
         swingingFishingRod = false;
         fishingRodCasted = false;
+        fishBitingLine = false;
 
         if (direction.x != 0)
             flippedTexture = direction.x < 0;
@@ -589,10 +590,8 @@ void Player::drawFishingRodCast(pl::RenderTarget& window, pl::SpriteBatch& sprit
     spriteBatch.endDrawing(window);
 
     // Draw line
-    // TODO: Make line constant thickness (not 1 pixel)
     pl::VertexArray line;
-    line.setPrimitiveMode(pl::PrimitiveMode::Lines);
-
+    
     // Calculate line origin position
     const ToolData& toolData = ToolDataLoader::getToolData(equippedTool);
 
@@ -610,29 +609,61 @@ void Player::drawFishingRodCast(pl::RenderTarget& window, pl::SpriteBatch& sprit
 
     // Add line drooping
     pl::Vector2f droopLineOrigin = lineOrigin;
-    pl::Vector2f droopLineBob = bobPosition;
+    pl::Vector2f droopLineDest = bobPosition;
+
+    bool drawnFromBob = false;
+
     if (bobPosition.y < lineOrigin.y)
     {
         droopLineOrigin = bobPosition;
-        droopLineBob = lineOrigin;
+        droopLineDest = lineOrigin;
+        drawnFromBob = true;
     }
     
-    line.addVertex(pl::Vertex(camera.worldToScreenTransform(droopLineOrigin), pl::Color(255, 255, 255)));
+    // line.addVertex(pl::Vertex(camera.worldToScreenTransform(droopLineOrigin), pl::Color(255, 255, 255)));
     
     static constexpr int lineXStep = 1;
+    static constexpr float lineOverstep = 0.1f;
     int xDiff = std::abs(bobPosition.x - lineOrigin.x);
-    for (int x = 0; x < xDiff; x += lineXStep)
+
+    int maxX = xDiff;
+
+    // If drawn from bob, add one less point to instead add point at end of rod
+    if (drawnFromBob)
     {
-        // Add first vertex
-        float yProgress = (xDiff / (x + 0.5f * xDiff) - 2.0f / 3.0f) / (4.0f / 3.0f);
-        pl::Vector2f originOffset;
-        originOffset.x = x * Helper::sign(droopLineBob.x - droopLineOrigin.x);
-        originOffset.y = (droopLineBob.y - droopLineOrigin.y) * (1.0f - yProgress);
-        line.addVertex(pl::Vertex(camera.worldToScreenTransform(originOffset + droopLineOrigin), pl::Color(255, 255, 255)));
-        line.addVertex(pl::Vertex(camera.worldToScreenTransform(originOffset + droopLineOrigin), pl::Color(255, 255, 255)));
+        maxX -= lineXStep;
     }
 
-    line.addVertex(pl::Vertex(camera.worldToScreenTransform(droopLineBob), pl::Color(255, 255, 255)));
+    for (int x = 0; x < maxX; x += lineXStep)
+    {
+        // Sample first point
+        float yProgress = (xDiff / (x + 0.5f * xDiff) - 2.0f / 3.0f) / (4.0f / 3.0f);
+        pl::Vector2f originOffset;
+        originOffset.x = x * Helper::sign(droopLineDest.x - droopLineOrigin.x);
+        originOffset.y = (droopLineDest.y - droopLineOrigin.y) * (1.0f - yProgress);
+
+        // Sample second point with overstep
+        yProgress = (xDiff / ((x + lineXStep + lineOverstep) + 0.5f * xDiff) - 2.0f / 3.0f) / (4.0f / 3.0f);
+        pl::Vector2f originOffsetTwo;
+        originOffsetTwo.x = (x + lineXStep + lineOverstep) * Helper::sign(droopLineDest.x - droopLineOrigin.x);
+        originOffsetTwo.y = (droopLineDest.y - droopLineOrigin.y) * (1.0f - yProgress);
+
+        line.addQuadLine(camera.worldToScreenTransform(originOffset + droopLineOrigin),
+            camera.worldToScreenTransform(originOffsetTwo + droopLineOrigin), pl::Color(255, 255, 255), std::max(ResolutionHandler::getScale() * 0.75f, 1.0f), false);
+    }
+
+    // If drawn from bob, fix line to rod at end
+    if (drawnFromBob)
+    {
+        // Sample final point
+        float yProgress = (xDiff / (maxX + 0.5f * xDiff) - 2.0f / 3.0f) / (4.0f / 3.0f);
+        pl::Vector2f originOffset;
+        originOffset.x = maxX * Helper::sign(droopLineDest.x - droopLineOrigin.x);
+        originOffset.y = (droopLineDest.y - droopLineOrigin.y) * (1.0f - yProgress);
+
+        line.addQuadLine(camera.worldToScreenTransform(originOffset + droopLineOrigin),
+            camera.worldToScreenTransform(droopLineDest), pl::Color(255, 255, 255), std::max(ResolutionHandler::getScale() * 0.75f, 1.0f), false);
+    }
 
     window.draw(line, *Shaders::getShader(ShaderType::DefaultNoTexture), nullptr, pl::BlendMode::Alpha);
 }
