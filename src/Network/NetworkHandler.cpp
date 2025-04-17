@@ -456,10 +456,17 @@ void NetworkHandler::update(float dt)
     structureEnterRequestCooldown = std::max(structureEnterRequestCooldown - dt, 0.0f);
 }
 
-void NetworkHandler::updateNetworkPlayers(float dt)
+void NetworkHandler::updateNetworkPlayers(float dt, const LocationState& locationState)
 {
     for (auto& networkPlayerPair : networkPlayers)
     {
+        if (isClient())
+        {
+            if (networkPlayerPair.second.getPlayerData().locationState != locationState)
+            {
+                continue;
+            }
+        }
         networkPlayerPair.second.updateNetworkPlayer(dt, *game);
     }
 }

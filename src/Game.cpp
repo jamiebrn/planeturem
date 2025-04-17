@@ -652,7 +652,7 @@ void Game::runInGame(float dt)
     if (networkHandler.isMultiplayerGame())
     {
         networkHandler.update(dt);
-        networkHandler.updateNetworkPlayers(dt);
+        networkHandler.updateNetworkPlayers(dt, locationState);
         networkHandler.sendGameUpdates(dt, camera);
     }
 
