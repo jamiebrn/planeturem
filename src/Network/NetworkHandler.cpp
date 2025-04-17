@@ -770,6 +770,7 @@ void NetworkHandler::processMessageAsHost(const SteamNetworkingMessage_t& messag
             packetData.deserialise(packet.data);
 
             PacketDataItemPickupsCreated pickupsCreatedPacketData;
+            pickupsCreatedPacketData.locationState = packetData.locationState;
 
             // Create item pickups requested
             for (auto& request : packetData.pickupRequests)

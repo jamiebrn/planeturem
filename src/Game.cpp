@@ -1,5 +1,10 @@
 #include "Game.hpp"
 
+// FIX: Entity movement over network
+// FIX: Client travel
+// FIX: Client load existing world on join when required
+// FIX: Client fish not creating on client side
+
 // TODO: Night and menu music
 
 // PRIORITY: LOW
@@ -2863,6 +2868,7 @@ ObjectReference Game::setupPlanetTravel(PlanetType planetType, std::optional<uin
         // Send chunks to client
         PacketDataPlanetTravelReply packetData;
         packetData.chunkDatas.planetType = planetType;
+        packetData.rocketObjectReference = placeRocketReference;
 
         for (auto iter = playerChunkViewRange.begin(); iter != playerChunkViewRange.end(); iter++)
         {
