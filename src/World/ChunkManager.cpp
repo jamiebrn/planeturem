@@ -226,7 +226,7 @@ void ChunkManager::regenerateChunkWithoutStructure(ChunkPosition chunk, Game& ga
 
 void ChunkManager::drawChunkTerrain(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera, float time)
 {
-    ChunkViewRange chunkViewRange = camera.getChunkViewRange();
+    ChunkViewRange chunkViewRange = camera.getChunkViewDrawRange();
     
     // Draw terrain
     for (auto iter = chunkViewRange.begin(); iter != chunkViewRange.end(); iter++)
@@ -266,7 +266,7 @@ void ChunkManager::drawChunkWater(pl::RenderTarget& window, const Camera& camera
     waterShader->setUniform2f("spriteSheetSize", waterTexture->getWidth(), waterTexture->getHeight());
     waterShader->setUniform4f("textureRect", planetGenData.waterTextureOffset.x, planetGenData.waterTextureOffset.y, 32, 32);
 
-    ChunkViewRange chunkViewRange = camera.getChunkViewRange();
+    ChunkViewRange chunkViewRange = camera.getChunkViewDrawRange();
 
     for (auto iter = chunkViewRange.begin(); iter != chunkViewRange.end(); iter++)
     {

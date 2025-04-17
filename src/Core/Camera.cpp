@@ -102,15 +102,25 @@ void Camera::handleWorldWrap(pl::Vector2f positionDelta)
 
 ChunkViewRange Camera::getChunkViewRange() const
 {
+    return getChunkViewRangeWithBorder(CHUNK_VIEW_LOAD_BORDER);
+}
+
+ChunkViewRange Camera::getChunkViewDrawRange() const
+{
+    return getChunkViewRangeWithBorder(0);
+}
+
+ChunkViewRange Camera::getChunkViewRangeWithBorder(int border) const
+{
     pl::Vector2f screenTopLeft = screenToWorldTransform({0, 0});
     pl::Vector2f screenBottomRight = screenToWorldTransform(static_cast<pl::Vector2f>(ResolutionHandler::getResolution()));
 
     ChunkViewRange chunkViewRange;
 
-    chunkViewRange.topLeft.x = std::floor(screenTopLeft.x / (TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE)) - CHUNK_VIEW_LOAD_BORDER;
-    chunkViewRange.topLeft.y = std::floor(screenTopLeft.y / (TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE)) - CHUNK_VIEW_LOAD_BORDER;
-    chunkViewRange.bottomRight.x = std::ceil(screenBottomRight.x / (TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE)) + CHUNK_VIEW_LOAD_BORDER;
-    chunkViewRange.bottomRight.y = std::ceil(screenBottomRight.y / (TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE)) + CHUNK_VIEW_LOAD_BORDER;
+    chunkViewRange.topLeft.x = std::floor(screenTopLeft.x / (TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE)) - border;
+    chunkViewRange.topLeft.y = std::floor(screenTopLeft.y / (TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE)) - border;
+    chunkViewRange.bottomRight.x = std::ceil(screenBottomRight.x / (TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE)) + border;
+    chunkViewRange.bottomRight.y = std::ceil(screenBottomRight.y / (TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE)) + border;
 
     return chunkViewRange;
 }

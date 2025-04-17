@@ -42,18 +42,21 @@ public:
     void handleWorldWrap(pl::Vector2f positionDelta);
 
     ChunkViewRange getChunkViewRange() const;
-
+    ChunkViewRange getChunkViewDrawRange() const;
+    
     // Set offset of camera
     void setOffset(pl::Vector2f newOffset);
-
+    
     bool isInView(pl::Vector2f position) const;
-
+    
     void setScreenShakeTime(float time);
-
+    
     inline static void setScreenShakeEnabled(float enabled) {screenShakeEnabled = enabled;}
     inline static bool getScreenShakeEnabled() {return screenShakeEnabled;}
-
+    
 private:
+    ChunkViewRange getChunkViewRangeWithBorder(int border = 0) const;
+
     static constexpr float MOVE_LERP_WEIGHT = 6;
     
     static constexpr float MOUSE_DELTA_DAMPEN = 15;

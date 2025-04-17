@@ -3,7 +3,8 @@
 // FIX: Entity movement over network
 // FIX: Client travel
 // FIX: Client load existing world on join when required
-// FIX: Client fish not creating on client side
+// FIX: Chests not working correctly for clients
+// FIX: Rockets not being removed on client planet exit
 
 // TODO: Night and menu music
 
@@ -36,7 +37,7 @@ bool Game::initialise()
     SDL_ShowCursor(SDL_DISABLE);
 
     // Set resolution handler values
-    ResolutionHandler::setResolution({static_cast<uint32_t>(displayMode.w), static_cast<uint32_t>(displayMode.h)});
+    ResolutionHandler::setResolution({static_cast<uint32_t>(window.getWidth()), static_cast<uint32_t>(window.getHeight())});
 
     // Load assets
     if(!TextureManager::loadTextures()) return false;
