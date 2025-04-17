@@ -18,7 +18,6 @@ void RocketObject::update(Game& game, float dt, bool onWater, bool loopAnimation
 
     particleSystem.update(dt);
     
-    
     if (flyingUp || flyingDown)
     {
         floatTween.update(dt);

@@ -4,7 +4,7 @@
 
 // PRIORITY: LOW
 // TODO: Fishing rod draw order (split into separate objects?)
-
+// TODO: Fix rocket particles on world wrap
 
 
 // -- Public methods / entry point -- //
@@ -4157,12 +4157,15 @@ void Game::drawControllerGlyphs(const std::vector<std::pair<InputAction, std::st
 #if (!RELEASE_BUILD)
 void Game::drawDebugMenu(float dt)
 {
-    if (!DebugOptions::debugOptionsMenuOpen)
-        return;
-    
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplSDL2_NewFrame();
     ImGui::NewFrame();
+
+    if (!DebugOptions::debugOptionsMenuOpen)
+    {
+        ImGui::EndFrame();
+        return;
+    }
 
     ImGui::Begin("Debug Options", &DebugOptions::debugOptionsMenuOpen);
 
