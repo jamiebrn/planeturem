@@ -620,8 +620,6 @@ void Player::drawFishingRodCast(pl::RenderTarget& window, pl::SpriteBatch& sprit
         drawnFromBob = true;
     }
     
-    // line.addVertex(pl::Vertex(camera.worldToScreenTransform(droopLineOrigin), pl::Color(255, 255, 255)));
-    
     static constexpr int lineXStep = 1;
     static constexpr float lineOverstep = 0.1f;
     int xDiff = std::abs(bobPosition.x - lineOrigin.x);

@@ -2,9 +2,6 @@
 
 // FIX: Entity movement over network
 // FIX: Client travel
-// FIX: Client load existing world on join when required
-// FIX: Chests not working correctly for clients
-// FIX: Rockets not being removed on client planet exit
 
 // TODO: Projectile collision layers
 // TODO: Projectile networking
@@ -37,7 +34,7 @@ bool Game::initialise()
 
     // Create window
     window.create(GAME_TITLE, displayMode.w * 0.75f, displayMode.h * 0.75f, SDL_WINDOW_FULLSCREEN_DESKTOP | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN);
-
+    
     // Hide mouse cursor
     SDL_ShowCursor(SDL_DISABLE);
 
@@ -2760,8 +2757,8 @@ void Game::travelToDestination()
 
     if (destinationLocationState.isOnPlanet())
     {
-        ObjectReference newRocket = setupPlanetTravel(destinationLocationState.getPlanetType(), std::nullopt);
-        deleteUsedRocket(rocketEnteredReference, locationState.getPlanetType());
+        ObjectReference newRocket = setupPlanetTravel(destinationLocationState.getPlanetType(), locationState, rocketEnteredReference, std::nullopt);
+        // deleteUsedRocket(rocketEnteredReference, locationState.getPlanetType());
         travelToPlanet(destinationLocationState.getPlanetType(), newRocket);
     }
     else if (destinationLocationState.isInRoomDest())
@@ -2788,7 +2785,7 @@ void Game::travelToDestination()
     destinationLocationState.setToNull();
 }
 
-void Game::deleteUsedRocket(ObjectReference rocketObjectReference, PlanetType planetType)
+void Game::deleteObjectSynced(ObjectReference objectReference, PlanetType planetType)
 {
     if (!networkHandler.isLobbyHostOrSolo() || planetType < 0)
     {
@@ -2797,11 +2794,11 @@ void Game::deleteUsedRocket(ObjectReference rocketObjectReference, PlanetType pl
 
     if (!worldDatas.contains(planetType))
     {
-        printf(("WARNING: Cannot delete used rocket for null planet " + std::to_string(planetType) + "\n").c_str());
+        printf(("WARNING: Cannot delete object for null planet " + std::to_string(planetType) + "\n").c_str());
         return;
     }
 
-    getChunkManager(planetType).deleteObject(rocketObjectReference.chunk, rocketObjectReference.tile);
+    getChunkManager(planetType).deleteObject(objectReference.chunk, objectReference.tile);
 
     // Alert clients if required
     if (!networkHandler.isMultiplayerGame())
@@ -2811,7 +2808,7 @@ void Game::deleteUsedRocket(ObjectReference rocketObjectReference, PlanetType pl
 
     PacketDataObjectDestroyed packetData;
     packetData.planetType = planetType;
-    packetData.objectReference = rocketObjectReference;
+    packetData.objectReference = objectReference;
     packetData.userId = SteamUser()->GetSteamID().ConvertToUint64();
     
     Packet packet;
@@ -2819,16 +2816,30 @@ void Game::deleteUsedRocket(ObjectReference rocketObjectReference, PlanetType pl
     networkHandler.sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0);
 }
 
-ObjectReference Game::setupPlanetTravel(PlanetType planetType, std::optional<uint64_t> clientID)
+ObjectReference Game::setupPlanetTravel(PlanetType planetType, const LocationState& currentLocation, ObjectReference rocketObjectUsed, std::optional<uint64_t> clientID)
 {
     assert(networkHandler.isLobbyHostOrSolo());
 
     if (!worldDatas.contains(planetType))
     {
-        if (!loadPlanet(planetType))
-        {
-            initialiseNewPlanet(planetType);
-        }
+        loadPlanet(planetType);
+    }
+
+    // Get used rocket object data
+    RocketObject* rocketObject = getObjectFromLocation<RocketObject>(rocketObjectUsed, currentLocation);
+    if (!rocketObject)
+    {
+        printf("ERROR: Attempted to set up planet travel for null rocket object (%d, %d, %d, %d)\n",
+            rocketObjectUsed.chunk.x, rocketObjectUsed.chunk.y, rocketObjectUsed.tile.x, rocketObjectUsed.tile.y);
+        return {{0, 0}, {0, 0}};
+    }
+
+    ObjectType rocketObjectType = rocketObject->getObjectType();
+
+    // Delete used rocket object if on planet
+    if (currentLocation.getGameState() == GameState::OnPlanet)
+    {
+        deleteObjectSynced(rocketObjectUsed, currentLocation.getPlanetType());
     }
 
     const std::unordered_map<PlanetType, ObjectReference>* planetRocketsUsedPtr = &planetRocketUsedPositions;
@@ -2866,7 +2877,7 @@ ObjectReference Game::setupPlanetTravel(PlanetType planetType, std::optional<uin
     getChunkManager(planetType).updateChunks(*this, std::nullopt, {playerChunkViewRange});
     
     // Place rocket
-    buildObject(placeRocketReference.chunk, placeRocketReference.tile, ObjectDataLoader::getObjectTypeFromName("Rocket Launch Pad"), planetType, false, false);
+    buildObject(placeRocketReference.chunk, placeRocketReference.tile, rocketObjectType, planetType, false, false);
 
     // Send chunks of new planet to client if client is travelling
     if (clientID.has_value() && networkHandler.getIsLobbyHost())
@@ -3439,17 +3450,23 @@ bool Game::loadGame(const SaveFileSummary& saveFileSummary)
 
 bool Game::loadPlanet(PlanetType planetType)
 {
-    GameSaveIO io(currentSaveFileSummary.name);
-
-    PlanetGameSave planetGameSave;
-
-    if (!io.loadPlanetSave(planetType, planetGameSave))
+    if (worldDatas.contains(planetType))
     {
         return false;
     }
 
-    initialiseWorldData(planetType);
+    GameSaveIO io(currentSaveFileSummary.name);
 
+    PlanetGameSave planetGameSave;
+    
+    if (!io.loadPlanetSave(planetType, planetGameSave))
+    {
+        initialiseNewPlanet(planetType);
+        return false;
+    }
+
+    initialiseWorldData(planetType);
+    
     // if (planetGameSave.isInRoom)
     // {
     //     overrideState(GameState::InStructure);

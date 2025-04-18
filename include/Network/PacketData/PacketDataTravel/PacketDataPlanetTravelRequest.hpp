@@ -10,6 +10,8 @@ struct PacketDataPlanetTravelRequest : public IPacketData
 {
     PlanetType planetType;
 
+    ObjectReference rocketUsedReference; // used when travelling from another planet, so rocket can be removed
+
     template <class Archive>
     void serialize(Archive& ar)
     {

@@ -499,8 +499,6 @@ void NetworkHandler::receiveMessages()
             messages[i]->Release();
         }
     }
-
-    printf("_____DEBUG_____: Received %d messages\n", totalMessageCount);
 }
 
 void NetworkHandler::processMessage(const SteamNetworkingMessage_t& message, const Packet& packet)
@@ -587,7 +585,8 @@ void NetworkHandler::processMessage(const SteamNetworkingMessage_t& message, con
             PacketDataObjectBuilt packetData;
             packetData.deserialise(packet.data);
             bool sentFromHost = !isLobbyHost;
-            game->buildObject(packetData.objectReference.chunk, packetData.objectReference.tile, packetData.objectType, packetData.planetType, sentFromHost);
+            game->buildObject(packetData.objectReference.chunk, packetData.objectReference.tile, packetData.objectType, packetData.planetType,
+                sentFromHost, packetData.builtByPlayer);
             break;
         }
         case PacketType::ItemPickupsCreated:
@@ -752,11 +751,20 @@ void NetworkHandler::processMessageAsHost(const SteamNetworkingMessage_t& messag
                 playerData.inventory = InventoryData(32);
                 playerData.inventory.giveStartingItems();
                 playerData.armourInventory = InventoryData(3);
-                
+
                 // Find spawn for player
                 ChunkPosition playerSpawnChunk = game->getChunkManager(playerData.locationState.getPlanetType()).findValidSpawnChunk(2);
                 playerData.position.x = playerSpawnChunk.x * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED + 0.5f * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
                 playerData.position.y = playerSpawnChunk.y * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED + 0.5f * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
+            }
+            else
+            {
+                // Player data exists - load planet if required
+                const PlayerData& playerData = networkPlayerDatasSaved.at(message.m_identityPeer.GetSteamID64());;
+                if (playerData.locationState.isOnPlanet())
+                {    
+                    game->loadPlanet(playerData.locationState.getPlanetType());
+                }
             }
 
             // Send player data
@@ -842,7 +850,8 @@ void NetworkHandler::processMessageAsHost(const SteamNetworkingMessage_t& messag
         {
             PacketDataPlanetTravelRequest packetData;
             packetData.deserialise(packet.data);
-            game->setupPlanetTravel(packetData.planetType, message.m_identityPeer.GetSteamID64());
+            game->setupPlanetTravel(packetData.planetType, networkPlayers[message.m_identityPeer.GetSteamID64()].getPlayerData().locationState,
+                packetData.rocketUsedReference, message.m_identityPeer.GetSteamID64());
             break;
         }
         case PacketType::StructureEnterRequest:

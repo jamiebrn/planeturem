@@ -152,6 +152,9 @@ public:
     void joinWorld(const PacketDataJoinInfo& joinInfo);
     void quitWorld();
 
+    // Attempts to load planet from disk if required - initialises new planet if not available
+    bool loadPlanet(PlanetType planetType);
+
     void hitObject(ChunkPosition chunk, pl::Vector2<int> tile, int damage, std::optional<PlanetType> planetType = std::nullopt,
         bool sentFromHost = false, std::optional<uint64_t> userId = std::nullopt);
     void buildObject(ChunkPosition chunk, pl::Vector2<int> tile, ObjectType objectType, std::optional<PlanetType> planetType = std::nullopt,
@@ -164,7 +167,7 @@ public:
     void handleChunkRequestsFromClient(const PacketDataChunkRequests& chunkRequests, const SteamNetworkingIdentity& client);
     void handleChunkDataFromHost(const PacketDataChunkDatas& chunkDataPacket);
 
-    ObjectReference setupPlanetTravel(PlanetType planetType, std::optional<uint64_t> clientID);
+    ObjectReference setupPlanetTravel(PlanetType planetType, const LocationState& currentLocation, ObjectReference rocketObjectUsed, std::optional<uint64_t> clientID);
     void travelToPlanetFromHost(const PacketDataPlanetTravelReply& planetTravelReplyPacket);
 
     std::optional<uint32_t> initialiseStructureOrGet(PlanetType planetType, ChunkPosition chunk, pl::Vector2f* entrancePos, RoomType* roomType);
@@ -272,9 +275,9 @@ private:
     // -- Planet travelling -- //
 
     void travelToDestination();
-    void deleteUsedRocket(ObjectReference rocketObjectReference, PlanetType planetType);
     void travelToPlanet(PlanetType planetType, ObjectReference newRocketObjectReference);
-
+    void deleteObjectSynced(ObjectReference objectReference, PlanetType planetType);
+    
     void travelToRoomDestination(RoomType destinationRoomType);
 
     // Returns spawn chunk
@@ -297,7 +300,6 @@ private:
     void startNewGame(int seed);
     bool saveGame(bool gettingInRocket = false);
     bool loadGame(const SaveFileSummary& saveFileSummary);
-    bool loadPlanet(PlanetType planetType);
 
     void initialiseWorldData(PlanetType planetType);
     
