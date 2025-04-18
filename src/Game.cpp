@@ -10,12 +10,13 @@
 // TODO: Projectile networking
 // TODO: Boss networking
 
+// TODO: Maybe prevent building from hotbar when inventory open?
+
 // TODO: Night and menu music
 
 // PRIORITY: LOW
 // TODO: Fishing rod draw order (split into separate objects?)
-// TODO: Fix rocket particles on world wrap
-
+// FIX: Rocket particles on world wrap
 
 // -- Public methods / entry point -- //
 

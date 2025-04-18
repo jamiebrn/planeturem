@@ -473,20 +473,34 @@ void NetworkHandler::updateNetworkPlayers(float dt, const LocationState& locatio
 
 void NetworkHandler::receiveMessages()
 {
-    static const int MAX_MESSAGES = 100;
+    static const int MAX_MESSAGES = 10;
 
-    SteamNetworkingMessage_t* messages[MAX_MESSAGES];
-    int messageCount = SteamNetworkingMessages()->ReceiveMessagesOnChannel(0, messages, MAX_MESSAGES);
+    int totalMessageCount = 0;
 
-    for (int i = 0; i < messageCount; i++)
+    while (true)
     {
-        Packet packet;
-        packet.deserialise((char*)messages[i]->GetData(), messages[i]->GetSize());
+        SteamNetworkingMessage_t* messages[MAX_MESSAGES];
+        int messageCount = SteamNetworkingMessages()->ReceiveMessagesOnChannel(0, messages, MAX_MESSAGES);
 
-        processMessage(*messages[i], packet);
+        if (messageCount <= 0)
+        {
+            break;
+        }
 
-        messages[i]->Release();
+        totalMessageCount += messageCount;
+    
+        for (int i = 0; i < messageCount; i++)
+        {
+            Packet packet;
+            packet.deserialise((char*)messages[i]->GetData(), messages[i]->GetSize());
+    
+            processMessage(*messages[i], packet);
+    
+            messages[i]->Release();
+        }
     }
+
+    printf("_____DEBUG_____: Received %d messages\n", totalMessageCount);
 }
 
 void NetworkHandler::processMessage(const SteamNetworkingMessage_t& message, const Packet& packet)

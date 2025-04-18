@@ -37,8 +37,8 @@ void ItemPickup::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Ga
 
     TextureManager::drawSubTexture(window, shadowDrawData);
 
-    pl::Vector2<int> worldTile = getWorldTileInside(worldSize);
-    float floatAmount = std::pow(std::sin(gameTime + worldTile.x + worldTile.y), 2);
+    pl::Vector2<int> chunkTile = getChunkTileInside(worldSize);
+    float floatAmount = std::pow(std::sin(gameTime + chunkTile.x + chunkTile.y), 2);
 
     pl::Vector2f screenPos = camera.worldToScreenTransform(position - pl::Vector2f(0, floatAmount * (maxFloatHeight - minFloatHeight) + minFloatHeight));
     float scaleMult = scale / 3.0f / ResolutionHandler::getResolutionIntegerScale();
