@@ -6,6 +6,10 @@
 // FIX: Chests not working correctly for clients
 // FIX: Rockets not being removed on client planet exit
 
+// TODO: Projectile collision layers
+// TODO: Projectile networking
+// TODO: Boss networking
+
 // TODO: Night and menu music
 
 // PRIORITY: LOW

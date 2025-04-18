@@ -1049,24 +1049,24 @@ void NetworkHandler::sendGameUpdatesToClients()
     }
 
     // Send entity datas to each client as required
-    for (auto iter = networkPlayers.begin(); iter != networkPlayers.end(); iter++)
-    {
-        if (!iter->second.getPlayerData().locationState.isOnPlanet())
-        {
-            continue;
-        }
+    // for (auto iter = networkPlayers.begin(); iter != networkPlayers.end(); iter++)
+    // {
+    //     if (!iter->second.getPlayerData().locationState.isOnPlanet())
+    //     {
+    //         continue;
+    //     }
         
-        PlanetType playerPlanetType = iter->second.getPlayerData().locationState.getPlanetType();
+    //     PlanetType playerPlanetType = iter->second.getPlayerData().locationState.getPlanetType();
 
-        PacketDataEntities packetData = game->getChunkManager(playerPlanetType).getEntityPacketDatas(iter->second.getChunkViewRange());
+    //     PacketDataEntities packetData = game->getChunkManager(playerPlanetType).getEntityPacketDatas(iter->second.getChunkViewRange());
 
-        Packet packet;
-        packet.set(packetData, true);
+    //     Packet packet;
+    //     packet.set(packetData, true);
 
-        printf(("NETWORK: Sending entity data to " + getPlayerName(iter->first) + " " + packet.getSizeStr() + "\n").c_str());
+    //     printf(("NETWORK: Sending entity data to " + getPlayerName(iter->first) + " " + packet.getSizeStr() + "\n").c_str());
 
-        sendPacketToClient(iter->first, packet, k_nSteamNetworkingSend_Reliable, 0);
-    }
+    //     sendPacketToClient(iter->first, packet, k_nSteamNetworkingSend_Reliable, 0);
+    // }
 }
 
 void NetworkHandler::sendGameUpdatesToHost(const Camera& camera)
