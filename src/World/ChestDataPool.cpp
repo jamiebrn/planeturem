@@ -59,14 +59,14 @@ void ChestDataPool::destroyChest(uint16_t id)
 
 InventoryData& ChestDataPool::getChestData(uint16_t id)
 {
-    assert(id < chestData.size());
+    assert(chestData.contains(id));
 
     return chestData.at(id);
 }
 
 InventoryData* ChestDataPool::getChestDataPtr(uint16_t id)
 {
-    if (id >= chestData.size())
+    if (!chestData.contains(id))
     {
         return nullptr;
     }
