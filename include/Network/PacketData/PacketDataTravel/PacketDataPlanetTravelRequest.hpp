@@ -15,7 +15,7 @@ struct PacketDataPlanetTravelRequest : public IPacketData
     template <class Archive>
     void serialize(Archive& ar)
     {
-        ar(planetType);
+        ar(planetType, rocketUsedReference);
     }
 
     PACKET_SERIALISATION();
