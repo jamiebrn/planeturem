@@ -842,7 +842,7 @@ void NetworkHandler::processMessageAsHost(const SteamNetworkingMessage_t& messag
         {
             PacketDataChestDataModified packetData;
             packetData.deserialise(packet.data);
-            game->getChestDataPool().overwriteChestData(packetData.chestID, packetData.chestData);
+            game->getChestDataPool(packetData.locationState).overwriteChestData(packetData.chestID, packetData.chestData);
             printf(("NETWORK: Received chest data from " + std::string(SteamFriends()->GetFriendPersonaName(message.m_identityPeer.GetSteamID())) + "\n").c_str());
             break;
         }

@@ -82,6 +82,28 @@ GameState LocationState::getGameState() const
     return GameState::InRoomDestination;
 }
 
+LocationState LocationState::createFromPlanetType(PlanetType planetType)
+{
+    LocationState locationState;
+    locationState.setPlanetType(planetType);
+    return locationState;
+}
+
+LocationState LocationState::createFromStructureID(PlanetType planetType, uint32_t structureID)
+{
+    LocationState locationState;
+    locationState.setPlanetType(planetType);
+    locationState.setInStructureID(structureID);
+    return locationState;
+}
+
+LocationState LocationState::createFromRoomDestType(RoomType roomType)
+{
+    LocationState locationState;
+    locationState.setRoomDestType(roomType);
+    return locationState;
+}
+
 void from_json(const nlohmann::json& json, LocationState& locationState)
 {
     if (json.contains("planet"))

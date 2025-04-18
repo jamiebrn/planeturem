@@ -33,6 +33,10 @@ public:
 
     GameState getGameState() const;
 
+    static LocationState createFromPlanetType(PlanetType planetType);
+    static LocationState createFromStructureID(PlanetType planetType, uint32_t structureID);
+    static LocationState createFromRoomDestType(RoomType roomType);
+
     inline bool operator==(const LocationState& other) const
     {
         if (isOnPlanet() && other.isOnPlanet() && currentPlanetType == other.getPlanetType())

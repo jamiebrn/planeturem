@@ -1,7 +1,5 @@
 #pragma once
 
-
-
 #include <cstdint>
 
 #include <Vector.hpp>
@@ -9,6 +7,7 @@
 #include "Object/WorldObject.hpp"
 #include "Object/BuildableObject.hpp"
 #include "World/ChestDataPool.hpp"
+#include "Player/LocationState.hpp"
 
 class Game;
 
@@ -28,7 +27,7 @@ public:
 
     void triggerBehaviour(Game& game, ObjectBehaviourTrigger trigger) override;
 
-    uint16_t createChestID(Game& game, std::optional<PlanetType> planetTypeOverride = std::nullopt, std::optional<RoomType> roomDestOverride = std::nullopt);
+    uint16_t createChestID(Game& game, std::optional<LocationState> locationState);
 
     inline void setChestID(uint16_t chestID) {this->chestID = chestID;}
     inline uint16_t getChestID() {return chestID;}

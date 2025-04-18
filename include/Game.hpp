@@ -187,7 +187,7 @@ public:
     LandmarkManager& getLandmarkManager(std::optional<PlanetType> planetTypeOverride = std::nullopt);
     RoomPool& getStructureRoomPool(std::optional<PlanetType> planetTypeOverride = std::nullopt);
     Room& getRoomDestination(std::optional<RoomType> roomDestOverride = std::nullopt);
-    ChestDataPool& getChestDataPool(std::optional<PlanetType> planetTypeOverride = std::nullopt, std::optional<RoomType> roomDestOverride = std::nullopt);
+    ChestDataPool& getChestDataPool(std::optional<LocationState> locationState = std::nullopt);
     bool isLocationStateInitialised(const LocationState& locationState);
 
     inline const Camera& getCamera() {return camera;}
