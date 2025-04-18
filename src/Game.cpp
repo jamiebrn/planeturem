@@ -2740,6 +2740,7 @@ void Game::travelToDestination()
         {
             PacketDataPlanetTravelRequest packetData;
             packetData.planetType = destinationLocationState.getPlanetType();
+            packetData.rocketUsedReference = rocketEnteredReference;
             packet.set(packetData);
         }
         else if (destinationLocationState.isInRoomDest())
