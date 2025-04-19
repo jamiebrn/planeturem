@@ -1,12 +1,12 @@
 #include "Game.hpp"
 
-// FIX: EXTREMELY MYSTERIOUS SHADER UNIFORM SEGFAULT
+// FIX: EXTREMELY MYSTERIOUS SHADER UNIFORM SEGFAULT (maybe fixed)
+// FIX: Weather inconsistency (gametime)
 
 // TODO: Make entities persistent across network and send state updates (movement, health etc)
 // TODO: Use per-world entity chunk ID counter, rather than per chunk, to prevent collisions
 
 // FIX: Entity movement over network
-// FIX: Client travel
 
 // TODO: Save all required planets
 // TODO: Projectile collision layers

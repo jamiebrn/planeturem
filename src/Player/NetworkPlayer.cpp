@@ -73,7 +73,6 @@ PacketDataPlayerCharacterInfo NetworkPlayer::getNetworkPlayerInfo(const Camera* 
 
 void NetworkPlayer::setNetworkPlayerCharacterInfo(const PacketDataPlayerCharacterInfo& info)
 {
-    // position = chunkManager.translatePositionAroundWorld(pl::Vector2f(info.positionX, info.positionY), playerPosition);
     playerData.position = info.position;
     direction = info.direction;
     speed = info.speed;
@@ -103,6 +102,7 @@ void NetworkPlayer::setNetworkPlayerCharacterInfo(const PacketDataPlayerCharacte
     inRocket = info.inRocket;
 
     equippedTool = info.toolType;
+    toolRotation = info.toolRotation;
     fishingRodCasted = info.fishingRodCasted;
     fishBitingLine = info.fishBitingLine;
     

@@ -396,7 +396,6 @@ private:
     // 0xFFFF chest ID reserved for no chest opened / non-initialised chest
     uint16_t openedChestID;
     ObjectReference openedChest;
-    // pl::Vector2f openedChestPos;
 
     // Structure
     pl::Vector2f structureEnteredPos;

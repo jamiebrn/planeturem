@@ -555,12 +555,12 @@ void NetworkHandler::processMessage(const SteamNetworkingMessage_t& message, con
             if (networkPlayers.contains(packetData.userID))
             {
                 networkPlayers[packetData.userID].setPlayerData(packetData.playerData);
-                printf(("NETWORK: Received player data for network player " + std::to_string(packetData.userID) + "(" +
+                printf(("NETWORK: Received player data for network player " + std::to_string(packetData.userID) + " (" +
                 packetData.playerData.name + ")\n").c_str());
             }
             else
             {
-                printf(("WARNING: Received player data for unregistered network player " + std::to_string(packetData.userID) + "(" +
+                printf(("WARNING: Received player data for unregistered network player " + std::to_string(packetData.userID) + " (" +
                     packetData.playerData.name + ")\n").c_str());
             }
 

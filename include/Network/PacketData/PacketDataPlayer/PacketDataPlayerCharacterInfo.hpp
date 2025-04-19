@@ -32,7 +32,7 @@ struct PacketDataPlayerCharacterInfo : public IPacketData, public IPacketTimeDep
     bool inRocket;
     
     ToolType toolType;
-    // float toolRotation;
+    float toolRotation;
     bool fishingRodCasted;
     bool fishBitingLine;
     pl::Vector2<int> fishingRodBobWorldTile;
@@ -54,7 +54,7 @@ struct PacketDataPlayerCharacterInfo : public IPacketData, public IPacketTimeDep
     template <class Archive>
     void serialize(Archive& ar)
     {
-        ar(position.x, position.y, direction.x, direction.y, speed, animationFrame, flipped, yScaleMult, onWater, inRocket, toolType,
+        ar(position.x, position.y, direction.x, direction.y, speed, animationFrame, flipped, yScaleMult, onWater, inRocket, toolType, toolRotation,
             fishingRodCasted, fishBitingLine, fishingRodBobWorldTile.x, fishingRodBobWorldTile.y, usingTool, toolRotTweenID, toolTweenData, armour,
             chunkViewRange, userID);
     }

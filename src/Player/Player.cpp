@@ -1095,7 +1095,7 @@ PacketDataPlayerCharacterInfo Player::getNetworkPlayerInfo(const Camera* camera,
     info.inRocket = inRocket;
 
     info.toolType = equippedTool;
-    // info.toolRotation = toolRotation;
+    info.toolRotation = toolRotation;
     info.fishingRodCasted = fishingRodCasted;
     info.fishBitingLine = fishBitingLine;
     info.fishingRodBobWorldTile = fishingRodBobWorldTile;

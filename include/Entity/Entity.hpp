@@ -2,8 +2,6 @@
 
 #include <memory>
 
-
-
 #include <Graphics/SpriteBatch.hpp>
 #include <Graphics/Color.hpp>
 #include <Graphics/RenderTarget.hpp>
@@ -16,7 +14,6 @@
 #include "Core/ResolutionHandler.hpp"
 #include "Core/CollisionRect.hpp"
 #include "Core/AnimatedTexture.hpp"
-// #include "Core/SpriteBatch.hpp"
 
 #include "Object/WorldObject.hpp"
 #include "World/ChunkManager.hpp"
