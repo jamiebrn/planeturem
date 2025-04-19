@@ -495,6 +495,7 @@ void NetworkHandler::receiveMessages()
             processMessage(*messages[i], packet);
 
             totalBytesReceived += messages[i]->GetSize();
+            printf("___DEBUG___: Received packet of size %d bytes, type %d\n", messages[i]->GetSize(), packet.type);
     
             messages[i]->Release();
         }
