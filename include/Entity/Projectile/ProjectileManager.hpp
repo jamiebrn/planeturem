@@ -17,6 +17,8 @@
 
 #include "Projectile.hpp"
 
+class ChunkManager;
+
 class ProjectileManager
 {
 public:
@@ -24,12 +26,12 @@ public:
 
     void update(float dt);
 
-    void drawProjectiles(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera);
+    void drawProjectiles(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const ChunkManager& chunkManager, pl::Vector2f playerPos, const Camera& camera);
 
     void addProjectile(const Projectile& projectile);
-    void createProjectileWithID(uint64_t id, const Projectile& projectile);
+    void createProjectileWithID(uint16_t id, const Projectile& projectile);
 
-    std::unordered_map<uint64_t, Projectile>& getProjectiles();
+    std::unordered_map<uint16_t, Projectile>& getProjectiles();
 
     void handleWorldWrap(pl::Vector2f positionDelta);
 
@@ -42,8 +44,8 @@ public:
     }
 
 private:
-    std::unordered_map<uint64_t, Projectile> projectiles;
-    uint64_t projectileCounter = 0;
+    std::unordered_map<uint16_t, Projectile> projectiles;
+    uint16_t projectileCounter = 0;
 
 };
 

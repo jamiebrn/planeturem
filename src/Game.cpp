@@ -1222,7 +1222,7 @@ void Game::drawWorld(pl::Framebuffer& renderTexture, float dt, std::vector<World
     }
 
     // Draw projectiles
-    worldData.projectileManager.drawProjectiles(renderTexture, spriteBatch, cameraArg);
+    worldData.projectileManager.drawProjectiles(renderTexture, spriteBatch, worldData.chunkManager, player.getPosition(), cameraArg);
     // enemyProjectileManager.drawProjectiles(renderTexture, spriteBatch, cameraArg);
 
     spriteBatch.endDrawing(renderTexture);

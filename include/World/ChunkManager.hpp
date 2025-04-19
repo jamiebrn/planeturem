@@ -262,6 +262,7 @@ public:
     // Translate position relative to player position and world size, to make position closest possible to player
     // Provides planet / wraparound effect
     pl::Vector2f translatePositionAroundWorld(pl::Vector2f position, pl::Vector2f originPosition) const;
+    static pl::Vector2f translatePositionAroundWorld(pl::Vector2f position, pl::Vector2f originPosition, int worldSize);
 
     // Used to calculate chunk and tile positions from an offset value, from another chunk and tile
     // Correct for offsets < worldSize * CHUNK_TILE_SIZE

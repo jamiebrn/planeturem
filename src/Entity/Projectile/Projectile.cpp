@@ -1,16 +1,15 @@
 #include "Entity/Projectile/Projectile.hpp"
+#include "World/ChunkManager.hpp"
 
 Projectile::Projectile(pl::Vector2f position, float angle, ProjectileType type, float damageMult, float shootPower, HitLayer hitLayer)
 {
     this->position = position;
 
-    this->angle = angle;
-
     projectileType = type;
     
     const ProjectileData& projectileData = ToolDataLoader::getProjectileData(type);
     
-    speed = projectileData.speed * shootPower;
+    int speed = projectileData.speed * shootPower;
 
     // Randomise damage
     int damageBaseValue = Helper::randInt(projectileData.damageLow, projectileData.damageHigh);
@@ -40,15 +39,15 @@ void Projectile::update(float dt)
     }
 }
 
-void Projectile::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera)
+void Projectile::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const ChunkManager& chunkManager, pl::Vector2f playerPos, const Camera& camera)
 {
     const ProjectileData& projectileData = ToolDataLoader::getProjectileData(projectileType);
 
     pl::DrawData drawData;
     drawData.texture = TextureManager::getTexture(TextureType::Tools);
     drawData.shader = Shaders::getShader(ShaderType::Default);
-    drawData.position = camera.worldToScreenTransform(position);
-    drawData.rotation = angle;
+    drawData.position = camera.worldToScreenTransform(chunkManager.translatePositionAroundWorld(position, playerPos));
+    drawData.rotation = std::atan2(velocity.y, velocity.x);
     drawData.textureRect = projectileData.textureRect;
 
     float scale = ResolutionHandler::getScale();
@@ -88,7 +87,7 @@ CollisionCircle Projectile::getCollisionCircle() const
     const ProjectileData& projectileData = ToolDataLoader::getProjectileData(projectileType);
 
     pl::Vector2f collisionPos = position;
-    collisionPos += projectileData.collisionOffset.rotate(angle / 180.0f * M_PI);
+    collisionPos += projectileData.collisionOffset.rotate(std::atan2(velocity.y, velocity.x));
 
     return CollisionCircle(collisionPos.x, collisionPos.y, projectileData.collisionRadius);
 }

@@ -971,6 +971,19 @@ void NetworkHandler::processMessageAsClient(const SteamNetworkingMessage_t& mess
             game->getChunkManager().loadEntityPacketDatas(packetData);
             break;
         }
+        case PacketType::Projectiles:
+        {
+            PacketDataProjectiles packetData;
+            packetData.deserialise(packet.data);
+            packetData.applyPingEstimate(getPlayerPingLocation(message.m_identityPeer.GetSteamID64()));
+            if (game->getLocationState() != LocationState::createFromPlanetType(packetData.planetType))
+            {
+                printf("ERROR: Received projectile data for incorrect planet type %d\n", packetData.planetType);
+                break;
+            }
+            game->getProjectileManager(packetData.planetType) = packetData.projectileManager;
+            break;
+        }
         case PacketType::PlanetTravelReply:
         {
             PacketDataPlanetTravelReply packetData;
@@ -1078,13 +1091,35 @@ void NetworkHandler::sendGameUpdatesToClients()
         }
         
         PlanetType playerPlanetType = iter->second.getPlayerData().locationState.getPlanetType();
-
+        
         PacketDataEntities packetData = game->getChunkManager(playerPlanetType).getEntityPacketDatas(iter->second.getChunkViewRange());
+        
+        Packet packet;
+        packet.set(packetData, true);
+        
+        // printf(("NETWORK: Sending entity data (of %d entities) to " + getPlayerName(iter->first) + " " + packet.getSizeStr() + "\n").c_str(), packetData.entities.size());
+        
+        sendPacketToClient(iter->first, packet, k_nSteamNetworkingSend_Reliable, 0);
+    }
+    
+    // Send projectile data to each client
+    for (auto iter = networkPlayers.begin(); iter != networkPlayers.end(); iter++)
+    {
+        if (!iter->second.getPlayerData().locationState.isOnPlanet())
+        {
+            continue;
+        }
+
+        PlanetType playerPlanetType = iter->second.getPlayerData().locationState.getPlanetType();
+
+        PacketDataProjectiles packetData;
+        packetData.planetType = playerPlanetType;
+        packetData.projectileManager = game->getProjectileManager(playerPlanetType);
 
         Packet packet;
         packet.set(packetData, true);
 
-        // printf(("NETWORK: Sending entity data (of %d entities) to " + getPlayerName(iter->first) + " " + packet.getSizeStr() + "\n").c_str(), packetData.entities.size());
+        printf("NETWORK: Sending projectile data of size %s\n", packet.getSizeStr().c_str());
 
         sendPacketToClient(iter->first, packet, k_nSteamNetworkingSend_Reliable, 0);
     }

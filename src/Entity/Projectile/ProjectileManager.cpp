@@ -20,26 +20,33 @@ void ProjectileManager::update(float dt)
     }
 }
 
-void ProjectileManager::drawProjectiles(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera)
+void ProjectileManager::drawProjectiles(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const ChunkManager& chunkManager,
+    pl::Vector2f playerPos, const Camera& camera)
 {
     for (auto& projectilePair : projectiles)
     {
-        projectilePair.second.draw(window, spriteBatch, camera);
+        projectilePair.second.draw(window, spriteBatch, chunkManager, playerPos, camera);
     }
 }
 
 void ProjectileManager::addProjectile(const Projectile& projectile)
 {
+    if (projectiles.contains(projectileCounter))
+    {
+        printf("ERROR: Failed to create projectile with already existing ID %d\n", projectileCounter);
+        return;
+    }
+
     projectiles[projectileCounter] = projectile;
     projectileCounter++;
 }
 
-void ProjectileManager::createProjectileWithID(uint64_t id, const Projectile& projectile)
+void ProjectileManager::createProjectileWithID(uint16_t id, const Projectile& projectile)
 {
     projectiles[id] = projectile;
 }
 
-std::unordered_map<uint64_t, Projectile>& ProjectileManager::getProjectiles()
+std::unordered_map<uint16_t, Projectile>& ProjectileManager::getProjectiles()
 {
     return projectiles;
 }

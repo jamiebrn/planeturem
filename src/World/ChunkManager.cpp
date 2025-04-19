@@ -1263,6 +1263,11 @@ std::unordered_map<std::string, int> ChunkManager::getNearbyCraftingStationLevel
 
 pl::Vector2f ChunkManager::translatePositionAroundWorld(pl::Vector2f position, pl::Vector2f originPosition) const
 {
+    return translatePositionAroundWorld(position, originPosition, worldSize);
+}
+
+pl::Vector2f ChunkManager::translatePositionAroundWorld(pl::Vector2f position, pl::Vector2f originPosition, int worldSize)
+{
     int worldPixelSize = worldSize * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
     float halfWorldPixelSize = worldPixelSize / 2.0f;
 

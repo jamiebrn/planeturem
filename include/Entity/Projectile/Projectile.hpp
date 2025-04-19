@@ -22,6 +22,8 @@
 #include "Data/ToolData.hpp"
 #include "Data/ToolDataLoader.hpp"
 
+class ChunkManager;
+
 enum class HitLayer
 {
     Player,
@@ -37,7 +39,7 @@ public:
 
     void update(float dt);
 
-    void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera);
+    void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const ChunkManager& chunkManager, pl::Vector2f playerPos, const Camera& camera);
 
     int getDamage() const;
 
@@ -57,19 +59,16 @@ public:
     template <class Archive>
     void serialize(Archive& ar, const std::uint32_t version)
     {
-        ar(projectileType, speed, position.x, position.y, velocity.x, velocity.y, angle);
+        ar(projectileType, position.x, position.y, velocity.x, velocity.y);
     }
 
 private:
     ProjectileType projectileType;
     int damage;
 
-    float speed;
-
     pl::Vector2f position;
     pl::Vector2f velocity;
-    float angle;
-
+    
     bool alive;
     float timeAlive;
 

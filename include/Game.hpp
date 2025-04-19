@@ -190,6 +190,8 @@ public:
     ChestDataPool& getChestDataPool(std::optional<LocationState> locationState = std::nullopt);
     bool isLocationStateInitialised(const LocationState& locationState);
 
+    inline const LocationState& getLocationState() {return locationState;}
+
     inline const Camera& getCamera() {return camera;}
 
     inline Player& getPlayer() {return player;}
@@ -199,7 +201,7 @@ public:
     inline void setGameTime(float gameTime) {this->gameTime = gameTime;}
 
     inline int getPlanetSeed() {return planetSeed;}
-
+    
 private:
 
     // -- Main Menu -- //
