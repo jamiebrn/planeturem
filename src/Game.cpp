@@ -6,7 +6,7 @@
 // TODO: Make entities persistent across network and send state updates (movement, health etc)
 // TODO: Use per-world entity chunk ID counter, rather than per chunk, to prevent collisions
 
-// FIX: Entity movement over network
+// TODO: Improve entity movement over network
 
 // TODO: Save all required planets
 // TODO: Projectile collision layers
@@ -1994,6 +1994,7 @@ void Game::destroyObjectFromHost(ChunkPosition chunk, pl::Vector2<int> tile, std
     getChunkManager(planetType).deleteObject(chunk, tile);
 }
 
+// TODO: Use client melee data / location state
 void Game::testMeleeCollision(const std::vector<HitRect>& hitRects)
 {
     getChunkManager().testChunkEntityHitCollision(hitRects, *this, gameTime);

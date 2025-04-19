@@ -1,5 +1,33 @@
 #include "Core/Sounds.hpp"
 
+std::unordered_map<SoundType, std::unique_ptr<pl::Sound>> Sounds::soundMap;
+
+const std::unordered_map<SoundType, std::string> Sounds::soundPaths = {
+    {SoundType::HitObject, "Data/Sounds/hit_object.ogg"},
+    {SoundType::HitObject2, "Data/Sounds/hit_object_2.ogg"},
+    {SoundType::HitObject3, "Data/Sounds/hit_object_3.ogg"},
+    {SoundType::HitAnimal, "Data/Sounds/animal_hit.ogg"},
+    {SoundType::HitAnimal2, "Data/Sounds/animal_hit2.ogg"},
+    {SoundType::HitAnimal3, "Data/Sounds/animal_hit3.ogg"},
+    {SoundType::CraftBuild1, "Data/Sounds/craftbuild1.ogg"},
+    {SoundType::CraftBuild2, "Data/Sounds/craftbuild2.ogg"},
+    {SoundType::Pop0, "Data/Sounds/pop0.ogg"},
+    {SoundType::Pop1, "Data/Sounds/pop1.ogg"},
+    {SoundType::Pop2, "Data/Sounds/pop2.ogg"},
+    {SoundType::Pop3, "Data/Sounds/pop3.ogg"},
+    {SoundType::Notify0, "Data/Sounds/notify0.ogg"},
+    {SoundType::UIClick0, "Data/Sounds/uiclick0.ogg"},
+    {SoundType::Crow, "Data/Sounds/crow.ogg"}
+};
+
+std::unordered_map<MusicType, std::unique_ptr<pl::Sound>> Sounds::musicMap;
+
+const std::unordered_map<MusicType, std::string> Sounds::musicPaths = {
+    {MusicType::WorldTheme, "Data/Sounds/world_theme.ogg"},
+    {MusicType::WorldTheme2, "Data/Sounds/world_theme_2.ogg"},
+    {MusicType::BossTheme1, "Data/Sounds/boss_theme_1.ogg"}
+};
+
 float Sounds::fadingMusicVolume;
 Tween<float> Sounds::fadeOutTween;
 

@@ -1046,7 +1046,7 @@ void Chunk::testEntityHitCollision(const std::vector<HitRect>& hitRects, ChunkMa
 {
     for (auto& entity : entities)
     {
-        entity->testHitCollision(hitRects, chunkManager, game, gameTime);
+        entity->testHitCollision(hitRects, game, LocationState::createFromPlanetType(chunkManager.getPlanetType()), gameTime);
     }
 }
 

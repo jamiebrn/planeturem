@@ -117,7 +117,7 @@ void CollisionRect::debugDraw(pl::RenderTarget& window, const Camera& camera, pl
     float scale = ResolutionHandler::getScale();
 
     pl::VertexArray rect;
-    rect.addQuad(pl::Rect<float>(camera.worldToScreenTransform(pl::Vector2f(x, y)), pl::Vector2f(width, height) * scale), color.normalise(), pl::Rect<float>(0, 0, 0, 0));
+    rect.addQuad(pl::Rect<float>(camera.worldToScreenTransform(pl::Vector2f(x, y)), pl::Vector2f(width, height) * scale), color, pl::Rect<float>());
 
     window.draw(rect, *Shaders::getShader(ShaderType::DefaultNoTexture), nullptr, pl::BlendMode::Alpha);
 }

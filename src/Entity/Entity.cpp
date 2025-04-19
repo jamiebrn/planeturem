@@ -63,7 +63,7 @@ void Entity::update(float dt, ProjectileManager& projectileManager, ChunkManager
     {
         if (isProjectileColliding(projectilePair.second) && projectilePair.second.isAlive())
         {
-            damage(projectilePair.second.getDamage(), chunkManager, gameTime);
+            damage(projectilePair.second.getDamage(), game, LocationState::createFromPlanetType(chunkManager.getPlanetType()), gameTime);
             projectilePair.second.onCollision();
             behaviour->onHit(*this, game, projectilePair.second.getPosition());
         }
@@ -179,20 +179,20 @@ void Entity::createLightSource(LightingEngine& lightingEngine, pl::Vector2f topL
 }
 
 
-void Entity::testHitCollision(const std::vector<HitRect>& hitRects, ChunkManager& chunkManager, Game& game, float gameTime)
+void Entity::testHitCollision(const std::vector<HitRect>& hitRects, Game& game, const LocationState& locationState, float gameTime)
 {
     for (const HitRect& hitRect : hitRects)
     {
         if (hitRect.isColliding(collisionRect))
         {
-            damage(hitRect.damage, chunkManager, gameTime);
+            damage(hitRect.damage, game, locationState, gameTime);
             behaviour->onHit(*this, game, game.getPlayer().getPosition());
             return;
         }
     }
 }
 
-void Entity::damage(int amount, ChunkManager& chunkManager, float gameTime)
+void Entity::damage(int amount, Game& game, const LocationState& locationState, float gameTime)
 {
     flashAmount = 1.0f;
     health -= amount;
@@ -201,15 +201,24 @@ void Entity::damage(int amount, ChunkManager& chunkManager, float gameTime)
 
     HitMarkers::addHitMarker(position, amount);
 
-    // SoundType hitSound = SoundType::HitObject;
-    // int soundChance = rand() % 3;
-    // if (soundChance == 1) hitSound = SoundType::HitObject2;
-    // else if (soundChance == 2) hitSound = SoundType::HitObject3;
+    SoundType hitSound = SoundType::HitAnimal;
+    int soundChance = rand() % 3;
+    if (soundChance == 1) hitSound = SoundType::HitAnimal2;
+    else if (soundChance == 2) hitSound = SoundType::HitAnimal3;
 
-    // Sounds::playSound(hitSound, 60.0f);
+    Sounds::playSound(hitSound, 30.0f);
 
     if (!isAlive())
     {
+        // Get chunk manager
+        if (!game.isLocationStateInitialised(locationState))
+        {
+            printf("ERROR: Attempted to create item pickups for entity in null location\n");
+            return;
+        }
+
+        ChunkManager& chunkManager = game.getChunkManager(locationState.getPlanetType());
+
         // Give item drops
         const EntityData& entityData = EntityDataLoader::getEntityData(entityType);
         float dropChance = (rand() % 1000) / 1000.0f;
@@ -318,8 +327,6 @@ PacketDataEntities::EntityPacketData Entity::getPacketData(pl::Vector2f chunkPos
     packetData.flashAmount = CompactFloat<uint8_t>(flashAmount, 2);
     packetData.idleAnimFrame = idleAnim.getFrame();
     packetData.walkAnimFrame = walkAnim.getFrame();
-
-    printf("Entity velocity (%f, %f), compact velocity (%d, %d)\n", pod.velocity.x, pod.velocity.y, packetData.velocityX, packetData.velocityY);
 
     return packetData;
 }
