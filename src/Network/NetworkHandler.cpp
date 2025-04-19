@@ -1084,7 +1084,7 @@ void NetworkHandler::sendGameUpdatesToClients()
         Packet packet;
         packet.set(packetData, true);
 
-        printf(("NETWORK: Sending entity data (of %d entities) to " + getPlayerName(iter->first) + " " + packet.getSizeStr() + "\n").c_str(), packetData.entities.size());
+        // printf(("NETWORK: Sending entity data (of %d entities) to " + getPlayerName(iter->first) + " " + packet.getSizeStr() + "\n").c_str(), packetData.entities.size());
 
         sendPacketToClient(iter->first, packet, k_nSteamNetworkingSend_Reliable, 0);
     }

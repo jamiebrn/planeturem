@@ -312,12 +312,14 @@ PacketDataEntities::EntityPacketData Entity::getPacketData(pl::Vector2f chunkPos
     packetData.entityType = pod.entityType;
     packetData.chunkRelativePositionX = CompactFloat<uint16_t>(pod.chunkRelativePosition.x, 2);
     packetData.chunkRelativePositionY = CompactFloat<uint16_t>(pod.chunkRelativePosition.y, 2);
-    packetData.velocityX = CompactFloat<uint16_t>(pod.velocity.x, 2);
-    packetData.velocityY = CompactFloat<uint16_t>(pod.velocity.y, 2);
+    packetData.velocityX = CompactFloat<int16_t>(pod.velocity.x, 2);
+    packetData.velocityY = CompactFloat<int16_t>(pod.velocity.y, 2);
     packetData.health = health;
     packetData.flashAmount = CompactFloat<uint8_t>(flashAmount, 2);
     packetData.idleAnimFrame = idleAnim.getFrame();
     packetData.walkAnimFrame = walkAnim.getFrame();
+
+    printf("Entity velocity (%f, %f), compact velocity (%d, %d)\n", pod.velocity.x, pod.velocity.y, packetData.velocityX, packetData.velocityY);
 
     return packetData;
 }

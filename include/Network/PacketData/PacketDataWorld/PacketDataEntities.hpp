@@ -26,8 +26,8 @@ struct PacketDataEntities : public IPacketData, public IPacketTimeDependent
         uint8_t entityType;
         CompactFloat<uint16_t> chunkRelativePositionX;
         CompactFloat<uint16_t> chunkRelativePositionY;
-        CompactFloat<uint16_t> velocityX;
-        CompactFloat<uint16_t> velocityY;
+        CompactFloat<int16_t> velocityX;
+        CompactFloat<int16_t> velocityY;
 
         ChunkPosition chunkPosition;
 
