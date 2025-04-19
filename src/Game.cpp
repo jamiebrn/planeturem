@@ -1,5 +1,8 @@
 #include "Game.hpp"
 
+// TODO: Make entities persistent across network and send state updates (movement, health etc)
+// TODO: Use per-world entity chunk ID counter, rather than per chunk, to prevent collisions
+
 // FIX: Entity movement over network
 // FIX: Client travel
 
@@ -66,7 +69,6 @@ bool Game::initialise()
     window.setIcon(icon);
 
     // Init ImGui
-    // if (!ImGui::SFML::Init(window)) return false;
     #if (!RELEASE_BUILD)
     ImGui::CreateContext();
     ImGui::StyleColorsDark();
@@ -229,7 +231,6 @@ void Game::run()
         gameTime += dt;
 
         SteamAPI_RunCallbacks();
-        // ImGui::SFML::Update(window, sf::seconds(dt));
 
         Sounds::update(dt);
         
