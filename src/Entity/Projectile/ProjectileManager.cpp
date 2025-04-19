@@ -51,6 +51,11 @@ std::unordered_map<uint16_t, Projectile>& ProjectileManager::getProjectiles()
     return projectiles;
 }
 
+uint16_t ProjectileManager::getProjectileCount() const
+{
+    return projectiles.size();
+}
+
 void ProjectileManager::handleWorldWrap(pl::Vector2f positionDelta)
 {
     for (auto& projectilePair : projectiles)

@@ -31,9 +31,27 @@ struct PacketDataProjectiles : public IPacketData, public IPacketTimeDependent
     }
 
     template <class Archive>
-    void serialize(Archive& ar)
+    void save(Archive& ar) const
     {
-        ar(planetType, projectileManager);
+        bool hasProjectiles = (projectileManager.getProjectileCount() > 0);
+        ar(hasProjectiles, planetType);
+
+        if (hasProjectiles)
+        {
+            ar(projectileManager);
+        }
+    }
+
+    template <class Archive>
+    void load(Archive& ar)
+    {
+        bool hasProjectiles;
+        ar(hasProjectiles, planetType);
+
+        if (hasProjectiles)
+        {
+            ar(projectileManager);
+        }
     }
 
     PACKET_SERIALISATION();

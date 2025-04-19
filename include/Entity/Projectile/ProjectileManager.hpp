@@ -33,6 +33,8 @@ public:
 
     std::unordered_map<uint16_t, Projectile>& getProjectiles();
 
+    uint16_t getProjectileCount() const;
+
     void handleWorldWrap(pl::Vector2f positionDelta);
 
     void clear();

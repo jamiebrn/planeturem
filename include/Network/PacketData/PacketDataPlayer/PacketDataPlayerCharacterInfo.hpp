@@ -24,20 +24,20 @@ struct PacketDataPlayerCharacterInfo : public IPacketData, public IPacketTimeDep
 
     int animationFrame;
     float animationFrameTick;
-    bool flipped;
     float yScaleMult;
-
+    
+    // Bit packed values
+    bool flipped;
     bool onWater;
-
     bool inRocket;
+    bool fishingRodCasted;
+    bool fishBitingLine;
+    bool usingTool;
+    
+    pl::Vector2<int> fishingRodBobWorldTile;
     
     ToolType toolType;
     float toolRotation;
-    bool fishingRodCasted;
-    bool fishBitingLine;
-    pl::Vector2<int> fishingRodBobWorldTile;
-
-    bool usingTool;
     TweenID toolRotTweenID;
     TweenData<float> toolTweenData;
 
@@ -52,11 +52,31 @@ struct PacketDataPlayerCharacterInfo : public IPacketData, public IPacketTimeDep
     }
 
     template <class Archive>
-    void serialize(Archive& ar)
+    void save(Archive& ar) const
     {
-        ar(position.x, position.y, direction.x, direction.y, speed, animationFrame, flipped, yScaleMult, onWater, inRocket, toolType, toolRotation,
-            fishingRodCasted, fishBitingLine, fishingRodBobWorldTile.x, fishingRodBobWorldTile.y, usingTool, toolRotTweenID, toolTweenData, armour,
-            chunkViewRange, userID);
+        uint8_t bitPacked = 0;
+        std::vector<bool> bitPackValues = {flipped, onWater, inRocket, fishingRodCasted, fishBitingLine, usingTool};
+        for (int i = 0; i < bitPackValues.size(); i++)
+        {
+            bitPacked |= ((bitPackValues[i] & 0b1) << i);
+        }
+
+        ar(position.x, position.y, direction.x, direction.y, speed, animationFrame, yScaleMult, toolType, toolRotation,
+            fishingRodBobWorldTile.x, fishingRodBobWorldTile.y, toolRotTweenID, toolTweenData, armour, chunkViewRange, userID, bitPacked);
+    }
+
+    template <class Archive>
+    void load(Archive& ar)
+    {
+        uint8_t bitPacked = 0;
+        ar(position.x, position.y, direction.x, direction.y, speed, animationFrame, yScaleMult, toolType, toolRotation,
+            fishingRodBobWorldTile.x, fishingRodBobWorldTile.y, toolRotTweenID, toolTweenData, armour, chunkViewRange, userID, bitPacked);
+        
+        std::vector<bool*> bitPackValues = {&flipped, &onWater, &inRocket, &fishingRodCasted, &fishBitingLine, &usingTool};
+        for (int i = 0; i < bitPackValues.size(); i++)
+        {
+            *bitPackValues[i] = ((bitPacked >> i) & 0b1);
+        }
     }
 
     PACKET_SERIALISATION();

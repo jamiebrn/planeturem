@@ -1,6 +1,5 @@
 #include "Game.hpp"
 
-// FIX: EXTREMELY MYSTERIOUS SHADER UNIFORM SEGFAULT (maybe fixed)
 // FIX: Weather inconsistency (gametime)
 
 // TODO: Make entities persistent across network and send state updates (movement, health etc)
@@ -267,16 +266,16 @@ void Game::run()
         textDrawData.size = 24;
         textDrawData.containOnScreenX = true;
         textDrawData.containPaddingRight = 10;
-        textDrawData.position = pl::Vector2f(window.getWidth(), window.getHeight() - 30);
-        textDrawData.text = std::to_string(networkHandler.getTotalBytesReceived()) + " bytes received";
+        textDrawData.position = pl::Vector2f(window.getWidth(), window.getHeight() - 40);
+        textDrawData.text = Helper::floatToString(networkHandler.getTotalBytesReceived() / 1000.0f, 1) + "kb received";
         
         TextDraw::drawText(window, textDrawData);
         
-        textDrawData.position = pl::Vector2f(window.getWidth(), window.getHeight() - 60);
-        textDrawData.text = std::to_string(networkHandler.getTotalBytesSent()) + " bytes sent";
+        textDrawData.position = pl::Vector2f(window.getWidth(), window.getHeight() - 65);
+        textDrawData.text = Helper::floatToString(networkHandler.getTotalBytesSent() / 1000.0f, 1) + "kb sent";
 
         TextDraw::drawText(window, textDrawData);
-        
+
         #if (!RELEASE_BUILD)
         drawDebugMenu(dt);
         ImGui::SetMouseCursor(ImGuiMouseCursor_None);

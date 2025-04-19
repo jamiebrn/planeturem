@@ -1118,7 +1118,7 @@ void NetworkHandler::sendGameUpdatesToClients()
         Packet packet;
         packet.set(packetData, true);
 
-        printf("NETWORK: Sending projectile data of size %s\n", packet.getSizeStr().c_str());
+        // printf("NETWORK: Sending projectile data of size %s\n", packet.getSizeStr().c_str());
 
         sendPacketToClient(iter->first, packet, k_nSteamNetworkingSend_Reliable, 0);
     }

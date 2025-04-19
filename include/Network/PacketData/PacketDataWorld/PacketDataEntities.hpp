@@ -56,9 +56,27 @@ struct PacketDataEntities : public IPacketData, public IPacketTimeDependent
     }
 
     template <class Archive>
-    void serialize(Archive& ar)
+    void save(Archive& ar) const
     {
-        ar(planetType, entities);
+        bool hasEntities = (entities.size() > 0);
+        ar(hasEntities, planetType);
+
+        if (hasEntities)
+        {
+            ar(entities);
+        }
+    }
+
+    template <class Archive>
+    void load(Archive& ar)
+    {
+        bool hasEntities;
+        ar(hasEntities, planetType);
+
+        if (hasEntities)
+        {
+            ar(entities);
+        }
     }
 
     PACKET_SERIALISATION();
