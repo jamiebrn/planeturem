@@ -263,6 +263,20 @@ void Game::run()
             drawStateTransition();
         }
 
+        pl::TextDrawData textDrawData;
+        textDrawData.size = 24;
+        textDrawData.containOnScreenX = true;
+        textDrawData.containPaddingRight = 10;
+        textDrawData.position = pl::Vector2f(window.getWidth(), window.getHeight() - 30);
+        textDrawData.text = std::to_string(networkHandler.getTotalBytesReceived()) + " bytes received";
+        
+        TextDraw::drawText(window, textDrawData);
+        
+        textDrawData.position = pl::Vector2f(window.getWidth(), window.getHeight() - 60);
+        textDrawData.text = std::to_string(networkHandler.getTotalBytesSent()) + " bytes sent";
+
+        TextDraw::drawText(window, textDrawData);
+        
         #if (!RELEASE_BUILD)
         drawDebugMenu(dt);
         ImGui::SetMouseCursor(ImGuiMouseCursor_None);
@@ -3706,7 +3720,7 @@ void Game::handleChunkRequestsFromClient(const PacketDataChunkRequests& chunkReq
         ", " + std::to_string(minChunkY) + ") to (" + std::to_string(maxChunkX) + ", " + std::to_string(maxChunkY) + ") to " + steamName + " " + packet.getSizeStr() +
         "\n").c_str());
 
-    packet.sendToUser(client, k_nSteamNetworkingSend_Reliable, 0);
+    networkHandler.sendPacketToClient(client.GetSteamID64(), packet, k_nSteamNetworkingSend_Reliable, 0);
 }
 
 void Game::handleChunkDataFromHost(const PacketDataChunkDatas& chunkDataPacket)

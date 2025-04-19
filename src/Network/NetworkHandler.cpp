@@ -20,6 +20,9 @@ void NetworkHandler::reset(Game* game)
     lobbyHost = 0;
     networkPlayers.clear();
     networkPlayerDatasSaved.clear();
+
+    totalBytesSent = 0;
+    totalBytesReceived = 0;
     
     updateTick = 0.0f;
 
@@ -74,7 +77,7 @@ void NetworkHandler::leaveLobby()
         {
             SteamNetworkingIdentity identity;
             identity.SetSteamID64(iter->first);
-            packet.sendToUser(identity, k_nSteamNetworkingSend_Reliable, 0);
+            sendPacketToClient(iter->first, packet, k_nSteamNetworkingSend_Reliable, 0);
             SteamNetworkingMessages()->CloseSessionWithUser(identity);
         }
     }
@@ -321,9 +324,7 @@ void NetworkHandler::registerNetworkPlayer(uint64_t id, const std::string& pingL
 
         for (auto iter = networkPlayers.begin(); iter != networkPlayers.end(); iter++)
         {
-            SteamNetworkingIdentity identity;
-            identity.SetSteamID64(iter->first);
-            packet.sendToUser(identity, k_nSteamNetworkingSend_Reliable, 0);
+            sendPacketToClient(iter->first, packet, k_nSteamNetworkingSend_Reliable, 0);
         }
     }
 
@@ -360,9 +361,7 @@ void NetworkHandler::deleteNetworkPlayer(uint64_t id)
     
         for (auto iter = networkPlayers.begin(); iter != networkPlayers.end(); iter++)
         {
-            SteamNetworkingIdentity identity;
-            identity.SetSteamID64(iter->first);
-            packet.sendToUser(identity, k_nSteamNetworkingSend_Reliable, 0);
+            sendPacketToClient(iter->first, packet, k_nSteamNetworkingSend_Reliable, 0);
         }
     }
 
@@ -391,7 +390,6 @@ void NetworkHandler::callbackLobbyUpdated(LobbyChatUpdate_t* pCallback)
     
     if (isLobbyHost)
     {
-        
         if (pCallback->m_rgfChatMemberStateChange & k_EChatMemberStateChangeEntered)
         {
             PacketDataJoinQuery packetData;
@@ -400,7 +398,7 @@ void NetworkHandler::callbackLobbyUpdated(LobbyChatUpdate_t* pCallback)
             Packet packet;
             packet.set(packetData);
 
-            EResult result = packet.sendToUser(userIdentity, k_nSteamNetworkingSend_Reliable, 0);
+            EResult result = sendPacketToClient(userIdentity.GetSteamID64(), packet, k_nSteamNetworkingSend_Reliable, 0);
             if (result == EResult::k_EResultOK)
             {
                 std::cout << "NETWORK: Sent join query successfully\n";
@@ -495,6 +493,8 @@ void NetworkHandler::receiveMessages()
             packet.deserialise((char*)messages[i]->GetData(), messages[i]->GetSize());
     
             processMessage(*messages[i], packet);
+
+            totalBytesReceived += messages[i]->GetSize();
     
             messages[i]->Release();
         }
@@ -658,7 +658,7 @@ void NetworkHandler::processMessage(const SteamNetworkingMessage_t& message, con
                         Packet itemPacket;
                         itemPacket.set(itemPacketData);
     
-                        itemPacket.sendToUser(message.m_identityPeer, k_nSteamNetworkingSend_Reliable, 0);
+                        sendPacketToClient(message.m_identityPeer.GetSteamID64(), itemPacket, k_nSteamNetworkingSend_Reliable, 0);
                     }
                 }
             }
@@ -1041,9 +1041,7 @@ void NetworkHandler::sendGameUpdatesToClients()
 
     for (auto& client : networkPlayers)
     {
-        SteamNetworkingIdentity clientIdentity;
-        clientIdentity.SetSteamID64(client.first);
-        serverInfoPacket.sendToUser(clientIdentity, k_nSteamNetworkingSend_Unreliable, 0);
+        sendPacketToClient(client.first, serverInfoPacket, k_nSteamNetworkingSend_Unreliable, 0);
     }
 
     std::unordered_map<uint64_t, Packet> playerInfoPackets;
@@ -1134,10 +1132,7 @@ void NetworkHandler::sendGameUpdatesToHost(const Camera& camera)
     Packet packet;
     packet.set(playerInfoPacketData);
 
-    SteamNetworkingIdentity hostIdentity;
-    hostIdentity.SetSteamID64(lobbyHost);
-
-    packet.sendToUser(hostIdentity, k_nSteamNetworkingSend_Unreliable, 0);
+    sendPacketToHost(packet, k_nSteamNetworkingSend_Unreliable, 0);
 }
 
 EResult NetworkHandler::sendPacketToClients(const Packet& packet, int nSendFlags, int nRemoteChannel)
@@ -1150,9 +1145,7 @@ EResult NetworkHandler::sendPacketToClients(const Packet& packet, int nSendFlags
     EResult result = EResult::k_EResultOK;
     for (auto iter = networkPlayers.begin(); iter != networkPlayers.end(); iter++)
     {
-        SteamNetworkingIdentity identity;
-        identity.SetSteamID64(iter->first);
-        EResult sendResult = packet.sendToUser(identity, nSendFlags, nRemoteChannel);
+        EResult sendResult = sendPacketToClient(iter->first, packet, nSendFlags, nRemoteChannel);
 
         if (sendResult != EResult::k_EResultOK)
         {
@@ -1170,8 +1163,11 @@ EResult NetworkHandler::sendPacketToClient(uint64_t steamID, const Packet& packe
         return EResult::k_EResultAccessDenied;
     }
 
+    totalBytesSent += packet.getSize();
+
     SteamNetworkingIdentity identity;
     identity.SetSteamID64(steamID);
+
     return packet.sendToUser(identity, nSendFlags, nRemoteChannel);
 }
 
@@ -1181,6 +1177,8 @@ EResult NetworkHandler::sendPacketToHost(const Packet& packet, int nSendFlags, i
     {
         return EResult::k_EResultAccessDenied;
     }
+
+    totalBytesSent += packet.getSize();
 
     SteamNetworkingIdentity hostIdentity;
     hostIdentity.SetSteamID64(lobbyHost);
@@ -1330,4 +1328,14 @@ bool NetworkHandler::canSendStructureRequest()
 void NetworkHandler::structureRequestSent()
 {
     structureEnterRequestCooldown = STRUCTURE_ENTER_REQUEST_COOLDOWN;
+}
+
+int NetworkHandler::getTotalBytesSent() const
+{
+    return totalBytesSent;
+}
+
+int NetworkHandler::getTotalBytesReceived() const
+{
+    return totalBytesReceived;
 }

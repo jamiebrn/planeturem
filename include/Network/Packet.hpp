@@ -94,12 +94,12 @@ struct Packet
         }
     }
 
-    inline int getSize()
+    inline int getSize() const
     {
         return (sizeof(type) + sizeof(compressed) + sizeof(uncompressedSize) + data.size());
     }
 
-    inline int getUncompressedSize()
+    inline int getUncompressedSize() const
     {
         if (!compressed)
         {
@@ -108,7 +108,7 @@ struct Packet
         return (sizeof(type) + sizeof(compressed) + sizeof(uncompressedSize) + uncompressedSize);
     }
 
-    inline float getCompressionRatio()
+    inline float getCompressionRatio() const
     {
         if (!compressed)
         {
@@ -117,7 +117,7 @@ struct Packet
         return static_cast<float>(getUncompressedSize()) / static_cast<float>(getSize());
     }
 
-    inline std::string getSizeStr()
+    inline std::string getSizeStr() const
     {
         return ("(size: " + std::to_string(getSize()) + " bytes, uncompressed: " + std::to_string(getUncompressedSize()) +
             " bytes, ratio: " + std::to_string(getCompressionRatio()) + ")");

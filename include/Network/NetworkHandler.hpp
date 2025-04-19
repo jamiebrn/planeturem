@@ -81,6 +81,9 @@ public:
     void setSavedNetworkPlayerData(uint64_t id, const PlayerData& networkPlayerData);
     const std::unordered_map<uint64_t, PlayerData> getSavedNetworkPlayerDataMap();
 
+    int getTotalBytesSent() const;
+    int getTotalBytesReceived() const;
+
 private:
     void processMessage(const SteamNetworkingMessage_t& message, const Packet& packet);
     void processMessageAsHost(const SteamNetworkingMessage_t& message, const Packet& packet);
@@ -110,6 +113,9 @@ private:
     uint64_t lobbyHost;
 
     Game* game = nullptr;
+
+    int totalBytesSent = 0;
+    int totalBytesReceived = 0;
 
     static constexpr float SERVER_UPDATE_TICK = 1 / 30.0f;
     float updateTick;
