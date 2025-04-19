@@ -47,7 +47,7 @@ void Projectile::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, co
     drawData.texture = TextureManager::getTexture(TextureType::Tools);
     drawData.shader = Shaders::getShader(ShaderType::Default);
     drawData.position = camera.worldToScreenTransform(chunkManager.translatePositionAroundWorld(position, playerPos));
-    drawData.rotation = std::atan2(velocity.y, velocity.x);
+    drawData.rotation = std::atan2(velocity.y, velocity.x) / M_PI * 180.0f;
     drawData.textureRect = projectileData.textureRect;
 
     float scale = ResolutionHandler::getScale();
