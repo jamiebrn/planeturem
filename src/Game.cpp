@@ -1,5 +1,7 @@
 #include "Game.hpp"
 
+// FIX: EXTREMELY MYSTERIOUS SHADER UNIFORM SEGFAULT
+
 // TODO: Make entities persistent across network and send state updates (movement, health etc)
 // TODO: Use per-world entity chunk ID counter, rather than per chunk, to prevent collisions
 
@@ -1305,7 +1307,7 @@ void Game::drawLandmarks()
     drawData.color = pl::Color(255, 255, 255, 150);
     
     std::vector<float> replaceKeys = {1, 1, 1, 1, 0, 0, 0, 1};
-    drawData.shader->setUniform1i("replaceKeyCount", replaceKeys.size());
+    drawData.shader->setUniform1i("replaceKeyCount", replaceKeys.size() / 4);
     drawData.shader->setUniform4fv("replaceKeys", replaceKeys);
     
     for (const LandmarkSummaryData& landmarkSummary : getLandmarkManager().getLandmarkSummaryDatas(player, getChunkManager()))
@@ -2618,6 +2620,7 @@ void Game::openedChestDataModified()
     PacketDataChestDataModified packetData;
     packetData.chestID = openedChestID;
     packetData.chestData = *getChestDataPool().getChestDataPtr(openedChestID);
+    packetData.locationState = locationState;
     Packet packet;
     packet.set(packetData, true);
     

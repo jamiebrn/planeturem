@@ -27,7 +27,7 @@ void LandmarkObject::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch
     std::vector<float> replaceValues = {colorA.r / 255.0f, colorA.g / 255.0f, colorA.b / 255.0f, 1.0f, colorB.r / 255.0f, colorB.g / 255.0f, colorB.b / 255.0f, 1.0f};
 
     pl::Shader* replaceColorShader = Shaders::getShader(ShaderType::ReplaceColour);
-    replaceColorShader->setUniform1i("replaceKeyCount", replaceKeys.size());
+    replaceColorShader->setUniform1i("replaceKeyCount", replaceKeys.size() / 4);
     replaceColorShader->setUniform4fv("replaceKeys", replaceKeys);
     replaceColorShader->setUniform4fv("replaceValues", replaceValues);
 
