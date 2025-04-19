@@ -22,12 +22,18 @@
 #include "Data/ToolData.hpp"
 #include "Data/ToolDataLoader.hpp"
 
+enum class HitLayer
+{
+    Player,
+    Entity
+};
+
 class Projectile
 {
 public:
     Projectile() = default;
     // Angle in DEGREES
-    Projectile(pl::Vector2f position, float angle, ProjectileType type, float damageMult, float shootPower);
+    Projectile(pl::Vector2f position, float angle, ProjectileType type, float damageMult, float shootPower, HitLayer hitLayer);
 
     void update(float dt);
 
@@ -45,6 +51,8 @@ public:
     bool isAlive();
 
     CollisionCircle getCollisionCircle() const;
+
+    HitLayer getHitLayer() const;
 
     template <class Archive>
     void serialize(Archive& ar, const std::uint32_t version)
@@ -64,6 +72,8 @@ private:
 
     bool alive;
     float timeAlive;
+
+    HitLayer hitLayer;
 
 };
 

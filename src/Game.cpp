@@ -9,7 +9,6 @@
 // TODO: Improve entity movement over network
 
 // TODO: Save all required planets
-// TODO: Projectile collision layers
 // TODO: Projectile networking
 // TODO: Boss networking
 

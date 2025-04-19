@@ -1,6 +1,6 @@
 #include "Entity/Projectile/Projectile.hpp"
 
-Projectile::Projectile(pl::Vector2f position, float angle, ProjectileType type, float damageMult, float shootPower)
+Projectile::Projectile(pl::Vector2f position, float angle, ProjectileType type, float damageMult, float shootPower, HitLayer hitLayer)
 {
     this->position = position;
 
@@ -20,6 +20,8 @@ Projectile::Projectile(pl::Vector2f position, float angle, ProjectileType type, 
     float angleRadians = M_PI * angle / 180.0f;
     velocity.x = std::cos(angleRadians) * speed;
     velocity.y = std::sin(angleRadians) * speed;
+
+    this->hitLayer = hitLayer;
 
     alive = true;
     timeAlive = 0.0f;
@@ -89,4 +91,9 @@ CollisionCircle Projectile::getCollisionCircle() const
     collisionPos += projectileData.collisionOffset.rotate(angle / 180.0f * M_PI);
 
     return CollisionCircle(collisionPos.x, collisionPos.y, projectileData.collisionRadius);
+}
+
+HitLayer Projectile::getHitLayer() const
+{
+    return hitLayer;
 }

@@ -817,8 +817,7 @@ void Player::useTool(ProjectileManager& projectileManager, InventoryData& invent
             spawnPos += position;
 
             // Create projectile
-            Projectile projectile(spawnPos, angle, projectileType,
-                toolData.projectileDamageMult, toolData.shootPower);
+            Projectile projectile(spawnPos, angle, projectileType, toolData.projectileDamageMult, toolData.shootPower, HitLayer::Entity);
 
             // Add projectile to manager
             projectileManager.addProjectile(projectile);
@@ -885,6 +884,11 @@ void Player::setCanMove(bool value)
 
 bool Player::testHitCollision(const Projectile& projectile)
 {
+    if (projectile.getHitLayer() != HitLayer::Player)
+    {
+        return false;
+    }
+
     HitCircle hitCircle(projectile.getCollisionCircle());
     hitCircle.damage = projectile.getDamage();
     return testHitCollision(hitCircle);

@@ -128,7 +128,7 @@ void BossGlacialBrute::throwSnowball(ProjectileManager& enemyProjectileManager, 
 {
     float angle = std::atan2(player.getPosition().y - 4 - (position.y - 50), player.getPosition().x - position.x) * 180.0f / M_PI;
     enemyProjectileManager.addProjectile(Projectile(position - pl::Vector2f(0, 50), angle,
-        ToolDataLoader::getProjectileTypeFromName("Large Snowball"), 1.0f, 1.0f));
+        ToolDataLoader::getProjectileTypeFromName("Large Snowball"), 1.0f, 1.0f, HitLayer::Player));
 }
 
 bool BossGlacialBrute::isAlive()
