@@ -39,7 +39,7 @@ struct PacketDataPlayerCharacterInfo : public IPacketData, public IPacketTimeDep
     
     int8_t toolType;
     float toolRotation;
-    float toolRotationVelocity;
+    float toolRotationVelocity = 0.0f;
 
     std::array<int8_t, 3> armour;
 
