@@ -784,7 +784,7 @@ void NetworkHandler::processMessageAsHost(const SteamNetworkingMessage_t& messag
             
             Packet packetToSend;
             packetToSend.set(packetData, true);
-            packetToSend.sendToUser(message.m_identityPeer, k_nSteamNetworkingSend_Reliable, 0);
+            sendPacketToClient(message.m_identityPeer.GetSteamID64(), packetToSend, k_nSteamNetworkingSend_Reliable, 0);
             break;
         }
         case PacketType::ItemPickupsCreateRequest:
@@ -1050,22 +1050,19 @@ void NetworkHandler::sendGameUpdatesToClients()
     // Set own player info
     playerInfoPackets[steamID] = Packet();
     PacketDataPlayerCharacterInfo localCharacterPacketData = game->getPlayer().getNetworkPlayerInfo(nullptr, steamID);
-    playerInfoPackets[steamID].set(localCharacterPacketData);
+    playerInfoPackets[steamID].set(localCharacterPacketData, true);
 
     // Get player infos
     for (auto iter = networkPlayers.begin(); iter != networkPlayers.end(); iter++)
     {
         playerInfoPackets[iter->first] = Packet();
         PacketDataPlayerCharacterInfo playerCharacterPacketData = iter->second.getNetworkPlayerInfo(nullptr, iter->first);
-        playerInfoPackets[iter->first].set(playerCharacterPacketData);
+        playerInfoPackets[iter->first].set(playerCharacterPacketData, true);
     }
 
     // Send player info
     for (auto iter = networkPlayers.begin(); iter != networkPlayers.end(); iter++)
     {
-        SteamNetworkingIdentity identity;
-        identity.SetSteamID64(iter->first);
-
         for (auto subIter = networkPlayers.begin(); subIter != networkPlayers.end(); subIter++)
         {
             // Don't send player their own info
@@ -1074,11 +1071,11 @@ void NetworkHandler::sendGameUpdatesToClients()
                 continue;
             }
 
-            playerInfoPackets[subIter->first].sendToUser(identity, k_nSteamNetworkingSend_Unreliable, 0);
+            sendPacketToClient(iter->first, playerInfoPackets[subIter->first], k_nSteamNetworkingSend_Unreliable, 0);
         }
         
         // Send host player data
-        playerInfoPackets[steamID].sendToUser(identity, k_nSteamNetworkingSend_Unreliable, 0);
+        sendPacketToClient(iter->first, playerInfoPackets[steamID], k_nSteamNetworkingSend_Unreliable, 0);
     }
 
     // Send entity datas to each client as required

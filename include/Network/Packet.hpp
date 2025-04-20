@@ -65,7 +65,7 @@ struct Packet
         return SteamNetworkingMessages()->SendMessageToUser(identityRemote, serialised.data(), serialised.size(), nSendFlags, nRemoteChannel);
     }
 
-    inline void set(const IPacketData& packetData, bool applyCompression = false)
+    inline void set(const IPacketData& packetData, bool applyCompression = true)
     {
         type = packetData.getType();
         data = packetData.serialise();
