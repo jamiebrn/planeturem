@@ -117,6 +117,22 @@ public:
         return (tweenData.end - tweenData.start) * easingFunction(tweenData.transitionType, tweenData.easingType, progress) + tweenData.start;
     }
 
+    inline T getTweenValueVelocity(TweenID tween)
+    {
+        static constexpr float gradientStep = 0.01f;
+
+        TweenData<T>& tweenData = activeTweens[tween].front();
+
+        float progress = std::min(tweenData.progress / tweenData.duration, 1.0f);
+
+        T currentValue = (tweenData.end - tweenData.start) * easingFunction(tweenData.transitionType, tweenData.easingType, progress) + tweenData.start;
+        T nextValue = (tweenData.end - tweenData.start) * easingFunction(tweenData.transitionType, tweenData.easingType, progress + gradientStep) + tweenData.start;
+
+        T diff = nextValue - currentValue;
+
+        return diff / gradientStep;
+    }
+
     inline bool isTweenFinished(TweenID tween)
     {
         if (activeTweens.count(tween) <= 0)
@@ -190,6 +206,7 @@ private:
                     case TweenTransition::Back: return easeInBack(progress);
                     case TweenTransition::Bounce: return easeInBounce(progress);
                 }
+                break;
             case TweenEasing::EaseOut:
                 switch (transitionType)
                 {
@@ -204,6 +221,7 @@ private:
                     case TweenTransition::Back: return easeOutBack(progress);
                     case TweenTransition::Bounce: return easeOutBounce(progress);
                 }
+                break;
             case TweenEasing::EaseInOut:
                 switch (transitionType)
                 {
@@ -218,6 +236,7 @@ private:
                     case TweenTransition::Back: return easeInOutBack(progress);
                     case TweenTransition::Bounce: return easeInOutBounce(progress);
                 }
+                break;
         }
 
         return progress;

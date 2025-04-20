@@ -6,6 +6,7 @@
 
 #include "Network/IPacketData.hpp"
 #include "Network/IPacketTimeDependent.hpp"
+#include "Network/CompactFloat.hpp"
 
 #include <Vector.hpp>
 
@@ -22,7 +23,7 @@ struct PacketDataPlayerCharacterInfo : public IPacketData, public IPacketTimeDep
     pl::Vector2f direction;
     float speed;
 
-    int animationFrame;
+    uint8_t animationFrame;
     float animationFrameTick;
     float yScaleMult;
     
@@ -34,14 +35,13 @@ struct PacketDataPlayerCharacterInfo : public IPacketData, public IPacketTimeDep
     bool fishBitingLine;
     bool usingTool;
     
-    pl::Vector2<int> fishingRodBobWorldTile;
+    pl::Vector2<uint16_t> fishingRodBobWorldTile;
     
-    ToolType toolType;
+    uint8_t toolType;
     float toolRotation;
-    TweenID toolRotTweenID;
-    TweenData<float> toolTweenData;
+    float toolRotationVelocity;
 
-    std::array<ArmourType, 3> armour;
+    std::array<uint8_t, 3> armour;
 
     ChunkViewRange chunkViewRange;
     uint64_t userID;
@@ -55,28 +55,47 @@ struct PacketDataPlayerCharacterInfo : public IPacketData, public IPacketTimeDep
     void save(Archive& ar) const
     {
         uint8_t bitPacked = 0;
-        std::vector<bool> bitPackValues = {flipped, onWater, inRocket, fishingRodCasted, fishBitingLine, usingTool};
+        std::vector<bool*> bitPackValues = getBitPackValues();
         for (int i = 0; i < bitPackValues.size(); i++)
         {
-            bitPacked |= ((bitPackValues[i] & 0b1) << i);
+            bitPacked |= (((*bitPackValues[i]) & 0b1) << i);
         }
 
-        ar(position.x, position.y, direction.x, direction.y, speed, animationFrame, yScaleMult, toolType, toolRotation,
-            fishingRodBobWorldTile.x, fishingRodBobWorldTile.y, toolRotTweenID, toolTweenData, armour, chunkViewRange, userID, bitPacked);
+        CompactFloat<uint8_t> animationFrameTickCompact(animationFrameTick, 2);
+        CompactFloat<uint8_t> yScaleMultCompact(yScaleMult, 2);
+
+        ar(position.x, position.y, direction.x, direction.y, speed, animationFrame, animationFrameTickCompact, yScaleMultCompact, toolType, toolRotation,
+            toolRotationVelocity, armour, chunkViewRange, userID, bitPacked);
+        
+        if (fishingRodCasted)
+        {
+            ar(fishingRodBobWorldTile.x, fishingRodBobWorldTile.y);
+        }
     }
 
     template <class Archive>
     void load(Archive& ar)
     {
         uint8_t bitPacked = 0;
-        ar(position.x, position.y, direction.x, direction.y, speed, animationFrame, yScaleMult, toolType, toolRotation,
-            fishingRodBobWorldTile.x, fishingRodBobWorldTile.y, toolRotTweenID, toolTweenData, armour, chunkViewRange, userID, bitPacked);
+        CompactFloat<uint8_t> animationFrameTickCompact;
+        CompactFloat<uint8_t> yScaleMultCompact;
+
+        ar(position.x, position.y, direction.x, direction.y, speed, animationFrame, animationFrameTickCompact, yScaleMultCompact, toolType, toolRotation,
+            toolRotationVelocity, armour, chunkViewRange, userID, bitPacked);
         
-        std::vector<bool*> bitPackValues = {&flipped, &onWater, &inRocket, &fishingRodCasted, &fishBitingLine, &usingTool};
+        std::vector<bool*> bitPackValues = getBitPackValues();
         for (int i = 0; i < bitPackValues.size(); i++)
         {
             *bitPackValues[i] = ((bitPacked >> i) & 0b1);
         }
+
+        if (fishingRodCasted)
+        {
+            ar(fishingRodBobWorldTile.x, fishingRodBobWorldTile.y);
+        }
+
+        animationFrameTick = animationFrameTickCompact.getValue(2);
+        yScaleMult = yScaleMultCompact.getValue(2);
     }
 
     PACKET_SERIALISATION();
@@ -85,4 +104,12 @@ struct PacketDataPlayerCharacterInfo : public IPacketData, public IPacketTimeDep
     {
         return PacketType::PlayerCharacterInfo;
     }
+
+private:
+    inline std::vector<bool*> getBitPackValues()
+    {
+        std::vector<bool*> bitPackValues = {&flipped, &onWater, &inRocket, &fishingRodCasted, &fishBitingLine, &usingTool};
+        return bitPackValues;
+    }
+
 };

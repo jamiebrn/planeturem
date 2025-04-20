@@ -1100,19 +1100,20 @@ PacketDataPlayerCharacterInfo Player::getNetworkPlayerInfo(const Camera* camera,
 
     info.toolType = equippedTool;
     info.toolRotation = toolRotation;
+    info.usingTool = usingTool;
     info.fishingRodCasted = fishingRodCasted;
     info.fishBitingLine = fishBitingLine;
     info.fishingRodBobWorldTile = fishingRodBobWorldTile;
 
-    info.usingTool = usingTool;
-
     if (usingTool)
     {
-        info.toolRotTweenID = rotationTweenID;
-        info.toolTweenData = toolTweener.getTweenData(rotationTweenID);
+        info.toolRotationVelocity = toolTweener.getTweenValueVelocity(rotationTweenID);
     }
 
-    info.armour = armour;
+    for (int i = 0; i < armour.size(); i++)
+    {
+        info.armour[i] = armour[i];
+    }
 
     if (camera)
     {

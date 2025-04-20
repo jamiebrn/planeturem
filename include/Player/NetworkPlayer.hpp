@@ -60,6 +60,8 @@ private:
 
     ChunkViewRange chunkViewRange;
 
+    float toolRotationVelocity;
+
     // Before world wrap translation applied
     pl::Vector2f fishingRodBobWorldPosUnwrapped;
 

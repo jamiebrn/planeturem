@@ -33,16 +33,22 @@ void NetworkPlayer::updateOnPlanet(float dt, ChunkManager& chunkManager)
 {
     updateAnimation(dt);
     updateMovement(dt, chunkManager, false);
+
     playerData.position.x = collisionRect.x + collisionRect.width / 2.0f;
     playerData.position.y = collisionRect.y + collisionRect.height / 2.0f;
+
+    toolRotation += toolRotationVelocity * dt;
 }
 
 void NetworkPlayer::updateInRoom(float dt, const Room& room)
 {
     updateAnimation(dt);
     updateMovementInRoom(dt, room, false);
+    
     playerData.position.x = collisionRect.x + collisionRect.width / 2.0f;
     playerData.position.y = collisionRect.y + collisionRect.height / 2.0f;
+
+    toolRotation += toolRotationVelocity * dt;
 }
 
 void NetworkPlayer::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
@@ -103,6 +109,8 @@ void NetworkPlayer::setNetworkPlayerCharacterInfo(const PacketDataPlayerCharacte
 
     equippedTool = info.toolType;
     toolRotation = info.toolRotation;
+    usingTool = info.usingTool;
+    toolRotationVelocity = info.toolRotationVelocity;
     fishingRodCasted = info.fishingRodCasted;
     fishBitingLine = info.fishBitingLine;
     
@@ -111,17 +119,10 @@ void NetworkPlayer::setNetworkPlayerCharacterInfo(const PacketDataPlayerCharacte
         fishingRodBobWorldPosUnwrapped = (static_cast<pl::Vector2f>(info.fishingRodBobWorldTile) + pl::Vector2f(0.5f, 0.5f)) * TILE_SIZE_PIXELS_UNSCALED;
     }
 
-    usingTool = info.usingTool;
-
-    if (usingTool)
+    for (int i = 0; i < info.armour.size(); i++)
     {
-        rotationTweenID = info.toolRotTweenID;
-        TweenData<float> tweenData = info.toolTweenData;
-        tweenData.value = &toolRotation;
-        toolTweener.overwriteTweenData(rotationTweenID, tweenData);
+        armour[i] = info.armour[i];
     }
-
-    armour = info.armour;
 
     chunkViewRange = info.chunkViewRange;
 }
