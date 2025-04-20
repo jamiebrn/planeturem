@@ -37,11 +37,11 @@ struct PacketDataPlayerCharacterInfo : public IPacketData, public IPacketTimeDep
     
     pl::Vector2<uint16_t> fishingRodBobWorldTile;
     
-    uint8_t toolType;
+    int8_t toolType;
     float toolRotation;
     float toolRotationVelocity;
 
-    std::array<uint8_t, 3> armour;
+    std::array<int8_t, 3> armour;
 
     ChunkViewRange chunkViewRange;
     uint64_t userID;
