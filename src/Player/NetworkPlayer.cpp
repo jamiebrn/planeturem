@@ -70,9 +70,9 @@ void NetworkPlayer::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch,
     TextDraw::drawText(window, nameDrawData);
 }
 
-PacketDataPlayerCharacterInfo NetworkPlayer::getNetworkPlayerInfo(const Camera* camera, uint64_t steamID)
+PacketDataPlayerCharacterInfo NetworkPlayer::getNetworkPlayerInfo(const Camera* camera, uint64_t steamID, float dt)
 {
-    PacketDataPlayerCharacterInfo playerInfo = Player::getNetworkPlayerInfo(camera, steamID);
+    PacketDataPlayerCharacterInfo playerInfo = Player::getNetworkPlayerInfo(camera, steamID, dt);
     playerInfo.position = playerData.position;
     return playerInfo;
 }

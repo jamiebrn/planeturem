@@ -39,8 +39,8 @@ public:
     void updateNetworkPlayers(float dt, const LocationState& locationState);
 
     void sendGameUpdates(float dt, const Camera& camera);
-    void sendGameUpdatesToClients();
-    void sendGameUpdatesToHost(const Camera& camera);
+    void sendGameUpdatesToClients(float dt);
+    void sendGameUpdatesToHost(const Camera& camera, float dt);
 
     void leaveLobby();
     

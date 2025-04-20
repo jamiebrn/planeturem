@@ -116,7 +116,7 @@ public:
 
     // Multiplayer
     
-    virtual PacketDataPlayerCharacterInfo getNetworkPlayerInfo(const Camera* camera, uint64_t steamID);
+    virtual PacketDataPlayerCharacterInfo getNetworkPlayerInfo(const Camera* camera, uint64_t steamID, float dt);
 
 
 protected:
@@ -176,10 +176,11 @@ protected:
 
     // Tool animation
     float toolRotation;
+    float toolRotationLastFrame; // networking
+    bool usingTool;
+
     Tween<float> toolTweener;
     TweenID rotationTweenID;
-    // bool swingingTool;
-    bool usingTool;
     static constexpr float MELEE_SWING_Y_ORIGIN_OFFSET = -4.0f;
     static constexpr float MELEE_SWING_RADIUS = 13.0f;
     std::vector<HitRect> meleeHitRects;

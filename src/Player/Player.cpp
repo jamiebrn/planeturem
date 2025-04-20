@@ -30,7 +30,8 @@ Player::Player(pl::Vector2f position, int maxHealth)
     playerYScaleMult = 1.0f;
 
     equippedTool = -1;
-    toolRotation = 0;
+    toolRotation = 0.0f;
+    toolRotationLastFrame = 0.0f;
     usingTool = false;
 
     armour = {-1, -1, -1};
@@ -251,7 +252,8 @@ void Player::updateAnimation(float dt)
 
 void Player::updateToolRotation(pl::Vector2f mouseWorldPos)
 {
-    // Rotate bow if tool is of type
+    toolRotationLastFrame = toolRotation;
+
     if (equippedTool < 0)
     {
         return;
@@ -747,6 +749,7 @@ void Player::setTool(ToolType toolType)
     equippedTool = toolType;
 
     toolRotation = 0.0f;
+    toolRotationLastFrame = 0.0f;
 
     reelInFishingRod();
 
@@ -1073,7 +1076,7 @@ bool Player::isAlive() const
 
 // Multiplayer
 
-PacketDataPlayerCharacterInfo Player::getNetworkPlayerInfo(const Camera* camera, uint64_t steamID)
+PacketDataPlayerCharacterInfo Player::getNetworkPlayerInfo(const Camera* camera, uint64_t steamID, float dt)
 {
     PacketDataPlayerCharacterInfo info;
     info.position = position;
@@ -1108,6 +1111,10 @@ PacketDataPlayerCharacterInfo Player::getNetworkPlayerInfo(const Camera* camera,
     if (usingTool)
     {
         info.toolRotationVelocity = toolTweener.getTweenValueVelocity(rotationTweenID);
+    }
+    else
+    {
+        info.toolRotationVelocity = (toolRotation - toolRotationLastFrame) / dt;
     }
 
     for (int i = 0; i < armour.size(); i++)

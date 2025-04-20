@@ -44,7 +44,7 @@ public:
 
     // Multiplayer
 
-    virtual PacketDataPlayerCharacterInfo getNetworkPlayerInfo(const Camera* camera, uint64_t steamID) override;
+    virtual PacketDataPlayerCharacterInfo getNetworkPlayerInfo(const Camera* camera, uint64_t steamID, float dt) override;
     void setNetworkPlayerCharacterInfo(const PacketDataPlayerCharacterInfo& info);
     
     // Player position is of player on this machine, not for this network player

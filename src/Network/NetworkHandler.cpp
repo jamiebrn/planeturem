@@ -1015,15 +1015,15 @@ void NetworkHandler::sendGameUpdates(float dt, const Camera& camera)
 
     if (isLobbyHost)
     {
-        sendGameUpdatesToClients();
+        sendGameUpdatesToClients(dt);
     }
     else
     {
-        sendGameUpdatesToHost(camera);
+        sendGameUpdatesToHost(camera, dt);
     }
 }
 
-void NetworkHandler::sendGameUpdatesToClients()
+void NetworkHandler::sendGameUpdatesToClients(float dt)
 {
     if (!isLobbyHost)
     {
@@ -1049,14 +1049,14 @@ void NetworkHandler::sendGameUpdatesToClients()
     
     // Set own player info
     playerInfoPackets[steamID] = Packet();
-    PacketDataPlayerCharacterInfo localCharacterPacketData = game->getPlayer().getNetworkPlayerInfo(nullptr, steamID);
+    PacketDataPlayerCharacterInfo localCharacterPacketData = game->getPlayer().getNetworkPlayerInfo(nullptr, steamID, dt);
     playerInfoPackets[steamID].set(localCharacterPacketData, true);
 
     // Get player infos
     for (auto iter = networkPlayers.begin(); iter != networkPlayers.end(); iter++)
     {
         playerInfoPackets[iter->first] = Packet();
-        PacketDataPlayerCharacterInfo playerCharacterPacketData = iter->second.getNetworkPlayerInfo(nullptr, iter->first);
+        PacketDataPlayerCharacterInfo playerCharacterPacketData = iter->second.getNetworkPlayerInfo(nullptr, iter->first, dt);
         playerInfoPackets[iter->first].set(playerCharacterPacketData, true);
     }
 
@@ -1121,11 +1121,11 @@ void NetworkHandler::sendGameUpdatesToClients()
     }
 }
 
-void NetworkHandler::sendGameUpdatesToHost(const Camera& camera)
+void NetworkHandler::sendGameUpdatesToHost(const Camera& camera, float dt)
 {
     uint64_t steamID = SteamUser()->GetSteamID().ConvertToUint64();
 
-    PacketDataPlayerCharacterInfo playerInfoPacketData = game->getPlayer().getNetworkPlayerInfo(&camera, steamID);
+    PacketDataPlayerCharacterInfo playerInfoPacketData = game->getPlayer().getNetworkPlayerInfo(&camera, steamID, dt);
 
     Packet packet;
     packet.set(playerInfoPacketData);
