@@ -55,7 +55,7 @@ struct PacketDataPlayerCharacterInfo : public IPacketData, public IPacketTimeDep
     void save(Archive& ar) const
     {
         uint8_t bitPacked = 0;
-        std::vector<bool*> bitPackValues = getBitPackValues();
+        std::vector<const bool*> bitPackValues = getBitPackValues();
         for (int i = 0; i < bitPackValues.size(); i++)
         {
             bitPacked |= (((*bitPackValues[i]) & 0b1) << i);
@@ -109,6 +109,12 @@ private:
     inline std::vector<bool*> getBitPackValues()
     {
         std::vector<bool*> bitPackValues = {&flipped, &onWater, &inRocket, &fishingRodCasted, &fishBitingLine, &usingTool};
+        return bitPackValues;
+    }
+
+    inline std::vector<const bool*> getBitPackValues() const
+    {
+        std::vector<const bool*> bitPackValues = {&flipped, &onWater, &inRocket, &fishingRodCasted, &fishBitingLine, &usingTool};
         return bitPackValues;
     }
 
