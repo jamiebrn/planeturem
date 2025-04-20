@@ -23,6 +23,8 @@ void NetworkHandler::reset(Game* game)
 
     totalBytesSent = 0;
     totalBytesReceived = 0;
+    totalBytesSentLast = 0;
+    totalBytesReceivedLast = 0;
     
     updateTick = 0.0f;
 
@@ -452,6 +454,9 @@ void NetworkHandler::update(float dt)
     }
 
     structureEnterRequestCooldown = std::max(structureEnterRequestCooldown - dt, 0.0f);
+
+    totalBytesSentLast = totalBytesSent;
+    totalBytesReceivedLast = totalBytesReceived;
 }
 
 void NetworkHandler::updateNetworkPlayers(float dt, const LocationState& locationState)
@@ -1336,4 +1341,14 @@ int NetworkHandler::getTotalBytesSent() const
 int NetworkHandler::getTotalBytesReceived() const
 {
     return totalBytesReceived;
+}
+
+float NetworkHandler::getByteSendRate(float dt) const
+{
+    return (totalBytesSent - totalBytesSentLast) / dt;
+}
+
+float NetworkHandler::getByteReceiveRate(float dt) const
+{
+    return (totalBytesReceived - totalBytesReceivedLast) / dt;
 }

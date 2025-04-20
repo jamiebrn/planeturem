@@ -83,6 +83,8 @@ public:
 
     int getTotalBytesSent() const;
     int getTotalBytesReceived() const;
+    float getByteSendRate(float dt) const;
+    float getByteReceiveRate(float dt) const;
 
 private:
     void processMessage(const SteamNetworkingMessage_t& message, const Packet& packet);
@@ -116,6 +118,8 @@ private:
 
     int totalBytesSent = 0;
     int totalBytesReceived = 0;
+    int totalBytesSentLast = 0;
+    int totalBytesReceivedLast = 0;
 
     static constexpr float SERVER_UPDATE_TICK = 1 / 30.0f;
     float updateTick;
