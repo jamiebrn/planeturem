@@ -169,6 +169,8 @@ void BossBenjaminCrow::update(Game& game, ProjectileManager& enemyProjectileMana
     {
         floatTween.update(dt);
 
+        velocity = pl::Vector2f(0, 0);
+
         // If killed, check falling tween complete
         if (floatTween.isTweenFinished(fallingTweenID))
         {

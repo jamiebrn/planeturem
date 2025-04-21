@@ -7,6 +7,10 @@
 #include <optional>
 #include <unordered_set>
 
+#include <extlib/cereal/archives/binary.hpp>
+#include <extlib/cereal/types/vector.hpp>
+#include <extlib/cereal/types/memory.hpp>
+
 #include <Graphics/SpriteBatch.hpp>
 #include <Graphics/Color.hpp>
 #include <Graphics/RenderTarget.hpp>
@@ -50,6 +54,14 @@ public:
     void drawStatsAtCursor(pl::RenderTarget& window, const Camera& camera, pl::Vector2f mouseScreenPos);
 
     void getBossWorldObjects(std::vector<WorldObject*>& worldObjects);
+
+    int getBossCount() const;
+
+    template <class Archive>
+    void serialize(Archive& ar)
+    {
+        ar(bosses);
+    }
 
 private:
     std::vector<std::unique_ptr<BossEntity>> bosses;

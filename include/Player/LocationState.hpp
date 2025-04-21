@@ -61,8 +61,8 @@ public:
     }
 
 private:
-    PlanetType currentPlanetType = -1;
-    RoomType currentRoomDestType = -1;
+    int8_t currentPlanetType = -1;
+    int8_t currentRoomDestType = -1;
     std::optional<uint32_t> inStructureID;
 
 };

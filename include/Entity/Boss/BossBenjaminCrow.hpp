@@ -4,6 +4,10 @@
 #include <vector>
 #include <array>
 
+#include <extlib/cereal/archives/binary.hpp>
+#include <extlib/cereal/types/vector.hpp>
+#include <extlib/cereal/types/memory.hpp>
+
 #include <Graphics/SpriteBatch.hpp>
 #include <Graphics/Color.hpp>
 #include <Graphics/RenderTarget.hpp>
@@ -62,6 +66,13 @@ public:
 
     void getWorldObjects(std::vector<WorldObject*>& worldObjects) override;
 
+    template <class Archive>
+    void serialize(Archive& ar)
+    {
+        cereal::base_class<BossEntity>(this);
+        ar(velocity.x, velocity.y, health, stage, flyingHeight, flashTime, behaviourState, dashGhostEffects);
+    }
+
 private:
     void updateCollision();
 
@@ -87,13 +98,19 @@ private:
     struct DashGhostEffect
     {
         pl::Vector2f position;
-        int scaleX = 1;
-        int stage;
+        int8_t scaleX = 1;
+        int8_t stage;
 
         static constexpr float MAX_TIME = 0.3f;
         float timer;
 
         static constexpr int MAX_ALPHA = 140;
+        
+        template <class Archive>
+        void serialize(Archive& ar)
+        {
+            ar(position, scaleX, stage, timer);
+        }
     };
 
 private:
@@ -109,7 +126,7 @@ private:
     bool dead;
 
     static constexpr int HEALTH_SECOND_STAGE_THRESHOLD = 250;
-    int stage;
+    int8_t stage;
 
     float flyingHeight;
 
@@ -151,3 +168,5 @@ private:
     static const pl::Rect<int> deadTextureRect;
     static const pl::Rect<int> shadowTextureRect;
 };
+
+CEREAL_REGISTER_TYPE(BossBenjaminCrow);

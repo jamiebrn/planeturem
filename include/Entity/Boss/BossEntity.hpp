@@ -2,6 +2,9 @@
 
 #include <vector>
 
+#include <extlib/cereal/archives/binary.hpp>
+#include <extlib/cereal/types/memory.hpp>
+
 #include <Graphics/SpriteBatch.hpp>
 #include <Graphics/Color.hpp>
 #include <Graphics/RenderTarget.hpp>
@@ -58,6 +61,18 @@ public:
     void setName(const std::string& name);
     const std::string& getName();
 
+    template <class Archive>
+    void save(Archive& ar) const
+    {
+        ar(position.x, position.y);
+    }
+
+    template <class Archive>
+    void load(Archive& ar)
+    {
+        ar(position.x, position.y);
+    }
+
 protected:
     float playerMaxRange = 1000.0f;
     float itemPickupDropRadius = 16.0f;
@@ -75,3 +90,5 @@ protected:
     std::string name;
 
 };
+
+CEREAL_REGISTER_TYPE(BossEntity);

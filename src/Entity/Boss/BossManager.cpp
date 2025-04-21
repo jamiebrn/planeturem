@@ -183,3 +183,8 @@ void BossManager::getBossWorldObjects(std::vector<WorldObject*>& worldObjects)
         boss->getWorldObjects(worldObjects);
     }
 }
+
+int BossManager::getBossCount() const
+{
+    return bosses.size();
+}
