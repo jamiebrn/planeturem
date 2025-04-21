@@ -242,9 +242,6 @@ void Game::run()
             networkHandler.receiveMessages();
         }
 
-        float dataSendRate = networkHandler.getByteSendRate(dt);
-        float dataReceiveRate = networkHandler.getByteReceiveRate(dt);
-
         // runFeatureTest();
         switch (gameState)
         {
@@ -271,13 +268,13 @@ void Game::run()
         textDrawData.containPaddingRight = 10;
         textDrawData.position = pl::Vector2f(window.getWidth(), window.getHeight() - 40);
         textDrawData.text = Helper::floatToString(networkHandler.getTotalBytesReceived() / 1000.0f, 1) + "kb received (" +
-            Helper::floatToString(dataSendRate / 1000.0f, 1) + "KB/s)";
+            Helper::floatToString(networkHandler.getByteReceiveRate(dt) / 1000.0f, 1) + "KB/s)";
         
         TextDraw::drawText(window, textDrawData);
         
         textDrawData.position = pl::Vector2f(window.getWidth(), window.getHeight() - 65);
         textDrawData.text = Helper::floatToString(networkHandler.getTotalBytesSent() / 1000.0f, 1) + "kb sent (" +
-            Helper::floatToString(dataReceiveRate / 1000.0f, 1) + "KB/s)";
+            Helper::floatToString(networkHandler.getByteSendRate(dt) / 1000.0f, 1) + "KB/s)";
 
         TextDraw::drawText(window, textDrawData);
 
