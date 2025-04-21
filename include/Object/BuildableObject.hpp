@@ -29,7 +29,6 @@
 #include "Data/ObjectData.hpp"
 #include "Data/ObjectDataLoader.hpp"
 
-#include "GUI/InventoryGUI.hpp"
 #include "GUI/HitMarkers.hpp"
 
 class Game;

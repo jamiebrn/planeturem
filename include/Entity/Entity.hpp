@@ -29,7 +29,6 @@
 
 #include "Network/PacketData/PacketDataWorld/PacketDataEntities.hpp"
 
-#include "GUI/InventoryGUI.hpp"
 #include "GUI/HitMarkers.hpp"
 
 #include "DebugOptions.hpp"

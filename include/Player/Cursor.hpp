@@ -25,6 +25,10 @@
 #include "World/Room.hpp"
 #include "Types/WorldMenuState.hpp"
 
+#include "Player/InventoryData.hpp"
+
+#include "GUI/InventoryGUI.hpp"
+
 #include "Data/typedefs.hpp"
 #include "Data/ObjectData.hpp"
 #include "Data/ObjectDataLoader.hpp"
@@ -58,8 +62,8 @@ public:
                                  float dt,
                                  ChunkManager& chunkManager,
                                  const CollisionRect& playerCollisionRect,
-                                 ItemType heldItemType,
-                                 ToolType toolType);
+                                 InventoryData& inventory,
+                                 WorldMenuState worldMenuState);
 
     static void updateTileCursorInRoom(pl::Vector2f mouseWorldPos,
                                        float dt,

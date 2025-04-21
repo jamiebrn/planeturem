@@ -75,6 +75,8 @@ public:
     }
 
 private:
+    void initialise(pl::Vector2f position, pl::Vector2f velocity, ProjectileType type, float damageMult, HitLayer hitLayer);
+
     ProjectileType projectileType;
     int damage;
 

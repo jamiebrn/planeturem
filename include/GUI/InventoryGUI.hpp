@@ -122,7 +122,7 @@ public:
 
     // Gets type of object that will be placed from item currently picked up / selected in hotbar
     // INCLUDES HOTBAR AND ITEM PICKED UP
-    static ObjectType getHeldObjectType(InventoryData& inventory);
+    static ObjectType getHeldObjectType(InventoryData& inventory, bool isInInventory);
 
     // Get type of tool currently picked up from inventory
     // INCLUDES HOTBAR AND ITEM PICKED UP
@@ -132,7 +132,7 @@ public:
     // Subtracts from item picked up, if not will attempt to place from hotbar
     static void subtractHeldItem(InventoryData& inventory);
 
-    static bool heldItemPlacesLand(InventoryData& inventory);
+    static bool heldItemPlacesLand(InventoryData& inventory, bool isInInventory);
 
     static void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, float gameTime, pl::Vector2f mouseScreenPos,
         InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData = nullptr);

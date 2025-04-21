@@ -841,7 +841,7 @@ ItemType InventoryGUI::getHeldItemType(InventoryData& inventory)
     return -1;
 }
 
-ObjectType InventoryGUI::getHeldObjectType(InventoryData& inventory)
+ObjectType InventoryGUI::getHeldObjectType(InventoryData& inventory, bool isInInventory)
 {
     if (isItemPickedUp)
     {
@@ -850,7 +850,12 @@ ObjectType InventoryGUI::getHeldObjectType(InventoryData& inventory)
     }
 
     // Get from hotbar as no item is picked up
-    return getHotbarSelectedObject(inventory);
+    if (!isInInventory)
+    {
+        return getHotbarSelectedObject(inventory);
+    }
+
+    return -1;
 }
 
 ToolType InventoryGUI::getHeldToolType(InventoryData& inventory)
@@ -884,7 +889,7 @@ void InventoryGUI::subtractHeldItem(InventoryData& inventory)
     subtractHotbarItem(inventory);
 }
 
-bool InventoryGUI::heldItemPlacesLand(InventoryData& inventory)
+bool InventoryGUI::heldItemPlacesLand(InventoryData& inventory, bool isInInventory)
 {
     if (isItemPickedUp)
     {
@@ -893,7 +898,12 @@ bool InventoryGUI::heldItemPlacesLand(InventoryData& inventory)
     }
 
     // Get from hotbar
-    return hotbarItemPlacesLand(inventory);
+    if (!isInInventory)
+    {
+        return hotbarItemPlacesLand(inventory);
+    }
+
+    return false;
 }
 
 void InventoryGUI::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, float gameTime, pl::Vector2f mouseScreenPos,

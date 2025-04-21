@@ -31,7 +31,6 @@
 #include "World/ChunkManager.hpp"
 #include "World/PathfindingEngine.hpp"
 
-#include "GUI/InventoryGUI.hpp"
 #include "GUI/HitMarkers.hpp"
 
 #include "Entity/Projectile/Projectile.hpp"

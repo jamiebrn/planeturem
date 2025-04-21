@@ -12,10 +12,15 @@ Projectile::Projectile(pl::Vector2f position, float angle, ProjectileType type, 
     velocity.x = std::cos(angleRadians) * speed;
     velocity.y = std::sin(angleRadians) * speed;
     
-    Projectile::Projectile(position, velocity, type, damageMult, hitLayer);
+    initialise(position, velocity, type, damageMult, hitLayer);
 }
 
 Projectile::Projectile(pl::Vector2f position, pl::Vector2f velocity, ProjectileType type, float damageMult, HitLayer hitLayer)
+{
+    initialise(position, velocity, type, damageMult, hitLayer);
+}
+
+void Projectile::initialise(pl::Vector2f position, pl::Vector2f velocity, ProjectileType type, float damageMult, HitLayer hitLayer)
 {   
     this->position = position;
     

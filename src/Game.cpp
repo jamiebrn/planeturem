@@ -12,8 +12,6 @@
 // TODO: Save all required planets
 // TODO: Boss networking
 
-// TODO: Maybe prevent building from hotbar when inventory open?
-
 // TODO: Night and menu music
 
 // PRIORITY: LOW
@@ -988,8 +986,7 @@ void Game::updateOnPlanet(float dt)
     int worldSize = getChunkManager().getWorldSize();
 
     // Update cursor
-    Cursor::updateTileCursor(camera.screenToWorldTransform(mouseScreenPos), dt, getChunkManager(), player.getCollisionRect(), InventoryGUI::getHeldItemType(inventory),
-        player.getTool());
+    Cursor::updateTileCursor(camera.screenToWorldTransform(mouseScreenPos), dt, getChunkManager(), player.getCollisionRect(), inventory, worldMenuState);
 
     // Update player
     bool wrappedAroundWorld = false;
@@ -1195,7 +1192,7 @@ void Game::drawOnPlanet(float dt)
 
     if (player.getTool() < 0 && (worldMenuState == WorldMenuState::Main || worldMenuState == WorldMenuState::Inventory))
     {
-        ObjectType placeObject = InventoryGUI::getHeldObjectType(inventory);
+        ObjectType placeObject = InventoryGUI::getHeldObjectType(inventory, worldMenuState == WorldMenuState::Inventory);
 
         if (placeObject >= 0)
         {
@@ -1203,7 +1200,7 @@ void Game::drawOnPlanet(float dt)
         }
 
         // Draw land to place if held
-        if ((InventoryGUI::heldItemPlacesLand(inventory)))
+        if ((InventoryGUI::heldItemPlacesLand(inventory, worldMenuState == WorldMenuState::Inventory)))
         {
             drawGhostPlaceLandAtCursor();
         }
@@ -2183,7 +2180,7 @@ void Game::attemptBuildObject()
     if (player.isInRocket())
         return;
 
-    ObjectType objectType = InventoryGUI::getHeldObjectType(inventory);
+    ObjectType objectType = InventoryGUI::getHeldObjectType(inventory, worldMenuState == WorldMenuState::Inventory);
 
     if (objectType < 0)
         return;
@@ -2211,7 +2208,7 @@ void Game::attemptPlaceLand()
     if (player.isInRocket())
         return;
     
-    if (!InventoryGUI::heldItemPlacesLand(inventory))
+    if (!InventoryGUI::heldItemPlacesLand(inventory, worldMenuState == WorldMenuState::Inventory))
         return;
 
     // Do not build if holding tool in inventory

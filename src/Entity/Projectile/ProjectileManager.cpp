@@ -48,6 +48,12 @@ void ProjectileManager::addProjectile(const Projectile& projectile, ToolType wea
     // Send projectile creation request to host
     if (game->getNetworkHandler().isClient())
     {
+        if (weaponType < 0)
+        {
+            printf("ERROR: Attempted to create networked projectile from null weapon type %d\n", weaponType);
+            return;
+        }
+        
         PacketDataProjectileCreateRequest packetData;
         packetData.planetType = planetType;
         packetData.projectile = projectile;

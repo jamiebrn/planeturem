@@ -16,8 +16,8 @@ void Cursor::updateTileCursor(pl::Vector2f mouseWorldPos,
                               float dt,
                               ChunkManager& chunkManager,
                               const CollisionRect& playerCollisionRect,
-                              ItemType heldItemType,
-                              ToolType toolType)
+                              InventoryData& inventory,
+                              WorldMenuState worldMenuState)
 {
     // Get mouse position in screen space and world space
     // pl::Vector2f mouseWorldPos = getMouseWorldPos(window, camera);
@@ -34,41 +34,31 @@ void Cursor::updateTileCursor(pl::Vector2f mouseWorldPos,
     // Set drawing to hidden by default
     drawState = CursorDrawState::Hidden;
 
-    if (heldItemType >= 0)
+    // Override cursor size if object is being placed
+    if (InventoryGUI::getHeldObjectType(inventory, worldMenuState == WorldMenuState::Inventory) >= 0)
     {
-        // Get held item data
-        const ItemData& itemData = ItemDataLoader::getItemData(heldItemType);
+        updateTileCursorOnPlanetPlaceObject(InventoryGUI::getHeldObjectType(inventory, worldMenuState == WorldMenuState::Inventory));
+    }
+    else if (InventoryGUI::heldItemPlacesLand(inventory, worldMenuState == WorldMenuState::Inventory))
+    {
+        updateTileCursorOnPlanetPlaceLand();
+    }
+    else if (InventoryGUI::getHeldToolType(inventory) >= 0)
+    {
+        // Get current tool data
+        const ToolData& toolData = ToolDataLoader::getToolData(InventoryGUI::getHeldToolType(inventory));
 
-        // Override cursor size if object is being placed
-        if (itemData.placesObjectType >= 0)
+        switch (toolData.toolBehaviourType)
         {
-            updateTileCursorOnPlanetPlaceObject(itemData.placesObjectType);
-        }
-        else if (itemData.placesLand)
-        {
-            updateTileCursorOnPlanetPlaceLand();
-        }
-        else if (toolType >= 0)
-        {
-            // Get current tool data
-            const ToolData& toolData = ToolDataLoader::getToolData(toolType);
-
-            switch (toolData.toolBehaviourType)
-            {
-                case ToolBehaviourType::Pickaxe:
-                    updateTileCursorOnPlanetToolPickaxe(mouseWorldPos, dt, chunkManager, playerCollisionRect);
-                    break;
-                case ToolBehaviourType::FishingRod:
-                    updateTileCursorOnPlanetToolFishingRod(dt, chunkManager);
-                    break;
-                default:
-                    updateTileCursorOnPlanetNoItem(dt, chunkManager);
-                    break;
-            }
-        }
-        else
-        {
-            updateTileCursorOnPlanetNoItem(dt, chunkManager);
+            case ToolBehaviourType::Pickaxe:
+                updateTileCursorOnPlanetToolPickaxe(mouseWorldPos, dt, chunkManager, playerCollisionRect);
+                break;
+            case ToolBehaviourType::FishingRod:
+                updateTileCursorOnPlanetToolFishingRod(dt, chunkManager);
+                break;
+            default:
+                updateTileCursorOnPlanetNoItem(dt, chunkManager);
+                break;
         }
     }
     else

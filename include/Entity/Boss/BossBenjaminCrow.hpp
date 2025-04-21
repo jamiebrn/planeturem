@@ -31,7 +31,6 @@
 #include "Data/ItemData.hpp"
 #include "Data/ItemDataLoader.hpp"
 
-#include "GUI/InventoryGUI.hpp"
 #include "GUI/HitMarkers.hpp"
 
 #include "Entity/Projectile/Projectile.hpp"
