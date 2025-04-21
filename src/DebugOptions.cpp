@@ -12,5 +12,6 @@ bool DebugOptions::drawEntityChunkParents = false;
 bool DebugOptions::godMode = false;
 float DebugOptions::godSpeedMultiplier = 1.0f;
 bool DebugOptions::limitlessZoom = false;
+bool DebugOptions::crazyAttack = false;
 
 #endif

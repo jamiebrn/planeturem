@@ -1701,7 +1701,7 @@ void Game::attemptUseTool()
     if (player.getTool() < 0)
         return;
 
-    if (player.isUsingTool())
+    if (player.isUsingTool() && !DebugOptions::crazyAttack)
         return;
     
     if (player.isInRocket())
@@ -4315,6 +4315,8 @@ void Game::drawDebugMenu(float dt)
         ImGui::SliderFloat("God Speed Multiplier", &DebugOptions::godSpeedMultiplier, 0.0f, 100.0f);
         ImGui::Checkbox("Limitless Zoom", &DebugOptions::limitlessZoom);
     }
+
+    ImGui::Checkbox("Crazy Attack", &DebugOptions::crazyAttack);
 
     ImGui::Text(("Weather value: " + std::to_string(weatherSystem.sampleWeatherFunction(gameTime))).c_str());
     ImGui::Text(("Weather transition: " + std::to_string(weatherSystem.getDestinationTransitionProgress())).c_str());

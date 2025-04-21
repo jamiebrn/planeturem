@@ -517,5 +517,13 @@
         },
         "crafting-station": "anvil",
         "crafting-station-level": 1
+    },
+    {
+        "product": "Coal",
+        "item-requirements": {
+            "Wood": 10
+        },
+        "crafting-station": "furnace",
+        "crafting-station-level": 1
     }
 ]

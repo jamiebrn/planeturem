@@ -19,6 +19,7 @@ extern bool drawEntityChunkParents;
 extern bool godMode;
 extern float godSpeedMultiplier;
 extern bool limitlessZoom;
+extern bool crazyAttack;
 
 }
 
