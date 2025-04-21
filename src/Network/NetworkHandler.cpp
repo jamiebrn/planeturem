@@ -1005,7 +1005,7 @@ void NetworkHandler::processMessageAsClient(const SteamNetworkingMessage_t& mess
                 printf("ERROR: Received projectile data for incorrect planet type %d\n", packetData.planetType);
                 break;
             }
-            game->getProjectileManager(packetData.planetType) = packetData.projectileManager;
+            game->getProjectileManager(packetData.planetType).getProjectiles() = packetData.projectileManager.getProjectiles();
             break;
         }
         case PacketType::PlanetTravelReply:
