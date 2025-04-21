@@ -116,10 +116,14 @@ private:
 
     Game* game = nullptr;
 
-    int totalBytesSent = 0;
-    int totalBytesReceived = 0;
-    int totalBytesSentLast = 0;
-    int totalBytesReceivedLast = 0;
+    int totalBytesSent;
+    int totalBytesReceived;
+    int totalBytesSentLast;
+    int totalBytesReceivedLast;
+    static constexpr float BYTE_RATE_SAMPLE_RATE = 0.2f;
+    float byteRateSampleTime;
+    float byteSendRate;
+    float byteReceiveRate;
 
     static constexpr float SERVER_UPDATE_TICK = 1 / 30.0f;
     float updateTick;

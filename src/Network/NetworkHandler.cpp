@@ -25,6 +25,9 @@ void NetworkHandler::reset(Game* game)
     totalBytesReceived = 0;
     totalBytesSentLast = 0;
     totalBytesReceivedLast = 0;
+    byteRateSampleTime = 0.0f;
+    byteSendRate = 0.0f;
+    byteReceiveRate = 0.0f;
     
     updateTick = 0.0f;
 
@@ -455,8 +458,15 @@ void NetworkHandler::update(float dt)
 
     structureEnterRequestCooldown = std::max(structureEnterRequestCooldown - dt, 0.0f);
 
-    totalBytesSentLast = totalBytesSent;
-    totalBytesReceivedLast = totalBytesReceived;
+    byteRateSampleTime += dt;
+    if (byteRateSampleTime >= BYTE_RATE_SAMPLE_RATE)
+    {
+        byteRateSampleTime = 0.0f;
+        byteSendRate = (totalBytesSent - totalBytesSentLast) / BYTE_RATE_SAMPLE_RATE;
+        byteReceiveRate = (totalBytesReceived - totalBytesReceivedLast) / BYTE_RATE_SAMPLE_RATE;
+        totalBytesSentLast = totalBytesSent;
+        totalBytesReceivedLast = totalBytesReceived;
+    }
 }
 
 void NetworkHandler::updateNetworkPlayers(float dt, const LocationState& locationState)
@@ -1345,10 +1355,10 @@ int NetworkHandler::getTotalBytesReceived() const
 
 float NetworkHandler::getByteSendRate(float dt) const
 {
-    return (totalBytesSent - totalBytesSentLast) / dt;
+    return byteSendRate;
 }
 
 float NetworkHandler::getByteReceiveRate(float dt) const
 {
-    return (totalBytesReceived - totalBytesReceivedLast) / dt;
+    return byteReceiveRate;
 }
