@@ -18,6 +18,7 @@ enum class InputAction
     UI_CONFIRM,
     UI_CONFIRM_OTHER,
     UI_SHIFT,
+    UI_CTRL,
     UI_BACK,
     UI_TAB_LEFT,
     UI_TAB_RIGHT,

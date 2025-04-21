@@ -270,7 +270,7 @@ void InventoryGUI::updateInventory(pl::Vector2f mouseScreenPos, float dt, Invent
     }
 }
 
-void InventoryGUI::handleLeftClick(Game& game, pl::Vector2f mouseScreenPos, bool shiftMode, NetworkHandler& networkHandler,
+void InventoryGUI::handleLeftClick(Game& game, pl::Vector2f mouseScreenPos, bool shiftMode, bool ctrlMode, NetworkHandler& networkHandler,
     InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData)
 {
     if (isItemPickedUp)
@@ -304,6 +304,10 @@ void InventoryGUI::handleLeftClick(Game& game, pl::Vector2f mouseScreenPos, bool
         if (canQuickTransfer(mouseScreenPos, shiftMode, inventory, chestData))
         {
             inventoryChestItemQuickTransfer(game, mouseScreenPos, 999999999, inventory, *chestData);
+        }
+        else if (canQuickBin(mouseScreenPos, ctrlMode, inventory, chestData))
+        {
+            quickBin(mouseScreenPos, inventory, chestData);
         }
         else
         {
@@ -1938,13 +1942,17 @@ void InventoryGUI::inventoryChestItemQuickTransfer(Game& game, pl::Vector2f mous
     }
 
     if (itemHovered < 0)
+    {
         return;
+    }
     
     // Get item data from source inventory
     std::optional<ItemCount>& itemSlotData = hoveredInventory->getItemSlotData(itemHovered);
 
     if (!itemSlotData.has_value())
+    {
         return;
+    }
     
     ItemCount& itemCount = itemSlotData.value();
 
@@ -1957,6 +1965,41 @@ void InventoryGUI::inventoryChestItemQuickTransfer(Game& game, pl::Vector2f mous
     game.openedChestDataModified();
 }
 
+void InventoryGUI::quickBin(pl::Vector2f mouseScreenPos, InventoryData& inventory, InventoryData* chestData)
+{
+    int itemHovered = getHoveredItemSlotIndex(inventoryItemSlots, mouseScreenPos);
+
+    InventoryData* hoveredInventory = &inventory;
+
+    // Not hovered over inventory
+    if (itemHovered < 0)
+    {
+        if (!chestData)
+        {
+            return;
+        }
+
+        int chestItemHovered = getHoveredItemSlotIndex(chestItemSlots, mouseScreenPos);
+
+        if (chestItemHovered < 0)
+        {
+            return;
+        }
+
+        itemHovered = chestItemHovered;
+        hoveredInventory = chestData;
+    }
+
+    std::optional<ItemCount>& itemSlotData = hoveredInventory->getItemSlotData(itemHovered);
+
+    if (!itemSlotData.has_value())
+    {
+        return;
+    }
+
+    // Put items at hovered slot in bin / remove
+    hoveredInventory->takeItemAtIndex(itemHovered, itemSlotData->second);
+}
 
 // -- Shop -- //
 void InventoryGUI::shopOpened(ShopInventoryData& shopData)
@@ -2337,7 +2380,8 @@ bool InventoryGUI::handleControllerInput(Game& game, NetworkHandler& networkHand
 
     if (InputManager::isActionJustActivated(InputAction::UI_CONFIRM))
     {
-        handleLeftClick(game, pl::Vector2f(0, 0), InputManager::isActionActive(InputAction::UI_SHIFT), networkHandler, inventory, armourInventory, chestData);
+        handleLeftClick(game, pl::Vector2f(0, 0), InputManager::isActionActive(InputAction::UI_SHIFT), InputManager::isActionActive(InputAction::UI_CTRL),
+            networkHandler, inventory, armourInventory, chestData);
         return true;
     }
     if (InputManager::isActionJustActivated(InputAction::UI_CONFIRM_OTHER))
@@ -2354,10 +2398,14 @@ bool InventoryGUI::handleControllerInput(Game& game, NetworkHandler& networkHand
 bool InventoryGUI::canQuickTransfer(pl::Vector2f mouseScreenPos, bool shiftMode, InventoryData& inventory, InventoryData* chestData)
 {
     if (!shiftMode)
+    {
         return false;
+    }
     
     if (chestData == nullptr)
+    {
         return false;
+    }
     
     InventoryData* hoveredInventory = &inventory;
     InventoryData* toTransferInventory = chestData;
@@ -2392,4 +2440,39 @@ bool InventoryGUI::canQuickTransfer(pl::Vector2f mouseScreenPos, bool shiftMode,
     }
         
     return true;
+}
+
+bool InventoryGUI::canQuickBin(pl::Vector2f mouseScreenPos, bool ctrlMode, InventoryData& inventory, InventoryData* chestData)
+{
+    if (!ctrlMode)
+    {
+        return false;
+    }
+
+    int itemHovered = getHoveredItemSlotIndex(inventoryItemSlots, mouseScreenPos);
+
+    InventoryData* inventoryHovered = &inventory;
+
+    // Not hovered over inventory
+    if (itemHovered < 0)
+    {
+        if (!chestData)
+        {
+            return false;
+        }
+
+        int chestItemHovered = getHoveredItemSlotIndex(chestItemSlots, mouseScreenPos);
+
+        if (chestItemHovered < 0)
+        {
+            return false;
+        }
+
+        itemHovered = chestItemHovered;
+        inventoryHovered = chestData;
+    }
+
+    std::optional<ItemCount>& itemSlotData = inventoryHovered->getItemSlotData(itemHovered);
+
+    return itemSlotData.has_value();
 }

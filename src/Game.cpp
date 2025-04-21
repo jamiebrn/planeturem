@@ -105,6 +105,7 @@ bool Game::initialise()
     InputManager::bindKey(InputAction::OPEN_INVENTORY, SDL_Scancode::SDL_SCANCODE_E);
     InputManager::bindKey(InputAction::UI_BACK, SDL_Scancode::SDL_SCANCODE_ESCAPE);
     InputManager::bindKey(InputAction::UI_SHIFT, SDL_Scancode::SDL_SCANCODE_LSHIFT);
+    InputManager::bindKey(InputAction::UI_CTRL, SDL_Scancode::SDL_SCANCODE_LCTRL);
     InputManager::bindKey(InputAction::PAUSE_GAME, SDL_Scancode::SDL_SCANCODE_ESCAPE);
     InputManager::bindKey(InputAction::HOTBAR_0, SDL_Scancode::SDL_SCANCODE_1);
     InputManager::bindKey(InputAction::HOTBAR_1, SDL_Scancode::SDL_SCANCODE_2);
@@ -135,6 +136,7 @@ bool Game::initialise()
     InputManager::bindControllerButton(InputAction::UI_CONFIRM_OTHER, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_X);
     InputManager::bindControllerButton(InputAction::UI_BACK, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_B);
     InputManager::bindControllerButton(InputAction::UI_SHIFT, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_LEFTSTICK);
+    InputManager::bindControllerButton(InputAction::UI_CTRL, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_GUIDE);
     InputManager::bindControllerButton(InputAction::RECENTRE_CONTROLLER_CURSOR, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_RIGHTSTICK);
     InputManager::bindControllerButton(InputAction::PAUSE_GAME, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_START);
     InputManager::bindControllerAxis(InputAction::USE_TOOL, JoystickAxisWithDirection{SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_TRIGGERRIGHT, JoystickAxisDirection::POSITIVE});
@@ -387,6 +389,7 @@ void Game::runInGame(float dt)
     // pl::Vector2f mouseScreenPos = static_cast<pl::Vector2f>(sf::Mouse::getPosition(window));
 
     bool shiftMode = InputManager::isActionActive(InputAction::UI_SHIFT);
+    bool ctrlMode = InputManager::isActionActive(InputAction::UI_CTRL);
 
     // Handle events
     SDL_Event event;
@@ -433,7 +436,7 @@ void Game::runInGame(float dt)
                         
                         if (InventoryGUI::isMouseOverUI(mouseScreenPos) && !InputManager::isControllerActive())
                         {
-                            InventoryGUI::handleLeftClick(*this, mouseScreenPos, shiftMode, networkHandler,
+                            InventoryGUI::handleLeftClick(*this, mouseScreenPos, shiftMode, ctrlMode, networkHandler,
                                 inventory, armourInventory, getChestDataPool().getChestDataPtr(openedChestID));
                             uiInteracted = true;
                         }
@@ -857,10 +860,11 @@ void Game::runInGame(float dt)
                 {
                     std::vector<std::pair<InputAction, std::string>> actionStrings = {
                         {InputAction::UI_SHIFT, "Quick Transfer"},
+                        {InputAction::UI_CTRL, "Quick Bin"},
                         {InputAction::ZOOM_OUT, "Zoom Out"},  
                         {InputAction::ZOOM_IN, "Zoom In"},  
                         {InputAction::UI_CONFIRM_OTHER, "Select 1"},  
-                        {InputAction::UI_CONFIRM, "Select All"},  
+                        {InputAction::UI_CONFIRM, "Select All"},
                     };
 
                     drawControllerGlyphs(actionStrings);
@@ -4075,11 +4079,14 @@ void Game::drawMouseCursor()
     pl::Vector2f textureCentreRatio;
 
     bool shiftMode = InputManager::isActionActive(InputAction::UI_SHIFT);
+    bool ctrlMode = InputManager::isActionActive(InputAction::UI_CTRL);
 
     bool canQuickTransfer = false;
+    bool canQuickBin = false;
     if (!locationState.isNull())
     {
         canQuickTransfer = InventoryGUI::canQuickTransfer(mouseScreenPos, shiftMode, inventory, getChestDataPool().getChestDataPtr(openedChestID));
+        canQuickBin = InventoryGUI::canQuickBin(mouseScreenPos, ctrlMode, inventory, getChestDataPool().getChestDataPtr(openedChestID));
     }
 
     if (InputManager::isControllerActive())
@@ -4091,6 +4098,11 @@ void Game::drawMouseCursor()
             {
                 textureRect = pl::Rect<int>(96, 48, 15, 15);
                 textureCentreRatio = pl::Vector2f(1.0f / 3.0f, 1.0f / 3.0f);
+            }
+            else if (canQuickBin)
+            {
+                textureRect = pl::Rect<int>(112, 48, 17, 17);
+                textureCentreRatio = pl::Vector2f(5.0f / 17.0f, 5.0f / 17.0f);
             }
             else if (InputManager::isActionActive(InputAction::USE_TOOL))
             {
@@ -4122,6 +4134,10 @@ void Game::drawMouseCursor()
         if (canQuickTransfer)
         {
             textureRect = pl::Rect<int>(96, 32, 12, 12);
+        }
+        else if (canQuickBin)
+        {
+            textureRect = pl::Rect<int>(112, 32, 14, 14);
         }
     }
 

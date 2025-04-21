@@ -93,7 +93,7 @@ public:
     static void updateInventory(pl::Vector2f mouseScreenPos, float dt, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData = nullptr);
 
     // May pick up item stack, may put down item stack
-    static void handleLeftClick(Game& game, pl::Vector2f mouseScreenPos, bool shiftMode, NetworkHandler& networkHandler,
+    static void handleLeftClick(Game& game, pl::Vector2f mouseScreenPos, bool shiftMode, bool ctrlMode, NetworkHandler& networkHandler,
         InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData = nullptr);
 
     // May pick up single item
@@ -180,6 +180,8 @@ public:
     // -- Misc -- //
     static bool canQuickTransfer(pl::Vector2f mouseScreenPos, bool shiftMode, InventoryData& inventory, InventoryData* chestData);
 
+    static bool canQuickBin(pl::Vector2f mouseScreenPos, bool ctrlMode, InventoryData& inventory, InventoryData* chestData);
+
 private:
     static void initialiseInventory(InventoryData& inventory);
     static void initialiseHotbar();
@@ -222,6 +224,8 @@ private:
 
     // -- Chest --
     static void inventoryChestItemQuickTransfer(Game& game, pl::Vector2f mouseScreenPos, unsigned int amount, InventoryData& inventory, InventoryData& chestData);
+
+    static void quickBin(pl::Vector2f mouseScreenPos, InventoryData& inventory, InventoryData* chestData);
 
     // -- Shop --
     static bool attemptPurchaseItem(InventoryData& inventory, int shopIndex);
