@@ -37,7 +37,7 @@ void ProjectileManager::drawProjectiles(pl::RenderTarget& window, pl::SpriteBatc
     }
 }
 
-void ProjectileManager::addProjectile(const Projectile& projectile)
+void ProjectileManager::addProjectile(const Projectile& projectile, ToolType weaponType)
 {
     if (!game)
     {
@@ -51,6 +51,7 @@ void ProjectileManager::addProjectile(const Projectile& projectile)
         PacketDataProjectileCreateRequest packetData;
         packetData.planetType = planetType;
         packetData.projectile = projectile;
+        packetData.weaponType = weaponType;
 
         Packet packet;
         packet.set(packetData);

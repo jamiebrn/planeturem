@@ -823,7 +823,7 @@ void Player::useTool(ProjectileManager& projectileManager, InventoryData& invent
             Projectile projectile(spawnPos, angle, projectileType, toolData.projectileDamageMult, toolData.shootPower, HitLayer::Entity);
 
             // Add projectile to manager
-            projectileManager.addProjectile(projectile);
+            projectileManager.addProjectile(projectile, equippedTool);
             break;
         }
         case ToolBehaviourType::MeleeWeapon:

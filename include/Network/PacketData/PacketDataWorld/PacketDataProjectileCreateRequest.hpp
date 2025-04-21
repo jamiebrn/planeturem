@@ -24,6 +24,7 @@ struct PacketDataProjectileCreateRequest : public IPacketData, public IPacketTim
 
     uint8_t planetType;
     Projectile projectile;
+    uint8_t weaponType;
 
     inline virtual void applyPingCorrection(float pingTimeSecs) override
     {
@@ -33,7 +34,7 @@ struct PacketDataProjectileCreateRequest : public IPacketData, public IPacketTim
     template <class Archive>
     void serialize(Archive& ar)
     {
-        ar(planetType, projectile);
+        ar(planetType, projectile, weaponType);
     }
 
     PACKET_SERIALISATION();

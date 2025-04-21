@@ -34,7 +34,7 @@ public:
     void drawProjectiles(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const ChunkManager& chunkManager, pl::Vector2f playerPos, const Camera& camera);
 
     // Will request projectile from host if is client
-    void addProjectile(const Projectile& projectile);
+    void addProjectile(const Projectile& projectile, ToolType weaponType);
 
     void createProjectileWithID(uint16_t id, const Projectile& projectile);
 

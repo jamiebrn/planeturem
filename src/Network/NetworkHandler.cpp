@@ -867,7 +867,12 @@ void NetworkHandler::processMessageAsHost(const SteamNetworkingMessage_t& messag
             PacketDataProjectileCreateRequest packetData;
             packetData.deserialise(packet.data);
             packetData.applyPingEstimate(getPlayerPingLocation(message.m_identityPeer.GetSteamID64()));
-            game->getProjectileManager(packetData.planetType).addProjectile(packetData.projectile);
+
+            const ToolData& weaponData = ToolDataLoader::getToolData(packetData.weaponType);
+            Projectile projectile(packetData.projectile.getPosition(), packetData.projectile.getVelocity(),
+                packetData.projectile.getType(), weaponData.projectileDamageMult, HitLayer::Entity);
+
+            game->getProjectileManager(packetData.planetType).addProjectile(projectile, packetData.weaponType);
             break;
         }
         case PacketType::PlanetTravelRequest:

@@ -3,22 +3,29 @@
 
 Projectile::Projectile(pl::Vector2f position, float angle, ProjectileType type, float damageMult, float shootPower, HitLayer hitLayer)
 {
-    this->position = position;
-
-    projectileType = type;
-    
     const ProjectileData& projectileData = ToolDataLoader::getProjectileData(type);
     
     int speed = projectileData.speed * shootPower;
-
-    // Randomise damage
-    int damageBaseValue = Helper::randInt(projectileData.damageLow, projectileData.damageHigh);
-    this->damage = std::round(damageBaseValue * damageMult);
-
+    
     // Calculate velocity
     float angleRadians = M_PI * angle / 180.0f;
     velocity.x = std::cos(angleRadians) * speed;
     velocity.y = std::sin(angleRadians) * speed;
+    
+    Projectile::Projectile(position, velocity, type, damageMult, hitLayer);
+}
+
+Projectile::Projectile(pl::Vector2f position, pl::Vector2f velocity, ProjectileType type, float damageMult, HitLayer hitLayer)
+{   
+    this->position = position;
+    
+    projectileType = type;
+    
+    const ProjectileData& projectileData = ToolDataLoader::getProjectileData(type);
+    
+    // Randomise damage
+    int damageBaseValue = Helper::randInt(projectileData.damageLow, projectileData.damageHigh);
+    this->damage = std::round(damageBaseValue * damageMult);
 
     this->hitLayer = hitLayer;
 
@@ -70,6 +77,16 @@ void Projectile::onCollision()
 pl::Vector2f Projectile::getPosition() const
 {
     return position;
+}
+
+pl::Vector2f Projectile::getVelocity() const
+{
+    return velocity;
+}
+
+ProjectileType Projectile::getType() const
+{
+    return projectileType;
 }
 
 void Projectile::handleWorldWrap(pl::Vector2f positionDelta)

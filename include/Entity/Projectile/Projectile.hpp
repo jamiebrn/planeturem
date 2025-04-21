@@ -36,6 +36,7 @@ public:
     Projectile() = default;
     // Angle in DEGREES
     Projectile(pl::Vector2f position, float angle, ProjectileType type, float damageMult, float shootPower, HitLayer hitLayer);
+    Projectile(pl::Vector2f position, pl::Vector2f velocity, ProjectileType type, float damageMult, HitLayer hitLayer);
 
     void update(float dt);
 
@@ -47,6 +48,8 @@ public:
     void onCollision();
 
     pl::Vector2f getPosition() const;
+    pl::Vector2f getVelocity() const;
+    ProjectileType getType() const;
 
     void handleWorldWrap(pl::Vector2f positionDelta);
 

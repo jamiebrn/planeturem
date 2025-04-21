@@ -7,8 +7,9 @@
 
 // TODO: Improve entity movement over network
 
+// TODO: Rework planet wraparound system to use consistently in-range positions, with determination of player relative position at draw time
+
 // TODO: Save all required planets
-// TODO: Projectile networking
 // TODO: Boss networking
 
 // TODO: Maybe prevent building from hotbar when inventory open?
@@ -1047,16 +1048,17 @@ void Game::updateOnPlanet(float dt)
         {
             lightingTick = LIGHTING_TICK;
         }
+        
+        // Update bosses
+        getBossManager().update(*this, getProjectileManager(), getChunkManager(), player, dt, gameTime);
+    
+        // Update projectiles
+        getProjectileManager().update(dt);
     }
     
     // Get nearby crafting stations
     nearbyCraftingStationLevels = getChunkManager().getNearbyCraftingStationLevels(player.getChunkInside(worldSize), player.getChunkTileInside(worldSize), 4);
 
-    // Update bosses
-    getBossManager().update(*this, getProjectileManager(), getChunkManager(), player, dt, gameTime);
-
-    // Update projectiles
-    getProjectileManager().update(dt);
     // enemyProjectileManager.update(dt);
 
     weatherSystem.update(dt, gameTime, camera, getChunkManager());
@@ -1152,6 +1154,12 @@ void Game::updateActivePlanets(float dt)
         {
             lightingTick = LIGHTING_TICK;
         }
+
+        // Update bosses
+        getBossManager(planetType).update(*this, getProjectileManager(planetType), getChunkManager(planetType), player, dt, gameTime);
+    
+        // Update projectiles
+        getProjectileManager(planetType).update(dt);
     }
 }
 
