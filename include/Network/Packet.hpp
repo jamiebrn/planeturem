@@ -19,27 +19,52 @@ struct Packet
 
     inline std::vector<char> serialise() const
     {
-        int size = sizeof(type) + sizeof(compressed) + sizeof(uncompressedSize) + data.size();
+        int size = sizeof(type) + sizeof(compressed) + data.size();
+        if (compressed)
+        {
+            size += sizeof(uncompressedSize);
+        }
         std::vector<char> serialisedData(size);
 
-        memcpy(serialisedData.data(), &type, sizeof(type));
-        memcpy(serialisedData.data() + sizeof(type), &compressed, sizeof(compressed));
-        memcpy(serialisedData.data() + sizeof(type) + sizeof(compressed), &uncompressedSize, sizeof(uncompressedSize));
-        memcpy(serialisedData.data() + sizeof(type) + sizeof(compressed) + sizeof(uncompressedSize), data.data(), data.size());
+        char* bufferPtr = serialisedData.data();
+
+        memcpy(bufferPtr, &type, sizeof(type));
+        bufferPtr += sizeof(type);
+
+        memcpy(bufferPtr, &compressed, sizeof(compressed));
+        bufferPtr += sizeof(compressed);
+
+        if (compressed)
+        {
+            memcpy(bufferPtr, &uncompressedSize, sizeof(uncompressedSize));
+            bufferPtr += sizeof(uncompressedSize);
+        }
+
+        memcpy(bufferPtr, data.data(), data.size());
 
         return serialisedData;
     }
 
     inline bool deserialise(const char* serialisedData, size_t serialisedDataSize)
     {
-        memcpy(&type, serialisedData, sizeof(type));
-        memcpy(&compressed, serialisedData + sizeof(type), sizeof(compressed));
-        memcpy(&uncompressedSize, serialisedData + sizeof(type) + sizeof(compressed), sizeof(uncompressedSize));
+        const char* bufferPtr = serialisedData;
+        
+        memcpy(&type, bufferPtr, sizeof(type));
+        bufferPtr += sizeof(type);
 
-        int dataSize = serialisedDataSize - sizeof(type) - sizeof(compressed) - sizeof(uncompressedSize);
+        memcpy(&compressed, bufferPtr, sizeof(compressed));
+        bufferPtr += sizeof(compressed);
+
+        if (compressed)
+        {
+            memcpy(&uncompressedSize, bufferPtr, sizeof(uncompressedSize));
+            bufferPtr += sizeof(uncompressedSize);
+        }
+
+        int dataSize = serialisedDataSize - (bufferPtr - serialisedData);
         data.resize(dataSize);
 
-        memcpy(data.data(), serialisedData + sizeof(type) + sizeof(compressed) + sizeof(uncompressedSize), dataSize);
+        memcpy(data.data(), bufferPtr, dataSize);
 
         if (compressed)
         {
@@ -72,24 +97,23 @@ struct Packet
 
         if (applyCompression)
         {
-            compressed = true;
             uncompressedSize = data.size();
-
+            
             int bufferSize = lzav_compress_bound(data.size());
-
+            
             std::vector<char> compressedData;
             compressedData.resize(bufferSize);
-
+            
             int compressedSize = lzav_compress_default(data.data(), compressedData.data(), data.size(), bufferSize);
 
-            if (compressedSize < uncompressedSize)
+            // Only apply compression if compressed size is smaller, including size of integer storing size of uncompressed data
+            // Ensures data does not expand after applying compression (e.g. data is compressed by 2 bytes but requires extra 4 bytes
+            // in packet for original size, causing a 2 byte expansion :( )
+            if ((compressedSize + sizeof(uncompressedSize)) < uncompressedSize)
             {
                 compressedData.resize(compressedSize);
                 data = compressedData;
-            }
-            else
-            {
-                compressed = false;
+                compressed = true;
             }
         }
     }

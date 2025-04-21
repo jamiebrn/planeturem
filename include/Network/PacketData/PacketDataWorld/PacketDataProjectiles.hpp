@@ -22,7 +22,7 @@ struct PacketDataProjectiles : public IPacketData, public IPacketTimeDependent
 {
     float pingTime;
 
-    PlanetType planetType;
+    uint8_t planetType;
     ProjectileManager projectileManager;
 
     inline virtual void applyPingCorrection(float pingTimeSecs) override

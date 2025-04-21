@@ -47,7 +47,7 @@ struct PacketDataEntities : public IPacketData, public IPacketTimeDependent
 
     float pingTime;
 
-    PlanetType planetType;
+    uint8_t planetType;
     std::vector<EntityPacketData> entities;
 
     inline virtual void applyPingCorrection(float pingTimeSecs) override
