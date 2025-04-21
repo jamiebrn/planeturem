@@ -111,12 +111,12 @@ void NetworkHandler::sendWorldJoinReply(std::string playerName)
     sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
 }
 
-bool NetworkHandler::isMultiplayerGame()
+bool NetworkHandler::isMultiplayerGame() const
 {
     return multiplayerGame;
 }
 
-bool NetworkHandler::isLobbyHostOrSolo()
+bool NetworkHandler::isLobbyHostOrSolo() const
 {
     if (!multiplayerGame)
     {
@@ -126,7 +126,7 @@ bool NetworkHandler::isLobbyHostOrSolo()
     return isLobbyHost;
 }
 
-bool NetworkHandler::getIsLobbyHost()
+bool NetworkHandler::getIsLobbyHost() const
 {
     if (!multiplayerGame)
     {
@@ -136,17 +136,17 @@ bool NetworkHandler::getIsLobbyHost()
     return isLobbyHost;
 }
 
-bool NetworkHandler::isClient()
+bool NetworkHandler::isClient() const
 {
     return (multiplayerGame && !isLobbyHost);
 }
 
-int NetworkHandler::getNetworkPlayerCount()
+int NetworkHandler::getNetworkPlayerCount() const
 {
     return networkPlayers.size();
 }
 
-std::optional<uint64_t> NetworkHandler::getLobbyID()
+std::optional<uint64_t> NetworkHandler::getLobbyID() const
 {
     if (!multiplayerGame)
     {
@@ -860,6 +860,14 @@ void NetworkHandler::processMessageAsHost(const SteamNetworkingMessage_t& messag
             packetData.deserialise(packet.data);
             game->getChestDataPool(packetData.locationState).overwriteChestData(packetData.chestID, packetData.chestData);
             printf(("NETWORK: Received chest data from " + std::string(SteamFriends()->GetFriendPersonaName(message.m_identityPeer.GetSteamID())) + "\n").c_str());
+            break;
+        }
+        case PacketType::ProjectileCreateRequest:
+        {
+            PacketDataProjectileCreateRequest packetData;
+            packetData.deserialise(packet.data);
+            packetData.applyPingEstimate(getPlayerPingLocation(message.m_identityPeer.GetSteamID64()));
+            game->getProjectileManager(packetData.planetType).addProjectile(packetData.projectile);
             break;
         }
         case PacketType::PlanetTravelRequest:

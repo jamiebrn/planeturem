@@ -106,7 +106,9 @@ void ItemSlot::draw(pl::RenderTarget& window,
                 {
                     // Get projectile count
                     int projectileCount = inventory->getProjectileCountForWeapon(itemData.toolType);
-
+                    
+                    spriteBatch.endDrawing(window);
+                    
                     // Draw projectile count
                     TextDraw::drawText(window, {
                     std::to_string(projectileCount),

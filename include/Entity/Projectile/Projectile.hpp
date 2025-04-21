@@ -59,7 +59,7 @@ public:
     template <class Archive>
     void serialize(Archive& ar, const std::uint32_t version)
     {
-        ar(projectileType, position.x, position.y, velocity.x, velocity.y);
+        ar(static_cast<uint8_t>(projectileType), position.x, position.y, velocity.x, velocity.y);
     }
 
 private:

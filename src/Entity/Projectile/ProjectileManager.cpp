@@ -1,4 +1,12 @@
 #include "Entity/Projectile/ProjectileManager.hpp"
+#include "Game.hpp"
+#include "Network/NetworkHandler.hpp"
+
+void ProjectileManager::initialise(Game* game, PlanetType planetType)
+{
+    this->game = game;
+    this->planetType = planetType;
+}
 
 void ProjectileManager::update(float dt)
 {
@@ -31,6 +39,26 @@ void ProjectileManager::drawProjectiles(pl::RenderTarget& window, pl::SpriteBatc
 
 void ProjectileManager::addProjectile(const Projectile& projectile)
 {
+    if (!game)
+    {
+        printf("ERROR: Projectile manager of planet type %d uninitialised\n", planetType);
+        return;
+    }
+
+    // Send projectile creation request to host
+    if (game->getNetworkHandler().isClient())
+    {
+        PacketDataProjectileCreateRequest packetData;
+        packetData.planetType = planetType;
+        packetData.projectile = projectile;
+
+        Packet packet;
+        packet.set(packetData);
+
+        game->getNetworkHandler().sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
+        return;
+    }
+
     if (projectiles.contains(projectileCounter))
     {
         printf("ERROR: Failed to create projectile with already existing ID %d\n", projectileCounter);

@@ -56,12 +56,12 @@ public:
     bool canSendStructureRequest();
     void structureRequestSent();
 
-    bool isMultiplayerGame();
-    bool isLobbyHostOrSolo();
-    bool getIsLobbyHost();
-    bool isClient();
-    int getNetworkPlayerCount();
-    std::optional<uint64_t> getLobbyID();
+    bool isMultiplayerGame() const;
+    bool isLobbyHostOrSolo() const;
+    bool getIsLobbyHost() const;
+    bool isClient() const;
+    int getNetworkPlayerCount() const;
+    std::optional<uint64_t> getLobbyID() const;
 
     NetworkPlayer* getNetworkPlayer(uint64_t id);
     std::unordered_map<uint64_t, NetworkPlayer>& getNetworkPlayers();

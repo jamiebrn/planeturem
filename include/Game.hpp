@@ -169,7 +169,7 @@ public:
 
     ObjectReference setupPlanetTravel(PlanetType planetType, const LocationState& currentLocation, ObjectReference rocketObjectUsed, std::optional<uint64_t> clientID);
     void travelToPlanetFromHost(const PacketDataPlanetTravelReply& planetTravelReplyPacket);
-
+    
     std::optional<uint32_t> initialiseStructureOrGet(PlanetType planetType, ChunkPosition chunk, pl::Vector2f* entrancePos, RoomType* roomType);
     void enterStructureFromHost(PlanetType planetType, ChunkPosition chunk, uint32_t structureID, pl::Vector2f entrancePos, RoomType roomType);
 
@@ -189,6 +189,8 @@ public:
     Room& getRoomDestination(std::optional<RoomType> roomDestOverride = std::nullopt);
     ChestDataPool& getChestDataPool(std::optional<LocationState> locationState = std::nullopt);
     bool isLocationStateInitialised(const LocationState& locationState);
+
+    inline NetworkHandler& getNetworkHandler() {return networkHandler;}
 
     inline const LocationState& getLocationState() {return locationState;}
 

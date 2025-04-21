@@ -94,6 +94,8 @@ bool Game::initialise()
 
     loadOptions();
 
+    window.setVSync(ResolutionHandler::getVSync());
+
     InputManager::initialise(window.getSDLWindow());
 
     // Create key bindings
@@ -460,7 +462,7 @@ void Game::runInGame(float dt)
                     {
                         if (!uiInteracted || InputManager::isControllerActive())
                         {
-                            if (player.isUseToolTimerFinished())
+                            if (player.isUseToolTimerFinished() || DebugOptions::crazyAttack)
                             {
                                 player.startUseToolTimer();
                                 attemptUseTool();
@@ -1351,7 +1353,6 @@ void Game::drawLandmarks()
         spriteBatch.endDrawing(window);
     }
 }
-
 
 // Structure
 std::optional<uint32_t> Game::initialiseStructureOrGet(PlanetType planetType, ChunkPosition chunk, pl::Vector2f* entrancePos, RoomType* roomType)
@@ -3558,8 +3559,7 @@ void Game::initialiseWorldData(PlanetType planetType)
     }
 
     worldDatas[planetType] = WorldData();
-    getChunkManager(planetType).setSeed(planetSeed);
-    getChunkManager(planetType).setPlanetType(planetType);
+    worldDatas[planetType].initialise(this, planetType, planetSeed);
 }
 
 void Game::saveOptions()

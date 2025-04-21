@@ -8,19 +8,29 @@
 
 #include "Network/IPacketData.hpp"
 #include "Network/IPacketTimeDependent.hpp"
+#include "Network/CompactFloat.hpp"
 
 #include "Data/typedefs.hpp"
 
 struct PacketDataServerInfo : public IPacketData, public IPacketTimeDependent
 {
     float gameTime;
-    int day;
+    uint16_t day;
     float time;
     
     template <class Archive>
-    void serialize(Archive& ar)
+    void save(Archive& ar) const
     {
-        ar(gameTime, day, time);
+        CompactFloat<uint16_t> timeCompact(time, 1);
+        ar(gameTime, day, timeCompact);
+    }
+
+    template <class Archive>
+    void load(Archive& ar)
+    {
+        CompactFloat<uint16_t> timeCompact;
+        ar(gameTime, day, timeCompact);
+        time = timeCompact.getValue(1);
     }
 
     PACKET_SERIALISATION();

@@ -23,6 +23,7 @@
 #include "Network/PacketData/PacketDataWorld/PacketDataChunkRequests.hpp"
 #include "Network/PacketData/PacketDataWorld/PacketDataEntities.hpp"
 #include "Network/PacketData/PacketDataWorld/PacketDataProjectiles.hpp"
+#include "Network/PacketData/PacketDataWorld/PacketDataProjectileCreateRequest.hpp"
 
 #include "Network/PacketData/PacketDataTravel/PacketDataPlanetTravelRequest.hpp"
 #include "Network/PacketData/PacketDataTravel/PacketDataPlanetTravelReply.hpp"
