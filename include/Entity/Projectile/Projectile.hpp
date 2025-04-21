@@ -57,10 +57,18 @@ public:
     HitLayer getHitLayer() const;
 
     template <class Archive>
-    void serialize(Archive& ar, const std::uint32_t version)
+    void save(Archive& ar, const std::uint32_t version) const
     {
         uint8_t projectileTypeCompact = projectileType;
         ar(projectileTypeCompact, position.x, position.y, velocity.x, velocity.y);
+    }
+
+    template <class Archive>
+    void load(Archive& ar, const std::uint32_t version)
+    {
+        uint8_t projectileTypeCompact;
+        ar(projectileTypeCompact, position.x, position.y, velocity.x, velocity.y);
+        projectileType = projectileTypeCompact;
     }
 
 private:
