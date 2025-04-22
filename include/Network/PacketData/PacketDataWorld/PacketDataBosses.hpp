@@ -58,6 +58,6 @@ struct PacketDataBosses : public IPacketData, public IPacketTimeDependent
 
     inline virtual PacketType getType() const
     {
-        return PacketType::Projectiles;
+        return PacketType::Bosses;
     }
 };

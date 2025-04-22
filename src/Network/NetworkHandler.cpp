@@ -1013,6 +1013,18 @@ void NetworkHandler::processMessageAsClient(const SteamNetworkingMessage_t& mess
             game->getProjectileManager(packetData.planetType).getProjectiles() = packetData.projectileManager.getProjectiles();
             break;
         }
+        case PacketType::Bosses:
+        {
+            PacketDataBosses packetData;
+            packetData.deserialise(packet.data);
+            packetData.applyPingEstimate(getPlayerPingLocation(message.m_identityPeer.GetSteamID64()));
+            if (game->getLocationState() != LocationState::createFromPlanetType(packetData.planetType))
+            {
+                printf("ERROR: Received boss data for incorrect planet type %d\n", packetData.planetType);
+                break;
+            }
+            game->getBossManager(packetData.planetType).getBosses() = packetData.bossManager.getBosses();
+        }
         case PacketType::PlanetTravelReply:
         {
             PacketDataPlanetTravelReply packetData;
@@ -1144,6 +1156,28 @@ void NetworkHandler::sendGameUpdatesToClients(float dt)
         packet.set(packetData, true);
 
         // printf("NETWORK: Sending projectile data of size %s\n", packet.getSizeStr().c_str());
+
+        sendPacketToClient(iter->first, packet, k_nSteamNetworkingSend_Reliable, 0);
+    }
+
+    // Send boss data to each client
+    for (auto iter = networkPlayers.begin(); iter != networkPlayers.end(); iter++)
+    {
+        if (!iter->second.getPlayerData().locationState.isOnPlanet())
+        {
+            continue;
+        }
+
+        PlanetType playerPlanetType = iter->second.getPlayerData().locationState.getPlanetType();
+
+        PacketDataBosses packetData;
+        packetData.planetType = playerPlanetType;
+        packetData.bossManager = game->getBossManager(playerPlanetType);
+
+        Packet packet;
+        packet.set(packetData, true);
+
+        // printf("NETWORK: Sending boss data of size %s\n", packet.getSizeStr().c_str());
 
         sendPacketToClient(iter->first, packet, k_nSteamNetworkingSend_Reliable, 0);
     }

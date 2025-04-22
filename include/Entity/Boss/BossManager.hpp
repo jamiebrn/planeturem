@@ -55,6 +55,8 @@ public:
 
     void getBossWorldObjects(std::vector<WorldObject*>& worldObjects);
 
+    std::vector<std::unique_ptr<BossEntity>>& getBosses();
+
     int getBossCount() const;
 
     template <class Archive>

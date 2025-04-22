@@ -184,6 +184,11 @@ void BossManager::getBossWorldObjects(std::vector<WorldObject*>& worldObjects)
     }
 }
 
+std::vector<std::unique_ptr<BossEntity>>& BossManager::getBosses()
+{
+    return bosses;
+}
+
 int BossManager::getBossCount() const
 {
     return bosses.size();
