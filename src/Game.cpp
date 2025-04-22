@@ -2,6 +2,13 @@
 
 // FIX: Weather inconsistency (gametime)
 
+// PRIORITY: HIGH (DEMO)
+// TODO: Set hints / guidance for start of game (maybe npc / default inventory item)
+// TODO: Create "end of demo, wishlist" ui
+
+// TODO: Item drop stacks (reduce network strain)
+
+// PRIORITY: MEDIUM (MULTIPLAYER)
 // TODO: Make entities persistent across network and send state updates (movement, health etc)
 // TODO: Use per-world entity chunk ID counter, rather than per chunk, to prevent collisions
 

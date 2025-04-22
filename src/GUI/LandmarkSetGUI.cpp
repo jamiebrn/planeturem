@@ -53,15 +53,17 @@ LandmarkSetGUIEvent LandmarkSetGUI::createAndDraw(pl::RenderTarget& window, floa
     colorDrawData.shader->setUniform1i("replaceKeyCount", 1);
     colorDrawData.shader->setUniform4fv("replaceKeys", replaceColorKey);
     
-    std::vector<float> replaceColorValue = {aColor[0], aColor[1], aColor[2], 1};
+    std::vector<float> replaceColorValue = {aColor[0] / 255.0f, aColor[1] / 255.0f, aColor[2] / 255.0f, 1};
     
     float* colorArray = aColor;
+
+    bool canFitBothColors = (yPos + 50 + 80 + 100 * 3 + 75) * intScale < resolution.y;
     
     // Change values if on next page
-    if (colourPage > 0)
+    if (colourPage > 0 && canFitBothColors)
     {
         textDrawData.text = "Colour B";
-        replaceColorValue = {bColor[0], bColor[1], bColor[2], 1};
+        replaceColorValue = {bColor[0] / 255.0f, bColor[1] / 255.0f, bColor[2] / 255.0f, 1};
         colorArray = bColor;
     }
     
@@ -86,7 +88,7 @@ LandmarkSetGUIEvent LandmarkSetGUI::createAndDraw(pl::RenderTarget& window, floa
     }
 
     // Page selection for when window is too small
-    if ((yPos + 50 + 80 + 100 * 3 + 75) * intScale >= resolution.y)
+    if (!canFitBothColors)
     {
         if (guiContext.createButton(scaledPanelPaddingX, yPos * intScale,
             panelWidth / 2 * intScale, 50 * intScale, 20 * intScale, "<", buttonStyle)
@@ -115,7 +117,7 @@ LandmarkSetGUIEvent LandmarkSetGUI::createAndDraw(pl::RenderTarget& window, floa
     
         colorDrawData.position = pl::Vector2f(textDrawData.position.x + 36 * 4 * intScale, textDrawData.position.y);
         
-        replaceColorValue = {bColor[0], bColor[1], bColor[2], 1};
+        replaceColorValue = {bColor[0] / 255.0f, bColor[1] / 255.0f, bColor[2] / 255.0f, 1};
         colorDrawData.shader->setUniform4fv("replaceValues", replaceColorValue);
     
         TextureManager::drawSubTexture(window, colorDrawData);

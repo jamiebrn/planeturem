@@ -23,7 +23,7 @@ void LandmarkObject::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch
     coloredTexture.create(textureRect.width, textureRect.height);
     coloredTexture.clear(pl::Color(0, 0, 0, 0));
 
-    std::vector<float> replaceKeys = {1.0f, 1.0f, 1.0f, 0, 0, 0, 0, 1.0f};
+    std::vector<float> replaceKeys = {1.0f, 1.0f, 1.0f, 1.0f, 0, 0, 0, 1.0f};
     std::vector<float> replaceValues = {colorA.r / 255.0f, colorA.g / 255.0f, colorA.b / 255.0f, 1.0f, colorB.r / 255.0f, colorB.g / 255.0f, colorB.b / 255.0f, 1.0f};
 
     pl::Shader* replaceColorShader = Shaders::getShader(ShaderType::ReplaceColour);
@@ -32,11 +32,16 @@ void LandmarkObject::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch
     replaceColorShader->setUniform4fv("replaceValues", replaceValues);
 
     pl::VertexArray rect;
-    rect.addQuad(pl::Rect<int>(0, 0, coloredTexture.getWidth(), coloredTexture.getHeight()), pl::Color(255, 255, 255, 255), textureRect);
+    rect.addQuad(pl::Rect<int>(0, coloredTexture.getHeight(), coloredTexture.getWidth(), -coloredTexture.getHeight()), pl::Color(255, 255, 255, 255), textureRect);
 
     coloredTexture.draw(rect, *replaceColorShader, TextureManager::getTexture(TextureType::Objects), pl::BlendMode::Alpha);
 
-    drawObject(window, spriteBatch, camera, gameTime, worldSize, color, std::nullopt, std::nullopt, &coloredTexture.getTexture());
+    std::vector<pl::Rect<int>> textureRectOverride = {pl::Rect<int>(0, 0, coloredTexture.getWidth(), coloredTexture.getHeight())};
+
+    drawObject(window, spriteBatch, camera, gameTime, worldSize, color, textureRectOverride, std::nullopt, &coloredTexture.getTexture());
+
+    // End batch as texture will be freed
+    spriteBatch.endDrawing(window);
 }
 
 bool LandmarkObject::damage(int amount, Game& game, ChunkManager& chunkManager, ParticleSystem& particleSystem, bool giveItems)

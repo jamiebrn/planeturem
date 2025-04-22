@@ -81,7 +81,7 @@ void BuildableObject::drawObject(pl::RenderTarget& window, pl::SpriteBatch& spri
     const pl::Rect<int>* textureRect = nullptr;
     if (textureRectsOverride.has_value())
     {
-        textureRect = &textureRectsOverride->at(animatedTexture.getFrame());
+        textureRect = &textureRectsOverride->at(std::min(animatedTexture.getFrame(), static_cast<int>(textureRectsOverride->size()) - 1));
     }
     else
     {
@@ -121,30 +121,6 @@ void BuildableObject::drawObject(pl::RenderTarget& window, pl::SpriteBatch& spri
     }
 
     spriteBatch.draw(window, drawData);
-
-    // if (textureOverride)
-    // {
-    //     // sf::Sprite textureSprite;
-    //     // textureSprite.setTexture(*textureOverride);
-    //     // textureSprite.setPosition(drawData.position);
-    //     // textureSprite.setScale(drawData.scale);
-    //     // textureSprite.setOrigin(pl::Vector2f(textureOverride->getSize().x * drawData.centerRatio.x, textureOverride->getSize().y * drawData.centerRatio.y));
-    //     // textureSprite.setColor(drawData.colour);
-
-    //     // sf::Shader* shader = nullptr;
-    //     // if (shaderType.has_value())
-    //     // {
-    //     //     shader = Shaders::getShader(shaderType.value());
-    //     // }
-
-    //     // window.draw(textureSprite, shader);
-
-
-    // }
-    // else
-    // {
-    //     // spriteBatch.draw(window, drawData, *textureRect, shaderType);
-    // }
 }
 
 void BuildableObject::createLightSource(LightingEngine& lightingEngine, pl::Vector2f topLeftChunkPos) const
