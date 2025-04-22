@@ -31,24 +31,24 @@ struct BuildableObjectPOD
     void save(Archive& ar, const std::uint32_t version) const
     {
         uint8_t attributeMask = 0;
-        
+
         if (version == 5)
         {
             // Create attribute bitmask
-            if (chestID != 0xFFFF) attributeMask |= 0x1;
-            if (plantDayPlanted > 0) attributeMask |= 0x2;
-            if (objectReference.has_value()) attributeMask |= 0x4;
-            if (landmarkColorA.has_value()) attributeMask |= 0x8;
-            if (landmarkColorB.has_value()) attributeMask |= 0x16;
+            if (chestID != 0xFFFF) attributeMask |= 1;
+            if (plantDayPlanted > 0) attributeMask |= 2;
+            if (objectReference.has_value()) attributeMask |= 4;
+            if (landmarkColorA.has_value()) attributeMask |= 8;
+            if (landmarkColorB.has_value()) attributeMask |= 16;
             
             ar(objectType, attributeMask);
             
             // Serialise attributes
-            if (attributeMask & 0x1) ar(chestID);
-            if (attributeMask & 0x2) ar(plantDayPlanted);
-            if (attributeMask & 0x4) ar(objectReference.value());
-            if (attributeMask & 0x8) ar(landmarkColorA.value());
-            if (attributeMask & 0x16) ar(landmarkColorB.value());
+            if (attributeMask & 1) ar(chestID);
+            if (attributeMask & 2) ar(plantDayPlanted);
+            if (attributeMask & 4) ar(objectReference.value());
+            if (attributeMask & 8) ar(landmarkColorA.value());
+            if (attributeMask & 16) ar(landmarkColorB.value());
         }
     }
     
@@ -59,21 +59,21 @@ struct BuildableObjectPOD
         {
             ar(objectType, attributeMask);
 
-            if (attributeMask & 0x1) ar(chestID);
-            if (attributeMask & 0x2) ar(plantDayPlanted);
-            if (attributeMask & 0x4)
+            if (attributeMask & 1) ar(chestID);
+            if (attributeMask & 2) ar(plantDayPlanted);
+            if (attributeMask & 4)
             {
                 ObjectReference objectReferenceSerialised;
                 ar(objectReferenceSerialised);
                 objectReference = objectReferenceSerialised;
             }
-            if (attributeMask & 0x8)
+            if (attributeMask & 8)
             {
                 pl::Color landmarkColorASerialised;
                 ar(landmarkColorASerialised);
                 landmarkColorA = landmarkColorASerialised;
             }
-            if (attributeMask & 0x16)
+            if (attributeMask & 16)
             {
                 pl::Color landmarkColorBSerialised;
                 ar(landmarkColorBSerialised);
