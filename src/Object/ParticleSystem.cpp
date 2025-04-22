@@ -37,6 +37,13 @@ void Particle::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, cons
     drawData.scale = pl::Vector2f(scale, scale);
     drawData.centerRatio = pl::Vector2f(0.5, 0.5);
 
+    // float timeAlive = currentFrame * timePerFrame + frameTimer;
+    // float lifetime = textureRects.size() * timePerFrame;
+
+    // float alpha = std::min((lifetime - timeAlive) / (lifetime * 0.2f), 1.0f);
+
+    // drawData.color = pl::Color(255, 255, 255, 255 * alpha);
+
     spriteBatch.draw(window, drawData);
 }
 

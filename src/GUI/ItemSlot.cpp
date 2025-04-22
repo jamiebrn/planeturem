@@ -115,8 +115,8 @@ void ItemSlot::draw(pl::RenderTarget& window,
                     position * positionIntScale + (pl::Vector2f(std::round(boxSize / 4.0f) * 3.0f, std::round(boxSize / 4.0f) * 3.0f)) * intScale,
                     {255, 255, 255},
                     24 * static_cast<unsigned int>(intScale),
-                    {0, 0, 0},
-                    0,
+                    pl::Color(46, 34, 47),
+                    2 * static_cast<unsigned int>(intScale),
                     true,
                     true});
                 }
@@ -141,8 +141,8 @@ void ItemSlot::draw(pl::RenderTarget& window,
                 position * positionIntScale + (pl::Vector2f(std::round(boxSize / 4.0f) * 3.0f, std::round(boxSize / 4.0f) * 3.0f)) * intScale,
                 {255, 255, 255},
                 24 * static_cast<unsigned int>(intScale),
-                {0, 0, 0},
-                0,
+                pl::Color(46, 34, 47),
+                2 * static_cast<unsigned int>(intScale),
                 true,
                 true});
         }

@@ -12,46 +12,73 @@
 
 #include "Data/typedefs.hpp"
 #include "Object/ObjectReference.hpp"
+#include "Data/ObjectDataLoader.hpp"
 
 struct BuildableObjectPOD
 {
     ObjectType objectType;
+
+    uint8_t attributeMask = 0;
+    
     uint16_t chestID = 0xFFFF;
-    int plantDayPlanted = 0;
-
+    uint32_t plantDayPlanted = 0;
+    
     std::optional<ObjectReference> objectReference;
-
+    
     std::optional<pl::Color> landmarkColorA, landmarkColorB;
-
+    
     template <class Archive>
-    void serialize(Archive& ar, const std::uint32_t version)
+    void save(Archive& ar, const std::uint32_t version) const
     {
-        if (version == 1)
+        uint8_t attributeMask = 0;
+        
+        if (version == 5)
         {
-            ar(objectType, chestID, objectReference, plantDayPlanted);
-        }
-        else if (version == 2)
-        {
-            uint8_t loadLandmarkColorAR, loadLandmarkColorAG, loadLandmarkColorAB, loadLandmarkColouBR, loadLandmarkColouBG, loadLandmarkColouBB;
-            ar(objectType, chestID, objectReference, plantDayPlanted,
-                loadLandmarkColorAR, loadLandmarkColorAG, loadLandmarkColorAB,
-                loadLandmarkColouBR, loadLandmarkColouBG, loadLandmarkColouBB);
+            // Create attribute bitmask
+            if (chestID != 0xFFFF) attributeMask |= 0x1;
+            if (plantDayPlanted > 0) attributeMask |= 0x2;
+            if (objectReference.has_value()) attributeMask |= 0x4;
+            if (landmarkColorA.has_value()) attributeMask |= 0x8;
+            if (landmarkColorB.has_value()) attributeMask |= 0x16;
             
-            landmarkColorA = pl::Color(loadLandmarkColorAR, loadLandmarkColorAG, loadLandmarkColorAB);
-            landmarkColorB = pl::Color(loadLandmarkColouBR, loadLandmarkColouBG, loadLandmarkColouBB);
+            ar(objectType, attributeMask);
+            
+            // Serialise attributes
+            if (attributeMask & 0x1) ar(chestID);
+            if (attributeMask & 0x2) ar(plantDayPlanted);
+            if (attributeMask & 0x4) ar(objectReference.value());
+            if (attributeMask & 0x8) ar(landmarkColorA.value());
+            if (attributeMask & 0x16) ar(landmarkColorB.value());
         }
-        else if (version == 3)
+    }
+    
+    template <class Archive>
+    void load(Archive& ar, const std::uint32_t version)
+    {
+        if (version == 5)
         {
-            uint8_t loadLandmarkColorAR, loadLandmarkColorAG, loadLandmarkColorAB, loadLandmarkColouBR, loadLandmarkColouBG, loadLandmarkColouBB;
-            ar(objectType, chestID, objectReference, plantDayPlanted,
-                loadLandmarkColorAR, loadLandmarkColorAG, loadLandmarkColorAB, loadLandmarkColouBR, loadLandmarkColouBG, loadLandmarkColouBB);
+            ar(objectType, attributeMask);
 
-            landmarkColorA = pl::Color(loadLandmarkColorAR, loadLandmarkColorAG, loadLandmarkColorAB);
-            landmarkColorB = pl::Color(loadLandmarkColouBR, loadLandmarkColouBG, loadLandmarkColouBB);
-        }
-        if (version == 4)
-        {
-            ar(objectType, chestID, objectReference, plantDayPlanted, landmarkColorA, landmarkColorB);
+            if (attributeMask & 0x1) ar(chestID);
+            if (attributeMask & 0x2) ar(plantDayPlanted);
+            if (attributeMask & 0x4)
+            {
+                ObjectReference objectReferenceSerialised;
+                ar(objectReferenceSerialised);
+                objectReference = objectReferenceSerialised;
+            }
+            if (attributeMask & 0x8)
+            {
+                pl::Color landmarkColorASerialised;
+                ar(landmarkColorASerialised);
+                landmarkColorA = landmarkColorASerialised;
+            }
+            if (attributeMask & 0x16)
+            {
+                pl::Color landmarkColorBSerialised;
+                ar(landmarkColorBSerialised);
+                landmarkColorB = landmarkColorBSerialised;
+            }
         }
     }
 
@@ -66,4 +93,4 @@ struct BuildableObjectPOD
     }
 };
 
-CEREAL_CLASS_VERSION(BuildableObjectPOD, 4);
+CEREAL_CLASS_VERSION(BuildableObjectPOD, 5);

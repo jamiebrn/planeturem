@@ -18,7 +18,7 @@
 
 #include "Entity/Boss/BossManager.hpp"
 
-struct PacketDataProjectiles : public IPacketData, public IPacketTimeDependent
+struct PacketDataBosses : public IPacketData, public IPacketTimeDependent
 {
     float pingTime;
 

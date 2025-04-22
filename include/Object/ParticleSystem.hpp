@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include <vector>
 
 #include <Graphics/SpriteBatch.hpp>
@@ -13,7 +12,6 @@
 #include "Core/Camera.hpp"
 #include "Core/ResolutionHandler.hpp"
 #include "Core/Helper.hpp"
-// #include "Core/SpriteBatch.hpp"
 #include "Core/TextureManager.hpp"
 #include "Core/Shaders.hpp"
 
