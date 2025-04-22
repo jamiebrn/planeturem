@@ -73,7 +73,7 @@ public:
 
     // Used when a chunk is required to have no structure generated to ensure no collision interference
     // E.g. when travelling to a new planet and rocket is placed, rocket may be placed inside structure (if there is one)
-    void regenerateChunkWithoutStructure(ChunkPosition chunk, Game& game);
+    void regenerateChunkWithStructureType(ChunkPosition chunk, Game& game, std::optional<StructureType> structureType);
 
     // Drawing functions for chunk terrain
     void drawChunkTerrain(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera, float time);

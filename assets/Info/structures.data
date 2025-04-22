@@ -38,6 +38,16 @@
                     ]],
                 ["ColdAlien", 2]
             ]
+        },
+        "WoodenHut": {
+            "texture": [80, 416],
+            "tile-size": [5, 7],
+            "collision-bitmask": [0, 21],
+            "objects": [
+                ["Chest", 2, [
+                    [[1, "Banana", 1], [6, "Raw Iron", 2]]]],
+                ["ElderMonkey", 1]
+            ]
         }
     },
     "structures": [
@@ -60,6 +70,16 @@
             "collision-bitmask": [0, 0],
             "light-bitmask": [5, 22],
             "room": "Igloo"
+        },
+        {
+            "name": "WoodenHut",
+            "size-x": 3,
+            "size-y": 3,
+            "texture": [111, 384, 50, 48],
+            "texture-origin": [0.18, 0.833],
+            "collision-bitmask": [0, 0],
+            "light-bitmask": [3, 0],
+            "room": "WoodenHut"
         }
     ]
 }

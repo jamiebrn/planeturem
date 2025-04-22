@@ -551,6 +551,22 @@
         }
     },
     {
+        "name": "ElderMonkey",
+        "health": 10,
+        "textures": [[176, 480]],
+        "texture-frame-delay": 0.1,
+        "texture-width": 16,
+        "texture-height": 16,
+        "texture-x-origin": 0.5,
+        "texture-y-origin": 1.0,
+        "npc-data": {
+            "npc-name": "Delirious Elder Monkey",
+            "behaviour": "talk",
+            "dialogue": ["Hmm?", "I've failed too many times...", "Find the worm and bestow upon it a blade! My legend must remain!"],
+            "portrait-texture-offset": [32, 112]
+        }
+    },
+    {
         "name": "Crate",
         "health": 6,
         "textures": [[192, 16]],

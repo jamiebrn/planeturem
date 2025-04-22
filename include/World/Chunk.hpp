@@ -76,12 +76,13 @@ public:
 
     // Initialisation / generation
     void generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNoise, const FastNoise& riverNoise, PlanetType planetType, Game& game, ChunkManager& chunkManager,
-        PathfindingEngine& pathfindingEngine, bool allowStructureGen = true, bool spawnEntities = true, bool initialise = true);
+        PathfindingEngine& pathfindingEngine, bool allowStructureGen = true, std::optional<StructureType> forceStructureType = std::nullopt,
+        bool spawnEntities = true, bool initialise = true);
 
     // Tiles meaning tile grid, not tilemaps
     // Returns random int generator to continue to be used in generation
     RandInt generateTilesAndStructure(const FastNoise& heightNoise, const FastNoise& biomeNoise, const FastNoise& riverNoise, PlanetType planetType,
-        ChunkManager& chunkManager, bool allowStructureGen = true);
+        ChunkManager& chunkManager, bool allowStructureGen = true, std::optional<StructureType> forceStructureType = std::nullopt);
 
     void generateObjectsAndEntities(const FastNoise& heightNoise, const FastNoise& biomeNoise, const FastNoise& riverNoise, PlanetType planetType, RandInt& randGen,
         Game& game, ChunkManager& chunkManager, bool spawnEntities = true);
@@ -245,7 +246,8 @@ public:
         const FastNoise& riverNoise, PlanetType planetType);
 
 private:
-    void generateRandomStructure(int worldSize, const FastNoise& biomeNoise, RandInt& randGen, PlanetType planetType, bool allowStructureGen);
+    void generateRandomStructure(int worldSize, const FastNoise& biomeNoise, RandInt& randGen, PlanetType planetType, bool allowStructureGen,
+        std::optional<StructureType> forceStructureType);
 
 private:
     // 0 reserved for water / no tile

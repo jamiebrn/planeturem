@@ -208,20 +208,21 @@ void ChunkManager::reloadChunks(ChunkViewRange chunkViewRange)
     }
 }
 
-void ChunkManager::regenerateChunkWithoutStructure(ChunkPosition chunk, Game& game)
+void ChunkManager::regenerateChunkWithStructureType(ChunkPosition chunk, Game& game, std::optional<StructureType> structureType)
 {
     Chunk* chunkPtr = getChunk(chunk);
 
     if (!chunkPtr)
     {
-        return;
+        storedChunks[chunk] = std::make_unique<Chunk>(chunk);
+        chunkPtr = storedChunks[chunk].get();
     }
 
     // Full reset of chunk
     chunkPtr->reset(true);
 
     // Regenerate without structure
-    chunkPtr->generateChunk(heightNoise, biomeNoise, riverNoise, planetType, game, *this, pathfindingEngine, false);
+    chunkPtr->generateChunk(heightNoise, biomeNoise, riverNoise, planetType, game, *this, pathfindingEngine, structureType.has_value(), structureType);
 }
 
 void ChunkManager::drawChunkTerrain(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera, float time)
@@ -1346,7 +1347,7 @@ Chunk* ChunkManager::generateChunk(const ChunkPosition& chunkPosition, Game& gam
     bool initialiseChunk = putInLoaded;
 
     // Generate
-    chunkPtr->generateChunk(heightNoise, biomeNoise, riverNoise, planetType, game, *this, pathfindingEngine, true, true, initialiseChunk);
+    chunkPtr->generateChunk(heightNoise, biomeNoise, riverNoise, planetType, game, *this, pathfindingEngine, true, std::nullopt, true, initialiseChunk);
 
     return chunkPtr;
 }

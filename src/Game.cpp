@@ -3071,8 +3071,14 @@ ChunkPosition Game::initialiseNewPlanet(PlanetType planetType)
     // weatherSystem = WeatherSystem(gameTime, getChunkManager(planetType).getSeed() + planetType);
     // weatherSystem.presimulateWeather(gameTime, camera, getChunkManager(planetType));
 
+    std::optional<StructureType> forceStructureType = std::nullopt;
+    if (planetType == PlanetGenDataLoader::getPlanetTypeFromName("Earthlike"))
+    {
+        forceStructureType = StructureDataLoader::getStructureTypeFromName("WoodenHut");
+    }
+
     // Ensure spawn chunk does not have structure
-    getChunkManager(planetType).regenerateChunkWithoutStructure(playerSpawnChunk, *this);
+    getChunkManager(planetType).regenerateChunkWithStructureType(playerSpawnChunk, *this, forceStructureType);
 
     return playerSpawnChunk;
 

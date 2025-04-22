@@ -48,9 +48,9 @@ void Chunk::reset(bool fullReset)
 }
 
 void Chunk::generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNoise, const FastNoise& riverNoise, PlanetType planetType, Game& game, ChunkManager& chunkManager,
-    PathfindingEngine& pathfindingEngine, bool allowStructureGen, bool spawnEntities, bool initialise)
+    PathfindingEngine& pathfindingEngine, bool allowStructureGen, std::optional<StructureType> forceStructureType, bool spawnEntities, bool initialise)
 {
-    RandInt randGen = generateTilesAndStructure(heightNoise, biomeNoise, riverNoise, planetType, chunkManager, allowStructureGen);
+    RandInt randGen = generateTilesAndStructure(heightNoise, biomeNoise, riverNoise, planetType, chunkManager, allowStructureGen, forceStructureType);
 
     generateObjectsAndEntities(heightNoise, biomeNoise, riverNoise, planetType, randGen, game, chunkManager, spawnEntities);
 
@@ -65,7 +65,7 @@ void Chunk::generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNo
 }
 
 RandInt Chunk::generateTilesAndStructure(const FastNoise& heightNoise, const FastNoise& biomeNoise, const FastNoise& riverNoise, PlanetType planetType,
-    ChunkManager& chunkManager, bool allowStructureGen)
+    ChunkManager& chunkManager, bool allowStructureGen, std::optional<StructureType> forceStructureType)
 {
     pl::Vector2<int> worldNoisePosition = pl::Vector2<int>(chunkPosition.x, chunkPosition.y) * static_cast<int>(CHUNK_TILE_SIZE);
 
@@ -101,7 +101,7 @@ RandInt Chunk::generateTilesAndStructure(const FastNoise& heightNoise, const Fas
     // Create structure if required
     if (!containsWater)
     {
-        generateRandomStructure(chunkManager.getWorldSize(), biomeNoise, randGen, planetType, allowStructureGen);
+        generateRandomStructure(chunkManager.getWorldSize(), biomeNoise, randGen, planetType, allowStructureGen, forceStructureType);
     }
 
     return randGen;
@@ -212,52 +212,73 @@ void Chunk::generateTilemapsAndInit(ChunkManager& chunkManager, PathfindingEngin
     generatedFromPOD = false;
 }
 
-void Chunk::generateRandomStructure(int worldSize, const FastNoise& biomeNoise, RandInt& randGen, PlanetType planetType, bool allowStructureGen)
+void Chunk::generateRandomStructure(int worldSize, const FastNoise& biomeNoise, RandInt& randGen, PlanetType planetType, bool allowStructureGen,
+    std::optional<StructureType> forceStructureType)
 {
     // Get biome gen data
     const BiomeGenData* biomeGenData = getBiomeGenAtWorldTile(pl::Vector2<int>(chunkPosition.x * CHUNK_TILE_SIZE, chunkPosition.y * CHUNK_TILE_SIZE),
         worldSize, biomeNoise, planetType);
     if (!biomeGenData)
+    {
         return;
+    }
     
     // Get random structure type
     StructureType structureType = -1;
 
-    float cumulativeChance = 0;
-    float randomSpawn = randGen.generate(0, 10000) / 10000.0f;
-    for (const StructureGenData& structureGenData : biomeGenData->structureGenDatas)
+    if (forceStructureType.has_value())
     {
-        cumulativeChance += structureGenData.spawnChance;
-
-        if (randomSpawn <= cumulativeChance)
+        structureType = forceStructureType.value();
+    }
+    else
+    {
+        float cumulativeChance = 0;
+        float randomSpawn = randGen.generate(0, 10000) / 10000.0f;
+        for (const StructureGenData& structureGenData : biomeGenData->structureGenDatas)
         {
-            structureType = structureGenData.structure;
-            break;
+            cumulativeChance += structureGenData.spawnChance;
+    
+            if (randomSpawn <= cumulativeChance)
+            {
+                structureType = structureGenData.structure;
+                break;
+            }
         }
     }
-
+    
     // No structure chosen
     if (structureType < 0)
+    {
         return;
-    
-    // Generate structure
-
-    // Read collision bitmask and create dummy objects in required positions
-    const pl::Image& bitmaskImage = TextureManager::getBitmask(BitmaskType::Structures);
+    }
 
     const StructureData& structureData = StructureDataLoader::getStructureData(structureType);
 
-    // Randomise spawn position in chunk
     pl::Vector2<int> spawnTile;
-    spawnTile.x = randGen.generate(0, CHUNK_TILE_SIZE - 1 - structureData.size.x);
-    spawnTile.y = randGen.generate(0, CHUNK_TILE_SIZE - 1 - structureData.size.y);
 
+    if (forceStructureType.has_value())
+    {
+        spawnTile.x = 0;
+        spawnTile.y = 0;
+    }
+    else
+    {
+        // Randomise spawn position in chunk
+        spawnTile.x = randGen.generate(0, CHUNK_TILE_SIZE - 1 - structureData.size.x);
+        spawnTile.y = randGen.generate(0, CHUNK_TILE_SIZE - 1 - structureData.size.y);
+    }
+    
     // If not actually spawning structure, i.e. simply using this function to continue randgen sequence
     // then can skip actually generating the structure, as no more randgen for structures from this point
     if (!allowStructureGen)
     {
         return;
     }
+
+    // Generate structure
+
+    // Read collision bitmask and create dummy objects in required positions
+    const pl::Image& bitmaskImage = TextureManager::getBitmask(BitmaskType::Structures);
 
     bool spawnedStructureObject = false;
 
