@@ -2,9 +2,6 @@
 
 // FIX: Weather inconsistency (gametime)
 
-// PRIORITY: HIGH (DEMO)
-// TODO: Create "end of demo, wishlist" ui
-
 // TODO: Item drop stacks (reduce network strain)
 
 // PRIORITY: MEDIUM (MULTIPLAYER)
@@ -4323,6 +4320,7 @@ void Game::drawDebugMenu(float dt)
     ImGui::Spacing();
 
     ImGui::Checkbox("Smooth Lighting", &smoothLighting);
+    ImGui::SliderFloat("Light propagation mult", &DebugOptions::lightPropMult, 0.0f, 1.0f);
 
     float time = dayCycleManager.getCurrentTime();
     if (!networkHandler.isClient())

@@ -14,6 +14,9 @@
 
 #include "Core/Shaders.hpp"
 
+#include "GameConstants.hpp"
+#include "DebugOptions.hpp"
+
 class LightingEngine
 {
 public:

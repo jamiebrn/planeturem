@@ -14,4 +14,6 @@ float DebugOptions::godSpeedMultiplier = 1.0f;
 bool DebugOptions::limitlessZoom = false;
 bool DebugOptions::crazyAttack = false;
 
+float DebugOptions::lightPropMult = 0.93f;
+
 #endif

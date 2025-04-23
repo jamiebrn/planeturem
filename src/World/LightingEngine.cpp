@@ -145,7 +145,11 @@ void LightingEngine::calculateLighting()
 
 void LightingEngine::propagateLight(const LightPropagationNode& lightNode, float previousIntensity, std::queue<LightPropagationNode>& lightQueue)
 {
-    const float stepBaseMult = 0.83f;
+    float stepBaseMult = 0.93f;
+    
+    #if (RELEASE_BUILD)
+    float stepBaseMult = DebugOptions::lightPropMult;
+    #endif
 
     float lightIntensity = previousIntensity * std::pow(stepBaseMult, lightNode.steps);
     float lightIntensityAbsorbed = lightIntensity * (1.0f - obstacles[lightNode.index]);
