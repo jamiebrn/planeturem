@@ -1,22 +1,5 @@
 [
     {
-        "product": "Refined Stone",
-        "item-requirements": {
-            "Stone": 2,
-            "Coal": 1
-        },
-        "crafting-station": "furnace",
-        "crafting-station-level": 1
-    },
-    {
-        "product": "Refined Wood",
-        "item-requirements": {
-            "Wood": 3
-        },
-        "crafting-station": "bench",
-        "crafting-station-level": 1
-    },
-    {
         "product": "Iron Bar",
         "item-requirements": {
             "Raw Iron": 2,
@@ -126,24 +109,6 @@
         "crafting-station-level": 1
     },
     {
-        "product": "Titanium Pickaxe",
-        "item-requirements": {
-            "Titanium Bar": 5,
-            "Iron Bar": 3
-        },
-        "crafting-station": "anvil",
-        "crafting-station-level": 2
-    },
-    {
-        "product": "Titanium Fishing Rod",
-        "item-requirements": {
-            "Titanium Bar": 4,
-            "Wooden Fishing Rod": 1
-        },
-        "crafting-station": "anvil",
-        "crafting-station-level": 2
-    },
-    {
         "product": "Wooden Bow",
         "item-requirements": {
             "Wood": 15
@@ -196,39 +161,6 @@
         "crafting-station": "bench",
         "crafting-station-level": 1
     },
-    {
-        "product": "Sewing Needle",
-        "product-amount": 2,
-        "item-requirements": {
-            "Iron Bar": 1
-        },
-        "crafting-station": "anvil",
-        "crafting-station-level": 1
-    },
-    {
-        "product": "Wood Fibres",
-        "product-amount": 2,
-        "key-items": ["Small Blade"],
-        "item-requirements": {
-            "Wood": 2,
-            "Small Blade": 1
-        },
-        "crafting-station": "bench",
-        "crafting-station-level": 1
-    },
-    {
-        "product": "Rodent Doll",
-        "product-amount": 1,
-        "key-items": ["Bone", "Meat", "Sewing Needle"],
-        "item-requirements": {
-            "Bone": 5,
-            "Meat": 10,
-            "Wood Fibres": 10,
-            "Sewing Needle": 5
-        },
-        "crafting-station": "bench",
-        "crafting-station-level": 1
-    },
 
     {
         "product": "Black Feather Headgear",
@@ -263,30 +195,6 @@
         "crafting-station": "anvil",
         "crafting-station-level": 1
     },
-
-    {
-        "product": "Sandscale Chestpiece",
-        "item-requirements": {
-            "Sandscale": 4,
-            "Serpent Tongue": 1,
-            "Wood Fibres": 4,
-            "Sewing Needle": 2
-        },
-        "key-items": ["Sandscale", "Serpent Tongue"],
-        "crafting-station": "anvil",
-        "crafting-station-level": 1
-    },
-    {
-        "product": "Sandscale Boots",
-        "item-requirements": {
-            "Sandscale": 3,
-            "Wood Fibres": 3,
-            "Sewing Needle": 1
-        },
-        "key-items": ["Sandscale"],
-        "crafting-station": "anvil",
-        "crafting-station-level": 1
-    },
     {
         "product": "Rocket Launch Pad",
         "item-requirements": {
@@ -297,45 +205,6 @@
         "key-items": ["Iron Bar", "Red Scale Fabric"],
         "crafting-station": "anvil",
         "crafting-station-level": 1
-    },
-    {
-        "product": "Red Scale Fabric",
-        "item-requirements": {
-            "Sandscale": 2,
-            "Serpent Tongue": 1
-        },
-        "key-items": ["Sandscale"],
-        "crafting-station": "bench",
-        "crafting-station-level": 1
-    },
-    {
-        "product": "Titanium Furnace",
-        "item-requirements": {
-            "Titanium Scraps": 25,
-            "Furnace": 2
-        },
-        "key-items": ["Titanium Scraps"],
-        "crafting-station": "bench",
-        "crafting-station-level": 1
-    },
-    {
-        "product": "Titanium Anvil",
-        "item-requirements": {
-            "Titanium Bar": 5,
-            "Anvil": 1
-        },
-        "key-items": ["Titanium Bar"],
-        "crafting-station": "bench",
-        "crafting-station-level": 1
-    },
-    {
-        "product": "Titanium Bar",
-        "item-requirements": {
-            "Titanium Scraps": 3,
-            "Coal": 1
-        },
-        "crafting-station": "furnace",
-        "crafting-station-level": 2
     },
 
     {
@@ -366,25 +235,6 @@
         "item-requirements": {
             "Wood": 5
         },
-        "crafting-station": "bench",
-        "crafting-station-level": 1
-    },
-    {
-        "product": "Snowball",
-        "item-requirements": {
-            "Slush Ice": 3
-        },
-        "crafting-station": "bench",
-        "crafting-station-level": 1
-    },
-    {
-        "product": "Glacial Brute Statue",
-        "item-requirements": {
-            "Iron Bar": 10,
-            "Large Glacial Head": 1,
-            "Slush Ice": 50
-        },
-        "key-items": ["Large Glacial Head"],
         "crafting-station": "bench",
         "crafting-station-level": 1
     },
@@ -439,47 +289,6 @@
             "Hide": 10
         },
         "key-items": ["Hide"],
-        "crafting-station": "bench",
-        "crafting-station-level": 1
-    },
-    {
-        "product": "Titanium Headgear",
-        "item-requirements": {
-            "Titanium Bar": 12,
-            "Iron Bar": 3
-        },
-        "key-items": ["Titanium Bar"],
-        "crafting-station": "anvil",
-        "crafting-station-level": 2
-    },
-    {
-        "product": "Titanium Chestpiece",
-        "item-requirements": {
-            "Titanium Bar": 15,
-            "Iron Bar": 5
-        },
-        "key-items": ["Titanium Bar"],
-        "crafting-station": "anvil",
-        "crafting-station-level": 2
-    },
-    {
-        "product": "Titanium Boots",
-        "item-requirements": {
-            "Titanium Bar": 10,
-            "Iron Bar": 2
-        },
-        "key-items": ["Titanium Bar"],
-        "crafting-station": "anvil",
-        "crafting-station-level": 2
-    },
-    {
-        "product": "Cheap Camera",
-        "item-requirements": {
-            "Titanium Bar": 5,
-            "Iron Bar": 2,
-            "Slush Ice": 20
-        },
-        "key-items": ["Titanium Bar"],
         "crafting-station": "bench",
         "crafting-station-level": 1
     },

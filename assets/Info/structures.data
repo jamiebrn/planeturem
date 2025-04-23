@@ -10,33 +10,9 @@
                     [[5, "Wood", 2], [14, "Stone", 1]],
                     [[6, "Raw Iron", 2], [12, "Wood", 1]],
                     [[6, "Stone", 4], [13, "Raw Iron", 2]],
-                    [[3, "Golden Gemstone", 1], [14, "Wood", 2]],
+                    [[3, "Fish", 1], [14, "Wood", 2]],
                     [[8, "Stone", 2], [11, "Wood", 2], [13, "Banana", 1]]
                     ]]
-            ]
-        },
-        "SpaceStation": {
-            "display-name": "Space Station",
-            "travel-location": true,
-            "texture": [224, 144],
-            "tile-size": [16, 15],
-            "collision-bitmask": [12, 5],
-            "objects": [
-                ["Rocket Launch Pad", 1],
-                ["Chest", 2],
-                ["AlienHostage", 3],
-                ["BusinessAlien", 4]
-            ]
-        },
-        "Igloo": {
-            "texture": [384, 16],
-            "tile-size": [5, 7],
-            "collision-bitmask": [0, 21],
-            "objects": [
-                ["Crate", 1, [
-                    [[0, "Slush Ice", 5]]
-                    ]],
-                ["ColdAlien", 2]
             ]
         },
         "WoodenHut": {
@@ -60,16 +36,6 @@
             "collision-bitmask": [0, 0],
             "light-bitmask": [3, 0],
             "room": "Stone"
-        },
-        {
-            "name": "Igloo",
-            "size-x": 3,
-            "size-y": 3,
-            "texture": [224, 384, 48, 48],
-            "texture-origin": [0.167, 0.833],
-            "collision-bitmask": [0, 0],
-            "light-bitmask": [5, 22],
-            "room": "Igloo"
         },
         {
             "name": "WoodenHut",

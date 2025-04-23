@@ -15,11 +15,6 @@
         "sell-value": 0.2
     },
     {
-        "name": "Refined Stone",
-        "texture": [48, 0, 16, 16],
-        "sell-value": 2
-    },
-    {
         "name": "Raw Coal",
         "texture": [48, 16, 16, 16],
         "sell-value": 1
@@ -33,11 +28,6 @@
         "name": "Raw Gold",
         "texture": [32, 16, 16, 16],
         "sell-value": 1
-    },
-    {
-        "name": "Refined Wood",
-        "texture": [0, 16, 16, 16],
-        "sell-value": 2
     },
     {
         "name": "Iron Bar",
@@ -113,49 +103,6 @@
         "sell-value": 3
     },
     {
-        "name": "Sewing Needle",
-        "texture": [48, 64, 16, 16],
-        "sell-value": 1
-    },
-    {
-        "name": "Wood Fibres",
-        "texture": [48, 48, 16, 16],
-        "sell-value": 1
-    },
-    {
-        "name": "Rodent Doll",
-        "texture": [48, 96, 16, 16],
-        "boss-summon-data": {
-            "boss-name": "The Sand Serpent"
-        },
-        "description": "\"Below the sand he awaits\"",
-        "sell-value": 5
-    },
-    {
-        "name": "Cheap Camera",
-        "texture": [112, 96, 16, 16],
-        "boss-summon-data": {
-            "boss-name": "The Glacial Brute"
-        },
-        "description": "\"Nobody will believe you\"",
-        "sell-value": 7
-    },
-    {
-        "name": "Titanium Scraps",
-        "texture": [144, 64, 16, 16],
-        "sell-value": 1
-    },
-    {
-        "name": "Titanium Bar",
-        "texture": [144, 80, 16, 16],
-        "sell-value": 4
-    },
-    {
-        "name": "Slush Ice",
-        "texture": [144, 48, 16, 16],
-        "sell-value": 0.2
-    },
-    {
         "name": "Crow Claw",
         "texture": [80, 80, 16, 16],
         "sell-value": 2
@@ -186,21 +133,6 @@
         },
         "description": "\"He watches when sun falls for his prey\"",
         "sell-value": 3
-    },
-    {
-        "name": "Sandscale",
-        "texture": [96, 112, 16, 16],
-        "sell-value": 2
-    },
-    {
-        "name": "Serpent Tongue",
-        "texture": [80, 112, 16, 16],
-        "sell-value": 5
-    },
-    {
-        "name": "Red Scale Fabric",
-        "texture": [64, 112, 16, 16],
-        "sell-value": 5
     },
 
     {

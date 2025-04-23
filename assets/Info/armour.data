@@ -50,31 +50,6 @@
         "sell-value": 2
     },
     {
-        "name": "Titanium Headgear",
-        "type": "Head",
-        "texture": [752, 160, 16, 16],
-        "wear-textures": [[768, 160], [784, 160], [800, 160], [816, 160], [832, 160], [848, 160], [864, 160], [880, 160]],
-        "wear-texture-offset": [0, -3],
-        "defence": 7,
-        "sell-value": 10
-    },
-    {
-        "name": "Titanium Chestpiece",
-        "type": "Chest",
-        "texture": [752, 176, 16, 16],
-        "wear-textures": [[768, 176], [784, 176], [800, 176], [816, 176], [832, 176], [848, 176], [864, 176], [880, 176]],
-        "defence": 9,
-        "sell-value": 12
-    },
-    {
-        "name": "Titanium Boots",
-        "type": "Feet",
-        "texture": [752, 192, 16, 16],
-        "wear-textures": [[768, 192], [784, 192], [800, 192], [816, 192], [832, 192], [848, 192], [864, 192], [880, 192]],
-        "defence": 6,
-        "sell-value": 10
-    },
-    {
         "name": "Black Feather Headgear",
         "type": "Head",
         "texture": [752, 16, 16, 16],
@@ -98,40 +73,5 @@
         "wear-textures": [[768, 48], [784, 48], [800, 48], [816, 48], [832, 48], [848, 48], [864, 48], [880, 48]],
         "defence": 3,
         "sell-value": 3
-    },
-    {
-        "name": "Serpent Mask",
-        "type": "Head",
-        "texture": [752, 64, 16, 16],
-        "wear-textures": [[768, 64], [784, 64], [800, 64], [816, 64], [832, 64], [848, 64], [864, 64], [880, 64]],
-        "wear-texture-offset": [1, -3],
-        "defence": 6,
-        "sell-value": 10
-    },
-    {
-        "name": "Sandscale Chestpiece",
-        "type": "Chest",
-        "texture": [752, 80, 16, 16],
-        "wear-textures": [[768, 80], [784, 80], [800, 80], [816, 80], [832, 80], [848, 80], [864, 80], [880, 80]],
-        "defence": 8,
-        "sell-value": 12
-    },
-    {
-        "name": "Sandscale Boots",
-        "type": "Feet",
-        "texture": [752, 96, 16, 16],
-        "wear-textures": [[768, 96], [784, 96], [800, 96], [816, 96], [832, 96], [848, 96], [864, 96], [880, 96]],
-        "defence": 6,
-        "sell-value": 10
-    },
-    {
-        "name": "Large Glacial Head",
-        "type": "Head",
-        "texture": [544, 32, 32, 32],
-        "wear-textures": [[576, 32], [594, 32], [612, 32], [630, 32], [648, 32], [666, 32], [684, 32], [702, 32]],
-        "wear-texture-offset": [0, -2],
-        "wear-texture-size": [18, 26],
-        "defence": 10,
-        "sell-value": 20
     }
 ]

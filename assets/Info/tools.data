@@ -19,50 +19,6 @@
             "damage-range": [2, 6],
             "speed": 240,
             "sell-value": 0.5
-        },
-        {
-            "name": "Serpent Venom",
-            "texture": [64, 96],
-            "texture-width": 16,
-            "texture-height": 16,
-            "origin": [0.5, 0.5],
-            "damage-range": [12, 15],
-            "speed": 240,
-            "collision-radius": 4,
-            "collision-offset": [3, 0],
-            "sell-value": 0.3
-        },
-        {
-            "name": "Serpent Venom BOSS",
-            "texture": [64, 96],
-            "texture-width": 16,
-            "texture-height": 16,
-            "origin": [0.5, 0.5],
-            "damage-range": [23, 26],
-            "speed": 240,
-            "collision-radius": 4,
-            "collision-offset": [3, 0]
-        },
-        {
-            "name": "Snowball",
-            "texture": [16, 112],
-            "texture-width": 16,
-            "texture-height": 16,
-            "origin": [0.46875, 0.46875],
-            "damage-range": [23, 26],
-            "speed": 260,
-            "collision-radius": 4,
-            "sell-value": 0.5
-        },
-        {
-            "name": "Large Snowball",
-            "texture": [16, 144],
-            "texture-width": 32,
-            "texture-height": 32,
-            "origin": [0.5, 0.5],
-            "damage-range": [90, 125],
-            "speed": 260,
-            "collision-radius": 8
         }
     ],
     "tools": [
@@ -103,18 +59,6 @@
             "sell-value": 2
         },
         {
-            "name": "Titanium Pickaxe",
-            "behaviour-type": "Pickaxe",
-            "textures": [[32, 16]],
-            "texture-width": 16,
-            "texture-height": 16,
-            "pivot-x": 0.75,
-            "pivot-y": 0.75,
-            "hold-offset": [-2, -3],
-            "damage": 3,
-            "sell-value": 5
-        },
-        {
             "name": "Wooden Fishing Rod",
             "behaviour-type": "Fishing Rod",
             "textures": [[0, 48], [16, 48]],
@@ -126,19 +70,6 @@
             "fishing-rod-line-offset": [8, -8],
             "fishing-efficiency": 1.0,
             "sell-value": 1
-        },
-        {
-            "name": "Titanium Fishing Rod",
-            "behaviour-type": "Fishing Rod",
-            "textures": [[0, 64], [16, 64]],
-            "texture-width": 16,
-            "texture-height": 16,
-            "pivot-x": 0.25,
-            "pivot-y": 0.75,
-            "hold-offset": [3, -2],
-            "fishing-rod-line-offset": [8, -8],
-            "fishing-efficiency": 1.75,
-            "sell-value": 5
         },
         {
             "name": "Wooden Bow",
@@ -167,35 +98,6 @@
             "shoot-power": 1.5,
             "projectiles": ["Wooden Arrow", "Feather Arrow"],
             "sell-value": 100
-        },
-        {
-            "name": "Serpent Sceptre",
-            "behaviour-type": "BowWeapon",
-            "textures": [[48, 96]],
-            "texture-width": 16,
-            "texture-height": 16,
-            "pivot-x": 0.5,
-            "pivot-y": 0.8125,
-            "hold-offset": [3, -4],
-            "projectile-damage-mult": 1.0,
-            "shoot-power": 1.0,
-            "shoot-offset": [0, -10],
-            "projectiles": ["Serpent Venom"],
-            "sell-value": 18
-        },
-        {
-            "name": "Snowball Slingshot",
-            "behaviour-type": "BowWeapon",
-            "textures": [[32, 112]],
-            "texture-width": 16,
-            "texture-height": 18,
-            "pivot-x": 0.46875,
-            "pivot-y": 0.72,
-            "hold-offset": [3, -4],
-            "projectile-damage-mult": 1.0,
-            "shoot-power": 1.0,
-            "projectiles": ["Snowball"],
-            "sell-value": 18
         },
         {
             "name": "Wooden Club",
