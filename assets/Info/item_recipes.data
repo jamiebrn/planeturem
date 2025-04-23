@@ -200,9 +200,9 @@
         "item-requirements": {
             "Iron Bar": 10,
             "Stone": 25,
-            "Red Scale Fabric": 1
+            "Bone": 5
         },
-        "key-items": ["Iron Bar", "Red Scale Fabric"],
+        "key-items": ["Bone"],
         "crafting-station": "anvil",
         "crafting-station-level": 1
     },

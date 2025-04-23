@@ -1023,7 +1023,7 @@ void NetworkHandler::processMessageAsClient(const SteamNetworkingMessage_t& mess
                 printf("ERROR: Received boss data for incorrect planet type %d\n", packetData.planetType);
                 break;
             }
-            game->getBossManager(packetData.planetType).getBosses() = packetData.bossManager.getBosses();
+            // game->getBossManager(packetData.planetType).getBosses() = packetData.bossManager.getBosses();
         }
         case PacketType::PlanetTravelReply:
         {
@@ -1172,7 +1172,7 @@ void NetworkHandler::sendGameUpdatesToClients(float dt)
 
         PacketDataBosses packetData;
         packetData.planetType = playerPlanetType;
-        packetData.bossManager = game->getBossManager(playerPlanetType);
+        // packetData.bossManager = game->getBossManager(playerPlanetType);
 
         Packet packet;
         packet.set(packetData, true);

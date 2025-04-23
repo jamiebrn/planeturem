@@ -212,10 +212,18 @@ void RocketObject::drawRocket(pl::RenderTarget& window, pl::SpriteBatch& spriteB
 
     pl::Vector2f rocketPosOffset = objectData.rocketObjectData->launchPosition - pl::Vector2f(TILE_SIZE_PIXELS_UNSCALED, TILE_SIZE_PIXELS_UNSCALED) * 0.5f;
 
+    static constexpr float FLYING_SHAKE = 1.0f;
+
+    pl::Vector2f worldPos = position + rocketPosOffset + pl::Vector2f(0, rocketYOffset);
+    if (flyingUp || flyingDown)
+    {
+        worldPos.x += Helper::randFloat(-FLYING_SHAKE, FLYING_SHAKE);
+    }
+
     pl::DrawData rocketDrawData;
     rocketDrawData.texture = TextureManager::getTexture(TextureType::Objects);
     rocketDrawData.shader = Shaders::getShader(ShaderType::Default);
-    rocketDrawData.position = camera.worldToScreenTransform(position + rocketPosOffset + pl::Vector2f(0, rocketYOffset));
+    rocketDrawData.position = camera.worldToScreenTransform(worldPos);
     rocketDrawData.color = color;
     rocketDrawData.scale = scale;
     rocketDrawData.centerRatio = objectData.rocketObjectData->textureOrigin;
