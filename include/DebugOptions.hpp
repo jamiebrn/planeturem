@@ -1,9 +1,5 @@
 #pragma once
 
-#include "GameConstants.hpp"
-
-#if (!RELEASE_BUILD)
-
 #include <map>
 
 namespace DebugOptions
@@ -24,5 +20,3 @@ extern bool crazyAttack;
 extern float lightPropMult;
 
 }
-
-#endif

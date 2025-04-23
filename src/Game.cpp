@@ -409,8 +409,14 @@ void Game::runInGame(float dt)
         demoEndGUI.handleEvent(event);
     }
 
+    bool canInput = true;
+
+    #if (!RELEASE_BUILD)
+    canInput = !ImGui::GetIO().WantCaptureKeyboard && !ImGui::GetIO().WantCaptureMouse;
+    #endif
+
     // Input testing
-    if (!isStateTransitioning() && player.isAlive() && !(ImGui::GetIO().WantCaptureKeyboard || ImGui::GetIO().WantCaptureMouse))
+    if (!isStateTransitioning() && player.isAlive() && canInput)
     {
         // Left click / use tool
         {

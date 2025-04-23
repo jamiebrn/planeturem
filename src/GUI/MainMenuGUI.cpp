@@ -79,7 +79,7 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(pl::RenderTarget& window
 
     MainMenuState nextUIState = mainMenuState;
 
-    const int startElementYPos = resolution.y * 0.37f;
+    const int startElementYPos = resolution.y * 0.33f;
     int elementYPos = startElementYPos;
 
     std::optional<MainMenuEvent> menuEvent = std::nullopt;
@@ -150,6 +150,11 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(pl::RenderTarget& window
                 panelWidth * intScale, 75 * intScale, 20 * intScale, "World Seed", &worldSeedInput, panelWidth / 5 * intScale, 30 * intScale, 30);
 
             elementYPos += 200 * intScale;
+
+            if (resolution.y < 900)
+            {
+                elementYPos -= 110 * intScale;
+            }
 
             if (guiContext.createButton(scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale, buttonTextSize, "Start", buttonStyle)
                 .isClicked())

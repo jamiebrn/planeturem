@@ -1,7 +1,5 @@
 #include "DebugOptions.hpp"
 
-#if (!RELEASE_BUILD)
-
 bool DebugOptions::debugOptionsMenuOpen = false;
 
 std::map<int, bool> DebugOptions::tileMapsVisible;
@@ -15,5 +13,3 @@ bool DebugOptions::limitlessZoom = false;
 bool DebugOptions::crazyAttack = false;
 
 float DebugOptions::lightPropMult = 0.93f;
-
-#endif

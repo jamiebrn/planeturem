@@ -2,11 +2,16 @@
 
 #define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
+#include <extlib/steam/steam_api.h>
+#include <chrono>
+
+#include "GameConstants.hpp"
+
+#if (!RELEASE_BUILD)
 #include <imgui.h>
 #include <backends/imgui_impl_sdl2.h>
 #include <backends/imgui_impl_opengl3.h>
-#include <extlib/steam/steam_api.h>
-#include <chrono>
+#endif
 
 #include <World/FastNoise.h>
 #include <Core/json.hpp>
