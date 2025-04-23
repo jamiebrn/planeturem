@@ -5,7 +5,7 @@
 #define RELEASE_BUILD 1
 
 static const std::string GAME_TITLE = "Planeturem";
-static const std::string GAME_VERSION = "alpha-v1.5";
+static const std::string GAME_VERSION = "Demo";
 
 static constexpr int STEAM_APP_ID = 3323260;
 
