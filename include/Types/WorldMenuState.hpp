@@ -7,6 +7,7 @@ enum WorldMenuState
     Inventory,
     SettingLandmark,
     TravelSelect,
+    DemoEnd,
     FlyingRocket,
     NPCInteract,
     NPCShop

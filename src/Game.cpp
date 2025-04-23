@@ -3,7 +3,6 @@
 // FIX: Weather inconsistency (gametime)
 
 // PRIORITY: HIGH (DEMO)
-// TODO: Set hints / guidance for start of game (maybe npc / default inventory item)
 // TODO: Create "end of demo, wishlist" ui
 
 // TODO: Item drop stacks (reduce network strain)
@@ -272,21 +271,21 @@ void Game::run()
             drawStateTransition();
         }
 
-        pl::TextDrawData textDrawData;
-        textDrawData.size = 24;
-        textDrawData.containOnScreenX = true;
-        textDrawData.containPaddingRight = 10;
-        textDrawData.position = pl::Vector2f(window.getWidth(), window.getHeight() - 40);
-        textDrawData.text = Helper::floatToString(networkHandler.getTotalBytesReceived() / 1000.0f, 1) + "kb received (" +
-            Helper::floatToString(networkHandler.getByteReceiveRate(dt) / 1000.0f, 1) + "KB/s)";
+        // pl::TextDrawData textDrawData;
+        // textDrawData.size = 24;
+        // textDrawData.containOnScreenX = true;
+        // textDrawData.containPaddingRight = 10;
+        // textDrawData.position = pl::Vector2f(window.getWidth(), window.getHeight() - 40);
+        // textDrawData.text = Helper::floatToString(networkHandler.getTotalBytesReceived() / 1000.0f, 1) + "kb received (" +
+        //     Helper::floatToString(networkHandler.getByteReceiveRate(dt) / 1000.0f, 1) + "KB/s)";
         
-        TextDraw::drawText(window, textDrawData);
+        // TextDraw::drawText(window, textDrawData);
         
-        textDrawData.position = pl::Vector2f(window.getWidth(), window.getHeight() - 65);
-        textDrawData.text = Helper::floatToString(networkHandler.getTotalBytesSent() / 1000.0f, 1) + "kb sent (" +
-            Helper::floatToString(networkHandler.getByteSendRate(dt) / 1000.0f, 1) + "KB/s)";
+        // textDrawData.position = pl::Vector2f(window.getWidth(), window.getHeight() - 65);
+        // textDrawData.text = Helper::floatToString(networkHandler.getTotalBytesSent() / 1000.0f, 1) + "kb sent (" +
+        //     Helper::floatToString(networkHandler.getByteSendRate(dt) / 1000.0f, 1) + "KB/s)";
 
-        TextDraw::drawText(window, textDrawData);
+        // TextDraw::drawText(window, textDrawData);
 
         #if (!RELEASE_BUILD)
         drawDebugMenu(dt);
@@ -410,6 +409,7 @@ void Game::runInGame(float dt)
         landmarkSetGUI.handleEvent(event);
         npcInteractionGUI.handleEvent(event);
         mainMenuGUI.handleEvent(event);
+        demoEndGUI.handleEvent(event);
     }
 
     // Input testing
@@ -945,6 +945,19 @@ void Game::runInGame(float dt)
                 }
                 break;
             }
+
+            case WorldMenuState::DemoEnd:
+            {
+                if (demoEndGUI.createAndDraw(window, dt))
+                {
+                    worldMenuState = WorldMenuState::FlyingRocket;
+                    RocketObject* rocketObject = getObjectFromLocation<RocketObject>(rocketEnteredReference, locationState);
+                    if (rocketObject)
+                    {
+                        rocketObject->startFlyingDownwards();
+                    }
+                }
+            }
         }
     }
     else
@@ -1453,6 +1466,8 @@ void Game::testEnterStructure()
     {
         return;
     }
+    
+    closeChest();
 
     locationState.setInStructureID(structureID.value());
 
@@ -1483,6 +1498,8 @@ void Game::enterStructureFromHost(PlanetType planetType, ChunkPosition chunk, ui
     }
 
     printf("NETWORK: Entering structure from host\n");
+
+    closeChest();
 
     structureObject->setStructureID(structureID);
     getStructureRoomPool(planetType).overwriteRoomData(structureID, Room(roomType, nullptr));
@@ -2768,6 +2785,11 @@ void Game::travelToDestination()
 {
     travelTrigger = false;
 
+    // Demo open gui
+    worldMenuState = WorldMenuState::DemoEnd;
+    demoEndGUI.initialise();
+    return;
+
     // If client, request travel from host
     if (networkHandler.isClient())
     {
@@ -3142,7 +3164,6 @@ void Game::changeState(GameState newState)
         }
         case GameState::InStructure:
         {
-            closeChest();
             nearbyCraftingStationLevels.clear();
             
             if (gameState == GameState::OnPlanet)
@@ -3169,6 +3190,8 @@ void Game::changeState(GameState newState)
         {
             if (gameState == GameState::InStructure)
             {
+                closeChest();
+
                 // Exit structure
                 locationState.setInStructureID(std::nullopt);
 

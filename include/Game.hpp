@@ -97,6 +97,7 @@
 #include "GUI/LandmarkSetGUI.hpp"
 #include "GUI/NPCInteractionGUI.hpp"
 #include "GUI/HitMarkers.hpp"
+#include "GUI/DemoEndGUI.hpp"
 
 #include "Network/Packet.hpp"
 #include "Network/IPacketData.hpp"
@@ -363,6 +364,8 @@ private:
     LandmarkSetGUI landmarkSetGUI;
     pl::Vector2f mouseScreenPos;
 
+    DemoEndGUI demoEndGUI;
+    
     // Game general data
     Player player;
     LocationState locationState;
