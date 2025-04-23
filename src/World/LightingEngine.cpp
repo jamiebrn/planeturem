@@ -147,8 +147,8 @@ void LightingEngine::propagateLight(const LightPropagationNode& lightNode, float
 {
     float stepBaseMult = 0.93f;
     
-    #if (RELEASE_BUILD)
-    float stepBaseMult = DebugOptions::lightPropMult;
+    #if (!RELEASE_BUILD)
+    stepBaseMult = DebugOptions::lightPropMult;
     #endif
 
     float lightIntensity = previousIntensity * std::pow(stepBaseMult, lightNode.steps);

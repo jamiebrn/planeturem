@@ -384,7 +384,7 @@ private:
     std::unordered_map<PlanetType, ObjectReference> planetRocketUsedPositions;
 
     LightingEngine lightingEngine;
-    int lightingTick = 0;
+    float lightingTickTime = 0;
     bool smoothLighting = true;
 
     NetworkHandler networkHandler;

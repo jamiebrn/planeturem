@@ -1064,7 +1064,7 @@ void Game::updateOnPlanet(float dt)
         // If modified chunks, force a lighting recalculation
         if (hasLoadedChunks || hasUnloadedChunks)
         {
-            lightingTick = LIGHTING_TICK;
+            lightingTickTime = LIGHTING_TICK_TIME;
         }
         
         // Update bosses
@@ -1170,7 +1170,7 @@ void Game::updateActivePlanets(float dt)
         // If modified chunks (and this player (host) is on this planet), force a lighting recalculation
         if (locationState.getPlanetType() == planetType && (hasLoadedChunks || hasUnloadedChunks))
         {
-            lightingTick = LIGHTING_TICK;
+            lightingTickTime = LIGHTING_TICK_TIME;
         }
 
         // Update bosses
@@ -1288,10 +1288,10 @@ void Game::drawLighting(float dt, std::vector<WorldObject*>& worldObjects)
     pl::Framebuffer lightTexture;
     lightTexture.create(chunksSizeInView.x * CHUNK_TILE_SIZE * TILE_LIGHTING_RESOLUTION, chunksSizeInView.y * CHUNK_TILE_SIZE * TILE_LIGHTING_RESOLUTION);
 
-    lightingTick++;
-    if (lightingTick >= LIGHTING_TICK)
+    lightingTickTime += dt;
+    if (lightingTickTime >= LIGHTING_TICK_TIME)
     {
-        lightingTick = 0;
+        lightingTickTime = 0.0f;
 
         // Recalculate lighting
 
@@ -2977,7 +2977,7 @@ void Game::travelToPlanet(PlanetType planetType, ObjectReference newRocketObject
     {
         getChunkManager().updateChunks(*this, player.getPosition(), {camera.getChunkViewRange()});
     }
-    lightingTick = LIGHTING_TICK;
+    lightingTickTime = LIGHTING_TICK_TIME;
 
     rocketEnteredReference = newRocketObjectReference;
     
@@ -3254,7 +3254,7 @@ void Game::startNewGame(int seed)
     camera.instantUpdate(player.getPosition());
 
     getChunkManager().updateChunks(*this, player.getPosition(), {camera.getChunkViewRange()});
-    lightingTick = LIGHTING_TICK;
+    lightingTickTime = LIGHTING_TICK_TIME;
 
     worldMenuState = WorldMenuState::Main;
     musicGap = MUSIC_GAP_MIN;
@@ -3468,7 +3468,7 @@ bool Game::loadGame(const SaveFileSummary& saveFileSummary)
         
         getChunkManager().updateChunks(*this, player.getPosition(), {camera.getChunkViewRange()});
 
-        lightingTick = LIGHTING_TICK;
+        lightingTickTime = LIGHTING_TICK_TIME;
     }
     else if (playerGameSave.playerData.locationState.isInRoomDest())
     {
@@ -3710,7 +3710,7 @@ void Game::joinWorld(const PacketDataJoinInfo& joinInfo)
 
     gameTime = joinInfo.gameTime;
 
-    lightingTick = LIGHTING_TICK;
+    lightingTickTime = LIGHTING_TICK_TIME;
 
     // Send player data to host
     networkHandler.sendPlayerData();
@@ -3782,7 +3782,7 @@ void Game::handleChunkDataFromHost(const PacketDataChunkDatas& chunkDataPacket)
     }
 
     // Chunk datas received - recalcute lighting
-    lightingTick = LIGHTING_TICK;
+    lightingTickTime = LIGHTING_TICK_TIME;
 }
 
 void Game::joinedLobby(bool requiresNameInput)
@@ -3816,7 +3816,7 @@ void Game::handleZoom(int zoomChange)
     camera.handleScaleChange(beforeScale, afterScale, player.getPosition());
 
     // Recalculate lighting
-    lightingTick = LIGHTING_TICK;
+    lightingTickTime = LIGHTING_TICK_TIME;
 }
 
 void Game::handleEventsWindow(const SDL_Event& event)
