@@ -18,7 +18,7 @@
         "WoodenHut": {
             "texture": [80, 416],
             "tile-size": [5, 7],
-            "collision-bitmask": [0, 21],
+            "collision-bitmask": [0, 28],
             "objects": [
                 ["Chest", 2, [
                     [[1, "Banana", 1], [6, "Raw Iron", 2]]]],
