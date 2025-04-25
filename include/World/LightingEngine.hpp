@@ -56,7 +56,7 @@ private:
         int steps;
     };
 
-    void propagateLight(const LightPropagationNode& lightNode, float previousIntensity, std::queue<LightPropagationNode>& lightQueue);
+    void propagateLight(const LightPropagationNode& lightNode, float previousIntensity, std::vector<LightPropagationNode>& lightQueue);
 
 private:
     std::vector<float> lighting;

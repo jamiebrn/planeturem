@@ -71,7 +71,8 @@ void LightingEngine::addObstacle(int x, int y, float absorption)
 void LightingEngine::calculateLighting()
 {
     // Initialise light sources and put indexes into queue
-    std::queue<LightPropagationNode> lightQueue;
+    // std::queue<LightPropagationNode> lightQueue;
+    std::vector<LightPropagationNode> lightQueue;
     for (int i = 0; i < lightSources.size(); i++)
     {
         const float& intensity = std::max(lightSources[i], movingLightSources[i]);
@@ -89,7 +90,7 @@ void LightingEngine::calculateLighting()
         // Is light source
         lighting[i] = intensity * (1.0f - lightAbsorption);
 
-        lightQueue.emplace(LightPropagationNode{i, 0});
+        lightQueue.push_back(LightPropagationNode{i, 0});
     }
 
     // const float propagationMult = 0.87f;
@@ -97,16 +98,20 @@ void LightingEngine::calculateLighting()
 
     const int maxDownCheckIndex = width * (height - 1) - 1;
 
+    int processIdx = 0;
+
     // Process light queue
-    while (!lightQueue.empty())
+    while (processIdx < lightQueue.size())
     {
-        const LightPropagationNode& lightNode = lightQueue.front();
+        const LightPropagationNode& lightNode = lightQueue[processIdx];
         const float lightIntensity = lighting[lightNode.index];
         // const float nextLightIntensity = lightIntensity * propagationMult;
 
+        processIdx++;
+
         if (lightIntensity < lightThreshold)
         {
-            lightQueue.pop();
+            // lightQueue.pop();
             continue;
         }
 
@@ -136,14 +141,14 @@ void LightingEngine::calculateLighting()
             propagateLight(LightPropagationNode{lightNode.index + width, lightNode.steps + 1}, lightIntensity, lightQueue);
         }
 
-        lightQueue.pop();
+        // lightQueue.pop();
     }
 
     // buildVertexArray(lightingColor);
     generateLightingTexture();
 }
 
-void LightingEngine::propagateLight(const LightPropagationNode& lightNode, float previousIntensity, std::queue<LightPropagationNode>& lightQueue)
+void LightingEngine::propagateLight(const LightPropagationNode& lightNode, float previousIntensity, std::vector<LightPropagationNode>& lightQueue)
 {
     float stepBaseMult = 0.93f;
     
@@ -157,7 +162,7 @@ void LightingEngine::propagateLight(const LightPropagationNode& lightNode, float
     if (lighting[lightNode.index] < lightIntensityAbsorbed)
     {
         lighting[lightNode.index] = lightIntensityAbsorbed;
-        lightQueue.emplace(lightNode.index);
+        lightQueue.push_back(LightPropagationNode{lightNode.index});
     }
     // lighting[index] = std::max(lighting[index] + lightIntensityAbsorbed, 1.0f);
     // lightQueue.emplace(index);
