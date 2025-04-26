@@ -2020,10 +2020,12 @@ void Game::buildObject(ChunkPosition chunk, pl::Vector2<int> tile, ObjectType ob
 
     // Create build particles
     BuildableObject* placedObject = getChunkManager(planetType).getChunkObject(chunk, tile);
-    if (placedObject)
+    if (!placedObject)
     {
-        placedObject->createHitParticles(particleSystem);
+        return;
     }
+    
+    placedObject->createHitParticles(particleSystem);
     
     // Play build sound if object in view
     if (camera.isInView(placedObject->getPosition()))
