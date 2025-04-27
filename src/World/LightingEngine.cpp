@@ -103,7 +103,7 @@ void LightingEngine::calculateLighting()
     // Process light queue
     while (processIdx < lightQueue.size())
     {
-        const LightPropagationNode& lightNode = lightQueue[processIdx];
+        const LightPropagationNode lightNode = lightQueue[processIdx];
         const float lightIntensity = lighting[lightNode.index];
         // const float nextLightIntensity = lightIntensity * propagationMult;
 
