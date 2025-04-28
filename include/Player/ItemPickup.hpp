@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include <cmath>
 #include <vector>
 
@@ -40,7 +39,8 @@ class ItemPickup : public WorldObject
 {
 public:
     ItemPickup() = default;
-    ItemPickup(pl::Vector2f position, ItemType itemType, float gameTime) : WorldObject(position), itemType(itemType), spawnGameTime(gameTime) {}
+    ItemPickup(pl::Vector2f position, ItemType itemType, float gameTime, int count) : WorldObject(position),
+        itemType(itemType), count(count), spawnGameTime(gameTime) {}
     void resetSpawnTime(float gameTime);
 
     bool isBeingPickedUp(const CollisionRect& playerCollision, float gameTime) const;
@@ -49,6 +49,7 @@ public:
         const pl::Color& color) const override;
     
     inline ItemType getItemType() const {return itemType;}
+    inline uint16_t getItemCount() const {return count;}
 
     template <class Archive>
     void serialize(Archive& ar)
@@ -61,6 +62,7 @@ private:
     static constexpr float SPAWN_FLASH_TIME = 0.4f;
 
     ItemType itemType;
+    uint16_t count;
     float spawnGameTime;
 
 };

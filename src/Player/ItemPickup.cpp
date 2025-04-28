@@ -46,4 +46,19 @@ void ItemPickup::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Ga
     float flashAmount = std::max(SPAWN_FLASH_TIME - (gameTime - spawnGameTime), 0.0f) / SPAWN_FLASH_TIME;
 
     ItemSlot::drawItem(window, spriteBatch, itemType, screenPos, scaleMult, true, 255, flashAmount);
+
+    if (count.value() > 1)
+    {
+        spriteBatch.endDrawing(window);
+        
+        TextDraw::drawText(window, {
+            std::to_string(count.value()),
+            position * positionIntScale + (pl::Vector2f(std::round(24 / 4.0f) * 3.0f, std::round(24 / 4.0f) * 3.0f)) * intScale,
+            {255, 255, 255},
+            24 * static_cast<unsigned int>(intScale),
+            pl::Color(46, 34, 47),
+            2 * static_cast<unsigned int>(intScale),
+            true,
+            true});
+    }
 }
