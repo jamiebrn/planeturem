@@ -24,7 +24,7 @@ void BossEntity::createItemPickups(ChunkManager& chunkManager, float gameTime)
             spawnPos.x += Helper::randFloat(-itemPickupDropRadius, itemPickupDropRadius);
             spawnPos.y += Helper::randFloat(-itemPickupDropRadius, itemPickupDropRadius);
 
-            chunkManager.addItemPickup(ItemPickup(spawnPos, itemDropChance.first.itemType, gameTime));
+            chunkManager.addItemPickup(ItemPickup(spawnPos, itemDropChance.first.itemType, gameTime, 1));
         }
 
         // inventory.addItem(itemDropChance.first.itemType, amount, true);

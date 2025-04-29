@@ -1099,7 +1099,8 @@ void Game::updateOnPlanet(float dt)
             // Host will give client item
             bool modifyInventory = networkHandler.isLobbyHostOrSolo();
 
-            int amountAdded = inventory.addItem(itemPickupPtr->getItemType(), 1, modifyInventory, false, modifyInventory);
+            int amountAdded = inventory.addItem(itemPickupPtr->getItemType(), itemPickupPtr->getItemCount(), modifyInventory,
+                false, modifyInventory);
 
             if (amountAdded > 0)
             {
@@ -2141,7 +2142,7 @@ void Game::catchRandomFish(pl::Vector2<int> fishedTile)
                 if (networkHandler.isLobbyHostOrSolo())
                 {
                     // Not multiplayer / is host, create pickups and tell clients
-                    itemPickupsCreatedVector.push_back(getChunkManager().addItemPickup(ItemPickup(spawnPos, fishCatchData.itemCatch, gameTime)).value());
+                    itemPickupsCreatedVector.push_back(getChunkManager().addItemPickup(ItemPickup(spawnPos, fishCatchData.itemCatch, gameTime, 1)).value());
                 }
                 else
                 {

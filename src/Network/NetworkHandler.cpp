@@ -670,7 +670,7 @@ void NetworkHandler::processMessage(const SteamNetworkingMessage_t& message, con
                         // Give item to client
                         PacketDataInventoryAddItem itemPacketData;
                         itemPacketData.itemType = itemPickupPtr->getItemType();
-                        itemPacketData.amount = 1;
+                        itemPacketData.amount = itemPickupPtr->getItemCount();
                         Packet itemPacket;
                         itemPacket.set(itemPacketData);
     
@@ -822,7 +822,7 @@ void NetworkHandler::processMessageAsHost(const SteamNetworkingMessage_t& messag
                 }
 
                 // Denormalise pickup position from chunk-relative to world position
-                ItemPickup pickup(request.positionRelative + chunkPtr->getWorldPosition(), request.itemType, game->getGameTime());
+                ItemPickup pickup(request.positionRelative + chunkPtr->getWorldPosition(), request.itemType, game->getGameTime(), 1);
 
                 uint64_t itemPickupID = chunkPtr->addItemPickup(pickup);
                 ItemPickup* itemPickupPtr = chunkPtr->getItemPickup(itemPickupID);

@@ -235,7 +235,7 @@ void Entity::damage(int amount, Game& game, const LocationState& locationState, 
                     spawnPos.x += Helper::randFloat(0.0f, entityData.size.x * TILE_SIZE_PIXELS_UNSCALED);
                     spawnPos.y += Helper::randFloat(0.0f, entityData.size.y * TILE_SIZE_PIXELS_UNSCALED);
 
-                    chunkManager.addItemPickup(ItemPickup(spawnPos, itemDrop.item, gameTime));
+                    chunkManager.addItemPickup(ItemPickup(spawnPos, itemDrop.item, gameTime, 1));
                 }
 
                 // inventory.addItem(itemDrop.item, itemAmount, true);

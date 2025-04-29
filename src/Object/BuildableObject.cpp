@@ -311,14 +311,11 @@ void BuildableObject::createItemPickups(ChunkManager& chunkManager, Game& game, 
             // Give items
             unsigned int itemAmount = rand() % std::max(itemDrop.maxAmount - itemDrop.minAmount + 1, 1U) + itemDrop.minAmount;
 
-            for (int i = 0; i < itemAmount; i++)
-            {
-                pl::Vector2f spawnPos = position - pl::Vector2f(0.5f, 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
-                spawnPos.x += Helper::randFloat(0.0f, objectData.size.x * TILE_SIZE_PIXELS_UNSCALED);
-                spawnPos.y += Helper::randFloat(0.0f, objectData.size.y * TILE_SIZE_PIXELS_UNSCALED);
+            pl::Vector2f spawnPos = position - pl::Vector2f(0.5f, 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
+            spawnPos.x += Helper::randFloat(0.0f, objectData.size.x * TILE_SIZE_PIXELS_UNSCALED);
+            spawnPos.y += Helper::randFloat(0.0f, objectData.size.y * TILE_SIZE_PIXELS_UNSCALED);
 
-                itemPickupsCreated.push_back(chunkManager.addItemPickup(ItemPickup(spawnPos, itemDrop.item, gameTime)).value());
-            }
+            itemPickupsCreated.push_back(chunkManager.addItemPickup(ItemPickup(spawnPos, itemDrop.item, gameTime, itemAmount)).value());
 
             // inventory.addItem(itemDrop.item, itemAmount, true);
         }

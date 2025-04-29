@@ -47,13 +47,15 @@ void ItemPickup::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Ga
 
     ItemSlot::drawItem(window, spriteBatch, itemType, screenPos, scaleMult, true, 255, flashAmount);
 
-    if (count.value() > 1)
+    if (count > 1)
     {
         spriteBatch.endDrawing(window);
-        
+
+        float intScale = ResolutionHandler::getResolutionIntegerScale();
+
         TextDraw::drawText(window, {
-            std::to_string(count.value()),
-            position * positionIntScale + (pl::Vector2f(std::round(24 / 4.0f) * 3.0f, std::round(24 / 4.0f) * 3.0f)) * intScale,
+            std::to_string(count),
+            screenPos + pl::Vector2f(24 / 4.0f, 24 / 4.0f) * scale,
             {255, 255, 255},
             24 * static_cast<unsigned int>(intScale),
             pl::Color(46, 34, 47),
