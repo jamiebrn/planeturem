@@ -2,8 +2,6 @@
 
 // FIX: Weather inconsistency (gametime)
 
-// TODO: Item drop stacks (reduce network strain)
-
 // PRIORITY: MEDIUM (MULTIPLAYER)
 // TODO: Make entities persistent across network and send state updates (movement, health etc)
 // TODO: Use per-world entity chunk ID counter, rather than per chunk, to prevent collisions
