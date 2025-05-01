@@ -66,7 +66,7 @@ public:
     NetworkPlayer* getNetworkPlayer(uint64_t id);
     std::unordered_map<uint64_t, NetworkPlayer>& getNetworkPlayers();
 
-    std::vector<WorldObject*> getNetworkPlayersToDraw(const LocationState& locationState, pl::Vector2f playerPosition);
+    std::vector<WorldObject*> getNetworkPlayersToDraw(const Camera& camera, const LocationState& locationState, pl::Vector2f playerPosition, float gameTime);
 
     std::vector<ChunkViewRange> getNetworkPlayersChunkViewRanges(PlanetType planetType);
 

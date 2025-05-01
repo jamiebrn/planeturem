@@ -518,7 +518,7 @@ void Player::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& 
         #endif
     }
 
-    // Draw fishing line if casted rod
+    // Draw fishing bob if casted rod
     if (fishingRodCasted)
     {
         drawFishingRodCast(window, spriteBatch, camera, gameTime, worldSize, waterYOffset);
@@ -531,6 +531,106 @@ void Player::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& 
         collisionRect.debugDraw(window, camera);
     }
     #endif
+}
+
+std::vector<WorldObject*> Player::getDrawWorldObjects(const Camera& camera, int worldSize, float gameTime)
+{
+    std::vector<WorldObject*> worldObjects;
+
+    worldObjects.push_back(this);
+
+    // Add line parts
+    if (fishingRodCasted)
+    {
+        pl::Vector2f bobPosition = fishingRodBobWorldPos + pl::Vector2f(0, WorldObject::getWaterBobYOffset(fishingRodBobWorldPos, worldSize, gameTime));
+
+        float waterYOffset = getWaterBobYOffset(worldSize, gameTime);
+
+        fishingRodLineParts.clear();
+
+        // Calculate line origin position
+        const ToolData& toolData = ToolDataLoader::getToolData(equippedTool);
+
+        pl::Vector2f lineOrigin;
+        int lineOffsetXMult = 1;
+        if (flippedTexture)
+        {
+            lineOffsetXMult = -1;
+        }
+
+        pl::Vector2f rotatedLineOffset = Helper::rotateVector(toolData.fishingRodLineOffset, 3.14159 * toolRotation / 180.0f);
+
+        lineOrigin.x = position.x + (toolData.holdOffset.x + rotatedLineOffset.x) * lineOffsetXMult;
+        lineOrigin.y = position.y + waterYOffset + toolData.holdOffset.y + rotatedLineOffset.y;
+
+        // Add line drooping
+        pl::Vector2f droopLineOrigin = lineOrigin;
+        pl::Vector2f droopLineDest = bobPosition;
+
+        bool drawnFromBob = false;
+
+        if (bobPosition.y < lineOrigin.y)
+        {
+            droopLineOrigin = bobPosition;
+            droopLineDest = lineOrigin;
+            drawnFromBob = true;
+        }
+        
+        static constexpr int lineXStep = 1;
+        static constexpr float lineOverstep = 0.1f;
+        int xDiff = std::abs(bobPosition.x - lineOrigin.x);
+
+        int maxX = xDiff;
+
+        // If drawn from bob, add one less point to instead add point at end of rod
+        if (drawnFromBob)
+        {
+            maxX -= lineXStep;
+        }
+
+        for (int x = 0; x < maxX; x += lineXStep)
+        {
+            // Sample first point
+            float yProgress = (xDiff / (x + 0.5f * xDiff) - 2.0f / 3.0f) / (4.0f / 3.0f);
+            pl::Vector2f originOffset;
+            originOffset.x = x * Helper::sign(droopLineDest.x - droopLineOrigin.x);
+            originOffset.y = (droopLineDest.y - droopLineOrigin.y) * (1.0f - yProgress);
+
+            // Sample second point with overstep
+            yProgress = (xDiff / ((x + lineXStep + lineOverstep) + 0.5f * xDiff) - 2.0f / 3.0f) / (4.0f / 3.0f);
+            pl::Vector2f originOffsetTwo;
+            originOffsetTwo.x = (x + lineXStep + lineOverstep) * Helper::sign(droopLineDest.x - droopLineOrigin.x);
+            originOffsetTwo.y = (droopLineDest.y - droopLineOrigin.y) * (1.0f - yProgress);
+
+            FishingRodLinePart linePart(camera.worldToScreenTransform(originOffset + droopLineOrigin),
+                camera.worldToScreenTransform(originOffsetTwo + droopLineOrigin));
+            
+            fishingRodLineParts.push_back(linePart);
+        }
+
+        // If drawn from bob, fix line to rod at end
+        if (drawnFromBob)
+        {
+            // Sample final point
+            float yProgress = (xDiff / (maxX + 0.5f * xDiff) - 2.0f / 3.0f) / (4.0f / 3.0f);
+            pl::Vector2f originOffset;
+            originOffset.x = maxX * Helper::sign(droopLineDest.x - droopLineOrigin.x);
+            originOffset.y = (droopLineDest.y - droopLineOrigin.y) * (1.0f - yProgress);
+
+            FishingRodLinePart linePart(camera.worldToScreenTransform(originOffset + droopLineOrigin),
+                camera.worldToScreenTransform(droopLineDest));
+            
+            fishingRodLineParts.push_back(linePart);
+        }
+
+        // Add all parts to world object ptr array
+        for (WorldObject& worldObject : fishingRodLineParts)
+        {
+            worldObjects.push_back(&worldObject);
+        }
+    }
+
+    return worldObjects;
 }
 
 void Player::createLightSource(LightingEngine& lightingEngine, pl::Vector2f topLeftChunkPos) const
@@ -591,81 +691,81 @@ void Player::drawFishingRodCast(pl::RenderTarget& window, pl::SpriteBatch& sprit
     
     spriteBatch.endDrawing(window);
 
-    // Draw line
-    pl::VertexArray line;
+    // // Draw line
+    // pl::VertexArray line;
     
-    // Calculate line origin position
-    const ToolData& toolData = ToolDataLoader::getToolData(equippedTool);
+    // // Calculate line origin position
+    // const ToolData& toolData = ToolDataLoader::getToolData(equippedTool);
 
-    pl::Vector2f lineOrigin;
-    int lineOffsetXMult = 1;
-    if (flippedTexture)
-    {
-        lineOffsetXMult = -1;
-    }
+    // pl::Vector2f lineOrigin;
+    // int lineOffsetXMult = 1;
+    // if (flippedTexture)
+    // {
+    //     lineOffsetXMult = -1;
+    // }
 
-    pl::Vector2f rotatedLineOffset = Helper::rotateVector(toolData.fishingRodLineOffset, 3.14159 * toolRotation / 180.0f);
+    // pl::Vector2f rotatedLineOffset = Helper::rotateVector(toolData.fishingRodLineOffset, 3.14159 * toolRotation / 180.0f);
 
-    lineOrigin.x = position.x + (toolData.holdOffset.x + rotatedLineOffset.x) * lineOffsetXMult;
-    lineOrigin.y = position.y + waterYOffset + toolData.holdOffset.y + rotatedLineOffset.y;
+    // lineOrigin.x = position.x + (toolData.holdOffset.x + rotatedLineOffset.x) * lineOffsetXMult;
+    // lineOrigin.y = position.y + waterYOffset + toolData.holdOffset.y + rotatedLineOffset.y;
 
-    // Add line drooping
-    pl::Vector2f droopLineOrigin = lineOrigin;
-    pl::Vector2f droopLineDest = bobPosition;
+    // // Add line drooping
+    // pl::Vector2f droopLineOrigin = lineOrigin;
+    // pl::Vector2f droopLineDest = bobPosition;
 
-    bool drawnFromBob = false;
+    // bool drawnFromBob = false;
 
-    if (bobPosition.y < lineOrigin.y)
-    {
-        droopLineOrigin = bobPosition;
-        droopLineDest = lineOrigin;
-        drawnFromBob = true;
-    }
+    // if (bobPosition.y < lineOrigin.y)
+    // {
+    //     droopLineOrigin = bobPosition;
+    //     droopLineDest = lineOrigin;
+    //     drawnFromBob = true;
+    // }
     
-    static constexpr int lineXStep = 1;
-    static constexpr float lineOverstep = 0.1f;
-    int xDiff = std::abs(bobPosition.x - lineOrigin.x);
+    // static constexpr int lineXStep = 1;
+    // static constexpr float lineOverstep = 0.1f;
+    // int xDiff = std::abs(bobPosition.x - lineOrigin.x);
 
-    int maxX = xDiff;
+    // int maxX = xDiff;
 
-    // If drawn from bob, add one less point to instead add point at end of rod
-    if (drawnFromBob)
-    {
-        maxX -= lineXStep;
-    }
+    // // If drawn from bob, add one less point to instead add point at end of rod
+    // if (drawnFromBob)
+    // {
+    //     maxX -= lineXStep;
+    // }
 
-    for (int x = 0; x < maxX; x += lineXStep)
-    {
-        // Sample first point
-        float yProgress = (xDiff / (x + 0.5f * xDiff) - 2.0f / 3.0f) / (4.0f / 3.0f);
-        pl::Vector2f originOffset;
-        originOffset.x = x * Helper::sign(droopLineDest.x - droopLineOrigin.x);
-        originOffset.y = (droopLineDest.y - droopLineOrigin.y) * (1.0f - yProgress);
+    // for (int x = 0; x < maxX; x += lineXStep)
+    // {
+    //     // Sample first point
+    //     float yProgress = (xDiff / (x + 0.5f * xDiff) - 2.0f / 3.0f) / (4.0f / 3.0f);
+    //     pl::Vector2f originOffset;
+    //     originOffset.x = x * Helper::sign(droopLineDest.x - droopLineOrigin.x);
+    //     originOffset.y = (droopLineDest.y - droopLineOrigin.y) * (1.0f - yProgress);
 
-        // Sample second point with overstep
-        yProgress = (xDiff / ((x + lineXStep + lineOverstep) + 0.5f * xDiff) - 2.0f / 3.0f) / (4.0f / 3.0f);
-        pl::Vector2f originOffsetTwo;
-        originOffsetTwo.x = (x + lineXStep + lineOverstep) * Helper::sign(droopLineDest.x - droopLineOrigin.x);
-        originOffsetTwo.y = (droopLineDest.y - droopLineOrigin.y) * (1.0f - yProgress);
+    //     // Sample second point with overstep
+    //     yProgress = (xDiff / ((x + lineXStep + lineOverstep) + 0.5f * xDiff) - 2.0f / 3.0f) / (4.0f / 3.0f);
+    //     pl::Vector2f originOffsetTwo;
+    //     originOffsetTwo.x = (x + lineXStep + lineOverstep) * Helper::sign(droopLineDest.x - droopLineOrigin.x);
+    //     originOffsetTwo.y = (droopLineDest.y - droopLineOrigin.y) * (1.0f - yProgress);
 
-        line.addQuadLine(camera.worldToScreenTransform(originOffset + droopLineOrigin),
-            camera.worldToScreenTransform(originOffsetTwo + droopLineOrigin), pl::Color(255, 255, 255), std::max(ResolutionHandler::getScale() * 0.75f, 1.0f), false);
-    }
+    //     line.addQuadLine(camera.worldToScreenTransform(originOffset + droopLineOrigin),
+    //         camera.worldToScreenTransform(originOffsetTwo + droopLineOrigin), pl::Color(255, 255, 255), std::max(ResolutionHandler::getScale() * 0.75f, 1.0f), false);
+    // }
 
-    // If drawn from bob, fix line to rod at end
-    if (drawnFromBob)
-    {
-        // Sample final point
-        float yProgress = (xDiff / (maxX + 0.5f * xDiff) - 2.0f / 3.0f) / (4.0f / 3.0f);
-        pl::Vector2f originOffset;
-        originOffset.x = maxX * Helper::sign(droopLineDest.x - droopLineOrigin.x);
-        originOffset.y = (droopLineDest.y - droopLineOrigin.y) * (1.0f - yProgress);
+    // // If drawn from bob, fix line to rod at end
+    // if (drawnFromBob)
+    // {
+    //     // Sample final point
+    //     float yProgress = (xDiff / (maxX + 0.5f * xDiff) - 2.0f / 3.0f) / (4.0f / 3.0f);
+    //     pl::Vector2f originOffset;
+    //     originOffset.x = maxX * Helper::sign(droopLineDest.x - droopLineOrigin.x);
+    //     originOffset.y = (droopLineDest.y - droopLineOrigin.y) * (1.0f - yProgress);
 
-        line.addQuadLine(camera.worldToScreenTransform(originOffset + droopLineOrigin),
-            camera.worldToScreenTransform(droopLineDest), pl::Color(255, 255, 255), std::max(ResolutionHandler::getScale() * 0.75f, 1.0f), false);
-    }
+    //     line.addQuadLine(camera.worldToScreenTransform(originOffset + droopLineOrigin),
+    //         camera.worldToScreenTransform(droopLineDest), pl::Color(255, 255, 255), std::max(ResolutionHandler::getScale() * 0.75f, 1.0f), false);
+    // }
 
-    window.draw(line, *Shaders::getShader(ShaderType::DefaultNoTexture), nullptr, pl::BlendMode::Alpha);
+    // window.draw(line, *Shaders::getShader(ShaderType::DefaultNoTexture), nullptr, pl::BlendMode::Alpha);
 }
 
 void Player::drawMeleeSwing(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera) const
@@ -1130,4 +1230,21 @@ PacketDataPlayerCharacterInfo Player::getNetworkPlayerInfo(const Camera* camera,
     info.userID = steamID;
 
     return info;
+}
+
+FishingRodLinePart::FishingRodLinePart(pl::Vector2f positionOne, pl::Vector2f positionTwo)
+    : WorldObject((positionOne + positionTwo) / 2)
+{
+    this->positionOne = positionOne;
+    this->positionTwo = positionTwo;
+}
+
+void FishingRodLinePart::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game,
+    const Camera& camera, float dt, float gameTime, int worldSize, const pl::Color& color) const
+{
+    pl::VertexArray line;
+
+    line.addQuadLine(positionOne, positionTwo, pl::Color(), std::max(ResolutionHandler::getScale() * 0.75f, 1.0f), false);
+    
+    window.draw(line, *Shaders::getShader(ShaderType::DefaultNoTexture), nullptr, pl::BlendMode::Alpha);
 }

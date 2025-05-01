@@ -55,6 +55,19 @@
 
 class Game;
 
+class FishingRodLinePart : public WorldObject
+{
+public:
+    FishingRodLinePart(pl::Vector2f positionOne, pl::Vector2f positionTwo);
+
+    virtual void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const pl::Color& color) const override;
+
+private:
+    pl::Vector2f positionOne;
+    pl::Vector2f positionTwo;
+
+};
+
 class Player : public WorldObject
 {
 public:
@@ -66,6 +79,9 @@ public:
     void updateInRoom(float dt, pl::Vector2f mouseWorldPos, const Room& room);
 
     virtual void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const pl::Color& color) const override;
+
+    std::vector<WorldObject*> getDrawWorldObjects(const Camera& camera, int worldSize, float gameTime);
+    
     void createLightSource(LightingEngine& lightingEngine, pl::Vector2f topLeftChunkPos) const override;
 
     void setTool(ToolType toolType);
@@ -197,6 +213,7 @@ protected:
     bool fishBitingLine;
     pl::Vector2f fishingRodBobWorldPos;
     pl::Vector2<int> fishingRodBobWorldTile;
+    std::vector<FishingRodLinePart> fishingRodLineParts;
 
     // Consumable
     float healthConsumableTimerMax;

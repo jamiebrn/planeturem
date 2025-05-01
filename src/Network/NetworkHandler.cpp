@@ -169,7 +169,7 @@ std::unordered_map<uint64_t, NetworkPlayer>& NetworkHandler::getNetworkPlayers()
     return networkPlayers;
 }
 
-std::vector<WorldObject*> NetworkHandler::getNetworkPlayersToDraw(const LocationState& locationState, pl::Vector2f playerPosition)
+std::vector<WorldObject*> NetworkHandler::getNetworkPlayersToDraw(const Camera& camera, const LocationState& locationState, pl::Vector2f playerPosition, float gameTime)
 {
     std::vector<WorldObject*> networkPlayerObjects;
 
@@ -181,13 +181,20 @@ std::vector<WorldObject*> NetworkHandler::getNetworkPlayersToDraw(const Location
             continue;
         }
 
+        int worldSize = 0;
+
         // Translate position to wrap around world correctly, if required
         if (locationState.isOnPlanet())
         {
             iter->second.applyWorldWrapTranslation(playerPosition, game->getChunkManager(locationState.getPlanetType()));
+
+            const PlanetGenData& planetGenData = PlanetGenDataLoader::getPlanetGenData(locationState.getPlanetType());
+            worldSize = planetGenData.worldSize;
         }
 
-        networkPlayerObjects.push_back(&iter->second);
+        std::vector<WorldObject*> playerWorldObjects = iter->second.getDrawWorldObjects(camera, worldSize, gameTime);
+
+        networkPlayerObjects.insert(networkPlayerObjects.end(), playerWorldObjects.begin(), playerWorldObjects.end());
     }
 
     return networkPlayerObjects;

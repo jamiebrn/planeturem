@@ -1195,16 +1195,17 @@ void Game::drawOnPlanet(float dt)
     std::vector<WorldObject*> entities = getChunkManager().getChunkEntities(chunkViewRange);
     std::vector<WorldObject*> itemPickups = getChunkManager().getItemPickups(chunkViewRange);
     std::vector<WorldObject*> weatherParticles = weatherSystem.getWeatherParticles();
+    std::vector<WorldObject*> playerWorldObjects = player.getDrawWorldObjects(camera, getChunkManager().getWorldSize(), gameTime);
     worldObjects.insert(worldObjects.end(), entities.begin(), entities.end());
     worldObjects.insert(worldObjects.end(), itemPickups.begin(), itemPickups.end());
     worldObjects.insert(worldObjects.end(), weatherParticles.begin(), weatherParticles.end());
-    worldObjects.push_back(&player);
+    worldObjects.insert(worldObjects.end(), playerWorldObjects.begin(), playerWorldObjects.end());
     getBossManager().getBossWorldObjects(worldObjects);
 
     // Add network players
     if (networkHandler.isMultiplayerGame())
     {
-        std::vector<WorldObject*> networkPlayerObjects = networkHandler.getNetworkPlayersToDraw(locationState, player.getPosition());
+        std::vector<WorldObject*> networkPlayerObjects = networkHandler.getNetworkPlayersToDraw(camera, locationState, player.getPosition(), gameTime);
         worldObjects.insert(worldObjects.end(), networkPlayerObjects.begin(), networkPlayerObjects.end());
     }
     
@@ -1684,12 +1685,14 @@ void Game::drawInRoom(float dt, const Room& room)
     room.draw(window, camera);
 
     std::vector<const WorldObject*> worldObjects = room.getObjects();
+    std::vector<WorldObject*> playerWorldObjects = player.getDrawWorldObjects(camera, 0, gameTime);
     worldObjects.push_back(&player);
+    worldObjects.insert(worldObjects.end(), playerWorldObjects.begin(), playerWorldObjects.end());
 
     // Add network players
     if (networkHandler.isMultiplayerGame())
     {
-        std::vector<WorldObject*> networkPlayerObjects = networkHandler.getNetworkPlayersToDraw(locationState, player.getPosition());
+        std::vector<WorldObject*> networkPlayerObjects = networkHandler.getNetworkPlayersToDraw(camera, locationState, player.getPosition(), gameTime);
         worldObjects.insert(worldObjects.end(), networkPlayerObjects.begin(), networkPlayerObjects.end());
     }
 
