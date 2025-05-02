@@ -57,9 +57,9 @@ void ItemPickup::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Ga
             std::to_string(count),
             screenPos + pl::Vector2f(24 / 4.0f, 24 / 4.0f) * scale,
             {255, 255, 255},
-            24 * static_cast<unsigned int>(intScale),
+            static_cast<unsigned int>(24 * scale / 3.0f),
             pl::Color(46, 34, 47),
-            2 * static_cast<unsigned int>(intScale),
+            static_cast<unsigned int>(2 * scale / 3.0f),
             true,
             true});
     }

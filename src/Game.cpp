@@ -2,9 +2,13 @@
 
 // FIX: Weather inconsistency (gametime)
 
+// FIX: Fishing rod when diff = 0
+
 // PRIORITY: MEDIUM (MULTIPLAYER)
 // TODO: Make entities persistent across network and send state updates (movement, health etc)
 // TODO: Use per-world entity chunk ID counter, rather than per chunk, to prevent collisions
+
+// TODO: Drop items from inventory
 
 // TODO: Improve entity movement over network
 
@@ -16,7 +20,6 @@
 // TODO: Night and menu music
 
 // PRIORITY: LOW
-// TODO: Fishing rod draw order (split into separate objects?)
 // FIX: Rocket particles on world wrap
 
 // -- Public methods / entry point -- //
