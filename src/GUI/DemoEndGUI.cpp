@@ -10,9 +10,11 @@ bool DemoEndGUI::createAndDraw(pl::RenderTarget& window, float dt)
 {
     float intScale = ResolutionHandler::getResolutionIntegerScale();
     pl::Vector2f resolution = static_cast<pl::Vector2f>(ResolutionHandler::getResolution());
+    
+    updateControllerActivation();
 
-    const int backgroundSizeX = 600 * intScale;
-    const int backgroundSizeY = 400 * intScale;
+    const int backgroundSizeX = 750 * intScale;
+    const int backgroundSizeY = 600 * intScale;
 
     pl::VertexArray backgroundPanel;
     backgroundPanel.addQuad(pl::Rect<float>(resolution.x / 2 - backgroundSizeX / 2, resolution.y / 2 - backgroundSizeY / 2, backgroundSizeX, backgroundSizeY),
@@ -41,6 +43,10 @@ bool DemoEndGUI::createAndDraw(pl::RenderTarget& window, float dt)
         textDrawData.position.y += 25 * intScale;
     }
 
+    textDrawData.position.y += 35 * intScale;
+    textDrawData.text = "Features in development";
+    textDrawData.size = 32 * intScale;
+    TextDraw::drawText(window, textDrawData);
 
     bool quit = false;
 
@@ -55,7 +61,7 @@ bool DemoEndGUI::createAndDraw(pl::RenderTarget& window, float dt)
     {
         quit = true;
     }
-    
+
     updateAndDrawSelectionHoverRect(window, dt);
 
     guiContext.draw(window);
