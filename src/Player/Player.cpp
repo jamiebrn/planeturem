@@ -598,7 +598,7 @@ std::vector<WorldObject*> Player::getDrawWorldObjects(const Camera& camera, int 
         if (xDiff == 0)
         {
             xDiff = 1;
-            lineDir = Helper::sign(direction.x);
+            lineDir = flippedTexture ? -1 : 1;
         }
 
         int maxX = std::max(xDiff, 1);
@@ -609,23 +609,47 @@ std::vector<WorldObject*> Player::getDrawWorldObjects(const Camera& camera, int 
             maxX -= lineXStep;
         }
 
-        int samplePointCount = maxX / lineXStep;
+        int samplePointCount;
+        if (lineXStep == 0.0f)
+        {
+            samplePointCount = std::abs(bobPosition.y - lineOrigin.y);
+        }
+        else
+        {
+            samplePointCount = maxX / lineXStep;
+        }
 
         float x = 0;
 
         for (int i = 0; i < samplePointCount; i++)
         {
             // Sample first point
-            float yProgress = (xDiff / (x + 0.5f * xDiff) - 2.0f / 3.0f) / (4.0f / 3.0f);
+            float yProgress;
+            if (lineXStep != 0.0f)
+            {
+                yProgress = 1.0f - (xDiff / (x + 0.5f * xDiff) - 2.0f / 3.0f) / (4.0f / 3.0f);
+            }
+            else
+            {
+                yProgress = i / static_cast<float>(samplePointCount);
+            }
             pl::Vector2f originOffset;
             originOffset.x = x * lineDir;
-            originOffset.y = (droopLineDest.y - droopLineOrigin.y) * (1.0f - yProgress);
+            originOffset.y = (droopLineDest.y - droopLineOrigin.y) * yProgress;
 
             // Sample second point with overstep
-            yProgress = (xDiff / ((x + lineXStep + lineOverstep) + 0.5f * xDiff) - 2.0f / 3.0f) / (4.0f / 3.0f);
             pl::Vector2f originOffsetTwo;
-            originOffsetTwo.x = (x + lineXStep + lineOverstep) * lineDir;
-            originOffsetTwo.y = (droopLineDest.y - droopLineOrigin.y) * (1.0f - yProgress);
+            if (lineXStep != 0.0f)
+            {
+                yProgress = 1.0f - (xDiff / ((x + lineXStep + lineOverstep) + 0.5f * xDiff) - 2.0f / 3.0f) / (4.0f / 3.0f);
+                originOffsetTwo.x = (x + lineXStep + lineOverstep) * lineDir;
+            }
+            else
+            {
+                yProgress = (i + 1) / static_cast<float>(samplePointCount);
+                originOffsetTwo.x = x;
+            }
+            originOffsetTwo.y = (droopLineDest.y - droopLineOrigin.y) * yProgress;
 
             std::unique_ptr<FishingRodLinePart> linePart = std::make_unique<FishingRodLinePart>(originOffset + droopLineOrigin, originOffsetTwo + droopLineOrigin);
             
@@ -638,10 +662,18 @@ std::vector<WorldObject*> Player::getDrawWorldObjects(const Camera& camera, int 
         if (drawnFromBob)
         {
             // Sample final point
-            float yProgress = (xDiff / (maxX + 0.5f * xDiff) - 2.0f / 3.0f) / (4.0f / 3.0f);
+            float yProgress;
+            if (lineXStep != 0.0f)
+            {
+                yProgress = 1.0f - (xDiff / (maxX + 0.5f * xDiff) - 2.0f / 3.0f) / (4.0f / 3.0f);
+            }
+            else
+            {
+                yProgress = (samplePointCount - 1) / static_cast<float>(samplePointCount);
+            }
             pl::Vector2f originOffset;
             originOffset.x = maxX * lineDir;
-            originOffset.y = (droopLineDest.y - droopLineOrigin.y) * (1.0f - yProgress);
+            originOffset.y = (droopLineDest.y - droopLineOrigin.y) * yProgress;
 
             std::unique_ptr<FishingRodLinePart> linePart = std::make_unique<FishingRodLinePart>(camera.worldToScreenTransform(originOffset + droopLineOrigin),
                 camera.worldToScreenTransform(droopLineDest));

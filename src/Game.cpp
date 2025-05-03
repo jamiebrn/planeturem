@@ -2,9 +2,9 @@
 
 // FIX: Weather inconsistency (gametime)
 
-// FIX: Fishing rod when diff = 0
-
 // PRIORITY: MEDIUM (MULTIPLAYER)
+// TODO: Demo end GUI plans for future (more planets, bosses, items etc, with preview graphics)
+
 // TODO: Make entities persistent across network and send state updates (movement, health etc)
 // TODO: Use per-world entity chunk ID counter, rather than per chunk, to prevent collisions
 
