@@ -460,6 +460,13 @@ void InventoryGUI::pickUpItem(Game& game, pl::Vector2f mouseScreenPos, unsigned 
         }
     }
 
+    // Play sound
+    SoundType clickSound = SoundType::InventoryClick1;
+    int soundChance = rand() % 3;
+    if (soundChance == 1) clickSound = SoundType::InventoryClick2;
+    else if (soundChance == 2) clickSound = SoundType::InventoryClick3;
+    Sounds::playSound(clickSound, 30.0f);
+
     // Alert game of chest data modified
     if (hoveredInventory == chestData)
     {
@@ -569,6 +576,12 @@ void InventoryGUI::putDownItem(Game& game, pl::Vector2f mouseScreenPos, Inventor
         if (pickedUpItemCount <= 0)
             isItemPickedUp = false;
     }
+
+    // Play sound
+    SoundType clickSound = SoundType::InventoryStack1;
+    int soundChance = rand() % 2;
+    if (soundChance == 1) clickSound = SoundType::InventoryStack2;
+    Sounds::playSound(clickSound, 30.0f);
 
     // Alert game of chest inventory modification
     if (hoveredInventory == chestData)

@@ -7,5 +7,10 @@ in vec2 fragUV;
 
 void main()
 {
+    if (fragUV.x > 0)
+    {
+        FragColor = vec4(1, 1, 1, 1);
+        return;
+    }
     FragColor = fragColor;
 }

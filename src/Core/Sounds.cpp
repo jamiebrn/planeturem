@@ -17,6 +17,11 @@ const std::unordered_map<SoundType, std::string> Sounds::soundPaths = {
     {SoundType::Pop3, "Data/Sounds/pop3.ogg"},
     {SoundType::Notify0, "Data/Sounds/notify0.ogg"},
     {SoundType::UIClick0, "Data/Sounds/uiclick0.ogg"},
+    {SoundType::InventoryClick1, "Data/Sounds/inventory-click1.ogg"},
+    {SoundType::InventoryClick2, "Data/Sounds/inventory-click2.ogg"},
+    {SoundType::InventoryClick3, "Data/Sounds/inventory-click3.ogg"},
+    {SoundType::InventoryStack1, "Data/Sounds/inventory-stack1.ogg"},
+    {SoundType::InventoryStack2, "Data/Sounds/inventory-stack2.ogg"},
     {SoundType::Crow, "Data/Sounds/crow.ogg"}
 };
 

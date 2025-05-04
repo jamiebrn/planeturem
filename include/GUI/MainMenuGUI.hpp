@@ -125,4 +125,7 @@ private:
     pl::Vector2f worldViewPosition;
     Camera menuCamera;
 
+    // Demo stuff
+    bool showPauseMenuWishlist;
+
 };

@@ -19,16 +19,16 @@ bool BossManager::createBoss(const std::string& name, pl::Vector2f playerPositio
         bosses.push_back(std::make_unique<BossBenjaminCrow>(playerPosition));
         addedBossName = bossName;
     }
-    else if (std::string bossName = "The Sand Serpent"; name == bossName)
-    {
-        bosses.push_back(std::make_unique<BossSandSerpent>(playerPosition, game));
-        addedBossName = bossName;
-    }
-    else if (std::string bossName = "The Glacial Brute"; name == bossName)
-    {
-        bosses.push_back(std::make_unique<BossGlacialBrute>(playerPosition, game));
-        addedBossName = bossName;
-    }
+    // else if (std::string bossName = "The Sand Serpent"; name == bossName)
+    // {
+    //     bosses.push_back(std::make_unique<BossSandSerpent>(playerPosition, game));
+    //     addedBossName = bossName;
+    // }
+    // else if (std::string bossName = "The Glacial Brute"; name == bossName)
+    // {
+    //     bosses.push_back(std::make_unique<BossGlacialBrute>(playerPosition, game));
+    //     addedBossName = bossName;
+    // }
 
     if (!addedBossName.empty())
     {

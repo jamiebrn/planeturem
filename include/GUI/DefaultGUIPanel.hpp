@@ -30,7 +30,11 @@ public:
     const GUIContext& getGUIContext();
     
 protected:
+    // Implicitly calls updateControllerActivation
     void drawPanel(pl::RenderTarget& window);
+
+    // Must call before creating GUI
+    void updateControllerActivation();
 
     void updateAndDrawSelectionHoverRect(pl::RenderTarget& window, float dt);
     void setSelectedElement(ElementID selected);

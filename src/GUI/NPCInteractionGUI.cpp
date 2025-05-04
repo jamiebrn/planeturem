@@ -135,7 +135,7 @@ void NPCInteractionGUI::drawDialogueBox(pl::RenderTarget& window, pl::SpriteBatc
 
     static const int boxXPadding = 50;
     static const int boxHeight = 200;
-    static const int boxWidth = 400;
+    static const int boxWidth = 450;
 
     int boxXPos = getScaledPanelPaddingX() + (panelWidth + boxXPadding) * intScale;
     int boxYPos = resolution.y / 2.0f - (boxHeight / 2.0f) * intScale;
@@ -175,9 +175,10 @@ void NPCInteractionGUI::drawDialogueBox(pl::RenderTarget& window, pl::SpriteBatc
         // Draw dialogue
         pl::TextDrawData dialogueTextDrawDraw;
         dialogueTextDrawDraw.text = dialogueBoxText + dialogueBoxCurrentWordBuffer;
-        dialogueTextDrawDraw.position = pl::Vector2f(boxXPos + 140 * intScale, boxYPos + 90 * intScale);
+        dialogueTextDrawDraw.position = pl::Vector2f(boxXPos + 140 * intScale, boxYPos + 112 * intScale);
         dialogueTextDrawDraw.color = pl::Color(255, 255, 255);
         dialogueTextDrawDraw.size = 24 * intScale;
+        dialogueTextDrawDraw.centeredY = true;
 
         TextDraw::drawText(window, dialogueTextDrawDraw);
     }

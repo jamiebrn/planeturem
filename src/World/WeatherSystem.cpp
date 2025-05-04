@@ -77,6 +77,7 @@ WeatherSystem::WeatherSystem(float gameTime, int seed)
 
     weatherNoise.SetSeed(seed);
     weatherNoise.SetNoiseType(FastNoise::NoiseType::SimplexFractal);
+    weatherNoise.SetFrequency(0.006);
     
     updateCurrentWeather(gameTime, true);
 }

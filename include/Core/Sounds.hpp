@@ -17,6 +17,8 @@ enum class SoundType
     Pop0, Pop1, Pop2, Pop3,
     Notify0,
     UIClick0,
+    InventoryClick1, InventoryClick2, InventoryClick3,
+    InventoryStack1, InventoryStack2,
     Crow
 };
 

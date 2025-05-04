@@ -55,6 +55,30 @@
 
 class Game;
 
+class FishingRodLinePart : public WorldObject
+{
+public:
+    FishingRodLinePart(pl::Vector2f positionOne, pl::Vector2f positionTwo);
+
+    virtual void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const pl::Color& color) const override;
+
+private:
+    static constexpr float LINE_PART_Y_SORT_OFFSET = 7.0f;
+
+    pl::Vector2f positionOne;
+    pl::Vector2f positionTwo;
+
+};
+
+class FishingRodBob : public WorldObject
+{
+public:
+    FishingRodBob(pl::Vector2f position);
+
+    virtual void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const pl::Color& color) const override;
+
+};
+
 class Player : public WorldObject
 {
 public:
@@ -66,6 +90,9 @@ public:
     void updateInRoom(float dt, pl::Vector2f mouseWorldPos, const Room& room);
 
     virtual void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const pl::Color& color) const override;
+
+    std::vector<WorldObject*> getDrawWorldObjects(const Camera& camera, int worldSize, float gameTime);
+    
     void createLightSource(LightingEngine& lightingEngine, pl::Vector2f topLeftChunkPos) const override;
 
     void setTool(ToolType toolType);
@@ -137,7 +164,7 @@ private:
     void updateFishingRodCatch(float dt);
     void castFishingRod();
 
-    void drawFishingRodCast(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera, float gameTime, int worldSize, float waterYOffset) const;
+    // void drawFishingRodCast(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera, float gameTime, int worldSize, float waterYOffset) const;
 
     void drawMeleeSwing(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera) const;
 
@@ -197,6 +224,7 @@ protected:
     bool fishBitingLine;
     pl::Vector2f fishingRodBobWorldPos;
     pl::Vector2<int> fishingRodBobWorldTile;
+    std::vector<std::unique_ptr<WorldObject>> fishingRodLineParts;
 
     // Consumable
     float healthConsumableTimerMax;

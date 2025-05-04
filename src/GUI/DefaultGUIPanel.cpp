@@ -27,6 +27,11 @@ void DefaultGUIPanel::drawPanel(pl::RenderTarget& window)
 
     window.draw(panelRect, *Shaders::getShader(ShaderType::DefaultNoTexture), nullptr, pl::BlendMode::Alpha);
 
+    updateControllerActivation();
+}
+
+void DefaultGUIPanel::updateControllerActivation()
+{
     if (deferForceElementActivation)
     {
         deferForceElementActivation = false;

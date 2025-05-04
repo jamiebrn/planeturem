@@ -2,15 +2,11 @@
 
 // FIX: Weather inconsistency (gametime)
 
-// PRIORITY: HIGH (DEMO)
-// TODO: Set hints / guidance for start of game (maybe npc / default inventory item)
-// TODO: Create "end of demo, wishlist" ui
-
-// TODO: Item drop stacks (reduce network strain)
-
 // PRIORITY: MEDIUM (MULTIPLAYER)
 // TODO: Make entities persistent across network and send state updates (movement, health etc)
 // TODO: Use per-world entity chunk ID counter, rather than per chunk, to prevent collisions
+
+// TODO: Drop items from inventory
 
 // TODO: Improve entity movement over network
 
@@ -22,7 +18,6 @@
 // TODO: Night and menu music
 
 // PRIORITY: LOW
-// TODO: Fishing rod draw order (split into separate objects?)
 // FIX: Rocket particles on world wrap
 
 // -- Public methods / entry point -- //
@@ -272,21 +267,21 @@ void Game::run()
             drawStateTransition();
         }
 
-        pl::TextDrawData textDrawData;
-        textDrawData.size = 24;
-        textDrawData.containOnScreenX = true;
-        textDrawData.containPaddingRight = 10;
-        textDrawData.position = pl::Vector2f(window.getWidth(), window.getHeight() - 40);
-        textDrawData.text = Helper::floatToString(networkHandler.getTotalBytesReceived() / 1000.0f, 1) + "kb received (" +
-            Helper::floatToString(networkHandler.getByteReceiveRate(dt) / 1000.0f, 1) + "KB/s)";
+        // pl::TextDrawData textDrawData;
+        // textDrawData.size = 24;
+        // textDrawData.containOnScreenX = true;
+        // textDrawData.containPaddingRight = 10;
+        // textDrawData.position = pl::Vector2f(window.getWidth(), window.getHeight() - 40);
+        // textDrawData.text = Helper::floatToString(networkHandler.getTotalBytesReceived() / 1000.0f, 1) + "kb received (" +
+        //     Helper::floatToString(networkHandler.getByteReceiveRate(dt) / 1000.0f, 1) + "KB/s)";
         
-        TextDraw::drawText(window, textDrawData);
+        // TextDraw::drawText(window, textDrawData);
         
-        textDrawData.position = pl::Vector2f(window.getWidth(), window.getHeight() - 65);
-        textDrawData.text = Helper::floatToString(networkHandler.getTotalBytesSent() / 1000.0f, 1) + "kb sent (" +
-            Helper::floatToString(networkHandler.getByteSendRate(dt) / 1000.0f, 1) + "KB/s)";
+        // textDrawData.position = pl::Vector2f(window.getWidth(), window.getHeight() - 65);
+        // textDrawData.text = Helper::floatToString(networkHandler.getTotalBytesSent() / 1000.0f, 1) + "kb sent (" +
+        //     Helper::floatToString(networkHandler.getByteSendRate(dt) / 1000.0f, 1) + "KB/s)";
 
-        TextDraw::drawText(window, textDrawData);
+        // TextDraw::drawText(window, textDrawData);
 
         #if (!RELEASE_BUILD)
         drawDebugMenu(dt);
@@ -410,10 +405,17 @@ void Game::runInGame(float dt)
         landmarkSetGUI.handleEvent(event);
         npcInteractionGUI.handleEvent(event);
         mainMenuGUI.handleEvent(event);
+        demoEndGUI.handleEvent(event);
     }
 
+    bool canInput = true;
+
+    #if (!RELEASE_BUILD)
+    canInput = !ImGui::GetIO().WantCaptureKeyboard && !ImGui::GetIO().WantCaptureMouse;
+    #endif
+
     // Input testing
-    if (!isStateTransitioning() && player.isAlive() && !(ImGui::GetIO().WantCaptureKeyboard || ImGui::GetIO().WantCaptureMouse))
+    if (!isStateTransitioning() && player.isAlive() && canInput)
     {
         // Left click / use tool
         {
@@ -945,6 +947,19 @@ void Game::runInGame(float dt)
                 }
                 break;
             }
+
+            case WorldMenuState::DemoEnd:
+            {
+                if (demoEndGUI.createAndDraw(window, dt))
+                {
+                    worldMenuState = WorldMenuState::FlyingRocket;
+                    RocketObject* rocketObject = getObjectFromLocation<RocketObject>(rocketEnteredReference, locationState);
+                    if (rocketObject)
+                    {
+                        rocketObject->startFlyingDownwards();
+                    }
+                }
+            }
         }
     }
     else
@@ -1054,7 +1069,7 @@ void Game::updateOnPlanet(float dt)
         // If modified chunks, force a lighting recalculation
         if (hasLoadedChunks || hasUnloadedChunks)
         {
-            lightingTick = LIGHTING_TICK;
+            lightingTickTime = LIGHTING_TICK_TIME;
         }
         
         // Update bosses
@@ -1083,7 +1098,8 @@ void Game::updateOnPlanet(float dt)
             // Host will give client item
             bool modifyInventory = networkHandler.isLobbyHostOrSolo();
 
-            int amountAdded = inventory.addItem(itemPickupPtr->getItemType(), 1, modifyInventory, false, modifyInventory);
+            int amountAdded = inventory.addItem(itemPickupPtr->getItemType(), itemPickupPtr->getItemCount(), modifyInventory,
+                false, modifyInventory);
 
             if (amountAdded > 0)
             {
@@ -1160,7 +1176,7 @@ void Game::updateActivePlanets(float dt)
         // If modified chunks (and this player (host) is on this planet), force a lighting recalculation
         if (locationState.getPlanetType() == planetType && (hasLoadedChunks || hasUnloadedChunks))
         {
-            lightingTick = LIGHTING_TICK;
+            lightingTickTime = LIGHTING_TICK_TIME;
         }
 
         // Update bosses
@@ -1180,16 +1196,17 @@ void Game::drawOnPlanet(float dt)
     std::vector<WorldObject*> entities = getChunkManager().getChunkEntities(chunkViewRange);
     std::vector<WorldObject*> itemPickups = getChunkManager().getItemPickups(chunkViewRange);
     std::vector<WorldObject*> weatherParticles = weatherSystem.getWeatherParticles();
+    std::vector<WorldObject*> playerWorldObjects = player.getDrawWorldObjects(camera, getChunkManager().getWorldSize(), gameTime);
     worldObjects.insert(worldObjects.end(), entities.begin(), entities.end());
     worldObjects.insert(worldObjects.end(), itemPickups.begin(), itemPickups.end());
     worldObjects.insert(worldObjects.end(), weatherParticles.begin(), weatherParticles.end());
-    worldObjects.push_back(&player);
+    worldObjects.insert(worldObjects.end(), playerWorldObjects.begin(), playerWorldObjects.end());
     getBossManager().getBossWorldObjects(worldObjects);
 
     // Add network players
     if (networkHandler.isMultiplayerGame())
     {
-        std::vector<WorldObject*> networkPlayerObjects = networkHandler.getNetworkPlayersToDraw(locationState, player.getPosition());
+        std::vector<WorldObject*> networkPlayerObjects = networkHandler.getNetworkPlayersToDraw(camera, locationState, player.getPosition(), gameTime);
         worldObjects.insert(worldObjects.end(), networkPlayerObjects.begin(), networkPlayerObjects.end());
     }
     
@@ -1278,10 +1295,10 @@ void Game::drawLighting(float dt, std::vector<WorldObject*>& worldObjects)
     pl::Framebuffer lightTexture;
     lightTexture.create(chunksSizeInView.x * CHUNK_TILE_SIZE * TILE_LIGHTING_RESOLUTION, chunksSizeInView.y * CHUNK_TILE_SIZE * TILE_LIGHTING_RESOLUTION);
 
-    lightingTick++;
-    if (lightingTick >= LIGHTING_TICK)
+    lightingTickTime += dt;
+    if (lightingTickTime >= LIGHTING_TICK_TIME)
     {
-        lightingTick = 0;
+        lightingTickTime = 0.0f;
 
         // Recalculate lighting
 
@@ -1453,6 +1470,8 @@ void Game::testEnterStructure()
     {
         return;
     }
+    
+    closeChest();
 
     locationState.setInStructureID(structureID.value());
 
@@ -1483,6 +1502,8 @@ void Game::enterStructureFromHost(PlanetType planetType, ChunkPosition chunk, ui
     }
 
     printf("NETWORK: Entering structure from host\n");
+
+    closeChest();
 
     structureObject->setStructureID(structureID);
     getStructureRoomPool(planetType).overwriteRoomData(structureID, Room(roomType, nullptr));
@@ -1665,12 +1686,14 @@ void Game::drawInRoom(float dt, const Room& room)
     room.draw(window, camera);
 
     std::vector<const WorldObject*> worldObjects = room.getObjects();
+    std::vector<WorldObject*> playerWorldObjects = player.getDrawWorldObjects(camera, 0, gameTime);
     worldObjects.push_back(&player);
+    worldObjects.insert(worldObjects.end(), playerWorldObjects.begin(), playerWorldObjects.end());
 
     // Add network players
     if (networkHandler.isMultiplayerGame())
     {
-        std::vector<WorldObject*> networkPlayerObjects = networkHandler.getNetworkPlayersToDraw(locationState, player.getPosition());
+        std::vector<WorldObject*> networkPlayerObjects = networkHandler.getNetworkPlayersToDraw(camera, locationState, player.getPosition(), gameTime);
         worldObjects.insert(worldObjects.end(), networkPlayerObjects.begin(), networkPlayerObjects.end());
     }
 
@@ -2000,10 +2023,12 @@ void Game::buildObject(ChunkPosition chunk, pl::Vector2<int> tile, ObjectType ob
 
     // Create build particles
     BuildableObject* placedObject = getChunkManager(planetType).getChunkObject(chunk, tile);
-    if (placedObject)
+    if (!placedObject)
     {
-        placedObject->createHitParticles(particleSystem);
+        return;
     }
+    
+    placedObject->createHitParticles(particleSystem);
     
     // Play build sound if object in view
     if (camera.isInView(placedObject->getPosition()))
@@ -2119,7 +2144,7 @@ void Game::catchRandomFish(pl::Vector2<int> fishedTile)
                 if (networkHandler.isLobbyHostOrSolo())
                 {
                     // Not multiplayer / is host, create pickups and tell clients
-                    itemPickupsCreatedVector.push_back(getChunkManager().addItemPickup(ItemPickup(spawnPos, fishCatchData.itemCatch, gameTime)).value());
+                    itemPickupsCreatedVector.push_back(getChunkManager().addItemPickup(ItemPickup(spawnPos, fishCatchData.itemCatch, gameTime, 1)).value());
                 }
                 else
                 {
@@ -2958,7 +2983,7 @@ void Game::travelToPlanet(PlanetType planetType, ObjectReference newRocketObject
     {
         getChunkManager().updateChunks(*this, player.getPosition(), {camera.getChunkViewRange()});
     }
-    lightingTick = LIGHTING_TICK;
+    lightingTickTime = LIGHTING_TICK_TIME;
 
     rocketEnteredReference = newRocketObjectReference;
     
@@ -3142,7 +3167,6 @@ void Game::changeState(GameState newState)
         }
         case GameState::InStructure:
         {
-            closeChest();
             nearbyCraftingStationLevels.clear();
             
             if (gameState == GameState::OnPlanet)
@@ -3169,6 +3193,8 @@ void Game::changeState(GameState newState)
         {
             if (gameState == GameState::InStructure)
             {
+                closeChest();
+
                 // Exit structure
                 locationState.setInStructureID(std::nullopt);
 
@@ -3234,7 +3260,7 @@ void Game::startNewGame(int seed)
     camera.instantUpdate(player.getPosition());
 
     getChunkManager().updateChunks(*this, player.getPosition(), {camera.getChunkViewRange()});
-    lightingTick = LIGHTING_TICK;
+    lightingTickTime = LIGHTING_TICK_TIME;
 
     worldMenuState = WorldMenuState::Main;
     musicGap = MUSIC_GAP_MIN;
@@ -3448,7 +3474,7 @@ bool Game::loadGame(const SaveFileSummary& saveFileSummary)
         
         getChunkManager().updateChunks(*this, player.getPosition(), {camera.getChunkViewRange()});
 
-        lightingTick = LIGHTING_TICK;
+        lightingTickTime = LIGHTING_TICK_TIME;
     }
     else if (playerGameSave.playerData.locationState.isInRoomDest())
     {
@@ -3690,7 +3716,7 @@ void Game::joinWorld(const PacketDataJoinInfo& joinInfo)
 
     gameTime = joinInfo.gameTime;
 
-    lightingTick = LIGHTING_TICK;
+    lightingTickTime = LIGHTING_TICK_TIME;
 
     // Send player data to host
     networkHandler.sendPlayerData();
@@ -3762,7 +3788,7 @@ void Game::handleChunkDataFromHost(const PacketDataChunkDatas& chunkDataPacket)
     }
 
     // Chunk datas received - recalcute lighting
-    lightingTick = LIGHTING_TICK;
+    lightingTickTime = LIGHTING_TICK_TIME;
 }
 
 void Game::joinedLobby(bool requiresNameInput)
@@ -3796,7 +3822,7 @@ void Game::handleZoom(int zoomChange)
     camera.handleScaleChange(beforeScale, afterScale, player.getPosition());
 
     // Recalculate lighting
-    lightingTick = LIGHTING_TICK;
+    lightingTickTime = LIGHTING_TICK_TIME;
 }
 
 void Game::handleEventsWindow(const SDL_Event& event)
@@ -4300,6 +4326,7 @@ void Game::drawDebugMenu(float dt)
     ImGui::Spacing();
 
     ImGui::Checkbox("Smooth Lighting", &smoothLighting);
+    ImGui::SliderFloat("Light propagation mult", &DebugOptions::lightPropMult, 0.0f, 1.0f);
 
     float time = dayCycleManager.getCurrentTime();
     if (!networkHandler.isClient())

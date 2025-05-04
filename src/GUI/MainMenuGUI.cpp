@@ -26,6 +26,7 @@ void MainMenuGUI::initialise()
 void MainMenuGUI::initialisePauseMenu()
 {
     pauseMenuState = PauseMenuState::Main;
+    showPauseMenuWishlist = false;
     resetHoverRect();
 }
 
@@ -78,7 +79,7 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(pl::RenderTarget& window
 
     MainMenuState nextUIState = mainMenuState;
 
-    const int startElementYPos = resolution.y * 0.37f;
+    const int startElementYPos = resolution.y * 0.33f;
     int elementYPos = startElementYPos;
 
     std::optional<MainMenuEvent> menuEvent = std::nullopt;
@@ -149,6 +150,11 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(pl::RenderTarget& window
                 panelWidth * intScale, 75 * intScale, 20 * intScale, "World Seed", &worldSeedInput, panelWidth / 5 * intScale, 30 * intScale, 30);
 
             elementYPos += 200 * intScale;
+
+            if (resolution.y < 900)
+            {
+                elementYPos -= 110 * intScale;
+            }
 
             if (guiContext.createButton(scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale, buttonTextSize, "Start", buttonStyle)
                 .isClicked())
@@ -405,6 +411,7 @@ void MainMenuGUI::setMainMenuJoinGame()
 bool MainMenuGUI::createOptionsMenu(pl::RenderTarget& window, int startElementYPos)
 {
     float intScale = ResolutionHandler::getResolutionIntegerScale();
+    pl::Vector2<uint32_t> resolution = ResolutionHandler::getResolution();
 
     int scaledPanelPaddingX = getScaledPanelPaddingX();
 
@@ -469,6 +476,8 @@ bool MainMenuGUI::createOptionsMenu(pl::RenderTarget& window, int startElementYP
 
     startElementYPos += 200 * intScale;
 
+    startElementYPos = std::min(startElementYPos, static_cast<int>(resolution.y - 100 * intScale));
+
     if (guiContext.createButton(scaledPanelPaddingX, startElementYPos, panelWidth * intScale, 75 * intScale, buttonTextSize, "Back", buttonStyle)
         .isClicked())
     {
@@ -519,12 +528,12 @@ std::optional<PauseMenuEventType> MainMenuGUI::createAndDrawPauseMenu(pl::Render
 
             if (steamInitialised)
             {
-                if (lobbyId.has_value())
+                if (showPauseMenuWishlist)
                 {
-                    if (guiContext.createButton(scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale, 24 * intScale, "Invite Friends", buttonStyle)
+                    if (guiContext.createButton(scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale, 24 * intScale, "Available in full game!", buttonStyle)
                         .isClicked())
                     {
-                        SteamFriends()->ActivateGameOverlayInviteDialog(lobbyId.value());
+                        SteamFriends()->ActivateGameOverlayToStore(STEAM_APP_ID, EOverlayToStoreFlag::k_EOverlayToStoreFlag_None);
                         resetHoverRect();
                     }
                 }
@@ -533,7 +542,7 @@ std::optional<PauseMenuEventType> MainMenuGUI::createAndDrawPauseMenu(pl::Render
                     if (guiContext.createButton(scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale, 24 * intScale, "Start Multiplayer", buttonStyle)
                         .isClicked())
                     {
-                        menuEvent = PauseMenuEventType::StartMultiplayer;
+                        showPauseMenuWishlist = true;
                         resetHoverRect();
                     }
                 }
