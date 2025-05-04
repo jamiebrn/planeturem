@@ -1106,7 +1106,7 @@ void Game::updateOnPlanet(float dt)
                 // Only delete pickup if playing solo or is host
                 // if (!multiplayerGame || isLobbyHost)
                 // {
-                getChunkManager().deleteItemPickup(itemPickupColliding.value());
+                getChunkManager().reduceItemPickupCount(itemPickupColliding.value(), amountAdded);
                 // }
     
                 // Play pickup sound
@@ -1116,9 +1116,10 @@ void Game::updateOnPlanet(float dt)
                 // Networking
                 if (networkHandler.isMultiplayerGame() && networkHandler.getNetworkPlayerCount() > 0)
                 {
-                    PacketDataItemPickupDeleted packetData;
+                    PacketDataItemPickupCollected packetData;
                     packetData.locationState = locationState;
-                    packetData.pickupDeleted = itemPickupColliding.value();
+                    packetData.pickup = itemPickupColliding.value();
+                    packetData.count = amountAdded;
                     Packet packet;
                     packet.set(packetData);
 

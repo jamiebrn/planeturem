@@ -14,7 +14,7 @@
 #include "Network/PacketData/PacketDataWorld/PacketDataObjectBuilt.hpp"
 #include "Network/PacketData/PacketDataWorld/PacketDataObjectDestroyed.hpp"
 #include "Network/PacketData/PacketDataWorld/PacketDataItemPickupsCreated.hpp"
-#include "Network/PacketData/PacketDataWorld/PacketDataItemPickupDeleted.hpp"
+#include "Network/PacketData/PacketDataWorld/PacketDataItemPickupCollected.hpp"
 #include "Network/PacketData/PacketDataWorld/PacketDataItemPickupsCreateRequest.hpp"
 #include "Network/PacketData/PacketDataWorld/PacketDataChestOpened.hpp"
 #include "Network/PacketData/PacketDataWorld/PacketDataChestClosed.hpp"

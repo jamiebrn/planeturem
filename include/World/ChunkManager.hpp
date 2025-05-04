@@ -191,9 +191,11 @@ public:
 
     // Check chunks in 3x3 area around player for colliding item pickups
     // Returns first item pickup collided with (if any)
-    // Call deleteItemPickup if successfully picked up
+    // Call reduceItemPickupCount if successfully picked up
     std::optional<ItemPickupReference> getCollidingItemPickup(const CollisionRect& playerCollision, float gameTime);
-    void deleteItemPickup(const ItemPickupReference& itemPickupReference);
+
+    // Will delete pickup if count <= 0
+    void reduceItemPickupCount(const ItemPickupReference& itemPickupReference, int count);
 
     std::vector<WorldObject*> getItemPickups(ChunkViewRange chunkViewRange);
 

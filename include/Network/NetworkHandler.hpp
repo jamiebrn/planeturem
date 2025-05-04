@@ -3,6 +3,7 @@
 #include <extlib/steam/steam_api.h>
 
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include <Vector.hpp>
@@ -44,7 +45,7 @@ public:
 
     void leaveLobby();
     
-    EResult sendPacketToClients(const Packet& packet, int nSendFlags, int nRemoteChannel);
+    EResult sendPacketToClients(const Packet& packet, int nSendFlags, int nRemoteChannel, std::unordered_set<uint64_t> exceptions = {});
     EResult sendPacketToClient(uint64_t steamID, const Packet& packet, int nSendFlags, int nRemoteChannel);
     EResult sendPacketToHost(const Packet& packet, int nSendFlags, int nRemoteChannel);
     

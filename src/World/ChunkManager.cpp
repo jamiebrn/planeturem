@@ -894,16 +894,32 @@ std::optional<ItemPickupReference> ChunkManager::getCollidingItemPickup(const Co
     return std::nullopt;
 }
 
-void ChunkManager::deleteItemPickup(const ItemPickupReference& itemPickupReference)
+void ChunkManager::reduceItemPickupCount(const ItemPickupReference& itemPickupReference, int count)
 {
     Chunk* chunkPtr = getChunk(itemPickupReference.chunk);
 
-    if (chunkPtr == nullptr)
+    if (!chunkPtr)
     {
         return;
     }
 
-    chunkPtr->deleteItemPickup(itemPickupReference.id);
+    ItemPickup* itemPickupPtr = chunkPtr->getItemPickup(itemPickupReference.id);
+
+    if (!itemPickupPtr)
+    {
+        return;
+    }
+
+    int newCount = static_cast<int>(itemPickupPtr->getItemCount()) - count;
+
+    if (newCount <= 0)
+    {
+        chunkPtr->deleteItemPickup(itemPickupReference.id);
+    }
+    else
+    {
+        itemPickupPtr->setItemCount(newCount);
+    }
 }
 
 std::vector<WorldObject*> ChunkManager::getItemPickups(ChunkViewRange chunkViewRange)

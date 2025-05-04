@@ -23,7 +23,7 @@ enum class PacketType : uint8_t
     ObjectDestroyed,
 
     ItemPickupsCreated,
-    ItemPickupDeleted,
+    ItemPickupCollected,
     ItemPickupsCreateRequest,
     InventoryAddItem,
 

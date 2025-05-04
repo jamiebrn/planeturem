@@ -10,21 +10,22 @@
 #include "Player/ItemPickup.hpp"
 #include "Player/LocationState.hpp"
 
-struct PacketDataItemPickupDeleted : public IPacketData
+struct PacketDataItemPickupCollected : public IPacketData
 {
     LocationState locationState;
-    ItemPickupReference pickupDeleted;
+    ItemPickupReference pickup;
+    uint16_t count;
 
     template <class Archive>
     void serialize(Archive& ar)
     {
-        ar(locationState, pickupDeleted);
+        ar(locationState, pickup, count);
     }
 
     PACKET_SERIALISATION();
     
     inline virtual PacketType getType() const
     {
-        return PacketType::ItemPickupDeleted;
+        return PacketType::ItemPickupCollected;
     }
 };

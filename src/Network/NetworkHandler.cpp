@@ -651,15 +651,15 @@ void NetworkHandler::processMessage(const SteamNetworkingMessage_t& message, con
             }
             break;
         }
-        case PacketType::ItemPickupDeleted:
+        case PacketType::ItemPickupCollected:
         {
-            PacketDataItemPickupDeleted packetData;
+            PacketDataItemPickupCollected packetData;
             packetData.deserialise(packet.data);
             
-            // If host, redistribute to clients
+            // If host, redistribute to clients (except sending player)
             if (isLobbyHost)
             {
-                sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0);
+                sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0, {message.m_identityPeer.GetSteamID64()});
                 
                 if (!game->isLocationStateInitialised(packetData.locationState))
                 {
@@ -668,16 +668,16 @@ void NetworkHandler::processMessage(const SteamNetworkingMessage_t& message, con
                     break;
                 }
     
-                Chunk* chunkPtr = game->getChunkManager(packetData.locationState.getPlanetType()).getChunk(packetData.pickupDeleted.chunk);
+                Chunk* chunkPtr = game->getChunkManager(packetData.locationState.getPlanetType()).getChunk(packetData.pickup.chunk);
                 if (chunkPtr)
                 {
-                    ItemPickup* itemPickupPtr = chunkPtr->getItemPickup(packetData.pickupDeleted.id);
+                    ItemPickup* itemPickupPtr = chunkPtr->getItemPickup(packetData.pickup.id);
                     if (itemPickupPtr)
                     {
                         // Give item to client
                         PacketDataInventoryAddItem itemPacketData;
                         itemPacketData.itemType = itemPickupPtr->getItemType();
-                        itemPacketData.amount = itemPickupPtr->getItemCount();
+                        itemPacketData.amount = std::min(packetData.count, itemPickupPtr->getItemCount());
                         Packet itemPacket;
                         itemPacket.set(itemPacketData);
     
@@ -689,7 +689,7 @@ void NetworkHandler::processMessage(const SteamNetworkingMessage_t& message, con
             if (game->isLocationStateInitialised(packetData.locationState))
             {
                 // Delete pickup from chunk manager, regardless of whether we are host or client
-                game->getChunkManager(packetData.locationState.getPlanetType()).deleteItemPickup(packetData.pickupDeleted);
+                game->getChunkManager(packetData.locationState.getPlanetType()).reduceItemPickupCount(packetData.pickup, packetData.count);
             }
             break;
         }
@@ -1202,7 +1202,7 @@ void NetworkHandler::sendGameUpdatesToHost(const Camera& camera, float dt)
     sendPacketToHost(packet, k_nSteamNetworkingSend_Unreliable, 0);
 }
 
-EResult NetworkHandler::sendPacketToClients(const Packet& packet, int nSendFlags, int nRemoteChannel)
+EResult NetworkHandler::sendPacketToClients(const Packet& packet, int nSendFlags, int nRemoteChannel, std::unordered_set<uint64_t> exceptions)
 {
     if (!isLobbyHost)
     {
@@ -1212,6 +1212,11 @@ EResult NetworkHandler::sendPacketToClients(const Packet& packet, int nSendFlags
     EResult result = EResult::k_EResultOK;
     for (auto iter = networkPlayers.begin(); iter != networkPlayers.end(); iter++)
     {
+        if (exceptions.contains(iter->first))
+        {
+            continue;
+        }
+
         EResult sendResult = sendPacketToClient(iter->first, packet, nSendFlags, nRemoteChannel);
 
         if (sendResult != EResult::k_EResultOK)

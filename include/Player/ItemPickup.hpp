@@ -49,7 +49,9 @@ public:
         const pl::Color& color) const override;
     
     inline ItemType getItemType() const {return itemType;}
+    
     inline uint16_t getItemCount() const {return count;}
+    inline void setItemCount(uint16_t count) {this->count = count;}
 
     template <class Archive>
     void serialize(Archive& ar)

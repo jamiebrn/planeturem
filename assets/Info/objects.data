@@ -365,6 +365,192 @@
         }
     },
     {
+        "name": "Icicle",
+        "health": 9,
+        "minimum-damage": 2,
+        "textures": [[304, 208]],
+        "texture-width": 16,
+        "texture-height": 16,
+        "texture-x-origin": 0.5,
+        "texture-y-origin": 0.9375,
+        "item-drops": {
+            "Slush Ice": [1, 4, 0.8]
+        }
+    },
+    {
+        "name": "Large Icicle",
+        "health": 18,
+        "minimum-damage": 3,
+        "textures": [[336, 203]],
+        "texture-width": 16,
+        "texture-height": 21,
+        "texture-x-origin": 0.5,
+        "texture-y-origin": 0.9375,
+        "item-drops": {
+            "Slush Ice": [2, 5, 0.8]
+        }
+    },
+    {
+        "name": "Large Icicle Left",
+        "health": 18,
+        "minimum-damage": 3,
+        "textures": [[320, 203]],
+        "texture-width": 16,
+        "texture-height": 21,
+        "texture-x-origin": 0.5625,
+        "texture-y-origin": 0.9375,
+        "item-drops": {
+            "Slush Ice": [2, 5, 0.8]
+        }
+    },
+    {
+        "name": "Large Icicle Right",
+        "health": 18,
+        "minimum-damage": 3,
+        "textures": [[352, 203]],
+        "texture-width": 16,
+        "texture-height": 21,
+        "texture-x-origin": 0.4375,
+        "texture-y-origin": 0.9375,
+        "item-drops": {
+            "Slush Ice": [2, 5, 0.8]
+        }
+    },
+    {
+        "name": "Snowy Rock",
+        "health": 18,
+        "minimum-damage": 2,
+        "textures": [[384, 208]],
+        "texture-width": 16,
+        "texture-height": 16,
+        "texture-x-origin": 0.5,
+        "texture-y-origin": 0.9375,
+        "item-drops": {
+            "Stone": [2, 4, 1.0],
+            "Coal": [1, 1, 0.3]
+        }
+    },
+    {
+        "name": "Titanium Rock",
+        "health": 24,
+        "minimum-damage": 2,
+        "textures": [[416, 208]],
+        "texture-width": 16,
+        "texture-height": 16,
+        "texture-x-origin": 0.5,
+        "texture-y-origin": 0.9375,
+        "item-drops": {
+            "Titanium Scraps": [1, 4, 1.0],
+            "Stone": [2, 4, 0.5]
+        }
+    },
+    {
+        "name": "Titanium Furnace",
+        "health": 25,
+        "minimum-damage": 2,
+        "textures": [[304, 256], [336, 256], [368, 256], [400, 256]],
+        "texture-frame-delay": 0.1,
+        "texture-width": 32,
+        "texture-height": 32,
+        "texture-x-origin": 0.25,
+        "texture-y-origin": 0.75,
+        "size-x": 2,
+        "size-y": 1,
+        "light-emission": [0.4, 0.4, 0.4, 0.4],
+        "has-collision": true,
+        "crafting-station": "furnace",
+        "crafting-station-level": 2,
+        "item-drops": {
+            "Titanium Furnace": [1, 1, 1]
+        },
+        "sell-value": 20
+    },
+    {
+        "name": "Titanium Anvil",
+        "health": 25,
+        "textures": [[416, 240]],
+        "texture-width": 32,
+        "texture-height": 16,
+        "texture-x-origin": 0.25,
+        "texture-y-origin": 0.75,
+        "size-x": 2,
+        "has-collision": true,
+        "crafting-station": "anvil",
+        "crafting-station-level": 2,
+        "item-drops": {
+            "Titanium Anvil": [1, 1, 1]
+        },
+        "sell-value": 20
+    },
+    {
+        "name": "Glacial Brute Statue",
+        "health": 20,
+        "textures": [[315, 326]],
+        "texture-width": 41,
+        "texture-height": 74,
+        "texture-x-origin": 0.31707,
+        "texture-y-origin": 0.68919,
+        "size-x": 2,
+        "size-y": 2,
+        "has-collision": true,
+        "item-drops": {
+            "Glacial Brute Statue": [1, 1, 1]
+        }
+    },
+    {
+        "name": "AlienHostage",
+        "health": 10,
+        "textures": [[368, 400], [368, 400], [384, 400], [400, 400], [368, 400], [416, 400], [432, 400]],
+        "texture-frame-delay": 0.15,
+        "texture-width": 16,
+        "texture-height": 32,
+        "texture-x-origin": 0.5,
+        "texture-y-origin": 1.0,
+        "npc-data": {
+            "npc-name": "Strange Creature",
+            "behaviour": "talk",
+            "dialogue": ["Help me", "Help me", "Please help me"],
+            "portrait-texture-offset": [32, 0]
+        }
+    },
+    {
+        "name": "BusinessAlien",
+        "health": 10,
+        "textures": [[368, 464], [384, 464], [400, 464], [416, 464], [368, 464]],
+        "texture-frame-delay": 0.1,
+        "texture-width": 16,
+        "texture-height": 32,
+        "texture-x-origin": 0.5,
+        "texture-y-origin": 1.0,
+        "npc-data": {
+            "npc-name": "Business Creature",
+            "behaviour": "shop",
+            "dialogue": ["Welcome to my business", "I hope you like my items", "I will buy items from you for a fair price", "Anything else?", "...."],
+            "shop-items": [["Insane Bow", 1], ["Wood", 10], ["Crow Claw", 1], ["Golden Banana", 1]],
+            "buy-prices": {"Insane Bow": 1.5, "Wood": 3, "Crow Claw": 5, "Golden Banana": 3.75},
+            "portrait-texture-offset": [32, 32]
+        }
+    },
+    {
+        "name": "ColdAlien",
+        "health": 10,
+        "textures": [[272, 464], [289, 464], [306, 464], [323, 464]],
+        "texture-frame-delay": 0.1,
+        "texture-width": 17,
+        "texture-height": 32,
+        "texture-x-origin": 0.5,
+        "texture-y-origin": 1.0,
+        "npc-data": {
+            "npc-name": "Igloo Inhabitant",
+            "behaviour": "shop",
+            "dialogue": ["Give me your goods :)", "I source my items locally...", "I built this ice house myself", "...It's quite cold though"],
+            "shop-items": [["Slush Ice", 5], ["Snowball", 20], ["Titanium Scraps", 10], ["Stone", 10]],
+            "buy-prices": {"Snowball": 1.5, "Stone": 4},
+            "sell-prices": {"Slush Ice": 0},
+            "portrait-texture-offset": [32, 64]
+        }
+    },
+    {
         "name": "ElderMonkey",
         "health": 10,
         "textures": [[112, 464], [128, 464], [144, 464], [160, 464], [176, 464], [192, 464]],
