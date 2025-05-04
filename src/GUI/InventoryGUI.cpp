@@ -335,7 +335,7 @@ void InventoryGUI::handleLeftClick(Game& game, pl::Vector2f mouseScreenPos, bool
     networkHandler.queueSendPlayerData();
 }
 
-void InventoryGUI::handleRightClick(Game& game, pl::Vector2f mouseScreenPos, bool shiftMode, NetworkHandler& networkHandler,
+void InventoryGUI::handleRightClick(Game& game, pl::Vector2f mouseScreenPos, bool shiftMode, NetworkHandler& networkHandler, ChunkManager* chunkManager,
     InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData)
 {
     if (canQuickTransfer(mouseScreenPos, shiftMode, inventory, chestData) && !openShopData.has_value())
@@ -349,6 +349,43 @@ void InventoryGUI::handleRightClick(Game& game, pl::Vector2f mouseScreenPos, boo
         {
             // Only pickup single item if not attempting to buy from shop
             pickUpItem(game, mouseScreenPos, 1, inventory, armourInventory, chestData);
+        }
+    }
+
+    if (!isMouseOverUI(mouseScreenPos) && chunkManager && isItemPickedUp)
+    {
+        // Drop held item
+        ItemPickup itemPickup(game.getPlayer().getPosition() + pl::Vector2f(Helper::randFloat(-2, 2), Helper::randFloat(-2, 2)),
+            pickedUpItem, game.getGameTime(), pickedUpItemCount);
+        
+        if (networkHandler.isClient())
+        {
+            PacketDataItemPickupsCreateRequest packetData;
+            packetData.locationState = game.getLocationState();
+
+            ItemPickupRequest pickupRequest;
+            pickupRequest.chunk = itemPickup.getChunkInside(chunkManager->getWorldSize());
+            pickupRequest.itemType = itemPickup.getItemType();
+            pickupRequest.count = itemPickup.getItemCount();
+            
+            Chunk* chunkPtr = chunkManager->getChunk(pickupRequest.chunk);
+            if (!chunkPtr)
+            {
+                printf("ERROR: Failed to request item pickup drop to host in null chunk (%d, %d)\n", pickupRequest.chunk.x, pickupRequest.chunk.y);
+                return;
+            }
+
+            pickupRequest.positionRelative = itemPickup.getPosition() - chunkPtr->getWorldPosition();
+
+            packetData.pickupRequests.push_back(pickupRequest);
+
+            Packet packet;
+            packet.set(packetData);
+            networkHandler.sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
+        }
+        else
+        {
+            chunkManager->addItemPickup(itemPickup);
         }
     }
 
@@ -2215,7 +2252,8 @@ void InventoryGUI::drawItemPopups(pl::RenderTarget& window, float gameTime)
 
 
 // -- Controller navigation -- //
-bool InventoryGUI::handleControllerInput(Game& game, NetworkHandler& networkHandler, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData)
+bool InventoryGUI::handleControllerInput(Game& game, NetworkHandler& networkHandler, ChunkManager* chunkManager,
+    InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData)
 {
     if (!InputManager::isControllerActive())
     {
@@ -2399,7 +2437,7 @@ bool InventoryGUI::handleControllerInput(Game& game, NetworkHandler& networkHand
     }
     if (InputManager::isActionJustActivated(InputAction::UI_CONFIRM_OTHER))
     {
-        handleRightClick(game, pl::Vector2f(0, 0), InputManager::isActionActive(InputAction::UI_SHIFT), networkHandler, inventory, armourInventory, chestData);
+        handleRightClick(game, pl::Vector2f(0, 0), InputManager::isActionActive(InputAction::UI_SHIFT), networkHandler, chunkManager, inventory, armourInventory, chestData);
         return true;
     }
 

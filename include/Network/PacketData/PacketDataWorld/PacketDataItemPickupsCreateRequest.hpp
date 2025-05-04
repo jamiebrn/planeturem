@@ -20,11 +20,12 @@ struct ItemPickupRequest
     ChunkPosition chunk;
     pl::Vector2f positionRelative;
     ItemType itemType;
+    uint16_t count;
 
     template <class Archive>
     void serialize(Archive& ar)
     {
-        ar(chunk, positionRelative.x, positionRelative.y, itemType);
+        ar(chunk, positionRelative.x, positionRelative.y, itemType, count);
     }
 };
 

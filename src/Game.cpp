@@ -525,7 +525,7 @@ void Game::runInGame(float dt)
                 case WorldMenuState::Inventory:
                     if (InventoryGUI::isMouseOverUI(mouseScreenPos) && !InputManager::isControllerActive())
                     {
-                        InventoryGUI::handleRightClick(*this, mouseScreenPos, shiftMode, networkHandler,
+                        InventoryGUI::handleRightClick(*this, mouseScreenPos, shiftMode, networkHandler, getChunkManagerPtr(),
                             inventory, armourInventory, getChestDataPool().getChestDataPtr(openedChestID));
                         changePlayerTool();
                     }
@@ -844,7 +844,8 @@ void Game::runInGame(float dt)
             case WorldMenuState::Inventory:
             {
                 ItemType itemHeldBefore = InventoryGUI::getHeldItemType(inventory);
-                if (InventoryGUI::handleControllerInput(*this, networkHandler, inventory, armourInventory, getChestDataPool().getChestDataPtr(openedChestID)))
+                if (InventoryGUI::handleControllerInput(*this, networkHandler, getChunkManagerPtr(),
+                    inventory, armourInventory, getChestDataPool().getChestDataPtr(openedChestID)))
                 {
                     if (itemHeldBefore != InventoryGUI::getHeldItemType(inventory))
                     {
@@ -2134,37 +2135,35 @@ void Game::catchRandomFish(pl::Vector2<int> fishedTile)
             // Add fish / catch
             // inventory.addItem(fishCatchData.itemCatch, fishCatchData.count, true);
 
-            // Create fish item pickups
-            for (int i = 0; i < fishCatchData.count; i++)
+            // Create fish item pickup
+            pl::Vector2f spawnPos = player.getPosition() + pl::Vector2f(
+                Helper::randFloat(-TILE_SIZE_PIXELS_UNSCALED / 2.0f, TILE_SIZE_PIXELS_UNSCALED / 2.0f),
+                Helper::randFloat(-TILE_SIZE_PIXELS_UNSCALED / 2.0f, TILE_SIZE_PIXELS_UNSCALED / 2.0f)
+            );
+
+            if (networkHandler.isLobbyHostOrSolo())
             {
-                pl::Vector2f spawnPos = player.getPosition() + pl::Vector2f(
-                    Helper::randFloat(-TILE_SIZE_PIXELS_UNSCALED / 2.0f, TILE_SIZE_PIXELS_UNSCALED / 2.0f),
-                    Helper::randFloat(-TILE_SIZE_PIXELS_UNSCALED / 2.0f, TILE_SIZE_PIXELS_UNSCALED / 2.0f)
-                );
+                // Not multiplayer / is host, create pickups and tell clients
+                itemPickupsCreatedVector.push_back(getChunkManager().addItemPickup(ItemPickup(spawnPos, fishCatchData.itemCatch, gameTime, fishCatchData.count)).value());
+            }
+            else
+            {
+                // Multiplayer and is client, request pickup from host
+                ItemPickupRequest request;
+                request.chunk = WorldObject::getChunkInside(spawnPos, getChunkManager().getWorldSize());
 
-                if (networkHandler.isLobbyHostOrSolo())
+                // Get chunkPtr to calculate spawn relative position
+                // Cannot spawn if chunk does not exist, as cannot calculate relative position
+                Chunk* chunkPtr = getChunkManager().getChunk(request.chunk);
+                if (!chunkPtr)
                 {
-                    // Not multiplayer / is host, create pickups and tell clients
-                    itemPickupsCreatedVector.push_back(getChunkManager().addItemPickup(ItemPickup(spawnPos, fishCatchData.itemCatch, gameTime, 1)).value());
+                    break;
                 }
-                else
-                {
-                    // Multiplayer and is client, request pickup from host
-                    ItemPickupRequest request;
-                    request.chunk = WorldObject::getChunkInside(spawnPos, getChunkManager().getWorldSize());
 
-                    // Get chunkPtr to calculate spawn relative position
-                    // Cannot spawn if chunk does not exist, as cannot calculate relative position
-                    Chunk* chunkPtr = getChunkManager().getChunk(request.chunk);
-                    if (!chunkPtr)
-                    {
-                        break;
-                    }
-
-                    request.itemType = fishCatchData.itemCatch;
-                    request.positionRelative = spawnPos - chunkPtr->getWorldPosition();
-                    packetData.pickupRequests.push_back(request);
-                }
+                request.itemType = fishCatchData.itemCatch;
+                request.count = fishCatchData.count;
+                request.positionRelative = spawnPos - chunkPtr->getWorldPosition();
+                packetData.pickupRequests.push_back(request);
             }
 
             break;
@@ -3932,6 +3931,23 @@ ChunkManager& Game::getChunkManager(std::optional<PlanetType> planetTypeOverride
         }
     }
     return worldDatas.at(locationState.getPlanetType()).chunkManager;
+}
+
+ChunkManager* Game::getChunkManagerPtr(std::optional<PlanetType> planetTypeOverride)
+{
+    if (planetTypeOverride.has_value())
+    {
+        if (planetTypeOverride.value() >= 0)
+        {
+            return &worldDatas.at(planetTypeOverride.value()).chunkManager;
+        }
+    }
+    else if (!locationState.isOnPlanet())
+    {
+        return nullptr;
+    }
+
+    return &worldDatas.at(locationState.getPlanetType()).chunkManager;
 }
 
 ProjectileManager& Game::getProjectileManager(std::optional<PlanetType> planetTypeOverride)

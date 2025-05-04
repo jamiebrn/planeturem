@@ -53,6 +53,7 @@
 // Forward declare
 class Game;
 class NetworkHandler;
+class ChunkManager;
 
 struct ItemInfoString
 {
@@ -97,7 +98,7 @@ public:
         InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData = nullptr);
 
     // May pick up single item
-    static void handleRightClick(Game& game, pl::Vector2f mouseScreenPos, bool shiftMode, NetworkHandler& networkHandler,
+    static void handleRightClick(Game& game, pl::Vector2f mouseScreenPos, bool shiftMode, NetworkHandler& networkHandler, ChunkManager* chunkManager,
         InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData = nullptr);
 
     static bool handleScroll(pl::Vector2f mouseScreenPos, int direction, InventoryData& inventory);
@@ -175,7 +176,8 @@ public:
     // -- Controller navigation -- //
 
     // Returns true if any inventory is modified
-    static bool handleControllerInput(Game& game, NetworkHandler& networkHandler, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData);
+    static bool handleControllerInput(Game& game, NetworkHandler& networkHandler, ChunkManager* chunkManager,
+        InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData);
 
     // -- Misc -- //
     static bool canQuickTransfer(pl::Vector2f mouseScreenPos, bool shiftMode, InventoryData& inventory, InventoryData* chestData);

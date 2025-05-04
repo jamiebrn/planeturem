@@ -188,6 +188,7 @@ public:
     DayCycleManager& getDayCycleManager(bool overrideMenuSwap = false);
 
     ChunkManager& getChunkManager(std::optional<PlanetType> planetTypeOverride = std::nullopt);
+    ChunkManager* getChunkManagerPtr(std::optional<PlanetType> planetTypeOverride = std::nullopt);
     ProjectileManager& getProjectileManager(std::optional<PlanetType> planetTypeOverride = std::nullopt);
     BossManager& getBossManager(std::optional<PlanetType> planetTypeOverride = std::nullopt);
     LandmarkManager& getLandmarkManager(std::optional<PlanetType> planetTypeOverride = std::nullopt);
