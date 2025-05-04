@@ -2793,11 +2793,6 @@ void Game::travelToDestination()
 {
     travelTrigger = false;
 
-    // Demo open gui
-    worldMenuState = WorldMenuState::DemoEnd;
-    demoEndGUI.initialise();
-    return;
-
     // If client, request travel from host
     if (networkHandler.isClient())
     {

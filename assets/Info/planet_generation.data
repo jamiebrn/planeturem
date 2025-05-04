@@ -25,7 +25,8 @@
                         ["Stone", 1, 0.1]
                     ],
                     "water-colour": [173, 152, 93],
-                    "noise-range": [0, 0.3]
+                    "noise-range": [0, 0.3],
+                    "bosses-spawn-allowed": ["The Sand Serpent"]
                 },
                 {
                     "name": "Grassland",
@@ -89,26 +90,43 @@
         "Frozen": {
             "biomes": [
                 {
-                    "name": "Oasis",
+                    "name": "Ice",
                     "tiles": [
-                        ["Sand", 0, 0.5, 1]
+                        ["Ice", 5, 0.4, 1.0]
                     ],
                     "objects": [
-                        ["Cactus Bulb", 0.025]
+                        ["Icicle", 0.06],
+                        ["Large Icicle", 0.02],
+                        ["Large Icicle Left", 0.01],
+                        ["Large Icicle Right", 0.01]
                     ],
-                    "fish-catches": [
-                        ["Sandfish", 1, 0.5],
-                        ["Fish", 1, 0.3],
-                        ["Wood", 1, 0.1],
-                        ["Stone", 1, 0.1]
+                    "fish-catches": [],
+                    "water-colour": [77, 155, 230],
+                    "noise-range": [0, 0.5]
+                },
+                {
+                    "name": "Tundra",
+                    "tiles": [
+                        ["Ice", 5, 0.4, 0.45],
+                        ["Snow", 6, 0.45, 1.0]
                     ],
-                    "water-colour": [173, 152, 93],
-                    "noise-range": [0, 0.3]
+                    "objects": [
+                        ["Icicle", 0.02],
+                        ["Snowy Rock", 0.01],
+                        ["Titanium Rock", 0.01]
+                    ],
+                    "structures": [
+                        ["Igloo", 0.02]
+                    ],
+                    "fish-catches": [],
+                    "water-colour": [77, 155, 230],
+                    "noise-range": [0.5, 1]
                 }
             ],
             "water-texture-offset": [0, 0],
             "cliff-texture-offset": [192, 0],
-            "size": 100
+            "size": 100,
+            "bosses-spawn-allowed": ["The Glacial Brute"]
         }
     }
 }
