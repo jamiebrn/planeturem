@@ -208,7 +208,7 @@ void Entity::damage(int amount, Game& game, const LocationState& locationState, 
 
     Sounds::playSound(hitSound, 30.0f);
 
-    if (!isAlive())
+    if (!isAlive() && game.getNetworkHandler().isLobbyHostOrSolo())
     {
         // Get chunk manager
         if (!game.isLocationStateInitialised(locationState))
@@ -221,22 +221,19 @@ void Entity::damage(int amount, Game& game, const LocationState& locationState, 
 
         // Give item drops
         const EntityData& entityData = EntityDataLoader::getEntityData(entityType);
-        float dropChance = (rand() % 1000) / 1000.0f;
         for (const ItemDrop& itemDrop : entityData.itemDrops)
         {
+            float dropChance = Helper::randFloat(0.0f, 1.0f);
             if (dropChance < itemDrop.chance)
             {
                 // Give items
                 unsigned int itemAmount = rand() % std::max(itemDrop.maxAmount - itemDrop.minAmount + 1, 1U) + itemDrop.minAmount;
 
-                for (int i = 0; i < itemAmount; i++)
-                {
-                    pl::Vector2f spawnPos = position - pl::Vector2f(0.5f, 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
-                    spawnPos.x += Helper::randFloat(0.0f, entityData.size.x * TILE_SIZE_PIXELS_UNSCALED);
-                    spawnPos.y += Helper::randFloat(0.0f, entityData.size.y * TILE_SIZE_PIXELS_UNSCALED);
+                pl::Vector2f spawnPos = position - pl::Vector2f(0.5f, 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
+                spawnPos.x += Helper::randFloat(0.0f, entityData.size.x * TILE_SIZE_PIXELS_UNSCALED);
+                spawnPos.y += Helper::randFloat(0.0f, entityData.size.y * TILE_SIZE_PIXELS_UNSCALED);
 
-                    chunkManager.addItemPickup(ItemPickup(spawnPos, itemDrop.item, gameTime, 1));
-                }
+                chunkManager.addItemPickup(ItemPickup(spawnPos, itemDrop.item, gameTime, itemAmount), &game.getNetworkHandler());
 
                 // inventory.addItem(itemDrop.item, itemAmount, true);
             }

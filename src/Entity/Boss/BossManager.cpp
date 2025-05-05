@@ -3,6 +3,7 @@
 #include "Entity/Boss/BossBenjaminCrow.hpp"
 #include "Entity/Boss/BossSandSerpent.hpp"
 #include "Entity/Boss/BossGlacialBrute.hpp"
+#include "Game.hpp"
 
 bool BossManager::createBoss(const std::string& name, pl::Vector2f playerPosition, Game& game)
 {
@@ -14,21 +15,9 @@ bool BossManager::createBoss(const std::string& name, pl::Vector2f playerPositio
     std::string addedBossName;
 
     // Create boss class depending on name
-    if (std::string bossName = "Benjamin"; name == bossName)
-    {
-        bosses.push_back(std::make_unique<BossBenjaminCrow>(playerPosition));
-        addedBossName = bossName;
-    }
-    // else if (std::string bossName = "The Sand Serpent"; name == bossName)
-    // {
-    //     bosses.push_back(std::make_unique<BossSandSerpent>(playerPosition, game));
-    //     addedBossName = bossName;
-    // }
-    // else if (std::string bossName = "The Glacial Brute"; name == bossName)
-    // {
-    //     bosses.push_back(std::make_unique<BossGlacialBrute>(playerPosition, game));
-    //     addedBossName = bossName;
-    // }
+    BOSS_SPAWN(BossBenjaminCrow, "Benjamin", playerPosition)
+    else BOSS_SPAWN(BossSandSerpent, "The Sand Serpent", playerPosition, game)
+    else BOSS_SPAWN(BossGlacialBrute, "The Glacial Brute", playerPosition, game)
 
     if (!addedBossName.empty())
     {
@@ -64,7 +53,7 @@ void BossManager::update(Game& game, ProjectileManager& projectileManager, Chunk
         {
             if (!boss->isAlive())
             {
-                boss->createItemPickups(chunkManager, gameTime);
+                boss->createItemPickups(game.getNetworkHandler(), chunkManager, gameTime);
             }
 
             bossAliveNames.erase(boss->getName());

@@ -106,7 +106,7 @@ public:
     }
 
 protected:
-    void createItemPickups(ChunkManager& chunkManager, Game& game, const std::vector<ItemDrop>& itemDrops, float gameTime, bool alertGame = true);
+    void createItemPickups(ChunkManager& chunkManager, Game& game, const std::vector<ItemDrop>& itemDrops, float gameTime);
 
     void drawObject(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera, float gameTime, int worldSize, const pl::Color& color,
         std::optional<std::vector<pl::Rect<int>>> textureRectsOverride = std::nullopt, std::optional<pl::Vector2f> textureOriginOverride = std::nullopt,

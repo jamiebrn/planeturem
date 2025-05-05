@@ -126,6 +126,6 @@ private:
     Camera menuCamera;
 
     // Demo stuff
-    bool showPauseMenuWishlist;
+    // bool showPauseMenuWishlist;
 
 };

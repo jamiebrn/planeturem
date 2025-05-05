@@ -523,11 +523,17 @@ void Game::runInGame(float dt)
                     break;
                 case WorldMenuState::NPCShop: // fallthrough
                 case WorldMenuState::Inventory:
-                    if (InventoryGUI::isMouseOverUI(mouseScreenPos) && !InputManager::isControllerActive())
+                    if (!InputManager::isControllerActive())
                     {
-                        InventoryGUI::handleRightClick(*this, mouseScreenPos, shiftMode, networkHandler, getChunkManagerPtr(),
-                            inventory, armourInventory, getChestDataPool().getChestDataPtr(openedChestID));
-                        changePlayerTool();
+                        if (InventoryGUI::handleRightClick(*this, mouseScreenPos, shiftMode, networkHandler, getChunkManagerPtr(),
+                            inventory, armourInventory, getChestDataPool().getChestDataPtr(openedChestID)))
+                        {
+                            changePlayerTool();
+                        }
+                        else
+                        {
+                            attemptObjectInteract();
+                        }
                     }
                     else
                     {
@@ -2059,57 +2065,6 @@ void Game::testMeleeCollision(const std::vector<HitRect>& hitRects)
     getBossManager().testHitRectCollision(hitRects);
 }
 
-void Game::itemPickupsCreated(const std::vector<ItemPickupReference>& itemPickupsCreated, std::optional<LocationState> pickupsLocationState)
-{
-    if (!networkHandler.getIsLobbyHost())
-    {
-        return;
-    }
-
-    if (!pickupsLocationState.has_value())
-    {
-        pickupsLocationState = locationState;
-    }
-
-    // Alert clients of item pickups created
-    PacketDataItemPickupsCreated packetData;
-    packetData.locationState = pickupsLocationState.value();
-    
-    for (auto& itemPickupReference : itemPickupsCreated)
-    {
-        Chunk* chunkPtr = getChunkManager(pickupsLocationState->getPlanetType()).getChunk(itemPickupReference.chunk);
-        if (!chunkPtr)
-        {
-            std::cout << "ERROR: Attempted to send item pickup creation data for null chunk (" << itemPickupReference.chunk.x
-                << ", " << itemPickupReference.chunk.y << ")\n";
-            continue;
-        }
-
-        const ItemPickup* itemPickupPtr = chunkPtr->getItemPickup(itemPickupReference.id);
-        if (!itemPickupPtr)
-        {
-            std::cout << "ERROR: Attempted to send item pickup creation data for null pickup ID " << itemPickupReference.id << "\n";
-            continue;
-        }
-
-        ItemPickup itemPickup = *itemPickupPtr;
-
-        // Normalise item pickup position relative to chunk before sending over network
-        itemPickup.setPosition(itemPickup.getPosition() - chunkPtr->getWorldPosition());
-        
-        packetData.createdPickups.push_back({itemPickupReference, itemPickup});
-    }
-
-    if (packetData.createdPickups.size() <= 0)
-    {
-        return;
-    }
-
-    Packet packet;
-    packet.set(packetData);
-    networkHandler.sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0);
-}
-
 void Game::catchRandomFish(pl::Vector2<int> fishedTile)
 {
     const BiomeGenData* biomeGenData = getChunkManager().getChunkBiome(ChunkPosition(fishedTile.x / CHUNK_TILE_SIZE, fishedTile.y / CHUNK_TILE_SIZE));
@@ -2117,11 +2072,6 @@ void Game::catchRandomFish(pl::Vector2<int> fishedTile)
     // Check for nullptr
     if (!biomeGenData)
         return;
-
-    std::vector<ItemPickupReference> itemPickupsCreatedVector;
-
-    PacketDataItemPickupsCreateRequest packetData;
-    packetData.locationState = locationState;
     
     // Randomise catch
     float randomChance = Helper::randInt(0, 10000) / 10000.0f;
@@ -2132,58 +2082,15 @@ void Game::catchRandomFish(pl::Vector2<int> fishedTile)
         
         if (cumulativeChance >= randomChance)
         {
-            // Add fish / catch
-            // inventory.addItem(fishCatchData.itemCatch, fishCatchData.count, true);
-
             // Create fish item pickup
             pl::Vector2f spawnPos = player.getPosition() + pl::Vector2f(
                 Helper::randFloat(-TILE_SIZE_PIXELS_UNSCALED / 2.0f, TILE_SIZE_PIXELS_UNSCALED / 2.0f),
                 Helper::randFloat(-TILE_SIZE_PIXELS_UNSCALED / 2.0f, TILE_SIZE_PIXELS_UNSCALED / 2.0f)
             );
 
-            if (networkHandler.isLobbyHostOrSolo())
-            {
-                // Not multiplayer / is host, create pickups and tell clients
-                itemPickupsCreatedVector.push_back(getChunkManager().addItemPickup(ItemPickup(spawnPos, fishCatchData.itemCatch, gameTime, fishCatchData.count)).value());
-            }
-            else
-            {
-                // Multiplayer and is client, request pickup from host
-                ItemPickupRequest request;
-                request.chunk = WorldObject::getChunkInside(spawnPos, getChunkManager().getWorldSize());
-
-                // Get chunkPtr to calculate spawn relative position
-                // Cannot spawn if chunk does not exist, as cannot calculate relative position
-                Chunk* chunkPtr = getChunkManager().getChunk(request.chunk);
-                if (!chunkPtr)
-                {
-                    break;
-                }
-
-                request.itemType = fishCatchData.itemCatch;
-                request.count = fishCatchData.count;
-                request.positionRelative = spawnPos - chunkPtr->getWorldPosition();
-                packetData.pickupRequests.push_back(request);
-            }
-
+            getChunkManager().addItemPickup(ItemPickup(spawnPos, fishCatchData.itemCatch, gameTime, fishCatchData.count), &networkHandler);
             break;
         }
-    }
-
-    if (!networkHandler.isMultiplayerGame())
-    {
-        return;
-    }
-
-    if (networkHandler.getIsLobbyHost())
-    {
-        itemPickupsCreated(itemPickupsCreatedVector, locationState);
-    }
-    else
-    {
-        Packet packet;
-        packet.set(packetData, true);
-        networkHandler.sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
     }
 }
 

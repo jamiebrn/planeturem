@@ -165,26 +165,6 @@ void BuildableObject::createLightSource(LightingEngine& lightingEngine, pl::Vect
             (lightingEngine.*lightingFunction)(lightingTileX + x, lightingTileY + y, lightingValue);
         }
     }
-
-    // // Calculate light position based on object size
-    // pl::Vector2f lightPos = position;
-    // if (objectData.size != sf::Vector2i(1, 1))
-    // {
-    //     pl::Vector2f topLeftPos = position - pl::Vector2f(0.5f, 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
-    //     lightPos = topLeftPos + TILE_SIZE_PIXELS_UNSCALED * static_cast<pl::Vector2f>(objectData.size) / 2.0f;
-    // }
-
-    // // Draw light
-    // static const pl::Color lightColor(255, 220, 140);
-    // float lightScale = 0.3f * objectData.lightEmission;
-
-    // pl::Vector2f scale((float)ResolutionHandler::getScale() * lightScale, (float)ResolutionHandler::getScale() * lightScale);
-
-    // pl::Rect<int> lightMaskRect(0, 0, 256, 256);
-
-    // TextureManager::drawSubTexture(lightTexture, {
-    //     TextureType::LightMask, Camera::worldToScreenTransform(lightPos), 0, scale, {0.5, 0.5}, lightColor
-    //     }, lightMaskRect, sf::BlendAdd);
 }
 
 bool BuildableObject::damage(int amount, Game& game, ChunkManager& chunkManager, ParticleSystem& particleSystem, bool giveItems)
@@ -295,11 +275,8 @@ void BuildableObject::createHitMarker(int amount)
     HitMarkers::addHitMarker(spawnPos, amount, hitColour);
 }
 
-void BuildableObject::createItemPickups(ChunkManager& chunkManager, Game& game, const std::vector<ItemDrop>& itemDrops, float gameTime, bool alertGame)
+void BuildableObject::createItemPickups(ChunkManager& chunkManager, Game& game, const std::vector<ItemDrop>& itemDrops, float gameTime)
 {
-    // Keep track of all item pickups created and alert game
-    std::vector<ItemPickupReference> itemPickupsCreated;
-
     float dropChance = (rand() % 1000) / 1000.0f;
 
     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
@@ -315,17 +292,8 @@ void BuildableObject::createItemPickups(ChunkManager& chunkManager, Game& game, 
             spawnPos.x += Helper::randFloat(0.0f, objectData.size.x * TILE_SIZE_PIXELS_UNSCALED);
             spawnPos.y += Helper::randFloat(0.0f, objectData.size.y * TILE_SIZE_PIXELS_UNSCALED);
 
-            itemPickupsCreated.push_back(chunkManager.addItemPickup(ItemPickup(spawnPos, itemDrop.item, gameTime, itemAmount)).value());
-
-            // inventory.addItem(itemDrop.item, itemAmount, true);
+            chunkManager.addItemPickup(ItemPickup(spawnPos, itemDrop.item, gameTime, itemAmount), &game.getNetworkHandler());
         }
-    }
-
-    if (alertGame)
-    {
-        LocationState pickupsLocationState;
-        pickupsLocationState.setPlanetType(chunkManager.getPlanetType());
-        game.itemPickupsCreated(itemPickupsCreated, pickupsLocationState);
     }
 }
 

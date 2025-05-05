@@ -151,7 +151,7 @@ public:
     void testMeleeCollision(const std::vector<HitRect>& hitRects);
 
     // Item pickups created alert
-    void itemPickupsCreated(const std::vector<ItemPickupReference>& itemPickupsCreated, std::optional<LocationState> pickupsLocationState);
+    // void itemPickupsCreated(const std::vector<ItemPickupReference>& itemPickupsCreated, std::optional<LocationState> pickupsLocationState);
 
     void drawWorld(pl::Framebuffer& renderTexture, float dt, std::vector<WorldObject*>& worldObjects, WorldData& worldData, const Camera& cameraArg);
 

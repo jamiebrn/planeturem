@@ -26,6 +26,7 @@
 class Game;
 class Player;
 class ChunkManager;
+class NetworkHandler;
 
 class BossEntity : public WorldObject
 {
@@ -56,7 +57,7 @@ public:
     // Test for despawn
     bool inPlayerRange(Player& player);
 
-    void createItemPickups(ChunkManager& chunkManager, float gameTime);
+    void createItemPickups(NetworkHandler& networkHandler, ChunkManager& chunkManager, float gameTime);
 
     void setName(const std::string& name);
     const std::string& getName();

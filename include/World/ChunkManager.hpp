@@ -45,6 +45,7 @@
 class Game;
 class Entity;
 class ProjectileManager;
+class NetworkHandler;
 
 class ChunkManager
 {
@@ -185,9 +186,11 @@ public:
 
 
     // -- Item pickups -- //
+
     // Adds item pickup automatically to correct chunk
     // If chunk is not loaded / generated, item pickup will be discarded
-    std::optional<ItemPickupReference> addItemPickup(const ItemPickup& itemPickup, std::optional<uint64_t> idOverride = std::nullopt);
+    // Will request pickup creation from host if network handler provided is client
+    std::optional<ItemPickupReference> addItemPickup(const ItemPickup& itemPickup, NetworkHandler* networkHandler, std::optional<uint64_t> idOverride = std::nullopt);
 
     // Check chunks in 3x3 area around player for colliding item pickups
     // Returns first item pickup collided with (if any)

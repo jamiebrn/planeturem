@@ -335,12 +335,15 @@ void InventoryGUI::handleLeftClick(Game& game, pl::Vector2f mouseScreenPos, bool
     networkHandler.queueSendPlayerData();
 }
 
-void InventoryGUI::handleRightClick(Game& game, pl::Vector2f mouseScreenPos, bool shiftMode, NetworkHandler& networkHandler, ChunkManager* chunkManager,
+bool InventoryGUI::handleRightClick(Game& game, pl::Vector2f mouseScreenPos, bool shiftMode, NetworkHandler& networkHandler, ChunkManager* chunkManager,
     InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData)
 {
+    bool interacted = false;
+
     if (canQuickTransfer(mouseScreenPos, shiftMode, inventory, chestData) && !openShopData.has_value())
     {
         inventoryChestItemQuickTransfer(game, mouseScreenPos, 1, inventory, *chestData);
+        interacted = true;
     }
     else
     {
@@ -348,7 +351,7 @@ void InventoryGUI::handleRightClick(Game& game, pl::Vector2f mouseScreenPos, boo
         if (!openShopData.has_value() || shopHoveredIndex < 0)
         {
             // Only pickup single item if not attempting to buy from shop
-            pickUpItem(game, mouseScreenPos, 1, inventory, armourInventory, chestData);
+            interacted = pickUpItem(game, mouseScreenPos, 1, inventory, armourInventory, chestData);
         }
     }
 
@@ -358,38 +361,18 @@ void InventoryGUI::handleRightClick(Game& game, pl::Vector2f mouseScreenPos, boo
         ItemPickup itemPickup(game.getPlayer().getPosition() + pl::Vector2f(Helper::randFloat(-2, 2), Helper::randFloat(-2, 2)),
             pickedUpItem, game.getGameTime(), pickedUpItemCount);
         
-        if (networkHandler.isClient())
-        {
-            PacketDataItemPickupsCreateRequest packetData;
-            packetData.locationState = game.getLocationState();
+        chunkManager->addItemPickup(itemPickup, &networkHandler);
 
-            ItemPickupRequest pickupRequest;
-            pickupRequest.chunk = itemPickup.getChunkInside(chunkManager->getWorldSize());
-            pickupRequest.itemType = itemPickup.getItemType();
-            pickupRequest.count = itemPickup.getItemCount();
-            
-            Chunk* chunkPtr = chunkManager->getChunk(pickupRequest.chunk);
-            if (!chunkPtr)
-            {
-                printf("ERROR: Failed to request item pickup drop to host in null chunk (%d, %d)\n", pickupRequest.chunk.x, pickupRequest.chunk.y);
-                return;
-            }
+        isItemPickedUp = false;
+        pickedUpItem = -1;
+        pickedUpItemCount = 0;
 
-            pickupRequest.positionRelative = itemPickup.getPosition() - chunkPtr->getWorldPosition();
-
-            packetData.pickupRequests.push_back(pickupRequest);
-
-            Packet packet;
-            packet.set(packetData);
-            networkHandler.sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
-        }
-        else
-        {
-            chunkManager->addItemPickup(itemPickup);
-        }
+        interacted = true;
     }
 
     networkHandler.queueSendPlayerData();
+
+    return interacted;
 }
 
 bool InventoryGUI::handleScroll(pl::Vector2f mouseScreenPos, int direction, InventoryData& inventory)
@@ -416,7 +399,7 @@ bool InventoryGUI::handleScroll(pl::Vector2f mouseScreenPos, int direction, Inve
     return true;
 }
 
-void InventoryGUI::pickUpItem(Game& game, pl::Vector2f mouseScreenPos, unsigned int amount, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData)
+bool InventoryGUI::pickUpItem(Game& game, pl::Vector2f mouseScreenPos, unsigned int amount, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData)
 {
     // Get item selected at mouse
     int itemIndex = getHoveredItemSlotIndex(inventoryItemSlots, mouseScreenPos);
@@ -425,7 +408,9 @@ void InventoryGUI::pickUpItem(Game& game, pl::Vector2f mouseScreenPos, unsigned 
 
     // No valid item selected
     if (itemIndex < 0 && armourHoveredIndex < 0 && chestHoveredItemIndex < 0)
-        return;
+    {
+        return false;
+    }
     
     bool takenFromShop = false;
     
@@ -441,7 +426,7 @@ void InventoryGUI::pickUpItem(Game& game, pl::Vector2f mouseScreenPos, unsigned 
         {
             if (!attemptPurchaseItem(inventory, chestHoveredItemIndex))
             {
-                return;
+                return false;
             }
 
             itemIndex = chestHoveredItemIndex;
@@ -459,7 +444,9 @@ void InventoryGUI::pickUpItem(Game& game, pl::Vector2f mouseScreenPos, unsigned 
 
     // If no item, do not pick up
     if (!itemSlotData.has_value())
-        return;
+    {
+        return false;
+    }
     
     const ItemCount& itemCount = itemSlotData.value();
 
@@ -509,6 +496,8 @@ void InventoryGUI::pickUpItem(Game& game, pl::Vector2f mouseScreenPos, unsigned 
     {
         game.openedChestDataModified();
     }
+
+    return true;
 }
 
 void InventoryGUI::putDownItem(Game& game, pl::Vector2f mouseScreenPos, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData)

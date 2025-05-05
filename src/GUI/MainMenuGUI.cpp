@@ -26,7 +26,7 @@ void MainMenuGUI::initialise()
 void MainMenuGUI::initialisePauseMenu()
 {
     pauseMenuState = PauseMenuState::Main;
-    showPauseMenuWishlist = false;
+    // showPauseMenuWishlist = false;
     resetHoverRect();
 }
 
@@ -528,12 +528,12 @@ std::optional<PauseMenuEventType> MainMenuGUI::createAndDrawPauseMenu(pl::Render
 
             if (steamInitialised)
             {
-                if (showPauseMenuWishlist)
+                if (lobbyId.has_value())
                 {
-                    if (guiContext.createButton(scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale, 24 * intScale, "Available in full game!", buttonStyle)
+                    if (guiContext.createButton(scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale, 24 * intScale, "Invite Friends", buttonStyle)
                         .isClicked())
                     {
-                        SteamFriends()->ActivateGameOverlayToStore(STEAM_APP_ID, EOverlayToStoreFlag::k_EOverlayToStoreFlag_None);
+                        SteamFriends()->ActivateGameOverlayInviteDialog(lobbyId.value());
                         resetHoverRect();
                     }
                 }
@@ -542,7 +542,8 @@ std::optional<PauseMenuEventType> MainMenuGUI::createAndDrawPauseMenu(pl::Render
                     if (guiContext.createButton(scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale, 24 * intScale, "Start Multiplayer", buttonStyle)
                         .isClicked())
                     {
-                        showPauseMenuWishlist = true;
+                        // showPauseMenuWishlist = true;
+                        menuEvent = PauseMenuEventType::StartMultiplayer;
                         resetHoverRect();
                     }
                 }

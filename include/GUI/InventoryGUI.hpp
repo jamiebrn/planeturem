@@ -98,14 +98,14 @@ public:
         InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData = nullptr);
 
     // May pick up single item
-    static void handleRightClick(Game& game, pl::Vector2f mouseScreenPos, bool shiftMode, NetworkHandler& networkHandler, ChunkManager* chunkManager,
+    static bool handleRightClick(Game& game, pl::Vector2f mouseScreenPos, bool shiftMode, NetworkHandler& networkHandler, ChunkManager* chunkManager,
         InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData = nullptr);
 
     static bool handleScroll(pl::Vector2f mouseScreenPos, int direction, InventoryData& inventory);
 
     // Pickup max stack size to pickup whole stack (may be less than whole stack)
     // Pickup less (e.g 1) to limit pickup amount
-    static void pickUpItem(Game& game, pl::Vector2f mouseScreenPos, unsigned int amount, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData = nullptr);
+    static bool pickUpItem(Game& game, pl::Vector2f mouseScreenPos, unsigned int amount, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData = nullptr);
 
     // Put down whole stack held in cursor
     static void putDownItem(Game& game, pl::Vector2f mouseScreenPos, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData = nullptr);

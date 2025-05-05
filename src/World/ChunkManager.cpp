@@ -1,4 +1,5 @@
 #include "World/ChunkManager.hpp"
+#include "Network/NetworkHandler.hpp"
 
 void ChunkManager::setSeed(int seed)
 {
@@ -853,16 +854,72 @@ void ChunkManager::loadEntityPacketDatas(const PacketDataEntities& entityPacketD
     }
 }
 
-std::optional<ItemPickupReference> ChunkManager::addItemPickup(const ItemPickup& itemPickup, std::optional<uint64_t> idOverride)
+std::optional<ItemPickupReference> ChunkManager::addItemPickup(const ItemPickup& itemPickup, NetworkHandler* networkHandler, std::optional<uint64_t> idOverride)
 {
-    Chunk* chunkInside = getChunk(itemPickup.getChunkInside(worldSize));
+    Chunk* chunkPtr = getChunk(itemPickup.getChunkInside(worldSize));
 
-    if (chunkInside == nullptr)
+    if (!chunkPtr)
     {
         return std::nullopt;
     }
 
-    return ItemPickupReference{chunkInside->getChunkPosition(), chunkInside->addItemPickup(itemPickup, idOverride)};
+    // Request from host if is client
+    if (networkHandler && networkHandler->isClient())
+    {
+        PacketDataItemPickupsCreateRequest packetData;
+        packetData.locationState = LocationState::createFromPlanetType(planetType);
+
+        ItemPickupRequest request;
+        request.chunk = itemPickup.getChunkInside(worldSize);
+        request.itemType = itemPickup.getItemType();
+        request.count = itemPickup.getItemCount();
+        request.positionRelative = itemPickup.getPosition() - chunkPtr->getWorldPosition();
+
+        packetData.pickupRequests.push_back(request);
+
+        Packet packet;
+        packet.set(packetData);
+        networkHandler->sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
+
+        return std::nullopt;
+    }
+    
+    // Create item pickup
+    ItemPickupReference itemPickupReference{chunkPtr->getChunkPosition(), chunkPtr->addItemPickup(itemPickup, idOverride)};
+    
+    if (networkHandler && networkHandler->getIsLobbyHost())
+    {
+        // Alert clients of item pickup created
+        PacketDataItemPickupsCreated packetData;
+        packetData.locationState = LocationState::createFromPlanetType(planetType);
+
+        if (!chunkPtr)
+        {
+            std::cout << "ERROR: Attempted to send item pickup creation data for null chunk (" << itemPickupReference.chunk.x
+                << ", " << itemPickupReference.chunk.y << ")\n";
+            return std::nullopt;
+        }
+
+        const ItemPickup* itemPickupPtr = chunkPtr->getItemPickup(itemPickupReference.id);
+        if (!itemPickupPtr)
+        {
+            std::cout << "ERROR: Attempted to send item pickup creation data for null pickup ID " << itemPickupReference.id << "\n";
+            return std::nullopt;
+        }
+
+        ItemPickup itemPickup = *itemPickupPtr;
+
+        // Normalise item pickup position relative to chunk before sending over network
+        itemPickup.setPosition(itemPickup.getPosition() - chunkPtr->getWorldPosition());
+        
+        packetData.createdPickups.push_back({itemPickupReference, itemPickup});
+
+        Packet packet;
+        packet.set(packetData);
+        networkHandler->sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0);
+    }
+
+    return itemPickupReference;
 }
 
 std::optional<ItemPickupReference> ChunkManager::getCollidingItemPickup(const CollisionRect& playerCollision, float gameTime)
