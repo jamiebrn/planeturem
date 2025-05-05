@@ -8,8 +8,6 @@
 // TODO: Make entities persistent across network and send state updates (movement, health etc)
 // TODO: Use per-world entity chunk ID counter, rather than per chunk, to prevent collisions
 
-// TODO: Drop items from inventory
-
 // TODO: Improve entity movement over network
 
 // TODO: Rework planet wraparound system to use consistently in-range positions, with determination of player relative position at draw time
@@ -2900,8 +2898,10 @@ void Game::travelToPlanet(PlanetType planetType, ObjectReference newRocketObject
     RocketObject* rocketObject = getObjectFromLocation<RocketObject>(rocketEnteredReference, locationState);
     if (rocketObject)
     {
-        // TODO: Find empty tile around rocket
-        player.setPosition(rocketObject->getPosition() - pl::Vector2f(1, 1) * TILE_SIZE_PIXELS_UNSCALED);
+        std::optional<PathfindGridCoordinate> openTile = getChunkManager(planetType).getPathfindingEngine()
+            .findClosestOpenTile(rocketEnteredReference.getWorldTile().x, rocketEnteredReference.getWorldTile().y, 20, true);
+        
+        player.setPosition(rocketObject->getPosition() + pl::Vector2f(openTile->x, openTile->y) * TILE_SIZE_PIXELS_UNSCALED);
         rocketObject->triggerBehaviour(*this, ObjectBehaviourTrigger::RocketFlyDown);
     }
     else

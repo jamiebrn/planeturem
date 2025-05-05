@@ -217,12 +217,6 @@ std::vector<PathfindGridCoordinate> PathfindingEngine::createStepSequenceFromPat
 
 PathfindGridCoordinate PathfindingEngine::findFurthestOpenTile(int x, int y, int maxSearchRange, bool coordinateRelativeToStart) const
 {
-    struct TileSearchNode
-    {
-        int index;
-        int distanceTravelled;
-    };
-
     int startIdx = getGridIndex(x, y);
 
     std::queue<TileSearchNode> indexQueue;
@@ -302,6 +296,86 @@ PathfindGridCoordinate PathfindingEngine::findFurthestOpenTile(int x, int y, int
     }
 
     return gridCoord;
+}
+
+std::optional<PathfindGridCoordinate> PathfindingEngine::findClosestOpenTile(int x, int y, int maxSearchRange, bool coordinateRelativeToStart) const
+{
+    int startIdx = getGridIndex(x, y);
+
+    std::queue<TileSearchNode> indexQueue;
+    std::unordered_map<int, bool> visitedIndexes;
+    indexQueue.push(TileSearchNode{startIdx, 0});
+
+    while (!indexQueue.empty())
+    {
+        TileSearchNode node = indexQueue.front();
+        indexQueue.pop();
+
+        if (!obstacleGrid[node.index])
+        {
+            // Found open tile
+            PathfindGridCoordinate gridCoord = getGridCoordinate(node.index);
+
+            if (coordinateRelativeToStart)
+            {
+                int dx = gridCoord.x - x;
+                int dy = gridCoord.y - y;
+
+                if (std::abs(dx) > width / 2)
+                {
+                    dx = (std::abs(dx) - width) * Helper::sign(dx);
+                }
+                if (std::abs(dy) > height / 2)
+                {
+                    dy = (std::abs(dy) - height) * Helper::sign(dy);
+                }
+
+                gridCoord.x = dx;
+                gridCoord.y = dy;
+            }
+
+            return gridCoord;
+        }
+
+        if (maxSearchRange < node.distanceTravelled || visitedIndexes[node.index])
+        {
+            continue;
+        }
+
+        visitedIndexes[node.index] = true;
+
+        int xIndex = node.index % width;
+
+        int nextIdx = node.index - 1;
+        if (xIndex - 1 < 0)
+        {
+            nextIdx += width;
+        }
+        indexQueue.push(TileSearchNode{nextIdx, node.distanceTravelled + 1});
+
+        nextIdx = node.index + 1;
+        if (xIndex + 1 > width - 1)
+        {
+            nextIdx -= width;
+        }
+        indexQueue.push(TileSearchNode{nextIdx, node.distanceTravelled + 1});
+
+        nextIdx = node.index - width;
+        if (nextIdx < 0)
+        {
+            nextIdx += obstacleGrid.size();
+        }
+        indexQueue.push(TileSearchNode{nextIdx, node.distanceTravelled + 1});
+
+        nextIdx = node.index + width;
+        if (nextIdx >= obstacleGrid.size())
+        {
+            nextIdx -= obstacleGrid.size();
+        }
+        indexQueue.push(TileSearchNode{nextIdx, node.distanceTravelled + 1});   
+    }
+
+    return std::nullopt;
 }
 
 void PathFollower::beginPath(pl::Vector2f startPos, const std::vector<PathfindGridCoordinate>& pathfindStepSequence)

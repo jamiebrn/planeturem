@@ -35,6 +35,7 @@ public:
     std::vector<PathfindGridCoordinate> createStepSequenceFromPath(const std::vector<PathfindGridCoordinate>& path) const;
 
     PathfindGridCoordinate findFurthestOpenTile(int x, int y, int maxSearchRange, bool coordinateRelativeToStart = false) const;
+    std::optional<PathfindGridCoordinate> findClosestOpenTile(int x, int y, int maxSearchRange, bool coordinateRelativeToStart = false) const;
 
     inline const std::vector<char>& getObstacles() const {return obstacleGrid;}
     inline int getWidth() const {return width;}
@@ -76,6 +77,12 @@ private:
 
     private:
         const std::unordered_map<int, PathNode>& nodes;
+    };
+
+    struct TileSearchNode
+    {
+        int index;
+        int distanceTravelled;
     };
 
     void advancePathNode(int idx, int previousIdx, int previousPathCost, int direction, int previousDirection, int destIdx,

@@ -1,11 +1,12 @@
 #pragma once
 
-
 #include "World/ChunkPosition.hpp"
 
 #include <Vector.hpp>
 
 #include <extlib/cereal/archives/binary.hpp>
+
+#include "GameConstants.hpp"
 
 struct ObjectReference
 {
@@ -18,9 +19,14 @@ struct ObjectReference
         ar(chunk.x, chunk.y, tile.x, tile.y);
     }
 
-    bool operator==(const ObjectReference& other) const
+    inline bool operator==(const ObjectReference& other) const
     {
         return (chunk.x == other.chunk.x && chunk.y == other.chunk.y && tile.x == other.tile.x && tile.y == other.tile.y);
+    }
+
+    inline pl::Vector2<uint32_t> getWorldTile() const
+    {
+        return pl::Vector2<uint32_t>(chunk.x * CHUNK_TILE_SIZE + tile.x, chunk.y * CHUNK_TILE_SIZE + tile.y);
     }
 };
 
