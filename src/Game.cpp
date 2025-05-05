@@ -2714,6 +2714,10 @@ void Game::travelToDestination()
         else if (destinationLocationState.isInRoomDest())
         {
             // TODO: Room travel request
+            PacketDataRoomTravelRequest packetData;
+            packetData.roomType = destinationLocationState.getRoomDestType();
+            packetData.rocketUsedReference = rocketEnteredReference;
+            packet.set(packetData);
         }
 
         networkHandler.sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
@@ -2941,29 +2945,34 @@ void Game::travelToPlanetFromHost(const PacketDataPlanetTravelReply& planetTrave
     travelToPlanet(planetTravelReplyPacket.chunkDatas.planetType, planetTravelReplyPacket.rocketObjectReference);
 }
 
+void Game::travelToRoomDestinationFromHost(const PacketDataRoomTravelReply& roomTravelReplyPacket)
+{
+    if (!networkHandler.isClient())
+    {
+        return;
+    }
+
+    particleSystem.clear();
+    nearbyCraftingStationLevels.clear();
+
+    destinationLocationState.setToNull();
+
+    worldDatas.clear();
+    roomDestDatas.clear();
+
+    player.exitRocket();
+
+    travelToRoomDestination(roomTravelReplyPacket.roomType);
+}
+
 void Game::travelToRoomDestination(RoomType destinationRoomType)
 {
     overrideState(GameState::InRoomDestination);
-    
-    // roomDestinationManager.loadRoomDestinationType(destinationRoom, chestDataPool);
-    GameSaveIO io(currentSaveFileSummary.name);
-
-    RoomDestinationGameSave roomDestinationGameSave;
 
     locationState.setRoomDestType(destinationRoomType);
 
-    roomDestDatas[locationState.getRoomDestType()] = RoomDestinationData();
-    
-    if (io.loadRoomDestinationSave(destinationRoomType, roomDestinationGameSave))
-    {
-        getChestDataPool(locationState) = roomDestinationGameSave.chestDataPool;
-        getRoomDestination(locationState.getRoomDestType()) = roomDestinationGameSave.roomDestination;
-    }
-    else
-    {
-        getChestDataPool() = ChestDataPool();
-        getRoomDestination() = Room(destinationRoomType, &getChestDataPool());
-    }
+    // Initialise / load if required
+    loadRoomDest(destinationRoomType);
 
     if (getRoomDestination().getFirstRocketObjectReference(rocketEnteredReference))
     {
@@ -3229,61 +3238,6 @@ bool Game::saveGame(bool gettingInRocket)
         roomDestGameSave.chestDataPool = getChestDataPool(LocationState::createFromRoomDestType(roomDestType));
         io.writeRoomDestinationSave(roomDestGameSave);
     }
-    
-    // PlanetGameSave planetGameSave;
-    // RoomDestinationGameSave roomDestinationGameSave;
-
-    // switch (gameState)
-    // {
-    //     // case GameState::InStructure:
-    //     // {
-    //     //     planetGameSave.isInRoom = true;
-    //     //     planetGameSave.inRoomID = structureEnteredID;
-    //     //     planetGameSave.positionInRoom = player.getPosition();
-
-    //     //     planetGameSave.playerLastPlanetPos = structureEnteredPos;
-    //     // } // fallthrough
-    //     case GameState::OnPlanet:
-    //     {
-    //         planetGameSave.chunks = chunkManager.getChunkPODs();
-    //         planetGameSave.chestDataPool = chestDataPool;
-    //         planetGameSave.structureRoomPool = structureRoomPool;
-            
-    //         playerGameSave.planetType = chunkManager.getPlanetType();
-    //         planetGameSave.playerLastPlanetPos = player.getPosition();
-            
-    //         if (gettingInRocket)
-    //         {
-    //             planetGameSave.rocketObjectUsed = rocketEnteredReference;
-    //         }
-    //         break;
-    //     }
-    //     case GameState::InRoomDestination:
-    //     {
-    //         roomDestinationGameSave.roomDestination = roomDestination;
-    //         roomDestinationGameSave.chestDataPool = chestDataPool;
-    //         roomDestinationGameSave.playerLastPos = player.getPosition();
-
-    //         playerGameSave.roomDestinationType = roomDestination.getRoomType();
-    //         break;
-    //     }
-    // }
-
-
-    // switch (gameState)
-    // {
-    //     case GameState::InStructure: // fallthrough
-    //     case GameState::OnPlanet:
-    //     {
-    //         io.writePlanetSave(playerGameSave.planetType, planetGameSave);
-    //         break;
-    //     }
-    //     case GameState::InRoomDestination:
-    //     {
-    //         io.writeRoomDestinationSave(roomDestinationGameSave);
-    //         break;
-    //     }
-    // }
 
     return true;
 }
@@ -3444,46 +3398,37 @@ bool Game::loadPlanet(PlanetType planetType)
     }
 
     initialiseWorldData(planetType);
-    
-    // if (planetGameSave.isInRoom)
-    // {
-    //     overrideState(GameState::InStructure);
-    //     player.setPosition(planetGameSave.positionInRoom);
-    //     structureEnteredID = planetGameSave.inRoomID;
-    //     structureEnteredPos = planetGameSave.playerLastPlanetPos;
-        
-    //     // Simulate weather outside of room
-    //     camera.instantUpdate(structureEnteredPos);
-    // }
-    // else
-    // {
-    //     overrideState(GameState::OnPlanet);
-    //     player.setPosition(planetGameSave.playerLastPlanetPos);
-        
-    //     camera.instantUpdate(player.getPosition());
-    // }
-    
-    // weatherSystem = WeatherSystem(gameTime, getChunkManager(planetType).getSeed() + planetType);
-    // weatherSystem.presimulateWeather(gameTime, camera, getChunkManager(planetType));
-
-    // camera.instantUpdate(player.getPosition());
 
     getChunkManager(planetType).loadFromChunkPODs(planetGameSave.chunks, *this);
     getChestDataPool(LocationState::createFromPlanetType(planetType)) = planetGameSave.chestDataPool;
     getStructureRoomPool(planetType) = planetGameSave.structureRoomPool;
 
-    // assert(planetGameSave.rocketObjectUsed.has_value());
+    return true;
+}
 
-    // if (planetGameSave.rocketObjectUsed.has_value())
-    // {
-    //     rocketEnteredReference = planetGameSave.rocketObjectUsed.value();
-    // }
-    // else
-    // {
-    //     return false;
-    // }
+bool Game::loadRoomDest(RoomType roomType)
+{
+    if (roomDestDatas.contains(locationState.getRoomDestType()))
+    {
+        return false;
+    }
 
-    // rocketObject = planetGameSave.rocketObjectUsed.value();
+    GameSaveIO io(currentSaveFileSummary.name);
+
+    RoomDestinationGameSave roomDestinationGameSave;
+
+    roomDestDatas[locationState.getRoomDestType()] = RoomDestinationData();
+
+    if (io.loadRoomDestinationSave(roomType, roomDestinationGameSave))
+    {
+        getChestDataPool(locationState) = roomDestinationGameSave.chestDataPool;
+        getRoomDestination(locationState.getRoomDestType()) = roomDestinationGameSave.roomDestination;
+    }
+    else
+    {
+        getChestDataPool() = ChestDataPool();
+        getRoomDestination() = Room(roomType, &getChestDataPool());
+    }
 
     return true;
 }

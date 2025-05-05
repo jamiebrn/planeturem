@@ -102,7 +102,16 @@ struct PlanetGameSave
     GameDataVersionState versionState;
 
     template <class Archive>
-    void serialize(Archive& ar, const std::uint32_t version)
+    void save(Archive& ar, const std::uint32_t version)
+    {
+        if (version >= 4)
+        {
+            ar(versionState, chunks, chestDataPool, structureRoomPool);
+        }
+    }
+
+    template <class Archive>
+    void load(Archive& ar, const std::uint32_t version)
     {
         if (version >= 4)
         {

@@ -160,6 +160,7 @@ public:
 
     // Attempts to load planet from disk if required - initialises new planet if not available
     bool loadPlanet(PlanetType planetType);
+    bool loadRoomDest(RoomType roomType);
 
     void hitObject(ChunkPosition chunk, pl::Vector2<int> tile, int damage, std::optional<PlanetType> planetType = std::nullopt,
         bool sentFromHost = false, std::optional<uint64_t> userId = std::nullopt);
@@ -175,6 +176,7 @@ public:
 
     ObjectReference setupPlanetTravel(PlanetType planetType, const LocationState& currentLocation, ObjectReference rocketObjectUsed, std::optional<uint64_t> clientID);
     void travelToPlanetFromHost(const PacketDataPlanetTravelReply& planetTravelReplyPacket);
+    void travelToRoomDestinationFromHost(const PacketDataRoomTravelReply& roomTravelReplyPacket);
     
     std::optional<uint32_t> initialiseStructureOrGet(PlanetType planetType, ChunkPosition chunk, pl::Vector2f* entrancePos, RoomType* roomType);
     void enterStructureFromHost(PlanetType planetType, ChunkPosition chunk, uint32_t structureID, pl::Vector2f entrancePos, RoomType roomType);

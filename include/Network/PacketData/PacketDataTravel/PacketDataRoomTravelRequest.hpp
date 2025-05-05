@@ -7,16 +7,15 @@
 #include "Data/typedefs.hpp"
 #include "Object/ObjectReference.hpp"
 
-struct PacketDataPlanetTravelRequest : public IPacketData
+struct PacketDataRoomTravelRequest : public IPacketData
 {
-    PlanetType planetType;
-
+    RoomType roomType;
     ObjectReference rocketUsedReference; // used when travelling from another planet, so rocket can be removed
 
     template <class Archive>
     void serialize(Archive& ar)
     {
-        ar(planetType, rocketUsedReference);
+        ar(roomType, rocketUsedReference);
     }
 
     PACKET_SERIALISATION();

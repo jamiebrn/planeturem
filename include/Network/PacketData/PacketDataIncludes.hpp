@@ -28,5 +28,7 @@
 
 #include "Network/PacketData/PacketDataTravel/PacketDataPlanetTravelRequest.hpp"
 #include "Network/PacketData/PacketDataTravel/PacketDataPlanetTravelReply.hpp"
+#include "Network/PacketData/PacketDataTravel/PacketDataRoomTravelRequest.hpp"
+#include "Network/PacketData/PacketDataTravel/PacketDataRoomTravelReply.hpp"
 #include "Network/PacketData/PacketDataTravel/PacketDataStructureEnterRequest.hpp"
 #include "Network/PacketData/PacketDataTravel/PacketDataStructureEnterReply.hpp"
