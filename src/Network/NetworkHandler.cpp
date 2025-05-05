@@ -1031,6 +1031,7 @@ void NetworkHandler::processMessageAsClient(const SteamNetworkingMessage_t& mess
                 break;
             }
             // game->getBossManager(packetData.planetType).getBosses() = packetData.bossManager.getBosses();
+            break;
         }
         case PacketType::PlanetTravelReply:
         {
