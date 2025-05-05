@@ -56,7 +56,7 @@ public:
     template <class Archive>
     void serialize(Archive& ar)
     {
-        ar(position.x, position.y, itemType, spawnGameTime);
+        ar(position.x, position.y, itemType, count, spawnGameTime);
     }
 
 private:
