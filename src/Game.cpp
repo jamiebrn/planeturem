@@ -2,6 +2,8 @@
 
 // FIX: Weather inconsistency (gametime)
 
+// FIX: World wraparound in menu when left for long duration
+
 // PRIORITY: MEDIUM (MULTIPLAYER)
 // TODO: Make entities persistent across network and send state updates (movement, health etc)
 // TODO: Use per-world entity chunk ID counter, rather than per chunk, to prevent collisions
