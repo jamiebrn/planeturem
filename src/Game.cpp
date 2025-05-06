@@ -1783,11 +1783,11 @@ void Game::attemptUseToolPickaxe()
 {
     pl::Vector2f mouseWorldPos = camera.screenToWorldTransform(mouseScreenPos);
     
-    // Swing pickaxe
-    player.useTool(getProjectileManager(), inventory, mouseWorldPos, *this);
-
     if (gameState != GameState::OnPlanet)
         return;
+
+    // Swing pickaxe
+    player.useTool(getProjectileManager(), inventory, mouseWorldPos, *this);
 
     if (!player.canReachPosition(mouseWorldPos))
         return;
