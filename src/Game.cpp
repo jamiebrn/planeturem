@@ -6,6 +6,8 @@
 
 // FIX: Weird item pickup unable to pick up bug? (from entity drop??)
 
+// TODO: Keep track of last rocket type used
+
 // PRIORITY: MEDIUM (MULTIPLAYER)
 // TODO: Make entities persistent across network and send state updates (movement, health etc)
 // TODO: Use per-world entity chunk ID counter, rather than per chunk, to prevent collisions
@@ -2878,6 +2880,40 @@ ObjectReference Game::setupPlanetTravel(PlanetType planetType, const LocationSta
     return placeRocketReference;
 }
 
+void Game::travelToRoomDestinationForClient(RoomType roomDest, const LocationState& currentLocation, ObjectReference rocketObjectUsed, uint64_t clientID)
+{
+    assert(networkHandler.getIsLobbyHost());
+
+    loadRoomDest(roomDest);
+
+    // Get used rocket object data
+    RocketObject* rocketObject = getObjectFromLocation<RocketObject>(rocketObjectUsed, currentLocation);
+    if (!rocketObject)
+    {
+        printf("ERROR: Attempted to set up planet travel for null rocket object (%d, %d, %d, %d)\n",
+            rocketObjectUsed.chunk.x, rocketObjectUsed.chunk.y, rocketObjectUsed.tile.x, rocketObjectUsed.tile.y);
+        return;
+    }
+
+    ObjectType rocketObjectType = rocketObject->getObjectType();
+
+    // Delete used rocket object if on planet
+    if (currentLocation.getGameState() == GameState::OnPlanet)
+    {
+        deleteObjectSynced(rocketObjectUsed, currentLocation.getPlanetType());
+    }
+
+    // Send reply to client
+    PacketDataRoomTravelReply packetData;
+    packetData.roomType = roomDest;
+
+    printf("ROOM TRAVEL: Sending room travel reply to client for room dest type %s\n", std::to_string(roomDest).c_str());
+
+    Packet packet;
+    packet.set(packetData, true);
+    networkHandler.sendPacketToClient(clientID, packet, k_nSteamNetworkingSend_Reliable, 0);
+}
+
 void Game::travelToPlanet(PlanetType planetType, ObjectReference newRocketObjectReference)
 {
     // Store rocket used from previous planet in map
@@ -2949,10 +2985,7 @@ void Game::travelToPlanetFromHost(const PacketDataPlanetTravelReply& planetTrave
 
 void Game::travelToRoomDestinationFromHost(const PacketDataRoomTravelReply& roomTravelReplyPacket)
 {
-    if (!networkHandler.isClient())
-    {
-        return;
-    }
+    assert(networkHandler.isClient());
 
     particleSystem.clear();
     nearbyCraftingStationLevels.clear();
@@ -2993,6 +3026,8 @@ void Game::travelToRoomDestination(RoomType destinationRoomType)
     }
 
     camera.instantUpdate(player.getPosition());
+
+    networkHandler.sendPlayerData();
 }
 
 ChunkPosition Game::initialiseNewPlanet(PlanetType planetType)

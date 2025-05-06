@@ -517,7 +517,7 @@ void NetworkHandler::receiveMessages()
             processMessage(*messages[i], packet);
 
             totalBytesReceived += messages[i]->GetSize();
-            printf("___DEBUG___: Received packet of size %d bytes, type %d\n", messages[i]->GetSize(), packet.type);
+            // printf("___DEBUG___: Received packet of size %d bytes, type %d\n", messages[i]->GetSize(), packet.type);
     
             messages[i]->Release();
         }
@@ -535,7 +535,6 @@ void NetworkHandler::processMessage(const SteamNetworkingMessage_t& message, con
     {
         processMessageAsClient(message, packet);
     }
-
     
     switch (packet.type)
     {
@@ -890,6 +889,14 @@ void NetworkHandler::processMessageAsHost(const SteamNetworkingMessage_t& messag
                 packetData.rocketUsedReference, message.m_identityPeer.GetSteamID64());
             break;
         }
+        case PacketType::RoomTravelRequest:
+        {
+            PacketDataRoomTravelRequest packetData;
+            packetData.deserialise(packet.data);
+            game->travelToRoomDestinationForClient(packetData.roomType, networkPlayers[message.m_identityPeer.GetSteamID64()].getPlayerData().locationState,
+                packetData.rocketUsedReference, message.m_identityPeer.GetSteamID64());
+            break;
+        }
         case PacketType::StructureEnterRequest:
         {
             PacketDataStructureEnterRequest packetData;
@@ -1038,6 +1045,13 @@ void NetworkHandler::processMessageAsClient(const SteamNetworkingMessage_t& mess
             PacketDataPlanetTravelReply packetData;
             packetData.deserialise(packet.data);
             game->travelToPlanetFromHost(packetData);
+            break;
+        }
+        case PacketType::RoomTravelReply:
+        {
+            PacketDataRoomTravelReply packetData;
+            packetData.deserialise(packet.data);
+            game->travelToRoomDestinationFromHost(packetData);
             break;
         }
         case PacketType::StructureEnterReply:

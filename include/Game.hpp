@@ -175,6 +175,8 @@ public:
     void handleChunkDataFromHost(const PacketDataChunkDatas& chunkDataPacket);
 
     ObjectReference setupPlanetTravel(PlanetType planetType, const LocationState& currentLocation, ObjectReference rocketObjectUsed, std::optional<uint64_t> clientID);
+    void travelToRoomDestinationForClient(RoomType roomDest, const LocationState& currentLocation, ObjectReference rocketObjectUsed, uint64_t clientID);
+
     void travelToPlanetFromHost(const PacketDataPlanetTravelReply& planetTravelReplyPacket);
     void travelToRoomDestinationFromHost(const PacketDataRoomTravelReply& roomTravelReplyPacket);
     

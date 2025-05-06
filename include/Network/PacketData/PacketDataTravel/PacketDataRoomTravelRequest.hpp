@@ -22,6 +22,6 @@ struct PacketDataRoomTravelRequest : public IPacketData
     
     inline virtual PacketType getType() const
     {
-        return PacketType::PlanetTravelRequest;
+        return PacketType::RoomTravelRequest;
     }
 };
