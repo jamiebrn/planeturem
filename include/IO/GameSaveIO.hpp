@@ -102,7 +102,7 @@ struct PlanetGameSave
     GameDataVersionState versionState;
 
     template <class Archive>
-    void save(Archive& ar, const std::uint32_t version)
+    void save(Archive& ar, const std::uint32_t version) const
     {
         if (version >= 4)
         {
