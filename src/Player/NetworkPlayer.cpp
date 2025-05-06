@@ -80,6 +80,7 @@ PacketDataPlayerCharacterInfo NetworkPlayer::getNetworkPlayerInfo(const Camera* 
 void NetworkPlayer::setNetworkPlayerCharacterInfo(const PacketDataPlayerCharacterInfo& info)
 {
     playerData.position = info.position;
+    position = info.position;
     direction = info.direction;
     speed = info.speed;
 

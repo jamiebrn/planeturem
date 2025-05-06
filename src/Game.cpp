@@ -6,6 +6,9 @@
 
 // FIX: Weird item pickup unable to pick up bug? (from entity drop??)
 
+// FIX: VSync disable on window toggle fullscreen
+// FIX: Viewport not resizing on window disable fullscreen
+
 // TODO: Keep track of last rocket type used
 
 // PRIORITY: MEDIUM (MULTIPLAYER)
