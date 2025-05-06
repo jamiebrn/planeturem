@@ -4,6 +4,8 @@
 
 // FIX: World wraparound in menu when left for long duration
 
+// FIX: Weird item pickup unable to pick up bug? (from entity drop??)
+
 // PRIORITY: MEDIUM (MULTIPLAYER)
 // TODO: Make entities persistent across network and send state updates (movement, health etc)
 // TODO: Use per-world entity chunk ID counter, rather than per chunk, to prevent collisions
@@ -267,21 +269,21 @@ void Game::run()
             drawStateTransition();
         }
 
-        // pl::TextDrawData textDrawData;
-        // textDrawData.size = 24;
-        // textDrawData.containOnScreenX = true;
-        // textDrawData.containPaddingRight = 10;
-        // textDrawData.position = pl::Vector2f(window.getWidth(), window.getHeight() - 40);
-        // textDrawData.text = Helper::floatToString(networkHandler.getTotalBytesReceived() / 1000.0f, 1) + "kb received (" +
-        //     Helper::floatToString(networkHandler.getByteReceiveRate(dt) / 1000.0f, 1) + "KB/s)";
+        pl::TextDrawData textDrawData;
+        textDrawData.size = 24;
+        textDrawData.containOnScreenX = true;
+        textDrawData.containPaddingRight = 10;
+        textDrawData.position = pl::Vector2f(window.getWidth(), window.getHeight() - 40);
+        textDrawData.text = Helper::floatToString(networkHandler.getTotalBytesReceived() / 1000.0f, 1) + "kb received (" +
+            Helper::floatToString(networkHandler.getByteReceiveRate(dt) / 1000.0f, 1) + "KB/s)";
         
-        // TextDraw::drawText(window, textDrawData);
+        TextDraw::drawText(window, textDrawData);
         
-        // textDrawData.position = pl::Vector2f(window.getWidth(), window.getHeight() - 65);
-        // textDrawData.text = Helper::floatToString(networkHandler.getTotalBytesSent() / 1000.0f, 1) + "kb sent (" +
-        //     Helper::floatToString(networkHandler.getByteSendRate(dt) / 1000.0f, 1) + "KB/s)";
+        textDrawData.position = pl::Vector2f(window.getWidth(), window.getHeight() - 65);
+        textDrawData.text = Helper::floatToString(networkHandler.getTotalBytesSent() / 1000.0f, 1) + "kb sent (" +
+            Helper::floatToString(networkHandler.getByteSendRate(dt) / 1000.0f, 1) + "KB/s)";
 
-        // TextDraw::drawText(window, textDrawData);
+        TextDraw::drawText(window, textDrawData);
 
         #if (!RELEASE_BUILD)
         drawDebugMenu(dt);

@@ -829,7 +829,7 @@ void NetworkHandler::processMessageAsHost(const SteamNetworkingMessage_t& messag
                 }
 
                 // Denormalise pickup position from chunk-relative to world position
-                ItemPickup pickup(request.positionRelative + chunkPtr->getWorldPosition(), request.itemType, game->getGameTime(), 1);
+                ItemPickup pickup(request.positionRelative + chunkPtr->getWorldPosition(), request.itemType, game->getGameTime(), request.count);
 
                 uint64_t itemPickupID = chunkPtr->addItemPickup(pickup);
                 ItemPickup* itemPickupPtr = chunkPtr->getItemPickup(itemPickupID);

@@ -325,7 +325,7 @@
             "texture-origin": [0.5, 1],
             "launch-position": [16, 14],
             "available-destinations": ["Earthlike", "Frozen"],
-            "available-room-destinations": []
+            "available-room-destinations": ["SpaceStation"]
         },
         "item-drops": {
             "Rocket Launch Pad": [1, 1, 1.0]

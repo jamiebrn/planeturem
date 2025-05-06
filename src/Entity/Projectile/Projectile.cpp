@@ -23,6 +23,7 @@ Projectile::Projectile(pl::Vector2f position, pl::Vector2f velocity, ProjectileT
 void Projectile::initialise(pl::Vector2f position, pl::Vector2f velocity, ProjectileType type, float damageMult, HitLayer hitLayer)
 {   
     this->position = position;
+    this->velocity = velocity;
     
     projectileType = type;
     
