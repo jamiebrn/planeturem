@@ -36,6 +36,7 @@ void NetworkPlayer::updateOnPlanet(float dt, ChunkManager& chunkManager)
 
     playerData.position.x = collisionRect.x + collisionRect.width / 2.0f;
     playerData.position.y = collisionRect.y + collisionRect.height / 2.0f;
+    position = playerData.position;
 
     toolRotation += toolRotationVelocity * dt;
 }
@@ -47,6 +48,7 @@ void NetworkPlayer::updateInRoom(float dt, const Room& room)
     
     playerData.position.x = collisionRect.x + collisionRect.width / 2.0f;
     playerData.position.y = collisionRect.y + collisionRect.height / 2.0f;
+    position = playerData.position;
 
     toolRotation += toolRotationVelocity * dt;
 }
