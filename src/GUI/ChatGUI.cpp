@@ -26,11 +26,11 @@ bool ChatGUI::isActive()
 
 void ChatGUI::handleEvent(const SDL_Event& event)
 {
-    if (!active)
+    if (event.type == SDL_TEXTINPUT && active)
     {
-        return;
+        messageBuffer += event.text.text;
     }
-    
+
     if (event.type == SDL_KEYDOWN)
     {
         if (event.key.keysym.scancode == SDL_SCANCODE_RETURN)
@@ -52,15 +52,10 @@ void ChatGUI::handleEvent(const SDL_Event& event)
                 active = false;
             }
         }
-        if (event.key.keysym.scancode == SDL_SCANCODE_BACKSPACE && !messageBuffer.empty())
+        if (event.key.keysym.scancode == SDL_SCANCODE_BACKSPACE && !messageBuffer.empty() && active)
         {
             messageBuffer.pop_back();
         }
-    }
-
-    if (event.type == SDL_TEXTINPUT)
-    {
-        messageBuffer += event.text.text;
     }
 }
 
