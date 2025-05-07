@@ -79,7 +79,34 @@
             "cooldown-time": 20,
             "health-increase": 25
         },
-        "sell-value": 0.5
+        "sell-value": 1
+    },
+    {
+        "name": "Carp",
+        "texture": [0, 128, 16, 16],
+        "consumable-data": {
+            "cooldown-time": 25,
+            "health-increase": 40
+        },
+        "sell-value": 1
+    },
+    {
+        "name": "Bream",
+        "texture": [16, 128, 16, 16],
+        "consumable-data": {
+            "cooldown-time": 15,
+            "health-increase": 20
+        },
+        "sell-value": 1
+    },
+    {
+        "name": "Dace",
+        "texture": [32, 128, 16, 16],
+        "consumable-data": {
+            "cooldown-time": 25,
+            "health-increase": 35
+        },
+        "sell-value": 1
     },
     {
         "name": "Rockfish",

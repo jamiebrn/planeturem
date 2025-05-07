@@ -50,7 +50,10 @@
                         ["Stone Dungeon", 0.02]
                     ],
                     "fish-catches": [
-                        ["Fish", 1, 0.8],
+                        ["Fish", 1, 0.2],
+                        ["Carp", 1, 0.2],
+                        ["Bream", 1, 0.2],
+                        ["Dace", 1, 0.2],
                         ["Coal", 1, 0.1],
                         ["Wood", 2, 0.1]
                     ],
