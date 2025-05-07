@@ -561,8 +561,9 @@
         "texture-y-origin": 1.0,
         "npc-data": {
             "npc-name": "Delirious Elder",
-            "behaviour": "talk",
+            "behaviour": "shop",
             "dialogue": ["Hmm?", "I've failed too many times...", "Find the worm and bestow upon it a blade! My legend must remain!"],
+            "shop-items": [["Wooden Pickaxe", 1]],
             "portrait-texture-offset": [32, 112]
         }
     },

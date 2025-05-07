@@ -6,12 +6,21 @@
 
 // FIX: Weird item pickup unable to pick up bug? (from entity drop??)
 
-// FIX: VSync disable on window toggle fullscreen
+// FIX: Client enter structure
+
+// FIX: VSync disable not working in initial fullscreen
 // FIX: Viewport not resizing on window disable fullscreen
 
 // TODO: Keep track of last rocket type used
 
+// TODO: Customisable keybinds
+
+// TODO: HSV sliders over RGB sliders for customisation, with colour gradient slider background
+
 // PRIORITY: MEDIUM (MULTIPLAYER)
+// TODO: In-game chat
+// TODO: Player customisation (colours, maybe hair, eyes)
+
 // TODO: Make entities persistent across network and send state updates (movement, health etc)
 // TODO: Use per-world entity chunk ID counter, rather than per chunk, to prevent collisions
 
@@ -4292,6 +4301,19 @@ void Game::drawDebugMenu(float dt)
 
     ImGui::Text(("Weather value: " + std::to_string(weatherSystem.sampleWeatherFunction(gameTime))).c_str());
     ImGui::Text(("Weather transition: " + std::to_string(weatherSystem.getDestinationTransitionProgress())).c_str());
+
+    pl::Color playerBodyColor = player.getBodyColor();
+    pl::Color playerSkinColor = player.getSkinColor();
+
+    ImGui::SliderFloat("Body R", &playerBodyColor.r, 0, 255);
+    ImGui::SliderFloat("Body G", &playerBodyColor.g, 0, 255);
+    ImGui::SliderFloat("Body B", &playerBodyColor.b, 0, 255);
+    ImGui::SliderFloat("Skin R", &playerSkinColor.r, 0, 255);
+    ImGui::SliderFloat("Skin G", &playerSkinColor.g, 0, 255);
+    ImGui::SliderFloat("Skin B", &playerSkinColor.b, 0, 255);
+
+    player.setBodyColor(playerBodyColor);
+    player.setSkinColor(playerSkinColor);
 
     ImGui::End();
 

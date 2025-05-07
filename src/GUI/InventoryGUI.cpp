@@ -1460,6 +1460,10 @@ pl::Vector2f InventoryGUI::drawItemInfoBox(pl::RenderTarget& window, float gameT
             {
                 itemPrice = std::floor(openShopData->getItemBuyPrice(itemType) * itemAmount);
                 buyInfoString = "Buy for " + std::to_string(itemPrice) + " currency";
+                if (itemPrice <= 0)
+                {
+                    infoStrings.push_back({"Free", 20});
+                }
                 break;
             }
             case InventoryShopInfoMode::Sell:

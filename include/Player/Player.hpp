@@ -83,7 +83,7 @@ class Player : public WorldObject
 {
 public:
     Player() = default;
-    Player(pl::Vector2f position, int maxHealth = 0);
+    Player(pl::Vector2f position, int maxHealth = 0, pl::Color bodyColor = pl::Color(158, 69, 57, 255), pl::Color skinColor = pl::Color(230, 144, 78, 255));
 
     void update(float dt, pl::Vector2f mouseWorldPos, ChunkManager& chunkManager, ProjectileManager& projectileManager,
         bool& wrappedAroundWorld, pl::Vector2f& wrapPositionDelta);
@@ -107,6 +107,11 @@ public:
     void setArmourFromInventory(const InventoryData& armourInventory);
 
     void setCanMove(bool value);
+
+    pl::Color getBodyColor() const;
+    pl::Color getSkinColor() const;
+    void setBodyColor(const pl::Color& color);
+    void setSkinColor(const pl::Color& color);
 
     // Damage
     bool testHitCollision(const Projectile& projectile);
@@ -177,6 +182,9 @@ protected:
 
     AnimatedTexture idleAnimation;
     AnimatedTexture runAnimation;
+
+    pl::Color bodyColor;
+    pl::Color skinColor;
 
     int tileReach = 4;
     float speed = 120.0f;

@@ -2,7 +2,7 @@
 #include "Player/Cursor.hpp"
 #include "Game.hpp"
 
-Player::Player(pl::Vector2f position, int maxHealth)
+Player::Player(pl::Vector2f position, int maxHealth, pl::Color bodyColor, pl::Color skinColor)
     : WorldObject(position)
 {
     collisionRect.width = 12.0f;
@@ -17,6 +17,9 @@ Player::Player(pl::Vector2f position, int maxHealth)
 
     idleAnimation.create(3, 16, 18, 0, 0, 0.3);
     runAnimation.create(5, 16, 18, 48, 0, 0.1);
+
+    this->bodyColor = bodyColor;
+    this->skinColor = skinColor;
 
     canMove = true;
 
@@ -437,13 +440,45 @@ void Player::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& 
 
     playerScale.y *= playerYScaleMult;
 
+    // Create player texture with color replaced
+    pl::Framebuffer coloredTexture;
+    coloredTexture.create(animationRect.width, animationRect.height);
+    coloredTexture.clear(pl::Color(0, 0, 0, 0));
+
+    std::vector<float> replaceKeys = {
+        87 / 255.0f, 87 / 255.0f, 87 / 255.0f, 1.0f,
+        84 / 255.0f, 84 / 255.0f, 84 / 255.0f, 1.0f,
+        78 / 255.0f, 78 / 255.0f, 78 / 255.0f, 1.0f,
+        75 / 255.0f, 75 / 255.0f, 75 / 255.0f, 1.0f,
+        157 / 255.0f, 157 / 255.0f, 157 / 255.0f, 1.0f,
+        146 / 255.0f, 146 / 255.0f, 146 / 255.0f, 1.0f
+    };
+    std::vector<float> replaceValues = {
+        bodyColor.r / 255.0f, bodyColor.g / 255.0f, bodyColor.b / 255.0f, 1.0f,
+        std::max(bodyColor.r * 0.95f, 0.0f) / 255.0f, std::max(bodyColor.g * 0.985f, 0.0f) / 255.0f, bodyColor.b / 255.0f, 1.0f,
+        std::max(bodyColor.r * 0.886f, 0.0f) / 255.0f, std::max(bodyColor.g * 0.91f, 0.0f) / 255.0f, std::max(bodyColor.b * 0.929f, 0.0f) / 255.0f, 1.0f,
+        std::max(bodyColor.r * 0.854f, 0.0f) / 255.0f, std::max(bodyColor.g * 0.869f, 0.0f) / 255.0f, std::max(bodyColor.b * 0.877f, 0.0f) / 255.0f, 1.0f,
+        skinColor.r / 255.0f, skinColor.g / 255.0f, skinColor.b / 255.0f, 1.0f,
+        std::max(skinColor.r * 0.93f, 0.0f) / 255.0f, std::max(skinColor.g * 0.93f, 0.0f) / 255.0f, std::max(skinColor.b * 0.935f, 0.0f) / 255.0f, 1.0f,
+    };
+
+    pl::Shader* replaceColorShader = Shaders::getShader(ShaderType::ReplaceColour);
+    replaceColorShader->setUniform1i("replaceKeyCount", replaceKeys.size() / 4);
+    replaceColorShader->setUniform4fv("replaceKeys", replaceKeys);
+    replaceColorShader->setUniform4fv("replaceValues", replaceValues);
+
+    pl::VertexArray rect;
+    rect.addQuad(pl::Rect<int>(0, coloredTexture.getHeight(), coloredTexture.getWidth(), -coloredTexture.getHeight()), pl::Color(255, 255, 255, 255), animationRect);
+
+    coloredTexture.draw(rect, *replaceColorShader, TextureManager::getTexture(TextureType::Player), pl::BlendMode::Alpha);
+
     pl::DrawData playerDrawData;
-    playerDrawData.texture = TextureManager::getTexture(TextureType::Player);
+    playerDrawData.texture = &coloredTexture.getTexture();
     playerDrawData.shader = Shaders::getShader(ShaderType::Default);
     playerDrawData.position = camera.worldToScreenTransform(position + pl::Vector2f(0, waterYOffset));
     playerDrawData.scale = playerScale;
     playerDrawData.centerRatio = pl::Vector2f(0.5f, 1.0f);
-    playerDrawData.textureRect = animationRect;
+    playerDrawData.textureRect = pl::Rect<int>(0, 0, coloredTexture.getWidth(), coloredTexture.getHeight());
     
     if (damageCooldownTimer > 0.0f)
     {
@@ -452,6 +487,9 @@ void Player::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& 
     }
 
     spriteBatch.draw(window, playerDrawData);
+
+    // End batch to draw with temporary player texture
+    spriteBatch.endDrawing(window);
     
     // Draw armour
     drawArmour(window, spriteBatch, camera, waterYOffset);
@@ -962,6 +1000,26 @@ void Player::setCanMove(bool value)
 {
     canMove = value;
     direction = pl::Vector2f(0, 0);
+}
+
+pl::Color Player::getBodyColor() const
+{
+    return bodyColor;
+}
+
+pl::Color Player::getSkinColor() const
+{
+    return skinColor;
+}
+
+void Player::setBodyColor(const pl::Color& color)
+{
+    bodyColor = color;
+}
+
+void Player::setSkinColor(const pl::Color& color)
+{
+    skinColor = color;
 }
 
 bool Player::testHitCollision(const Projectile& projectile)
