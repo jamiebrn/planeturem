@@ -97,6 +97,7 @@
 
 #include "GUI/MainMenuGUI.hpp"
 #include "GUI/InventoryGUI.hpp"
+#include "GUI/ChatGUI.hpp"
 #include "GUI/HealthGUI.hpp"
 #include "GUI/TravelSelectGUI.hpp"
 #include "GUI/LandmarkSetGUI.hpp"
@@ -373,6 +374,8 @@ private:
     TravelSelectGUI travelSelectGUI;
     LandmarkSetGUI landmarkSetGUI;
     pl::Vector2f mouseScreenPos;
+
+    ChatGUI chatGUI;
 
     DemoEndGUI demoEndGUI;
     

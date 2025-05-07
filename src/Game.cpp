@@ -421,6 +421,7 @@ void Game::runInGame(float dt)
         landmarkSetGUI.handleEvent(event);
         npcInteractionGUI.handleEvent(event);
         mainMenuGUI.handleEvent(event);
+        chatGUI.handleEvent(event);
         demoEndGUI.handleEvent(event);
     }
 
@@ -615,7 +616,7 @@ void Game::runInGame(float dt)
             }
         }
 
-        if (InputManager::isActionJustActivated(InputAction::OPEN_INVENTORY))
+        if (InputManager::isActionJustActivated(InputAction::OPEN_INVENTORY) && !chatGUI.isActive())
         {
             switch (worldMenuState)
             {
@@ -640,7 +641,7 @@ void Game::runInGame(float dt)
             }
         }
         
-        if (InputManager::isActionJustActivated(InputAction::PAUSE_GAME))
+        if (InputManager::isActionJustActivated(InputAction::PAUSE_GAME) && !chatGUI.isActive())
         {
             if (worldMenuState == WorldMenuState::Main)
             {
@@ -650,7 +651,7 @@ void Game::runInGame(float dt)
             }
         }
         
-        if (InputManager::isActionJustActivated(InputAction::UI_BACK))
+        if (InputManager::isActionJustActivated(InputAction::UI_BACK) && !chatGUI.isActive())
         {
             switch (worldMenuState)
             {
@@ -1020,6 +1021,10 @@ void Game::runInGame(float dt)
                 }
             }
         }
+    }
+    else
+    {
+        chatGUI.draw(window);
     }
 
     spriteBatch.endDrawing(window);
@@ -3197,6 +3202,8 @@ void Game::startNewGame(int seed)
     InventoryGUI::reset();
     changePlayerTool();
 
+    chatGUI.initialise();
+
     locationState = LocationState();
     locationState.setPlanetType(PlanetGenDataLoader::getPlanetTypeFromName("Earthlike"));
     planetSeed = seed;
@@ -3314,6 +3321,8 @@ bool Game::loadGame(const SaveFileSummary& saveFileSummary)
     
     InventoryGUI::reset();
     InventoryGUI::setSeenRecipes(playerGameSave.playerData.recipesSeen);
+
+    chatGUI.initialise();
 
     planetRocketUsedPositions = playerGameSave.playerData.planetRocketUsedPositions;
 
