@@ -57,6 +57,8 @@ public:
     bool canSendStructureRequest();
     void structureRequestSent();
 
+    void forwardChatMessageToClients()
+
     bool isMultiplayerGame() const;
     bool isLobbyHostOrSolo() const;
     bool getIsLobbyHost() const;

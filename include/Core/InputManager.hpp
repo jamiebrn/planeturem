@@ -45,6 +45,8 @@ enum class InputAction
     ZOOM_IN,
     ZOOM_OUT,
 
+    OPEN_CHAT,
+
     PAUSE_GAME,
 
     DIRECT_UP, // Controller specfic

@@ -124,6 +124,7 @@ bool Game::initialise()
     InputManager::bindKey(InputAction::UI_BACK, SDL_Scancode::SDL_SCANCODE_ESCAPE);
     InputManager::bindKey(InputAction::UI_SHIFT, SDL_Scancode::SDL_SCANCODE_LSHIFT);
     InputManager::bindKey(InputAction::UI_CTRL, SDL_Scancode::SDL_SCANCODE_LCTRL);
+    InputManager::bindKey(InputAction::OPEN_CHAT, SDL_Scancode::SDL_SCANCODE_RETURN);
     InputManager::bindKey(InputAction::PAUSE_GAME, SDL_Scancode::SDL_SCANCODE_ESCAPE);
     InputManager::bindKey(InputAction::HOTBAR_0, SDL_Scancode::SDL_SCANCODE_1);
     InputManager::bindKey(InputAction::HOTBAR_1, SDL_Scancode::SDL_SCANCODE_2);
@@ -154,8 +155,9 @@ bool Game::initialise()
     InputManager::bindControllerButton(InputAction::UI_CONFIRM_OTHER, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_X);
     InputManager::bindControllerButton(InputAction::UI_BACK, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_B);
     InputManager::bindControllerButton(InputAction::UI_SHIFT, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_LEFTSTICK);
-    InputManager::bindControllerButton(InputAction::UI_CTRL, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_GUIDE);
+    // InputManager::bindControllerButton(InputAction::UI_CTRL, SDL_GameControllerButton::);
     InputManager::bindControllerButton(InputAction::RECENTRE_CONTROLLER_CURSOR, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_RIGHTSTICK);
+    InputManager::bindControllerButton(InputAction::OPEN_CHAT, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_GUIDE);
     InputManager::bindControllerButton(InputAction::PAUSE_GAME, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_START);
     InputManager::bindControllerAxis(InputAction::USE_TOOL, JoystickAxisWithDirection{SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_TRIGGERRIGHT, JoystickAxisDirection::POSITIVE});
     InputManager::bindControllerAxis(InputAction::INTERACT, JoystickAxisWithDirection{SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_TRIGGERLEFT, JoystickAxisDirection::POSITIVE});
@@ -421,8 +423,12 @@ void Game::runInGame(float dt)
         landmarkSetGUI.handleEvent(event);
         npcInteractionGUI.handleEvent(event);
         mainMenuGUI.handleEvent(event);
-        chatGUI.handleEvent(event);
         demoEndGUI.handleEvent(event);
+
+        if (worldMenuState != WorldMenuState::PauseMenu)
+        {
+            chatGUI.handleEvent(event, networkHandler);
+        }
     }
 
     bool canInput = true;
@@ -705,6 +711,11 @@ void Game::runInGame(float dt)
         {
             InputManager::recentreControllerCursor(window.getSDLWindow());
         }
+    }
+
+    if (canInput)
+    {
+        chatGUI.update(window);
     }
 
     //

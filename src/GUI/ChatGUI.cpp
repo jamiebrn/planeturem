@@ -1,4 +1,5 @@
 #include "GUI/ChatGUI.hpp"
+#include "Network/NetworkHandler.hpp"
 
 void ChatGUI::initialise()
 {
@@ -13,10 +14,22 @@ void ChatGUI::setShowing(bool enabled)
     showing = enabled;
 }
 
-void ChatGUI::activate()
+void ChatGUI::activate(const pl::RenderTarget& window)
 {
     showing = true;
     active = true;
+
+    if (InputManager::isControllerActive())
+    {
+        float intScale = ResolutionHandler::getResolutionIntegerScale();
+
+        const int width = 600 * intScale;
+        const int height = 450 * intScale;
+        const int padding = 30 * intScale;
+
+        SteamUtils()->ShowFloatingGamepadTextInput(EFloatingGamepadTextInputMode::k_EFloatingGamepadTextInputModeModeSingleLine,
+            window.getWidth() - width - padding, window.getHeight() - height - padding, width, height);
+    }
 }
 
 bool ChatGUI::isActive()
@@ -24,7 +37,7 @@ bool ChatGUI::isActive()
     return active;
 }
 
-void ChatGUI::handleEvent(const SDL_Event& event)
+void ChatGUI::handleEvent(const SDL_Event& event, NetworkHandler& networkHandler)
 {
     if (event.type == SDL_TEXTINPUT && active)
     {
@@ -35,22 +48,7 @@ void ChatGUI::handleEvent(const SDL_Event& event)
     {
         if (event.key.keysym.scancode == SDL_SCANCODE_RETURN)
         {
-            if (!active)
-            {
-                activate();
-            }
-            else
-            {
-                attemptSendMessage();
-            }
-        }
-        if (event.key.keysym.scancode == SDL_SCANCODE_ESCAPE)
-        {
-            if (active)
-            {
-                showing = false;
-                active = false;
-            }
+            attemptSendMessage(networkHandler);
         }
         if (event.key.keysym.scancode == SDL_SCANCODE_BACKSPACE && !messageBuffer.empty() && active)
         {
@@ -59,14 +57,42 @@ void ChatGUI::handleEvent(const SDL_Event& event)
     }
 }
 
-void ChatGUI::attemptSendMessage()
+void ChatGUI::update(const pl::RenderTarget& window)
+{
+    if (InputManager::isActionJustActivated(InputAction::OPEN_CHAT))
+    {
+        if (!active)
+        {
+            activate(window);
+        }
+
+        InputManager::consumeInputAction(InputAction::OPEN_CHAT);
+    }
+    else if (InputManager::isActionJustActivated(InputAction::UI_BACK))
+    {
+        if (active)
+        {
+            showing = false;
+            active = false;
+        }
+
+        InputManager::consumeInputAction(InputAction::UI_BACK);
+    }
+}
+
+void ChatGUI::attemptSendMessage(NetworkHandler& networkHandler)
 {
     if (messageBuffer.empty())
     {
         return;
     }
 
-    chatLog.push_back(messageBuffer);
+    if (networkHandler.getIsLobbyHost())
+    {
+        
+    }
+
+    // chatLog.push_back(messageBuffer);
 
     messageBuffer.clear();
 }
@@ -105,7 +131,8 @@ void ChatGUI::draw(pl::RenderTarget& window)
 
     for (int i = static_cast<int>(chatLog.size()) - 1; i >= std::max(static_cast<int>(chatLog.size()) - messageCount, 0); i--)
     {
-        drawData.text = chatLog[i];
+        drawData.text = chatLog[i].message;
+        drawData.color = chatLog[i].color;
         drawData.position.y -= 30 * intScale;
 
         TextDraw::drawText(window, drawData);

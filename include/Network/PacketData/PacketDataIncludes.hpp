@@ -5,6 +5,7 @@
 #include "Network/PacketData/PacketDataServer/PacketDataJoinInfo.hpp"
 #include "Network/PacketData/PacketDataServer/PacketDataPlayerJoined.hpp"
 #include "Network/PacketData/PacketDataServer/PacketDataServerInfo.hpp"
+#include "Network/PacketData/PacketDataServer/PacketDataChatMessage.hpp"
 
 #include "Network/PacketData/PacketDataPlayer/PacketDataPlayerData.hpp"
 #include "Network/PacketData/PacketDataPlayer/PacketDataPlayerCharacterInfo.hpp"

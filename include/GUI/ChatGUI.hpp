@@ -4,6 +4,8 @@
 #include <vector>
 #include <string>
 
+#include <extlib/steam/steam_api.h>
+
 #include <SDL2/SDL_events.h>
 
 #include <Graphics/VertexArray.hpp>
@@ -18,6 +20,16 @@
 #include "Core/Shaders.hpp"
 #include "Core/TextDraw.hpp"
 #include "Core/ResolutionHandler.hpp"
+#include "Core/InputManager.hpp"
+
+class NetworkHandler;
+
+struct ChatMessage
+{
+    uint64_t userId;
+    std::string message;
+    pl::Color color;
+};
 
 class ChatGUI
 {
@@ -25,18 +37,22 @@ public:
     void initialise();
 
     void setShowing(bool enabled);
-    void activate();
+    void activate(const pl::RenderTarget& window);
 
     bool isActive();
 
-    void handleEvent(const SDL_Event& event);
+    void handleEvent(const SDL_Event& event, NetworkHandler& networkHandler);
+
+    void update(const pl::RenderTarget& window);
 
     void draw(pl::RenderTarget& window);
 
-private:
-    void attemptSendMessage();
+    void addChatMessage(const ChatMessage& chatMessage);
 
-    std::vector<std::string> chatLog;
+private:
+    void attemptSendMessage(NetworkHandler& networkHandler);
+
+    std::vector<ChatMessage> chatLog;
 
     std::string messageBuffer;
 
