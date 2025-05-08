@@ -1,5 +1,6 @@
 #include "Network/NetworkHandler.hpp"
 #include "Game.hpp"
+#include "GUI/ChatGUI.hpp"
 
 NetworkHandler::NetworkHandler(Game* game)
 {
@@ -491,7 +492,7 @@ void NetworkHandler::updateNetworkPlayers(float dt, const LocationState& locatio
     }
 }
 
-void NetworkHandler::receiveMessages()
+void NetworkHandler::receiveMessages(ChatGUI& chatGUI)
 {
     static const int MAX_MESSAGES = 10;
 
@@ -514,7 +515,7 @@ void NetworkHandler::receiveMessages()
             Packet packet;
             packet.deserialise((char*)messages[i]->GetData(), messages[i]->GetSize());
     
-            processMessage(*messages[i], packet);
+            processMessage(*messages[i], packet, chatGUI);
 
             totalBytesReceived += messages[i]->GetSize();
             // printf("___DEBUG___: Received packet of size %d bytes, type %d\n", messages[i]->GetSize(), packet.type);
@@ -524,7 +525,7 @@ void NetworkHandler::receiveMessages()
     }
 }
 
-void NetworkHandler::processMessage(const SteamNetworkingMessage_t& message, const Packet& packet)
+void NetworkHandler::processMessage(const SteamNetworkingMessage_t& message, const Packet& packet, ChatGUI& chatGUI)
 {
     // Process packet
     if (isLobbyHost)
@@ -592,6 +593,20 @@ void NetworkHandler::processMessage(const SteamNetworkingMessage_t& message, con
                 networkPlayerDatasSaved[packetData.userID] = packetData.playerData;
                 sendPlayerDataToClients(packetData);
             }
+            break;
+        }
+        case PacketType::ChatMessage:
+        {
+            PacketDataChatMessage packetData;
+            packetData.deserialise(packet.data);
+
+            // Forward to clients if host
+            if (isLobbyHost)
+            {
+                sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0);
+            }
+
+            chatGUI.addChatMessage(*this, packetData);
             break;
         }
         case PacketType::ObjectHit:
@@ -1425,6 +1440,11 @@ bool NetworkHandler::canSendStructureRequest()
 void NetworkHandler::structureRequestSent()
 {
     structureEnterRequestCooldown = STRUCTURE_ENTER_REQUEST_COOLDOWN;
+}
+
+void NetworkHandler::forwardChatMessageToClients(const PacketDataChatMessage& chatMessage)
+{
+    
 }
 
 int NetworkHandler::getTotalBytesSent() const

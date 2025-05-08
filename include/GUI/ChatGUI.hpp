@@ -22,6 +22,8 @@
 #include "Core/ResolutionHandler.hpp"
 #include "Core/InputManager.hpp"
 
+#include "Network/PacketData/PacketDataIncludes.hpp"
+
 class NetworkHandler;
 
 struct ChatMessage
@@ -47,7 +49,7 @@ public:
 
     void draw(pl::RenderTarget& window);
 
-    void addChatMessage(const ChatMessage& chatMessage);
+    void addChatMessage(NetworkHandler& networkHandler, const PacketDataChatMessage& chatMessagePacket);
 
 private:
     void attemptSendMessage(NetworkHandler& networkHandler);

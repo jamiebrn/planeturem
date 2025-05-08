@@ -39,7 +39,12 @@ bool ChatGUI::isActive()
 
 void ChatGUI::handleEvent(const SDL_Event& event, NetworkHandler& networkHandler)
 {
-    if (event.type == SDL_TEXTINPUT && active)
+    if (!active)
+    {
+        return;
+    }
+
+    if (event.type == SDL_TEXTINPUT)
     {
         messageBuffer += event.text.text;
     }
@@ -82,19 +87,53 @@ void ChatGUI::update(const pl::RenderTarget& window)
 
 void ChatGUI::attemptSendMessage(NetworkHandler& networkHandler)
 {
-    if (messageBuffer.empty())
+    if (messageBuffer.empty() || !networkHandler.isMultiplayerGame())
+    {
+        return;
+    }
+    
+    PacketDataChatMessage packetData;
+    packetData.userId = SteamUser()->GetSteamID().ConvertToUint64();
+    packetData.message = messageBuffer;
+
+    Packet packet;
+    packet.set(packetData);
+
+    if (networkHandler.getIsLobbyHost())
+    {
+        networkHandler.sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0);
+
+        addChatMessage(networkHandler, packetData);
+    }
+    else
+    {
+        networkHandler.sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
+    }
+
+    messageBuffer.clear();
+}
+
+void ChatGUI::addChatMessage(NetworkHandler& networkHandler, const PacketDataChatMessage& chatMessagePacket)
+{
+    if (!networkHandler.isMultiplayerGame())
     {
         return;
     }
 
-    if (networkHandler.getIsLobbyHost())
+    ChatMessage chatMessage;
+    chatMessage.userId = chatMessagePacket.userId;
+
+    if (chatMessagePacket.userId == SteamUser()->GetSteamID().ConvertToUint64())
     {
-        
+        chatMessage.color = pl::Color(247, 150, 23);
+        chatMessage.message = "You: " + chatMessagePacket.message;
+    }
+    else
+    {
+        chatMessage.message = networkHandler.getPlayerName(chatMessagePacket.userId) + ": " + chatMessagePacket.message;
     }
 
-    // chatLog.push_back(messageBuffer);
-
-    messageBuffer.clear();
+    chatLog.push_back(chatMessage);
 }
 
 void ChatGUI::draw(pl::RenderTarget& window)

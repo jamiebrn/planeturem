@@ -21,6 +21,7 @@
 #include "Player/NetworkPlayer.hpp"
 
 class Game;
+class ChatGUI;
 
 class NetworkHandler
 {
@@ -33,7 +34,7 @@ public:
     
     void sendWorldJoinReply(std::string playerName = "");
 
-    void receiveMessages();
+    void receiveMessages(ChatGUI& chatGUI);
 
     void update(float dt);
 
@@ -57,7 +58,7 @@ public:
     bool canSendStructureRequest();
     void structureRequestSent();
 
-    void forwardChatMessageToClients()
+    void forwardChatMessageToClients(const PacketDataChatMessage& chatMessage);
 
     bool isMultiplayerGame() const;
     bool isLobbyHostOrSolo() const;
@@ -90,7 +91,7 @@ public:
     float getByteReceiveRate(float dt) const;
 
 private:
-    void processMessage(const SteamNetworkingMessage_t& message, const Packet& packet);
+    void processMessage(const SteamNetworkingMessage_t& message, const Packet& packet, ChatGUI& chatGUI);
     void processMessageAsHost(const SteamNetworkingMessage_t& message, const Packet& packet);
     void processMessageAsClient(const SteamNetworkingMessage_t& message, const Packet& packet);
     
