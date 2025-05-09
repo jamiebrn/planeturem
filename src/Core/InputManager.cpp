@@ -392,3 +392,26 @@ int InputManager::getGlyphTypeCount()
 {
     return CONTROLLER_MAX_GLYPH_TYPE_COUNT;
 }
+
+void InputManager::loadInputBindingsSave(const InputBindingsSave& bindingsSave)
+{
+    keyBindings = bindingsSave.keyBindings;
+    mouseBindings = bindingsSave.mouseBindings;
+    mouseWheelBindings = bindingsSave.mouseWheelBindings;
+    controllerAxisBindings = bindingsSave.controllerAxisBindings;
+    controllerButtonBindings = bindingsSave.controllerButtonBindings;
+    controllerAxisDeadzone = bindingsSave.controllerAxisDeadzone;
+}
+
+InputBindingsSave InputManager::createInputBindingsSave()
+{
+    InputBindingsSave bindingsSave;
+    bindingsSave.keyBindings = keyBindings;
+    bindingsSave.mouseBindings = mouseBindings;
+    bindingsSave.mouseWheelBindings = mouseWheelBindings;
+    bindingsSave.controllerAxisBindings = controllerAxisBindings;
+    bindingsSave.controllerButtonBindings = controllerButtonBindings;
+    bindingsSave.controllerAxisDeadzone = controllerAxisDeadzone;
+
+    return bindingsSave;
+}

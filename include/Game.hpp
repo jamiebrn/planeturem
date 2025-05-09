@@ -321,6 +321,8 @@ private:
     
     void saveOptions();
     void loadOptions();
+
+    void loadInputBindings();
     
 
     // -- Window -- //

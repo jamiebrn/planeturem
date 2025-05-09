@@ -24,7 +24,7 @@ void ChatGUI::activate(const pl::RenderTarget& window)
         float intScale = ResolutionHandler::getResolutionIntegerScale();
 
         const int width = 600 * intScale;
-        const int height = 450 * intScale;
+        const int height = 335 * intScale;
         const int padding = 30 * intScale;
 
         SteamUtils()->ShowFloatingGamepadTextInput(EFloatingGamepadTextInputMode::k_EFloatingGamepadTextInputModeModeSingleLine,
@@ -146,10 +146,10 @@ void ChatGUI::draw(pl::RenderTarget& window)
     float intScale = ResolutionHandler::getResolutionIntegerScale();
 
     const int width = 600 * intScale;
-    const int height = 450 * intScale;
+    const int height = 335 * intScale;
     const int padding = 30 * intScale;
 
-    const int messageCount = 6;
+    const int messageCount = 10;
 
     pl::VertexArray background;
     background.addQuad(pl::Rect<float>(window.getWidth() - width - padding, window.getHeight() - height - padding, width, height),

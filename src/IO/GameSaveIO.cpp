@@ -411,6 +411,57 @@ bool GameSaveIO::loadOptionsSave(OptionsSave& optionsSave)
     return true;   
 }
 
+bool GameSaveIO::writeInputBindingsSave(const InputBindingsSave& inputBindingsSave)
+{
+    std::fstream out(getRootDir() + "input-bindings.json", std::ios::out);
+
+    if (!out)
+    {
+        return false;
+    }
+
+    try
+    {
+        nlohmann::json json = inputBindingsSave;
+
+        out << json.dump(1, '   ');
+        out.close();
+
+        return true;
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+        return false;
+    }
+
+    return true;
+}
+
+bool GameSaveIO::loadInputBindingsSave(InputBindingsSave& inputBindingsSave)
+{
+    std::fstream in(getRootDir() + "input-bindings.json", std::ios::in);
+
+    if (!in)
+    {
+        return false;
+    }
+
+    try
+    {
+        nlohmann::json json = nlohmann::json::parse(in);
+
+        inputBindingsSave = json;
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+        return false;
+    }
+
+    return true;   
+}
+
 void GameSaveIO::createSaveDirectoryIfRequired()
 {
     std::filesystem::path dir(sago::getDataHome() + "/Planeturem");

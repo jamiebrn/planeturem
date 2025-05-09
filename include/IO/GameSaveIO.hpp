@@ -19,6 +19,8 @@
 
 #include <Core/json.hpp>
 
+#include "Core/InputManager.hpp"
+
 #include "World/ChunkPOD.hpp"
 #include "World/ChestDataPool.hpp"
 #include "World/RoomPool.hpp"
@@ -228,6 +230,8 @@ public:
     bool writeOptionsSave(const OptionsSave& optionsSave);
     bool loadOptionsSave(OptionsSave& optionsSave);
 
+    bool writeInputBindingsSave(const InputBindingsSave& inputBindingsSave);
+    bool loadInputBindingsSave(InputBindingsSave& inputBindingsSave);
 
 private:
     void createSaveDirectoryIfRequired();

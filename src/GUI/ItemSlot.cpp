@@ -248,6 +248,7 @@ void ItemSlot::drawItem(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, 
     drawData.centerRatio = origin;
     drawData.color = colour;
     drawData.textureRect = textureRect;
+    drawData.vertexPixelClamp = false;
 
     if (flashAmount > 0.0f)
     {
