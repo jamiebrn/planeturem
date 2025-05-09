@@ -262,7 +262,7 @@ void Game::run()
 
         if (networkHandler.isMultiplayerGame())
         {
-            networkHandler.receiveMessages();
+            networkHandler.receiveMessages(chatGUI);
         }
 
         // runFeatureTest();
