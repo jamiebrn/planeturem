@@ -424,7 +424,7 @@ bool GameSaveIO::writeInputBindingsSave(const InputBindingsSave& inputBindingsSa
     {
         nlohmann::json json = inputBindingsSave;
 
-        out << json.dump(1, '   ');
+        out << json.dump(1, '\t');
         out.close();
 
         return true;

@@ -4,12 +4,16 @@
 
 #include <Vector.hpp>
 
+#include <iostream>
 #include <algorithm>
 #include <vector>
 #include <unordered_map>
 #include <optional>
 
 #include <Core/json.hpp>
+
+#define MAGIC_ENUM_RANGE_MAX SDL_NUM_SCANCODES
+#include <extlib/magic_enum.hpp>
 
 enum class InputAction
 {
@@ -59,44 +63,6 @@ enum class InputAction
     RECENTRE_CONTROLLER_CURSOR
 };
 
-NLOHMANN_JSON_SERIALIZE_ENUM(InputAction, {
-    {InputAction::UI_UP, "UI_UP"},
-    {InputAction::UI_DOWN, "UI_DOWN"},
-    {InputAction::UI_LEFT, "UI_LEFT"},
-    {InputAction::UI_RIGHT, "UI_RIGHT"},
-    {InputAction::UI_CONFIRM, "UI_CONFIRM"},
-    {InputAction::UI_CONFIRM_OTHER, "UI_CONFIRM_OTHER"},
-    {InputAction::UI_SHIFT, "UI_SHIFT"},
-    {InputAction::UI_CTRL, "UI_CTRL"},
-    {InputAction::UI_BACK, "UI_BACK"},
-    {InputAction::UI_TAB_LEFT, "UI_TAB_LEFT"},
-    {InputAction::UI_TAB_RIGHT, "UI_TAB_RIGHT"},
-    {InputAction::HOTBAR_0, "HOTBAR_0"},
-    {InputAction::HOTBAR_1, "HOTBAR_1"},
-    {InputAction::HOTBAR_2, "HOTBAR_2"},
-    {InputAction::HOTBAR_3, "HOTBAR_3"},
-    {InputAction::HOTBAR_4, "HOTBAR_4"},
-    {InputAction::HOTBAR_5, "HOTBAR_5"},
-    {InputAction::HOTBAR_6, "HOTBAR_6"},
-    {InputAction::HOTBAR_7, "HOTBAR_7"},
-    {InputAction::WALK_UP, "WALK_UP"},
-    {InputAction::WALK_DOWN, "WALK_DOWN"},
-    {InputAction::WALK_LEFT, "WALK_LEFT"},
-    {InputAction::WALK_RIGHT, "WALK_RIGHT"},
-    {InputAction::USE_TOOL, "USE_TOOL"},
-    {InputAction::INTERACT, "INTERACT"},
-    {InputAction::OPEN_INVENTORY, "OPEN_INVENTORY"},
-    {InputAction::ZOOM_IN, "ZOOM_IN"},
-    {InputAction::ZOOM_OUT, "ZOOM_OUT"},
-    {InputAction::OPEN_CHAT, "OPEN_CHAT"},
-    {InputAction::PAUSE_GAME, "PAUSE_GAME"},
-    {InputAction::DIRECT_UP, "DIRECT_UP"},
-    {InputAction::DIRECT_DOWN, "DIRECT_DOWN"},
-    {InputAction::DIRECT_LEFT, "DIRECT_LEFT"},
-    {InputAction::DIRECT_RIGHT, "DIRECT_RIGHT"},
-    {InputAction::RECENTRE_CONTROLLER_CURSOR, "RECENTRE_CONTROLLER_CURSOR"}
-})
-
 enum class ControllerGlyph
 {
     BUTTON_A,
@@ -119,38 +85,43 @@ enum class JoystickAxisDirection
     NEGATIVE
 };
 
-NLOHMANN_JSON_SERIALIZE_ENUM(JoystickAxisDirection, {JoystickAxisDirection::POSITIVE, "positive", JoystickAxisDirection::NEGATIVE, "negative"})
-
 enum class MouseWheelScroll
 {
     Up,
     Down
 };
 
-NLOHMANN_JSON_SERIALIZE_ENUM(MouseWheelScroll, {MouseWheelScroll::Up, "up", MouseWheelScroll::Down, "down"})
-
 struct JoystickAxisWithDirection
 {
-    SDL_GameControllerAxis axis;
+    SDL_GameControllerAxis axis = SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_INVALID;
     JoystickAxisDirection direction;
 
     bool operator==(const JoystickAxisWithDirection& other) const
     {
         return (axis == other.axis && direction == other.direction);
     }
-    
-    inline void from_json(const nlohmann::json& json)
-    {
-        axis = json["axis"];
-        direction = json["direction"];
-    }
-
-    inline void to_json(nlohmann::json& json)
-    {
-        json["axis"] = axis;
-        json["direction"] = direction;
-    }
 };
+
+inline void from_json(const nlohmann::json& json, JoystickAxisWithDirection& joystick)
+{
+    auto joystickAxis = magic_enum::enum_cast<SDL_GameControllerAxis>(json["axis"].get<std::string>());
+    auto joystickDirection = magic_enum::enum_cast<JoystickAxisDirection>(json["direction"].get<std::string>());
+
+    if (joystickAxis.has_value())
+    {
+        joystick.axis = joystickAxis.value();
+    }
+    if (joystickDirection.has_value())
+    {
+        joystick.direction = joystickDirection.value();
+    }
+}
+
+inline void to_json(nlohmann::json& json, const JoystickAxisWithDirection& joystick)
+{
+    json["axis"] = magic_enum::enum_name(joystick.axis);
+    json["direction"] = magic_enum::enum_name(joystick.direction);
+}
 
 struct InputBindingsSave
 {
@@ -162,47 +133,68 @@ struct InputBindingsSave
 
     float controllerAxisDeadzone;
 
-    template <typename T>
+    template <typename T, bool isEnum>
     inline void writeBindings(nlohmann::json& json, const std::unordered_map<InputAction, T>& bindings, const std::string& name) const
     {
         for (const auto& binding : bindings)
         {
-            nlohmann::json inputActionStringJson = binding.first;
-            std::string inputActionString = inputActionStringJson.get<std::string>();
+            auto inputActionString = magic_enum::enum_name(binding.first);
+
+            if constexpr (isEnum)
+            {
+                json[name][inputActionString] = magic_enum::enum_name(binding.second);
+                std::cout << magic_enum::enum_name<T>(binding.second) << "\n";
+                continue;
+            }
+
             json[name][inputActionString] = binding.second;
         }
     }
 
-    template <typename T>
+    template <typename T, bool isEnum>
     inline void loadBindings(const nlohmann::json& json, std::unordered_map<InputAction, T>& bindings, const std::string& name)
     {
         for (auto iter = json[name].begin(); iter != json[name].end(); iter++)
         {
-            nlohmann::json inputActionStringJson = iter.key();
-            InputAction inputAction = inputActionStringJson.get<InputAction>();
-            bindings[inputAction] = iter.value().get<T>();
+            auto inputAction = magic_enum::enum_cast<InputAction>(iter.key());
+            if (!inputAction.has_value())
+            {
+                continue;
+            }
+
+            if constexpr (isEnum)
+            {
+                auto enumCasted = magic_enum::enum_cast<T>(iter.value().get<std::string>());
+                if (enumCasted.has_value())
+                {
+                    bindings[inputAction.value()] = enumCasted.value();
+                }
+                continue;
+            }
+
+            bindings[inputAction.value()] = iter.value().get<T>();
         }
     }
 };
 
 inline void from_json(const nlohmann::json& json, InputBindingsSave& bindingsSave)
 {
-    bindingsSave.loadBindings(json, bindingsSave.keyBindings, "keys");
-    bindingsSave.loadBindings(json, bindingsSave.mouseBindings, "mouse-buttons");
-    bindingsSave.loadBindings(json, bindingsSave.mouseWheelBindings, "mouse-wheel");
-    bindingsSave.loadBindings(json, bindingsSave.controllerAxisBindings, "controller-axis");
-    bindingsSave.loadBindings(json, bindingsSave.controllerButtonBindings, "controller-button");
+    bindingsSave.loadBindings<SDL_Scancode, true>(json, bindingsSave.keyBindings, "keys");
+    bindingsSave.loadBindings<int, false>(json, bindingsSave.mouseBindings, "mouse-buttons");
+    bindingsSave.loadBindings<MouseWheelScroll, true>(json, bindingsSave.mouseWheelBindings, "mouse-wheel");
+    bindingsSave.loadBindings<JoystickAxisWithDirection, false>(json, bindingsSave.controllerAxisBindings, "controller-axis");
+    bindingsSave.loadBindings<SDL_GameControllerButton, true>(json, bindingsSave.controllerButtonBindings, "controller-button");
 
     bindingsSave.controllerAxisDeadzone = json["controller-axis-deadzone"];
 }
 
 inline void to_json(nlohmann::json& json, const InputBindingsSave& bindingsSave)
 {
-    bindingsSave.writeBindings(json, bindingsSave.keyBindings, "keys");
-    bindingsSave.writeBindings(json, bindingsSave.mouseBindings, "mouse-buttons");
-    bindingsSave.writeBindings(json, bindingsSave.mouseWheelBindings, "mouse-wheel");
-    bindingsSave.writeBindings(json, bindingsSave.controllerAxisBindings, "controller-axis");
-    bindingsSave.writeBindings(json, bindingsSave.controllerButtonBindings, "controller-button");
+    bindingsSave.writeBindings<SDL_Scancode, true>(json, bindingsSave.keyBindings, "keys");
+    bindingsSave.writeBindings<int, false>(json, bindingsSave.mouseBindings, "mouse-buttons");
+    bindingsSave.writeBindings<MouseWheelScroll, true>(json, bindingsSave.mouseWheelBindings, "mouse-wheel");
+    bindingsSave.writeBindings<JoystickAxisWithDirection, false>(json, bindingsSave.controllerAxisBindings, "controller-axis");
+    bindingsSave.writeBindings<SDL_GameControllerButton, true>(json, bindingsSave.controllerButtonBindings, "controller-button");
 
     json["controller-axis-deadzone"] = bindingsSave.controllerAxisDeadzone;
 }

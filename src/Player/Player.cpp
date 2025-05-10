@@ -824,6 +824,7 @@ void Player::drawArmour(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, 
     armourDrawData.shader = Shaders::getShader(ShaderType::Default);
     armourDrawData.scale = pl::Vector2f(scale * xScaleMult, scale * playerYScaleMult);
     armourDrawData.useCentreAbsolute = true;
+    armourDrawData.vertexPixelClamp = false;
 
     if (damageCooldownTimer > 0.0f)
     {
