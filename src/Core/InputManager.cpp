@@ -51,43 +51,49 @@ void InputManager::openGameControllers()
 }
 
 template <typename InputType>
-void InputManager::bindInput(InputAction action, std::optional<InputType> input, std::unordered_map<InputAction, InputType>& bindMap)
+void InputManager::bindInput(InputAction action, std::optional<InputType> input, std::unordered_map<InputAction, InputType>& bindMap, bool overwrite)
 {
     if (!input.has_value())
     {
-        if (bindMap.count(action) > 0)
+        if (bindMap.contains(action))
         {
             bindMap.erase(action);
         }
+        return;
+    }
+
+    // Do not overwrite previous binding if overwrite is disabled
+    if (bindMap.contains(action) && !overwrite)
+    {
         return;
     }
     
     bindMap[action] = input.value();
 }
 
-void InputManager::bindKey(InputAction action, std::optional<SDL_Scancode> key)
+void InputManager::bindKey(InputAction action, std::optional<SDL_Scancode> key, bool overwrite)
 {
-    bindInput<SDL_Scancode>(action, key, keyBindings);
+    bindInput<SDL_Scancode>(action, key, keyBindings, overwrite);
 }
 
-void InputManager::bindMouseButton(InputAction action, std::optional<int> button)
+void InputManager::bindMouseButton(InputAction action, std::optional<int> button, bool overwrite)
 {
-    bindInput<int>(action, button, mouseBindings);
+    bindInput<int>(action, button, mouseBindings, overwrite);
 }
 
-void InputManager::bindMouseWheel(InputAction action, std::optional<MouseWheelScroll> wheelDirection)
+void InputManager::bindMouseWheel(InputAction action, std::optional<MouseWheelScroll> wheelDirection, bool overwrite)
 {
-    bindInput<MouseWheelScroll>(action, wheelDirection, mouseWheelBindings);
+    bindInput<MouseWheelScroll>(action, wheelDirection, mouseWheelBindings, overwrite);
 }
 
-void InputManager::bindControllerAxis(InputAction action, std::optional<JoystickAxisWithDirection> axisWithDirection)
+void InputManager::bindControllerAxis(InputAction action, std::optional<JoystickAxisWithDirection> axisWithDirection, bool overwrite)
 {
-    bindInput<JoystickAxisWithDirection>(action, axisWithDirection, controllerAxisBindings);
+    bindInput<JoystickAxisWithDirection>(action, axisWithDirection, controllerAxisBindings, overwrite);
 }
 
-void InputManager::bindControllerButton(InputAction action, std::optional<SDL_GameControllerButton> button)
+void InputManager::bindControllerButton(InputAction action, std::optional<SDL_GameControllerButton> button, bool overwrite)
 {
-    bindInput<SDL_GameControllerButton>(action, button, controllerButtonBindings);
+    bindInput<SDL_GameControllerButton>(action, button, controllerButtonBindings, overwrite);
 }
 
 void InputManager::setControllerAxisDeadzone(float deadzone)

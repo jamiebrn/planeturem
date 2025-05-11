@@ -143,7 +143,6 @@ struct InputBindingsSave
             if constexpr (isEnum)
             {
                 json[name][inputActionString] = magic_enum::enum_name(binding.second);
-                std::cout << magic_enum::enum_name<T>(binding.second) << "\n";
                 continue;
             }
 
@@ -154,6 +153,11 @@ struct InputBindingsSave
     template <typename T, bool isEnum>
     inline void loadBindings(const nlohmann::json& json, std::unordered_map<InputAction, T>& bindings, const std::string& name)
     {
+        if (!json.contains(name))
+        {
+            return;
+        }
+        
         for (auto iter = json[name].begin(); iter != json[name].end(); iter++)
         {
             auto inputAction = magic_enum::enum_cast<InputAction>(iter.key());
@@ -172,7 +176,14 @@ struct InputBindingsSave
                 continue;
             }
 
-            bindings[inputAction.value()] = iter.value().get<T>();
+            try
+            {
+                bindings[inputAction.value()] = iter.value().get<T>();
+            }
+            catch(const std::exception& e)
+            {
+                std::cerr << e.what() << '\n';
+            }
         }
     }
 };
@@ -205,12 +216,12 @@ class InputManager
 
 public:
     static void initialise(SDL_Window* window);
-
-    static void bindKey(InputAction action, std::optional<SDL_Scancode> key);
-    static void bindMouseButton(InputAction action, std::optional<int> button);
-    static void bindMouseWheel(InputAction action, std::optional<MouseWheelScroll> wheelDirection);
-    static void bindControllerAxis(InputAction action, std::optional<JoystickAxisWithDirection> axisWithDirection);
-    static void bindControllerButton(InputAction action, std::optional<SDL_GameControllerButton> button);
+    
+    static void bindKey(InputAction action, std::optional<SDL_Scancode> key, bool overwrite = true);
+    static void bindMouseButton(InputAction action, std::optional<int> button, bool overwrite = true);
+    static void bindMouseWheel(InputAction action, std::optional<MouseWheelScroll> wheelDirection, bool overwrite = true);
+    static void bindControllerAxis(InputAction action, std::optional<JoystickAxisWithDirection> axisWithDirection, bool overwrite = true);
+    static void bindControllerButton(InputAction action, std::optional<SDL_GameControllerButton> button, bool overwrite = true);
 
     static void setControllerAxisDeadzone(float deadzone);
 
@@ -250,7 +261,7 @@ public:
 
 private:
     template <typename InputType>
-    static void bindInput(InputAction action, std::optional<InputType> input, std::unordered_map<InputAction, InputType>& bindMap);
+    static void bindInput(InputAction action, std::optional<InputType> input, std::unordered_map<InputAction, InputType>& bindMap, bool overwrite);
 
     template<typename InputType>
     static void consumeInput(InputAction action, std::unordered_map<InputAction, InputType>& bindMap);
