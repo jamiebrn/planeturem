@@ -25,6 +25,8 @@
 #include "World/WorldData.hpp"
 #include "World/ChunkManager.hpp"
 
+#include "Player/NetworkPlayer.hpp"
+
 #include "GUI/Base/GUIContext.hpp"
 #include "GUI/DefaultGUIPanel.hpp"
 

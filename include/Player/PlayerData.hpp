@@ -11,10 +11,12 @@
 
 #include <Core/json.hpp>
 
+#include <Graphics/Color.hpp>
 #include <Vector.hpp>
 
 #include "Data/typedefs.hpp"
 #include "Data/Serialise/Vector2Serialise.hpp"
+#include "Data/Serialise/ColorSerialise.hpp"
 #include "Data/PlanetGenData.hpp"
 #include "Data/PlanetGenDataLoader.hpp"
 #include "Data/StructureData.hpp"
@@ -37,6 +39,9 @@ struct PlayerData
     
     std::string name;
     
+    pl::Color bodyColor;
+    pl::Color skinColor;
+
     pl::Vector2f position;
     
     // Structure
@@ -53,7 +58,7 @@ struct PlayerData
     template <class Archive>
     void serialize(Archive& ar, uint32_t version)
     {
-        ar(inventory, armourInventory, recipesSeen, planetRocketUsedPositions, name, position.x, position.y,
+        ar(inventory, armourInventory, recipesSeen, planetRocketUsedPositions, name, bodyColor, skinColor, position.x, position.y,
             locationState, structureExitPos.x, structureExitPos.y, maxHealth);
     }
 };

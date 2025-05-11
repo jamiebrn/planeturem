@@ -179,6 +179,8 @@ struct SaveFileSummary
     std::string playerName;
     int timePlayed = 0;
     std::string timePlayedString;
+
+    PlayerData playerData;
 };
 
 struct OptionsSave

@@ -310,6 +310,8 @@ std::vector<SaveFileSummary> GameSaveIO::getSaveFiles()
             continue;
         }
 
+        saveFileSummary.playerData = playerSave.playerData;
+
         saveFileSummary.timePlayed = playerSave.timePlayed;
 
         // Convert to string

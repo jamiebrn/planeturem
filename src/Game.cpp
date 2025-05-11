@@ -15,8 +15,6 @@
 
 // TODO: Keep track of last rocket type used
 
-// TODO: Customisable keybinds
-
 // TODO: HSV sliders over RGB sliders for customisation, with colour gradient slider background
 
 // PRIORITY: MEDIUM (MULTIPLAYER)
@@ -3452,6 +3450,8 @@ PlayerData Game::createPlayerData()
 
     playerData.name = currentSaveFileSummary.playerName;
     playerData.position = player.getPosition();
+    playerData.bodyColor = player.getBodyColor();
+    playerData.skinColor = player.getSkinColor();
     playerData.inventory = inventory;
     playerData.armourInventory = armourInventory;
     playerData.maxHealth = player.getMaxHealth();

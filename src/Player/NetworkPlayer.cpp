@@ -153,6 +153,9 @@ void NetworkPlayer::setPlayerData(const PlayerData& playerData)
     this->playerData = playerData;
 
     this->playerData.pingLocation = pingLocation;
+
+    bodyColor = playerData.bodyColor;
+    skinColor = playerData.skinColor;
 }
 
 const ChunkViewRange& NetworkPlayer::getChunkViewRange()
