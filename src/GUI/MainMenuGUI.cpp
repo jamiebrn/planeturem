@@ -164,7 +164,12 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(pl::RenderTarget& window
                 
                 elementYPos += 130 * intScale;
 
-                guiContext.createColorWheel(scaledPanelPaddingX + panelWidth * intScale / 2, elementYPos, 50, selectedBodyColor);
+                guiContext.createColorWheel(scaledPanelPaddingX + panelWidth * intScale / 2, elementYPos, 50, selectedBodyColorValueHSV, selectedBodyColor);
+
+                elementYPos += 60 * intScale;
+
+                guiContext.createSlider(scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale,
+                    0.0f, 1.0f, &selectedBodyColorValueHSV, 20 * intScale, "", panelWidth / 8 * intScale, panelWidth / 8 * intScale, 40 * intScale);
             }
 
             elementYPos += 200 * intScale;

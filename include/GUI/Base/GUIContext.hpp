@@ -49,7 +49,7 @@ public:
     const TextEnter& createTextEnter(int x, int y, int width, int height, int textSize, const std::string& text, std::string* textPtr,
         int paddingX = 0, int paddingY = 0, int maxLength = 9999);
     
-    const ColorWheel& createColorWheel(int x, int y, int size, pl::Color& currentColor);
+    const ColorWheel& createColorWheel(int x, int y, int size, float& value, pl::Color& currentColor);
 
     void draw(pl::RenderTarget& window);
 

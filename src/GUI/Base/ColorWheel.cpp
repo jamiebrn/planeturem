@@ -1,6 +1,6 @@
 #include "GUI/Base/ColorWheel.hpp"
 
-ColorWheel::ColorWheel(const GUIInputState& inputState, ElementID id, int x, int y, int size, pl::Color& currentColor)
+ColorWheel::ColorWheel(const GUIInputState& inputState, ElementID id, int x, int y, int size, float& value, pl::Color& currentColor)
     : GUIElement(id, textSize)
 {
     this->x = x;
@@ -19,14 +19,16 @@ ColorWheel::ColorWheel(const GUIInputState& inputState, ElementID id, int x, int
     if (circle.isPointColliding(inputState.mouseX, inputState.mouseY) && inputState.leftMousePressed)
     {
         float angle = std::atan2(inputState.mouseY - y, x - inputState.mouseX) + M_PI;
+        angle = fmod(360.0f - angle / M_PI * 180.0f, 360.0f);
         float distance = pl::Vector2f(inputState.mouseX - x, inputState.mouseY - y).getLength();
 
-        currentColor = Helper::convertHSVtoRGB(fmod(angle / (2 * M_PI) * 180.0f, 360.0f), distance / size, 1);
+        currentColor = Helper::convertHSVtoRGB(angle, distance / size, value);
 
-        printf("%f\n", angle);
+        printf("R: %f, G: %f, B: %f\n", currentColor.r, currentColor.g, currentColor.b);
     }
 
     this->currentColor = currentColor;
+    this->value = value;
 
     // CollisionRect rect(this->x, this->y, this->width, this->height);
     // if (rect.isPointInRect(inputState.mouseX, inputState.mouseY))
@@ -94,11 +96,11 @@ void ColorWheel::draw(pl::RenderTarget& window)
     for (int i = 0; i < divisions; i++)
     {
         wheel.addVertex(pl::Vertex(pl::Vector2f(x + std::cos(i / static_cast<float>(divisions) * 2 * M_PI) * size,
-            y + std::sin(i / static_cast<float>(divisions) * 2 * M_PI) * size), Helper::convertHSVtoRGB(i / static_cast<float>(divisions) * 360, 1, 1)), false);
+            y + std::sin(i / static_cast<float>(divisions) * 2 * M_PI) * size), Helper::convertHSVtoRGB(i / static_cast<float>(divisions) * 360, 1, value)), false);
         wheel.addVertex(pl::Vertex(pl::Vector2f(x + std::cos((i + 1) / static_cast<float>(divisions) * 2 * M_PI) * size,
             y + std::sin((i + 1) / static_cast<float>(divisions) * 2 * M_PI) * size),
-            Helper::convertHSVtoRGB(fmod((i + 1) / static_cast<float>(divisions) * 360, 360), 1, 1)), false);
-        wheel.addVertex(pl::Vertex(pl::Vector2f(x, y)), false);
+            Helper::convertHSVtoRGB(fmod((i + 1) / static_cast<float>(divisions) * 360, 360), 1, value)), false);
+        wheel.addVertex(pl::Vertex(pl::Vector2f(x, y), pl::Color(255 * value, 255 * value, 255 * value)), false);
     }
 
     // Find position of current selector from RGB color
