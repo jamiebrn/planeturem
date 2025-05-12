@@ -90,6 +90,7 @@ public:
     void updateInRoom(float dt, pl::Vector2f mouseWorldPos, const Room& room);
 
     virtual void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const pl::Color& color) const override;
+    void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera* camera, float dt, float gameTime, int worldSize, const pl::Color& color) const;
 
     std::vector<WorldObject*> getDrawWorldObjects(const Camera& camera, int worldSize, float gameTime);
     
@@ -171,9 +172,9 @@ private:
 
     // void drawFishingRodCast(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera, float gameTime, int worldSize, float waterYOffset) const;
 
-    void drawMeleeSwing(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera) const;
+    void drawMeleeSwing(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera* camera) const;
 
-    void drawArmour(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera, float waterYOffset) const;
+    void drawArmour(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera* camera, float waterYOffset) const;
 
 protected:
     CollisionRect collisionRect;

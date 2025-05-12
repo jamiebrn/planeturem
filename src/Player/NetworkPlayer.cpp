@@ -56,21 +56,35 @@ void NetworkPlayer::updateInRoom(float dt, const Room& room)
 void NetworkPlayer::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
     const pl::Color& color) const
 {
+    draw(window, spriteBatch, game, &camera, dt, gameTime, worldSize, color, true);
+}
+
+void NetworkPlayer::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera* camera, float dt, float gameTime, int worldSize,
+    const pl::Color& color, bool drawName) const
+{
     Player::draw(window, spriteBatch, game, camera, dt, gameTime, worldSize, color);
 
     // Draw name
-    pl::TextDrawData nameDrawData;
-    nameDrawData.text = playerData.name;
-    nameDrawData.position = camera.worldToScreenTransform(position - pl::Vector2f(0, 24));
-    nameDrawData.centeredX = true;
-    nameDrawData.centeredY = true;
-    nameDrawData.color = pl::Color(255, 255, 255);
-    nameDrawData.size = 9 * ResolutionHandler::getScale();
-    nameDrawData.outlineColor = pl::Color(46, 34, 47);
-    nameDrawData.outlineThickness = 0.6f * ResolutionHandler::getScale();
-
-    TextDraw::drawText(window, nameDrawData);
+    if (drawName)
+    {
+        pl::TextDrawData nameDrawData;
+        nameDrawData.text = playerData.name;
+        nameDrawData.position = position - pl::Vector2f(0, 24);
+        if (camera)
+        {
+            nameDrawData.position = camera->worldToScreenTransform(nameDrawData.position);
+        }
+        nameDrawData.centeredX = true;
+        nameDrawData.centeredY = true;
+        nameDrawData.color = pl::Color(255, 255, 255);
+        nameDrawData.size = 9 * ResolutionHandler::getScale();
+        nameDrawData.outlineColor = pl::Color(46, 34, 47);
+        nameDrawData.outlineThickness = 0.6f * ResolutionHandler::getScale();
+    
+        TextDraw::drawText(window, nameDrawData);
+    }
 }
+
 
 PacketDataPlayerCharacterInfo NetworkPlayer::getNetworkPlayerInfo(const Camera* camera, uint64_t steamID, float dt)
 {

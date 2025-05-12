@@ -3267,7 +3267,7 @@ bool Game::loadGame(const SaveFileSummary& saveFileSummary)
     worldDatas.clear();
     roomDestDatas.clear();
 
-    player = Player(playerGameSave.playerData.position, playerGameSave.playerData.maxHealth);
+    player = Player(playerGameSave.playerData.position, playerGameSave.playerData.maxHealth, playerGameSave.playerData.bodyColor, playerGameSave.playerData.skinColor);
 
     inventory = playerGameSave.playerData.inventory;
     armourInventory = playerGameSave.playerData.armourInventory;

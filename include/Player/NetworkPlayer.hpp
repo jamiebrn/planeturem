@@ -42,6 +42,9 @@ public:
 
     void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const pl::Color& color) const override;
 
+    void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera* camera, float dt, float gameTime, int worldSize,
+        const pl::Color& color, bool drawName) const;
+
     // Multiplayer
 
     virtual PacketDataPlayerCharacterInfo getNetworkPlayerInfo(const Camera* camera, uint64_t steamID, float dt) override;

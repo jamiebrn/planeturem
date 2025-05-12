@@ -39,8 +39,8 @@ struct PlayerData
     
     std::string name;
     
-    pl::Color bodyColor;
-    pl::Color skinColor;
+    pl::Color bodyColor = pl::Color(158, 69, 57, 255);
+    pl::Color skinColor = pl::Color(230, 144, 78, 255);
 
     pl::Vector2f position;
     
@@ -74,6 +74,16 @@ inline void from_json(const nlohmann::json& json, PlayerData& data)
     data.maxHealth = json["max-health"];
     data.locationState = json["location-state"];
 
+    if (json.contains("body-color"))
+    {
+        data.bodyColor = json.at("body-color");
+    }
+
+    if (json.contains("skin-color"))
+    {
+        data.skinColor = json.at("skin-color");
+    }
+
     if (json.contains("structure-exit-pos"))
     {
         data.structureExitPos = json.at("structure-exit-pos");
@@ -104,6 +114,9 @@ inline void to_json(nlohmann::json& json, const PlayerData& data)
     json["armour-inventory"] = data.armourInventory;
     json["max-health"] = data.maxHealth;
     json["location-state"] = data.locationState;
+
+    json["body-color"] = data.bodyColor;
+    json["skin-color"] = data.skinColor;
 
     if (data.locationState.isInStructure())
     {

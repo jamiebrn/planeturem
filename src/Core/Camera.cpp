@@ -15,8 +15,8 @@ void Camera::update(pl::Vector2f playerPosition, pl::Vector2f mouseScreenPos, fl
     destinationOffset.y = playerPosition.y - (resolution.y / scale) / 2.0f;
 
     // Add mouse delta
-    destinationOffset.x += std::round(std::max(std::min(mouseScreenPos.x - (resolution.x / 2.0f), resolution.x / 2.0f), -resolution.x / 2.0f) / MOUSE_DELTA_DAMPEN / scale);
-    destinationOffset.y += std::round(std::max(std::min(mouseScreenPos.y - (resolution.y / 2.0f), resolution.y / 2.0f), -resolution.y / 2.0f) / MOUSE_DELTA_DAMPEN / scale);
+    destinationOffset.x += std::round((std::clamp(mouseScreenPos.x, 0.0f, resolution.x) - resolution.x / 2) / MOUSE_DELTA_DAMPEN / scale);
+    destinationOffset.y += std::round((std::clamp(mouseScreenPos.y, 0.0f, resolution.y) - resolution.y / 2) / MOUSE_DELTA_DAMPEN / scale);
 
     // Apply screen shake if required
     screenShakeTime = std::max(screenShakeTime - deltaTime, 0.0f);

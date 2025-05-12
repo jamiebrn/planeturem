@@ -198,7 +198,7 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(pl::RenderTarget& window
         {
             static constexpr int saveFilesPerPage = 4;
 
-            Camera playerPreviewCamera;
+            ResolutionHandler::overrideZoom(0);
 
             for (int i = saveFilesPerPage * saveFilePage; i < std::min(static_cast<int>(saveFileSummaries.size()), saveFilesPerPage * (saveFilePage + 1)); i++)
             {
@@ -218,10 +218,10 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(pl::RenderTarget& window
                 // Draw player preview
                 NetworkPlayer playerPreview(pl::Vector2f(0, 0));
                 playerPreview.setPlayerData(saveFileSummary.playerData);
-                playerPreview.exitRocket();
-                playerPreview.setPosition(pl::Vector2f(scaledPanelPaddingX + 35 * intScale, elementYPos + (74 * intScale)));
+                playerPreview.setPosition(pl::Vector2f(scaledPanelPaddingX + 35 * intScale, elementYPos + (60 * intScale)));
+                playerPreview.setArmourFromInventory(saveFileSummary.playerData.armourInventory);
 
-                playerPreview.draw(window, spriteBatch, game, playerPreviewCamera, 0.0f, 0.0f, 1, pl::Color());
+                playerPreview.draw(window, spriteBatch, game, nullptr, 0.0f, 0.0f, 1, pl::Color(), false);
                 spriteBatch.endDrawing(window);
 
                 elementYPos += 100 * intScale;

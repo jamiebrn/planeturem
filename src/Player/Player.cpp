@@ -389,7 +389,14 @@ void Player::updateFishingRodCatch(float dt)
     }
 }
 
-void Player::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const pl::Color& color) const
+void Player::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
+    const pl::Color& color) const
+{
+    draw(window, spriteBatch, game, &camera, dt, gameTime, worldSize, color);
+}
+
+void Player::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera* camera, float dt, float gameTime, int worldSize,
+    const pl::Color& color) const
 {
     if (inRocket || !isAlive())
     {
@@ -419,10 +426,15 @@ void Player::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& 
     pl::DrawData shadowDrawData;
     shadowDrawData.texture = TextureManager::getTexture(TextureType::Shadow);
     shadowDrawData.shader = Shaders::getShader(ShaderType::Default);
-    shadowDrawData.position = camera.worldToScreenTransform(position + pl::Vector2f(0, waterYOffset));
+    shadowDrawData.position = position + pl::Vector2f(0, waterYOffset);
+    if (camera)
+    {
+        shadowDrawData.position = camera->worldToScreenTransform(shadowDrawData.position);
+    }
     shadowDrawData.scale = playerScale * shadowScale;
     shadowDrawData.centerRatio = pl::Vector2f(0.5f, 0.85f);
     shadowDrawData.textureRect = pl::Rect<int>(0, 0, shadowDrawData.texture->getWidth(), shadowDrawData.texture->getHeight());
+    shadowDrawData.vertexPixelClamp = false;
 
     spriteBatch.draw(window, shadowDrawData);
     
@@ -475,10 +487,15 @@ void Player::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& 
     pl::DrawData playerDrawData;
     playerDrawData.texture = &coloredTexture.getTexture();
     playerDrawData.shader = Shaders::getShader(ShaderType::Default);
-    playerDrawData.position = camera.worldToScreenTransform(position + pl::Vector2f(0, waterYOffset));
+    playerDrawData.position = position + pl::Vector2f(0, waterYOffset);
+    if (camera)
+    {
+        playerDrawData.position = camera->worldToScreenTransform(playerDrawData.position);
+    }
     playerDrawData.scale = playerScale;
     playerDrawData.centerRatio = pl::Vector2f(0.5f, 1.0f);
     playerDrawData.textureRect = pl::Rect<int>(0, 0, coloredTexture.getWidth(), coloredTexture.getHeight());
+    playerDrawData.vertexPixelClamp = false;
     
     if (damageCooldownTimer > 0.0f)
     {
@@ -499,8 +516,14 @@ void Player::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& 
     {
         const ToolData& toolData = ToolDataLoader::getToolData(equippedTool);
 
-        pl::Vector2f toolPos = (camera.worldToScreenTransform(position + pl::Vector2f(0, waterYOffset)) +
-            pl::Vector2f(playerScale.x * toolData.holdOffset.x, playerScale.y * toolData.holdOffset.y));
+        pl::Vector2f toolPos = (position + pl::Vector2f(0, waterYOffset));
+        
+        if (camera)
+        {
+            toolPos = camera->worldToScreenTransform(toolPos);
+        }
+
+        toolPos += pl::Vector2f(playerScale.x * toolData.holdOffset.x, playerScale.y * toolData.holdOffset.y);
 
         float pivotYOffset = 0.0f;
         
@@ -537,19 +560,20 @@ void Player::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& 
         toolDrawData.scale = playerScale;
         toolDrawData.centerRatio = pl::Vector2f(toolData.pivot.x, toolData.pivot.y + pivotYOffset);
         toolDrawData.textureRect = toolData.textureRects[textureRectIndex];
+        toolDrawData.vertexPixelClamp = false;
 
         spriteBatch.draw(window, toolDrawData);
         
         #if (!RELEASE_BUILD)
         // DEBUG
-        if (DebugOptions::drawCollisionRects)
+        if (DebugOptions::drawCollisionRects && camera)
         {
             if (toolData.toolBehaviourType == ToolBehaviourType::MeleeWeapon)
             {
                 spriteBatch.endDrawing(window);
                 for (const CollisionRect& rect : meleeHitRects)
                 {
-                    rect.debugDraw(window, camera);
+                    rect.debugDraw(window, *camera);
                 }
             }
         }
@@ -564,9 +588,9 @@ void Player::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& 
 
     #if (!RELEASE_BUILD)
     // DEBUG
-    if (DebugOptions::drawCollisionRects)
+    if (DebugOptions::drawCollisionRects && camera)
     {
-        collisionRect.debugDraw(window, camera);
+        collisionRect.debugDraw(window, *camera);
     }
     #endif
 }
@@ -785,7 +809,7 @@ void Player::createLightSource(LightingEngine& lightingEngine, pl::Vector2f topL
 //     spriteBatch.endDrawing(window);
 // }
 
-void Player::drawMeleeSwing(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera) const
+void Player::drawMeleeSwing(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera* camera) const
 {
     pl::Vector2f swingWorldPos = pl::Vector2f(std::cos(meleeSwingAnimationRotation), std::sin(meleeSwingAnimationRotation)) * MELEE_SWING_RADIUS + position;
     swingWorldPos.y += MELEE_SWING_Y_ORIGIN_OFFSET;
@@ -794,7 +818,11 @@ void Player::drawMeleeSwing(pl::RenderTarget& window, pl::SpriteBatch& spriteBat
     meleeSwingDrawData.texture = TextureManager::getTexture(TextureType::Tools);
     meleeSwingDrawData.shader = Shaders::getShader(ShaderType::Default);
     meleeSwingDrawData.centerRatio = pl::Vector2f(0.5f, 0.5f);
-    meleeSwingDrawData.position = camera.worldToScreenTransform(swingWorldPos);
+    meleeSwingDrawData.position = swingWorldPos;
+    if (camera)
+    {
+        meleeSwingDrawData.position = camera->worldToScreenTransform(meleeSwingDrawData.position);
+    }
     meleeSwingDrawData.rotation = meleeSwingAnimationRotation / M_PI * 180.0f;
     meleeSwingDrawData.scale = pl::Vector2f((float)ResolutionHandler::getScale(), -(float)ResolutionHandler::getScale());
     meleeSwingDrawData.textureRect = meleeSwingAnimation.getTextureRect();
@@ -807,7 +835,7 @@ void Player::drawMeleeSwing(pl::RenderTarget& window, pl::SpriteBatch& spriteBat
     spriteBatch.draw(window, meleeSwingDrawData);
 }
 
-void Player::drawArmour(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera, float waterYOffset) const
+void Player::drawArmour(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera* camera, float waterYOffset) const
 {
     float scale = ResolutionHandler::getScale();
 
@@ -817,7 +845,7 @@ void Player::drawArmour(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, 
         xScaleMult = -1;
     }
 
-    pl::Vector2f armourOrigin = position - pl::Vector2f(8 * xScaleMult, 0);
+    pl::Vector2f armourOrigin = position - pl::Vector2f(8 * xScaleMult, 0) * (camera ? 1 : scale);
 
     pl::DrawData armourDrawData;
     armourDrawData.texture = TextureManager::getTexture(TextureType::Tools);
@@ -854,7 +882,14 @@ void Player::drawArmour(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, 
 
         const pl::Rect<int>& armourTextureRect = armourData.wearTextures[frame];
 
-        armourDrawData.position = camera.worldToScreenTransform(armourOrigin + pl::Vector2f(armourData.wearTextureOffset.x * xScaleMult, waterYOffset));
+        if (camera)
+        {
+            armourDrawData.position = camera->worldToScreenTransform(armourOrigin + pl::Vector2f(armourData.wearTextureOffset.x * xScaleMult, waterYOffset));
+        }
+        else
+        {
+            armourDrawData.position = armourOrigin + pl::Vector2f(armourData.wearTextureOffset.x * xScaleMult, waterYOffset) * scale;
+        }
         armourDrawData.centerRatio = pl::Vector2f(0, armourTextureRect.height - armourData.wearTextureOffset.y);
         armourDrawData.textureRect = armourTextureRect;
 
