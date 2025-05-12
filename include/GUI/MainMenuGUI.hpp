@@ -115,6 +115,10 @@ private:
     std::string saveNameInput;
     std::string playerNameInput;
     std::string worldSeedInput;
+    int newGamePage;
+
+    pl::Color selectedBodyColor;
+    pl::Color selectedSkinColor;
 
     static constexpr float DELETE_SAVE_MAX_HOLD_TIME = 3.0f;
     float deleteSaveHoldTime;

@@ -5,6 +5,7 @@
 #include <string>
 #include <format>
 
+#include <Graphics/Color.hpp>
 #include <Vector.hpp>
 
 namespace Helper
@@ -85,6 +86,63 @@ inline pl::Vector2f normaliseVector(pl::Vector2f vector)
         return vector / length;
     }
     return pl::Vector2f(0, 0);
+}
+
+inline pl::Color convertHSVtoRGB(float h, float s, float v)
+{
+    float c = v * s;
+    float x = c * (1.0f - std::abs(fmod(h / 60.0f, 2.0f) - 1.0f));
+    float m = v - c;
+    float r = 0.0f, g = 0.0f, b = 0.0f;
+    switch (static_cast<int>(h / 60.0f))
+    {
+        case 0: r = c; g = x; break;
+        case 1: r = x; g = c; break;
+        case 2: g = c; b = x; break;
+        case 3: g = x; b = c; break;
+        case 4: r = x; b = c; break;
+        case 5: r = c; b = x; break;
+    }
+
+    return pl::Color((r + m) * 255.0f, (g + m) * 255.0f, (b + m) * 255.0f);
+}
+
+// Uses RGB channels in color struct for HSV respectively
+inline pl::Color convertRGBtoHSV(const pl::Color& color)
+{
+    float r = color.r / 255.0f;
+    float g = color.g / 255.0f;
+    float b = color.b / 255.0f;
+
+    float cmax = std::max(std::max(r, g), b);
+    float cmin = std::min(std::min(r, g), b);
+    float delta = cmax - cmin;
+
+    pl::Color hsv;
+    if (delta != 0)
+    {
+        if (cmax == r)
+        {
+            hsv.r = 60 * fmod((g - b) / delta, 6);
+        }
+        else if (cmax == g)
+        {
+            hsv.r = 60 * ((b - r) / delta + 2);
+        }
+        else if (cmax == b)
+        {
+            hsv.r = 60* ((r - g) / delta + 4);
+        }
+    }
+
+    if (cmax != 0)
+    {
+        hsv.g = delta / cmax;
+    }
+
+    hsv.b = cmax;
+
+    return hsv;
 }
 
 }

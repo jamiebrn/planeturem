@@ -159,6 +159,15 @@ const TextEnter& GUIContext::createTextEnter(int x, int y, int width, int height
     return *static_cast<TextEnter*>(elements.back().get());
 }
 
+const ColorWheel& GUIContext::createColorWheel(int x, int y, int size, pl::Color& currentColor)
+{
+    std::unique_ptr<ColorWheel> colorWheel = std::make_unique<ColorWheel>(inputState, elements.size(), x, y, size, currentColor);
+
+    elements.push_back(std::move(colorWheel));
+
+    return *static_cast<ColorWheel*>(elements.back().get());
+}
+
 void GUIContext::draw(pl::RenderTarget& window)
 {
     for (auto& guiElement : elements)

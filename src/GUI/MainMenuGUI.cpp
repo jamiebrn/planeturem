@@ -97,6 +97,9 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(pl::RenderTarget& window
             {
                 saveNameInput = "";
                 worldSeedInput = "";
+                newGamePage = 0;
+                selectedBodyColor = pl::Color(158, 69, 57);
+                selectedSkinColor = pl::Color(230, 144, 78);
                 nextUIState = MainMenuState::StartingNew;
             }
 
@@ -136,18 +139,33 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(pl::RenderTarget& window
         }
         case MainMenuState::StartingNew:
         {
-            guiContext.createTextEnter(scaledPanelPaddingX, elementYPos,
-                panelWidth * intScale, 75 * intScale, 20 * intScale, "Save Name", &saveNameInput, panelWidth / 5 * intScale, 30 * intScale, 30);
+            if (newGamePage == 0)
+            {
+                guiContext.createTextEnter(scaledPanelPaddingX, elementYPos,
+                    panelWidth * intScale, 75 * intScale, 20 * intScale, "Save Name", &saveNameInput, panelWidth / 5 * intScale, 30 * intScale, 30);
+    
+                elementYPos += 100 * intScale;
+    
+                guiContext.createTextEnter(scaledPanelPaddingX, elementYPos,
+                    panelWidth * intScale, 75 * intScale, 20 * intScale, "Player Name", &playerNameInput, panelWidth / 5 * intScale, 30 * intScale, 30);
+    
+                elementYPos += 100 * intScale;
 
-            elementYPos += 100 * intScale;
+                if (guiContext.createButton(scaledPanelPaddingX + panelWidth / 2.0f * intScale, elementYPos,
+                        panelWidth / 2.0f * intScale, 75 * intScale, buttonTextSize, ">", buttonStyle).isClicked())
+                {
+                    newGamePage++;
+                }
+            }
+            else if (newGamePage == 1)
+            {
+                guiContext.createTextEnter(scaledPanelPaddingX, elementYPos,
+                    panelWidth * intScale, 75 * intScale, 20 * intScale, "World Seed", &worldSeedInput, panelWidth / 5 * intScale, 30 * intScale, 30);
+                
+                elementYPos += 130 * intScale;
 
-            guiContext.createTextEnter(scaledPanelPaddingX, elementYPos,
-                panelWidth * intScale, 75 * intScale, 20 * intScale, "Player Name", &playerNameInput, panelWidth / 5 * intScale, 30 * intScale, 30);
-
-            elementYPos += 100 * intScale;
-
-            guiContext.createTextEnter(scaledPanelPaddingX, elementYPos,
-                panelWidth * intScale, 75 * intScale, 20 * intScale, "World Seed", &worldSeedInput, panelWidth / 5 * intScale, 30 * intScale, 30);
+                guiContext.createColorWheel(scaledPanelPaddingX + panelWidth * intScale / 2, elementYPos, 50, selectedBodyColor);
+            }
 
             elementYPos += 200 * intScale;
 
@@ -159,7 +177,7 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(pl::RenderTarget& window
             if (guiContext.createButton(scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale, buttonTextSize, "Start", buttonStyle)
                 .isClicked())
             {
-                if (!saveNameInput.empty())
+                if (!saveNameInput.empty() && canInteract)
                 {
                     // Check save name does not already exist
                     bool nameExists = false;
@@ -177,6 +195,8 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(pl::RenderTarget& window
                         menuEvent->type = MainMenuEventType::StartNew;
                         menuEvent->saveFileSummary.name = saveNameInput;
                         menuEvent->saveFileSummary.playerName = playerNameInput;
+                        menuEvent->saveFileSummary.playerData.bodyColor = selectedBodyColor;
+                        menuEvent->saveFileSummary.playerData.skinColor = selectedSkinColor;
                         menuEvent->worldSeed = getWorldSeedFromString(worldSeedInput);
                     }
                 }
