@@ -323,6 +323,7 @@ void Game::runMainMenu(float dt)
             }
             case MainMenuEventType::JoinGame:
             {
+                currentSaveFileSummary = menuEvent->saveFileSummary;
                 networkHandler.sendWorldJoinReply(menuEvent->saveFileSummary.playerName);
                 break;
             }

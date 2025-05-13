@@ -99,7 +99,9 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(pl::RenderTarget& window
                 worldSeedInput = "";
                 newGamePage = 0;
                 selectedBodyColor = pl::Color(158, 69, 57);
+                selectedBodyColorValueHSV = 1.0f;
                 selectedSkinColor = pl::Color(230, 144, 78);
+                selectedSkinColorValueHSV = 1.0f;
                 nextUIState = MainMenuState::StartingNew;
             }
 
@@ -155,7 +157,7 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(pl::RenderTarget& window
                         panelWidth / 2.0f * intScale, 75 * intScale, buttonTextSize, ">", buttonStyle).isClicked())
                 {
                     newGamePage++;
-                    resetHoverRect();
+                    deferHoverRectReset = true;
                 }
             }
             else if (newGamePage == 1)
@@ -201,7 +203,7 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(pl::RenderTarget& window
                 if (guiContext.createButton(scaledPanelPaddingX, elementYPos, panelWidth / 2.0f * intScale, 75 * intScale, buttonTextSize, "<", buttonStyle).isClicked())
                 {
                     newGamePage--;
-                    resetHoverRect();
+                    deferHoverRectReset = true;
                 }
             }
 
@@ -400,6 +402,39 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(pl::RenderTarget& window
             guiContext.createTextEnter(scaledPanelPaddingX, elementYPos,
                 panelWidth * intScale, 75 * intScale, 20 * intScale, "Player Name", &playerNameInput, panelWidth / 5 * intScale, 30 * intScale, 30);
 
+            elementYPos += 130 * intScale;
+
+            guiContext.createColorWheel(scaledPanelPaddingX + panelWidth * intScale / 4, elementYPos, 50, selectedBodyColorValueHSV, selectedBodyColor);
+
+            guiContext.createColorWheel(scaledPanelPaddingX + panelWidth * intScale / 4 * 3, elementYPos, 50, selectedSkinColorValueHSV, selectedSkinColor);
+
+            ResolutionHandler::overrideZoom(0);
+
+            // Draw player preview
+            NetworkPlayer playerPreview(pl::Vector2f(0, 0));
+            playerPreview.setPosition(pl::Vector2f(scaledPanelPaddingX + panelWidth / 2 * intScale, elementYPos + (24 * intScale)));
+            playerPreview.setBodyColor(selectedBodyColor);
+            playerPreview.setSkinColor(selectedSkinColor);
+
+            playerPreview.draw(window, spriteBatch, game, nullptr, 0.0f, 0.0f, 1, pl::Color(), false);
+            spriteBatch.endDrawing(window);
+
+            elementYPos += 60 * intScale;
+
+            if (guiContext.createSlider(scaledPanelPaddingX, elementYPos, panelWidth * intScale / 2, 75 * intScale,
+                0.0f, 1.0f, &selectedBodyColorValueHSV, 20 * intScale, "", panelWidth / 8 * intScale, panelWidth / 8 * intScale, 40 * intScale).isHeld())
+            {
+                pl::Color hsvColor = Helper::convertRGBtoHSV(selectedBodyColor);
+                selectedBodyColor = Helper::convertHSVtoRGB(hsvColor.r, hsvColor.g, selectedBodyColorValueHSV);
+            }
+
+            if (guiContext.createSlider(scaledPanelPaddingX + panelWidth / 2 * intScale, elementYPos, panelWidth * intScale / 2, 75 * intScale,
+                0.0f, 1.0f, &selectedSkinColorValueHSV, 20 * intScale, "", panelWidth / 8 * intScale, panelWidth / 8 * intScale, 40 * intScale).isHeld())
+            {
+                pl::Color hsvColor = Helper::convertRGBtoHSV(selectedSkinColor);
+                selectedSkinColor = Helper::convertHSVtoRGB(hsvColor.r, hsvColor.g, selectedSkinColorValueHSV);
+            }
+            
             elementYPos += 100 * intScale;
 
             if (guiContext.createButton(scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale, buttonTextSize, "Join", buttonStyle)
@@ -410,6 +445,8 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(pl::RenderTarget& window
                     menuEvent = MainMenuEvent();
                     menuEvent->type = MainMenuEventType::JoinGame;
                     menuEvent->saveFileSummary.playerName = playerNameInput;
+                    menuEvent->saveFileSummary.playerData.bodyColor = selectedBodyColor;
+                    menuEvent->saveFileSummary.playerData.skinColor = selectedSkinColor;
                 }
             }
 
@@ -474,6 +511,10 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(pl::RenderTarget& window
 void MainMenuGUI::setMainMenuJoinGame()
 {
     playerNameInput = "";
+    selectedBodyColor = pl::Color(158, 69, 57);
+    selectedBodyColorValueHSV = 1.0f;
+    selectedSkinColor = pl::Color(230, 144, 78);
+    selectedSkinColorValueHSV = 1.0f;
     changeUIState(MainMenuState::JoiningGame, mainMenuState);
 }
 

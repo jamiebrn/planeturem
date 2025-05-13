@@ -23,8 +23,6 @@ ColorWheel::ColorWheel(const GUIInputState& inputState, ElementID id, int x, int
         float distance = pl::Vector2f(inputState.mouseX - x, inputState.mouseY - y).getLength();
 
         currentColor = Helper::convertHSVtoRGB(angle, distance / size, value);
-
-        printf("HSV: %f, %f, %f -- RGB: %f, %f, %f\n", angle, distance / size, value, currentColor.r, currentColor.g, currentColor.b);
     }
 
     this->currentColor = currentColor;

@@ -109,7 +109,6 @@ void DefaultGUIPanel::updateAndDrawSelectionHoverRect(pl::RenderTarget& window, 
 
     CollisionRect panelCollisionRect(scaledPanelPaddingX * intScale, 0, panelWidth * intScale, resolution.y);
 
-
     if (deferHoverRectReset || (!panelCollisionRect.isPointInRect(guiContext.getInputState().mouseX, guiContext.getInputState().mouseY) &&
         !guiContext.isElementActive() && !InputManager::isControllerActive()))
     {
