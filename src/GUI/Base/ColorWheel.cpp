@@ -24,7 +24,7 @@ ColorWheel::ColorWheel(const GUIInputState& inputState, ElementID id, int x, int
 
         currentColor = Helper::convertHSVtoRGB(angle, distance / size, value);
 
-        printf("R: %f, G: %f, B: %f\n", currentColor.r, currentColor.g, currentColor.b);
+        printf("HSV: %f, %f, %f -- RGB: %f, %f, %f\n", angle, distance / size, value, currentColor.r, currentColor.g, currentColor.b);
     }
 
     this->currentColor = currentColor;

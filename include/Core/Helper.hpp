@@ -91,7 +91,7 @@ inline pl::Vector2f normaliseVector(pl::Vector2f vector)
 inline pl::Color convertHSVtoRGB(float h, float s, float v)
 {
     float c = v * s;
-    float x = c * (1.0f - std::abs(fmod(h / 60.0f, 2.0f) - 1.0f));
+    float x = c * (1.0f - std::abs(fmod(fmod(h / 60.0f, 2.0f) + 2, 2.0f) - 1.0f));
     float m = v - c;
     float r = 0.0f, g = 0.0f, b = 0.0f;
     switch (static_cast<int>(h / 60.0f))
@@ -118,12 +118,12 @@ inline pl::Color convertRGBtoHSV(const pl::Color& color)
     float cmin = std::min(std::min(r, g), b);
     float delta = cmax - cmin;
 
-    pl::Color hsv;
+    pl::Color hsv(0, 0, 0);
     if (delta != 0)
     {
         if (cmax == r)
         {
-            hsv.r = 60 * fmod((g - b) / delta, 6);
+            hsv.r = 60 * fmod(fmod((g - b) / delta, 6) + 6, 6);
         }
         else if (cmax == g)
         {
@@ -131,7 +131,7 @@ inline pl::Color convertRGBtoHSV(const pl::Color& color)
         }
         else if (cmax == b)
         {
-            hsv.r = 60* ((r - g) / delta + 4);
+            hsv.r = 60 * ((r - g) / delta + 4);
         }
     }
 
