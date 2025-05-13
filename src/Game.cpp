@@ -3149,6 +3149,9 @@ void Game::startNewGame(int seed)
     networkHandler.reset(this);
 
     player = Player(pl::Vector2f(0, 0));
+    player.setBodyColor(currentSaveFileSummary.playerData.bodyColor);
+    player.setSkinColor(currentSaveFileSummary.playerData.skinColor);
+
     inventory = InventoryData(32);
     inventory.giveStartingItems();
     armourInventory = InventoryData(3);
@@ -4363,6 +4366,8 @@ void Game::drawDebugMenu(float dt)
 
     player.setBodyColor(playerBodyColor);
     player.setSkinColor(playerSkinColor);
+
+    ImGui::InputInt("Color wheel divisions", &DebugOptions::colorWheelDivisions);
 
     ImGui::End();
 

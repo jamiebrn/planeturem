@@ -9,6 +9,7 @@
 #include <Graphics/VertexArray.hpp>
 #include <Graphics/Color.hpp>
 #include <Graphics/RenderTarget.hpp>
+#include <Graphics/Framebuffer.hpp>
 #include <Graphics/Texture.hpp>
 #include <Vector.hpp>
 #include <Rect.hpp>
@@ -22,6 +23,8 @@
 
 #include "GUIInputState.hpp"
 #include "GUIElement.hpp"
+
+#include "DebugOptions.hpp"
 
 class ColorWheel : public GUIElement
 {

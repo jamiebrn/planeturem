@@ -92,16 +92,31 @@ void ColorWheel::draw(pl::RenderTarget& window)
 
     pl::VertexArray wheel;
 
-    int divisions = 60;
+    int divisions = DebugOptions::colorWheelDivisions;
     for (int i = 0; i < divisions; i++)
     {
-        wheel.addVertex(pl::Vertex(pl::Vector2f(x + std::cos(i / static_cast<float>(divisions) * 2 * M_PI) * size,
-            y + std::sin(i / static_cast<float>(divisions) * 2 * M_PI) * size), Helper::convertHSVtoRGB(i / static_cast<float>(divisions) * 360, 1, value)), false);
-        wheel.addVertex(pl::Vertex(pl::Vector2f(x + std::cos((i + 1) / static_cast<float>(divisions) * 2 * M_PI) * size,
-            y + std::sin((i + 1) / static_cast<float>(divisions) * 2 * M_PI) * size),
+        wheel.addVertex(pl::Vertex(pl::Vector2f((size / intScale / 3.0f) + std::cos(i / static_cast<float>(divisions) * 2 * M_PI) * (size / intScale / 3.0f),
+            (size / intScale / 3.0f) + std::sin(i / static_cast<float>(divisions) * 2 * M_PI) * (size / intScale / 3.0f)),
+            Helper::convertHSVtoRGB(i / static_cast<float>(divisions) * 360, 1, value)), false);
+        wheel.addVertex(pl::Vertex(pl::Vector2f((size / intScale / 3.0f) + std::cos((i + 1) / static_cast<float>(divisions) * 2 * M_PI) * (size / intScale / 3.0f),
+            (size / intScale / 3.0f) + std::sin((i + 1) / static_cast<float>(divisions) * 2 * M_PI) * (size / intScale / 3.0f)),
             Helper::convertHSVtoRGB(fmod((i + 1) / static_cast<float>(divisions) * 360, 360), 1, value)), false);
-        wheel.addVertex(pl::Vertex(pl::Vector2f(x, y), pl::Color(255 * value, 255 * value, 255 * value)), false);
+        wheel.addVertex(pl::Vertex(pl::Vector2f((size / intScale / 3.0f), (size / intScale / 3.0f)), pl::Color(255 * value, 255 * value, 255 * value)), false);
     }
+
+    pl::Framebuffer wheelTexture;
+    wheelTexture.create(std::ceil((size / intScale) * 2 / 3.0f), std::ceil((size / intScale) * 2 / 3.0f));
+    wheelTexture.clear(pl::Color(0, 0, 0, 0));
+
+    wheelTexture.draw(wheel, *Shaders::getShader(ShaderType::DefaultNoTexture), nullptr, pl::BlendMode::Alpha);
+
+    wheel.clear();
+    wheel.addQuad(pl::Rect<float>(x - size, y - size, size * 2, size * 2), pl::Color(),
+        pl::Rect<float>(0, wheelTexture.getHeight(), wheelTexture.getWidth(), -wheelTexture.getHeight()));
+    
+    window.draw(wheel, *Shaders::getShader(ShaderType::Default), &wheelTexture.getTexture(), pl::BlendMode::Alpha);
+
+    wheel.clear();
 
     // Find position of current selector from RGB color
     pl::Color hsvColor = Helper::convertRGBtoHSV(currentColor);

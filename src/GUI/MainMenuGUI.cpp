@@ -164,12 +164,35 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(pl::RenderTarget& window
                 
                 elementYPos += 130 * intScale;
 
-                guiContext.createColorWheel(scaledPanelPaddingX + panelWidth * intScale / 2, elementYPos, 50, selectedBodyColorValueHSV, selectedBodyColor);
+                guiContext.createColorWheel(scaledPanelPaddingX + panelWidth * intScale / 4, elementYPos, 50, selectedBodyColorValueHSV, selectedBodyColor);
+
+                guiContext.createColorWheel(scaledPanelPaddingX + panelWidth * intScale / 4 * 3, elementYPos, 50, selectedSkinColorValueHSV, selectedSkinColor);
+
+                ResolutionHandler::overrideZoom(0);
+
+                // Draw player preview
+                NetworkPlayer playerPreview(pl::Vector2f(0, 0));
+                playerPreview.setPosition(pl::Vector2f(scaledPanelPaddingX + panelWidth / 2 * intScale, elementYPos + (24 * intScale)));
+                playerPreview.setBodyColor(selectedBodyColor);
+                playerPreview.setSkinColor(selectedSkinColor);
+
+                playerPreview.draw(window, spriteBatch, game, nullptr, 0.0f, 0.0f, 1, pl::Color(), false);
+                spriteBatch.endDrawing(window);
 
                 elementYPos += 60 * intScale;
 
-                guiContext.createSlider(scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale,
+                guiContext.createSlider(scaledPanelPaddingX, elementYPos, panelWidth * intScale / 2, 75 * intScale,
                     0.0f, 1.0f, &selectedBodyColorValueHSV, 20 * intScale, "", panelWidth / 8 * intScale, panelWidth / 8 * intScale, 40 * intScale);
+
+                guiContext.createSlider(scaledPanelPaddingX + panelWidth / 2 * intScale, elementYPos, panelWidth * intScale / 2, 75 * intScale,
+                    0.0f, 1.0f, &selectedSkinColorValueHSV, 20 * intScale, "", panelWidth / 8 * intScale, panelWidth / 8 * intScale, 40 * intScale);
+                
+                elementYPos += 100 * intScale;
+
+                if (guiContext.createButton(scaledPanelPaddingX, elementYPos, panelWidth / 2.0f * intScale, 75 * intScale, buttonTextSize, "<", buttonStyle).isClicked())
+                {
+                    newGamePage--;
+                }
             }
 
             elementYPos += 200 * intScale;

@@ -13,3 +13,5 @@ bool DebugOptions::limitlessZoom = false;
 bool DebugOptions::crazyAttack = false;
 
 float DebugOptions::lightPropMult = 0.93f;
+
+int DebugOptions::colorWheelDivisions = 20;

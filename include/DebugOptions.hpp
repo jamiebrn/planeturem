@@ -19,4 +19,6 @@ extern bool crazyAttack;
 
 extern float lightPropMult;
 
+extern int colorWheelDivisions;
+
 }
