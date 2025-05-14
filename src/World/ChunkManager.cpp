@@ -56,7 +56,7 @@ void ChunkManager::deleteAllChunks()
     chunkLastEntitySpawnTime.clear();
 }
 
-bool ChunkManager::updateChunks(Game& game, std::optional<pl::Vector2f> localPlayerPos, const std::vector<ChunkViewRange>& chunkViewRanges,
+bool ChunkManager::updateChunks(Game& game, const std::vector<ChunkViewRange>& chunkViewRanges,
     bool isClient, std::vector<ChunkPosition>* chunksToRequestFromHost)
 {
     // Chunk load/unload
@@ -72,28 +72,25 @@ bool ChunkManager::updateChunks(Game& game, std::optional<pl::Vector2f> localPla
         hasModifiedChunks = true;
     
         // Calculate chunk world pos
-        pl::Vector2f chunkWorldPos;
-        chunkWorldPos.x = chunkPos.x * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
-        chunkWorldPos.y = chunkPos.y * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
-        if (localPlayerPos.has_value())
-        {
-            chunkWorldPos = translatePositionAroundWorld(chunkWorldPos, localPlayerPos.value());
-        }
+        // pl::Vector2f chunkWorldPos;
+        // chunkWorldPos.x = chunkPos.x * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
+        // chunkWorldPos.y = chunkPos.y * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
         
         // Chunk already loaded
         if (loadedChunks.count(chunkPos))
         {
             // Chunk already in correct world position, skip
-            if (loadedChunks.at(chunkPos)->getWorldPosition() == chunkWorldPos)
-            {
-                continue;
-            }
-            else
-            {
+            // if (loadedChunks.at(chunkPos)->getWorldPosition() == chunkWorldPos)
+            // {
+            //     continue;
+            // }
+            // else
+            // {
                 // Chunk is loaded but in incorrect position, reload
-                storedChunks[chunkPos] = std::move(loadedChunks[chunkPos]);
-                loadedChunks.erase(chunkPos);
-            }
+                // storedChunks[chunkPos] = std::move(loadedChunks[chunkPos]);
+                // loadedChunks.erase(chunkPos);
+            // }
+            continue;
         }
     
         // Check if chunk is in memory, and load if so
@@ -106,7 +103,7 @@ bool ChunkManager::updateChunks(Game& game, std::optional<pl::Vector2f> localPla
             auto& chunk = loadedChunks[chunkPos];
     
             // Update chunk position
-            chunk->setWorldPosition(chunkWorldPos, *this);
+            // chunk->setWorldPosition(chunkWorldPos, *this);
     
             // If chunk was loaded through POD / save file, has not yet been initialised (tilemaps, collision, pathfinding etc)
             // Therefore must initialise
@@ -138,7 +135,7 @@ bool ChunkManager::updateChunks(Game& game, std::optional<pl::Vector2f> localPla
         }
     
         // Generate new chunk if does not exist (only if host / solo)
-        generateChunk(chunkPos, game, true, chunkWorldPos);
+        generateChunk(chunkPos, game, true);
     }
 
     return hasModifiedChunks;
@@ -188,26 +185,26 @@ bool ChunkManager::unloadChunksOutOfView(const std::vector<ChunkViewRange>& chun
     return hasUnloadedChunks;
 }
 
-void ChunkManager::reloadChunks(ChunkViewRange chunkViewRange)
-{
-    for (auto iter = loadedChunks.begin(); iter != loadedChunks.end();)
-    {
-        ChunkPosition chunkPos = iter->first;
+// void ChunkManager::reloadChunks(ChunkViewRange chunkViewRange)
+// {
+//     for (auto iter = loadedChunks.begin(); iter != loadedChunks.end();)
+//     {
+//         ChunkPosition chunkPos = iter->first;
         
-        // Store chunk in chunk memory
-        storedChunks[chunkPos] = std::move(iter->second);
+//         // Store chunk in chunk memory
+//         storedChunks[chunkPos] = std::move(iter->second);
 
-        if (chunkViewRange.isChunkInRange(chunkPos, worldSize))
-        {
-            // Reset chunk entity spawn cooldown to prevent chunks spawning new entities when reloaded
-            // e.g. when world boundary crossed, prevent new entities from spawning on loaded chunks
-            resetChunkEntitySpawnCooldown(chunkPos);
-        }
+//         if (chunkViewRange.isChunkInRange(chunkPos, worldSize))
+//         {
+//             // Reset chunk entity spawn cooldown to prevent chunks spawning new entities when reloaded
+//             // e.g. when world boundary crossed, prevent new entities from spawning on loaded chunks
+//             resetChunkEntitySpawnCooldown(chunkPos);
+//         }
 
-        // Unload chunk
-        iter = loadedChunks.erase(iter);
-    }
-}
+//         // Unload chunk
+//         iter = loadedChunks.erase(iter);
+//     }
+// }
 
 void ChunkManager::regenerateChunkWithStructureType(ChunkPosition chunk, Game& game, std::optional<StructureType> structureType)
 {
@@ -240,7 +237,7 @@ void ChunkManager::drawChunkTerrain(pl::RenderTarget& window, pl::SpriteBatch& s
             continue;
         }
         
-        loadedChunks[chunkPos]->drawChunkTerrain(window, camera, time);
+        loadedChunks[chunkPos]->drawChunkTerrain(window, camera, time, worldSize);
     }
 
     // Draw visual terrain features e.g. cliffs
@@ -253,7 +250,7 @@ void ChunkManager::drawChunkTerrain(pl::RenderTarget& window, pl::SpriteBatch& s
             continue;
         }
         
-        loadedChunks[chunkPos]->drawChunkTerrainVisual(window, spriteBatch, camera, planetType, time);
+        loadedChunks[chunkPos]->drawChunkTerrainVisual(window, spriteBatch, camera, planetType, worldSize, time);
     }
 }
 
@@ -1335,70 +1332,62 @@ std::unordered_map<std::string, int> ChunkManager::getNearbyCraftingStationLevel
     return craftingStationLevels;
 }
 
-pl::Vector2f ChunkManager::translatePositionAroundWorld(pl::Vector2f position, pl::Vector2f originPosition) const
-{
-    return translatePositionAroundWorld(position, originPosition, worldSize);
-}
+// pl::Vector2f ChunkManager::translatePositionAroundWorld(pl::Vector2f position, pl::Vector2f originPosition) const
+// {
+//     return translatePositionAroundWorld(position, originPosition, worldSize);
+// }
 
-pl::Vector2f ChunkManager::translatePositionAroundWorld(pl::Vector2f position, pl::Vector2f originPosition, int worldSize)
-{
-    int worldPixelSize = worldSize * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
-    float halfWorldPixelSize = worldPixelSize / 2.0f;
+// pl::Vector2f ChunkManager::translatePositionAroundWorld(pl::Vector2f position, pl::Vector2f originPosition, int worldSize)
+// {
+//     int worldPixelSize = worldSize * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
+//     float halfWorldPixelSize = worldPixelSize / 2.0f;
 
-    if (std::abs(originPosition.x - position.x) >= halfWorldPixelSize)
-    {
-        if (originPosition.x >= halfWorldPixelSize)
-        {
-            if (position.x < halfWorldPixelSize)
-            {
-                position.x += worldPixelSize;
-            }
-        }
-        else
-        {
-            if (position.x >= halfWorldPixelSize)
-            {
-                position.x -= worldPixelSize;
-            }
-        }
-    }
+//     if (std::abs(originPosition.x - position.x) >= halfWorldPixelSize)
+//     {
+//         if (originPosition.x >= halfWorldPixelSize)
+//         {
+//             if (position.x < halfWorldPixelSize)
+//             {
+//                 position.x += worldPixelSize;
+//             }
+//         }
+//         else
+//         {
+//             if (position.x >= halfWorldPixelSize)
+//             {
+//                 position.x -= worldPixelSize;
+//             }
+//         }
+//     }
 
-    if (std::abs(originPosition.y - position.y) >= halfWorldPixelSize)
-    {
-        if (originPosition.y >= halfWorldPixelSize)
-        {
-            if (position.y < halfWorldPixelSize)
-            {
-                position.y += worldPixelSize;
-            }
-        }
-        else
-        {
-            if (position.y >= halfWorldPixelSize)
-            {
-                position.y -= worldPixelSize;
-            }
-        }
-    }
+//     if (std::abs(originPosition.y - position.y) >= halfWorldPixelSize)
+//     {
+//         if (originPosition.y >= halfWorldPixelSize)
+//         {
+//             if (position.y < halfWorldPixelSize)
+//             {
+//                 position.y += worldPixelSize;
+//             }
+//         }
+//         else
+//         {
+//             if (position.y >= halfWorldPixelSize)
+//             {
+//                 position.y -= worldPixelSize;
+//             }
+//         }
+//     }
 
-    return position;
-}
+//     return position;
+// }
 
-Chunk* ChunkManager::generateChunk(const ChunkPosition& chunkPosition, Game& game, bool putInLoaded, std::optional<pl::Vector2f> positionOverride)
+Chunk* ChunkManager::generateChunk(const ChunkPosition& chunkPosition, Game& game, bool putInLoaded)
 {
     std::unique_ptr<Chunk> chunk = std::make_unique<Chunk>(chunkPosition);
 
-    pl::Vector2f chunkWorldPos;
-    if (positionOverride.has_value())
-    {
-        chunkWorldPos.x = positionOverride->x;
-        chunkWorldPos.y = positionOverride->y;
-    }
-    else
-    {
-        chunkWorldPos.x = chunkPosition.x * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
-        chunkWorldPos.y = chunkPosition.y * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
-    }
+    // pl::Vector2f chunkWorldPos;
+    // chunkWorldPos.x = chunkPosition.x * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
+    // chunkWorldPos.y = chunkPosition.y * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
 
     Chunk* chunkPtr = nullptr;
     if (putInLoaded)
@@ -1413,7 +1402,7 @@ Chunk* ChunkManager::generateChunk(const ChunkPosition& chunkPosition, Game& gam
     }
 
     // Set chunk position
-    chunkPtr->setWorldPosition(chunkWorldPos, *this);
+    // chunkPtr->setWorldPosition(chunkWorldPos, *this);
 
     resetChunkEntitySpawnCooldown(chunkPosition);
 
@@ -1470,10 +1459,10 @@ std::pair<ChunkPosition, pl::Vector2<int>> ChunkManager::getChunkTileFromOffset(
     return {chunk, tile};
 }
 
-pl::Vector2<int> ChunkManager::getChunksSizeInView(const Camera& camera)
+pl::Vector2<int> ChunkManager::getChunksSizeInView(const Camera& camera, int worldSize)
 {
-    pl::Vector2f screenTopLeft = camera.screenToWorldTransform({0, 0});
-    pl::Vector2f screenBottomRight = camera.screenToWorldTransform(static_cast<pl::Vector2f>(ResolutionHandler::getResolution()));
+    pl::Vector2f screenTopLeft = camera.screenToWorldTransform({0, 0}, 0);
+    pl::Vector2f screenBottomRight = camera.screenToWorldTransform(static_cast<pl::Vector2f>(ResolutionHandler::getResolution()), 0);
 
     // Convert screen bounds to chunk units
     pl::Vector2<int> screenTopLeftGrid;
@@ -1490,9 +1479,9 @@ pl::Vector2<int> ChunkManager::getChunksSizeInView(const Camera& camera)
     return chunkSizeInView;
 }
 
-pl::Vector2f ChunkManager::topLeftChunkPosInView(const Camera& camera)
+pl::Vector2f ChunkManager::topLeftChunkPosInView(const Camera& camera, int worldSize)
 {
-    pl::Vector2f screenTopLeft = camera.screenToWorldTransform({0, 0});
+    pl::Vector2f screenTopLeft = camera.screenToWorldTransform({0, 0}, worldSize);
     screenTopLeft.y = (std::floor(screenTopLeft.y / (TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE)) - CHUNK_VIEW_LOAD_BORDER) * TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE;
     screenTopLeft.x = (std::floor(screenTopLeft.x / (TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE)) - CHUNK_VIEW_LOAD_BORDER) * TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE;
     return screenTopLeft;

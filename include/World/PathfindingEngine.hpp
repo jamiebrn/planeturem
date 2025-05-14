@@ -110,7 +110,7 @@ public:
 
     bool isActive();
 
-    void handleWorldWrap(pl::Vector2f positionDelta);
+    // void handleWorldWrap(pl::Vector2f positionDelta);
 
 private:
     void setPathfindStepIndex(int index);

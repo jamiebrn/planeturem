@@ -37,7 +37,7 @@ public:
 
     virtual bool isAlive() = 0;
 
-    virtual void handleWorldWrap(pl::Vector2f positionDelta) = 0;
+    // virtual void handleWorldWrap(pl::Vector2f positionDelta) = 0;
     
     virtual void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
         const pl::Color& color) const override = 0;

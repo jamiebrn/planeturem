@@ -118,8 +118,8 @@ public:
 
 
     // Drawing
-    void drawChunkTerrain(pl::RenderTarget& window, const Camera& camera, float time);
-    void drawChunkTerrainVisual(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera, PlanetType planetType, float time);
+    void drawChunkTerrain(pl::RenderTarget& window, const Camera& camera, float time, int worldSize);
+    void drawChunkTerrainVisual(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera, PlanetType planetType, int worldSize, float time);
     void drawChunkWater(pl::RenderTarget& window, const Camera& camera, ChunkManager& chunkManager);
 
     // Get vector of chunk object/entities for drawing
@@ -271,7 +271,7 @@ private:
     // Stores chunk position in chunkmanager hashmap (NOT actual world position)
     ChunkPosition chunkPosition;
     
-    // Stores ACTUAL position in world, which may differ from grid position if repeating chunks
+    // Stores ACTUAL position in world
     pl::Vector2f worldPosition;
 
     // Structure data, if structure is in chunk

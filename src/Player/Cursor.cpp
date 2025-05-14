@@ -303,22 +303,27 @@ void Cursor::setCursorCornersToDestination()
     }
 }
 
-void Cursor::drawCursor(pl::RenderTarget& window, const Camera& camera)
+void Cursor::drawCursor(pl::RenderTarget& window, const Camera& camera, int worldSize)
 {
-    switch(drawState)
+    if (drawState == CursorDrawState::Hidden)
     {
-        case CursorDrawState::Hidden:
-            break;
-        case CursorDrawState::Tile:
-            drawTileCursor(window, camera);
-            break;
+        return;
+    }
+
+    drawTileCursor(window, camera, worldSize);
+    // switch(drawState)
+    // {
+    //     case CursorDrawState::Hidden:
+    //         break;
+    //     case CursorDrawState::Tile:
+    //         break;
         // case CursorDrawState::Dynamic:
         //     drawDynamicCursor(window, camera);
         //     break;
-    }
+    // }
 }
 
-void Cursor::drawTileCursor(pl::RenderTarget& window, const Camera& camera)
+void Cursor::drawTileCursor(pl::RenderTarget& window, const Camera& camera, int worldSize)
 {
     float scale = ResolutionHandler::getScale();
 
@@ -334,7 +339,7 @@ void Cursor::drawTileCursor(pl::RenderTarget& window, const Camera& camera)
 
     for (int cursorCornerIdx = 0; cursorCornerIdx < cursorCornerPositions.size(); cursorCornerIdx++)
     {
-        drawData.position = camera.worldToScreenTransform(cursorCornerPositions[cursorCornerIdx].worldPosition);
+        drawData.position = camera.worldToScreenTransform(cursorCornerPositions[cursorCornerIdx].worldPosition, worldSize);
         drawData.textureRect = cursorAnimatedTextures[cursorCornerIdx].getTextureRect();
 
         spriteBatch.draw(window, drawData);
@@ -385,12 +390,12 @@ void Cursor::setCursorHidden(bool hidden)
         drawState = CursorDrawState::Hidden;
 }
 
-void Cursor::handleWorldWrap(pl::Vector2f positionDelta)
-{    
-    // Move all cursor corners to wrap around world
-    for (CursorCornerPosition& cursorCorner : cursorCornerPositions)
-    {
-        cursorCorner.worldPositionDestination += positionDelta;
-        cursorCorner.worldPosition += positionDelta;
-    }
-}
+// void Cursor::handleWorldWrap(pl::Vector2f positionDelta)
+// {    
+//     // Move all cursor corners to wrap around world
+//     for (CursorCornerPosition& cursorCorner : cursorCornerPositions)
+//     {
+//         cursorCorner.worldPositionDestination += positionDelta;
+//         cursorCorner.worldPosition += positionDelta;
+//     }
+// }

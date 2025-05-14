@@ -85,8 +85,7 @@ public:
     Player() = default;
     Player(pl::Vector2f position, int maxHealth = 0, pl::Color bodyColor = pl::Color(158, 69, 57, 255), pl::Color skinColor = pl::Color(230, 144, 78, 255));
 
-    void update(float dt, pl::Vector2f mouseWorldPos, ChunkManager& chunkManager, ProjectileManager& projectileManager,
-        bool& wrappedAroundWorld, pl::Vector2f& wrapPositionDelta);
+    void update(float dt, pl::Vector2f mouseWorldPos, ChunkManager& chunkManager, ProjectileManager& projectileManager, bool& wrapped, pl::Vector2f wrapPositionDelta);
     void updateInRoom(float dt, pl::Vector2f mouseWorldPos, const Room& room);
 
     virtual void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const pl::Color& color) const override;
@@ -172,9 +171,9 @@ private:
 
     // void drawFishingRodCast(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera, float gameTime, int worldSize, float waterYOffset) const;
 
-    void drawMeleeSwing(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera* camera) const;
+    void drawMeleeSwing(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera* camera, int worldSize) const;
 
-    void drawArmour(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera* camera, float waterYOffset) const;
+    void drawArmour(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera* camera, int worldSize, float waterYOffset) const;
 
 protected:
     CollisionRect collisionRect;

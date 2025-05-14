@@ -35,7 +35,7 @@ struct CollisionRect
 
     pl::Vector2f getCentre() const;
 
-    void debugDraw(pl::RenderTarget& window, const Camera& camera, pl::Color color = {255, 0, 0, 120}) const;
+    void debugDraw(pl::RenderTarget& window, const Camera& camera, int worldSize, pl::Color color = {255, 0, 0, 120}) const;
 
     template <class Archive>
     void serialize(Archive& ar, const std::uint32_t version)

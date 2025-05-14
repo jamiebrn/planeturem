@@ -50,9 +50,9 @@ void RocketObject::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, 
     BuildableObject::draw(window, spriteBatch, game, camera, dt, gameTime, worldSize, color);
 
     // Draw rocket particles
-    particleSystem.draw(window, spriteBatch, camera);
+    particleSystem.draw(window, spriteBatch, camera, worldSize);
 
-    drawRocket(window, spriteBatch, camera, color);
+    drawRocket(window, spriteBatch, camera, worldSize, color);
 }
 
 void RocketObject::interact(Game& game, bool isClient)
@@ -204,7 +204,7 @@ void RocketObject::createRocketParticles()
     particleSystem.addParticle(Particle(position, velocity, acceleration, style));
 }
 
-void RocketObject::drawRocket(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera, const pl::Color& color) const
+void RocketObject::drawRocket(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera, int worldSize, const pl::Color& color) const
 {
     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
 
@@ -223,7 +223,7 @@ void RocketObject::drawRocket(pl::RenderTarget& window, pl::SpriteBatch& spriteB
     pl::DrawData rocketDrawData;
     rocketDrawData.texture = TextureManager::getTexture(TextureType::Objects);
     rocketDrawData.shader = Shaders::getShader(ShaderType::Default);
-    rocketDrawData.position = camera.worldToScreenTransform(worldPos);
+    rocketDrawData.position = camera.worldToScreenTransform(worldPos, worldSize);
     rocketDrawData.color = color;
     rocketDrawData.scale = scale;
     rocketDrawData.centerRatio = objectData.rocketObjectData->textureOrigin;

@@ -76,13 +76,13 @@ void BossManager::testHitRectCollision(const std::vector<HitRect>& hitRects)
     }
 }
 
-void BossManager::handleWorldWrap(pl::Vector2f positionDelta)
-{
-    for (auto& boss : bosses)
-    {
-        boss->handleWorldWrap(positionDelta);
-    }   
-}
+// void BossManager::handleWorldWrap(pl::Vector2f positionDelta)
+// {
+//     for (auto& boss : bosses)
+//     {
+//         boss->handleWorldWrap(positionDelta);
+//     }   
+// }
 
 void BossManager::stopBossMusic()
 {
@@ -132,11 +132,11 @@ void BossManager::clearBosses()
 //     }
 // }
 
-void BossManager::drawStatsAtCursor(pl::RenderTarget& window, const Camera& camera, pl::Vector2f mouseScreenPos)
+void BossManager::drawStatsAtCursor(pl::RenderTarget& window, const Camera& camera, pl::Vector2f mouseScreenPos, int worldSize)
 {
     std::vector<std::string> hoverStats;
 
-    pl::Vector2f mouseWorldPos = camera.screenToWorldTransform(mouseScreenPos);
+    pl::Vector2f mouseWorldPos = camera.screenToWorldTransform(mouseScreenPos, worldSize);
 
     for (auto& boss : bosses)
     {

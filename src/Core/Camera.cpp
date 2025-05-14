@@ -58,8 +58,51 @@ pl::Vector2f Camera::getIntegerDrawOffset() const
     return drawOffset;
 }
 
-pl::Vector2f Camera::worldToScreenTransform(pl::Vector2f worldPos) const
+pl::Vector2f Camera::worldToScreenTransform(pl::Vector2f worldPos, int worldSize) const
 {
+    // Translate world pos if required (wraparound)
+    if (worldSize > 0)
+    {
+        int worldPixelSize = worldSize * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
+        float halfWorldPixelSize = worldPixelSize / 2.0f;
+
+        if (std::abs(offset.x - worldPos.x) >= halfWorldPixelSize)
+        {
+            if (offset.x >= halfWorldPixelSize)
+            {
+                if (worldPos.x < halfWorldPixelSize)
+                {
+                    worldPos.x += worldPixelSize;
+                }
+            }
+            else
+            {
+                if (worldPos.x >= halfWorldPixelSize)
+                {
+                    worldPos.x -= worldPixelSize;
+                }
+            }
+        }
+
+        if (std::abs(offset.y - worldPos.y) >= halfWorldPixelSize)
+        {
+            if (offset.y >= halfWorldPixelSize)
+            {
+                if (worldPos.y < halfWorldPixelSize)
+                {
+                    worldPos.y += worldPixelSize;
+                }
+            }
+            else
+            {
+                if (worldPos.y >= halfWorldPixelSize)
+                {
+                    worldPos.y -= worldPixelSize;
+                }
+            }
+        }
+    }
+
     float scale = ResolutionHandler::getScale();
 
     pl::Vector2f screenCentre = static_cast<pl::Vector2f>(ResolutionHandler::getResolution()) / 2.0f;
@@ -72,16 +115,27 @@ pl::Vector2f Camera::worldToScreenTransform(pl::Vector2f worldPos) const
     return screenPos;
 }
 
-pl::Vector2f Camera::screenToWorldTransform(pl::Vector2f screenPos) const
+pl::Vector2f Camera::screenToWorldTransform(pl::Vector2f screenPos, int worldSize) const
 {
     float scale = ResolutionHandler::getScale();
 
     pl::Vector2f screenCentre = static_cast<pl::Vector2f>(ResolutionHandler::getResolution()) / 2.0f;
     pl::Vector2f screenCentreWorld = screenCentre / scale;
 
+    
     pl::Vector2f worldPos;
-    worldPos.x = (screenPos.x - screenCentre.x) / scale + screenCentreWorld.x + offset.x;
-    worldPos.y = (screenPos.y - screenCentre.y) / scale + screenCentreWorld.y + offset.y;
+    if (worldSize > 0)
+    {
+        int worldPixelSize = worldSize * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
+
+        worldPos.x = fmod(fmod((screenPos.x - screenCentre.x) / scale + screenCentreWorld.x + offset.x, worldPixelSize) + worldPixelSize, worldPixelSize);
+        worldPos.y = fmod(fmod((screenPos.y - screenCentre.y) / scale + screenCentreWorld.y + offset.y, worldPixelSize) + worldPixelSize, worldPixelSize);
+    }
+    else
+    {
+        worldPos.x = (screenPos.x - screenCentre.x) / scale + screenCentreWorld.x + offset.x;
+        worldPos.y = (screenPos.y - screenCentre.y) / scale + screenCentreWorld.y + offset.y;
+    }
 
     return worldPos;
 }
@@ -94,10 +148,9 @@ void Camera::handleScaleChange(float beforeScale, float afterScale, pl::Vector2f
     Camera::setOffset(adjustedCamPos);
 }
 
-void Camera::handleWorldWrap(pl::Vector2f positionDelta)
+void Camera::handleWorldWrap(int worldSize)
 {
-    offset.x += positionDelta.x;
-    offset.y += positionDelta.y;
+    offset = Helper::wrapPosition(offset, worldSize);
 }
 
 ChunkViewRange Camera::getChunkViewRange() const
@@ -112,8 +165,9 @@ ChunkViewRange Camera::getChunkViewDrawRange() const
 
 ChunkViewRange Camera::getChunkViewRangeWithBorder(int border) const
 {
-    pl::Vector2f screenTopLeft = screenToWorldTransform({0, 0});
-    pl::Vector2f screenBottomRight = screenToWorldTransform(static_cast<pl::Vector2f>(ResolutionHandler::getResolution()));
+    // Use 0 for world size to prevent wrapping
+    pl::Vector2f screenTopLeft = screenToWorldTransform({0, 0}, 0);
+    pl::Vector2f screenBottomRight = screenToWorldTransform(static_cast<pl::Vector2f>(ResolutionHandler::getResolution()), 0);
 
     ChunkViewRange chunkViewRange;
 
@@ -132,9 +186,9 @@ void Camera::setOffset(pl::Vector2f newOffset)
 }
 
 // Returns whether a specific world position with dimensions is in the camera view
-bool Camera::isInView(pl::Vector2f position) const
+bool Camera::isInView(pl::Vector2f position, int worldSize) const
 {
-    pl::Vector2f screenPos = worldToScreenTransform(position);
+    pl::Vector2f screenPos = worldToScreenTransform(position, worldSize);
 
     return (screenPos.x >= 0 && screenPos.x <= ResolutionHandler::getResolution().x &&
             screenPos.y >= 0 && screenPos.y <= ResolutionHandler::getResolution().y);

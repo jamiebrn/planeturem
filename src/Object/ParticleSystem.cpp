@@ -25,12 +25,12 @@ void Particle::update(float dt)
     }
 }
 
-void Particle::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera) const
+void Particle::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera, int worldSize) const
 {
     float scale = ResolutionHandler::getScale();
 
     pl::DrawData drawData;
-    drawData.position = camera.worldToScreenTransform(position);
+    drawData.position = camera.worldToScreenTransform(position, worldSize);
     drawData.texture = TextureManager::getTexture(TextureType::Objects);
     drawData.shader = Shaders::getShader(ShaderType::Default);
     drawData.textureRect = textureRects[std::min(currentFrame, static_cast<int>(textureRects.size()) - 1)];
@@ -52,10 +52,10 @@ bool Particle::isAlive()
     return (currentFrame < textureRects.size());
 }
 
-void Particle::handleWorldWrap(pl::Vector2f positionDelta)
-{
-    position += positionDelta;
-}
+// void Particle::handleWorldWrap(pl::Vector2f positionDelta)
+// {
+//     position += positionDelta;
+// }
 
 void ParticleSystem::addParticle(const Particle& particle)
 {
@@ -76,21 +76,21 @@ void ParticleSystem::update(float dt)
     }
 }
 
-void ParticleSystem::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera) const
+void ParticleSystem::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera, int worldSize) const
 {
     for (auto iter = particles.begin(); iter != particles.end(); iter++)
     {
-        iter->draw(window, spriteBatch, camera);
+        iter->draw(window, spriteBatch, camera, worldSize);
     }
 }
 
-void ParticleSystem::handleWorldWrap(pl::Vector2f positionDelta)
-{
-    for (auto& particle : particles)
-    {
-        particle.handleWorldWrap(positionDelta);
-    }
-}
+// void ParticleSystem::handleWorldWrap(pl::Vector2f positionDelta)
+// {
+//     for (auto& particle : particles)
+//     {
+//         particle.handleWorldWrap(positionDelta);
+//     }
+// }
 
 void ParticleSystem::clear()
 {

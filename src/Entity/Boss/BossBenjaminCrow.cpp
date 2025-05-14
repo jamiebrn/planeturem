@@ -274,17 +274,17 @@ bool BossBenjaminCrow::isAlive()
     return (!dead);
 }
 
-void BossBenjaminCrow::handleWorldWrap(pl::Vector2f positionDelta)
-{
-    position += positionDelta;
-    dashTargetPosition += positionDelta;
+// void BossBenjaminCrow::handleWorldWrap(pl::Vector2f positionDelta)
+// {
+//     position += positionDelta;
+//     dashTargetPosition += positionDelta;
 
-    // Wrap dash ghost effects
-    for (DashGhostEffect& dashGhostEffect : dashGhostEffects)
-    {
-        dashGhostEffect.position += positionDelta;
-    }
-}
+//     // Wrap dash ghost effects
+//     for (DashGhostEffect& dashGhostEffect : dashGhostEffects)
+//     {
+//         dashGhostEffect.position += positionDelta;
+//     }
+// }
 
 void BossBenjaminCrow::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
     const pl::Color& color) const
@@ -294,7 +294,7 @@ void BossBenjaminCrow::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBat
     drawData.texture = TextureManager::getTexture(TextureType::Entities);
     drawData.shader = Shaders::getShader(ShaderType::Default);
 
-    drawData.position = camera.worldToScreenTransform(position);
+    drawData.position = camera.worldToScreenTransform(position, worldSize);
 
     float scale = ResolutionHandler::getScale();
     drawData.scale = pl::Vector2f(scale, scale);
@@ -311,7 +311,7 @@ void BossBenjaminCrow::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBat
         effectDrawData.texture = TextureManager::getTexture(TextureType::Entities);
         effectDrawData.shader = Shaders::getShader(ShaderType::Default);
 
-        effectDrawData.position = camera.worldToScreenTransform(dashGhostEffect.position);
+        effectDrawData.position = camera.worldToScreenTransform(dashGhostEffect.position, worldSize);
         effectDrawData.color = pl::Color(255, 255, 255, dashGhostEffect.MAX_ALPHA * dashGhostEffect.timer / dashGhostEffect.MAX_TIME);
         effectDrawData.scale = pl::Vector2f(scale * dashGhostEffect.scaleX, scale);
         effectDrawData.centerRatio = pl::Vector2f(0.5f, 0.5f);
@@ -322,7 +322,7 @@ void BossBenjaminCrow::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBat
 
     // Draw bird
     pl::Vector2f worldPos(position.x, position.y - flyingHeight);
-    drawData.position = camera.worldToScreenTransform(worldPos);
+    drawData.position = camera.worldToScreenTransform(worldPos, worldSize);
 
     // Flip if required
     if (direction.x < 0)

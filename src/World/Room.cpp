@@ -366,7 +366,7 @@ void Room::draw(pl::RenderTarget& window, const Camera& camera) const
     pl::DrawData drawData;
     drawData.texture = TextureManager::getTexture(TextureType::Rooms);
     drawData.shader = Shaders::getShader(ShaderType::Default);
-    drawData.position = camera.worldToScreenTransform(pl::Vector2f(0, 0));
+    drawData.position = camera.worldToScreenTransform(pl::Vector2f(0, 0), 0);
     drawData.scale = pl::Vector2f(scale, scale);
     drawData.textureRect = roomData.textureRect;
 
@@ -377,7 +377,7 @@ void Room::draw(pl::RenderTarget& window, const Camera& camera) const
     {
         for (const CollisionRect& rect : collisionRects)
         {
-            rect.debugDraw(window, camera);
+            rect.debugDraw(window, camera, 0);
         }
     }
     #endif

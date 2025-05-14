@@ -408,12 +408,12 @@ bool PathFollower::isActive()
     return (stepIndex < stepSequence.size());
 }
 
-void PathFollower::handleWorldWrap(pl::Vector2f positionDelta)
-{
-    position += positionDelta;
-    lastStepPosition += positionDelta;
-    stepTargetPosition += positionDelta;
-}
+// void PathFollower::handleWorldWrap(pl::Vector2f positionDelta)
+// {
+//     position += positionDelta;
+//     lastStepPosition += positionDelta;
+//     stepTargetPosition += positionDelta;
+// }
 
 void PathFollower::setPathfindStepIndex(int index)
 {

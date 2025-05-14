@@ -48,7 +48,7 @@ public:
 
     void testHitRectCollision(const std::vector<HitRect>& hitRects);
 
-    void handleWorldWrap(pl::Vector2f positionDelta);
+    // void handleWorldWrap(pl::Vector2f positionDelta);
 
     void stopBossMusic();
 
@@ -58,7 +58,7 @@ public:
 
     void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch);
 
-    void drawStatsAtCursor(pl::RenderTarget& window, const Camera& camera, pl::Vector2f mouseScreenPos);
+    void drawStatsAtCursor(pl::RenderTarget& window, const Camera& camera, pl::Vector2f mouseScreenPos, int worldSize);
 
     void getBossWorldObjects(std::vector<WorldObject*>& worldObjects);
 

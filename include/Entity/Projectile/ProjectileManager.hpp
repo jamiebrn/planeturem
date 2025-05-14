@@ -42,7 +42,7 @@ public:
 
     uint16_t getProjectileCount() const;
 
-    void handleWorldWrap(pl::Vector2f positionDelta);
+    // void handleWorldWrap(pl::Vector2f positionDelta);
 
     void clear();
 

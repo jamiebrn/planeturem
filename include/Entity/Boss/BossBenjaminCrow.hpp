@@ -52,7 +52,7 @@ public:
 
     bool isAlive() override;
 
-    void handleWorldWrap(pl::Vector2f positionDelta) override;
+    // void handleWorldWrap(pl::Vector2f positionDelta) override;
 
     void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const pl::Color& color) const override;
 

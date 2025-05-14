@@ -49,7 +49,7 @@ void StructureObject::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatc
     pl::DrawData drawData;
     drawData.texture = TextureManager::getTexture(TextureType::Objects);
     drawData.shader = Shaders::getShader(ShaderType::Default);
-    drawData.position = camera.worldToScreenTransform(position);
+    drawData.position = camera.worldToScreenTransform(position, worldSize);
     drawData.scale = pl::Vector2f(ResolutionHandler::getScale(), ResolutionHandler::getScale());
     drawData.centerRatio = structureData.textureOrigin;
     drawData.textureRect = structureData.textureRect;

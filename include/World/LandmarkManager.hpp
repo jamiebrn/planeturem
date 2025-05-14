@@ -10,13 +10,14 @@
 #include "Object/ObjectReference.hpp"
 #include "Object/BuildableObject.hpp"
 #include "Object/LandmarkObject.hpp"
+#include "Core/Camera.hpp"
 
 class Player;
 class ChunkManager;
 
 struct LandmarkSummaryData
 {
-    pl::Vector2f worldPos;
+    pl::Vector2f screenPos;
     pl::Color colorA, colorB;
 };
 
@@ -32,7 +33,7 @@ public:
     // Gets world position for each landmark, using shortest distance from player
     // E.g. if player is at top of world, and landmark is at bottom of world, landmark position will be
     // given as a negative value from top of world
-    std::vector<LandmarkSummaryData> getLandmarkSummaryDatas(const Player& player, ChunkManager& chunkManager);
+    std::vector<LandmarkSummaryData> getLandmarkSummaryDatas(const Camera& camera, ChunkManager& chunkManager);
 
     void clear();
 

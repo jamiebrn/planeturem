@@ -50,7 +50,7 @@ public:
     // Returns target position
     pl::Vector2f getPosition() const override;
 
-    void handleWorldWrap(pl::Vector2f positionDelta);
+    // void handleWorldWrap(pl::Vector2f positionDelta);
     
     void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
        const pl::Color& color) const override;
@@ -73,7 +73,7 @@ public:
     
     void update(float dt, float gameTime, const Camera& camera, ChunkManager& chunkManager);
 
-    void handleWorldWrap(pl::Vector2f positionDelta);
+    // void handleWorldWrap(pl::Vector2f positionDelta);
 
     std::vector<WorldObject*> getWeatherParticles();
 

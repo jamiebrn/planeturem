@@ -32,14 +32,14 @@ public:
 
     pl::Vector2f getIntegerDrawOffset() const;
 
-    // Get scaled draw offset (applies zoom etc)
-    pl::Vector2f worldToScreenTransform(pl::Vector2f worldPos) const;
+    // Use worldSize = 0 to disable planet wrapping
+    pl::Vector2f worldToScreenTransform(pl::Vector2f worldPos, int worldSize) const;
 
-    pl::Vector2f screenToWorldTransform(pl::Vector2f screenPos) const;
+    pl::Vector2f screenToWorldTransform(pl::Vector2f screenPos, int worldSize) const;
 
     void handleScaleChange(float beforeScale, float afterScale, pl::Vector2f playerPosition);
 
-    void handleWorldWrap(pl::Vector2f positionDelta);
+    void handleWorldWrap(int worldSize);
 
     ChunkViewRange getChunkViewRange() const;
     ChunkViewRange getChunkViewDrawRange() const;
@@ -47,7 +47,7 @@ public:
     // Set offset of camera
     void setOffset(pl::Vector2f newOffset);
     
-    bool isInView(pl::Vector2f position) const;
+    bool isInView(pl::Vector2f position, int worldSize) const;
     
     void setScreenShakeTime(float time);
     

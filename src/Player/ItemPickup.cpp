@@ -30,7 +30,7 @@ void ItemPickup::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Ga
     pl::DrawData shadowDrawData;
     shadowDrawData.texture = TextureManager::getTexture(TextureType::Items);
     shadowDrawData.shader = Shaders::getShader(ShaderType::Default);
-    shadowDrawData.position = camera.worldToScreenTransform(position);
+    shadowDrawData.position = camera.worldToScreenTransform(position, worldSize);
     shadowDrawData.scale = pl::Vector2f(scale, scale);
     shadowDrawData.centerRatio = pl::Vector2f(0.5f, 0.5f);
     shadowDrawData.textureRect = shadowRect;
@@ -40,7 +40,7 @@ void ItemPickup::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Ga
     pl::Vector2<int> chunkTile = getChunkTileInside(worldSize);
     float floatAmount = std::pow(std::sin(gameTime + chunkTile.x + chunkTile.y), 2);
 
-    pl::Vector2f screenPos = camera.worldToScreenTransform(position - pl::Vector2f(0, floatAmount * (maxFloatHeight - minFloatHeight) + minFloatHeight));
+    pl::Vector2f screenPos = camera.worldToScreenTransform(position - pl::Vector2f(0, floatAmount * (maxFloatHeight - minFloatHeight) + minFloatHeight), worldSize);
     float scaleMult = scale / 3.0f / ResolutionHandler::getResolutionIntegerScale();
 
     float flashAmount = std::max(SPAWN_FLASH_TIME - (gameTime - spawnGameTime), 0.0f) / SPAWN_FLASH_TIME;

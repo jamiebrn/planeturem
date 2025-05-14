@@ -187,8 +187,7 @@ std::vector<WorldObject*> NetworkHandler::getNetworkPlayersToDraw(const Camera& 
         // Translate position to wrap around world correctly, if required
         if (locationState.isOnPlanet())
         {
-            iter->second.applyWorldWrapTranslation(playerPosition, game->getChunkManager(locationState.getPlanetType()));
-
+            // iter->second.applyWorldWrapTranslation(playerPosition, game->getChunkManager(locationState.getPlanetType()));
             const PlanetGenData& planetGenData = PlanetGenDataLoader::getPlanetGenData(locationState.getPlanetType());
             worldSize = planetGenData.worldSize;
         }

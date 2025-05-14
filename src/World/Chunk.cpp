@@ -6,6 +6,9 @@
 Chunk::Chunk(ChunkPosition chunkPosition)
 {
     this->chunkPosition = chunkPosition;
+    
+    worldPosition.x = chunkPosition.x * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
+    worldPosition.y = chunkPosition.y * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
 
     itemPickupCounter = 0;
 
@@ -616,7 +619,7 @@ TileMap* Chunk::getTileMap(int tileMap)
     return &(tileMaps[tileMap]);
 }
 
-void Chunk::drawChunkTerrain(pl::RenderTarget& window, const Camera& camera, float time)
+void Chunk::drawChunkTerrain(pl::RenderTarget& window, const Camera& camera, float time, int worldSize)
 {
     // Get tile size and scale
     float scale = ResolutionHandler::getScale();
@@ -628,7 +631,7 @@ void Chunk::drawChunkTerrain(pl::RenderTarget& window, const Camera& camera, flo
             continue;
         #endif
 
-        iter->second.draw(window, camera.worldToScreenTransform(worldPosition), pl::Vector2f(scale, scale));
+        iter->second.draw(window, camera.worldToScreenTransform(worldPosition, worldSize), pl::Vector2f(scale, scale));
     }
 
 
@@ -641,22 +644,24 @@ void Chunk::drawChunkTerrain(pl::RenderTarget& window, const Camera& camera, flo
     {
         for (auto& entity : entities)
         {
-            debugLines.addVertex(pl::Vertex(camera.worldToScreenTransform(worldPosition)));
-            debugLines.addVertex(pl::Vertex(camera.worldToScreenTransform(entity->getPosition())));
+            debugLines.addVertex(pl::Vertex(camera.worldToScreenTransform(worldPosition, worldSize)));
+            debugLines.addVertex(pl::Vertex(camera.worldToScreenTransform(entity->getPosition(), worldSize)));
         }
     }
 
     // DEBUG CHUNK OUTLINE DRAW
     if (DebugOptions::drawChunkBoundaries)
     {
-        debugLines.addVertex(pl::Vertex(camera.worldToScreenTransform(worldPosition)));
-        debugLines.addVertex(pl::Vertex(camera.worldToScreenTransform(worldPosition + pl::Vector2f(CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED, 0))));
-        debugLines.addVertex(pl::Vertex(camera.worldToScreenTransform(worldPosition)));
-        debugLines.addVertex(pl::Vertex(camera.worldToScreenTransform(worldPosition + pl::Vector2f(0, CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED))));
-        debugLines.addVertex(pl::Vertex(camera.worldToScreenTransform(worldPosition + pl::Vector2f(CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED, 0))));
-        debugLines.addVertex(pl::Vertex(camera.worldToScreenTransform(worldPosition + pl::Vector2f(CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED, CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED))));
-        debugLines.addVertex(pl::Vertex(camera.worldToScreenTransform(worldPosition + pl::Vector2f(0, CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED))));
-        debugLines.addVertex(pl::Vertex(camera.worldToScreenTransform(worldPosition + pl::Vector2f(CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED, CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED))));
+        debugLines.addVertex(pl::Vertex(camera.worldToScreenTransform(worldPosition, worldSize)));
+        debugLines.addVertex(pl::Vertex(camera.worldToScreenTransform(worldPosition + pl::Vector2f(CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED, 0), worldSize)));
+        debugLines.addVertex(pl::Vertex(camera.worldToScreenTransform(worldPosition, worldSize)));
+        debugLines.addVertex(pl::Vertex(camera.worldToScreenTransform(worldPosition + pl::Vector2f(0, CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED), worldSize)));
+        debugLines.addVertex(pl::Vertex(camera.worldToScreenTransform(worldPosition + pl::Vector2f(CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED, 0), worldSize)));
+        debugLines.addVertex(pl::Vertex(camera.worldToScreenTransform(worldPosition +
+            pl::Vector2f(CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED, CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED), worldSize)));
+        debugLines.addVertex(pl::Vertex(camera.worldToScreenTransform(worldPosition + pl::Vector2f(0, CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED), worldSize)));
+        debugLines.addVertex(pl::Vertex(camera.worldToScreenTransform(worldPosition +
+            pl::Vector2f(CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED, CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED), worldSize)));
     }
 
     if (debugLines.size() > 0)
@@ -669,13 +674,13 @@ void Chunk::drawChunkTerrain(pl::RenderTarget& window, const Camera& camera, flo
     {
         for (auto& collisionRect : collisionRects)
         {
-            collisionRect.debugDraw(window, camera);
+            collisionRect.debugDraw(window, camera, worldSize);
         }
     }
     #endif
 }
 
-void Chunk::drawChunkTerrainVisual(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera, PlanetType planetType, float time)
+void Chunk::drawChunkTerrainVisual(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera, PlanetType planetType, int worldSize, float time)
 {
     // Get tile size and scale
     float scale = ResolutionHandler::getScale();
@@ -722,7 +727,7 @@ void Chunk::drawChunkTerrainVisual(pl::RenderTarget& window, pl::SpriteBatch& sp
                     break;
             }
 
-            drawData.position = camera.worldToScreenTransform(tileWorldPosition);
+            drawData.position = camera.worldToScreenTransform(tileWorldPosition, worldSize);
 
             spriteBatch.draw(window, drawData);
         }
@@ -783,7 +788,7 @@ void Chunk::drawChunkWater(pl::RenderTarget& window, const Camera& camera, Chunk
     const PlanetGenData& planetGenData = PlanetGenDataLoader::getPlanetGenData(chunkManager.getPlanetType());
 
     // Draw water
-    pl::Vector2f waterPos = camera.worldToScreenTransform(worldPosition);
+    pl::Vector2f waterPos = camera.worldToScreenTransform(worldPosition, chunkManager.getWorldSize());
     pl::Rect<int> waterRect(waterPos.x, waterPos.y, TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE * scale, TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE * scale);
 
     pl::VertexArray waterVertices;
@@ -1531,20 +1536,20 @@ void Chunk::setWorldPosition(pl::Vector2f position, ChunkManager& chunkManager)
     // float tileSize = ResolutionHandler::getTileSize();
 
     // Update all object positions
-    for (int y = 0; y < objectGrid.size(); y++)
-    {
-        for (int x = 0; x < objectGrid[0].size(); x++)
-        {
-            // If no object at position, don't update position
-            if (!objectGrid[y][x])
-                continue;
+    // for (int y = 0; y < objectGrid.size(); y++)
+    // {
+    //     for (int x = 0; x < objectGrid[0].size(); x++)
+    //     {
+    //         // If no object at position, don't update position
+    //         if (!objectGrid[y][x])
+    //             continue;
             
-            // Calculate updated object position
-            pl::Vector2f objectPos = worldPosition + pl::Vector2f(x * TILE_SIZE_PIXELS_UNSCALED + TILE_SIZE_PIXELS_UNSCALED / 2.0f, y * TILE_SIZE_PIXELS_UNSCALED + TILE_SIZE_PIXELS_UNSCALED / 2.0f);
+    //         // Calculate updated object position
+    //         pl::Vector2f objectPos = worldPosition + pl::Vector2f(x * TILE_SIZE_PIXELS_UNSCALED + TILE_SIZE_PIXELS_UNSCALED / 2.0f, y * TILE_SIZE_PIXELS_UNSCALED + TILE_SIZE_PIXELS_UNSCALED / 2.0f);
 
-            objectGrid[y][x]->setWorldPosition(objectPos);
-        }
-    }
+    //         objectGrid[y][x]->setWorldPosition(objectPos);
+    //     }
+    // }
 
     recalculateCollisionRects(chunkManager, nullptr);
 }

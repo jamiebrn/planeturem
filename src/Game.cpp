@@ -1,5 +1,7 @@
 #include "Game.hpp"
 
+// CONSIDER: World boundary collision failure after position normalisation update
+
 // FIX: Weather inconsistency (gametime)
 
 // FIX: World wraparound in menu when left for long duration
@@ -729,7 +731,7 @@ void Game::runInGame(float dt)
             updateActivePlanets(dt);
         }
 
-        Cursor::setCursorHidden(!player.canReachPosition(camera.screenToWorldTransform(mouseScreenPos)));
+        Cursor::setCursorHidden(!player.canReachPosition(camera.screenToWorldTransform(mouseScreenPos, 0)));
         Cursor::setCursorHidden((worldMenuState != WorldMenuState::Main && worldMenuState != WorldMenuState::Inventory) ||
                                 !player.isAlive());
 
@@ -994,7 +996,7 @@ void Game::updateOnPlanet(float dt)
     int worldSize = getChunkManager().getWorldSize();
 
     // Update cursor
-    Cursor::updateTileCursor(camera.screenToWorldTransform(mouseScreenPos), dt, getChunkManager(), player.getCollisionRect(), inventory, worldMenuState);
+    Cursor::updateTileCursor(camera.screenToWorldTransform(mouseScreenPos, worldSize), dt, getChunkManager(), player.getCollisionRect(), inventory, worldMenuState);
 
     // Update player
     bool wrappedAroundWorld = false;
@@ -1002,32 +1004,37 @@ void Game::updateOnPlanet(float dt)
 
     if (!isStateTransitioning())
     {
-        player.update(dt, camera.screenToWorldTransform(mouseScreenPos), getChunkManager(), getProjectileManager(), wrappedAroundWorld, wrapPositionDelta);
+        player.update(dt, camera.screenToWorldTransform(mouseScreenPos, worldSize), getChunkManager(), getProjectileManager(), wrappedAroundWorld, wrapPositionDelta);
+    }
+
+    if (wrappedAroundWorld)
+    {
+        camera.handleWorldWrap(worldSize);
     }
 
     // Handle world wrapping for camera and cursor, if player wrapped around
-    if (wrappedAroundWorld)
+    // if (wrappedAroundWorld)
     {
-        camera.handleWorldWrap(wrapPositionDelta);
-        Cursor::handleWorldWrap(wrapPositionDelta);
+        // camera.handleWorldWrap(wrapPositionDelta);
+        // Cursor::handleWorldWrap(wrapPositionDelta);
         // handleOpenChestPositionWorldWrap(wrapPositionDelta);
-        getChunkManager().reloadChunks(camera.getChunkViewRange());
+        // getChunkManager().reloadChunks(camera.getChunkViewRange());
 
         // Wrap bosses
-        getBossManager().handleWorldWrap(wrapPositionDelta);
+        // getBossManager().handleWorldWrap(wrapPositionDelta);
 
         // Wrap projectiles
-        getProjectileManager().handleWorldWrap(wrapPositionDelta);
+        // getProjectileManager().handleWorldWrap(wrapPositionDelta);
         // enemyProjectileManager.handleWorldWrap(wrapPositionDelta);
 
         // Wrap hit markers
-        HitMarkers::handleWorldWrap(wrapPositionDelta);
+        // HitMarkers::handleWorldWrap(wrapPositionDelta);
 
         // Wrap particles
-        particleSystem.handleWorldWrap(wrapPositionDelta);
+        // particleSystem.handleWorldWrap(wrapPositionDelta);
 
         // Wrap weather particles
-        weatherSystem.handleWorldWrap(wrapPositionDelta);
+        // weatherSystem.handleWorldWrap(wrapPositionDelta);
     }
 
     // Update (loaded) chunks
@@ -1036,8 +1043,7 @@ void Game::updateOnPlanet(float dt)
     {
         std::vector<ChunkPosition> chunksToRequestFromHost;
         
-        bool hasLoadedChunks = getChunkManager().updateChunks(*this, player.getPosition(),
-            {camera.getChunkViewRange()}, networkHandler.isClient(), &chunksToRequestFromHost);
+        bool hasLoadedChunks = getChunkManager().updateChunks(*this, {camera.getChunkViewRange()}, networkHandler.isClient(), &chunksToRequestFromHost);
         bool hasUnloadedChunks = getChunkManager().unloadChunksOutOfView({camera.getChunkViewRange()});
     
         if (networkHandler.isClient() && chunksToRequestFromHost.size() > 0)
@@ -1150,7 +1156,7 @@ void Game::updateActivePlanets(float dt)
             localPlayerPosition = player.getPosition();
         }
 
-        bool hasLoadedChunks = getChunkManager(planetType).updateChunks(*this, localPlayerPosition, chunkViewRanges);
+        bool hasLoadedChunks = getChunkManager(planetType).updateChunks(*this, chunkViewRanges);
         bool hasUnloadedChunks = getChunkManager(planetType).unloadChunksOutOfView(chunkViewRanges);
     
         getChunkManager(planetType).updateChunksObjects(*this, dt);
@@ -1199,7 +1205,7 @@ void Game::drawOnPlanet(float dt)
     // UI
     // pl::Vector2f mouseScreenPos = static_cast<pl::Vector2f>(sf::Mouse::getPosition(window));
 
-    Cursor::drawCursor(window, camera);
+    Cursor::drawCursor(window, camera, getChunkManager().getWorldSize());
 
     if (player.getTool() < 0 && (worldMenuState == WorldMenuState::Main || worldMenuState == WorldMenuState::Inventory))
     {
@@ -1217,11 +1223,11 @@ void Game::drawOnPlanet(float dt)
         }
     }
 
-    HitMarkers::draw(window, camera);
+    HitMarkers::draw(window, camera, getChunkManager().getWorldSize());
 
     drawLandmarks();
 
-    getBossManager().drawStatsAtCursor(window, camera, mouseScreenPos);
+    getBossManager().drawStatsAtCursor(window, camera, mouseScreenPos, getChunkManager().getWorldSize());
 }
 
 void Game::drawWorld(pl::Framebuffer& renderTexture, float dt, std::vector<WorldObject*>& worldObjects, WorldData& worldData, const Camera& cameraArg)
@@ -1246,7 +1252,7 @@ void Game::drawWorld(pl::Framebuffer& renderTexture, float dt, std::vector<World
     worldData.chunkManager.drawChunkTerrain(renderTexture, spriteBatch, cameraArg, gameTime);
 
     // Draw particles
-    particleSystem.draw(renderTexture, spriteBatch, cameraArg);
+    particleSystem.draw(renderTexture, spriteBatch, cameraArg, worldData.chunkManager.getWorldSize());
 
     // Draw objects
     for (WorldObject* worldObject : worldObjects)
@@ -1271,8 +1277,8 @@ void Game::drawLighting(float dt, std::vector<WorldObject*>& worldObjects)
     float ambientGreenLight = Helper::lerp(7, 244 * weatherSystem.getGreenLightBias(), lightLevel);
     float ambientBlueLight = Helper::lerp(14, 234 * weatherSystem.getBlueLightBias(), lightLevel);
 
-    pl::Vector2<int> chunksSizeInView = getChunkManager().getChunksSizeInView(camera);
-    pl::Vector2f topLeftChunkPos = getChunkManager().topLeftChunkPosInView(camera);
+    pl::Vector2<int> chunksSizeInView = ChunkManager::getChunksSizeInView(camera, getChunkManager().getWorldSize());
+    pl::Vector2f topLeftChunkPos = ChunkManager::topLeftChunkPosInView(camera, getChunkManager().getWorldSize());
     
     // Draw light sources on light texture
     pl::Framebuffer lightTexture;
@@ -1308,7 +1314,8 @@ void Game::drawLighting(float dt, std::vector<WorldObject*>& worldObjects)
     lightTexture.setLinearFilter(smoothLighting);
 
     pl::VertexArray lightRect;
-    lightRect.addQuad(pl::Rect<float>(camera.worldToScreenTransform(topLeftChunkPos), pl::Vector2f(lightTexture.getWidth(), lightTexture.getHeight()) *
+    lightRect.addQuad(pl::Rect<float>(camera.worldToScreenTransform(topLeftChunkPos, getChunkManager().getWorldSize()),
+        pl::Vector2f(lightTexture.getWidth(), lightTexture.getHeight()) *
         ResolutionHandler::getScale() * TILE_SIZE_PIXELS_UNSCALED / static_cast<float>(TILE_LIGHTING_RESOLUTION)), pl::Color(),
         pl::Rect<float>(0, lightTexture.getHeight(), lightTexture.getWidth(), -lightTexture.getHeight()));
 
@@ -1341,15 +1348,18 @@ void Game::drawLandmarks()
     std::vector<float> replaceKeys = {1, 1, 1, 1, 0, 0, 0, 1};
     drawData.shader->setUniform1i("replaceKeyCount", replaceKeys.size() / 4);
     drawData.shader->setUniform4fv("replaceKeys", replaceKeys);
+
+    int worldSize = getChunkManager().getWorldSize();
     
-    for (const LandmarkSummaryData& landmarkSummary : getLandmarkManager().getLandmarkSummaryDatas(player, getChunkManager()))
+    for (const LandmarkSummaryData& landmarkSummary : getLandmarkManager().getLandmarkSummaryDatas(camera, getChunkManager()))
     {
-        if (camera.isInView(landmarkSummary.worldPos))
+        if (landmarkSummary.screenPos.x >= 0 && landmarkSummary.screenPos.x < resolution.x &&
+            landmarkSummary.screenPos.y >= 0 && landmarkSummary.screenPos.y < resolution.y)
         {
             continue;
         }
-        
-        pl::Vector2f screenPos = camera.worldToScreenTransform(landmarkSummary.worldPos);
+
+        pl::Vector2f screenPos = landmarkSummary.screenPos;
         screenPos.x = std::clamp(screenPos.x, PADDING * intScale, resolution.x - PADDING * intScale);
         screenPos.y = std::clamp(screenPos.y, PADDING * intScale, resolution.y - PADDING * intScale);
         
@@ -1638,11 +1648,11 @@ void Game::updateInRoom(float dt, Room& room, bool inStructure)
 
     // Room& structureRoom = structureRoomPool.getRoom(structureEnteredID);
 
-    Cursor::updateTileCursorInRoom(camera.screenToWorldTransform(mouseScreenPos), dt, room, InventoryGUI::getHeldItemType(inventory), player.getTool());
+    Cursor::updateTileCursorInRoom(camera.screenToWorldTransform(mouseScreenPos, 0), dt, room, InventoryGUI::getHeldItemType(inventory), player.getTool());
 
     if (!isStateTransitioning())
     {
-        player.updateInRoom(dt, camera.screenToWorldTransform(mouseScreenPos), room);
+        player.updateInRoom(dt, camera.screenToWorldTransform(mouseScreenPos, 0), room);
     }
 
     // Update room objects
@@ -1690,12 +1700,12 @@ void Game::drawInRoom(float dt, const Room& room)
     for (const WorldObject* object : worldObjects)
     {
         // Use 1 for worldsize as dummy value
-        object->draw(window, spriteBatch, *this, camera, dt, gameTime, 1, pl::Color(255, 255, 255));
+        object->draw(window, spriteBatch, *this, camera, dt, gameTime, 0, pl::Color(255, 255, 255));
     }
 
     spriteBatch.endDrawing(window);
 
-    Cursor::drawCursor(window, camera);
+    Cursor::drawCursor(window, camera, 0);
 }
 
 
@@ -1752,10 +1762,10 @@ void Game::attemptUseTool()
 
 void Game::attemptUseToolPickaxe()
 {
-    pl::Vector2f mouseWorldPos = camera.screenToWorldTransform(mouseScreenPos);
-    
     if (gameState != GameState::OnPlanet)
         return;
+
+    pl::Vector2f mouseWorldPos = camera.screenToWorldTransform(mouseScreenPos, getChunkManager().getWorldSize());
 
     // Swing pickaxe
     player.useTool(getProjectileManager(), inventory, mouseWorldPos, *this);
@@ -1784,7 +1794,7 @@ void Game::attemptUseToolFishingRod()
         return;
     }
 
-    pl::Vector2f mouseWorldPos = camera.screenToWorldTransform(mouseScreenPos);
+    pl::Vector2f mouseWorldPos = camera.screenToWorldTransform(mouseScreenPos, getChunkManager().getWorldSize());
 
     if (!player.canReachPosition(mouseWorldPos))
     {
@@ -1818,7 +1828,7 @@ void Game::attemptUseToolWeapon()
     if (gameState != GameState::OnPlanet)
         return;
 
-    pl::Vector2f mouseWorldPos = camera.screenToWorldTransform(mouseScreenPos);
+    pl::Vector2f mouseWorldPos = camera.screenToWorldTransform(mouseScreenPos, getChunkManager().getWorldSize());
 
     player.useTool(getProjectileManager(), inventory, mouseWorldPos, *this);
 }
@@ -2014,7 +2024,7 @@ void Game::buildObject(ChunkPosition chunk, pl::Vector2<int> tile, ObjectType ob
     placedObject->createHitParticles(particleSystem);
     
     // Play build sound if object in view
-    if (camera.isInView(placedObject->getPosition()))
+    if (camera.isInView(placedObject->getPosition(), getChunkManager().getWorldSize()))
     {
         int soundChance = rand() % 2;
         SoundType buildSound = SoundType::CraftBuild1;
@@ -2076,8 +2086,10 @@ void Game::attemptObjectInteract()
         return;
     }
 
+    int worldSize = (gameState == GameState::OnPlanet) ? getChunkManager().getWorldSize() : 0;
+
     // Get mouse position in screen space and world space
-    pl::Vector2f mouseWorldPos = camera.screenToWorldTransform(mouseScreenPos);
+    pl::Vector2f mouseWorldPos = camera.screenToWorldTransform(mouseScreenPos, worldSize);
 
     if (!player.canReachPosition(mouseWorldPos))
         return;
@@ -2103,7 +2115,7 @@ void Game::attemptBuildObject()
     if (objectType < 0)
         return;
 
-    if (!player.canReachPosition(camera.screenToWorldTransform(mouseScreenPos)))
+    if (!player.canReachPosition(camera.screenToWorldTransform(mouseScreenPos, getChunkManager().getWorldSize())))
     {
         return;
     }
@@ -2150,7 +2162,7 @@ void Game::attemptPlaceLand()
     if (!getChunkManager().canPlaceLand(Cursor::getSelectedChunk(getChunkManager().getWorldSize()), Cursor::getSelectedChunkTile()))
         return;
     
-    if (!player.canReachPosition(camera.screenToWorldTransform(mouseScreenPos)))
+    if (!player.canReachPosition(camera.screenToWorldTransform(mouseScreenPos, getChunkManager().getWorldSize())))
         return;
     
     // Place land
@@ -2270,7 +2282,7 @@ void Game::drawGhostPlaceObjectAtCursor(ObjectType object)
                                                 object,
                                                 player.getCollisionRect());
 
-    bool inRange = player.canReachPosition(camera.screenToWorldTransform(mouseScreenPos));
+    bool inRange = player.canReachPosition(camera.screenToWorldTransform(mouseScreenPos, getChunkManager().getWorldSize()));
 
     pl::Color drawColor(255, 0, 0, 180);
     if (canPlace && inRange)
@@ -2291,7 +2303,7 @@ void Game::drawGhostPlaceLandAtCursor()
     // Change color depending on whether can place land or not
     pl::Color landGhostColor(255, 0, 0, 180);
     if (getChunkManager().canPlaceLand(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile()) &&
-        player.canReachPosition(camera.screenToWorldTransform(mouseScreenPos)))
+        player.canReachPosition(camera.screenToWorldTransform(mouseScreenPos, getChunkManager().getWorldSize())))
     {
         landGhostColor = pl::Color(0, 255, 0, 180);
     }
@@ -2316,7 +2328,7 @@ void Game::drawGhostPlaceLandAtCursor()
     pl::DrawData drawData;
     drawData.texture = TextureManager::getTexture(TextureType::GroundTiles);
     drawData.shader = Shaders::getShader(ShaderType::Default);
-    drawData.position = camera.worldToScreenTransform(tileWorldPosition);
+    drawData.position = camera.worldToScreenTransform(tileWorldPosition, getChunkManager().getWorldSize());
     drawData.scale = pl::Vector2f(scale, scale);
     drawData.color = landGhostColor;
     drawData.textureRect = textureRect;
@@ -2327,7 +2339,7 @@ void Game::drawGhostPlaceLandAtCursor()
 
 BuildableObject* Game::getSelectedObjectFromChunkOrRoom()
 {
-    pl::Vector2f mouseWorldPos = camera.screenToWorldTransform(mouseScreenPos);
+    pl::Vector2f mouseWorldPos = camera.screenToWorldTransform(mouseScreenPos, getChunkManager().getWorldSize());
 
     switch (gameState)
     {
@@ -2822,7 +2834,7 @@ ObjectReference Game::setupPlanetTravel(PlanetType planetType, const LocationSta
     playerChunkViewRange = playerChunkViewRange.copyAndCentre(placeRocketReference.chunk);
     
     // Update chunks at rocket position
-    getChunkManager(planetType).updateChunks(*this, std::nullopt, {playerChunkViewRange});
+    getChunkManager(planetType).updateChunks(*this, {playerChunkViewRange});
     
     // Place rocket
     buildObject(placeRocketReference.chunk, placeRocketReference.tile, rocketObjectType, planetType, false, false);
@@ -2901,7 +2913,7 @@ void Game::travelToPlanet(PlanetType planetType, ObjectReference newRocketObject
     
     if (gameState == GameState::OnPlanet && networkHandler.isLobbyHostOrSolo())
     {
-        getChunkManager().updateChunks(*this, player.getPosition(), {camera.getChunkViewRange()});
+        getChunkManager().updateChunks(*this, {camera.getChunkViewRange()});
     }
     lightingTickTime = LIGHTING_TICK_TIME;
 
@@ -3190,7 +3202,7 @@ void Game::startNewGame(int seed)
 
     camera.instantUpdate(player.getPosition());
 
-    getChunkManager().updateChunks(*this, player.getPosition(), {camera.getChunkViewRange()});
+    getChunkManager().updateChunks(*this, {camera.getChunkViewRange()});
     lightingTickTime = LIGHTING_TICK_TIME;
 
     worldMenuState = WorldMenuState::Main;
@@ -3350,7 +3362,7 @@ bool Game::loadGame(const SaveFileSummary& saveFileSummary)
         weatherSystem = WeatherSystem(gameTime, planetSeed + locationState.getPlanetType());
         weatherSystem.presimulateWeather(gameTime, camera, getChunkManager());
         
-        getChunkManager().updateChunks(*this, player.getPosition(), {camera.getChunkViewRange()});
+        getChunkManager().updateChunks(*this, {camera.getChunkViewRange()});
 
         lightingTickTime = LIGHTING_TICK_TIME;
     }

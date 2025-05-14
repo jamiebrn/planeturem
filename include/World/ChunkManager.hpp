@@ -64,13 +64,13 @@ public:
 
     // Load chunks every frame
     // Returns true if any chunks loaded
-    bool updateChunks(Game& game, std::optional<pl::Vector2f> localPlayerPos, const std::vector<ChunkViewRange>& chunkViewRanges,
+    bool updateChunks(Game& game, const std::vector<ChunkViewRange>& chunkViewRanges,
             bool isClient = false, std::vector<ChunkPosition>* chunksToRequestFromHost = nullptr);
     
     bool unloadChunksOutOfView(const std::vector<ChunkViewRange>& chunkViewRanges);
 
     // Forces a reload of chunks, used when wrapping around world
-    void reloadChunks(ChunkViewRange chunkViewRange);
+    // void reloadChunks(ChunkViewRange chunkViewRange);
 
     // Used when a chunk is required to have no structure generated to ensure no collision interference
     // E.g. when travelling to a new planet and rocket is placed, rocket may be placed inside structure (if there is one)
@@ -266,8 +266,8 @@ public:
     
     // Translate position relative to player position and world size, to make position closest possible to player
     // Provides planet / wraparound effect
-    pl::Vector2f translatePositionAroundWorld(pl::Vector2f position, pl::Vector2f originPosition) const;
-    static pl::Vector2f translatePositionAroundWorld(pl::Vector2f position, pl::Vector2f originPosition, int worldSize);
+    // pl::Vector2f translatePositionAroundWorld(pl::Vector2f position, pl::Vector2f originPosition) const;
+    // static pl::Vector2f translatePositionAroundWorld(pl::Vector2f position, pl::Vector2f originPosition, int worldSize);
 
     // Used to calculate chunk and tile positions from an offset value, from another chunk and tile
     // Correct for offsets < worldSize * CHUNK_TILE_SIZE
@@ -275,15 +275,14 @@ public:
 
     // Returns rectangle area of size containing chunks in view
     // Used in lighting calculations
-    static pl::Vector2<int> getChunksSizeInView(const Camera& camera);
-    static pl::Vector2f topLeftChunkPosInView(const Camera& camera);
+    static pl::Vector2<int> getChunksSizeInView(const Camera& camera, int worldSize);
+    static pl::Vector2f topLeftChunkPosInView(const Camera& camera, int worldSize);
 
 private:
     // Generates a chunk and stores it
     Chunk* generateChunk(const ChunkPosition& chunkPosition,
                        Game& game,
-                       bool putInLoaded = true,
-                       std::optional<pl::Vector2f> positionOverride = std::nullopt);
+                       bool putInLoaded = true);
 
     void clearUnmodifiedStoredChunks();
 

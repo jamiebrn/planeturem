@@ -21,9 +21,9 @@ void addHitMarker(pl::Vector2f position, int damageAmount, pl::Color colour = pl
 
 void update(float dt);
 
-void draw(pl::RenderTarget& window, const Camera& camera);
+void draw(pl::RenderTarget& window, const Camera& camera, int worldSize);
 
-void handleWorldWrap(pl::Vector2f positionDelta);
+// void handleWorldWrap(pl::Vector2f positionDelta);
 
 // Private
 namespace 
@@ -41,7 +41,7 @@ namespace
 
         void update(float dt);
         bool isAlive() const;
-        void draw(pl::RenderTarget& window, const Camera& camera) const;
+        void draw(pl::RenderTarget& window, const Camera& camera, int worldSize) const;
     };
 
     static std::vector<HitMarker> hitMarkers;

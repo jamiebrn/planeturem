@@ -52,14 +52,14 @@ void Projectile::update(float dt)
     }
 }
 
-void Projectile::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const ChunkManager& chunkManager, pl::Vector2f playerPos, const Camera& camera)
+void Projectile::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const ChunkManager& chunkManager, const Camera& camera)
 {
     const ProjectileData& projectileData = ToolDataLoader::getProjectileData(projectileType);
 
     pl::DrawData drawData;
     drawData.texture = TextureManager::getTexture(TextureType::Tools);
     drawData.shader = Shaders::getShader(ShaderType::Default);
-    drawData.position = camera.worldToScreenTransform(chunkManager.translatePositionAroundWorld(position, playerPos));
+    drawData.position = camera.worldToScreenTransform(position, chunkManager.getWorldSize());
     drawData.rotation = std::atan2(velocity.y, velocity.x) / M_PI * 180.0f;
     drawData.textureRect = projectileData.textureRect;
 
@@ -95,10 +95,10 @@ ProjectileType Projectile::getType() const
     return projectileType;
 }
 
-void Projectile::handleWorldWrap(pl::Vector2f positionDelta)
-{
-    position += positionDelta;
-}
+// void Projectile::handleWorldWrap(pl::Vector2f positionDelta)
+// {
+//     position += positionDelta;
+// }
 
 bool Projectile::isAlive()
 {

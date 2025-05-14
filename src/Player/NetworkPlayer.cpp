@@ -72,7 +72,7 @@ void NetworkPlayer::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch,
         nameDrawData.position = position - pl::Vector2f(0, 24);
         if (camera)
         {
-            nameDrawData.position = camera->worldToScreenTransform(nameDrawData.position);
+            nameDrawData.position = camera->worldToScreenTransform(nameDrawData.position, worldSize);
         }
         nameDrawData.centeredX = true;
         nameDrawData.centeredY = true;
@@ -116,7 +116,6 @@ void NetworkPlayer::setNetworkPlayerCharacterInfo(const PacketDataPlayerCharacte
         runAnimation.update(info.pingTime);
     }
 
-
     flippedTexture = info.flipped;
     playerYScaleMult = info.yScaleMult;
 
@@ -144,15 +143,15 @@ void NetworkPlayer::setNetworkPlayerCharacterInfo(const PacketDataPlayerCharacte
     chunkViewRange = info.chunkViewRange;
 }
 
-void NetworkPlayer::applyWorldWrapTranslation(pl::Vector2f playerPosition, const ChunkManager& chunkManager)
-{
-    position = chunkManager.translatePositionAroundWorld(playerData.position, playerPosition);
+// void NetworkPlayer::applyWorldWrapTranslation(pl::Vector2f playerPosition, const ChunkManager& chunkManager)
+// {
+//     position = chunkManager.translatePositionAroundWorld(playerData.position, playerPosition);
     
-    if (fishingRodCasted)
-    {
-        fishingRodBobWorldPos = chunkManager.translatePositionAroundWorld(fishingRodBobWorldPosUnwrapped, playerPosition);
-    }
-}
+//     if (fishingRodCasted)
+//     {
+//         fishingRodBobWorldPos = chunkManager.translatePositionAroundWorld(fishingRodBobWorldPosUnwrapped, playerPosition);
+//     }
+// }
 
 PlayerData& NetworkPlayer::getPlayerData()
 {

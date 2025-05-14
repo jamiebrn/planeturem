@@ -51,7 +51,7 @@ public:
     void setNetworkPlayerCharacterInfo(const PacketDataPlayerCharacterInfo& info);
     
     // Player position is of player on this machine, not for this network player
-    void applyWorldWrapTranslation(pl::Vector2f playerPosition, const ChunkManager& chunkManager);
+    // void applyWorldWrapTranslation(pl::Vector2f playerPosition, const ChunkManager& chunkManager);
 
     PlayerData& getPlayerData();
     void setPlayerData(const PlayerData& playerData);

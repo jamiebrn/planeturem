@@ -12,7 +12,7 @@ void LandmarkManager::removeLandmark(ObjectReference objectReference)
     landmarks.erase(objectReference);
 }
 
-std::vector<LandmarkSummaryData> LandmarkManager::getLandmarkSummaryDatas(const Player& player, ChunkManager& chunkManager)
+std::vector<LandmarkSummaryData> LandmarkManager::getLandmarkSummaryDatas(const Camera& camera, ChunkManager& chunkManager)
 {
     std::vector<LandmarkSummaryData> landmarkSummaryDatas;
 
@@ -28,11 +28,10 @@ std::vector<LandmarkSummaryData> LandmarkManager::getLandmarkSummaryDatas(const 
             continue;
         }
 
-        landmarkSummary.worldPos = landmarkObjectPtr->getPosition();
         landmarkSummary.colorA = landmarkObjectPtr->getColorA();
         landmarkSummary.colorB = landmarkObjectPtr->getColorB();
 
-        landmarkSummary.worldPos = chunkManager.translatePositionAroundWorld(landmarkSummary.worldPos, player.getPosition());
+        landmarkSummary.screenPos = camera.worldToScreenTransform(landmarkObjectPtr->getPosition(), chunkManager.getWorldSize());
 
         landmarkSummaryDatas.push_back(landmarkSummary);
 

@@ -226,12 +226,12 @@ bool BossSandSerpent::isAlive()
     return (bodyHealth > 0);
 }
 
-void BossSandSerpent::handleWorldWrap(pl::Vector2f positionDelta)
-{
-    position += positionDelta;
+// void BossSandSerpent::handleWorldWrap(pl::Vector2f positionDelta)
+// {
+//     position += positionDelta;
 
-    pathFollower.handleWorldWrap(positionDelta);
-}
+//     pathFollower.handleWorldWrap(positionDelta);
+// }
 
 void BossSandSerpent::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
     const pl::Color& color) const
@@ -246,7 +246,7 @@ void BossSandSerpent::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatc
             pl::DrawData drawData;
             drawData.texture = TextureManager::getTexture(TextureType::Entities);
             drawData.shader = Shaders::getShader(ShaderType::Default);
-            drawData.position = camera.worldToScreenTransform(position);
+            drawData.position = camera.worldToScreenTransform(position, worldSize);
             drawData.centerRatio = pl::Vector2f(0.5f, 1.0f);
             drawData.scale = pl::Vector2f(scale, scale);
             drawData.textureRect = animations.at(behaviourState).getTextureRect();
@@ -269,7 +269,7 @@ void BossSandSerpent::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatc
             static const int HEAD_Y_OFFSET = -51;
             static const int HEAD_TEXTURE_Y_OFFSET = 32;
 
-            drawData.position = camera.worldToScreenTransform(position + pl::Vector2f(0, HEAD_Y_OFFSET));
+            drawData.position = camera.worldToScreenTransform(position + pl::Vector2f(0, HEAD_Y_OFFSET), worldSize);
             drawData.centerRatio = pl::Vector2f(0.5f, 0.5f); 
 
             pl::Rect<int> headTextureRect = HEAD_FRAMES[headAnimation.getFrame()];
@@ -305,7 +305,7 @@ void BossSandSerpent::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatc
             pl::DrawData drawData;
             drawData.texture = TextureManager::getTexture(TextureType::Entities);
             drawData.shader = Shaders::getShader(ShaderType::Default);
-            drawData.position = camera.worldToScreenTransform(position);
+            drawData.position = camera.worldToScreenTransform(position, worldSize);
             drawData.centerRatio = pl::Vector2f(0.5f, 1.0f);
             drawData.scale = pl::Vector2f(scale, scale);
             drawData.textureRect = animations.at(behaviourState).getTextureRect();

@@ -142,11 +142,11 @@ bool BossGlacialBrute::isAlive()
     return (health > 0);
 }
 
-void BossGlacialBrute::handleWorldWrap(pl::Vector2f positionDelta)
-{
-    position += positionDelta;
-    pathFollower.handleWorldWrap(positionDelta);
-}
+// void BossGlacialBrute::handleWorldWrap(pl::Vector2f positionDelta)
+// {
+//     position += positionDelta;
+//     pathFollower.handleWorldWrap(positionDelta);
+// }
 
 void BossGlacialBrute::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
     const pl::Color& color) const
@@ -157,7 +157,7 @@ void BossGlacialBrute::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBat
     pl::DrawData drawData;
     drawData.texture = TextureManager::getTexture(TextureType::Entities);
     drawData.shader = Shaders::getShader(ShaderType::Default);
-    drawData.position = camera.worldToScreenTransform(position);
+    drawData.position = camera.worldToScreenTransform(position, worldSize);
     drawData.scale = pl::Vector2f(scale, scale);
     drawData.centerRatio = pl::Vector2f(0.5f, 0.5f);
     drawData.textureRect = shadowTextureRect;

@@ -112,12 +112,12 @@ pl::Vector2f CollisionRect::getCentre() const
     return pl::Vector2f(x + width / 2, y + height / 2);
 }
 
-void CollisionRect::debugDraw(pl::RenderTarget& window, const Camera& camera, pl::Color color) const
+void CollisionRect::debugDraw(pl::RenderTarget& window, const Camera& camera, int worldSize, pl::Color color) const
 {
     float scale = ResolutionHandler::getScale();
 
     pl::VertexArray rect;
-    rect.addQuad(pl::Rect<float>(camera.worldToScreenTransform(pl::Vector2f(x, y)), pl::Vector2f(width, height) * scale), color, pl::Rect<float>());
+    rect.addQuad(pl::Rect<float>(camera.worldToScreenTransform(pl::Vector2f(x, y), worldSize), pl::Vector2f(width, height) * scale), color, pl::Rect<float>());
 
     window.draw(rect, *Shaders::getShader(ShaderType::DefaultNoTexture), nullptr, pl::BlendMode::Alpha);
 }

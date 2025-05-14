@@ -117,7 +117,7 @@ void Entity::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& 
     pl::DrawData shadowDrawData;
     shadowDrawData.texture = TextureManager::getTexture(TextureType::Shadow);
     shadowDrawData.shader = Shaders::getShader(ShaderType::Default);
-    shadowDrawData.position = camera.worldToScreenTransform(position + pl::Vector2f(0, waterYOffset));
+    shadowDrawData.position = camera.worldToScreenTransform(position + pl::Vector2f(0, waterYOffset), worldSize);
     shadowDrawData.scale = scale;
     shadowDrawData.centerRatio = pl::Vector2f(0.5, 0.85);
     shadowDrawData.textureRect = pl::Rect<int>(0, 0, shadowDrawData.texture->getWidth(), shadowDrawData.texture->getHeight());
@@ -158,8 +158,8 @@ void Entity::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& 
     // DEBUG
     if (DebugOptions::drawCollisionRects)
     {
-        collisionRect.debugDraw(window, game.getCamera());
-        hitCollision.debugDraw(window, game.getCamera());
+        collisionRect.debugDraw(window, camera, worldSize);
+        hitCollision.debugDraw(window, camera, worldSize);
     }
     #endif
 }

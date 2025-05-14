@@ -26,21 +26,21 @@ void HitMarkers::update(float dt)
     }
 }
 
-void HitMarkers::draw(pl::RenderTarget& window, const Camera& camera)
+void HitMarkers::draw(pl::RenderTarget& window, const Camera& camera, int worldSize)
 {
     for (const HitMarker& hitMarker : hitMarkers)
     {
-        hitMarker.draw(window, camera);
+        hitMarker.draw(window, camera, worldSize);
     }
 }
 
-void HitMarkers::handleWorldWrap(pl::Vector2f positionDelta)
-{
-    for (HitMarker& hitMarker : hitMarkers)
-    {
-        hitMarker.position += positionDelta;
-    }
-}
+// void HitMarkers::handleWorldWrap(pl::Vector2f positionDelta)
+// {
+//     for (HitMarker& hitMarker : hitMarkers)
+//     {
+//         hitMarker.position += positionDelta;
+//     }
+// }
 
 void HitMarkers::HitMarker::update(float dt)
 {
@@ -52,7 +52,7 @@ bool HitMarkers::HitMarker::isAlive() const
     return (lifetime < HIT_MARKER_LIFETIME);
 }
 
-void HitMarkers::HitMarker::draw(pl::RenderTarget& window, const Camera& camera) const
+void HitMarkers::HitMarker::draw(pl::RenderTarget& window, const Camera& camera, int worldSize) const
 {
     pl::TextDrawData drawData;
     drawData.text = std::to_string(damageAmount);
@@ -60,7 +60,7 @@ void HitMarkers::HitMarker::draw(pl::RenderTarget& window, const Camera& camera)
     float alpha = 1.0f - (lifetime / HIT_MARKER_LIFETIME);
     drawData.color = colour;
     drawData.color.a = 255 * alpha;
-    drawData.position = camera.worldToScreenTransform(position - pl::Vector2f(0.0f, LIFT_PER_SECOND * lifetime));
+    drawData.position = camera.worldToScreenTransform(position - pl::Vector2f(0.0f, LIFT_PER_SECOND * lifetime), worldSize);
     drawData.centeredX = true;
     drawData.centeredY = true;
     drawData.size = UNSCALED_FONT_SIZE * ResolutionHandler::getScale();

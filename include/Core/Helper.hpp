@@ -8,6 +8,8 @@
 #include <Graphics/Color.hpp>
 #include <Vector.hpp>
 
+#include "GameConstants.hpp"
+
 namespace Helper
 {
 
@@ -143,6 +145,16 @@ inline pl::Color convertRGBtoHSV(const pl::Color& color)
     hsv.b = cmax;
 
     return hsv;
+}
+
+inline pl::Vector2f wrapPosition(pl::Vector2f position, int worldSize)
+{
+    int worldPixelSize = worldSize * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
+
+    position.x = fmod(fmod(position.x, worldPixelSize) + worldPixelSize, worldPixelSize);
+    position.y = fmod(fmod(position.y, worldPixelSize) + worldPixelSize, worldPixelSize);
+
+    return position;
 }
 
 }

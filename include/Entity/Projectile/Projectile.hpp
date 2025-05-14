@@ -40,7 +40,7 @@ public:
 
     void update(float dt);
 
-    void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const ChunkManager& chunkManager, pl::Vector2f playerPos, const Camera& camera);
+    void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const ChunkManager& chunkManager, const Camera& camera);
 
     int getDamage() const;
 
@@ -51,7 +51,7 @@ public:
     pl::Vector2f getVelocity() const;
     ProjectileType getType() const;
 
-    void handleWorldWrap(pl::Vector2f positionDelta);
+    // void handleWorldWrap(pl::Vector2f positionDelta);
 
     bool isAlive();
 

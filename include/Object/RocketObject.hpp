@@ -52,7 +52,7 @@ public:
     void createRocketParticles();
 
 private:
-    void drawRocket(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera, const pl::Color& color) const;
+    void drawRocket(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera, int worldSize, const pl::Color& color) const;
 
 private:
     bool flyingUp = false;

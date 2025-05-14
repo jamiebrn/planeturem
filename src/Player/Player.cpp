@@ -51,8 +51,7 @@ Player::Player(pl::Vector2f position, int maxHealth, pl::Color bodyColor, pl::Co
     inRocket = false;
 }
 
-void Player::update(float dt, pl::Vector2f mouseWorldPos, ChunkManager& chunkManager, ProjectileManager& projectileManager,
-    bool& wrappedAroundWorld, pl::Vector2f& wrapPositionDelta)
+void Player::update(float dt, pl::Vector2f mouseWorldPos, ChunkManager& chunkManager, ProjectileManager& projectileManager, bool& wrapped, pl::Vector2f wrapPositionDelta)
 {
     updateTimers(dt);
 
@@ -69,7 +68,7 @@ void Player::update(float dt, pl::Vector2f mouseWorldPos, ChunkManager& chunkMan
 
     updateMovement(dt, chunkManager);
     
-    wrappedAroundWorld = testWorldWrap(chunkManager.getWorldSize(), wrapPositionDelta);
+    wrapped = testWorldWrap(chunkManager.getWorldSize(), wrapPositionDelta);
 
     // Update position using collision rect after collision has been handled
     position.x = collisionRect.x + collisionRect.width / 2.0f;
@@ -429,7 +428,7 @@ void Player::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& 
     shadowDrawData.position = position + pl::Vector2f(0, waterYOffset);
     if (camera)
     {
-        shadowDrawData.position = camera->worldToScreenTransform(shadowDrawData.position);
+        shadowDrawData.position = camera->worldToScreenTransform(shadowDrawData.position, worldSize);
     }
     shadowDrawData.scale = playerScale * shadowScale;
     shadowDrawData.centerRatio = pl::Vector2f(0.5f, 0.85f);
@@ -445,7 +444,7 @@ void Player::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& 
         const ToolData& toolData = ToolDataLoader::getToolData(equippedTool);
         if (toolData.toolBehaviourType == ToolBehaviourType::MeleeWeapon && meleeSwingAnimationRotation < 0.0f)
         {
-            drawMeleeSwing(window, spriteBatch, camera);
+            drawMeleeSwing(window, spriteBatch, camera, worldSize);
             meleeSwingDrawn = true;
         }
     }
@@ -490,7 +489,7 @@ void Player::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& 
     playerDrawData.position = position + pl::Vector2f(0, waterYOffset);
     if (camera)
     {
-        playerDrawData.position = camera->worldToScreenTransform(playerDrawData.position);
+        playerDrawData.position = camera->worldToScreenTransform(playerDrawData.position, worldSize);
     }
     playerDrawData.scale = playerScale;
     playerDrawData.centerRatio = pl::Vector2f(0.5f, 1.0f);
@@ -509,7 +508,7 @@ void Player::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& 
     spriteBatch.endDrawing(window);
     
     // Draw armour
-    drawArmour(window, spriteBatch, camera, waterYOffset);
+    drawArmour(window, spriteBatch, camera, waterYOffset, worldSize);
 
     // Draw equipped tool
     if (equippedTool >= 0)
@@ -520,7 +519,7 @@ void Player::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& 
         
         if (camera)
         {
-            toolPos = camera->worldToScreenTransform(toolPos);
+            toolPos = camera->worldToScreenTransform(toolPos, worldSize);
         }
 
         toolPos += pl::Vector2f(playerScale.x * toolData.holdOffset.x, playerScale.y * toolData.holdOffset.y);
@@ -549,7 +548,7 @@ void Player::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& 
         // Draw melee swing if required
         if (toolData.toolBehaviourType == ToolBehaviourType::MeleeWeapon && !meleeSwingDrawn)
         {
-            drawMeleeSwing(window, spriteBatch, camera);
+            drawMeleeSwing(window, spriteBatch, camera, worldSize);
         }
 
         pl::DrawData toolDrawData;
@@ -573,7 +572,7 @@ void Player::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& 
                 spriteBatch.endDrawing(window);
                 for (const CollisionRect& rect : meleeHitRects)
                 {
-                    rect.debugDraw(window, *camera);
+                    rect.debugDraw(window, *camera, worldSize);
                 }
             }
         }
@@ -590,7 +589,7 @@ void Player::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& 
     // DEBUG
     if (DebugOptions::drawCollisionRects && camera)
     {
-        collisionRect.debugDraw(window, *camera);
+        collisionRect.debugDraw(window, *camera, worldSize);
     }
     #endif
 }
@@ -737,8 +736,8 @@ std::vector<WorldObject*> Player::getDrawWorldObjects(const Camera& camera, int 
             originOffset.x = maxX * lineDir;
             originOffset.y = (droopLineDest.y - droopLineOrigin.y) * yProgress;
 
-            std::unique_ptr<FishingRodLinePart> linePart = std::make_unique<FishingRodLinePart>(camera.worldToScreenTransform(originOffset + droopLineOrigin),
-                camera.worldToScreenTransform(droopLineDest));
+            std::unique_ptr<FishingRodLinePart> linePart = std::make_unique<FishingRodLinePart>(camera.worldToScreenTransform(originOffset + droopLineOrigin, worldSize),
+                camera.worldToScreenTransform(droopLineDest, worldSize));
             
             fishingRodLineParts.push_back(std::move(linePart));
         }
@@ -809,7 +808,7 @@ void Player::createLightSource(LightingEngine& lightingEngine, pl::Vector2f topL
 //     spriteBatch.endDrawing(window);
 // }
 
-void Player::drawMeleeSwing(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera* camera) const
+void Player::drawMeleeSwing(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera* camera, int worldSize) const
 {
     pl::Vector2f swingWorldPos = pl::Vector2f(std::cos(meleeSwingAnimationRotation), std::sin(meleeSwingAnimationRotation)) * MELEE_SWING_RADIUS + position;
     swingWorldPos.y += MELEE_SWING_Y_ORIGIN_OFFSET;
@@ -821,7 +820,7 @@ void Player::drawMeleeSwing(pl::RenderTarget& window, pl::SpriteBatch& spriteBat
     meleeSwingDrawData.position = swingWorldPos;
     if (camera)
     {
-        meleeSwingDrawData.position = camera->worldToScreenTransform(meleeSwingDrawData.position);
+        meleeSwingDrawData.position = camera->worldToScreenTransform(meleeSwingDrawData.position, worldSize);
     }
     meleeSwingDrawData.rotation = meleeSwingAnimationRotation / M_PI * 180.0f;
     meleeSwingDrawData.scale = pl::Vector2f((float)ResolutionHandler::getScale(), -(float)ResolutionHandler::getScale());
@@ -835,7 +834,7 @@ void Player::drawMeleeSwing(pl::RenderTarget& window, pl::SpriteBatch& spriteBat
     spriteBatch.draw(window, meleeSwingDrawData);
 }
 
-void Player::drawArmour(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera* camera, float waterYOffset) const
+void Player::drawArmour(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera* camera, int worldSize, float waterYOffset) const
 {
     float scale = ResolutionHandler::getScale();
 
@@ -884,7 +883,7 @@ void Player::drawArmour(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, 
 
         if (camera)
         {
-            armourDrawData.position = camera->worldToScreenTransform(armourOrigin + pl::Vector2f(armourData.wearTextureOffset.x * xScaleMult, waterYOffset));
+            armourDrawData.position = camera->worldToScreenTransform(armourOrigin + pl::Vector2f(armourData.wearTextureOffset.x * xScaleMult, waterYOffset), worldSize);
         }
         else
         {
@@ -1319,7 +1318,7 @@ void FishingRodLinePart::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteB
 
     pl::VertexArray line;
 
-    line.addQuadLine(camera.worldToScreenTransform(positionOne), camera.worldToScreenTransform(positionTwo),
+    line.addQuadLine(camera.worldToScreenTransform(positionOne, worldSize), camera.worldToScreenTransform(positionTwo, worldSize),
         pl::Color(), std::max(ResolutionHandler::getScale() * 0.75f, 1.0f), false);
     
     window.draw(line, *Shaders::getShader(ShaderType::DefaultNoTexture), nullptr, pl::BlendMode::Alpha);
@@ -1337,7 +1336,7 @@ void FishingRodBob::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch,
     pl::DrawData bobDrawData;
     bobDrawData.texture = TextureManager::getTexture(TextureType::Tools);
     bobDrawData.shader = Shaders::getShader(ShaderType::Default);
-    bobDrawData.position = camera.worldToScreenTransform(position);
+    bobDrawData.position = camera.worldToScreenTransform(position, worldSize);
     bobDrawData.scale = pl::Vector2f(ResolutionHandler::getScale(), ResolutionHandler::getScale());
     bobDrawData.centerRatio = pl::Vector2f(0.5, 0.5);
     bobDrawData.textureRect = pl::Rect<int>(0, 112, 16, 16);

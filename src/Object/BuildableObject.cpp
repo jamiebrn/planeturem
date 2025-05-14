@@ -98,7 +98,7 @@ void BuildableObject::drawObject(pl::RenderTarget& window, pl::SpriteBatch& spri
     pl::DrawData drawData;
     drawData.texture = TextureManager::getTexture(TextureType::Objects);
     drawData.shader = Shaders::getShader(ShaderType::Default);
-    drawData.position = camera.worldToScreenTransform(position + pl::Vector2f(0, waterYOffset));
+    drawData.position = camera.worldToScreenTransform(position + pl::Vector2f(0, waterYOffset), worldSize);
     drawData.scale = scale;
     drawData.centerRatio = objectData.textureOrigin;
     drawData.color = color;

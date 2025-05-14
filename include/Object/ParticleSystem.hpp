@@ -28,11 +28,11 @@ public:
 
     void update(float dt);
 
-    void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera) const;
+    void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera, int worldSize) const;
 
     bool isAlive();
 
-    void handleWorldWrap(pl::Vector2f positionDelta);
+    // void handleWorldWrap(pl::Vector2f positionDelta);
 
 private:
     pl::Vector2f position;
@@ -54,9 +54,9 @@ public:
 
     void update(float dt);
 
-    void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera) const;
+    void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera, int worldSize) const;
 
-    void handleWorldWrap(pl::Vector2f positionDelta);
+    // void handleWorldWrap(pl::Vector2f positionDelta);
 
     void clear();
 

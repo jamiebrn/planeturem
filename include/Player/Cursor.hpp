@@ -83,11 +83,11 @@ public:
 
     static void setCursorCornersToDestination();
 
-    static void drawCursor(pl::RenderTarget& window, const Camera& camera);
+    static void drawCursor(pl::RenderTarget& window, const Camera& camera, int worldSize);
 
     static void setCursorHidden(bool canReach);
 
-    static void handleWorldWrap(pl::Vector2f positionDelta);
+    // static void handleWorldWrap(pl::Vector2f positionDelta);
 
 private:
     static void updateTileCursorOnPlanetPlaceObject(ObjectType objectType);
@@ -101,7 +101,7 @@ private:
 
     static void updateTileCursorAnimation(float dt);
     
-    static void drawTileCursor(pl::RenderTarget& window, const Camera& camera);
+    static void drawTileCursor(pl::RenderTarget& window, const Camera& camera, int worldSize);
 
     // Used for drawing cursor when not full tile size, e.g. when selected entity
     // static void drawDynamicCursor(pl::RenderTarget& window, const Camera& camera);

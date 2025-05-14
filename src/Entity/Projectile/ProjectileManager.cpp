@@ -33,7 +33,7 @@ void ProjectileManager::drawProjectiles(pl::RenderTarget& window, pl::SpriteBatc
 {
     for (auto& projectilePair : projectiles)
     {
-        projectilePair.second.draw(window, spriteBatch, chunkManager, playerPos, camera);
+        projectilePair.second.draw(window, spriteBatch, chunkManager, camera);
     }
 }
 
@@ -91,13 +91,13 @@ uint16_t ProjectileManager::getProjectileCount() const
     return projectiles.size();
 }
 
-void ProjectileManager::handleWorldWrap(pl::Vector2f positionDelta)
-{
-    for (auto& projectilePair : projectiles)
-    {
-        projectilePair.second.handleWorldWrap(positionDelta);
-    }
-}
+// void ProjectileManager::handleWorldWrap(pl::Vector2f positionDelta)
+// {
+//     for (auto& projectilePair : projectiles)
+//     {
+//         projectilePair.second.handleWorldWrap(positionDelta);
+//     }
+// }
 
 void ProjectileManager::clear()
 {
