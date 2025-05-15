@@ -1,7 +1,5 @@
 #include "Game.hpp"
 
-// CONSIDER: World boundary collision failure after position normalisation update
-
 // FIX: Weather inconsistency (gametime)
 
 // FIX: World wraparound in menu when left for long duration
@@ -1004,17 +1002,17 @@ void Game::updateOnPlanet(float dt)
 
     if (!isStateTransitioning())
     {
-        player.update(dt, camera.screenToWorldTransform(mouseScreenPos, worldSize), getChunkManager(), getProjectileManager(), wrappedAroundWorld, wrapPositionDelta);
+        player.update(dt, camera.screenToWorldTransform(mouseScreenPos, 0), getChunkManager(), getProjectileManager(), wrappedAroundWorld, wrapPositionDelta);
     }
 
     if (wrappedAroundWorld)
     {
-        camera.handleWorldWrap(worldSize);
+        camera.handleWorldWrap(wrapPositionDelta);
     }
 
     // Handle world wrapping for camera and cursor, if player wrapped around
     // if (wrappedAroundWorld)
-    {
+    // {
         // camera.handleWorldWrap(wrapPositionDelta);
         // Cursor::handleWorldWrap(wrapPositionDelta);
         // handleOpenChestPositionWorldWrap(wrapPositionDelta);
@@ -1035,11 +1033,11 @@ void Game::updateOnPlanet(float dt)
 
         // Wrap weather particles
         // weatherSystem.handleWorldWrap(wrapPositionDelta);
-    }
+    // }
 
     // Update (loaded) chunks
     // Enable / disable chunk generation depending on multiplayer state
-    if (!networkHandler.isMultiplayerGame() || networkHandler.isClient())
+    if (!networkHandler.getIsLobbyHost())
     {
         std::vector<ChunkPosition> chunksToRequestFromHost;
         
@@ -1239,11 +1237,15 @@ void Game::drawWorld(pl::Framebuffer& renderTexture, float dt, std::vector<World
     // Draw water
     worldData.chunkManager.drawChunkWater(renderTexture, cameraArg, gameTime);
 
-    std::sort(worldObjects.begin(), worldObjects.end(), [](WorldObject* a, WorldObject* b)
+    std::sort(worldObjects.begin(), worldObjects.end(), [this, &worldData](WorldObject* a, WorldObject* b)
     {
         if (a->getDrawLayer() != b->getDrawLayer()) return a->getDrawLayer() > b->getDrawLayer();
-        if (a->getPosition().y == b->getPosition().y) return a->getPosition().x < b->getPosition().x;
-        return a->getPosition().y < b->getPosition().y;
+
+        pl::Vector2f normalisedPosA = Camera::translateWorldPos(a->getPosition(), player.getPosition(), worldData.chunkManager.getWorldSize());
+        pl::Vector2f normalisedPosB = Camera::translateWorldPos(b->getPosition(), player.getPosition(), worldData.chunkManager.getWorldSize());
+        
+        if (normalisedPosA.y == normalisedPosB.y) return normalisedPosA.x < normalisedPosB.x;
+        return normalisedPosA.y < normalisedPosB.y;
     });
 
     spriteBatch.beginDrawing();
@@ -1277,8 +1279,8 @@ void Game::drawLighting(float dt, std::vector<WorldObject*>& worldObjects)
     float ambientGreenLight = Helper::lerp(7, 244 * weatherSystem.getGreenLightBias(), lightLevel);
     float ambientBlueLight = Helper::lerp(14, 234 * weatherSystem.getBlueLightBias(), lightLevel);
 
-    pl::Vector2<int> chunksSizeInView = ChunkManager::getChunksSizeInView(camera, getChunkManager().getWorldSize());
-    pl::Vector2f topLeftChunkPos = ChunkManager::topLeftChunkPosInView(camera, getChunkManager().getWorldSize());
+    pl::Vector2<int> chunksSizeInView = ChunkManager::getChunksSizeInView(camera);
+    pl::Vector2f topLeftChunkPos = ChunkManager::topLeftChunkPosInView(camera);
     
     // Draw light sources on light texture
     pl::Framebuffer lightTexture;
@@ -1299,8 +1301,9 @@ void Game::drawLighting(float dt, std::vector<WorldObject*>& worldObjects)
         for (WorldObject* worldObject : worldObjects)
         {
             // worldObject->drawLightMask(lightTexture);
-            worldObject->createLightSource(lightingEngine, topLeftChunkPos);
+            worldObject->createLightSource(lightingEngine, topLeftChunkPos, player.getPosition(), getChunkManager().getWorldSize());
         }
+
 
         lightingEngine.calculateLighting();
     }
@@ -1765,7 +1768,7 @@ void Game::attemptUseToolPickaxe()
     if (gameState != GameState::OnPlanet)
         return;
 
-    pl::Vector2f mouseWorldPos = camera.screenToWorldTransform(mouseScreenPos, getChunkManager().getWorldSize());
+    pl::Vector2f mouseWorldPos = camera.screenToWorldTransform(mouseScreenPos, 0);
 
     // Swing pickaxe
     player.useTool(getProjectileManager(), inventory, mouseWorldPos, *this);
@@ -1794,7 +1797,7 @@ void Game::attemptUseToolFishingRod()
         return;
     }
 
-    pl::Vector2f mouseWorldPos = camera.screenToWorldTransform(mouseScreenPos, getChunkManager().getWorldSize());
+    pl::Vector2f mouseWorldPos = camera.screenToWorldTransform(mouseScreenPos, 0);
 
     if (!player.canReachPosition(mouseWorldPos))
     {
@@ -1828,7 +1831,7 @@ void Game::attemptUseToolWeapon()
     if (gameState != GameState::OnPlanet)
         return;
 
-    pl::Vector2f mouseWorldPos = camera.screenToWorldTransform(mouseScreenPos, getChunkManager().getWorldSize());
+    pl::Vector2f mouseWorldPos = camera.screenToWorldTransform(mouseScreenPos, 0);
 
     player.useTool(getProjectileManager(), inventory, mouseWorldPos, *this);
 }
@@ -2047,7 +2050,7 @@ void Game::destroyObjectFromHost(ChunkPosition chunk, pl::Vector2<int> tile, std
 void Game::testMeleeCollision(const std::vector<HitRect>& hitRects)
 {
     getChunkManager().testChunkEntityHitCollision(hitRects, *this, gameTime);
-    getBossManager().testHitRectCollision(hitRects);
+    getBossManager().testHitRectCollision(hitRects, getChunkManager().getWorldSize());
 }
 
 void Game::catchRandomFish(pl::Vector2<int> fishedTile)

@@ -51,7 +51,7 @@ Player::Player(pl::Vector2f position, int maxHealth, pl::Color bodyColor, pl::Co
     inRocket = false;
 }
 
-void Player::update(float dt, pl::Vector2f mouseWorldPos, ChunkManager& chunkManager, ProjectileManager& projectileManager, bool& wrapped, pl::Vector2f wrapPositionDelta)
+void Player::update(float dt, pl::Vector2f mouseWorldPos, ChunkManager& chunkManager, ProjectileManager& projectileManager, bool& wrapped, pl::Vector2f& wrapPositionDelta)
 {
     updateTimers(dt);
 
@@ -77,7 +77,7 @@ void Player::update(float dt, pl::Vector2f mouseWorldPos, ChunkManager& chunkMan
     // Test projectile collisions
     for (auto& projectilePair : projectileManager.getProjectiles())
     {
-        if (testHitCollision(projectilePair.second))
+        if (testHitCollision(projectilePair.second, chunkManager.getWorldSize()))
         {
             projectilePair.second.onCollision();
         }
@@ -752,8 +752,8 @@ std::vector<WorldObject*> Player::getDrawWorldObjects(const Camera& camera, int 
     return worldObjects;
 }
 
-void Player::createLightSource(LightingEngine& lightingEngine, pl::Vector2f topLeftChunkPos) const
-{
+// void Player::createLightSource(LightingEngine& lightingEngine, pl::Vector2f topLeftChunkPos) const
+// {
     // if (inRocket || !isAlive())
     //     return;
     
@@ -781,7 +781,7 @@ void Player::createLightSource(LightingEngine& lightingEngine, pl::Vector2f topL
     // TextureManager::drawSubTexture(lightTexture, {
     //     TextureType::LightMask, camera.worldToScreenTransform(position), 0, scale, {0.5, 0.5}, lightColor
     //     }, lightMaskRect, sf::BlendAdd);
-}
+// }
 
 // void Player::drawFishingRodCast(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera, float gameTime, int worldSize, float waterYOffset) const
 // {
@@ -1057,7 +1057,7 @@ void Player::setSkinColor(const pl::Color& color)
     skinColor = color;
 }
 
-bool Player::testHitCollision(const Projectile& projectile)
+bool Player::testHitCollision(const Projectile& projectile, int worldSize)
 {
     if (projectile.getHitLayer() != HitLayer::Player)
     {
@@ -1066,17 +1066,17 @@ bool Player::testHitCollision(const Projectile& projectile)
 
     HitCircle hitCircle(projectile.getCollisionCircle());
     hitCircle.damage = projectile.getDamage();
-    return testHitCollision(hitCircle);
+    return testHitCollision(hitCircle, worldSize);
 }
 
-bool Player::testHitCollision(const HitRect& hitRect)
+bool Player::testHitCollision(const HitRect& hitRect, int worldSize)
 {
     if (!isAlive())
     {
         return false;
     }
 
-    if (!collisionRect.isColliding(hitRect))
+    if (!collisionRect.isColliding(hitRect, worldSize))
     {
         return false;
     }
@@ -1084,14 +1084,14 @@ bool Player::testHitCollision(const HitRect& hitRect)
     return takeDamage(hitRect.damage);
 }
 
-bool Player::testHitCollision(const HitCircle& hitCircle)
+bool Player::testHitCollision(const HitCircle& hitCircle, int worldSize)
 {
     if (!isAlive())
     {
         return false;
     }
 
-    if (!collisionRect.isColliding(hitCircle))
+    if (!collisionRect.isColliding(hitCircle, worldSize))
     {
         return false;
     }

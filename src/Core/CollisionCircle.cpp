@@ -8,15 +8,22 @@ CollisionCircle::CollisionCircle(float x, float y, float radius)
     this->radius = radius;
 }
 
-bool CollisionCircle::isColliding(const CollisionCircle& otherCircle) const
+bool CollisionCircle::isColliding(CollisionCircle otherCircle, int worldSize) const
 {
+    if (worldSize > 0)
+    {
+        pl::Vector2f translatedPos = Camera::translateWorldPos(pl::Vector2f(otherCircle.x, otherCircle.y), pl::Vector2f(x, y), worldSize);
+        otherCircle.x = translatedPos.x;
+        otherCircle.y = translatedPos.y;
+    }
+
     float distance = (pl::Vector2f(otherCircle.x, otherCircle.y) - pl::Vector2f(x, y)).getLength();
     return (distance <= otherCircle.radius + radius);
 }
 
-bool CollisionCircle::isColliding(const CollisionRect& rect) const
+bool CollisionCircle::isColliding(CollisionRect rect, int worldSize) const
 {
-    return rect.isColliding(*this);
+    return rect.isColliding(*this, worldSize);
 }
 
 bool CollisionCircle::isPointColliding(float x, float y) const

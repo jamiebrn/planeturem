@@ -44,7 +44,7 @@ class BossGlacialBrute : public BossEntity
 public:
     BossGlacialBrute(pl::Vector2f playerPosition, Game& game);
 
-    void update(Game& game, ProjectileManager& projectileManager, Player& player, float dt) override;
+    void update(Game& game, ProjectileManager& projectileManager, Player& player, float dt, int worldSize) override;
 
     bool isAlive() override;
 
@@ -54,15 +54,15 @@ public:
     void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
         const pl::Color& color) const override;
 
-    inline void createLightSource(LightingEngine& lightingEngine, pl::Vector2f topLeftChunkPos) const override {}
+    // inline void createLightSource(LightingEngine& lightingEngine, pl::Vector2f topLeftChunkPos) const override {}
 
     void getHoverStats(pl::Vector2f mouseWorldPos, std::vector<std::string>& hoverStats) override;
 
-    void testCollisionWithPlayer(Player& player) override;
+    void testCollisionWithPlayer(Player& player, int worldSize) override;
 
-    void testProjectileCollision(Projectile& projectile) override;
+    void testProjectileCollision(Projectile& projectile, int worldSize) override;
 
-    void testHitRectCollision(const std::vector<HitRect>& hitRects) override;
+    void testHitRectCollision(const std::vector<HitRect>& hitRects, int worldSize) override;
 
     void getWorldObjects(std::vector<WorldObject*>& worldObjects) override;
 

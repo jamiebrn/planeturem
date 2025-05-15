@@ -1127,11 +1127,11 @@ uint64_t Chunk::addItemPickup(const ItemPickup& itemPickup, std::optional<uint64
     return itemPickupCounter++;
 }
     
-std::optional<ItemPickupReference> Chunk::getCollidingItemPickup(const CollisionRect& playerCollision, float gameTime)
+std::optional<ItemPickupReference> Chunk::getCollidingItemPickup(const CollisionRect& playerCollision, float gameTime, int worldSize)
 {
     for (auto iter = itemPickups.begin(); iter != itemPickups.end();)
     {
-        if (iter->second.isBeingPickedUp(playerCollision, gameTime))
+        if (iter->second.isBeingPickedUp(playerCollision, gameTime, worldSize))
         {
             // iter->second.resetSpawnTime(gameTime);
             return ItemPickupReference{chunkPosition, iter->first};
@@ -1301,34 +1301,34 @@ std::vector<CollisionRect*> Chunk::getCollisionRects()
     return collisionRectPtrs;
 }
 
-bool Chunk::collisionRectStaticCollisionX(CollisionRect& collisionRect, float dx)
+bool Chunk::collisionRectStaticCollisionX(CollisionRect& collisionRect, float dx, int worldSize)
 {
     bool collision = false;
     for (auto& rect : collisionRects)
     {
-        if (collisionRect.handleStaticCollisionX(rect, dx))
+        if (collisionRect.handleStaticCollisionX(rect, dx, worldSize))
             collision = true;
     }
     return collision;
 }
 
-bool Chunk::collisionRectStaticCollisionY(CollisionRect& collisionRect, float dy)
+bool Chunk::collisionRectStaticCollisionY(CollisionRect& collisionRect, float dy, int worldSize)
 {
     bool collision = false;
     for (auto& rect : collisionRects)
     {
-        if (collisionRect.handleStaticCollisionY(rect, dy))
+        if (collisionRect.handleStaticCollisionY(rect, dy, worldSize))
             collision = true;
     }
     return collision;
 }
 
-bool Chunk::isCollisionRectCollidingWithEntities(const CollisionRect& collisionRect)
+bool Chunk::isCollisionRectCollidingWithEntities(const CollisionRect& collisionRect, int worldSize)
 {
     for (auto& entity : entities)
     {
         const CollisionRect& entityCollisionRect = entity->getCollisionRect();
-        if (entityCollisionRect.isColliding(collisionRect))
+        if (entityCollisionRect.isColliding(collisionRect, worldSize))
             return true;
     }
     return false;

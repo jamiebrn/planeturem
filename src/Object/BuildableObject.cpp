@@ -123,7 +123,7 @@ void BuildableObject::drawObject(pl::RenderTarget& window, pl::SpriteBatch& spri
     spriteBatch.draw(window, drawData);
 }
 
-void BuildableObject::createLightSource(LightingEngine& lightingEngine, pl::Vector2f topLeftChunkPos) const
+void BuildableObject::createLightSource(LightingEngine& lightingEngine, pl::Vector2f topLeftChunkPos, pl::Vector2f playerPos, int worldSize) const
 {
     if (objectType < 0)
     {
@@ -152,7 +152,7 @@ void BuildableObject::createLightSource(LightingEngine& lightingEngine, pl::Vect
     }
 
     // Create light emitter / absorber
-    pl::Vector2f topLeftRelativePos = position - topLeftChunkPos;
+    pl::Vector2f topLeftRelativePos = Camera::translateWorldPos(position, playerPos, worldSize) - topLeftChunkPos;
     
     int lightingTileX = std::floor(topLeftRelativePos.x / TILE_SIZE_PIXELS_UNSCALED) * TILE_LIGHTING_RESOLUTION;
     int lightingTileY = std::floor(topLeftRelativePos.y / TILE_SIZE_PIXELS_UNSCALED) * TILE_LIGHTING_RESOLUTION;

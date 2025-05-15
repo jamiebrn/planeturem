@@ -606,7 +606,7 @@ bool ChunkManager::canPlaceObject(ChunkPosition chunk, pl::Vector2<int> tile, Ob
         objectCollisionRect.height = objectData.size.y * TILE_SIZE_PIXELS_UNSCALED;
 
         // Test if colliding with player
-        if (playerCollisionRect.isColliding(objectCollisionRect))
+        if (playerCollisionRect.isColliding(objectCollisionRect, worldSize))
             return false;
         
         // Test if colliding with entities in adjacent chunks
@@ -623,7 +623,7 @@ bool ChunkManager::canPlaceObject(ChunkPosition chunk, pl::Vector2<int> tile, Ob
                 if (loadedChunks.count(ChunkPosition(wrappedX, wrappedY)) <= 0)
                     continue;
                 
-                if (loadedChunks[ChunkPosition(wrappedX, wrappedY)]->isCollisionRectCollidingWithEntities(objectCollisionRect))
+                if (loadedChunks[ChunkPosition(wrappedX, wrappedY)]->isCollisionRectCollidingWithEntities(objectCollisionRect, worldSize))
                     return false;
             }
         }
@@ -667,7 +667,7 @@ bool ChunkManager::canDestroyObject(ChunkPosition chunk, pl::Vector2<int> tile, 
         objectCollisionRect.height = objectData.size.y * TILE_SIZE_PIXELS_UNSCALED;
 
         // Test if colliding with player
-        if (playerCollisionRect.isColliding(objectCollisionRect))
+        if (playerCollisionRect.isColliding(objectCollisionRect, worldSize))
             return false;
         
         // Test if colliding with entities in adjacent chunks
@@ -684,7 +684,7 @@ bool ChunkManager::canDestroyObject(ChunkPosition chunk, pl::Vector2<int> tile, 
                 if (loadedChunks.count(ChunkPosition(wrappedX, wrappedY)) <= 0)
                     continue;
                 
-                if (loadedChunks[ChunkPosition(wrappedX, wrappedY)]->isCollisionRectCollidingWithEntities(objectCollisionRect))
+                if (loadedChunks[ChunkPosition(wrappedX, wrappedY)]->isCollisionRectCollidingWithEntities(objectCollisionRect, worldSize))
                     return false;
             }
         }
@@ -936,7 +936,7 @@ std::optional<ItemPickupReference> ChunkManager::getCollidingItemPickup(const Co
                 continue;
             }
 
-            std::optional<ItemPickupReference> pickupCollided = chunkPtr->getCollidingItemPickup(playerCollision, gameTime);
+            std::optional<ItemPickupReference> pickupCollided = chunkPtr->getCollidingItemPickup(playerCollision, gameTime, worldSize);
 
             if (pickupCollided.has_value())
             {
@@ -1015,7 +1015,7 @@ bool ChunkManager::collisionRectChunkStaticCollisionX(CollisionRect& collisionRe
                 continue;
             }
 
-            if (loadedChunks.at(wrappedChunk)->collisionRectStaticCollisionX(collisionRect, dx))
+            if (loadedChunks.at(wrappedChunk)->collisionRectStaticCollisionX(collisionRect, dx, worldSize))
             {
                 collision = true;
             }
@@ -1043,7 +1043,7 @@ bool ChunkManager::collisionRectChunkStaticCollisionY(CollisionRect& collisionRe
                 continue;
             }
 
-            if (loadedChunks.at(wrappedChunk)->collisionRectStaticCollisionY(collisionRect, dy))
+            if (loadedChunks.at(wrappedChunk)->collisionRectStaticCollisionY(collisionRect, dy, worldSize))
             {
                 collision = true;
             }
@@ -1459,7 +1459,7 @@ std::pair<ChunkPosition, pl::Vector2<int>> ChunkManager::getChunkTileFromOffset(
     return {chunk, tile};
 }
 
-pl::Vector2<int> ChunkManager::getChunksSizeInView(const Camera& camera, int worldSize)
+pl::Vector2<int> ChunkManager::getChunksSizeInView(const Camera& camera)
 {
     pl::Vector2f screenTopLeft = camera.screenToWorldTransform({0, 0}, 0);
     pl::Vector2f screenBottomRight = camera.screenToWorldTransform(static_cast<pl::Vector2f>(ResolutionHandler::getResolution()), 0);
@@ -1479,9 +1479,9 @@ pl::Vector2<int> ChunkManager::getChunksSizeInView(const Camera& camera, int wor
     return chunkSizeInView;
 }
 
-pl::Vector2f ChunkManager::topLeftChunkPosInView(const Camera& camera, int worldSize)
+pl::Vector2f ChunkManager::topLeftChunkPosInView(const Camera& camera)
 {
-    pl::Vector2f screenTopLeft = camera.screenToWorldTransform({0, 0}, worldSize);
+    pl::Vector2f screenTopLeft = camera.screenToWorldTransform({0, 0}, 0);
     screenTopLeft.y = (std::floor(screenTopLeft.y / (TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE)) - CHUNK_VIEW_LOAD_BORDER) * TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE;
     screenTopLeft.x = (std::floor(screenTopLeft.x / (TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE)) - CHUNK_VIEW_LOAD_BORDER) * TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE;
     return screenTopLeft;

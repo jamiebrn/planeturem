@@ -1,6 +1,6 @@
 #include "Player/ItemPickup.hpp"
 
-bool ItemPickup::isBeingPickedUp(const CollisionRect& playerCollision, float gameTime) const
+bool ItemPickup::isBeingPickedUp(const CollisionRect& playerCollision, float gameTime, int worldSize) const
 {
     if (gameTime - spawnGameTime < SPAWN_FLASH_TIME)
     {
@@ -8,7 +8,7 @@ bool ItemPickup::isBeingPickedUp(const CollisionRect& playerCollision, float gam
     }
 
     CollisionCircle collisionCircle(position.x, position.y, PICKUP_RADIUS);
-    return playerCollision.isColliding(collisionCircle);
+    return playerCollision.isColliding(collisionCircle, worldSize);
 }
 
 void ItemPickup::resetSpawnTime(float gameTime)

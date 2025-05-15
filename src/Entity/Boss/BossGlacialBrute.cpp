@@ -27,7 +27,7 @@ BossGlacialBrute::BossGlacialBrute(pl::Vector2f playerPosition, Game& game)
     updateCollision();
 }
 
-void BossGlacialBrute::update(Game& game, ProjectileManager& enemyProjectileManager, Player& player, float dt)
+void BossGlacialBrute::update(Game& game, ProjectileManager& projectileManager, Player& player, float dt, int worldSize)
 {
     switch (behaviourState)
     {
@@ -112,7 +112,7 @@ void BossGlacialBrute::update(Game& game, ProjectileManager& enemyProjectileMana
 
             if (throwSnowballTimer <= 0)
             {
-                throwSnowball(enemyProjectileManager, player);
+                throwSnowball(projectileManager, player);
                 behaviourState = BossGlacialBruteState::WalkingToPlayer;
             }
             break;
@@ -209,27 +209,27 @@ void BossGlacialBrute::getHoverStats(pl::Vector2f mouseWorldPos, std::vector<std
     }
 }
 
-void BossGlacialBrute::testCollisionWithPlayer(Player& player)
+void BossGlacialBrute::testCollisionWithPlayer(Player& player, int worldSize)
 {
     HitRect hitRect(hitCollision);
     hitRect.damage = BODY_DAMAGE;
-    player.testHitCollision(hitRect);
+    player.testHitCollision(hitRect, worldSize);
 }
 
-void BossGlacialBrute::testProjectileCollision(Projectile& projectile)
+void BossGlacialBrute::testProjectileCollision(Projectile& projectile, int worldSize)
 {
-    if (hitCollision.isColliding(projectile.getCollisionCircle()))
+    if (hitCollision.isColliding(projectile.getCollisionCircle(), worldSize))
     {
         damage(projectile.getDamage(), projectile.getPosition());
         projectile.onCollision();
     }
 }
 
-void BossGlacialBrute::testHitRectCollision(const std::vector<HitRect>& hitRects)
+void BossGlacialBrute::testHitRectCollision(const std::vector<HitRect>& hitRects, int worldSize)
 {
     for (const HitRect& hitRect : hitRects)
     {
-        if (hitCollision.isColliding(hitRect))
+        if (hitCollision.isColliding(hitRect, worldSize))
         {
             damage(hitRect.damage, hitRect.getCentre());
             return;

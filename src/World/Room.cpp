@@ -55,7 +55,7 @@ bool Room::handleStaticCollisionX(CollisionRect& collisionRect, float dx) const
     bool collision = false;
     for (const CollisionRect& rect : collisionRects)
     {
-        if (collisionRect.handleStaticCollisionX(rect, dx))
+        if (collisionRect.handleStaticCollisionX(rect, dx, 0))
             collision = true;
     }
     return collision;
@@ -66,7 +66,7 @@ bool Room::handleStaticCollisionY(CollisionRect& collisionRect, float dy) const
     bool collision = false;
     for (const CollisionRect& rect : collisionRects)
     {
-        if (collisionRect.handleStaticCollisionY(rect, dy))
+        if (collisionRect.handleStaticCollisionY(rect, dy, 0))
             collision = true;
     }
     return collision;

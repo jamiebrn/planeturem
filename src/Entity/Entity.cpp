@@ -164,8 +164,8 @@ void Entity::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& 
     #endif
 }
 
-void Entity::createLightSource(LightingEngine& lightingEngine, pl::Vector2f topLeftChunkPos) const
-{
+// void Entity::createLightSource(LightingEngine& lightingEngine, pl::Vector2f topLeftChunkPos) const
+// {
     // static constexpr float lightScale = 0.3f;
     // static const sf::Color lightColor(255, 220, 140);
 
@@ -176,14 +176,17 @@ void Entity::createLightSource(LightingEngine& lightingEngine, pl::Vector2f topL
     // TextureManager::drawSubTexture(lightTexture, {
     //     TextureType::LightMask, Camera::worldToScreenTransform(position), 0, scale, {0.5, 0.5}, lightColor
     //     }, lightMaskRect, sf::BlendAdd);
-}
+// }
 
 
 void Entity::testHitCollision(const std::vector<HitRect>& hitRects, Game& game, const LocationState& locationState, float gameTime)
 {
-    for (const HitRect& hitRect : hitRects)
+    // Get world size
+    int worldSize = game.getChunkManager(locationState.getPlanetType()).getWorldSize();
+
+    for (HitRect hitRect : hitRects)
     {
-        if (hitRect.isColliding(collisionRect))
+        if (hitRect.isColliding(collisionRect, worldSize))
         {
             damage(hitRect.damage, game, locationState, gameTime);
             behaviour->onHit(*this, game, game.getPlayer().getPosition());

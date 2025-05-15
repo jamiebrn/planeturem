@@ -47,7 +47,7 @@ public:
     void updateNetwork(float dt, ChunkManager& chunkManager);
 
     void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const pl::Color& color) const override;
-    void createLightSource(LightingEngine& lightingEngine, pl::Vector2f topLeftChunkPos) const override;
+    // void createLightSource(LightingEngine& lightingEngine, pl::Vector2f topLeftChunkPos) const override;
 
     void testHitCollision(const std::vector<HitRect>& hitRects, Game& game, const LocationState& locationState, float gameTime);
     void damage(int amount, Game& game, const LocationState& locationState, float gameTime);

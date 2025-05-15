@@ -56,7 +56,7 @@ public:
     virtual void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
         const pl::Color& color) const = 0;
 
-    virtual void createLightSource(LightingEngine& lightingEngine, pl::Vector2f topLeftChunkPos) const {};
+    virtual void createLightSource(LightingEngine& lightingEngine, pl::Vector2f topLeftChunkPos, pl::Vector2f playerPos, int worldSize) const {};
 
 protected:
     pl::Vector2f position;

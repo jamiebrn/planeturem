@@ -1441,11 +1441,6 @@ void NetworkHandler::structureRequestSent()
     structureEnterRequestCooldown = STRUCTURE_ENTER_REQUEST_COOLDOWN;
 }
 
-void NetworkHandler::forwardChatMessageToClients(const PacketDataChatMessage& chatMessage)
-{
-    
-}
-
 int NetworkHandler::getTotalBytesSent() const
 {
     return totalBytesSent;

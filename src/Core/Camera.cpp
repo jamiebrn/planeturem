@@ -58,49 +58,56 @@ pl::Vector2f Camera::getIntegerDrawOffset() const
     return drawOffset;
 }
 
+pl::Vector2f Camera::translateWorldPos(pl::Vector2f position, pl::Vector2f origin, int worldSize)
+{
+    int worldPixelSize = worldSize * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
+    float halfWorldPixelSize = worldPixelSize / 2.0f;
+
+    if (std::abs(origin.x - position.x) >= halfWorldPixelSize)
+    {
+        if (origin.x >= halfWorldPixelSize)
+        {
+            if (position.x < halfWorldPixelSize)
+            {
+                position.x += worldPixelSize;
+            }
+        }
+        else
+        {
+            if (position.x >= halfWorldPixelSize)
+            {
+                position.x -= worldPixelSize;
+            }
+        }
+    }
+
+    if (std::abs(origin.y - position.y) >= halfWorldPixelSize)
+    {
+        if (origin.y >= halfWorldPixelSize)
+        {
+            if (position.y < halfWorldPixelSize)
+            {
+                position.y += worldPixelSize;
+            }
+        }
+        else
+        {
+            if (position.y >= halfWorldPixelSize)
+            {
+                position.y -= worldPixelSize;
+            }
+        }
+    }
+
+    return position;
+}
+
 pl::Vector2f Camera::worldToScreenTransform(pl::Vector2f worldPos, int worldSize) const
 {
     // Translate world pos if required (wraparound)
     if (worldSize > 0)
     {
-        int worldPixelSize = worldSize * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
-        float halfWorldPixelSize = worldPixelSize / 2.0f;
-
-        if (std::abs(offset.x - worldPos.x) >= halfWorldPixelSize)
-        {
-            if (offset.x >= halfWorldPixelSize)
-            {
-                if (worldPos.x < halfWorldPixelSize)
-                {
-                    worldPos.x += worldPixelSize;
-                }
-            }
-            else
-            {
-                if (worldPos.x >= halfWorldPixelSize)
-                {
-                    worldPos.x -= worldPixelSize;
-                }
-            }
-        }
-
-        if (std::abs(offset.y - worldPos.y) >= halfWorldPixelSize)
-        {
-            if (offset.y >= halfWorldPixelSize)
-            {
-                if (worldPos.y < halfWorldPixelSize)
-                {
-                    worldPos.y += worldPixelSize;
-                }
-            }
-            else
-            {
-                if (worldPos.y >= halfWorldPixelSize)
-                {
-                    worldPos.y -= worldPixelSize;
-                }
-            }
-        }
+        worldPos = translateWorldPos(worldPos, offset, worldSize);
     }
 
     float scale = ResolutionHandler::getScale();
@@ -121,7 +128,6 @@ pl::Vector2f Camera::screenToWorldTransform(pl::Vector2f screenPos, int worldSiz
 
     pl::Vector2f screenCentre = static_cast<pl::Vector2f>(ResolutionHandler::getResolution()) / 2.0f;
     pl::Vector2f screenCentreWorld = screenCentre / scale;
-
     
     pl::Vector2f worldPos;
     if (worldSize > 0)
@@ -148,9 +154,9 @@ void Camera::handleScaleChange(float beforeScale, float afterScale, pl::Vector2f
     Camera::setOffset(adjustedCamPos);
 }
 
-void Camera::handleWorldWrap(int worldSize)
+void Camera::handleWorldWrap(pl::Vector2f wrapPositionDelta)
 {
-    offset = Helper::wrapPosition(offset, worldSize);
+    offset += wrapPositionDelta;
 }
 
 ChunkViewRange Camera::getChunkViewRange() const

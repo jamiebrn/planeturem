@@ -48,7 +48,7 @@ class BossBenjaminCrow : public BossEntity
 public:
     BossBenjaminCrow(pl::Vector2f playerPosition);
 
-    void update(Game& game, ProjectileManager& projectileManager, Player& player, float dt) override;
+    void update(Game& game, ProjectileManager& projectileManager, Player& player, float dt, int worldSize) override;
 
     bool isAlive() override;
 
@@ -56,13 +56,13 @@ public:
 
     void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const pl::Color& color) const override;
 
-    inline void createLightSource(LightingEngine& lightingEngine, pl::Vector2f topLeftChunkPos) const override {}
+    // inline void createLightSource(LightingEngine& lightingEngine, pl::Vector2f topLeftChunkPos) const override {}
 
     void getHoverStats(pl::Vector2f mouseWorldPos, std::vector<std::string>& hoverStats) override;
 
-    void testCollisionWithPlayer(Player& player) override;
+    void testCollisionWithPlayer(Player& player, int worldSize) override;
 
-    void testProjectileCollision(Projectile& projectile) override;
+    void testProjectileCollision(Projectile& projectile, int worldSize) override;
 
     void getWorldObjects(std::vector<WorldObject*>& worldObjects) override;
 
@@ -79,7 +79,7 @@ private:
     void takeDamage(int damage, pl::Vector2f damagePosition);
     void applyKnockback(Projectile& projectile);
 
-    bool isProjectileColliding(Projectile& projectile);
+    bool isProjectileColliding(Projectile& projectile, int worldSize);
 
     void addDashGhostEffect();
     void updateDashGhostEffects(float dt);

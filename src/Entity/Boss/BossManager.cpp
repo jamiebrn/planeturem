@@ -37,7 +37,7 @@ void BossManager::update(Game& game, ProjectileManager& projectileManager, Chunk
         BossEntity* boss = iter->get();
         if (boss->isAlive() && boss->inPlayerRange(player))
         {
-            boss->update(game, projectileManager, player, dt);
+            boss->update(game, projectileManager, player, dt, chunkManager.getWorldSize());
 
             for (auto& projectilePair : projectileManager.getProjectiles())
             {
@@ -45,7 +45,7 @@ void BossManager::update(Game& game, ProjectileManager& projectileManager, Chunk
                 {
                     continue;
                 }
-                boss->testProjectileCollision(projectilePair.second);
+                boss->testProjectileCollision(projectilePair.second, chunkManager.getWorldSize());
             }
             iter++;
         }
@@ -68,11 +68,11 @@ void BossManager::update(Game& game, ProjectileManager& projectileManager, Chunk
     }
 }
 
-void BossManager::testHitRectCollision(const std::vector<HitRect>& hitRects)
+void BossManager::testHitRectCollision(const std::vector<HitRect>& hitRects, int worldSize)
 {
     for (auto& boss : bosses)
     {
-        boss->testHitRectCollision(hitRects);
+        boss->testHitRectCollision(hitRects, worldSize);
     }
 }
 

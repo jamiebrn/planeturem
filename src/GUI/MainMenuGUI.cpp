@@ -37,7 +37,17 @@ void MainMenuGUI::update(float dt, pl::Vector2f mouseScreenPos, Game& game)
     worldViewPosition.y += 30.0f * dt;
 
     menuCamera.update(worldViewPosition, pl::Vector2f(0, 0), dt);
-    menuCamera.handleWorldWrap(menuWorldData.chunkManager.getWorldSize());
+
+    int worldPixelSize = menuWorldData.chunkManager.getWorldSize() * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
+
+    pl::Vector2f positionBeforeWrap = worldViewPosition;
+    worldViewPosition.x = fmod(fmod(worldViewPosition.x, worldPixelSize) + worldPixelSize, worldPixelSize);
+    worldViewPosition.y = fmod(fmod(worldViewPosition.y, worldPixelSize) + worldPixelSize, worldPixelSize);
+
+    if (worldViewPosition != positionBeforeWrap)
+    {
+        menuCamera.handleWorldWrap(worldViewPosition - positionBeforeWrap);
+    }
 
     menuWorldData.chunkManager.updateChunks(game, {menuCamera.getChunkViewRange()});
     menuWorldData.chunkManager.updateChunksObjects(game, dt);

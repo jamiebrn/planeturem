@@ -64,7 +64,7 @@ public:
 
     void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const pl::Color& color) const override;
 
-    void createLightSource(LightingEngine& lightingEngine, pl::Vector2f topLeftChunkPos) const override;
+    void createLightSource(LightingEngine& lightingEngine, pl::Vector2f topLeftChunkPos, pl::Vector2f playerPos, int worldSize) const override;
 
     StructureObjectPOD getPOD(pl::Vector2f chunkPosition);
     void loadFromPOD(const StructureObjectPOD& pod, pl::Vector2f chunkPosition);

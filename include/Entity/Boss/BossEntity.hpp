@@ -33,7 +33,7 @@ class BossEntity : public WorldObject
 public:
     BossEntity() = default;
 
-    virtual void update(Game& game, ProjectileManager& projectileManager, Player& player, float dt) = 0;
+    virtual void update(Game& game, ProjectileManager& projectileManager, Player& player, float dt, int worldSize) = 0;
 
     virtual bool isAlive() = 0;
 
@@ -42,15 +42,15 @@ public:
     virtual void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
         const pl::Color& color) const override = 0;
 
-    virtual void createLightSource(LightingEngine& lightingEngine, pl::Vector2f topLeftChunkPos) const override = 0;
+    virtual inline void createLightSource(LightingEngine& lightingEngine, pl::Vector2f topLeftChunkPos, pl::Vector2f playerPos, int worldSize) const override {};
 
     virtual void getHoverStats(pl::Vector2f mouseWorldPos, std::vector<std::string>& hoverStats) = 0;
 
-    virtual void testCollisionWithPlayer(Player& player) = 0;
+    virtual void testCollisionWithPlayer(Player& player, int worldSize) = 0;
 
-    virtual void testProjectileCollision(Projectile& projectile) {}
+    virtual void testProjectileCollision(Projectile& projectile, int worldSize) {}
 
-    virtual void testHitRectCollision(const std::vector<HitRect>& hitRects) {}
+    virtual void testHitRectCollision(const std::vector<HitRect>& hitRects, int worldSize) {}
 
     virtual void getWorldObjects(std::vector<WorldObject*>& worldObjects) = 0;
 

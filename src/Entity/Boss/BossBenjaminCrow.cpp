@@ -45,7 +45,7 @@ BossBenjaminCrow::BossBenjaminCrow(pl::Vector2f playerPosition)
     updateCollision();
 }
 
-void BossBenjaminCrow::update(Game& game, ProjectileManager& enemyProjectileManager, Player& player, float dt)
+void BossBenjaminCrow::update(Game& game, ProjectileManager& projectileManager, Player& player, float dt, int worldSize)
 {
     // Update animation
     idleAnims[stage].update(dt);
@@ -180,7 +180,7 @@ void BossBenjaminCrow::update(Game& game, ProjectileManager& enemyProjectileMana
 
     // Update collision
     updateCollision();
-    testCollisionWithPlayer(player);
+    testCollisionWithPlayer(player, worldSize);
 
     // Update dash cooldown timer
     dashCooldownTimer -= dt;
@@ -229,9 +229,9 @@ void BossBenjaminCrow::applyKnockback(Projectile& projectile)
     velocity -= Helper::normaliseVector(-relativePos) * KNOCKBACK_STRENGTH;
 }
 
-bool BossBenjaminCrow::isProjectileColliding(Projectile& projectile)
+bool BossBenjaminCrow::isProjectileColliding(Projectile& projectile, int worldSize)
 {
-    return collision.isColliding(projectile.getCollisionCircle());
+    return collision.isColliding(projectile.getCollisionCircle(), worldSize);
 }
 
 void BossBenjaminCrow::addDashGhostEffect()
@@ -373,7 +373,7 @@ void BossBenjaminCrow::getHoverStats(pl::Vector2f mouseWorldPos, std::vector<std
     hoverStats.push_back("Benjamin (" + std::to_string(health) + " / " + std::to_string(MAX_HEALTH) + ")");
 }
 
-void BossBenjaminCrow::testCollisionWithPlayer(Player& player)
+void BossBenjaminCrow::testCollisionWithPlayer(Player& player, int worldSize)
 {
     if (behaviourState == BossBenjaminState::Killed)
     {
@@ -388,17 +388,17 @@ void BossBenjaminCrow::testCollisionWithPlayer(Player& player)
 
     hitRect.damage = damageValues[stage];
 
-    player.testHitCollision(hitRect);
+    player.testHitCollision(hitRect, worldSize);
 }
 
-void BossBenjaminCrow::testProjectileCollision(Projectile& projectile)
+void BossBenjaminCrow::testProjectileCollision(Projectile& projectile, int worldSize)
 {
     if (behaviourState == BossBenjaminState::Killed)
     {    
         return;
     }
     
-    if (isProjectileColliding(projectile))
+    if (isProjectileColliding(projectile, worldSize))
     {
         takeDamage(projectile.getDamage(), projectile.getPosition());
         applyKnockback(projectile);

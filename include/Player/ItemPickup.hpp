@@ -43,7 +43,7 @@ public:
         itemType(itemType), count(count), spawnGameTime(gameTime) {}
     void resetSpawnTime(float gameTime);
 
-    bool isBeingPickedUp(const CollisionRect& playerCollision, float gameTime) const;
+    bool isBeingPickedUp(const CollisionRect& playerCollision, float gameTime, int worldSize) const;
 
     void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
         const pl::Color& color) const override;

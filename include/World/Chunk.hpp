@@ -170,7 +170,7 @@ public:
     // -- Item pickups -- //
     uint64_t addItemPickup(const ItemPickup& itemPickup, std::optional<uint64_t> idOverride = std::nullopt);
 
-    std::optional<ItemPickupReference> getCollidingItemPickup(const CollisionRect& playerCollision, float gameTime);
+    std::optional<ItemPickupReference> getCollidingItemPickup(const CollisionRect& playerCollision, float gameTime, int worldSize);
     void deleteItemPickup(uint64_t id);
 
     ItemPickup* getItemPickup(uint64_t id);
@@ -190,11 +190,11 @@ public:
     std::vector<CollisionRect*> getCollisionRects();
 
     // Used for collision with world
-    bool collisionRectStaticCollisionX(CollisionRect& collisionRect, float dx);
-    bool collisionRectStaticCollisionY(CollisionRect& collisionRect, float dy);
+    bool collisionRectStaticCollisionX(CollisionRect& collisionRect, float dx, int worldSize);
+    bool collisionRectStaticCollisionY(CollisionRect& collisionRect, float dy, int worldSize);
 
     // Test collision rect against entities (used for testing when placing / destroying objects)
-    bool isCollisionRectCollidingWithEntities(const CollisionRect& collisionRect);
+    bool isCollisionRectCollidingWithEntities(const CollisionRect& collisionRect, int worldSize);
 
 
     // -- Land -- //

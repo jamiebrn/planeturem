@@ -50,7 +50,7 @@ BossSandSerpent::BossSandSerpent(pl::Vector2f playerPosition, Game& game)
     updateCollision();
 }
 
-void BossSandSerpent::update(Game& game, ProjectileManager& enemyProjectileManager, Player& player, float dt)
+void BossSandSerpent::update(Game& game, ProjectileManager& projectileManager, Player& player, float dt, int worldSize)
 {
     switch (behaviourState)
     {
@@ -105,7 +105,7 @@ void BossSandSerpent::update(Game& game, ProjectileManager& enemyProjectileManag
             {
                 shootProjectileCooldownTime = 0.0f;
                 float angle = std::atan2(player.getPosition().y - 4 - (position.y - 50), player.getPosition().x - position.x) * 180.0f / M_PI;
-                enemyProjectileManager.addProjectile(Projectile(position - pl::Vector2f(0, 50), angle,
+                projectileManager.addProjectile(Projectile(position - pl::Vector2f(0, 50), angle,
                     ToolDataLoader::getProjectileTypeFromName("Serpent Venom BOSS"), 1.0f, 1.0f, HitLayer::Player));
             }
             break;
@@ -334,11 +334,11 @@ void BossSandSerpent::getHoverStats(pl::Vector2f mouseWorldPos, std::vector<std:
     }
 }
 
-void BossSandSerpent::testCollisionWithPlayer(Player& player)
+void BossSandSerpent::testCollisionWithPlayer(Player& player, int worldSize)
 {
 }
 
-void BossSandSerpent::testProjectileCollision(Projectile& projectile)
+void BossSandSerpent::testProjectileCollision(Projectile& projectile, int worldSize)
 {
     if (behaviourState != BossSandSerpentState::IdleStage1 && behaviourState != BossSandSerpentState::ShootingStage1)
     {
@@ -346,7 +346,7 @@ void BossSandSerpent::testProjectileCollision(Projectile& projectile)
     }
 
     // Test Collision
-    if (headCollision.isColliding(projectile.getCollisionCircle()))
+    if (headCollision.isColliding(projectile.getCollisionCircle(), worldSize))
     {
         if (takeHeadDamage(projectile.getDamage(), projectile.getPosition()))
         {
@@ -355,20 +355,20 @@ void BossSandSerpent::testProjectileCollision(Projectile& projectile)
         }
     }
 
-    if (bodyCollision.isColliding(projectile.getCollisionCircle()))
+    if (bodyCollision.isColliding(projectile.getCollisionCircle(), worldSize))
     {
         takeBodyDamage(projectile.getDamage(), projectile.getPosition());
         projectile.onCollision();
     }
 }
 
-void BossSandSerpent::testHitRectCollision(const std::vector<HitRect>& hitRects)
+void BossSandSerpent::testHitRectCollision(const std::vector<HitRect>& hitRects, int worldSize)
 {
     if (headHealth > 0)
     {
         for (const HitRect& hitRect : hitRects)
         {
-            if (headCollision.isColliding(hitRect))
+            if (headCollision.isColliding(hitRect, worldSize))
             {
                 if (takeHeadDamage(hitRect.damage, hitRect.getCentre()))
                 {
@@ -380,7 +380,7 @@ void BossSandSerpent::testHitRectCollision(const std::vector<HitRect>& hitRects)
 
     for (const HitRect& hitRect : hitRects)
     {
-        if (bodyCollision.isColliding(hitRect))
+        if (bodyCollision.isColliding(hitRect, worldSize))
         {
             takeBodyDamage(hitRect.damage, hitRect.getCentre());
             break;

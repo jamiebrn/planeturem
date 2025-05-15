@@ -32,6 +32,8 @@ public:
 
     pl::Vector2f getIntegerDrawOffset() const;
 
+    static pl::Vector2f translateWorldPos(pl::Vector2f position, pl::Vector2f origin, int worldSize);
+
     // Use worldSize = 0 to disable planet wrapping
     pl::Vector2f worldToScreenTransform(pl::Vector2f worldPos, int worldSize) const;
 
@@ -39,7 +41,7 @@ public:
 
     void handleScaleChange(float beforeScale, float afterScale, pl::Vector2f playerPosition);
 
-    void handleWorldWrap(int worldSize);
+    void handleWorldWrap(pl::Vector2f wrapPositionDelta);
 
     ChunkViewRange getChunkViewRange() const;
     ChunkViewRange getChunkViewDrawRange() const;

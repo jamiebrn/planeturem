@@ -57,7 +57,7 @@ public:
     virtual void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
         const pl::Color& color) const override;
 
-    void createLightSource(LightingEngine& lightingEngine, pl::Vector2f topLeftChunkPos) const override;
+    void createLightSource(LightingEngine& lightingEngine, pl::Vector2f topLeftChunkPos, pl::Vector2f playerPos, int worldSize) const override;
 
     // Returns true if destroyed
     virtual bool damage(int amount, Game& game, ChunkManager& chunkManager, ParticleSystem& particleSystem, bool giveItems = true);

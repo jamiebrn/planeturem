@@ -57,13 +57,13 @@ void StructureObject::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatc
     spriteBatch.draw(window, drawData);
 }
 
-void StructureObject::createLightSource(LightingEngine& lightingEngine, pl::Vector2f topLeftChunkPos) const
+void StructureObject::createLightSource(LightingEngine& lightingEngine, pl::Vector2f topLeftChunkPos, pl::Vector2f playerPos, int worldSize) const
 {
     const pl::Image& bitmaskImage = TextureManager::getBitmask(BitmaskType::Structures);
 
     const StructureData& structureData = StructureDataLoader::getStructureData(structureType);
     
-    pl::Vector2f relativePos = position - topLeftChunkPos;
+    pl::Vector2f relativePos = Camera::translateWorldPos(position, playerPos, worldSize) - topLeftChunkPos;
 
     // Lighting tile is top left of structure
     int lightingTileX = std::floor(relativePos.x / TILE_SIZE_PIXELS_UNSCALED) * TILE_LIGHTING_RESOLUTION;

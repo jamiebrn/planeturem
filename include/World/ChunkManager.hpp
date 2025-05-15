@@ -275,8 +275,8 @@ public:
 
     // Returns rectangle area of size containing chunks in view
     // Used in lighting calculations
-    static pl::Vector2<int> getChunksSizeInView(const Camera& camera, int worldSize);
-    static pl::Vector2f topLeftChunkPosInView(const Camera& camera, int worldSize);
+    static pl::Vector2<int> getChunksSizeInView(const Camera& camera);
+    static pl::Vector2f topLeftChunkPosInView(const Camera& camera);
 
 private:
     // Generates a chunk and stores it

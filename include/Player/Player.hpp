@@ -85,7 +85,7 @@ public:
     Player() = default;
     Player(pl::Vector2f position, int maxHealth = 0, pl::Color bodyColor = pl::Color(158, 69, 57, 255), pl::Color skinColor = pl::Color(230, 144, 78, 255));
 
-    void update(float dt, pl::Vector2f mouseWorldPos, ChunkManager& chunkManager, ProjectileManager& projectileManager, bool& wrapped, pl::Vector2f wrapPositionDelta);
+    void update(float dt, pl::Vector2f mouseWorldPos, ChunkManager& chunkManager, ProjectileManager& projectileManager, bool& wrapped, pl::Vector2f& wrapPositionDelta);
     void updateInRoom(float dt, pl::Vector2f mouseWorldPos, const Room& room);
 
     virtual void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const pl::Color& color) const override;
@@ -93,7 +93,7 @@ public:
 
     std::vector<WorldObject*> getDrawWorldObjects(const Camera& camera, int worldSize, float gameTime);
     
-    void createLightSource(LightingEngine& lightingEngine, pl::Vector2f topLeftChunkPos) const override;
+    inline void createLightSource(LightingEngine& lightingEngine, pl::Vector2f topLeftChunkPos, pl::Vector2f playerPos, int worldSize) const override {}
 
     void setTool(ToolType toolType);
     ToolType getTool();
@@ -114,9 +114,9 @@ public:
     void setSkinColor(const pl::Color& color);
 
     // Damage
-    bool testHitCollision(const Projectile& projectile);
-    bool testHitCollision(const HitRect& hitRect);
-    bool testHitCollision(const HitCircle& hitCircle);
+    bool testHitCollision(const Projectile& projectile, int worldSize);
+    bool testHitCollision(const HitRect& hitRect, int worldSize);
+    bool testHitCollision(const HitCircle& hitCircle, int worldSize);
 
     // Consumable
     bool useConsumable(const ConsumableData& consumable);

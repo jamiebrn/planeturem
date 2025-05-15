@@ -46,7 +46,7 @@ public:
 
     void update(Game& game, ProjectileManager& projectileManager, ChunkManager& chunkManager, Player& player, float dt, float gameTime);
 
-    void testHitRectCollision(const std::vector<HitRect>& hitRects);
+    void testHitRectCollision(const std::vector<HitRect>& hitRects, int worldSize);
 
     // void handleWorldWrap(pl::Vector2f positionDelta);
 

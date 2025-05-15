@@ -20,8 +20,8 @@ struct CollisionCircle
     CollisionCircle() = default;
     CollisionCircle(float x, float y, float radius);
 
-    bool isColliding(const CollisionCircle& otherCircle) const;
-    bool isColliding(const CollisionRect& rect) const;
+    bool isColliding(CollisionCircle otherCircle, int worldSize) const;
+    bool isColliding(CollisionRect rect, int worldSize) const;
     bool isPointColliding(float x, float y) const;
 
     void debugDraw(pl::RenderTarget& window, const Camera& camera, pl::Color color = {255, 0, 0, 120}) const;
