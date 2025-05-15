@@ -2089,10 +2089,8 @@ void Game::attemptObjectInteract()
         return;
     }
 
-    int worldSize = (gameState == GameState::OnPlanet) ? getChunkManager().getWorldSize() : 0;
-
     // Get mouse position in screen space and world space
-    pl::Vector2f mouseWorldPos = camera.screenToWorldTransform(mouseScreenPos, worldSize);
+    pl::Vector2f mouseWorldPos = camera.screenToWorldTransform(mouseScreenPos, 0);
 
     if (!player.canReachPosition(mouseWorldPos))
         return;
