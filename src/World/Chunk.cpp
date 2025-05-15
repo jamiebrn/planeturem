@@ -1007,7 +1007,7 @@ void Chunk::updateChunkEntities(float dt, int worldSize, ProjectileManager* proj
         return;
     }
 
-    for (std::vector<std::unique_ptr<Entity>>::iterator entityIter = entities.begin(); entityIter != entities.end();)
+    for (auto entityIter = entities.begin(); entityIter != entities.end();)
     {
         std::unique_ptr<Entity>& entity = *entityIter;
 
@@ -1040,26 +1040,35 @@ void Chunk::updateChunkEntities(float dt, int worldSize, ProjectileManager* proj
         {
             newChunk.x = (((chunkPosition.x - 1) % worldSize) + worldSize) % worldSize;
             requiresMove = true;
+            relativePosition.x += CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
         }
         else if (relativePosition.x > TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE)
         {
             newChunk.x = (((chunkPosition.x + 1) % worldSize) + worldSize) % worldSize;
             requiresMove = true;
+            relativePosition.x -= CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
         }
         else if (relativePosition.y < 0)
         {
             newChunk.y = (((chunkPosition.y - 1) % worldSize) + worldSize) % worldSize;
             requiresMove = true;
+            relativePosition.y += CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
         }
         else if (relativePosition.y > TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE)
         {
             newChunk.y = (((chunkPosition.y + 1) % worldSize) + worldSize) % worldSize;
             requiresMove = true;
+            relativePosition.y -= CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
         }
 
         if (requiresMove)
         {
-            chunkManager.moveEntityToChunkFromChunk(std::move(entity), newChunk);
+            Chunk* chunkPtr = chunkManager.getChunk(newChunk);
+            if (chunkPtr)
+            {
+                entity->setWorldPosition(relativePosition + chunkPtr->getWorldPosition());
+                chunkManager.moveEntityToChunkFromChunk(std::move(entity), newChunk);
+            }
             entityIter = entities.erase(entityIter);
             continue;
         }

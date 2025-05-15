@@ -2,8 +2,6 @@
 
 // FIX: Weather inconsistency (gametime)
 
-// FIX: World wraparound in menu when left for long duration
-
 // FIX: Weird item pickup unable to pick up bug? (from entity drop??)
 
 // FIX: Client enter structure
@@ -25,15 +23,12 @@
 
 // TODO: Improve entity movement over network
 
-// TODO: Rework planet wraparound system to use consistently in-range positions, with determination of player relative position at draw time
-
 // TODO: Save all required planets
 // TODO: Boss networking
 
 // TODO: Night and menu music
 
 // PRIORITY: LOW
-// FIX: Rocket particles on world wrap
 
 // -- Public methods / entry point -- //
 
