@@ -1057,7 +1057,7 @@ void Game::updateOnPlanet(float dt)
         getBossManager().update(*this, getProjectileManager(), getChunkManager(), player, dt, gameTime);
     
         // Update projectiles
-        getProjectileManager().update(dt);
+        getProjectileManager().update(dt, getChunkManager().getWorldSize());
     }
     
     // Get nearby crafting stations
@@ -1149,11 +1149,13 @@ void Game::updateActivePlanets(float dt)
             localPlayerPosition = player.getPosition();
         }
 
-        bool hasLoadedChunks = getChunkManager(planetType).updateChunks(*this, chunkViewRanges);
-        bool hasUnloadedChunks = getChunkManager(planetType).unloadChunksOutOfView(chunkViewRanges);
+        ChunkManager& chunkManager = getChunkManager(planetType);
+
+        bool hasLoadedChunks = chunkManager.updateChunks(*this, chunkViewRanges);
+        bool hasUnloadedChunks = chunkManager.unloadChunksOutOfView(chunkViewRanges);
     
-        getChunkManager(planetType).updateChunksObjects(*this, dt);
-        getChunkManager(planetType).updateChunksEntities(dt, getProjectileManager(planetType), *this, false);
+        chunkManager.updateChunksObjects(*this, dt);
+        chunkManager.updateChunksEntities(dt, getProjectileManager(planetType), *this, false);
 
         // If modified chunks (and this player (host) is on this planet), force a lighting recalculation
         if (locationState.getPlanetType() == planetType && (hasLoadedChunks || hasUnloadedChunks))
@@ -1162,10 +1164,10 @@ void Game::updateActivePlanets(float dt)
         }
 
         // Update bosses
-        getBossManager(planetType).update(*this, getProjectileManager(planetType), getChunkManager(planetType), player, dt, gameTime);
+        getBossManager(planetType).update(*this, getProjectileManager(planetType), chunkManager, player, dt, gameTime);
     
         // Update projectiles
-        getProjectileManager(planetType).update(dt);
+        getProjectileManager(planetType).update(dt, chunkManager.getWorldSize());
     }
 }
 
@@ -2111,7 +2113,7 @@ void Game::attemptBuildObject()
     if (objectType < 0)
         return;
 
-    if (!player.canReachPosition(camera.screenToWorldTransform(mouseScreenPos, getChunkManager().getWorldSize())))
+    if (!player.canReachPosition(camera.screenToWorldTransform(mouseScreenPos, 0)))
     {
         return;
     }
@@ -2278,7 +2280,7 @@ void Game::drawGhostPlaceObjectAtCursor(ObjectType object)
                                                 object,
                                                 player.getCollisionRect());
 
-    bool inRange = player.canReachPosition(camera.screenToWorldTransform(mouseScreenPos, getChunkManager().getWorldSize()));
+    bool inRange = player.canReachPosition(camera.screenToWorldTransform(mouseScreenPos, 0));
 
     pl::Color drawColor(255, 0, 0, 180);
     if (canPlace && inRange)
@@ -2335,8 +2337,6 @@ void Game::drawGhostPlaceLandAtCursor()
 
 BuildableObject* Game::getSelectedObjectFromChunkOrRoom()
 {
-    pl::Vector2f mouseWorldPos = camera.screenToWorldTransform(mouseScreenPos, getChunkManager().getWorldSize());
-
     switch (gameState)
     {
         case GameState::OnPlanet:

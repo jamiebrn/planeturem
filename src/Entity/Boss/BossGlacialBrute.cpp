@@ -27,6 +27,11 @@ BossGlacialBrute::BossGlacialBrute(pl::Vector2f playerPosition, Game& game)
     updateCollision();
 }
 
+BossEntity* BossGlacialBrute::clone() const
+{
+    return new BossGlacialBrute(*this);
+}
+
 void BossGlacialBrute::update(Game& game, ProjectileManager& projectileManager, Player& player, float dt, int worldSize)
 {
     switch (behaviourState)
@@ -36,8 +41,6 @@ void BossGlacialBrute::update(Game& game, ProjectileManager& projectileManager, 
             if (!pathFollower.isActive())
             {
                 const PathfindingEngine& pathfindingEngine = game.getChunkManager().getPathfindingEngine();
-
-                int worldSize = game.getChunkManager().getWorldSize();
 
                 pl::Vector2<int> tile = getWorldTileInside(worldSize);
                 pl::Vector2<int> playerTile = player.getWorldTileInside(worldSize);
@@ -118,6 +121,8 @@ void BossGlacialBrute::update(Game& game, ProjectileManager& projectileManager, 
             break;
         }
     }
+
+    Helper::wrapPosition(position, worldSize);
 
     flashTime = std::max(flashTime - dt, 0.0f);
 

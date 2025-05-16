@@ -29,7 +29,7 @@ public:
     ProjectileManager() = default;
     void initialise(Game* game, PlanetType planetType);
 
-    void update(float dt);
+    void update(float dt, int worldSize);
 
     void drawProjectiles(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const ChunkManager& chunkManager, pl::Vector2f playerPos, const Camera& camera);
 

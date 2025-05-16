@@ -47,6 +47,7 @@ class BossBenjaminCrow : public BossEntity
 {
 public:
     BossBenjaminCrow(pl::Vector2f playerPosition);
+    BossEntity* clone() const override;
 
     void update(Game& game, ProjectileManager& projectileManager, Player& player, float dt, int worldSize) override;
 

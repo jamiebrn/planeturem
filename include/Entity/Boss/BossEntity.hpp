@@ -32,6 +32,7 @@ class BossEntity : public WorldObject
 {
 public:
     BossEntity() = default;
+    virtual BossEntity* clone() const = 0;
 
     virtual void update(Game& game, ProjectileManager& projectileManager, Player& player, float dt, int worldSize) = 0;
 

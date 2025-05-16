@@ -8,7 +8,7 @@ void ProjectileManager::initialise(Game* game, PlanetType planetType)
     this->planetType = planetType;
 }
 
-void ProjectileManager::update(float dt)
+void ProjectileManager::update(float dt, int worldSize)
 {
     for (auto iter = projectiles.begin(); iter != projectiles.end();)
     {
@@ -16,7 +16,7 @@ void ProjectileManager::update(float dt)
         
         if (projectile.isAlive())
         {
-            projectile.update(dt);
+            projectile.update(dt, worldSize);
         }
         else
         {

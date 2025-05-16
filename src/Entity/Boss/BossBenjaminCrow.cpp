@@ -45,6 +45,11 @@ BossBenjaminCrow::BossBenjaminCrow(pl::Vector2f playerPosition)
     updateCollision();
 }
 
+BossEntity* BossBenjaminCrow::clone() const
+{
+    return new BossBenjaminCrow(*this);
+}
+
 void BossBenjaminCrow::update(Game& game, ProjectileManager& projectileManager, Player& player, float dt, int worldSize)
 {
     // Update animation
@@ -177,6 +182,8 @@ void BossBenjaminCrow::update(Game& game, ProjectileManager& projectileManager, 
             dead = true;
         }
     }
+
+    Helper::wrapPosition(position, worldSize);
 
     // Update collision
     updateCollision();

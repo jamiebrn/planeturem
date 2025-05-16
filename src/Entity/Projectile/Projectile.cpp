@@ -39,9 +39,10 @@ void Projectile::initialise(pl::Vector2f position, pl::Vector2f velocity, Projec
     timeAlive = 0.0f;
 }
 
-void Projectile::update(float dt)
+void Projectile::update(float dt, int worldSize)
 {
     position += velocity * dt;
+    Helper::wrapPosition(position, worldSize);
 
     timeAlive += dt;
 

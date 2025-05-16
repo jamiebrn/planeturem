@@ -5,6 +5,25 @@
 #include "Entity/Boss/BossGlacialBrute.hpp"
 #include "Game.hpp"
 
+BossManager::BossManager(const BossManager& bossManager)
+{
+    *this = bossManager;
+}
+
+BossManager& BossManager::operator=(const BossManager& bossManager)
+{
+    bosses.clear();
+    
+    for (const auto& bossPtr : bossManager.bosses)
+    {
+        bosses.push_back(std::unique_ptr<BossEntity>(bossPtr->clone()));
+    }
+
+    bossAliveNames = bossManager.bossAliveNames;
+
+    return *this;
+}
+
 bool BossManager::createBoss(const std::string& name, pl::Vector2f playerPosition, Game& game)
 {
     if (bossAliveNames.contains(name))

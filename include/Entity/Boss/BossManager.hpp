@@ -41,6 +41,8 @@ class BossManager
 {
 public:
     BossManager() = default;
+    BossManager(const BossManager& bossManager);
+    BossManager& operator=(const BossManager& bossManager);
 
     bool createBoss(const std::string& name, pl::Vector2f playerPosition, Game& game);
 

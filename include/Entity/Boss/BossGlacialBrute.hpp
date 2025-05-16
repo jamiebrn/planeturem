@@ -43,6 +43,7 @@ class BossGlacialBrute : public BossEntity
 {
 public:
     BossGlacialBrute(pl::Vector2f playerPosition, Game& game);
+    BossEntity* clone() const override;
 
     void update(Game& game, ProjectileManager& projectileManager, Player& player, float dt, int worldSize) override;
 

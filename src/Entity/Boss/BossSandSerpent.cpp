@@ -50,6 +50,11 @@ BossSandSerpent::BossSandSerpent(pl::Vector2f playerPosition, Game& game)
     updateCollision();
 }
 
+BossEntity* BossSandSerpent::clone() const
+{
+    return new BossSandSerpent(*this);
+}
+
 void BossSandSerpent::update(Game& game, ProjectileManager& projectileManager, Player& player, float dt, int worldSize)
 {
     switch (behaviourState)
@@ -152,22 +157,14 @@ void BossSandSerpent::update(Game& game, ProjectileManager& projectileManager, P
     headFlashTime -= dt;
     bodyFlashTime -= dt;
 
-    int worldPixelSize = game.getChunkManager().getWorldSize() * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
-
     // Update head direction
-    pl::Vector2f playerPosDiff = player.getPosition() - position;
+    pl::Vector2f playerPosDiff = Camera::translateWorldPos(player.getPosition(), position, worldSize) - position;
     int xWidth = animations[behaviourState].getTextureRect().width;
     
     if (std::abs(playerPosDiff.x) > std::abs(playerPosDiff.y) && std::abs(playerPosDiff.x) > xWidth / 2)
     {
         if (playerPosDiff.x > 0) headDirection = 1;
         else headDirection = -1;
-
-        if (std::abs(playerPosDiff.x) >= worldPixelSize / 2)
-        {
-            // Handle world repeating case
-            headDirection *= -1;
-        }
     }
     else
     {
