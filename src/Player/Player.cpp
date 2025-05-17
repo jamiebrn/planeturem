@@ -508,7 +508,7 @@ void Player::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& 
     spriteBatch.endDrawing(window);
     
     // Draw armour
-    drawArmour(window, spriteBatch, camera, waterYOffset, worldSize);
+    drawArmour(window, spriteBatch, camera, worldSize, waterYOffset);
 
     // Draw equipped tool
     if (equippedTool >= 0)
