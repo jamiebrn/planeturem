@@ -3,6 +3,7 @@
 #include <cmath>
 #include <vector>
 #include <string>
+#include <optional>
 
 #include <extlib/steam/steam_api.h>
 
@@ -28,7 +29,7 @@ class NetworkHandler;
 
 struct ChatMessage
 {
-    uint64_t userId;
+    std::optional<uint64_t> userId;
     std::string message;
     pl::Color color;
 };

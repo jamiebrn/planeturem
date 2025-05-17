@@ -90,12 +90,12 @@ public:
 
 private:
     void processMessage(const SteamNetworkingMessage_t& message, const Packet& packet, ChatGUI& chatGUI);
-    void processMessageAsHost(const SteamNetworkingMessage_t& message, const Packet& packet);
-    void processMessageAsClient(const SteamNetworkingMessage_t& message, const Packet& packet);
+    void processMessageAsHost(const SteamNetworkingMessage_t& message, const Packet& packet, ChatGUI& chatGUI);
+    void processMessageAsClient(const SteamNetworkingMessage_t& message, const Packet& packet, ChatGUI& chatGUI);
     
     void callbackLobbyCreated(LobbyCreated_t* pCallback, bool bIOFailure);
     
-    void registerNetworkPlayer(uint64_t id, const std::string& pingLocation, bool notify = true);
+    void registerNetworkPlayer(uint64_t id, const std::string& pingLocation, ChatGUI* chatGUI);
     void deleteNetworkPlayer(uint64_t id);
 
     void handleChunkDatasFromHost(const PacketDataChunkDatas& chunkDatas);

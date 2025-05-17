@@ -155,14 +155,19 @@ void ChatGUI::addChatMessage(NetworkHandler& networkHandler, const PacketDataCha
     ChatMessage chatMessage;
     chatMessage.userId = chatMessagePacket.userId;
 
-    if (chatMessagePacket.userId == SteamUser()->GetSteamID().ConvertToUint64())
+    if (!chatMessagePacket.userId.has_value())
+    {
+        chatMessage.color = pl::Color(232, 59, 59);
+        chatMessage.message = " > " + chatMessagePacket.message;
+    }
+    else if (chatMessagePacket.userId == SteamUser()->GetSteamID().ConvertToUint64())
     {
         chatMessage.color = pl::Color(247, 150, 23);
         chatMessage.message = "You: " + chatMessagePacket.message;
     }
     else
     {
-        chatMessage.message = networkHandler.getPlayerName(chatMessagePacket.userId) + ": " + chatMessagePacket.message;
+        chatMessage.message = networkHandler.getPlayerName(chatMessagePacket.userId.value()) + ": " + chatMessagePacket.message;
     }
 
     chatLog.push_back(chatMessage);

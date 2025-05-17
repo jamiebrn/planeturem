@@ -1,15 +1,17 @@
 #pragma once
 
 #include <string>
+#include <optional>
 
-#include <extlib/cereal/types/string.hpp>
 #include <extlib/cereal/archives/binary.hpp>
+#include <extlib/cereal/types/string.hpp>
+#include <extlib/cereal/types/optional.hpp>
 
 #include "Network/IPacketData.hpp"
 
 struct PacketDataChatMessage : public IPacketData
 {
-    uint64_t userId;
+    std::optional<uint64_t> userId;
 
     std::string message;
 

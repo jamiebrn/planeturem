@@ -320,7 +320,7 @@ const std::unordered_map<uint64_t, PlayerData> NetworkHandler::getSavedNetworkPl
     return networkPlayerDatasSaved;
 }
 
-void NetworkHandler::registerNetworkPlayer(uint64_t id, const std::string& pingLocation, bool notify)
+void NetworkHandler::registerNetworkPlayer(uint64_t id, const std::string& pingLocation, ChatGUI* chatGUI)
 {
     if (!multiplayerGame)
     {
@@ -342,9 +342,13 @@ void NetworkHandler::registerNetworkPlayer(uint64_t id, const std::string& pingL
         }
     }
 
-    if (notify)
+    if (chatGUI)
     {
-        InventoryGUI::pushItemPopup(ItemCount(0, 1), false, std::string(SteamFriends()->GetFriendPersonaName(id)) + " joined");
+        // InventoryGUI::pushItemPopup(ItemCount(0, 1), false, std::string(SteamFriends()->GetFriendPersonaName(id)) + " joined");
+        PacketDataChatMessage chatMessage;
+        chatMessage.userId = std::nullopt;
+        chatMessage.message = std::string(SteamFriends()->GetFriendPersonaName(id)) + " joined";
+        chatGUI->addChatMessage(*this, chatMessage);
     }
 
     networkPlayers[id] = NetworkPlayer(pl::Vector2f(0, 0));
@@ -531,11 +535,11 @@ void NetworkHandler::processMessage(const SteamNetworkingMessage_t& message, con
     // Process packet
     if (isLobbyHost)
     {
-        processMessageAsHost(message, packet);
+        processMessageAsHost(message, packet, chatGUI);
     }
     else
     {
-        processMessageAsClient(message, packet);
+        processMessageAsClient(message, packet, chatGUI);
     }
     
     switch (packet.type)
@@ -749,7 +753,7 @@ void NetworkHandler::processMessage(const SteamNetworkingMessage_t& message, con
     }
 }
 
-void NetworkHandler::processMessageAsHost(const SteamNetworkingMessage_t& message, const Packet& packet)
+void NetworkHandler::processMessageAsHost(const SteamNetworkingMessage_t& message, const Packet& packet, ChatGUI& chatGUI)
 {
     switch (packet.type)
     {
@@ -817,7 +821,7 @@ void NetworkHandler::processMessageAsHost(const SteamNetworkingMessage_t& messag
                 packetData.currentPlayerDatas[iter->first] = iter->second.getPlayerData();
             }
     
-            registerNetworkPlayer(message.m_identityPeer.GetSteamID64(), packetDataJoinReply.pingLocation);
+            registerNetworkPlayer(message.m_identityPeer.GetSteamID64(), packetDataJoinReply.pingLocation, &chatGUI);
             
             Packet packetToSend;
             packetToSend.set(packetData, true);
@@ -938,7 +942,7 @@ void NetworkHandler::processMessageAsHost(const SteamNetworkingMessage_t& messag
     }
 }
 
-void NetworkHandler::processMessageAsClient(const SteamNetworkingMessage_t& message, const Packet& packet)
+void NetworkHandler::processMessageAsClient(const SteamNetworkingMessage_t& message, const Packet& packet, ChatGUI& chatGUI)
 {
     switch (packet.type)
     {
@@ -969,7 +973,7 @@ void NetworkHandler::processMessageAsClient(const SteamNetworkingMessage_t& mess
             networkPlayerDatasSaved.clear();
             for (const auto& networkPlayerDataPair : packetData.currentPlayerDatas)
             {
-                registerNetworkPlayer(networkPlayerDataPair.first, networkPlayerDataPair.second.pingLocation, false);
+                registerNetworkPlayer(networkPlayerDataPair.first, networkPlayerDataPair.second.pingLocation, nullptr);
                 std::cout << "NETWORK: Registered existing player " << SteamFriends()->GetFriendPersonaName(CSteamID(networkPlayerDataPair.first)) << "\n";
                 networkPlayers[networkPlayerDataPair.first].setPlayerData(networkPlayerDataPair.second);
             }
@@ -982,7 +986,7 @@ void NetworkHandler::processMessageAsClient(const SteamNetworkingMessage_t& mess
         {
             PacketDataPlayerJoined packetData;
             packetData.deserialise(packet.data);
-            registerNetworkPlayer(packetData.id, packetData.pingLocation);
+            registerNetworkPlayer(packetData.id, packetData.pingLocation, &chatGUI);
             break;
         }
         case PacketType::PlayerDisconnected:
