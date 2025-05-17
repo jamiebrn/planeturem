@@ -87,7 +87,7 @@ void ChatGUI::update(const pl::RenderTarget& window, float dt)
     }
     else if (InputManager::isActionJustActivated(InputAction::UI_BACK))
     {
-        if (active)
+        if (showing)
         {
             showing = false;
             active = false;

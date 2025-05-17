@@ -10,12 +10,13 @@
 struct PacketDataPlayerJoined : public IPacketData
 {
     uint64_t id;
+    std::string name;
     std::string pingLocation;
 
     template <class Archive>
     void serialize(Archive& ar)
     {
-        ar(id, pingLocation);
+        ar(id, name, pingLocation);
     }
 
     PACKET_SERIALISATION();

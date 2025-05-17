@@ -320,7 +320,7 @@ const std::unordered_map<uint64_t, PlayerData> NetworkHandler::getSavedNetworkPl
     return networkPlayerDatasSaved;
 }
 
-void NetworkHandler::registerNetworkPlayer(uint64_t id, const std::string& pingLocation, ChatGUI* chatGUI)
+void NetworkHandler::registerNetworkPlayer(uint64_t id, const std::string& name, const std::string& pingLocation, ChatGUI* chatGUI)
 {
     if (!multiplayerGame)
     {
@@ -347,7 +347,7 @@ void NetworkHandler::registerNetworkPlayer(uint64_t id, const std::string& pingL
         // InventoryGUI::pushItemPopup(ItemCount(0, 1), false, std::string(SteamFriends()->GetFriendPersonaName(id)) + " joined");
         PacketDataChatMessage chatMessage;
         chatMessage.userId = std::nullopt;
-        chatMessage.message = std::string(SteamFriends()->GetFriendPersonaName(id)) + " joined";
+        chatMessage.message = name + " joined";
         chatGUI->addChatMessage(*this, chatMessage);
     }
 
@@ -383,16 +383,16 @@ void NetworkHandler::deleteNetworkPlayer(uint64_t id, ChatGUI* chatGUI)
         }
     }
 
-    networkPlayers.erase(id);
-
     if (chatGUI)
     {
         // InventoryGUI::pushItemPopup(ItemCount(0, 1), false, std::string(SteamFriends()->GetFriendPersonaName(id)) + " disconnected");
         PacketDataChatMessage chatMessage;
         chatMessage.userId = std::nullopt;
-        chatMessage.message = std::string(SteamFriends()->GetFriendPersonaName(id)) + " disconnected";
+        chatMessage.message = networkPlayers.at(id).getPlayerData().name + " disconnected";
         chatGUI->addChatMessage(*this, chatMessage);
     }
+
+    networkPlayers.erase(id);
 }
 
 void NetworkHandler::callbackLobbyJoinRequested(GameLobbyJoinRequested_t* pCallback)
@@ -828,7 +828,7 @@ void NetworkHandler::processMessageAsHost(const SteamNetworkingMessage_t& messag
                 packetData.currentPlayerDatas[iter->first] = iter->second.getPlayerData();
             }
     
-            registerNetworkPlayer(message.m_identityPeer.GetSteamID64(), packetDataJoinReply.pingLocation, &chatGUI);
+            registerNetworkPlayer(message.m_identityPeer.GetSteamID64(), packetDataJoinReply.playerName, packetDataJoinReply.pingLocation, &chatGUI);
             
             Packet packetToSend;
             packetToSend.set(packetData, true);
@@ -980,7 +980,7 @@ void NetworkHandler::processMessageAsClient(const SteamNetworkingMessage_t& mess
             networkPlayerDatasSaved.clear();
             for (const auto& networkPlayerDataPair : packetData.currentPlayerDatas)
             {
-                registerNetworkPlayer(networkPlayerDataPair.first, networkPlayerDataPair.second.pingLocation, nullptr);
+                registerNetworkPlayer(networkPlayerDataPair.first, networkPlayerDataPair.second.name, networkPlayerDataPair.second.pingLocation, nullptr);
                 std::cout << "NETWORK: Registered existing player " << SteamFriends()->GetFriendPersonaName(CSteamID(networkPlayerDataPair.first)) << "\n";
                 networkPlayers[networkPlayerDataPair.first].setPlayerData(networkPlayerDataPair.second);
             }
@@ -993,7 +993,7 @@ void NetworkHandler::processMessageAsClient(const SteamNetworkingMessage_t& mess
         {
             PacketDataPlayerJoined packetData;
             packetData.deserialise(packet.data);
-            registerNetworkPlayer(packetData.id, packetData.pingLocation, &chatGUI);
+            registerNetworkPlayer(packetData.id, packetData.name, packetData.pingLocation, &chatGUI);
             break;
         }
         case PacketType::PlayerDisconnected:
