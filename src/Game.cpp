@@ -2,8 +2,6 @@
 
 // FIX: Weather inconsistency (gametime)
 
-// FIX: Weird item pickup unable to pick up bug? (from entity drop??)
-
 // FIX: Client enter structure
 
 // FIX: VSync disable not working in initial fullscreen

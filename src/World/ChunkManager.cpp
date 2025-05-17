@@ -853,6 +853,11 @@ void ChunkManager::loadEntityPacketDatas(const PacketDataEntities& entityPacketD
 
 std::optional<ItemPickupReference> ChunkManager::addItemPickup(const ItemPickup& itemPickup, NetworkHandler* networkHandler, std::optional<uint64_t> idOverride)
 {
+    if (itemPickup.getItemCount() <= 0)
+    {
+        return std::nullopt;
+    }
+
     Chunk* chunkPtr = getChunk(itemPickup.getChunkInside(worldSize));
 
     if (!chunkPtr)

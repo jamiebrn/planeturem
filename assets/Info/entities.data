@@ -11,7 +11,7 @@
         "size": [1, 0.6],
         "hit-collision": [-5, -10, 10, 10],
         "item-drops": {
-            "Meat": [0, 2, 1.0]
+            "Meat": [1, 3, 1.0]
         },
         "behaviour": "wander"
     },
@@ -27,8 +27,8 @@
         "size": [0.8, 0.7],
         "hit-collision": [-6, -10, 12, 10],
         "item-drops": {
-            "Meat": [0, 2, 1.0],
-            "Hide": [0, 3, 1.0]
+            "Meat": [1, 2, 0.8],
+            "Hide": [1, 3, 0.6]
         },
         "behaviour": "wander"
     }
