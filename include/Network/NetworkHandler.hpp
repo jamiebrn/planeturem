@@ -96,7 +96,7 @@ private:
     void callbackLobbyCreated(LobbyCreated_t* pCallback, bool bIOFailure);
     
     void registerNetworkPlayer(uint64_t id, const std::string& pingLocation, ChatGUI* chatGUI);
-    void deleteNetworkPlayer(uint64_t id);
+    void deleteNetworkPlayer(uint64_t id, ChatGUI* chatGUI);
 
     void handleChunkDatasFromHost(const PacketDataChunkDatas& chunkDatas);
 

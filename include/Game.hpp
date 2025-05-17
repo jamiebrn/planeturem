@@ -208,6 +208,8 @@ public:
 
     inline const Camera& getCamera() {return camera;}
 
+    inline ChatGUI& getChatGUI() {return chatGUI;}
+
     inline Player& getPlayer() {return player;}
     inline InventoryData& getInventory() {return inventory;}
 

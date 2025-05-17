@@ -66,7 +66,7 @@ private:
 
     static constexpr float NOTIFY_TIME_MAX = 4.0f;
     float notifyTime;
-    static constexpr float MENU_ALPHA_LERP_WEIGHT = 4.0f;
+    static constexpr float MENU_ALPHA_LERP_WEIGHT = 9.0f;
     static constexpr float MENU_ALPHA_SHOWING = 0.5f;
     float menuAlpha;
 

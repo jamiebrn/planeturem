@@ -355,7 +355,7 @@ void NetworkHandler::registerNetworkPlayer(uint64_t id, const std::string& pingL
     networkPlayers[id].getPlayerData().pingLocation = pingLocation;
 }
 
-void NetworkHandler::deleteNetworkPlayer(uint64_t id)
+void NetworkHandler::deleteNetworkPlayer(uint64_t id, ChatGUI* chatGUI)
 {
     if (!multiplayerGame)
     {
@@ -385,7 +385,14 @@ void NetworkHandler::deleteNetworkPlayer(uint64_t id)
 
     networkPlayers.erase(id);
 
-    InventoryGUI::pushItemPopup(ItemCount(0, 1), false, std::string(SteamFriends()->GetFriendPersonaName(id)) + " disconnected");
+    if (chatGUI)
+    {
+        // InventoryGUI::pushItemPopup(ItemCount(0, 1), false, std::string(SteamFriends()->GetFriendPersonaName(id)) + " disconnected");
+        PacketDataChatMessage chatMessage;
+        chatMessage.userId = std::nullopt;
+        chatMessage.message = std::string(SteamFriends()->GetFriendPersonaName(id)) + " disconnected";
+        chatGUI->addChatMessage(*this, chatMessage);
+    }
 }
 
 void NetworkHandler::callbackLobbyJoinRequested(GameLobbyJoinRequested_t* pCallback)
@@ -428,7 +435,7 @@ void NetworkHandler::callbackLobbyUpdated(LobbyChatUpdate_t* pCallback)
         }
         else
         {
-            deleteNetworkPlayer(pCallback->m_ulSteamIDUserChanged);
+            deleteNetworkPlayer(pCallback->m_ulSteamIDUserChanged, &game->getChatGUI());
         }
     }
     else
@@ -993,7 +1000,7 @@ void NetworkHandler::processMessageAsClient(const SteamNetworkingMessage_t& mess
         {
             uint64_t id;
             memcpy(&id, packet.data.data(), sizeof(id));
-            deleteNetworkPlayer(id);
+            deleteNetworkPlayer(id, &chatGUI);
             break;
         }
         case PacketType::HostQuit:
