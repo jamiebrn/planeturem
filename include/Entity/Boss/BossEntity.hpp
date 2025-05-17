@@ -4,6 +4,7 @@
 
 #include <extlib/cereal/archives/binary.hpp>
 #include <extlib/cereal/types/memory.hpp>
+#include <extlib/cereal/types/base_class.hpp>
 
 #include <Graphics/SpriteBatch.hpp>
 #include <Graphics/Color.hpp>
@@ -93,4 +94,4 @@ protected:
 
 };
 
-CEREAL_REGISTER_TYPE(BossEntity);
+// CEREAL_REGISTER_TYPE(BossEntity);

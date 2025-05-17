@@ -32,7 +32,7 @@ public:
 
     void startHostServer();
     
-    void sendWorldJoinReply(std::string playerName = "");
+    void sendWorldJoinReply(std::string playerName, pl::Color bodyColor, pl::Color skinColor);
 
     void receiveMessages(ChatGUI& chatGUI);
 

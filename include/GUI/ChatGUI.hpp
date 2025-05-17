@@ -41,15 +41,17 @@ public:
     void setShowing(bool enabled);
     void activate(const pl::RenderTarget& window);
 
+    void startNotify();
+
     bool isActive();
 
     void handleEvent(const SDL_Event& event, NetworkHandler& networkHandler);
 
-    void update(const pl::RenderTarget& window);
+    void update(const pl::RenderTarget& window, float dt);
 
     void draw(pl::RenderTarget& window);
 
-    void addChatMessage(NetworkHandler& networkHandler, const PacketDataChatMessage& chatMessagePacket);
+    void addChatMessage(NetworkHandler& networkHandler, const PacketDataChatMessage& chatMessagePacket, bool notify = true);
 
 private:
     void attemptSendMessage(NetworkHandler& networkHandler);
@@ -60,5 +62,11 @@ private:
 
     bool showing = false;
     bool active = false;
+
+    static constexpr float NOTIFY_TIME_MAX = 4.0f;
+    float notifyTime;
+    static constexpr float MENU_ALPHA_LERP_WEIGHT = 4.0f;
+    static constexpr float MENU_ALPHA_SHOWING = 0.5f;
+    float menuAlpha;
 
 };

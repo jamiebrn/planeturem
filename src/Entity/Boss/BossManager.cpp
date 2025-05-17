@@ -1,8 +1,5 @@
 #include "Entity/Boss/BossManager.hpp"
 #include "World/ChunkManager.hpp"
-#include "Entity/Boss/BossBenjaminCrow.hpp"
-#include "Entity/Boss/BossSandSerpent.hpp"
-#include "Entity/Boss/BossGlacialBrute.hpp"
 #include "Game.hpp"
 
 BossManager::BossManager(const BossManager& bossManager)

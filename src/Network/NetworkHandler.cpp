@@ -99,12 +99,14 @@ void NetworkHandler::leaveLobby()
     multiplayerGame = false;
 }
 
-void NetworkHandler::sendWorldJoinReply(std::string playerName)
+void NetworkHandler::sendWorldJoinReply(std::string playerName, pl::Color bodyColor, pl::Color skinColor)
 {
     std::cout << "NETWORK: Sending join reply to user " << SteamFriends()->GetFriendPersonaName(CSteamID(lobbyHost)) << "\n";
 
     PacketDataJoinReply packetData;
     packetData.playerName = playerName;
+    packetData.bodyColor = bodyColor;
+    packetData.skinColor = skinColor;
     packetData.pingLocation = getLocalPingLocation();
 
     Packet packet;
@@ -781,6 +783,8 @@ void NetworkHandler::processMessageAsHost(const SteamNetworkingMessage_t& messag
                 PlayerData& playerData = networkPlayerDatasSaved[message.m_identityPeer.GetSteamID64()];
 
                 playerData.name = packetDataJoinReply.playerName;
+                playerData.bodyColor = packetDataJoinReply.bodyColor;
+                playerData.skinColor = packetDataJoinReply.skinColor;
 
                 playerData.locationState.setPlanetType(PlanetGenDataLoader::getPlanetTypeFromName("Earthlike"));
 
@@ -793,18 +797,16 @@ void NetworkHandler::processMessageAsHost(const SteamNetworkingMessage_t& messag
                 playerData.position.x = playerSpawnChunk.x * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED + 0.5f * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
                 playerData.position.y = playerSpawnChunk.y * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED + 0.5f * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
             }
-            else
-            {
-                // Player data exists - load planet if required
-                const PlayerData& playerData = networkPlayerDatasSaved.at(message.m_identityPeer.GetSteamID64());;
-                if (playerData.locationState.isOnPlanet())
-                {    
-                    game->loadPlanet(playerData.locationState.getPlanetType());
-                }
+
+            // Load planet if required
+            const PlayerData& playerData = networkPlayerDatasSaved.at(message.m_identityPeer.GetSteamID64());;
+            if (playerData.locationState.isOnPlanet())
+            {    
+                game->loadPlanet(playerData.locationState.getPlanetType());
             }
 
             // Send player data
-            packetData.playerData = networkPlayerDatasSaved.at(message.m_identityPeer.GetSteamID64());
+            packetData.playerData = playerData;
 
             PlayerData hostPlayerData = game->createPlayerData();
             hostPlayerData.pingLocation = getLocalPingLocation();

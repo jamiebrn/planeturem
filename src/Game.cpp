@@ -318,8 +318,8 @@ void Game::runMainMenu(float dt)
             }
             case MainMenuEventType::JoinGame:
             {
-                currentSaveFileSummary = menuEvent->saveFileSummary;
-                networkHandler.sendWorldJoinReply(menuEvent->saveFileSummary.playerName);
+                networkHandler.sendWorldJoinReply(menuEvent->saveFileSummary.playerName,
+                    menuEvent->saveFileSummary.playerData.bodyColor, menuEvent->saveFileSummary.playerData.skinColor);
                 break;
             }
             case MainMenuEventType::CancelJoinGame:
@@ -652,11 +652,7 @@ void Game::runInGame(float dt)
         }
     }
 
-    if (canInput && networkHandler.isMultiplayerGame())
-    {
-        chatGUI.update(window);
-    }
-
+    
     //
     // -- NETWORKING --
     //
@@ -668,6 +664,12 @@ void Game::runInGame(float dt)
         networkHandler.sendGameUpdates(dt, camera);
     }
 
+    if (canInput && networkHandler.isMultiplayerGame())
+    {
+        chatGUI.update(window, dt);
+    }
+    
+    
     //
     // -- UPDATING --
     //
@@ -3623,7 +3625,7 @@ void Game::quitWorld()
 
 void Game::joinWorld(const PacketDataJoinInfo& joinInfo)
 {
-    player = Player(joinInfo.playerData.position, joinInfo.playerData.maxHealth);
+    player = Player(joinInfo.playerData.position, joinInfo.playerData.maxHealth, joinInfo.playerData.bodyColor, joinInfo.playerData.skinColor);
     inventory = joinInfo.playerData.inventory;
     armourInventory = joinInfo.playerData.armourInventory;
 
@@ -3769,7 +3771,7 @@ void Game::joinedLobby(bool requiresNameInput)
     }
     else
     {
-        networkHandler.sendWorldJoinReply();
+        networkHandler.sendWorldJoinReply("", pl::Color(), pl::Color());
     }
 }
 

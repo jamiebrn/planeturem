@@ -7,6 +7,8 @@ void ChatGUI::initialise()
     messageBuffer.clear();
     showing = false;
     active = false;
+    notifyTime = 0.0f;
+    menuAlpha = 0.0f;
 }
 
 void ChatGUI::setShowing(bool enabled)
@@ -18,6 +20,7 @@ void ChatGUI::activate(const pl::RenderTarget& window)
 {
     showing = true;
     active = true;
+    notifyTime = 0.0f;
 
     if (InputManager::isControllerActive())
     {
@@ -29,6 +32,15 @@ void ChatGUI::activate(const pl::RenderTarget& window)
 
         SteamUtils()->ShowFloatingGamepadTextInput(EFloatingGamepadTextInputMode::k_EFloatingGamepadTextInputModeModeSingleLine,
             window.getWidth() - width - padding, window.getHeight() - height - padding, width, height);
+    }
+}
+
+void ChatGUI::startNotify()
+{
+    if (!active)
+    {
+        notifyTime = NOTIFY_TIME_MAX;
+        showing = true;
     }
 }
 
@@ -62,7 +74,7 @@ void ChatGUI::handleEvent(const SDL_Event& event, NetworkHandler& networkHandler
     }
 }
 
-void ChatGUI::update(const pl::RenderTarget& window)
+void ChatGUI::update(const pl::RenderTarget& window, float dt)
 {
     if (InputManager::isActionJustActivated(InputAction::OPEN_CHAT))
     {
@@ -79,10 +91,30 @@ void ChatGUI::update(const pl::RenderTarget& window)
         {
             showing = false;
             active = false;
+            notifyTime = 0.0f;
         }
 
         InputManager::consumeInputAction(InputAction::UI_BACK);
     }
+
+    if (notifyTime > 0.0f && !active)
+    {
+        notifyTime -= dt;
+        if (notifyTime <= 0.0f)
+        {
+            notifyTime = 0.0f;
+            showing = false;
+        }
+    }
+
+    float destMenuAlpha = 0.0f;
+    if (showing)
+    {
+        if (active) destMenuAlpha = 1.0f;
+        else destMenuAlpha = MENU_ALPHA_SHOWING;
+    }
+
+    menuAlpha = Helper::lerp(menuAlpha, destMenuAlpha, dt * MENU_ALPHA_LERP_WEIGHT);
 }
 
 void ChatGUI::attemptSendMessage(NetworkHandler& networkHandler)
@@ -113,7 +145,7 @@ void ChatGUI::attemptSendMessage(NetworkHandler& networkHandler)
     messageBuffer.clear();
 }
 
-void ChatGUI::addChatMessage(NetworkHandler& networkHandler, const PacketDataChatMessage& chatMessagePacket)
+void ChatGUI::addChatMessage(NetworkHandler& networkHandler, const PacketDataChatMessage& chatMessagePacket, bool notify)
 {
     if (!networkHandler.isMultiplayerGame())
     {
@@ -134,11 +166,16 @@ void ChatGUI::addChatMessage(NetworkHandler& networkHandler, const PacketDataCha
     }
 
     chatLog.push_back(chatMessage);
+
+    if (notify)
+    {
+        startNotify();
+    }
 }
 
 void ChatGUI::draw(pl::RenderTarget& window)
 {
-    if (!showing)
+    if (menuAlpha <= 0.0f)
     {
         return;
     }
@@ -153,25 +190,24 @@ void ChatGUI::draw(pl::RenderTarget& window)
 
     pl::VertexArray background;
     background.addQuad(pl::Rect<float>(window.getWidth() - width - padding, window.getHeight() - height - padding, width, height),
-        pl::Color(30, 30, 30, 180), pl::Rect<float>());
+        pl::Color(30, 30, 30, 180 * menuAlpha), pl::Rect<float>());
 
     window.draw(background, *Shaders::getShader(ShaderType::DefaultNoTexture), nullptr, pl::BlendMode::Alpha);
 
     pl::TextDrawData drawData;
     drawData.size = 20 * intScale;
     drawData.position = pl::Vector2f(window.getWidth() - padding - width + 10 * intScale, window.getHeight() - padding - 30 * intScale);
-    drawData.color = pl::Color(200, 200, 200);
+    drawData.color = pl::Color(200, 200, 200, 255 * menuAlpha);
 
     drawData.text = messageBuffer.empty() ? "Enter a message" : messageBuffer;
 
     TextDraw::drawText(window, drawData);
 
-    drawData.color = pl::Color(255, 255, 255);
-
     for (int i = static_cast<int>(chatLog.size()) - 1; i >= std::max(static_cast<int>(chatLog.size()) - messageCount, 0); i--)
     {
         drawData.text = chatLog[i].message;
         drawData.color = chatLog[i].color;
+        drawData.color.a = 255 * menuAlpha;
         drawData.position.y -= 30 * intScale;
 
         TextDraw::drawText(window, drawData);
