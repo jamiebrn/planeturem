@@ -65,13 +65,7 @@ public:
     const std::string& getName();
 
     template <class Archive>
-    void save(Archive& ar) const
-    {
-        ar(position.x, position.y);
-    }
-
-    template <class Archive>
-    void load(Archive& ar)
+    void serialize(Archive& ar)
     {
         ar(position.x, position.y);
     }

@@ -7,6 +7,7 @@
 #include <extlib/cereal/archives/binary.hpp>
 #include <extlib/cereal/types/vector.hpp>
 #include <extlib/cereal/types/memory.hpp>
+#include <extlib/cereal/types/base_class.hpp>
 
 #include <Graphics/SpriteBatch.hpp>
 #include <Graphics/Color.hpp>
@@ -46,6 +47,7 @@
 class BossBenjaminCrow : public BossEntity
 {
 public:
+    BossBenjaminCrow() = default;
     BossBenjaminCrow(pl::Vector2f playerPosition);
     BossEntity* clone() const override;
 
@@ -85,7 +87,7 @@ private:
     void updateDashGhostEffects(float dt);
 
 private:
-    enum class BossBenjaminState
+    enum class BossBenjaminState : uint8_t
     {
         Chase,
         FastChase,
@@ -109,7 +111,7 @@ private:
         template <class Archive>
         void serialize(Archive& ar)
         {
-            ar(position, scaleX, stage, timer);
+            ar(position.x, position.y, scaleX, stage, timer);
         }
     };
 

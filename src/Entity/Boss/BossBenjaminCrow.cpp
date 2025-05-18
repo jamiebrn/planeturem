@@ -1,6 +1,8 @@
 #include "Entity/Boss/BossBenjaminCrow.hpp"
 #include "Game.hpp"
 
+// CEREAL_REGISTER_POLYMORPHIC_RELATION(BossEntity, BossBenjaminCrow);
+
 const int BossBenjaminCrow::DAMAGE_HITBOX_SIZE = 20;
 const std::array<int, 2> BossBenjaminCrow::damageValues = {35, 65};
 
