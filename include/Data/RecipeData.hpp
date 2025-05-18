@@ -3,8 +3,10 @@
 #include <map>
 #include <optional>
 #include <vector>
+#include <string>
 
 #include "Data/ItemData.hpp"
+#include "Data/ItemDataLoader.hpp"
 
 struct RecipeData
 {
@@ -20,4 +22,20 @@ struct RecipeData
     
     std::string craftingStationRequired = "";
     int craftingStationLevelRequired;
+
+    inline uint64_t getHash() const
+    {
+        std::string toHash = std::to_string(productAmount) + "x" + ItemDataLoader::getItemData(product).name + "=";
+        for (auto iter = itemRequirements.begin(); iter != itemRequirements.end();)
+        {
+            toHash += std::to_string(iter->second) + "x" + ItemDataLoader::getItemData(iter->first).name;
+
+            iter++;
+            if (iter != itemRequirements.end())
+            {
+                toHash += "+";
+            }
+        }
+        return std::hash<std::string>{}(toHash);
+    }
 };

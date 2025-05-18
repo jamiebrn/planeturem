@@ -9,6 +9,8 @@
 
 // FIX: Fishing rod missing sample points on some upward casts
 
+// FIX: Boss out of range on world wrap
+
 // TODO: Keep track of last rocket type used
 
 // TODO: HSV sliders over RGB sliders for customisation, with colour gradient slider background

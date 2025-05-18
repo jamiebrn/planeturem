@@ -1,6 +1,6 @@
 #include "Data/RecipeDataLoader.hpp"
 
-std::vector<RecipeData> RecipeDataLoader::loaded_recipeData;
+std::unordered_map<uint64_t, RecipeData> RecipeDataLoader::loaded_recipeData;
 
 bool RecipeDataLoader::loadData(std::string recipeDataPath)
 {
@@ -44,13 +44,28 @@ bool RecipeDataLoader::loadData(std::string recipeDataPath)
         if (jsonRecipeData.contains("crafting-station")) recipeData.craftingStationRequired = jsonRecipeData.at("crafting-station");
         if (jsonRecipeData.contains("crafting-station-level")) recipeData.craftingStationLevelRequired = jsonRecipeData.at("crafting-station-level");
 
-        loaded_recipeData.push_back(recipeData);
+        loaded_recipeData[recipeData.getHash()] = recipeData;
     }
 
     return true;
 }
 
-const std::vector<RecipeData>& RecipeDataLoader::getRecipeData()
+const RecipeData& RecipeDataLoader::getRecipeData(uint64_t hash)
+{
+    return loaded_recipeData.at(hash);
+}
+
+bool RecipeDataLoader::recipeHashExists(uint64_t hash)
+{
+    return loaded_recipeData.contains(hash);
+}
+
+const std::unordered_map<uint64_t, RecipeData>& RecipeDataLoader::getRecipeDataMap()
 {
     return loaded_recipeData;
+}
+
+uint64_t RecipeDataLoader::getRecipeCount()
+{
+    return loaded_recipeData.size();
 }

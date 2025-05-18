@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <sstream>
 #include <unordered_set>
 #include <unordered_map>
 
@@ -17,6 +18,7 @@
 #include "Data/typedefs.hpp"
 #include "Data/Serialise/Vector2Serialise.hpp"
 #include "Data/Serialise/ColorSerialise.hpp"
+#include "Data/RecipeDataLoader.hpp"
 #include "Data/PlanetGenData.hpp"
 #include "Data/PlanetGenDataLoader.hpp"
 #include "Data/StructureData.hpp"
@@ -33,7 +35,8 @@ struct PlayerData
     InventoryData inventory;
     InventoryData armourInventory;
     
-    std::unordered_set<ItemType> recipesSeen;
+    // Index of recipe
+    std::unordered_set<uint64_t> recipesSeen;
     
     std::unordered_map<PlanetType, ObjectReference> planetRocketUsedPositions;
     
@@ -89,9 +92,17 @@ inline void from_json(const nlohmann::json& json, PlayerData& data)
         data.structureExitPos = json.at("structure-exit-pos");
     }
 
-    for (const std::string& recipeStr : json["recipes-seen"])
+    for (const std::string& recipeHashStr : json["recipes-seen"])
     {
-        data.recipesSeen.insert(ItemDataLoader::getItemTypeFromName(recipeStr));
+        std::stringstream stream;
+        stream << std::hex << std::stoull(recipeHashStr, nullptr, 16);
+        uint64_t recipeHash;
+        stream >> recipeHash;
+
+        if (RecipeDataLoader::recipeHashExists(recipeHash))
+        {
+            data.recipesSeen.insert(recipeHash);
+        }
     }
 
     if (json.contains("rockets-used"))
@@ -123,12 +134,14 @@ inline void to_json(nlohmann::json& json, const PlayerData& data)
         json["structure-exit-pos"] = data.structureExitPos;
     }
 
-    std::vector<std::string> recipesSeenStrings;
-    for (ItemType itemType : data.recipesSeen)
+    std::vector<std::string> recipesSeenHashes;
+    for (uint64_t recipeHash : data.recipesSeen)
     {
-        recipesSeenStrings.push_back(ItemDataLoader::getItemData(itemType).name);
+        std::stringstream stream;
+        stream << std::hex << recipeHash;
+        recipesSeenHashes.push_back(stream.str());
     }
-    json["recipes-seen"] = recipesSeenStrings;
+    json["recipes-seen"] = recipesSeenHashes;
 
     for (const auto& rocketUsed : data.planetRocketUsedPositions)
     {

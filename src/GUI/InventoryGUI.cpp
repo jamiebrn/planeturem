@@ -12,9 +12,9 @@ int InventoryGUI::pickedUpItemCount;
 
 std::unordered_map<std::string, int> InventoryGUI::previous_nearbyCraftingStationLevels;
 std::unordered_map<ItemType, unsigned int> InventoryGUI::previous_inventoryItemCount;
-std::vector<int> InventoryGUI::availableRecipes;
-std::unordered_set<ItemType> InventoryGUI::recipesSeen;
-std::stack<ItemType> InventoryGUI::recipesSeenToNotify;
+std::vector<uint64_t> InventoryGUI::availableRecipes;
+std::unordered_set<uint64_t> InventoryGUI::recipesSeen;
+std::stack<uint64_t> InventoryGUI::recipesSeenToNotify;
 float InventoryGUI::recipeSeenNotifyCooldown = 0.0f;
 
 std::vector<ItemSlot> InventoryGUI::inventoryItemSlots;
@@ -257,8 +257,10 @@ void InventoryGUI::updateInventory(pl::Vector2f mouseScreenPos, float dt, Invent
     recipeSeenNotifyCooldown = std::max(recipeSeenNotifyCooldown - dt, 0.0f);
     if (recipeSeenNotifyCooldown <= 0.0f && !recipesSeenToNotify.empty())
     {
-        ItemType recipeItem = recipesSeenToNotify.top();
+        uint64_t recipeHash = recipesSeenToNotify.top();
         recipesSeenToNotify.pop();
+
+        ItemType recipeItem = RecipeDataLoader::getRecipeData(recipeHash).product;
 
         const ItemData& itemData = ItemDataLoader::getItemData(recipeItem);
         pushItemPopup(ItemCount(recipeItem, 1), false, "NEW RECIPE - " + itemData.name);
@@ -655,8 +657,8 @@ bool InventoryGUI::isCraftingSelected(pl::Vector2f mouseScreenPos)
 void InventoryGUI::craftRecipe(InventoryData& inventory, int selectedRecipe)
 {
     // Get recipe data
-    int recipeIdx = availableRecipes[selectedRecipe];
-    const RecipeData& recipeData = RecipeDataLoader::getRecipeData()[recipeIdx];
+    uint64_t recipeHash = availableRecipes[selectedRecipe];
+    const RecipeData& recipeData = RecipeDataLoader::getRecipeData(recipeHash);
 
     // If item in hand and is not item to be crafted, do not craft recipe (as won't be able to pick up crafted item)
     if (isItemPickedUp)
@@ -740,18 +742,22 @@ void InventoryGUI::updateAvailableRecipes(InventoryData& inventory, std::unorder
     previous_nearbyCraftingStationLevels = nearbyCraftingStationLevels;
     previous_inventoryItemCount = inventoryItemCount;
 
-    std::vector<int> previous_availableRecipes = availableRecipes;
+    std::vector<uint64_t> previous_availableRecipes = availableRecipes;
 
     // Reset available recipes
     availableRecipes.clear();
 
-    std::vector<int> partiallyAvailableRecipes;
+    std::vector<uint64_t> partiallyAvailableRecipes;
 
+    // for (int recipeIdx = 0; recipeIdx < RecipeDataLoader::getRecipeData().size(); recipeIdx++)
+    
+    const auto& recipeDataMap = RecipeDataLoader::getRecipeDataMap();
+    
     // Iterate over all recipes and determine if available to player
-    for (int recipeIdx = 0; recipeIdx < RecipeDataLoader::getRecipeData().size(); recipeIdx++)
+    for (auto iter = recipeDataMap.begin(); iter != recipeDataMap.end(); iter++)
     {
         // Get recipe data
-        const RecipeData& recipeData = RecipeDataLoader::getRecipeData()[recipeIdx];
+        const RecipeData& recipeData = iter->second;
 
         // If crafting station required not nearby, do not add to recipes
         if (!recipeData.craftingStationRequired.empty())
@@ -805,13 +811,13 @@ void InventoryGUI::updateAvailableRecipes(InventoryData& inventory, std::unorder
         {
             if (hasItemType)
             {
-                partiallyAvailableRecipes.push_back(recipeIdx);   
+                partiallyAvailableRecipes.push_back(iter->first);
             }
             continue;
         }
         
         // Player has items and is near required crafting station, so add to available recipes
-        availableRecipes.push_back(recipeIdx);
+        availableRecipes.push_back(iter->first);
     }
 
     availableRecipes.insert(availableRecipes.end(), partiallyAvailableRecipes.begin(), partiallyAvailableRecipes.end());
@@ -833,35 +839,37 @@ void InventoryGUI::updateAvailableRecipes(InventoryData& inventory, std::unorder
         createRecipeItemSlots(inventory);
 
         // Add any new recipes to "recipes seen" set and create popup
-        for (int recipe : availableRecipes)
+        for (uint64_t recipeHash : availableRecipes)
         {
-            const RecipeData& recipeData = RecipeDataLoader::getRecipeData()[recipe];
-            if (recipesSeen.contains(recipeData.product))
+            const RecipeData& recipeData = RecipeDataLoader::getRecipeData(recipeHash);
+            if (recipesSeen.contains(recipeHash))
             {
                 continue;
             }
 
-            recipesSeenToNotify.push(recipeData.product);
-            recipesSeen.insert(recipeData.product);
+            // recipesSeenToNotify.push(recipeData.product);
+            // recipesSeen.insert(recipeData.product);
+            recipesSeenToNotify.push(recipeHash);
+            recipesSeen.insert(recipeHash);
         }
     }
 }
 
 void InventoryGUI::reset()
 {
-    recipesSeen = std::unordered_set<ItemType>();
-    recipesSeenToNotify = std::stack<ItemType>();
+    recipesSeen = std::unordered_set<uint64_t>();
+    recipesSeenToNotify = std::stack<uint64_t>();
     recipeSeenNotifyCooldown = 0.0f;
     itemPopups.clear();
     selectedHotbarIndex = 0;
 }
 
-void InventoryGUI::setSeenRecipes(const std::unordered_set<ItemType>& recipes)
+void InventoryGUI::setSeenRecipes(const std::unordered_set<uint64_t>& recipes)
 {
     recipesSeen = recipes;
 }
 
-const std::unordered_set<ItemType>& InventoryGUI::getSeenRecipes()
+const std::unordered_set<uint64_t>& InventoryGUI::getSeenRecipes()
 {
     return recipesSeen;
 }
@@ -1108,10 +1116,10 @@ void InventoryGUI::drawRecipes(pl::RenderTarget& window, pl::SpriteBatch& sprite
              i < std::min(static_cast<int>(availableRecipes.size()), (recipeCurrentPage + 1) * RECIPE_MAX_ROWS * ITEM_BOX_PER_ROW); i++)
         {
             // Get recipe index
-            int recipeIdx = availableRecipes[i];
+            uint64_t recipeHash = availableRecipes[i];
 
             // Get recipe data
-            const RecipeData& recipeData = RecipeDataLoader::getRecipeData()[recipeIdx];
+            const RecipeData& recipeData = RecipeDataLoader::getRecipeData(recipeHash);
 
             int recipeSlotIdx = i % (RECIPE_MAX_ROWS * ITEM_BOX_PER_ROW);
 
@@ -1483,11 +1491,11 @@ pl::Vector2f InventoryGUI::drawItemInfoBox(pl::RenderTarget& window, float gameT
     return drawInfoBox(window, mouseScreenPos + pl::Vector2f(8, 8) * 3.0f * intScale, infoStrings);
 }
 
-pl::Vector2f InventoryGUI::drawItemInfoBoxRecipe(pl::RenderTarget& window, float gameTime, int recipeIdx, pl::Vector2f mouseScreenPos)
+pl::Vector2f InventoryGUI::drawItemInfoBoxRecipe(pl::RenderTarget& window, float gameTime, uint64_t recipeHash, pl::Vector2f mouseScreenPos)
 {
     float intScale = ResolutionHandler::getResolutionIntegerScale();
 
-    const RecipeData& recipeData = RecipeDataLoader::getRecipeData()[recipeIdx];
+    const RecipeData& recipeData = RecipeDataLoader::getRecipeData(recipeHash);
 
     pl::Vector2f itemInfoBoxSize = drawItemInfoBox(window, gameTime, {recipeData.product, recipeData.productAmount}, mouseScreenPos, InventoryShopInfoMode::None);
 

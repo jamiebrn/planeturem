@@ -116,8 +116,8 @@ public:
     static bool isMouseOverUI(pl::Vector2f mouseScreenPos);
 
     static void updateAvailableRecipes(InventoryData& inventory, std::unordered_map<std::string, int> nearbyCraftingStationLevels);
-    static void setSeenRecipes(const std::unordered_set<ItemType>& recipes);
-    static const std::unordered_set<ItemType>& getSeenRecipes();
+    static void setSeenRecipes(const std::unordered_set<uint64_t>& recipes);
+    static const std::unordered_set<uint64_t>& getSeenRecipes();
 
     static ItemType getHeldItemType(InventoryData& inventory);
 
@@ -137,8 +137,6 @@ public:
 
     static void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, float gameTime, pl::Vector2f mouseScreenPos,
         InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData = nullptr);
-
-    static inline const std::vector<int>& getAvailableRecipes() {return availableRecipes;}
 
     // -- Hotbar -- //
 
@@ -213,7 +211,7 @@ private:
         InventoryShopInfoMode shopInfoMode);
     static pl::Vector2f drawItemInfoBox(pl::RenderTarget& window, float gameTime, ItemCount itemCount, pl::Vector2f mouseScreenPos,
         InventoryShopInfoMode shopInfoMode);
-    static pl::Vector2f drawItemInfoBoxRecipe(pl::RenderTarget& window, float gameTime, int recipeIdx, pl::Vector2f mouseScreenPos);
+    static pl::Vector2f drawItemInfoBoxRecipe(pl::RenderTarget& window, float gameTime, uint64_t recipeHash, pl::Vector2f mouseScreenPos);
 
     // Returns size of drawn info box
     static pl::Vector2f drawInfoBox(pl::RenderTarget& window, pl::Vector2f position, const std::vector<ItemInfoString>& infoStrings, int alpha = 255, float flashAmount = 0.0f);
@@ -249,9 +247,9 @@ private:
 
     static std::unordered_map<std::string, int> previous_nearbyCraftingStationLevels;
     static std::unordered_map<ItemType, unsigned int> previous_inventoryItemCount;
-    static std::vector<int> availableRecipes;
-    static std::unordered_set<ItemType> recipesSeen;
-    static std::stack<ItemType> recipesSeenToNotify;
+    static std::vector<uint64_t> availableRecipes;
+    static std::unordered_set<uint64_t> recipesSeen;
+    static std::stack<uint64_t> recipesSeenToNotify;
     static constexpr float MAX_RECIPE_SEEN_NOTIFY_COOLDOWN = 0.2f;
     static float recipeSeenNotifyCooldown;
 
