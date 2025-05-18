@@ -13,7 +13,6 @@
 
 // FIX: Fishing rod multiplayer sample point / target tile
 // FIX: Drop items in room
-// FIX: Player name not appearing in chat on connection
 
 // TODO: Keep track of last rocket type used
 

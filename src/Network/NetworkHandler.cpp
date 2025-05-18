@@ -808,6 +808,11 @@ void NetworkHandler::processMessageAsHost(const SteamNetworkingMessage_t& messag
                 playerData.position.x = playerSpawnChunk.x * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED + 0.5f * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
                 playerData.position.y = playerSpawnChunk.y * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED + 0.5f * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
             }
+            else
+            {
+                // Data exists - use stored name
+                packetDataJoinReply.playerName = networkPlayerDatasSaved[message.m_identityPeer.GetSteamID64()].name;
+            }
 
             // Load planet if required
             const PlayerData& playerData = networkPlayerDatasSaved.at(message.m_identityPeer.GetSteamID64());;
