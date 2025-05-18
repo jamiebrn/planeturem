@@ -1030,7 +1030,7 @@ void NetworkHandler::processMessageAsClient(const SteamNetworkingMessage_t& mess
         {
             PacketDataChunkDatas packetData;
             packetData.deserialise(packet.data);
-            if (game->getLocationState() != LocationState::createFromPlanetType(packetData.planetType))
+            if (game->getLocationState().getPlanetType() != packetData.planetType)
             {
                 printf("ERROR: Received chunk data for incorrect planet type %d\n", packetData.planetType);
                 break;
@@ -1043,7 +1043,7 @@ void NetworkHandler::processMessageAsClient(const SteamNetworkingMessage_t& mess
             PacketDataEntities packetData;
             packetData.deserialise(packet.data);
             packetData.applyPingEstimate(getPlayerPingLocation(message.m_identityPeer.GetSteamID64()));
-            if (game->getLocationState() != LocationState::createFromPlanetType(packetData.planetType))
+            if (game->getLocationState().getPlanetType() != packetData.planetType)
             {
                 printf("ERROR: Received entity data for incorrect planet type %d\n", packetData.planetType);
                 break;
@@ -1056,7 +1056,7 @@ void NetworkHandler::processMessageAsClient(const SteamNetworkingMessage_t& mess
             PacketDataProjectiles packetData;
             packetData.deserialise(packet.data);
             packetData.applyPingEstimate(getPlayerPingLocation(message.m_identityPeer.GetSteamID64()));
-            if (game->getLocationState() != LocationState::createFromPlanetType(packetData.planetType))
+            if (game->getLocationState().getPlanetType() != packetData.planetType)
             {
                 printf("ERROR: Received projectile data for incorrect planet type %d\n", packetData.planetType);
                 break;
@@ -1069,7 +1069,7 @@ void NetworkHandler::processMessageAsClient(const SteamNetworkingMessage_t& mess
             PacketDataBosses packetData;
             packetData.deserialise(packet.data);
             packetData.applyPingEstimate(getPlayerPingLocation(message.m_identityPeer.GetSteamID64()));
-            if (game->getLocationState() != LocationState::createFromPlanetType(packetData.planetType))
+            if (game->getLocationState().getPlanetType() != packetData.planetType)
             {
                 printf("ERROR: Received boss data for incorrect planet type %d\n", packetData.planetType);
                 break;

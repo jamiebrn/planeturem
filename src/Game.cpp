@@ -11,6 +11,10 @@
 
 // FIX: Boss out of range on world wrap
 
+// FIX: Fishing rod multiplayer sample point / target tile
+// FIX: Drop items in room
+// FIX: Player name not appearing in chat on connection
+
 // TODO: Keep track of last rocket type used
 
 // TODO: HSV sliders over RGB sliders for customisation, with colour gradient slider background
