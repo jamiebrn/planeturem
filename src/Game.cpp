@@ -9,8 +9,6 @@
 
 // FIX: Fishing rod missing sample points on some upward casts
 
-// TODO: Calculate lighting on separate thread
-
 // TODO: Keep track of last rocket type used
 
 // TODO: HSV sliders over RGB sliders for customisation, with colour gradient slider background
@@ -1310,7 +1308,6 @@ void Game::drawLighting(float dt, std::vector<WorldObject*>& worldObjects)
             worldObject->createLightSource(lightingEngine, topLeftChunkPos, player.getPosition(), getChunkManager().getWorldSize());
         }
 
-
         lightingEngine.calculateLighting();
     }
 
@@ -1426,7 +1423,6 @@ std::optional<uint32_t> Game::initialiseStructureOrGet(PlanetType planetType, Ch
 
     if (entrancePos)
     {
-        // TODO: May break chunk positions when transmitting to client
         pl::Vector2f structureEntrancePos = enteredStructure->getEntrancePosition();
         entrancePos->x = (std::floor(structureEntrancePos.x / TILE_SIZE_PIXELS_UNSCALED) + 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
         entrancePos->y = (std::floor(structureEntrancePos.y / TILE_SIZE_PIXELS_UNSCALED) + 1.5f) * TILE_SIZE_PIXELS_UNSCALED;
@@ -1551,9 +1547,8 @@ void Game::enterRocket(RocketObject& rocket)
     }
 
     handleInventoryClose();
-
-    // Save just before enter
-    saveGame(true);
+    
+    saveGame();
 
     worldMenuState = WorldMenuState::TravelSelect;
 
@@ -3215,7 +3210,7 @@ void Game::startNewGame(int seed)
     startChangeStateTransition(GameState::OnPlanet);
 }
 
-bool Game::saveGame(bool gettingInRocket)
+bool Game::saveGame()
 {
     if (gameState == GameState::MainMenu)
     {
@@ -3240,8 +3235,8 @@ bool Game::saveGame(bool gettingInRocket)
     playerGameSave.networkPlayerDatas = networkHandler.getSavedNetworkPlayerDataMap();
 
     // Keep track of which planets / room dests require saving
-    std::unordered_set<PlanetType> planetTypesToSave = networkHandler.getPlayersPlanetTypeSet(locationState.getPlanetType());
-    std::unordered_set<RoomType> roomDestsToSave = networkHandler.getPlayersRoomDestTypeSet(locationState.getRoomDestType());
+    std::unordered_set<PlanetType> activePlanets = networkHandler.getPlayersPlanetTypeSet(locationState.getPlanetType());
+    std::unordered_set<RoomType> activeRoomDests = networkHandler.getPlayersRoomDestTypeSet(locationState.getRoomDestType());
 
     // Add play time
     currentSaveFileSummary.timePlayed += std::round(saveSessionPlayTime);
@@ -3250,23 +3245,41 @@ bool Game::saveGame(bool gettingInRocket)
     
     io.writePlayerSave(playerGameSave);
 
-    // Save planets required
-    for (PlanetType planetType : planetTypesToSave)
+    // Save planets
+    for (auto iter = worldDatas.begin(); iter != worldDatas.end();)
     {
         PlanetGameSave planetGameSave;
-        planetGameSave.chunks = getChunkManager(planetType).getChunkPODs();
-        planetGameSave.chestDataPool = getChestDataPool(LocationState::createFromPlanetType(planetType));
-        planetGameSave.structureRoomPool = getStructureRoomPool(planetType);
-        io.writePlanetSave(planetType, planetGameSave);
+        planetGameSave.chunks = iter->second.chunkManager.getChunkPODs();
+        planetGameSave.chestDataPool = iter->second.chestDataPool;
+        planetGameSave.structureRoomPool = iter->second.structureRoomPool;
+        io.writePlanetSave(iter->first, planetGameSave);
+
+        // If not active (contains players), free memory
+        if (!activePlanets.contains(iter->first))
+        {
+            iter = worldDatas.erase(iter);
+            continue;
+        }
+
+        iter++;
     }
 
-    // Save room dests required
-    for (RoomType roomDestType : roomDestsToSave)
+    // Save room dests
+    for (auto iter = roomDestDatas.begin(); iter != roomDestDatas.end();)
     {
         RoomDestinationGameSave roomDestGameSave;
-        roomDestGameSave.roomDestination = getRoomDestination(roomDestType);
-        roomDestGameSave.chestDataPool = getChestDataPool(LocationState::createFromRoomDestType(roomDestType));
+        roomDestGameSave.roomDestination = iter->second.roomDestination;
+        roomDestGameSave.chestDataPool = iter->second.chestDataPool;
         io.writeRoomDestinationSave(roomDestGameSave);
+
+        // If not active, free
+        if (!activeRoomDests.contains(iter->first))
+        {
+            iter = roomDestDatas.erase(iter);
+            continue;
+        }
+
+        iter++;
     }
 
     return true;

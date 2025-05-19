@@ -150,7 +150,7 @@ void LightingEngine::calculateLighting()
 
 void LightingEngine::propagateLight(const LightPropagationNode& lightNode, float previousIntensity, std::vector<LightPropagationNode>& lightQueue)
 {
-    float stepBaseMult = 0.93f;
+    float stepBaseMult = 0.90f;
     
     #if (!RELEASE_BUILD)
     stepBaseMult = DebugOptions::lightPropMult;

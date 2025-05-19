@@ -316,7 +316,7 @@ private:
     // -- Save / load -- //
 
     void startNewGame(int seed);
-    bool saveGame(bool gettingInRocket = false);
+    bool saveGame();
     bool loadGame(const SaveFileSummary& saveFileSummary);
 
     void initialiseWorldData(PlanetType planetType);
