@@ -10,7 +10,8 @@
 // FIX: Fishing rod missing sample points on some upward casts
 
 // FIX: Fishing rod multiplayer sample point / target tile
-// FIX: Drop items in room
+
+// TODO: Calculate lighting on separate thread
 
 // TODO: Keep track of last rocket type used
 
@@ -488,7 +489,8 @@ void Game::runInGame(float dt)
                 case WorldMenuState::Inventory:
                     if (!InputManager::isControllerActive())
                     {
-                        if (InventoryGUI::handleRightClick(*this, mouseScreenPos, shiftMode, networkHandler, getChunkManagerPtr(),
+                        ChunkManager* chunkManagerPtr = (locationState.isOnPlanet() && !locationState.isInStructure()) ? getChunkManagerPtr() : nullptr;
+                        if (InventoryGUI::handleRightClick(*this, mouseScreenPos, shiftMode, networkHandler, chunkManagerPtr,
                             inventory, armourInventory, getChestDataPool().getChestDataPtr(openedChestID)))
                         {
                             changePlayerTool();
@@ -819,8 +821,9 @@ void Game::runInGame(float dt)
             case WorldMenuState::NPCShop: // fallthrough
             case WorldMenuState::Inventory:
             {
+                ChunkManager* chunkManagerPtr = (locationState.isOnPlanet() && !locationState.isInStructure()) ? getChunkManagerPtr() : nullptr;
                 ItemType itemHeldBefore = InventoryGUI::getHeldItemType(inventory);
-                if (InventoryGUI::handleControllerInput(*this, networkHandler, getChunkManagerPtr(),
+                if (InventoryGUI::handleControllerInput(*this, networkHandler, chunkManagerPtr,
                     inventory, armourInventory, getChestDataPool().getChestDataPtr(openedChestID)))
                 {
                     if (itemHeldBefore != InventoryGUI::getHeldItemType(inventory))
