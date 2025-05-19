@@ -35,7 +35,7 @@ public:
     BossEntity() = default;
     virtual BossEntity* clone() const = 0;
 
-    virtual void update(Game& game, ProjectileManager& projectileManager, Player& player, float dt, int worldSize) = 0;
+    virtual void update(Game& game, ProjectileManager& projectileManager, std::vector<Player*>& players, float dt, int worldSize) = 0;
 
     virtual bool isAlive() = 0;
 
@@ -57,7 +57,7 @@ public:
     virtual void getWorldObjects(std::vector<WorldObject*>& worldObjects) = 0;
 
     // Test for despawn
-    bool inPlayerRange(Player& player);
+    bool inPlayerRange(std::vector<Player*>& players, int worldSize);
 
     void createItemPickups(NetworkHandler& networkHandler, ChunkManager& chunkManager, float gameTime);
 
@@ -71,6 +71,9 @@ public:
     }
 
 protected:
+    bool isPlayerAlive(std::vector<Player*>& players) const;
+    Player* findClosestPlayer(std::vector<Player*>& players, int worldSize) const;
+
     float playerMaxRange = 1000.0f;
     float itemPickupDropRadius = 16.0f;
 

@@ -1,8 +1,6 @@
 #include "Entity/Boss/BossBenjaminCrow.hpp"
 #include "Game.hpp"
 
-// CEREAL_REGISTER_POLYMORPHIC_RELATION(BossEntity, BossBenjaminCrow);
-
 const int BossBenjaminCrow::DAMAGE_HITBOX_SIZE = 20;
 const std::array<int, 2> BossBenjaminCrow::damageValues = {35, 65};
 
@@ -52,21 +50,31 @@ BossEntity* BossBenjaminCrow::clone() const
     return new BossBenjaminCrow(*this);
 }
 
-void BossBenjaminCrow::update(Game& game, ProjectileManager& projectileManager, Player& player, float dt, int worldSize)
+void BossBenjaminCrow::update(Game& game, ProjectileManager& projectileManager, std::vector<Player*>& players, float dt, int worldSize)
 {
+    if (game.getNetworkHandler().isClient())
+    {
+        return;
+    }
+
     // Update animation
     idleAnims[stage].update(dt);
 
     flashTime = std::max(flashTime - dt, 0.0f);
 
-    // If player is dead, fly away
-    if (game.getIsDay() || (!player.isAlive() && behaviourState != BossBenjaminState::Killed && behaviourState != BossBenjaminState::Dash))
+    // Find closest player
+    Player* player = findClosestPlayer(players, worldSize);
+
+    // If player is dead (or cannot find), fly away
+    if (game.getIsDay() || !player || (!isPlayerAlive(players) && behaviourState != BossBenjaminState::Killed && behaviourState != BossBenjaminState::Dash))
     {
         behaviourState = BossBenjaminState::FlyAway;
     }
 
+    pl::Vector2f playerRelativePos = Camera::translateWorldPos(player->getPosition(), position, worldSize);
+
     // Update state
-    float playerDistance = Helper::getVectorLength(player.getPosition() - position);
+    float playerDistance = Helper::getVectorLength(playerRelativePos - position);
 
     switch (behaviourState)
     {
@@ -79,7 +87,7 @@ void BossBenjaminCrow::update(Game& game, ProjectileManager& projectileManager, 
             else if (playerDistance <= DASH_TARGET_INITIATE_DISTANCE && dashCooldownTimer <= 0)
             {
                 behaviourState = BossBenjaminState::Dash;
-                dashTargetPosition = Helper::normaliseVector(player.getPosition() - (position - pl::Vector2f(0, flyingHeight))) * DASH_TARGET_OVERSHOOT + player.getPosition();
+                dashTargetPosition = Helper::normaliseVector(playerRelativePos - (position - pl::Vector2f(0, flyingHeight))) * DASH_TARGET_OVERSHOOT + playerRelativePos;
             }
             break;
         }
@@ -110,7 +118,7 @@ void BossBenjaminCrow::update(Game& game, ProjectileManager& projectileManager, 
         }
         case BossBenjaminState::FlyAway:
         {
-            if (!game.getIsDay() && player.isAlive())
+            if (!game.getIsDay() && isPlayerAlive(players))
             {
                 behaviourState = BossBenjaminState::Chase;
             }
@@ -124,13 +132,13 @@ void BossBenjaminCrow::update(Game& game, ProjectileManager& projectileManager, 
     {
         case BossBenjaminState::Chase:
         {
-            direction = player.getPosition() - position;
+            direction = playerRelativePos - position;
             currentMoveSpeed = MOVE_SPEED;
             break;
         }
         case BossBenjaminState::FastChase:
         {
-            direction = player.getPosition() - position;
+            direction = playerRelativePos - position;
             currentMoveSpeed = FAST_CHASE_MOVE_SPEED;
             break;
         }
@@ -150,7 +158,7 @@ void BossBenjaminCrow::update(Game& game, ProjectileManager& projectileManager, 
         }
         case BossBenjaminState::FlyAway:
         {
-            direction = position - player.getPosition();
+            direction = position - playerRelativePos;
             currentMoveSpeed = FAST_CHASE_MOVE_SPEED;
             break;
         }
@@ -189,7 +197,10 @@ void BossBenjaminCrow::update(Game& game, ProjectileManager& projectileManager, 
 
     // Update collision
     updateCollision();
-    testCollisionWithPlayer(player, worldSize);
+    for (Player* player : players)
+    {
+        testCollisionWithPlayer(*player, worldSize);
+    }
 
     // Update dash cooldown timer
     dashCooldownTimer -= dt;

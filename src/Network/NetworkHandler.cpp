@@ -172,6 +172,29 @@ std::unordered_map<uint64_t, NetworkPlayer>& NetworkHandler::getNetworkPlayers()
     return networkPlayers;
 }
 
+std::vector<Player*> NetworkHandler::getPlayersAtLocation(const LocationState& locationState, Player* thisPlayer)
+{
+    std::vector<Player*> players;
+
+    if (thisPlayer)
+    {
+        players.push_back(thisPlayer);
+    }
+
+    for (auto iter = networkPlayers.begin(); iter != networkPlayers.end(); iter++)
+    {
+        // Not in same location as player
+        if (iter->second.getPlayerData().locationState != locationState)
+        {
+            continue;
+        }
+
+        players.push_back(&iter->second);
+    }
+
+    return players;
+}
+
 std::vector<WorldObject*> NetworkHandler::getNetworkPlayersToDraw(const Camera& camera, const LocationState& locationState, pl::Vector2f playerPosition, float gameTime)
 {
     std::vector<WorldObject*> networkPlayerObjects;

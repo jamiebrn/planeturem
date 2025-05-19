@@ -45,7 +45,7 @@ public:
     BossGlacialBrute(pl::Vector2f playerPosition, Game& game);
     BossEntity* clone() const override;
 
-    void update(Game& game, ProjectileManager& projectileManager, Player& player, float dt, int worldSize) override;
+    void update(Game& game, ProjectileManager& projectileManager, std::vector<Player*>& players, float dt, int worldSize) override;
 
     bool isAlive() override;
 
@@ -72,7 +72,7 @@ private:
 
     void updateCollision();
 
-    void throwSnowball(ProjectileManager& projectileManager, Player& player);
+    void throwSnowball(ProjectileManager& projectileManager, Player& player, int worldSize);
 
 private:
     enum class BossGlacialBruteState

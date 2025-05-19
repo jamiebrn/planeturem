@@ -55,8 +55,23 @@ BossEntity* BossSandSerpent::clone() const
     return new BossSandSerpent(*this);
 }
 
-void BossSandSerpent::update(Game& game, ProjectileManager& projectileManager, Player& player, float dt, int worldSize)
+void BossSandSerpent::update(Game& game, ProjectileManager& projectileManager, std::vector<Player*>& players, float dt, int worldSize)
 {
+    if (game.getNetworkHandler().isClient())
+    {
+        return;
+    }
+
+    bool playerAlive = isPlayerAlive(players);
+    Player* closestPlayer = findClosestPlayer(players, worldSize);
+
+    if (!closestPlayer)
+    {
+        return;
+    }
+
+    pl::Vector2f closestPlayerRelativePos = Camera::translateWorldPos(closestPlayer->getPosition(), position, worldSize);
+
     switch (behaviourState)
     {
         case BossSandSerpentState::IdleStage1:
@@ -70,7 +85,7 @@ void BossSandSerpent::update(Game& game, ProjectileManager& projectileManager, P
                 behaviourState = BossSandSerpentState::ShootingStage1;
             }
 
-            float playerDistance = Helper::getVectorLength(player.getPosition() - position);
+            float playerDistance = Helper::getVectorLength(closestPlayerRelativePos - position);
             if (playerDistance >= START_MOVE_PLAYER_DISTANCE)
             {
                 // Find path to player and change behaviour state to move towards
@@ -79,7 +94,7 @@ void BossSandSerpent::update(Game& game, ProjectileManager& projectileManager, P
                 int worldSize = game.getChunkManager().getWorldSize();
 
                 pl::Vector2<int> tile = getWorldTileInside(worldSize);
-                pl::Vector2<int> playerTile = player.getWorldTileInside(worldSize);
+                pl::Vector2<int> playerTile = closestPlayer->getWorldTileInside(worldSize);
 
                 std::vector<PathfindGridCoordinate> pathfindResult;
                 if (pathfindingEngine.findPath(tile.x, tile.y, playerTile.x, playerTile.y, pathfindResult, false, 50))
@@ -109,7 +124,7 @@ void BossSandSerpent::update(Game& game, ProjectileManager& projectileManager, P
             if (shootProjectileCooldownTime >= MAX_SHOOT_PROJECTILE_COOLDOWN_TIME)
             {
                 shootProjectileCooldownTime = 0.0f;
-                float angle = std::atan2(player.getPosition().y - 4 - (position.y - 50), player.getPosition().x - position.x) * 180.0f / M_PI;
+                float angle = std::atan2(closestPlayerRelativePos.y - 4 - (position.y - 50), closestPlayerRelativePos.x - position.x) * 180.0f / M_PI;
                 projectileManager.addProjectile(Projectile(position - pl::Vector2f(0, 50), angle,
                     ToolDataLoader::getProjectileTypeFromName("Serpent Venom BOSS"), 1.0f, 1.0f, HitLayer::Player));
             }
@@ -129,19 +144,19 @@ void BossSandSerpent::update(Game& game, ProjectileManager& projectileManager, P
         }
         case BossSandSerpentState::Leaving:
         {
-            float playerDistance = Helper::getVectorLength(player.getPosition() - position);
+            float playerDistance = Helper::getVectorLength(closestPlayerRelativePos - position);
             if (playerDistance < START_MOVE_PLAYER_DISTANCE)
             {
                 behaviourState = BossSandSerpentState::IdleStage1;
             }
 
-            position += Helper::normaliseVector(position - player.getPosition()) * 100.0f * dt;
+            position += Helper::normaliseVector(position - closestPlayerRelativePos) * 100.0f * dt;
 
             break;
         }
     }
 
-    if (!player.isAlive())
+    if (!playerAlive)
     {
         behaviourState = BossSandSerpentState::Leaving;
     }
@@ -158,7 +173,7 @@ void BossSandSerpent::update(Game& game, ProjectileManager& projectileManager, P
     bodyFlashTime -= dt;
 
     // Update head direction
-    pl::Vector2f playerPosDiff = Camera::translateWorldPos(player.getPosition(), position, worldSize) - position;
+    pl::Vector2f playerPosDiff = closestPlayerRelativePos - position;
     int xWidth = animations[behaviourState].getTextureRect().width;
     
     if (std::abs(playerPosDiff.x) > std::abs(playerPosDiff.y) && std::abs(playerPosDiff.x) > xWidth / 2)

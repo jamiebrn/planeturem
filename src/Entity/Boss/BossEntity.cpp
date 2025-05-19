@@ -1,13 +1,29 @@
 #include "Entity/Boss/BossEntity.hpp"
 #include "Player/Player.hpp"
+#include "Network/NetworkHandler.hpp"
 
-bool BossEntity::inPlayerRange(Player& player)
+bool BossEntity::inPlayerRange(std::vector<Player*>& players, int worldSize)
 {
-    return (playerMaxRange >= (player.getPosition() - position).getLength());
+    for (const Player* player : players)
+    {
+        pl::Vector2f relativePos = Camera::translateWorldPos(player->getPosition(), position, worldSize);
+
+        if (playerMaxRange >= (relativePos - position).getLength())
+        {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 void BossEntity::createItemPickups(NetworkHandler& networkHandler, ChunkManager& chunkManager, float gameTime)
 {
+    if (networkHandler.isClient())
+    {
+        return;
+    }
+
     for (const auto& itemDropChance : itemDrops)
     {
         float randChance = (rand() % 10000) / 10000.0f;
@@ -27,6 +43,40 @@ void BossEntity::createItemPickups(NetworkHandler& networkHandler, ChunkManager&
             chunkManager.addItemPickup(ItemPickup(spawnPos, itemDropChance.first.itemType, gameTime, 1), &networkHandler);
         }
     }
+}
+
+bool BossEntity::isPlayerAlive(std::vector<Player*>& players) const
+{
+    for (const Player* player : players)
+    {
+        if (player->isAlive())
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+Player* BossEntity::findClosestPlayer(std::vector<Player*>& players, int worldSize) const
+{
+    float closestDistanceSq = std::pow(worldSize * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED, 2);
+    Player* closestPlayerPtr = nullptr;
+
+    for (Player* player : players)
+    {
+        pl::Vector2f relativePos = Camera::translateWorldPos(player->getPosition(), position, worldSize);
+        
+        float distanceSq = -((relativePos - position).getLengthSq());
+        
+        if (distanceSq < closestDistanceSq)
+        {
+            closestDistanceSq = distanceSq;
+            closestPlayerPtr = player;
+        }
+    }
+
+    return closestPlayerPtr;
 }
 
 void BossEntity::setName(const std::string& name)

@@ -9,8 +9,6 @@
 
 // FIX: Fishing rod missing sample points on some upward casts
 
-// FIX: Boss out of range on world wrap
-
 // FIX: Fishing rod multiplayer sample point / target tile
 // FIX: Drop items in room
 
@@ -1059,7 +1057,8 @@ void Game::updateOnPlanet(float dt)
         }
         
         // Update bosses
-        getBossManager().update(*this, getProjectileManager(), getChunkManager(), player, dt, gameTime);
+        std::vector<Player*> players = {&player};
+        getBossManager().update(*this, getProjectileManager(), getChunkManager(), players, dt, gameTime);
     
         // Update projectiles
         getProjectileManager().update(dt, getChunkManager().getWorldSize());
@@ -1168,8 +1167,12 @@ void Game::updateActivePlanets(float dt)
             lightingTickTime = LIGHTING_TICK_TIME;
         }
 
+        // Get players on planet, including us if in same location
+        Player* thisPlayer = (locationState == LocationState::createFromPlanetType(planetType)) ? &player : nullptr;
+        std::vector<Player*> players = networkHandler.getPlayersAtLocation(LocationState::createFromPlanetType(planetType), thisPlayer);
+
         // Update bosses
-        getBossManager(planetType).update(*this, getProjectileManager(planetType), chunkManager, player, dt, gameTime);
+        getBossManager(planetType).update(*this, getProjectileManager(planetType), chunkManager, players, dt, gameTime);
     
         // Update projectiles
         getProjectileManager(planetType).update(dt, chunkManager.getWorldSize());

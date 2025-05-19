@@ -45,15 +45,20 @@ bool BossManager::createBoss(const std::string& name, pl::Vector2f playerPositio
     return false;
 }
 
-void BossManager::update(Game& game, ProjectileManager& projectileManager, ChunkManager& chunkManager, Player& player, float dt,
+void BossManager::update(Game& game, ProjectileManager& projectileManager, ChunkManager& chunkManager, std::vector<Player*>& players, float dt,
     float gameTime)
 {
+    if (game.getNetworkHandler().isClient())
+    {
+        return;
+    }
+    
     for (auto iter = bosses.begin(); iter != bosses.end();)
     {
         BossEntity* boss = iter->get();
-        if (boss->isAlive() && boss->inPlayerRange(player))
+        if (boss->isAlive() && boss->inPlayerRange(players, chunkManager.getWorldSize()))
         {
-            boss->update(game, projectileManager, player, dt, chunkManager.getWorldSize());
+            boss->update(game, projectileManager, players, dt, chunkManager.getWorldSize());
 
             for (auto& projectilePair : projectileManager.getProjectiles())
             {
@@ -61,8 +66,10 @@ void BossManager::update(Game& game, ProjectileManager& projectileManager, Chunk
                 {
                     continue;
                 }
+
                 boss->testProjectileCollision(projectilePair.second, chunkManager.getWorldSize());
             }
+
             iter++;
         }
         else
