@@ -1255,6 +1255,8 @@ PacketDataPlayerCharacterInfo Player::getNetworkPlayerInfo(const Camera* camera,
     info.direction = direction;
     info.speed = speed;
 
+    info.health = health;
+
     if (direction == pl::Vector2f(0, 0))
     {
         info.animationFrame = idleAnimation.getFrame();

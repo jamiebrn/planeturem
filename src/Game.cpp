@@ -9,8 +9,6 @@
 
 // FIX: Fishing rod missing sample points on some upward casts
 
-// FIX: Fishing rod multiplayer sample point / target tile
-
 // TODO: Calculate lighting on separate thread
 
 // TODO: Keep track of last rocket type used

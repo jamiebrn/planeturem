@@ -100,6 +100,8 @@ void NetworkPlayer::setNetworkPlayerCharacterInfo(const PacketDataPlayerCharacte
     direction = info.direction;
     speed = info.speed;
 
+    health = info.health;
+
     collisionRect.x = playerData.position.x - collisionRect.width / 2.0f;
     collisionRect.y = playerData.position.y - collisionRect.height / 2.0f;
 
@@ -132,7 +134,7 @@ void NetworkPlayer::setNetworkPlayerCharacterInfo(const PacketDataPlayerCharacte
     
     if (fishingRodCasted)
     {
-        fishingRodBobWorldPosUnwrapped = (static_cast<pl::Vector2f>(info.fishingRodBobWorldTile) + pl::Vector2f(0.5f, 0.5f)) * TILE_SIZE_PIXELS_UNSCALED;
+        fishingRodBobWorldPos = (static_cast<pl::Vector2f>(info.fishingRodBobWorldTile) + pl::Vector2f(0.5f, 0.5f)) * TILE_SIZE_PIXELS_UNSCALED;
     }
 
     for (int i = 0; i < info.armour.size(); i++)
