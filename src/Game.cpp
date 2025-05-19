@@ -21,7 +21,6 @@
 
 // TODO: Improve entity movement over network
 
-// TODO: Save all required planets
 // TODO: Boss networking
 
 // TODO: Night and menu music
@@ -2012,14 +2011,14 @@ void Game::buildObject(ChunkPosition chunk, pl::Vector2<int> tile, ObjectType ob
     // Build object
     getChunkManager(planetType).setObject(chunk, tile, objectType, *this);
 
-    // If not built by player, don't create build particles or play build sound
-    if (!builtByPlayer)
+    // If not built by player or not in same location as object built, don't create build particles or play build sound
+    if (!builtByPlayer || locationState != LocationState::createFromPlanetType(planetType.value()))
     {
         return;
     }
 
     // Create build particles
-    BuildableObject* placedObject = getChunkManager(planetType).getChunkObject(chunk, tile);
+    BuildableObject* placedObject = getChunkManager().getChunkObject(chunk, tile);
     if (!placedObject)
     {
         return;

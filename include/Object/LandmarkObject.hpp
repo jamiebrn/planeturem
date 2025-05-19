@@ -1,7 +1,5 @@
 #pragma once
 
-
-
 #include <vector>
 
 #include <Graphics/VertexArray.hpp>
@@ -26,7 +24,7 @@ class Game;
 class LandmarkObject : public BuildableObject
 {
 public:
-    LandmarkObject(pl::Vector2f position, ObjectType objectType, Game& game, bool placedByPlayer);
+    LandmarkObject(pl::Vector2f position, ObjectType objectType, Game& game, bool placedByThisPlayer);
 
     BuildableObject* clone() override;
 

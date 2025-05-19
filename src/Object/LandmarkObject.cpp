@@ -1,10 +1,10 @@
 #include "Object/LandmarkObject.hpp"
 #include "Game.hpp"
 
-LandmarkObject::LandmarkObject(pl::Vector2f position, ObjectType objectType, Game& game, bool placedByPlayer)
+LandmarkObject::LandmarkObject(pl::Vector2f position, ObjectType objectType, Game& game, bool placedByThisPlayer)
     : BuildableObject(position, objectType)
 {
-    game.landmarkPlaced(*this, placedByPlayer);
+    game.landmarkPlaced(*this, placedByThisPlayer);
 }
 
 BuildableObject* LandmarkObject::clone()
