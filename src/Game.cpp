@@ -861,12 +861,12 @@ void Game::runInGame(float dt)
                 // std::vector<PlanetType> availableDestinations = getRocketAvailableDestinations();
                 if (travelSelectGUI.createAndDraw(window, dt, destinationLocationState))
                 {
-                    BuildableObject* rocketObject = getObjectFromLocation(rocketEnteredReference, locationState);
+                    RocketObject* rocketObject = getObjectFromLocation<RocketObject>(rocketEnteredReference, locationState);
 
                     if (rocketObject)
                     {
                         worldMenuState = WorldMenuState::FlyingRocket;
-                        rocketObject->triggerBehaviour(*this, ObjectBehaviourTrigger::RocketFlyUp);
+                        rocketObject->startFlyingUpwards();
                         // Fade out music
                         Sounds::stopMusic(0.5f);
                         musicGap = MUSIC_GAP_MIN;
@@ -930,7 +930,7 @@ void Game::runInGame(float dt)
                     RocketObject* rocketObject = getObjectFromLocation<RocketObject>(rocketEnteredReference, locationState);
                     if (rocketObject)
                     {
-                        rocketObject->startFlyingDownwards();
+                        rocketObject->startFlyingDownwards(*this);
                     }
                 }
             }
@@ -993,13 +993,14 @@ void Game::updateOnPlanet(float dt)
     Cursor::updateTileCursor(camera.screenToWorldTransform(mouseScreenPos, worldSize), dt, getChunkManager(), player.getCollisionRect(), inventory, worldMenuState);
 
     // Update player
-    bool wrappedAroundWorld = false;
-    pl::Vector2f wrapPositionDelta;
-
     if (!isStateTransitioning())
     {
-        player.update(dt, camera.screenToWorldTransform(mouseScreenPos, 0), getChunkManager(), getProjectileManager(), wrappedAroundWorld, wrapPositionDelta);
+        player.update(dt, camera.screenToWorldTransform(mouseScreenPos, 0), getChunkManager(), getProjectileManager());
     }
+
+    // Test world wrapping
+    pl::Vector2f wrapPositionDelta;
+    bool wrappedAroundWorld = player.testWorldWrap(getChunkManager().getWorldSize(), wrapPositionDelta);
 
     if (wrappedAroundWorld)
     {
@@ -1525,6 +1526,8 @@ void Game::testExitStructure()
 // Rocket
 void Game::enterRocket(RocketObject& rocket)
 {
+    int worldSize = 0;
+
     switch (gameState)
     {
         case GameState::OnPlanet:
@@ -1534,6 +1537,9 @@ void Game::enterRocket(RocketObject& rocket)
 
             // Add to used rockets
             planetRocketUsedPositions[locationState.getPlanetType()] = rocketEnteredReference;
+
+            // Set world size
+            worldSize = getChunkManager().getWorldSize();
             break;
         }
         case GameState::InStructure: // fallthrough
@@ -1569,7 +1575,7 @@ void Game::enterRocket(RocketObject& rocket)
 
     travelSelectGUI.setAvailableDestinations(planetDestinations, roomDestinations);
 
-    player.enterRocket(rocket.getRocketPosition());
+    player.enterRocket(rocket.getRocketPosition(), worldSize);
 }
 
 void Game::exitRocket()
@@ -1577,12 +1583,12 @@ void Game::exitRocket()
     worldMenuState = WorldMenuState::Main;
 
     // Get rocket object
-    BuildableObject* rocketObject = getObjectFromLocation(rocketEnteredReference, locationState);
+    RocketObject* rocketObject = getObjectFromLocation<RocketObject>(rocketEnteredReference, locationState);
 
     // Exit rocket object
     if (rocketObject)
     {
-        rocketObject->triggerBehaviour(*this, ObjectBehaviourTrigger::RocketExit);
+        rocketObject->exit();
     }
     else
     {
@@ -1591,12 +1597,18 @@ void Game::exitRocket()
         std::cout << rocketEnteredReference.tile.x << ", " << rocketEnteredReference.tile.y << "\n";
     }
 
-    player.exitRocket();
+    int worldSize = 0;
+    if (ChunkManager* chunkManagerPtr = getChunkManagerPtr())
+    {
+        worldSize = chunkManagerPtr->getWorldSize();
+    }
+
+    player.exitRocket(worldSize);
 }
 
 void Game::enterIncomingRocket(RocketObject& rocket)
 {
-    player.enterRocket(rocket.getRocketPosition());
+    player.enterRocket(rocket.getRocketPosition(), 0);
 }
 
 void Game::rocketFinishedUp(RocketObject& rocket)
@@ -2549,7 +2561,7 @@ void Game::openChestFromHost(const PacketDataChestOpened& packetData)
     // Opened by another user - make chest open with animation only
     if (packetData.userID != SteamUser()->GetSteamID().ConvertToUint64())
     {
-        chestObject->triggerBehaviour(*this, ObjectBehaviourTrigger::ChestOpen);
+        chestObject->openChest();
         return;
     }
 
@@ -2643,10 +2655,10 @@ void Game::closeChest(std::optional<ObjectReference> chestObjectRef, std::option
     }
 
     // Close chest
-    BuildableObject* object = getObjectFromLocation(chestObjectRef.value(), chestLocationState.value());
+    ChestObject* object = getObjectFromLocation<ChestObject>(chestObjectRef.value(), chestLocationState.value());
     if (object)
     {
-        object->triggerBehaviour(*this, ObjectBehaviourTrigger::ChestClose);
+        object->closeChest();
     }
     else
     {
@@ -2712,7 +2724,7 @@ void Game::travelToDestination()
 
     LocationState previousLocationState = locationState;
     
-    player.exitRocket();
+    player.exitRocket(0);
 
     if (destinationLocationState.isOnPlanet())
     {
@@ -2925,8 +2937,8 @@ void Game::travelToPlanet(PlanetType planetType, ObjectReference newRocketObject
         std::optional<PathfindGridCoordinate> openTile = getChunkManager(planetType).getPathfindingEngine()
             .findClosestOpenTile(rocketEnteredReference.getWorldTile().x, rocketEnteredReference.getWorldTile().y, 20, true);
         
-        player.setPosition(rocketObject->getPosition() + pl::Vector2f(openTile->x, openTile->y) * TILE_SIZE_PIXELS_UNSCALED);
-        rocketObject->triggerBehaviour(*this, ObjectBehaviourTrigger::RocketFlyDown);
+        player.setPosition(rocketObject->getPosition() + pl::Vector2f(openTile->x, openTile->y) * TILE_SIZE_PIXELS_UNSCALED, 0);
+        rocketObject->startFlyingDownwards(*this);
     }
     else
     {
@@ -2960,7 +2972,7 @@ void Game::travelToPlanetFromHost(const PacketDataPlanetTravelReply& planetTrave
         getChunkManager(planetTravelReplyPacket.chunkDatas.planetType).setChunkData(chunkData, *this);
     }
 
-    player.exitRocket();
+    player.exitRocket(0);
 
     travelToPlanet(planetTravelReplyPacket.chunkDatas.planetType, planetTravelReplyPacket.rocketObjectReference);
 }
@@ -2977,7 +2989,7 @@ void Game::travelToRoomDestinationFromHost(const PacketDataRoomTravelReply& room
     worldDatas.clear();
     roomDestDatas.clear();
 
-    player.exitRocket();
+    player.exitRocket(0);
 
     travelToRoomDestination(roomTravelReplyPacket.roomType);
 }
@@ -2993,13 +3005,13 @@ void Game::travelToRoomDestination(RoomType destinationRoomType)
 
     if (getRoomDestination().getFirstRocketObjectReference(rocketEnteredReference))
     {
-        BuildableObject* rocketObject = getObjectFromLocation(rocketEnteredReference, locationState);
+        RocketObject* rocketObject = getObjectFromLocation<RocketObject>(rocketEnteredReference, locationState);
 
         if (rocketObject)
         {
-            player.setPosition(rocketObject->getPosition() - pl::Vector2f(TILE_SIZE_PIXELS_UNSCALED, 0));
+            player.setPosition(rocketObject->getPosition() - pl::Vector2f(TILE_SIZE_PIXELS_UNSCALED, 0), 0);
 
-            rocketObject->triggerBehaviour(*this, ObjectBehaviourTrigger::RocketFlyDown);
+            rocketObject->startFlyingDownwards(*this);
         }
     }
     else
@@ -3116,7 +3128,7 @@ void Game::changeState(GameState newState)
                     roomEntrancePos = pl::Vector2f(50, 50);
                 }
 
-                player.setPosition(roomEntrancePos.value());
+                player.setPosition(roomEntrancePos.value(), 0);
             }
 
             camera.instantUpdate(player.getPosition());
@@ -3135,7 +3147,7 @@ void Game::changeState(GameState newState)
                 // Exit structure
                 locationState.setInStructureID(std::nullopt);
 
-                player.setPosition(structureEnteredPos);
+                player.setPosition(structureEnteredPos, 0);
                 camera.instantUpdate(player.getPosition());
             }
 
@@ -3182,7 +3194,7 @@ void Game::startNewGame(int seed)
 
     ChunkPosition spawnChunk = initialiseNewPlanet(locationState.getPlanetType());
 
-    player.setPosition(pl::Vector2f(spawnChunk.x + 0.5f, spawnChunk.y + 0.5f) * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED);
+    player.setPosition(pl::Vector2f(spawnChunk.x + 0.5f, spawnChunk.y + 0.5f) * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED, 0);
     
     dayCycleManager.setCurrentTime(dayCycleManager.getDayLength() * 0.5f);
     dayCycleManager.setCurrentDay(1);

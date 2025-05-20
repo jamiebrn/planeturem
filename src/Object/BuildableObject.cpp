@@ -309,11 +309,6 @@ bool BuildableObject::isInteractable() const
     return false;
 }
 
-void BuildableObject::triggerBehaviour(Game& game, ObjectBehaviourTrigger trigger)
-{
-    // No behaviour trigger for regular object
-}
-
 void BuildableObject::setWorldPosition(pl::Vector2f position)
 {
     this->position = position;

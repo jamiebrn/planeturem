@@ -51,7 +51,7 @@ Player::Player(pl::Vector2f position, int maxHealth, pl::Color bodyColor, pl::Co
     inRocket = false;
 }
 
-void Player::update(float dt, pl::Vector2f mouseWorldPos, ChunkManager& chunkManager, ProjectileManager& projectileManager, bool& wrapped, pl::Vector2f& wrapPositionDelta)
+void Player::update(float dt, pl::Vector2f mouseWorldPos, ChunkManager& chunkManager, ProjectileManager& projectileManager)
 {
     updateTimers(dt);
 
@@ -67,8 +67,6 @@ void Player::update(float dt, pl::Vector2f mouseWorldPos, ChunkManager& chunkMan
     // Handle collision with world (tiles, object)
 
     updateMovement(dt, chunkManager);
-    
-    wrapped = testWorldWrap(chunkManager.getWorldSize(), wrapPositionDelta);
 
     // Update position using collision rect after collision has been handled
     position.x = collisionRect.x + collisionRect.width / 2.0f;
@@ -353,6 +351,12 @@ bool Player::testWorldWrap(int worldSize, pl::Vector2f& wrapPositionDelta)
         collisionRect.y += worldPixelSize;
         wrapPositionDelta.y = worldPixelSize;
         wrapped = true;
+    }
+
+    if (wrapped)
+    {
+        position.x = collisionRect.x + collisionRect.width / 2.0f;
+        position.y = collisionRect.y + collisionRect.height / 2.0f;
     }
 
     return wrapped;
@@ -1200,26 +1204,26 @@ void Player::enterStructure()
     onWater = false;
 }
 
-void Player::enterRocket(pl::Vector2f positionOverride)
+void Player::enterRocket(pl::Vector2f positionOverride, int worldSize)
 {
     if (inRocket)
         return;
 
     inRocket = true;
     rocketExitPos = position;
-    position = positionOverride;
+    setPosition(positionOverride, worldSize);
 
     // Stop actions if required
     reelInFishingRod();
 }
 
-void Player::exitRocket()
+void Player::exitRocket(int worldSize)
 {
     if (!inRocket)
         return;
     
     inRocket = false;
-    position = rocketExitPos;
+    setPosition(rocketExitPos, worldSize);
 }
 
 bool Player::isInRocket()
@@ -1227,13 +1231,16 @@ bool Player::isInRocket()
     return inRocket;
 }
 
-void Player::setPosition(pl::Vector2f worldPos)
+void Player::setPosition(pl::Vector2f worldPos, int worldSize)
 {
+    // Translate world pos to unnormalised position, to allow for correct wrapping / camera update
+    // Position will be wrapped to normalised world pos on next testWorldWrap call
+    worldPos = Camera::translateWorldPos(worldPos, position, worldSize);
+
     collisionRect.x = worldPos.x - collisionRect.width / 2.0f;
     collisionRect.y = worldPos.y - collisionRect.height / 2.0f;
 
-    position.x = collisionRect.x + collisionRect.width / 2.0f;
-    position.y = collisionRect.y + collisionRect.height / 2.0f;
+    position = worldPos;
 }
 
 const CollisionRect& Player::getCollisionRect()

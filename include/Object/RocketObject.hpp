@@ -2,8 +2,6 @@
 
 #include <vector>
 
-
-
 #include <Graphics/SpriteBatch.hpp>
 #include <Graphics/Color.hpp>
 #include <Graphics/RenderTarget.hpp>
@@ -35,10 +33,10 @@ public:
     void interact(Game& game, bool isClient) override;
     bool isInteractable() const override;
 
-    void triggerBehaviour(Game& game, ObjectBehaviourTrigger trigger) override;
-
     void startFlyingUpwards();
-    void startFlyingDownwards();
+    void startFlyingDownwards(Game& game);
+
+    void exit();
 
     void getRocketAvailableDestinations(PlanetType currentPlanetType, RoomType currentRoomType,
         std::vector<PlanetType>& planetDestinations, std::vector<RoomType>& roomDestinations);

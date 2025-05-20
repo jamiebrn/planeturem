@@ -25,8 +25,6 @@ public:
     void interact(Game& game, bool isClient) override;
     bool isInteractable() const override;
 
-    void triggerBehaviour(Game& game, ObjectBehaviourTrigger trigger) override;
-
     uint16_t createChestID(Game& game, std::optional<LocationState> locationState);
 
     inline void setChestID(uint16_t chestID) {this->chestID = chestID;}

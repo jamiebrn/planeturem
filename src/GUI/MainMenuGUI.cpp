@@ -186,7 +186,7 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(pl::RenderTarget& window
 
                 // Draw player preview
                 NetworkPlayer playerPreview(pl::Vector2f(0, 0));
-                playerPreview.setPosition(pl::Vector2f(scaledPanelPaddingX + panelWidth / 2 * intScale, elementYPos + (24 * intScale)));
+                playerPreview.setPosition(pl::Vector2f(scaledPanelPaddingX + panelWidth / 2 * intScale, elementYPos + (24 * intScale)), 0);
                 playerPreview.setBodyColor(selectedBodyColor);
                 playerPreview.setSkinColor(selectedSkinColor);
 
@@ -289,7 +289,7 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(pl::RenderTarget& window
                 // Draw player preview
                 NetworkPlayer playerPreview(pl::Vector2f(0, 0));
                 playerPreview.setPlayerData(saveFileSummary.playerData);
-                playerPreview.setPosition(pl::Vector2f(scaledPanelPaddingX + 35 * intScale, elementYPos + (60 * intScale)));
+                playerPreview.setPosition(pl::Vector2f(scaledPanelPaddingX + 35 * intScale, elementYPos + (60 * intScale)), 0);
                 playerPreview.setArmourFromInventory(saveFileSummary.playerData.armourInventory);
 
                 playerPreview.draw(window, spriteBatch, game, nullptr, 0.0f, 0.0f, 1, pl::Color(), false);
@@ -423,7 +423,7 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(pl::RenderTarget& window
 
             // Draw player preview
             NetworkPlayer playerPreview(pl::Vector2f(0, 0));
-            playerPreview.setPosition(pl::Vector2f(scaledPanelPaddingX + panelWidth / 2 * intScale, elementYPos + (24 * intScale)));
+            playerPreview.setPosition(pl::Vector2f(scaledPanelPaddingX + panelWidth / 2 * intScale, elementYPos + (24 * intScale)), 0);
             playerPreview.setBodyColor(selectedBodyColor);
             playerPreview.setSkinColor(selectedSkinColor);
 

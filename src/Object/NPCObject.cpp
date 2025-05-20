@@ -33,11 +33,6 @@ bool NPCObject::isInteractable() const
     return true;
 }
 
-void NPCObject::triggerBehaviour(Game& game, ObjectBehaviourTrigger trigger)
-{
-
-}
-
 const NPCObjectData& NPCObject::getNPCObjectData() const
 {
     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);

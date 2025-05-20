@@ -70,29 +70,6 @@ bool RocketObject::isInteractable() const
     return true;
 }
 
-void RocketObject::triggerBehaviour(Game& game, ObjectBehaviourTrigger trigger)
-{
-    switch (trigger)
-    {
-        case ObjectBehaviourTrigger::RocketFlyUp:
-        {
-            startFlyingUpwards();
-            break;
-        }
-        case ObjectBehaviourTrigger::RocketFlyDown:
-        {
-            startFlyingDownwards();
-            game.enterIncomingRocket(*this);
-            break;
-        }
-        case ObjectBehaviourTrigger::RocketExit:
-        {
-            entered = false;
-            break;
-        }
-    }
-}
-
 void RocketObject::startFlyingUpwards()
 {
     // Just to be sure
@@ -105,7 +82,7 @@ void RocketObject::startFlyingUpwards()
         TweenTransition::Quint, TweenEasing::EaseInOut);
 }
 
-void RocketObject::startFlyingDownwards()
+void RocketObject::startFlyingDownwards(Game& game)
 {
     // Just to be sure
     entered = true;
@@ -115,6 +92,13 @@ void RocketObject::startFlyingDownwards()
 
     rocketFlyingTweenID = floatTween.startTween(&rocketYOffset, rocketYOffset, 0.0f, 3.0f,
         TweenTransition::Quint, TweenEasing::EaseInOut);
+    
+    game.enterIncomingRocket(*this);
+}
+
+void RocketObject::exit()
+{
+    entered = false;
 }
 
 void RocketObject::getRocketAvailableDestinations(PlanetType currentPlanetType, RoomType currentRoomType,

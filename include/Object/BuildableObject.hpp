@@ -34,14 +34,6 @@
 class Game;
 class ChunkManager;
 
-enum ObjectBehaviourTrigger
-{
-    RocketFlyUp, RocketFlyDown,
-    RocketExit,
-
-    ChestOpen, ChestClose
-};
-
 constexpr int DUMMY_OBJECT_COLLISION = -10;
 constexpr int DUMMY_OBJECT_NO_COLLISION = -11;
 
@@ -74,9 +66,7 @@ public:
 
     virtual void interact(Game& game, bool isClient);
     virtual bool isInteractable() const;
-
-    virtual void triggerBehaviour(Game& game, ObjectBehaviourTrigger trigger);
-
+    
     // -- Object reference -- //
     BuildableObject(ObjectReference _objectReference);
 

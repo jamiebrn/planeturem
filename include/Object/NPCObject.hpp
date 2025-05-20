@@ -1,7 +1,5 @@
 #pragma once
 
-
-
 #include <Graphics/Color.hpp>
 #include <Vector.hpp>
 #include <Rect.hpp>
@@ -24,8 +22,6 @@ public:
 
     void interact(Game& game, bool isClient) override;
     bool isInteractable() const override;
-
-    void triggerBehaviour(Game& game, ObjectBehaviourTrigger trigger) override;
 
     const NPCObjectData& getNPCObjectData() const;
 

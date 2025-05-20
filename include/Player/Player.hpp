@@ -85,7 +85,9 @@ public:
     Player() = default;
     Player(pl::Vector2f position, int maxHealth = 0, pl::Color bodyColor = pl::Color(158, 69, 57, 255), pl::Color skinColor = pl::Color(230, 144, 78, 255));
 
-    void update(float dt, pl::Vector2f mouseWorldPos, ChunkManager& chunkManager, ProjectileManager& projectileManager, bool& wrapped, pl::Vector2f& wrapPositionDelta);
+    void update(float dt, pl::Vector2f mouseWorldPos, ChunkManager& chunkManager, ProjectileManager& projectileManager);
+    bool testWorldWrap(int worldSize, pl::Vector2f& wrapPositionDelta);
+    
     void updateInRoom(float dt, pl::Vector2f mouseWorldPos, const Room& room);
 
     virtual void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const pl::Color& color) const override;
@@ -130,13 +132,13 @@ public:
     void enterStructure();
 
     // Rocket state specific
-    void enterRocket(pl::Vector2f positionOverride);
-    void exitRocket();
+    void enterRocket(pl::Vector2f positionOverride, int worldSize);
+    void exitRocket(int worldSize);
     bool isInRocket();
 
     bool canReachPosition(pl::Vector2f worldPos);
 
-    void setPosition(pl::Vector2f worldPos);
+    void setPosition(pl::Vector2f worldPos, int worldSize);
 
     const CollisionRect& getCollisionRect();
 
@@ -160,8 +162,6 @@ protected:
     void updateTimers(float dt);
 
 private:
-    bool testWorldWrap(int worldSize, pl::Vector2f& wrapPositionDelta);
-
     bool takeDamage(float rawAmount);
 
     void respawn();

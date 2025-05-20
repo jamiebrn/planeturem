@@ -116,19 +116,6 @@ bool ChestObject::isInteractable() const
     return true;
 }
 
-void ChestObject::triggerBehaviour(Game& game, ObjectBehaviourTrigger trigger)
-{
-    switch (trigger)
-    {
-        case ObjectBehaviourTrigger::ChestOpen:
-            openChest();
-            break;
-        case ObjectBehaviourTrigger::ChestClose:
-            closeChest();
-            break;
-    }
-}
-
 uint16_t ChestObject::createChestID(Game& game, std::optional<LocationState> locationState)
 {
     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
