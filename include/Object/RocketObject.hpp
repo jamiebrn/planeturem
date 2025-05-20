@@ -22,7 +22,7 @@ class Game;
 class RocketObject : public BuildableObject
 {
 public:
-    RocketObject(pl::Vector2f position, ObjectType objectType);
+    RocketObject(pl::Vector2f position, ObjectType objectType, bool flash = false);
 
     BuildableObject* clone() override;
 

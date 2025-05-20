@@ -1,5 +1,7 @@
 #include "Game.hpp"
 
+// CONSIDER: Landmarks will no longer work as "placedByThisPlayer" is not considered in chunk setObject
+
 // FIX: Weather inconsistency (gametime)
 
 // FIX: Client enter structure

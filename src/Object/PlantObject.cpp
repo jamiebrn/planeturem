@@ -2,8 +2,8 @@
 #include "Game.hpp"
 #include "World/ChunkManager.hpp"
 
-PlantObject::PlantObject(pl::Vector2f position, ObjectType objectType, Game& game, const ChunkManager* chunkManager, bool randomiseAge)
-    : BuildableObject(position, objectType, false)
+PlantObject::PlantObject(pl::Vector2f position, ObjectType objectType, Game& game, const ChunkManager* chunkManager, bool randomiseAge, bool flash)
+    : BuildableObject(position, objectType, false, flash)
 {
     int currentDay = game.getDayCycleManager().getCurrentDay();
 
@@ -39,7 +39,7 @@ BuildableObject* PlantObject::clone()
 
 void PlantObject::update(Game& game, float dt, bool onWater, bool loopAnimation)
 {
-    flash_amount = std::max(flash_amount - dt * 3, 0.0f);
+    flashAmount = std::max(flashAmount - dt * 3, 0.0f);
 
     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
     const PlantStageObjectData& plantStageData = objectData.plantStageObjectData->at(currentStage);

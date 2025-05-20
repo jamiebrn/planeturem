@@ -1,8 +1,8 @@
 #include "Object/RocketObject.hpp"
 #include "Game.hpp"
 
-RocketObject::RocketObject(pl::Vector2f position, ObjectType objectType)
-    : BuildableObject(position, objectType)
+RocketObject::RocketObject(pl::Vector2f position, ObjectType objectType, bool flash)
+    : BuildableObject(position, objectType, flash)
 {
 
 }
@@ -213,10 +213,10 @@ void RocketObject::drawRocket(pl::RenderTarget& window, pl::SpriteBatch& spriteB
     rocketDrawData.centerRatio = objectData.rocketObjectData->textureOrigin;
     rocketDrawData.textureRect = objectData.rocketObjectData->textureRect;
 
-    if (flash_amount > 0)
+    if (flashAmount > 0)
     {
         rocketDrawData.shader = Shaders::getShader(ShaderType::Flash);
-        rocketDrawData.shader->setUniform1f("flash_amount", flash_amount);
+        rocketDrawData.shader->setUniform1f("flash_amount", flashAmount);
     }
 
     spriteBatch.draw(window, rocketDrawData);

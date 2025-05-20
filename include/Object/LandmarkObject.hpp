@@ -24,7 +24,7 @@ class Game;
 class LandmarkObject : public BuildableObject
 {
 public:
-    LandmarkObject(pl::Vector2f position, ObjectType objectType, Game& game, bool placedByThisPlayer);
+    LandmarkObject(pl::Vector2f position, ObjectType objectType, Game& game, bool placedByThisPlayer, bool flash = false);
 
     BuildableObject* clone() override;
 

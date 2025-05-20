@@ -33,13 +33,6 @@ class Player;
 class Game;
 class ChunkManager;
 
-#define BOSS_SPAWN(T, n, ...)\
-    if (name == n)\
-    {\
-        bosses.push_back(std::make_unique<T>(__VA_ARGS__));\
-        addedBossName = n;\
-    }\
-
 class BossManager
 {
 public:

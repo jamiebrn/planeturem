@@ -1,8 +1,8 @@
 #include "Object/ChestObject.hpp"
 #include "Game.hpp"
 
-ChestObject::ChestObject(pl::Vector2f position, ObjectType objectType)
-    : BuildableObject(position, objectType, false)
+ChestObject::ChestObject(pl::Vector2f position, ObjectType objectType, bool flash)
+    : BuildableObject(position, objectType, false, flash)
 {
     closeChest();
 }

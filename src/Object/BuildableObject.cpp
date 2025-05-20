@@ -2,7 +2,7 @@
 #include "World/ChunkManager.hpp"
 #include "Game.hpp"
 
-BuildableObject::BuildableObject(pl::Vector2f position, ObjectType objectType, bool randomiseAnimation)
+BuildableObject::BuildableObject(pl::Vector2f position, ObjectType objectType, bool randomiseAnimation, bool flash)
     : WorldObject(position)
 {
     this->objectType = objectType;
@@ -18,7 +18,7 @@ BuildableObject::BuildableObject(pl::Vector2f position, ObjectType objectType, b
         health = objectData.health;
     }
     
-    flash_amount = 0.0f;
+    flashAmount = flash ? 1.0f : 0.0f;
 
     drawLayer = objectData.drawLayer;
 
@@ -41,10 +41,10 @@ BuildableObject* BuildableObject::clone()
     return new BuildableObject(*this);
 }
 
-BuildableObject::BuildableObject(ObjectReference _objectReference)
+BuildableObject::BuildableObject(ObjectReference objectReference)
     : WorldObject({0, 0})
 {
-    objectReference = _objectReference;
+    this->objectReference = objectReference;
 }
 
 void BuildableObject::update(Game& game, float dt, bool onWater, bool loopAnimation)
@@ -52,7 +52,7 @@ void BuildableObject::update(Game& game, float dt, bool onWater, bool loopAnimat
     if (objectType < 0 || isObjectReference())
         return;
 
-    flash_amount = std::max(flash_amount - dt * 3, 0.0f);
+    flashAmount = std::max(flashAmount - dt * 3, 0.0f);
 
     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
 
@@ -75,7 +75,7 @@ void BuildableObject::drawObject(pl::RenderTarget& window, pl::SpriteBatch& spri
 {
     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
 
-    float scaleMult = 0.4f * std::sin(3.14 / 2.0f * std::max(1.0f - flash_amount, 0.5f)) + 0.6f;
+    float scaleMult = 0.4f * std::sin(3.14 / 2.0f * std::max(1.0f - flashAmount, 0.5f)) + 0.6f;
     pl::Vector2f scale = pl::Vector2f((float)ResolutionHandler::getScale(), (float)ResolutionHandler::getScale() * scaleMult);
 
     const pl::Rect<int>* textureRect = nullptr;
@@ -114,10 +114,10 @@ void BuildableObject::drawObject(pl::RenderTarget& window, pl::SpriteBatch& spri
         drawData.texture = textureOverride;
     }
 
-    if (flash_amount > 0)
+    if (flashAmount > 0)
     {
         drawData.shader = Shaders::getShader(ShaderType::Flash);
-        drawData.shader->setUniform1f("flash_amount", flash_amount);
+        drawData.shader->setUniform1f("flash_amount", flashAmount);
     }
 
     spriteBatch.draw(window, drawData);
@@ -180,7 +180,7 @@ bool BuildableObject::damage(int amount, Game& game, ChunkManager& chunkManager,
         return false;
     }
 
-    flash_amount = 1.0f;
+    flashAmount = 1.0f;
     health -= amount;
 
     // Play hit sound

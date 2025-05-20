@@ -1,8 +1,8 @@
 #include "Object/LandmarkObject.hpp"
 #include "Game.hpp"
 
-LandmarkObject::LandmarkObject(pl::Vector2f position, ObjectType objectType, Game& game, bool placedByThisPlayer)
-    : BuildableObject(position, objectType)
+LandmarkObject::LandmarkObject(pl::Vector2f position, ObjectType objectType, Game& game, bool placedByThisPlayer, bool flash)
+    : BuildableObject(position, objectType, flash)
 {
     game.landmarkPlaced(*this, placedByThisPlayer);
 }

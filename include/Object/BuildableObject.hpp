@@ -40,7 +40,7 @@ constexpr int DUMMY_OBJECT_NO_COLLISION = -11;
 class BuildableObject : public WorldObject
 {
 public:
-    BuildableObject(pl::Vector2f position, ObjectType objectType, bool randomiseAnimation = true);
+    BuildableObject(pl::Vector2f position, ObjectType objectType, bool randomiseAnimation = true, bool flash = false);
 
     virtual BuildableObject* clone();
 
@@ -68,7 +68,7 @@ public:
     virtual bool isInteractable() const;
     
     // -- Object reference -- //
-    BuildableObject(ObjectReference _objectReference);
+    BuildableObject(ObjectReference objectReference);
 
     inline bool isObjectReference() const {return objectReference.has_value();}
 
@@ -105,7 +105,7 @@ protected:
 protected:
     ObjectType objectType = 0;
     int health = 1;
-    float flash_amount;
+    float flashAmount;
 
     int8_t animationDirection = 1;
     AnimatedTextureMinimal animatedTexture;

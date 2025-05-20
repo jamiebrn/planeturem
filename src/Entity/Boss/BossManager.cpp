@@ -21,6 +21,8 @@ BossManager& BossManager::operator=(const BossManager& bossManager)
     return *this;
 }
 
+#define BOSS_SPAWN(T, n, ...) if (name == n) {bosses.push_back(std::make_unique<T>(__VA_ARGS__)); addedBossName = n;}
+
 bool BossManager::createBoss(const std::string& name, pl::Vector2f playerPosition, Game& game)
 {
     if (bossAliveNames.contains(name))
@@ -44,6 +46,8 @@ bool BossManager::createBoss(const std::string& name, pl::Vector2f playerPositio
 
     return false;
 }
+
+#undef BOSS_SPAWN
 
 void BossManager::update(Game& game, ProjectileManager& projectileManager, ChunkManager& chunkManager, std::vector<Player*>& players, float dt,
     float gameTime)

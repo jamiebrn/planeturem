@@ -12,7 +12,7 @@ class Game;
 class NPCObject : public BuildableObject
 {
 public:
-    NPCObject(pl::Vector2f position, ObjectType objectType);
+    NPCObject(pl::Vector2f position, ObjectType objectType, bool flash = false);
 
     BuildableObject* clone() override;
 

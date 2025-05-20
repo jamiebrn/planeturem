@@ -1,8 +1,8 @@
 #include "Object/NPCObject.hpp"
 #include "Game.hpp"
 
-NPCObject::NPCObject(pl::Vector2f position, ObjectType objectType)
-    : BuildableObject(position, objectType, false)
+NPCObject::NPCObject(pl::Vector2f position, ObjectType objectType, bool flash)
+    : BuildableObject(position, objectType, false, flash)
 {
 
 }
