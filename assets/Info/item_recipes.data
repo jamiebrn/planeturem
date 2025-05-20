@@ -126,6 +126,16 @@
         "crafting-station-level": 1
     },
     {
+        "product": "Bone Pickaxe",
+        "item-requirements": {
+            "Bone": 3,
+            "Wood": 5
+        },
+        "key-items": ["Bone"],
+        "crafting-station": "anvil",
+        "crafting-station-level": 1
+    },
+    {
         "product": "Titanium Pickaxe",
         "item-requirements": {
             "Titanium Bar": 5,
@@ -177,6 +187,16 @@
             "Wood": 15
         },
         "crafting-station": "bench",
+        "crafting-station-level": 1
+    },
+    {
+        "product": "Bone Fishing Rod",
+        "item-requirements": {
+            "Wooden Fishing Rod": 1,
+            "Bone": 2
+        },
+        "key-items": ["Bone"],
+        "crafting-station": "anvil",
         "crafting-station-level": 1
     },
     {
@@ -337,7 +357,6 @@
         "crafting-station": "furnace",
         "crafting-station-level": 2
     },
-
     {
         "product": "Torch",
         "item-requirements": {

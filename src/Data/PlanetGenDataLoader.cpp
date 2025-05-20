@@ -209,6 +209,9 @@ bool PlanetGenDataLoader::loadPlanet(nlohmann::ordered_json::iterator& planetDat
 
         if (biomeIter->contains("fish-catches"))
         {
+            // Get total fish chance then normalise after loading
+            float totalChance = 0.0f;
+
             auto fishCatches = biomeIter->at("fish-catches");
             for (nlohmann::ordered_json::iterator fishCatchIter = fishCatches.begin(); fishCatchIter != fishCatches.end(); ++fishCatchIter)
             {
@@ -218,7 +221,15 @@ bool PlanetGenDataLoader::loadPlanet(nlohmann::ordered_json::iterator& planetDat
                 fishCatchData.count = fishCatchIter.value()[1];
                 fishCatchData.chance = fishCatchIter.value()[2];
 
+                totalChance += fishCatchData.chance;
+
                 biomeGenData.fishCatchDatas.push_back(fishCatchData);
+            }
+
+            // Normalise probabilities
+            for (FishCatchData& fishCatchData : biomeGenData.fishCatchDatas)
+            {
+                fishCatchData.chance /= totalChance;
             }
         }
 
