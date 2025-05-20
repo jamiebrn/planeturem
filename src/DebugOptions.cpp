@@ -12,6 +12,8 @@ float DebugOptions::godSpeedMultiplier = 1.0f;
 bool DebugOptions::limitlessZoom = false;
 bool DebugOptions::crazyAttack = false;
 
+float DebugOptions::gameTimeMult = 1.0f;
+
 float DebugOptions::lightPropMult = 0.90f;
 
 int DebugOptions::colorWheelDivisions = 20;

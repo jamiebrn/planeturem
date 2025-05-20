@@ -68,7 +68,7 @@ class Chunk
 {
 
 public:
-    Chunk(ChunkPosition worldPosition);
+    Chunk(ChunkPosition worldPosition, float gameTime);
 
     // Resets chunk to blank in a pre-generated state
     // DOES NOT RESET "WORLD POSITION" - meaning position as shown in game
@@ -84,8 +84,8 @@ public:
     RandInt generateTilesAndStructure(const FastNoise& heightNoise, const FastNoise& biomeNoise, const FastNoise& riverNoise, PlanetType planetType,
         ChunkManager& chunkManager, bool allowStructureGen = true, std::optional<StructureType> forceStructureType = std::nullopt);
 
-    void generateObjectsAndEntities(const FastNoise& heightNoise, const FastNoise& biomeNoise, const FastNoise& riverNoise, PlanetType planetType, RandInt& randGen,
-        Game& game, ChunkManager& chunkManager, bool spawnEntities = true);
+    void generateObjects(const FastNoise& heightNoise, const FastNoise& biomeNoise, const FastNoise& riverNoise, PlanetType planetType, RandInt& randGen,
+        Game& game, ChunkManager& chunkManager, bool calledWhileGenerating = true, float probabilityMult = 1.0f);
     
     void spawnChunkEntities(int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise, const FastNoise& riverNoise, PlanetType planetType);
 
@@ -129,7 +129,7 @@ public:
 
     // -- Object handling -- //
     // Update all objects
-    void updateChunkObjects(Game& game, float dt, int worldSize, ChunkManager& chunkManager, PathfindingEngine& pathfindingEngine);
+    void updateChunkObjects(Game& game, float dt, float gameTime, int worldSize, ChunkManager& chunkManager, PathfindingEngine& pathfindingEngine);
     
     // Get object (optional) at position
     template <class T = BuildableObject>
@@ -240,7 +240,7 @@ public:
         PlanetType planetType);
 
     static ObjectType getRandomObjectToSpawnAtWorldTile(pl::Vector2<int> worldTile, int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise,
-        const FastNoise& riverNoise, RandInt& randGen, PlanetType planetType);
+        const FastNoise& riverNoise, RandInt& randGen, PlanetType planetType, float probabilityMult = 1.0f);
 
     static EntityType getRandomEntityToSpawnAtWorldTile(pl::Vector2<int> worldTile, int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise,
         const FastNoise& riverNoise, PlanetType planetType);
@@ -276,6 +276,9 @@ private:
 
     // Structure data, if structure is in chunk
     std::optional<StructureObject> structureObject = std::nullopt;
+    
+    float gameTimeCreated;
+    float nextResourceRegenerationTime;
 
     bool containsWater;
 

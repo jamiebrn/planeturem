@@ -3,12 +3,14 @@
 #include "Entity/Entity.hpp"
 #include "Game.hpp"
 
-Chunk::Chunk(ChunkPosition chunkPosition)
+Chunk::Chunk(ChunkPosition chunkPosition, float gameTime)
 {
     this->chunkPosition = chunkPosition;
     
     worldPosition.x = chunkPosition.x * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
     worldPosition.y = chunkPosition.y * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
+
+    gameTimeCreated = gameTime;
 
     itemPickupCounter = 0;
 
@@ -55,7 +57,12 @@ void Chunk::generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNo
 {
     RandInt randGen = generateTilesAndStructure(heightNoise, biomeNoise, riverNoise, planetType, chunkManager, allowStructureGen, forceStructureType);
 
-    generateObjectsAndEntities(heightNoise, biomeNoise, riverNoise, planetType, randGen, game, chunkManager, spawnEntities);
+    generateObjects(heightNoise, biomeNoise, riverNoise, planetType, randGen, game, chunkManager);
+
+    if (spawnEntities)
+    {
+        spawnChunkEntities(chunkManager.getWorldSize(), heightNoise, biomeNoise, riverNoise, planetType);
+    }
 
     if (initialise)
     {
@@ -64,6 +71,12 @@ void Chunk::generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNo
     else
     {
         generatedFromPOD = true;
+    }
+
+    const BiomeGenData* biomeGenData = chunkManager.getChunkBiome(chunkPosition);
+    if (biomeGenData)
+    {
+        nextResourceRegenerationTime = gameTimeCreated + Helper::randFloat(biomeGenData->resourceRegenerationTimeMin, biomeGenData->resourceRegenerationTimeMax);
     }
 }
 
@@ -110,8 +123,8 @@ RandInt Chunk::generateTilesAndStructure(const FastNoise& heightNoise, const Fas
     return randGen;
 }
 
-void Chunk::generateObjectsAndEntities(const FastNoise& heightNoise, const FastNoise& biomeNoise, const FastNoise& riverNoise, PlanetType planetType, RandInt& randGen,
-    Game& game, ChunkManager& chunkManager, bool spawnEntities)
+void Chunk::generateObjects(const FastNoise& heightNoise, const FastNoise& biomeNoise, const FastNoise& riverNoise, PlanetType planetType, RandInt& randGen,
+    Game& game, ChunkManager& chunkManager, bool calledWhileGenerating, float probabilityMult)
 {
     pl::Vector2<int> worldNoisePosition = pl::Vector2<int>(chunkPosition.x, chunkPosition.y) * static_cast<int>(CHUNK_TILE_SIZE);
 
@@ -133,22 +146,17 @@ void Chunk::generateObjectsAndEntities(const FastNoise& heightNoise, const FastN
 
             // Create random object
             ObjectType objectSpawnType = getRandomObjectToSpawnAtWorldTile(pl::Vector2<int>(worldNoisePosition.x + x, worldNoisePosition.y + y),
-                chunkManager.getWorldSize(), heightNoise, biomeNoise, riverNoise, randGen, planetType);
+                chunkManager.getWorldSize(), heightNoise, biomeNoise, riverNoise, randGen, planetType, probabilityMult);
 
             if (objectSpawnType >= 0)
             {
-                setObject(pl::Vector2<int>(x, y), objectSpawnType, game, chunkManager, nullptr, false, true);
+                setObject(pl::Vector2<int>(x, y), objectSpawnType, game, chunkManager, nullptr, false, calledWhileGenerating);
             }
             else
             {
                 objectGrid[y][x] = nullptr;
             }
         }
-    }
-
-    if (spawnEntities)
-    {
-        spawnChunkEntities(chunkManager.getWorldSize(), heightNoise, biomeNoise, riverNoise, planetType);
     }
 }
 
@@ -404,7 +412,7 @@ const TileGenData* Chunk::getTileGenAtWorldTile(pl::Vector2<int> worldTile, int 
 }
 
 ObjectType Chunk::getRandomObjectToSpawnAtWorldTile(pl::Vector2<int> worldTile, int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise,
-    const FastNoise& riverNoise, RandInt& randGen, PlanetType planetType)
+    const FastNoise& riverNoise, RandInt& randGen, PlanetType planetType, float probabilityMult)
 {
     const TileGenData* tileGenData = getTileGenAtWorldTile(worldTile, worldSize, heightNoise, biomeNoise, riverNoise, planetType);
 
@@ -417,7 +425,7 @@ ObjectType Chunk::getRandomObjectToSpawnAtWorldTile(pl::Vector2<int> worldTile, 
     float randomSpawn = static_cast<float>(randGen.generate(0, 10000)) / 10000.0f;
     for (const ObjectGenData& objectGenData : biomeGenData->objectGenDatas)
     {
-        cumulativeChance += objectGenData.spawnChance;
+        cumulativeChance += objectGenData.spawnChance * probabilityMult;
 
         if (randomSpawn <= cumulativeChance)
         {
@@ -797,7 +805,7 @@ void Chunk::drawChunkWater(pl::RenderTarget& window, const Camera& camera, Chunk
     window.draw(waterVertices, *waterShader, waterTexture, pl::BlendMode::Alpha);
 }
 
-void Chunk::updateChunkObjects(Game& game, float dt, int worldSize, ChunkManager& chunkManager, PathfindingEngine& pathfindingEngine)
+void Chunk::updateChunkObjects(Game& game, float dt, float gameTime, int worldSize, ChunkManager& chunkManager, PathfindingEngine& pathfindingEngine)
 {
     for (int y = 0; y < objectGrid.size(); y++)
     {
@@ -818,6 +826,21 @@ void Chunk::updateChunkObjects(Game& game, float dt, int worldSize, ChunkManager
                 if (!object->isAlive())
                     deleteObject(pl::Vector2<int>(x, y), chunkManager, pathfindingEngine);
             }
+        }
+    }
+
+    // Regenerate resources
+    if (nextResourceRegenerationTime <= gameTime)
+    {
+        const BiomeGenData* biomeGenData = chunkManager.getChunkBiome(chunkPosition);
+
+        if (biomeGenData)
+        {
+            RandInt randGen(rand());
+            generateObjects(chunkManager.getHeightNoise(), chunkManager.getBiomeNoise(), chunkManager.getRiverNoise(),
+                chunkManager.getPlanetType(), randGen, game, chunkManager, false, biomeGenData->resourceRegenerationDensity);
+                    
+            nextResourceRegenerationTime = gameTime + Helper::randFloat(biomeGenData->resourceRegenerationTimeMin, biomeGenData->resourceRegenerationTimeMax);
         }
     }
 
@@ -1465,6 +1488,13 @@ void Chunk::loadFromChunkPOD(const ChunkPOD& pod, Game& game, ChunkManager& chun
 {
     generatedFromPOD = true;
     modified = pod.modified;
+    gameTimeCreated = (pod.gameTimeCreated >= 0.0f) ? pod.gameTimeCreated : game.getGameTime();
+
+    const BiomeGenData* biomeGenData = chunkManager.getChunkBiome(chunkPosition);
+    if (biomeGenData)
+    {
+        nextResourceRegenerationTime = gameTimeCreated + Helper::randFloat(biomeGenData->resourceRegenerationTimeMin, biomeGenData->resourceRegenerationTimeMax);
+    }
 
     groundTileGrid = pod.groundTileGrid;
     worldPosition = pl::Vector2f(chunkPosition.x * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED, chunkPosition.y * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED);

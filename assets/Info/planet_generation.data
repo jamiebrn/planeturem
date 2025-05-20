@@ -25,6 +25,8 @@
                     ],
                     "water-colour": [173, 152, 93],
                     "noise-range": [0, 0.3],
+                    "resource-regeneration-time": [60, 70],
+                    "resource-regeneration-density": 0.3,
                     "bosses-spawn-allowed": ["The Sand Serpent"]
                 },
                 {
@@ -57,7 +59,9 @@
                         ["Wood", 2, 1]
                     ],
                     "water-colour": [77, 155, 230],
-                    "noise-range": [0.3, 0.6]
+                    "noise-range": [0.3, 0.6],
+                    "resource-regeneration-time": [60, 80],
+                    "resource-regeneration-density": 0.4
                 },
                 {
                     "name": "Rocky",
@@ -79,7 +83,9 @@
                         ["Stone", 1, 4]
                     ],
                     "water-colour": [82, 113, 151],
-                    "noise-range": [0.6, 1]
+                    "noise-range": [0.6, 1],
+                    "resource-regeneration-time": [60, 70],
+                    "resource-regeneration-density": 0.3
                 }
             ],
             "water-texture-offset": [0, 0],
@@ -104,7 +110,9 @@
                     ],
                     "fish-catches": [],
                     "water-colour": [77, 155, 230],
-                    "noise-range": [0, 0.5]
+                    "noise-range": [0, 0.5],
+                    "resource-regeneration-time": [120, 140],
+                    "resource-regeneration-density": 0.2
                 },
                 {
                     "name": "Tundra",
@@ -122,7 +130,9 @@
                     ],
                     "fish-catches": [],
                     "water-colour": [77, 155, 230],
-                    "noise-range": [0.5, 1]
+                    "noise-range": [0.5, 1],
+                    "resource-regeneration-time": [60, 70],
+                    "resource-regeneration-density": 0.3
                 }
             ],
             "water-texture-offset": [0, 0],

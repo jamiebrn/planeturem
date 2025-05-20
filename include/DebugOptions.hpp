@@ -17,6 +17,8 @@ extern float godSpeedMultiplier;
 extern bool limitlessZoom;
 extern bool crazyAttack;
 
+extern float gameTimeMult;
+
 extern float lightPropMult;
 
 extern int colorWheelDivisions;

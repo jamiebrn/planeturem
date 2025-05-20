@@ -1,5 +1,6 @@
 #include "World/ChunkManager.hpp"
 #include "Network/NetworkHandler.hpp"
+#include "Game.hpp"
 
 void ChunkManager::setSeed(int seed)
 {
@@ -56,7 +57,7 @@ void ChunkManager::deleteAllChunks()
     chunkLastEntitySpawnTime.clear();
 }
 
-bool ChunkManager::updateChunks(Game& game, const std::vector<ChunkViewRange>& chunkViewRanges,
+bool ChunkManager::updateChunks(Game& game, float gameTime, const std::vector<ChunkViewRange>& chunkViewRanges,
     bool isClient, std::vector<ChunkPosition>* chunksToRequestFromHost)
 {
     // Chunk load/unload
@@ -135,7 +136,7 @@ bool ChunkManager::updateChunks(Game& game, const std::vector<ChunkViewRange>& c
         }
     
         // Generate new chunk if does not exist (only if host / solo)
-        generateChunk(chunkPos, game, true);
+        generateChunk(chunkPos, game, gameTime, true);
     }
 
     return hasModifiedChunks;
@@ -212,7 +213,7 @@ void ChunkManager::regenerateChunkWithStructureType(ChunkPosition chunk, Game& g
 
     if (!chunkPtr)
     {
-        storedChunks[chunk] = std::make_unique<Chunk>(chunk);
+        storedChunks[chunk] = std::make_unique<Chunk>(chunk, game.getGameTime());
         chunkPtr = storedChunks[chunk].get();
     }
 
@@ -294,11 +295,11 @@ Chunk* ChunkManager::getChunk(ChunkPosition chunk)
     return nullptr;
 }
 
-void ChunkManager::updateChunksObjects(Game& game, float dt)
+void ChunkManager::updateChunksObjects(Game& game, float dt, float gameTime)
 {
     for (auto& chunkPair : loadedChunks)
     {
-        chunkPair.second->updateChunkObjects(game, dt, worldSize, *this, pathfindingEngine);
+        chunkPair.second->updateChunkObjects(game, dt, gameTime, worldSize, *this, pathfindingEngine);
     }
 }
 
@@ -1154,7 +1155,7 @@ void ChunkManager::loadFromChunkPODs(const std::vector<ChunkPOD>& pods, Game& ga
 
     for (const ChunkPOD& pod : pods)
     {
-        std::unique_ptr<Chunk> chunk = std::make_unique<Chunk>(pod.chunkPosition);
+        std::unique_ptr<Chunk> chunk = std::make_unique<Chunk>(pod.chunkPosition, 0.0f);
         chunk->loadFromChunkPOD(pod, game, *this);
 
         storedChunks[pod.chunkPosition] = std::move(chunk);
@@ -1197,7 +1198,7 @@ void ChunkManager::setChunkData(const PacketDataChunkDatas::ChunkData& chunkData
     // Chunk does not exist - create blank chunk
     if (!chunkPtr)
     {
-        std::unique_ptr<Chunk> chunk = std::make_unique<Chunk>(chunkData.chunkPosition);
+        std::unique_ptr<Chunk> chunk = std::make_unique<Chunk>(chunkData.chunkPosition, 0.0f);
         chunkPtr = chunk.get();
         storedChunks[chunkData.chunkPosition] = std::move(chunk);
     }
@@ -1240,7 +1241,7 @@ ChunkPosition ChunkManager::findValidSpawnChunk(int waterlessAreaSize)
                     int wrappedY = (yArea % worldSize + worldSize) % worldSize;
 
                     // Generate minimal version of chunk (tile grid and structure) to check against
-                    Chunk chunk(ChunkPosition(wrappedX, wrappedY));
+                    Chunk chunk(ChunkPosition(wrappedX, wrappedY), 0);
                     chunk.generateTilesAndStructure(heightNoise, biomeNoise, riverNoise, planetType, *this);
 
                     // Check against chunk
@@ -1386,9 +1387,9 @@ std::unordered_map<std::string, int> ChunkManager::getNearbyCraftingStationLevel
 //     return position;
 // }
 
-Chunk* ChunkManager::generateChunk(const ChunkPosition& chunkPosition, Game& game, bool putInLoaded)
+Chunk* ChunkManager::generateChunk(const ChunkPosition& chunkPosition, Game& game, float gameTime, bool putInLoaded)
 {
-    std::unique_ptr<Chunk> chunk = std::make_unique<Chunk>(chunkPosition);
+    std::unique_ptr<Chunk> chunk = std::make_unique<Chunk>(chunkPosition, gameTime);
 
     // pl::Vector2f chunkWorldPos;
     // chunkWorldPos.x = chunkPosition.x * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;

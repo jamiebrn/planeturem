@@ -67,6 +67,10 @@ struct BiomeGenData
     float noiseRangeMin;
     float noiseRangeMax;
 
+    float resourceRegenerationTimeMin;
+    float resourceRegenerationTimeMax;
+    float resourceRegenerationDensity;
+
     std::unordered_set<std::string> bossesSpawnAllowedNames;
 };
 

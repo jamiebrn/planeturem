@@ -114,6 +114,12 @@ bool PlanetGenDataLoader::loadPlanet(nlohmann::ordered_json::iterator& planetDat
             biomeGenData.waterColor = pl::Color(255, 255, 255);
         }
 
+        auto resourceRegenTime = biomeIter->at("resource-regeneration-time");
+        biomeGenData.resourceRegenerationTimeMin = resourceRegenTime[0];
+        biomeGenData.resourceRegenerationTimeMax = resourceRegenTime[1];
+
+        biomeGenData.resourceRegenerationDensity = biomeIter->at("resource-regeneration-density");
+
         // Load biome tilemaps
         if (!biomeIter->contains("tiles"))
             return false;

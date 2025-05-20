@@ -1,6 +1,7 @@
 #include "Game.hpp"
 
 // CONSIDER: Landmarks will no longer work as "placedByThisPlayer" is not considered in chunk setObject
+// CONSIDER: Gametime not pausing in menu, can be exploited to farm chunk resource respawns (separate "gameTime" and "realGameTime")
 
 // FIX: Weather inconsistency (gametime)
 
@@ -188,6 +189,11 @@ void Game::run()
         nowTime = clock.now();
         float dt = std::chrono::duration_cast<std::chrono::microseconds>(nowTime - lastTime).count() / 1000000.0f;
         lastTime = nowTime;
+
+        #if (!RELEASE_BUILD)
+        dt *= DebugOptions::gameTimeMult;
+        #endif
+
         gameTime += dt;
 
         SteamAPI_RunCallbacks();
@@ -1040,7 +1046,7 @@ void Game::updateOnPlanet(float dt)
     {
         std::vector<ChunkPosition> chunksToRequestFromHost;
         
-        bool hasLoadedChunks = getChunkManager().updateChunks(*this, {camera.getChunkViewRange()}, networkHandler.isClient(), &chunksToRequestFromHost);
+        bool hasLoadedChunks = getChunkManager().updateChunks(*this, gameTime, {camera.getChunkViewRange()}, networkHandler.isClient(), &chunksToRequestFromHost);
         bool hasUnloadedChunks = getChunkManager().unloadChunksOutOfView({camera.getChunkViewRange()});
     
         if (networkHandler.isClient() && chunksToRequestFromHost.size() > 0)
@@ -1048,7 +1054,7 @@ void Game::updateOnPlanet(float dt)
             networkHandler.requestChunksFromHost(locationState.getPlanetType(), chunksToRequestFromHost);
         }
     
-        getChunkManager().updateChunksObjects(*this, dt);
+        getChunkManager().updateChunksObjects(*this, dt, gameTime);
         getChunkManager().updateChunksEntities(dt, getProjectileManager(), *this, networkHandler.isClient());
     
         // If modified chunks, force a lighting recalculation
@@ -1156,10 +1162,10 @@ void Game::updateActivePlanets(float dt)
 
         ChunkManager& chunkManager = getChunkManager(planetType);
 
-        bool hasLoadedChunks = chunkManager.updateChunks(*this, chunkViewRanges);
+        bool hasLoadedChunks = chunkManager.updateChunks(*this, gameTime, chunkViewRanges);
         bool hasUnloadedChunks = chunkManager.unloadChunksOutOfView(chunkViewRanges);
     
-        chunkManager.updateChunksObjects(*this, dt);
+        chunkManager.updateChunksObjects(*this, dt, gameTime);
         chunkManager.updateChunksEntities(dt, getProjectileManager(planetType), *this, false);
 
         // If modified chunks (and this player (host) is on this planet), force a lighting recalculation
@@ -1678,7 +1684,7 @@ void Game::updateInRoom(float dt, Room& room, bool inStructure)
     if (inStructure)
     {
         // Continue to update objects and entities in world
-        getChunkManager().updateChunksObjects(*this, dt);
+        getChunkManager().updateChunksObjects(*this, dt, networkHandler.isLobbyHostOrSolo() ? gameTime : 0);
         getChunkManager().updateChunksEntities(dt, getProjectileManager(), *this, networkHandler.isClient());
             
         weatherSystem.update(dt, gameTime, camera, getChunkManager());
@@ -2847,7 +2853,7 @@ ObjectReference Game::setupPlanetTravel(PlanetType planetType, const LocationSta
     playerChunkViewRange = playerChunkViewRange.copyAndCentre(placeRocketReference.chunk);
     
     // Update chunks at rocket position
-    getChunkManager(planetType).updateChunks(*this, {playerChunkViewRange});
+    getChunkManager(planetType).updateChunks(*this, gameTime, {playerChunkViewRange});
     
     // Place rocket
     buildObject(placeRocketReference.chunk, placeRocketReference.tile, rocketObjectType, planetType, false, false);
@@ -2926,7 +2932,7 @@ void Game::travelToPlanet(PlanetType planetType, ObjectReference newRocketObject
     
     if (gameState == GameState::OnPlanet && networkHandler.isLobbyHostOrSolo())
     {
-        getChunkManager().updateChunks(*this, {camera.getChunkViewRange()});
+        getChunkManager().updateChunks(*this, gameTime, {camera.getChunkViewRange()});
     }
     lightingTickTime = LIGHTING_TICK_TIME;
 
@@ -3215,7 +3221,7 @@ void Game::startNewGame(int seed)
 
     camera.instantUpdate(player.getPosition());
 
-    getChunkManager().updateChunks(*this, {camera.getChunkViewRange()});
+    getChunkManager().updateChunks(*this, gameTime, {camera.getChunkViewRange()});
     lightingTickTime = LIGHTING_TICK_TIME;
 
     worldMenuState = WorldMenuState::Main;
@@ -3393,7 +3399,7 @@ bool Game::loadGame(const SaveFileSummary& saveFileSummary)
         weatherSystem = WeatherSystem(gameTime, planetSeed + locationState.getPlanetType());
         weatherSystem.presimulateWeather(gameTime, camera, getChunkManager());
         
-        getChunkManager().updateChunks(*this, {camera.getChunkViewRange()});
+        getChunkManager().updateChunks(*this, gameTime, {camera.getChunkViewRange()});
 
         lightingTickTime = LIGHTING_TICK_TIME;
     }
@@ -4392,6 +4398,8 @@ void Game::drawDebugMenu(float dt)
         ImGui::SliderFloat("God Speed Multiplier", &DebugOptions::godSpeedMultiplier, 0.0f, 100.0f);
         ImGui::Checkbox("Limitless Zoom", &DebugOptions::limitlessZoom);
     }
+
+    ImGui::SliderFloat("Game Time Mult", &DebugOptions::gameTimeMult, 0.1f, 50.0f);
 
     ImGui::Checkbox("Crazy Attack", &DebugOptions::crazyAttack);
 

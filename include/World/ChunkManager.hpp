@@ -64,7 +64,7 @@ public:
 
     // Load chunks every frame
     // Returns true if any chunks loaded
-    bool updateChunks(Game& game, const std::vector<ChunkViewRange>& chunkViewRanges,
+    bool updateChunks(Game& game, float gameTime, const std::vector<ChunkViewRange>& chunkViewRanges,
             bool isClient = false, std::vector<ChunkPosition>* chunksToRequestFromHost = nullptr);
     
     bool unloadChunksOutOfView(const std::vector<ChunkViewRange>& chunkViewRanges);
@@ -129,7 +129,7 @@ public:
 
     // -- Objects -- //
     // Update objects in all chunks
-    void updateChunksObjects(Game& game, float dt);
+    void updateChunksObjects(Game& game, float dt, float gameTime);
 
     // Get object at certain world position
     // Returns actual object if object reference is at position requested
@@ -249,6 +249,7 @@ public:
     inline int getWorldSize() const {return worldSize;}
     inline const FastNoise& getBiomeNoise() const {return biomeNoise;}
     inline const FastNoise& getHeightNoise() const {return heightNoise;}
+    inline const FastNoise& getRiverNoise() const {return riverNoise;}
     inline PlanetType getPlanetType() const {return planetType;}
     inline const PathfindingEngine& getPathfindingEngine() const {return pathfindingEngine;}
 
@@ -282,6 +283,7 @@ private:
     // Generates a chunk and stores it
     Chunk* generateChunk(const ChunkPosition& chunkPosition,
                        Game& game,
+                       float gameTime,
                        bool putInLoaded = true);
 
     void clearUnmodifiedStoredChunks();
