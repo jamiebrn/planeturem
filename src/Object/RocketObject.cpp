@@ -2,7 +2,7 @@
 #include "Game.hpp"
 
 RocketObject::RocketObject(pl::Vector2f position, ObjectType objectType, bool flash)
-    : BuildableObject(position, objectType, flash)
+    : BuildableObject(position, objectType, true, flash)
 {
 
 }

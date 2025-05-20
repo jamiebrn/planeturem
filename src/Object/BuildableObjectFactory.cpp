@@ -20,7 +20,7 @@ std::unique_ptr<BuildableObject> create(pl::Vector2f position, ObjectType object
     }
 
     // Default case
-    return std::make_unique<BuildableObject>(position, objectType, placedByPlayer);
+    return std::make_unique<BuildableObject>(position, objectType, true, placedByPlayer);
 }
 
 #undef OBJECT_CREATE
