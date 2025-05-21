@@ -2,6 +2,8 @@
 
 // CONSIDER: Landmarks will no longer work as "placedByThisPlayer" is not considered in chunk setObject
 
+// FIX: Resource regeneration has no flash on client side (BuildableObjectPOD has no flash value)
+
 // FIX: Weather inconsistency (gametime)
 
 // FIX: Client enter structure
@@ -1053,7 +1055,7 @@ void Game::updateOnPlanet(float dt)
             networkHandler.requestChunksFromHost(locationState.getPlanetType(), chunksToRequestFromHost);
         }
     
-        getChunkManager().updateChunksObjects(*this, dt, gameTime);
+        getChunkManager().updateChunksObjects(*this, dt, networkHandler.isLobbyHostOrSolo() ? gameTime : 0.0f);
         getChunkManager().updateChunksEntities(dt, getProjectileManager(), *this, networkHandler.isClient());
     
         // If modified chunks, force a lighting recalculation
