@@ -1203,15 +1203,20 @@ void ChunkManager::setChunkData(const PacketDataChunkDatas::ChunkData& chunkData
 {
     Chunk* chunkPtr = getChunk(chunkData.chunkPosition);
 
+    bool newObjectFlash = true;
+
     // Chunk does not exist - create blank chunk
     if (!chunkPtr)
     {
         std::unique_ptr<Chunk> chunk = std::make_unique<Chunk>(chunkData.chunkPosition, 0.0f);
         chunkPtr = chunk.get();
         storedChunks[chunkData.chunkPosition] = std::move(chunk);
+
+        // Chunk data is new - objects are not "new" so don't flash
+        newObjectFlash = false;
     }
     
-    chunkPtr->loadFromChunkPOD(chunkData.createPOD(), game, *this);
+    chunkPtr->loadFromChunkPOD(chunkData.createPOD(), game, *this, newObjectFlash);
 
     std::unordered_map<uint64_t, ItemPickup> itemPickups = chunkData.itemPickupsRelative;
 

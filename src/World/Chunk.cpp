@@ -907,7 +907,8 @@ void Chunk::setObject(pl::Vector2<int> position, ObjectType objectType, Game& ga
     }
 
     // Set object in chunk
-    objectGrid[position.y][position.x] = BuildableObjectFactory::create(objectPos, objectType, &game, !calledWhileGenerating, false, &chunkManager);
+    objectGrid[position.y][position.x] = BuildableObjectFactory::create(objectPos, objectType, &game, !calledWhileGenerating, false, &chunkManager,
+        !calledWhileGenerating);
 
     // Create object reference objects if object is larger than one tile
     if (objectSize != pl::Vector2<int>(1, 1))
@@ -1490,7 +1491,7 @@ ChunkPOD Chunk::getChunkPOD(bool includeEntities)
     return pod;
 }
 
-void Chunk::loadFromChunkPOD(const ChunkPOD& pod, Game& game, ChunkManager& chunkManager)
+void Chunk::loadFromChunkPOD(const ChunkPOD& pod, Game& game, ChunkManager& chunkManager, bool newObjectFlash)
 {
     generatedFromPOD = true;
     modified = pod.modified;
@@ -1516,7 +1517,8 @@ void Chunk::loadFromChunkPOD(const ChunkPOD& pod, Game& game, ChunkManager& chun
                 objectPos.x = worldPosition.x + (x + 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
                 objectPos.y = worldPosition.y + (y + 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
 
-                std::unique_ptr<BuildableObject> object = BuildableObjectFactory::create(objectPos, objectPOD->objectType, &game, false, false, &chunkManager);
+                std::unique_ptr<BuildableObject> object = BuildableObjectFactory::create(objectPos, objectPOD->objectType, &game, false, false, &chunkManager,
+                    newObjectFlash);
 
                 object->loadFromPOD(objectPOD.value());
 
@@ -1549,55 +1551,55 @@ bool Chunk::wasGeneratedFromPOD()
     return generatedFromPOD;
 }
 
-void Chunk::setWorldPosition(pl::Vector2f position, ChunkManager& chunkManager)
-{
-    // Update all entity positions
-    for (auto& entity : entities)
-    {
-        // Get position relative to chunk before updating chunk position
-        pl::Vector2f relativePosition = entity->getPosition() - worldPosition;
-        // Set entity position to new chunk position + relative
-        entity->setWorldPosition(position + relativePosition);
-    }
+// void Chunk::setWorldPosition(pl::Vector2f position, ChunkManager& chunkManager)
+// {
+//     // Update all entity positions
+//     for (auto& entity : entities)
+//     {
+//         // Get position relative to chunk before updating chunk position
+//         pl::Vector2f relativePosition = entity->getPosition() - worldPosition;
+//         // Set entity position to new chunk position + relative
+//         entity->setWorldPosition(position + relativePosition);
+//     }
 
-    // Update all item pickup positions
-    for (auto& itemPickup : itemPickups)
-    {
-        // Get position relative to chunk before updating chunk position
-        pl::Vector2f relativePosition = itemPickup.second.getPosition() - worldPosition;
-        // Set entity position to new chunk position + relative
-        itemPickup.second.setPosition(position + relativePosition);
-    }
+//     // Update all item pickup positions
+//     for (auto& itemPickup : itemPickups)
+//     {
+//         // Get position relative to chunk before updating chunk position
+//         pl::Vector2f relativePosition = itemPickup.second.getPosition() - worldPosition;
+//         // Set entity position to new chunk position + relative
+//         itemPickup.second.setPosition(position + relativePosition);
+//     }
 
-    // Update structure position if necessary
-    if (structureObject.has_value())
-    {
-        pl::Vector2f relativePosition = structureObject->getPosition() - worldPosition;
-        structureObject->setWorldPosition(position + relativePosition);
-    }
+//     // Update structure position if necessary
+//     if (structureObject.has_value())
+//     {
+//         pl::Vector2f relativePosition = structureObject->getPosition() - worldPosition;
+//         structureObject->setWorldPosition(position + relativePosition);
+//     }
 
-    worldPosition = position;
+//     worldPosition = position;
 
-    // float tileSize = ResolutionHandler::getTileSize();
+//     // float tileSize = ResolutionHandler::getTileSize();
 
-    // Update all object positions
-    // for (int y = 0; y < objectGrid.size(); y++)
-    // {
-    //     for (int x = 0; x < objectGrid[0].size(); x++)
-    //     {
-    //         // If no object at position, don't update position
-    //         if (!objectGrid[y][x])
-    //             continue;
+//     // Update all object positions
+//     // for (int y = 0; y < objectGrid.size(); y++)
+//     // {
+//     //     for (int x = 0; x < objectGrid[0].size(); x++)
+//     //     {
+//     //         // If no object at position, don't update position
+//     //         if (!objectGrid[y][x])
+//     //             continue;
             
-    //         // Calculate updated object position
-    //         pl::Vector2f objectPos = worldPosition + pl::Vector2f(x * TILE_SIZE_PIXELS_UNSCALED + TILE_SIZE_PIXELS_UNSCALED / 2.0f, y * TILE_SIZE_PIXELS_UNSCALED + TILE_SIZE_PIXELS_UNSCALED / 2.0f);
+//     //         // Calculate updated object position
+//     //         pl::Vector2f objectPos = worldPosition + pl::Vector2f(x * TILE_SIZE_PIXELS_UNSCALED + TILE_SIZE_PIXELS_UNSCALED / 2.0f, y * TILE_SIZE_PIXELS_UNSCALED + TILE_SIZE_PIXELS_UNSCALED / 2.0f);
 
-    //         objectGrid[y][x]->setWorldPosition(objectPos);
-    //     }
-    // }
+//     //         objectGrid[y][x]->setWorldPosition(objectPos);
+//     //     }
+//     // }
 
-    recalculateCollisionRects(chunkManager, nullptr);
-}
+//     recalculateCollisionRects(chunkManager, nullptr);
+// }
 
 pl::Vector2f Chunk::getWorldPosition()
 {

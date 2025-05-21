@@ -17,6 +17,6 @@ namespace BuildableObjectFactory
 {
 
 std::unique_ptr<BuildableObject> create(pl::Vector2f position, ObjectType objectType, Game* game = nullptr, bool placedByPlayer = false,
-    bool placedByThisPlayer = false, ChunkManager* chunkManager = nullptr);
+    bool placedByThisPlayer = false, ChunkManager* chunkManager = nullptr, bool flash = false);
 
 }

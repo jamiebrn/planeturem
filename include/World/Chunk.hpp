@@ -218,12 +218,12 @@ public:
 
     // Save / load
     ChunkPOD getChunkPOD(bool includeEntities = true);
-    void loadFromChunkPOD(const ChunkPOD& pod, Game& game, ChunkManager& chunkManager);
+    void loadFromChunkPOD(const ChunkPOD& pod, Game& game, ChunkManager& chunkManager, bool newObjectFlash = false);
     bool wasGeneratedFromPOD();
     
 
     // Misc
-    void setWorldPosition(pl::Vector2f position, ChunkManager& chunkManager);
+    // void setWorldPosition(pl::Vector2f position, ChunkManager& chunkManager);
     pl::Vector2f getWorldPosition();
 
     bool getContainsWater();
