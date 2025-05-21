@@ -128,8 +128,10 @@ public:
 
 
     // -- Objects -- //
+    
     // Update objects in all chunks
-    void updateChunksObjects(Game& game, float dt, float gameTime);
+    // Returns all chunks modified (resources regenerated)
+    std::vector<ChunkPosition> updateChunksObjects(Game& game, float dt, float gameTime);
 
     // Get object at certain world position
     // Returns actual object if object reference is at position requested

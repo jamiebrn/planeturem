@@ -805,7 +805,7 @@ void Chunk::drawChunkWater(pl::RenderTarget& window, const Camera& camera, Chunk
     window.draw(waterVertices, *waterShader, waterTexture, pl::BlendMode::Alpha);
 }
 
-void Chunk::updateChunkObjects(Game& game, float dt, float gameTime, int worldSize, ChunkManager& chunkManager, PathfindingEngine& pathfindingEngine)
+bool Chunk::updateChunkObjects(Game& game, float dt, float gameTime, int worldSize, ChunkManager& chunkManager, PathfindingEngine& pathfindingEngine)
 {
     for (int y = 0; y < objectGrid.size(); y++)
     {
@@ -842,7 +842,12 @@ void Chunk::updateChunkObjects(Game& game, float dt, float gameTime, int worldSi
                     
             nextResourceRegenerationTime = gameTime + Helper::randFloat(biomeGenData->resourceRegenerationTimeMin, biomeGenData->resourceRegenerationTimeMax);
         }
+
+        // Resources regenerated, chunk modified
+        return true;
     }
+
+    return false;
 
     // recalculateCollisionRects(chunkManager);
 }
@@ -1448,6 +1453,7 @@ ChunkPOD Chunk::getChunkPOD(bool includeEntities)
     pod.chunkPosition = chunkPosition;
     pod.groundTileGrid = groundTileGrid;
     pod.modified = modified;
+    pod.gameTimeCreated = gameTimeCreated;
 
     for (int y = 0; y < 8; y++)
     {

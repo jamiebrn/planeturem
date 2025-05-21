@@ -1164,10 +1164,28 @@ void Game::updateActivePlanets(float dt)
         bool hasLoadedChunks = chunkManager.updateChunks(*this, gameTime, chunkViewRanges);
         bool hasUnloadedChunks = chunkManager.unloadChunksOutOfView(chunkViewRanges);
     
-        chunkManager.updateChunksObjects(*this, dt, gameTime);
+        std::vector<ChunkPosition> chunksModified = chunkManager.updateChunksObjects(*this, dt, gameTime);
+
+        // If any chunks modified while updating objects (resources regenerated), alert clients of update
+        if (chunksModified.size() > 0)
+        {
+            std::unordered_map<uint64_t, NetworkPlayer*> networkPlayers = networkHandler.getNetworkPlayersAtLocation(LocationState::createFromPlanetType(planetType));
+
+            PacketDataChunkModifiedAlerts packetData;
+            packetData.planetType = planetType;
+            packetData.chunkRequests = chunksModified;
+            Packet packet;
+            packet.set(packetData);
+
+            for (auto client : networkPlayers)
+            {
+                networkHandler.sendPacketToClient(client.first, packet, k_nSteamNetworkingSend_Reliable, 0);
+            }
+        }
+
         chunkManager.updateChunksEntities(dt, getProjectileManager(planetType), *this, false);
 
-        // If modified chunks (and this player (host) is on this planet), force a lighting recalculation
+        // If chunks loaded / unloaded (and this player (host) is on this planet), force a lighting recalculation
         if (locationState.getPlanetType() == planetType && (hasLoadedChunks || hasUnloadedChunks))
         {
             lightingTickTime = LIGHTING_TICK_TIME;

@@ -22,6 +22,7 @@
 #include "Network/PacketData/PacketDataWorld/PacketDataChestDataModified.hpp"
 #include "Network/PacketData/PacketDataWorld/PacketDataChunkDatas.hpp"
 #include "Network/PacketData/PacketDataWorld/PacketDataChunkRequests.hpp"
+#include "Network/PacketData/PacketDataWorld/PacketDataChunkModifiedAlerts.hpp"
 #include "Network/PacketData/PacketDataWorld/PacketDataEntities.hpp"
 #include "Network/PacketData/PacketDataWorld/PacketDataProjectiles.hpp"
 #include "Network/PacketData/PacketDataWorld/PacketDataProjectileCreateRequest.hpp"

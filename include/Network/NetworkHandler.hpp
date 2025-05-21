@@ -50,7 +50,7 @@ public:
     EResult sendPacketToClient(uint64_t steamID, const Packet& packet, int nSendFlags, int nRemoteChannel);
     EResult sendPacketToHost(const Packet& packet, int nSendFlags, int nRemoteChannel);
     
-    void requestChunksFromHost(PlanetType planetType, std::vector<ChunkPosition>& chunks);
+    void requestChunksFromHost(PlanetType planetType, std::vector<ChunkPosition>& chunks, bool forceRequest = false);
 
     void queueSendPlayerData();
     void sendPlayerData();
@@ -69,6 +69,7 @@ public:
     std::unordered_map<uint64_t, NetworkPlayer>& getNetworkPlayers();
 
     std::vector<Player*> getPlayersAtLocation(const LocationState& locationState, Player* thisPlayer);
+    std::unordered_map<uint64_t, NetworkPlayer*> getNetworkPlayersAtLocation(const LocationState& locationState);
 
     std::vector<WorldObject*> getNetworkPlayersToDraw(const Camera& camera, const LocationState& locationState, pl::Vector2f playerPosition, float gameTime);
 
@@ -101,6 +102,7 @@ private:
     void deleteNetworkPlayer(uint64_t id, ChatGUI* chatGUI);
 
     void handleChunkDatasFromHost(const PacketDataChunkDatas& chunkDatas);
+    void handleChunkModifiedAlertsFromHost(const PacketDataChunkModifiedAlerts& chunkModifiedAlerts);
 
     void sendPlayerDataToHost();
     void sendHostPlayerDataToClients();

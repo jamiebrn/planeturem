@@ -195,6 +195,24 @@ std::vector<Player*> NetworkHandler::getPlayersAtLocation(const LocationState& l
     return players;
 }
 
+std::unordered_map<uint64_t, NetworkPlayer*> NetworkHandler::getNetworkPlayersAtLocation(const LocationState& locationState)
+{
+    std::unordered_map<uint64_t, NetworkPlayer*> networkPlayersAtLocation;
+    
+    for (auto iter = networkPlayers.begin(); iter != networkPlayers.end(); iter++)
+    {
+        // Not in same location as player
+        if (iter->second.getPlayerData().locationState != locationState)
+        {
+            continue;
+        }
+    
+        networkPlayersAtLocation[iter->first] = &iter->second;
+    }
+    
+    return networkPlayersAtLocation;
+}
+
 std::vector<WorldObject*> NetworkHandler::getNetworkPlayersToDraw(const Camera& camera, const LocationState& locationState, pl::Vector2f playerPosition, float gameTime)
 {
     std::vector<WorldObject*> networkPlayerObjects;
@@ -1066,6 +1084,18 @@ void NetworkHandler::processMessageAsClient(const SteamNetworkingMessage_t& mess
             handleChunkDatasFromHost(packetData);
             break;
         }
+        case PacketType::ChunkModifiedAlerts:
+        {
+            PacketDataChunkModifiedAlerts packetData;
+            packetData.deserialise(packet.data);
+            if (game->getLocationState().getPlanetType() != packetData.planetType)
+            {
+                printf("ERROR: Received chunk modified alert for incorrect planet type %d\n", packetData.planetType);
+                break;
+            }
+            handleChunkModifiedAlertsFromHost(packetData);
+            break;
+        }
         case PacketType::Entities:
         {
             PacketDataEntities packetData;
@@ -1338,7 +1368,7 @@ EResult NetworkHandler::sendPacketToHost(const Packet& packet, int nSendFlags, i
     return packet.sendToUser(hostIdentity, nSendFlags, nRemoteChannel);
 }
 
-void NetworkHandler::requestChunksFromHost(PlanetType planetType, std::vector<ChunkPosition>& chunks)
+void NetworkHandler::requestChunksFromHost(PlanetType planetType, std::vector<ChunkPosition>& chunks, bool forceRequest)
 {
     if (!multiplayerGame || isLobbyHost)
     {
@@ -1356,7 +1386,7 @@ void NetworkHandler::requestChunksFromHost(PlanetType planetType, std::vector<Ch
             // Reset time and request again
             chunkRequestsOutstanding[*iter] = game->getGameTime();
         }
-        else
+        else if (!forceRequest)
         {
             // Chunk is still being requested - do not request again (yet)
             iter = chunks.erase(iter);
@@ -1437,6 +1467,23 @@ void NetworkHandler::handleChunkDatasFromHost(const PacketDataChunkDatas& chunkD
             chunkRequestsOutstanding.erase(chunkData.chunkPosition);
         }
     }
+}
+
+void NetworkHandler::handleChunkModifiedAlertsFromHost(const PacketDataChunkModifiedAlerts& chunkModifiedAlerts)
+{
+    std::vector<ChunkPosition> chunksToRequest;
+
+    // Only request chunks from host if already generated (as modification to chunk does not concern us if we do not already have it in memory)
+    for (ChunkPosition chunkPosition : chunkModifiedAlerts.chunkRequests)
+    {
+        if (game->getChunkManager().isChunkGenerated(chunkPosition))
+        {
+            chunksToRequest.push_back(chunkPosition);
+        }
+    }
+
+    // Force request (ignore cooldown as host has alerted modification of chunks)
+    requestChunksFromHost(chunkModifiedAlerts.planetType, chunksToRequest, true);
 }
 
 void NetworkHandler::sendPlayerData()

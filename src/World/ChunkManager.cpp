@@ -295,12 +295,20 @@ Chunk* ChunkManager::getChunk(ChunkPosition chunk)
     return nullptr;
 }
 
-void ChunkManager::updateChunksObjects(Game& game, float dt, float gameTime)
+std::vector<ChunkPosition> ChunkManager::updateChunksObjects(Game& game, float dt, float gameTime)
 {
+    std::vector<ChunkPosition> chunksModified;
+
     for (auto& chunkPair : loadedChunks)
     {
-        chunkPair.second->updateChunkObjects(game, dt, gameTime, worldSize, *this, pathfindingEngine);
+        bool modified = chunkPair.second->updateChunkObjects(game, dt, gameTime, worldSize, *this, pathfindingEngine);
+        if (modified)
+        {
+            chunksModified.push_back(chunkPair.first);
+        }
     }
+
+    return chunksModified;
 }
 
 TileMap* ChunkManager::getChunkTileMap(ChunkPosition chunk, int tileMap)

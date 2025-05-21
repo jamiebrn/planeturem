@@ -128,8 +128,10 @@ public:
 
 
     // -- Object handling -- //
+
     // Update all objects
-    void updateChunkObjects(Game& game, float dt, float gameTime, int worldSize, ChunkManager& chunkManager, PathfindingEngine& pathfindingEngine);
+    // Returns true if modified (resources regenerated)
+    bool updateChunkObjects(Game& game, float dt, float gameTime, int worldSize, ChunkManager& chunkManager, PathfindingEngine& pathfindingEngine);
     
     // Get object (optional) at position
     template <class T = BuildableObject>
