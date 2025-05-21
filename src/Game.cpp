@@ -1,7 +1,6 @@
 #include "Game.hpp"
 
 // CONSIDER: Landmarks will no longer work as "placedByThisPlayer" is not considered in chunk setObject
-// CONSIDER: Gametime not pausing in menu, can be exploited to farm chunk resource respawns (separate "gameTime" and "realGameTime")
 
 // FIX: Weather inconsistency (gametime)
 
@@ -194,7 +193,7 @@ void Game::run()
         dt *= DebugOptions::gameTimeMult;
         #endif
 
-        gameTime += dt;
+        applicationTime += dt;
 
         SteamAPI_RunCallbacks();
 
@@ -278,7 +277,7 @@ void Game::runMainMenu(float dt)
 
     window.clear(pl::Color(0, 0, 0, 255));
 
-    std::optional<MainMenuEvent> menuEvent = mainMenuGUI.createAndDraw(window, spriteBatch, *this, dt, gameTime);
+    std::optional<MainMenuEvent> menuEvent = mainMenuGUI.createAndDraw(window, spriteBatch, *this, dt, applicationTime);
 
     spriteBatch.endDrawing(window);
 
@@ -682,7 +681,7 @@ void Game::runInGame(float dt)
 
     if (worldMenuState != WorldMenuState::PauseMenu || (networkHandler.isMultiplayerGame() && networkHandler.getNetworkPlayerCount() > 0))
     {
-        saveSessionPlayTime += dt;
+        gameTime += dt;
 
         updateMusic(dt);
 
@@ -951,7 +950,7 @@ void Game::runInGame(float dt)
 
     if (worldMenuState == WorldMenuState::PauseMenu)
     {
-        std::optional<PauseMenuEventType> pauseMenuEvent = mainMenuGUI.createAndDrawPauseMenu(window, dt, gameTime, steamInitialised, networkHandler.getLobbyID());
+        std::optional<PauseMenuEventType> pauseMenuEvent = mainMenuGUI.createAndDrawPauseMenu(window, dt, applicationTime, steamInitialised, networkHandler.getLobbyID());
 
         if (pauseMenuEvent.has_value())
         {
@@ -3207,7 +3206,7 @@ void Game::startNewGame(int seed)
     dayCycleManager.setCurrentTime(dayCycleManager.getDayLength() * 0.5f);
     dayCycleManager.setCurrentDay(1);
 
-    saveSessionPlayTime = 0.0f;
+    gameTime = 0.0f;
 
     getBossManager().clearBosses();
     getProjectileManager().clear();
@@ -3258,8 +3257,7 @@ bool Game::saveGame()
     std::unordered_set<RoomType> activeRoomDests = networkHandler.getPlayersRoomDestTypeSet(locationState.getRoomDestType());
 
     // Add play time
-    currentSaveFileSummary.timePlayed += std::round(saveSessionPlayTime);
-    saveSessionPlayTime = 0.0f;
+    currentSaveFileSummary.timePlayed += std::round(gameTime);
     playerGameSave.timePlayed = currentSaveFileSummary.timePlayed;
     
     io.writePlayerSave(playerGameSave);
@@ -3436,7 +3434,7 @@ bool Game::loadGame(const SaveFileSummary& saveFileSummary)
     currentSaveFileSummary.playerName = playerGameSave.playerData.name;
     startChangeStateTransition(nextGameState);
 
-    saveSessionPlayTime = 0.0f;
+    gameTime = 0.0f;
 
     // Fade out previous music
     Sounds::stopMusic(0.3f);

@@ -357,7 +357,7 @@ private:
     pl::Image icon;
 
     SaveFileSummary currentSaveFileSummary;
-    float saveSessionPlayTime;
+    // float saveSessionPlayTime;
 
     pl::SpriteBatch spriteBatch;
     pl::Framebuffer worldTexture;
@@ -365,6 +365,7 @@ private:
     bool steamInitialised;
 
     float gameTime;
+    float applicationTime;
 
     bool isDay;
 

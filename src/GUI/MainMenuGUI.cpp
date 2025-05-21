@@ -54,7 +54,7 @@ void MainMenuGUI::update(float dt, pl::Vector2f mouseScreenPos, Game& game)
     menuWorldData.chunkManager.updateChunksEntities(dt, menuWorldData.projectileManager, game, false);
 }
 
-std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, float dt, float gameTime)
+std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, float dt, float applicationTime)
 {
     float intScale = ResolutionHandler::getResolutionIntegerScale();
     pl::Vector2f resolution = static_cast<pl::Vector2f>(ResolutionHandler::getResolution());
@@ -82,7 +82,7 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(pl::RenderTarget& window
     titleDrawData.texture = TextureManager::getTexture(TextureType::UI);
     titleDrawData.shader = Shaders::getShader(ShaderType::Default);
     titleDrawData.scale = pl::Vector2f(3, 3) * intScale;
-    titleDrawData.position = pl::Vector2f(scaledPanelPaddingX + panelWidth / 2 * intScale, std::round((140 + std::sin(gameTime) * 20) * intScale));
+    titleDrawData.position = pl::Vector2f(scaledPanelPaddingX + panelWidth / 2 * intScale, std::round((140 + std::sin(applicationTime) * 20) * intScale));
     titleDrawData.centerRatio = pl::Vector2f(0.5f, 0.5f);
     titleDrawData.textureRect = pl::Rect<int>(21, 160, 212, 32);
 
@@ -608,7 +608,7 @@ bool MainMenuGUI::createOptionsMenu(pl::RenderTarget& window, int startElementYP
     return false;
 }
 
-std::optional<PauseMenuEventType> MainMenuGUI::createAndDrawPauseMenu(pl::RenderTarget& window, float dt, float gameTime, bool steamInitialised,
+std::optional<PauseMenuEventType> MainMenuGUI::createAndDrawPauseMenu(pl::RenderTarget& window, float dt, float applicationTime, bool steamInitialised,
     std::optional<uint64_t> lobbyId)
 {
     float intScale = ResolutionHandler::getResolutionIntegerScale();
@@ -623,7 +623,7 @@ std::optional<PauseMenuEventType> MainMenuGUI::createAndDrawPauseMenu(pl::Render
     titleDrawData.texture = TextureManager::getTexture(TextureType::UI);
     titleDrawData.shader = Shaders::getShader(ShaderType::Default);
     titleDrawData.scale = pl::Vector2f(3, 3) * intScale;
-    titleDrawData.position = pl::Vector2f(scaledPanelPaddingX + panelWidth / 2 * intScale, std::round((140 + std::sin(gameTime) * 20) * intScale));
+    titleDrawData.position = pl::Vector2f(scaledPanelPaddingX + panelWidth / 2 * intScale, std::round((140 + std::sin(applicationTime) * 20) * intScale));
     titleDrawData.centerRatio = pl::Vector2f(0.5f, 0.5f);
     titleDrawData.textureRect = pl::Rect<int>(21, 160, 212, 32);
 

@@ -85,11 +85,11 @@ public:
 
     void update(float dt, pl::Vector2f mouseScreenPos, Game& game);
 
-    std::optional<MainMenuEvent> createAndDraw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, float dt, float gameTime);
+    std::optional<MainMenuEvent> createAndDraw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, float dt, float applicationTime);
 
     void setMainMenuJoinGame();
 
-    std::optional<PauseMenuEventType> createAndDrawPauseMenu(pl::RenderTarget& window, float dt, float gameTime, bool steamInitialised, std::optional<uint64_t> lobbyId);
+    std::optional<PauseMenuEventType> createAndDrawPauseMenu(pl::RenderTarget& window, float dt, float applicationTime, bool steamInitialised, std::optional<uint64_t> lobbyId);
 
     void setCanInteract(bool value);
 
