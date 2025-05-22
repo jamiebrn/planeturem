@@ -2990,7 +2990,7 @@ void Game::travelToPlanet(PlanetType planetType, ObjectReference newRocketObject
     {
         PacketDataChatMessage chatMessage;
         const PlanetGenData& planetData = PlanetGenDataLoader::getPlanetGenData(locationState.getPlanetType());
-        chatMessage.message = currentSaveFileSummary.playerName + " has travelled to planet \"" + planetData.displayName + "\"";
+        chatMessage.message = currentSaveFileSummary.playerName + " has travelled to planet " + planetData.displayName;
         chatGUI.sendMessageData(networkHandler, chatMessage);
     }
 }
@@ -3073,7 +3073,7 @@ void Game::travelToRoomDestination(RoomType destinationRoomType)
     {
         PacketDataChatMessage chatMessage;
         const RoomData& roomData = StructureDataLoader::getRoomData(locationState.getRoomDestType());
-        chatMessage.message = currentSaveFileSummary.playerName + " has travelled to planet \"" + roomData.displayName + "\"";
+        chatMessage.message = currentSaveFileSummary.playerName + " has travelled to " + roomData.displayName;
         chatGUI.sendMessageData(networkHandler, chatMessage);
     }
 }
