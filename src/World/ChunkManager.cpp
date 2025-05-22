@@ -557,7 +557,7 @@ void ChunkManager::setObject(ChunkPosition chunk, pl::Vector2<int> tile, ObjectT
     chunkPtr->setObject(tile, objectType, game, *this, &pathfindingEngine, parameters);
 }
 
-void ChunkManager::deleteObject(ChunkPosition chunk, pl::Vector2<int> tile)
+void ChunkManager::deleteObject(ChunkPosition chunk, pl::Vector2<int> tile, Game& game, bool dropItems)
 {
     // Chunk does not exist
     Chunk* chunkPtr = getChunk(chunk);
@@ -566,7 +566,7 @@ void ChunkManager::deleteObject(ChunkPosition chunk, pl::Vector2<int> tile)
         return;
     }
     
-    chunkPtr->deleteObject(tile, *this, pathfindingEngine);
+    chunkPtr->deleteObject(tile, game, *this, pathfindingEngine, dropItems);
 }
 
 void ChunkManager::deleteSingleObject(ChunkPosition chunk, pl::Vector2<int> tile)
@@ -626,14 +626,14 @@ bool ChunkManager::canPlaceObject(ChunkPosition chunk, pl::Vector2<int> tile, Ob
                 int wrappedX = (x % worldSize + worldSize) % worldSize;
                 int wrappedY = (y % worldSize + worldSize) % worldSize;
 
-                // FIX: May have to check entities in stored chunks as well
-
                 // If chunk does not exist, do not attempt to check collision
-                if (loadedChunks.count(ChunkPosition(wrappedX, wrappedY)) <= 0)
-                    continue;
-                
-                if (loadedChunks[ChunkPosition(wrappedX, wrappedY)]->isCollisionRectCollidingWithEntities(objectCollisionRect, worldSize))
-                    return false;
+                if (Chunk* chunkPtr = getChunk(ChunkPosition(wrappedX, wrappedY)))
+                {
+                    if (chunkPtr->isCollisionRectCollidingWithEntities(objectCollisionRect, worldSize))
+                    {
+                        return false;
+                    }
+                }
             }
         }
     }

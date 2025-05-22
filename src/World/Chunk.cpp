@@ -842,7 +842,7 @@ bool Chunk::updateChunkObjects(Game& game, float dt, float gameTime, int worldSi
                 
                 object->update(game, dt, onWater);
                 if (!object->isAlive())
-                    deleteObject(pl::Vector2<int>(x, y), chunkManager, pathfindingEngine);
+                    deleteObject(pl::Vector2<int>(x, y), game, chunkManager, pathfindingEngine);
             }
         }
     }
@@ -927,6 +927,12 @@ void Chunk::setObject(pl::Vector2<int> position, ObjectType objectType, Game& ga
         objectSize = ObjectDataLoader::getObjectData(objectType).size;
     }
 
+    // Object present - destroy and drop items
+    if (BuildableObject* currentObject = chunkManager.getChunkObject(chunkPosition, position))
+    {
+        chunkManager.deleteObject(currentObject->getChunkInside(chunkManager.getWorldSize()), currentObject->getChunkTileInside(chunkManager.getWorldSize()), game, true);
+    }
+
     // Set object in chunk
     objectGrid[position.y][position.x] = BuildableObjectFactory::create(objectPos, objectType, parameters, &game, &chunkManager);
 
@@ -948,6 +954,14 @@ void Chunk::setObject(pl::Vector2<int> position, ObjectType objectType, Game& ga
                 }
 
                 auto chunkTile = ChunkManager::getChunkTileFromOffset(chunkPosition, position, x, y, chunkManager.getWorldSize());
+
+                // Object present - destroy and drop items
+                if (BuildableObject* currentObject = chunkManager.getChunkObject(chunkTile.first, chunkTile.second))
+                {
+                    chunkManager.deleteObject(currentObject->getChunkInside(chunkManager.getWorldSize()),
+                        currentObject->getChunkTileInside(chunkManager.getWorldSize()), game, true);
+                }
+
                 chunkManager.setObjectReference(chunkTile.first, objectReference, chunkTile.second);
             }
         }
@@ -959,7 +973,7 @@ void Chunk::setObject(pl::Vector2<int> position, ObjectType objectType, Game& ga
     }
 }
 
-void Chunk::deleteObject(pl::Vector2<int> position, ChunkManager& chunkManager, PathfindingEngine& pathfindingEngine)
+void Chunk::deleteObject(pl::Vector2<int> position, Game& game, ChunkManager& chunkManager, PathfindingEngine& pathfindingEngine, bool dropItems)
 {
     BuildableObject* object = objectGrid[position.y][position.x].get();
     if (!object)
@@ -977,6 +991,12 @@ void Chunk::deleteObject(pl::Vector2<int> position, ChunkManager& chunkManager, 
     {
         const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
         objectSize = objectData.size;
+    }
+
+    // Drop items if required
+    if (dropItems)
+    {
+        object->forceKill(game, chunkManager);
     }
 
     // Object is single tile

@@ -144,7 +144,7 @@ public:
 
     // Deletes object in chunk at tile
     // Deletes object references if required
-    void deleteObject(ChunkPosition chunk, pl::Vector2<int> tile);
+    void deleteObject(ChunkPosition chunk, pl::Vector2<int> tile, Game& game, bool dropItems = false);
 
     // Deletes single object (does not delete object references)
     // Used in deleteObject function

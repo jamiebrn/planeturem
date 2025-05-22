@@ -143,7 +143,7 @@ public:
         const BuildableObjectCreateParameters& parameters, bool recalculateCollision = true);
 
     // Deletes object (including object references if size > (1, 1), across chunks)
-    void deleteObject(pl::Vector2<int> position, ChunkManager& chunkManager, PathfindingEngine& pathfindingEngine);
+    void deleteObject(pl::Vector2<int> position, Game& game, ChunkManager& chunkManager, PathfindingEngine& pathfindingEngine, bool dropItems = false);
 
     // Delete single object (not reference)
     void deleteSingleObject(pl::Vector2<int> position, ChunkManager& chunkManager, PathfindingEngine& pathfindingEngine);

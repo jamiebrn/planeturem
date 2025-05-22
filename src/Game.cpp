@@ -2,6 +2,8 @@
 
 // CONSIDER: Landmarks will no longer work as "placedByThisPlayer" is not considered in chunk setObject
 
+// FIX: Placement of objects with collision when colliding with network players
+
 // FIX: Weather inconsistency (gametime)
 
 // FIX: Client enter structure
@@ -1921,7 +1923,7 @@ void Game::hitObject(ChunkPosition chunk, pl::Vector2<int> tile, int damage, std
     {
         // Only drop items if playing solo or is host of lobby
         // In multiplayer, host handles creation of all pickups and alerts clients of new pickups
-        bool destroyed = selectedObject->damage(damage, *this, getChunkManager(planetType), particleSystem, networkHandler.isLobbyHostOrSolo());
+        bool destroyed = selectedObject->damage(damage, *this, getChunkManager(planetType), &particleSystem, networkHandler.isLobbyHostOrSolo());
 
         // Alert network players if host
         if (networkHandler.getIsLobbyHost())
@@ -2087,7 +2089,7 @@ void Game::destroyObjectFromHost(ChunkPosition chunk, pl::Vector2<int> tile, std
         return;
     }
 
-    getChunkManager(planetType).deleteObject(chunk, tile);
+    getChunkManager(planetType).deleteObject(chunk, tile, *this);
 }
 
 // TODO: Use client melee data / location state
@@ -2805,7 +2807,7 @@ void Game::deleteObjectSynced(ObjectReference objectReference, PlanetType planet
         return;
     }
 
-    getChunkManager(planetType).deleteObject(objectReference.chunk, objectReference.tile);
+    getChunkManager(planetType).deleteObject(objectReference.chunk, objectReference.tile, *this, true);
 
     // Alert clients if required
     if (!networkHandler.isMultiplayerGame())

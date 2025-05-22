@@ -44,9 +44,9 @@ void LandmarkObject::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch
     spriteBatch.endDrawing(window);
 }
 
-bool LandmarkObject::damage(int amount, Game& game, ChunkManager& chunkManager, ParticleSystem& particleSystem, bool giveItems)
+bool LandmarkObject::damage(int amount, Game& game, ChunkManager& chunkManager, ParticleSystem* particleSystem, bool giveItems, bool createHitMarkers)
 {
-    bool destroyed = BuildableObject::damage(amount, game, chunkManager, particleSystem, giveItems);
+    bool destroyed = BuildableObject::damage(amount, game, chunkManager, particleSystem, giveItems, createHitMarkers);
 
     if (destroyed)
     {

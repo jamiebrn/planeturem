@@ -167,14 +167,14 @@ void BuildableObject::createLightSource(LightingEngine& lightingEngine, pl::Vect
     }
 }
 
-bool BuildableObject::damage(int amount, Game& game, ChunkManager& chunkManager, ParticleSystem& particleSystem, bool giveItems)
+bool BuildableObject::damage(int amount, Game& game, ChunkManager& chunkManager, ParticleSystem* particleSystem, bool giveItems, bool createHitMarkers)
 {
     if (objectType < 0)
         return false;
 
     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
 
-    if (amount < objectData.minimumDamage)
+    if (amount < objectData.minimumDamage && createHitMarkers)
     {
         createHitMarker(0);
         return false;
@@ -182,17 +182,23 @@ bool BuildableObject::damage(int amount, Game& game, ChunkManager& chunkManager,
 
     flashAmount = 1.0f;
     health -= amount;
+    
+    if (createHitMarkers)
+    {
+        // Play hit sound
+        SoundType hitSound = SoundType::HitObject;
+        int soundChance = rand() % 3;
+        if (soundChance == 1) hitSound = SoundType::HitObject2;
+        else if (soundChance == 2) hitSound = SoundType::HitObject3;
 
-    // Play hit sound
-    SoundType hitSound = SoundType::HitObject;
-    int soundChance = rand() % 3;
-    if (soundChance == 1) hitSound = SoundType::HitObject2;
-    else if (soundChance == 2) hitSound = SoundType::HitObject3;
+        Sounds::playSound(hitSound, 60.0f);
 
-    Sounds::playSound(hitSound, 60.0f);
-
-    createHitParticles(particleSystem);
-    createHitMarker(amount);
+        if (particleSystem)
+        {
+            createHitParticles(*particleSystem);
+        }
+        createHitMarker(amount);
+    }
 
     if (!isAlive())
     {
@@ -206,6 +212,14 @@ bool BuildableObject::damage(int amount, Game& game, ChunkManager& chunkManager,
     }
 
     return false;
+}
+
+void BuildableObject::forceKill(Game& game, ChunkManager& chunkManager)
+{
+    if (health > 0)
+    {
+        damage(health, game, chunkManager, nullptr, true, false);
+    }
 }
 
 void BuildableObject::createHitParticles(ParticleSystem& particleSystem)

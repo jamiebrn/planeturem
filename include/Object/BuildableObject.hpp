@@ -62,7 +62,9 @@ public:
     void createLightSource(LightingEngine& lightingEngine, pl::Vector2f topLeftChunkPos, pl::Vector2f playerPos, int worldSize) const override;
 
     // Returns true if destroyed
-    virtual bool damage(int amount, Game& game, ChunkManager& chunkManager, ParticleSystem& particleSystem, bool giveItems = true);
+    virtual bool damage(int amount, Game& game, ChunkManager& chunkManager, ParticleSystem* particleSystem, bool giveItems = true, bool createHitMarkers = true);
+
+    void forceKill(Game& game, ChunkManager& chunkManager);
 
     void createHitParticles(ParticleSystem& particleSystem);
 

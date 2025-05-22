@@ -23,7 +23,7 @@ void ChestObject::update(Game& game, float dt, bool onWater, bool loopAnimation)
     // }
 }
 
-bool ChestObject::damage(int amount, Game& game, ChunkManager& chunkManager, ParticleSystem& particleSystem, bool giveItems)
+bool ChestObject::damage(int amount, Game& game, ChunkManager& chunkManager, ParticleSystem* particleSystem, bool giveItems, bool createHitMarkers)
 {
     // if (chestID != 0xFFFF)
     // {
@@ -33,7 +33,7 @@ bool ChestObject::damage(int amount, Game& game, ChunkManager& chunkManager, Par
     //     }
     // }
 
-    bool destroyed = BuildableObject::damage(amount, game, chunkManager, particleSystem, giveItems);
+    bool destroyed = BuildableObject::damage(amount, game, chunkManager, particleSystem, giveItems, createHitMarkers);
 
     if (destroyed)
     {

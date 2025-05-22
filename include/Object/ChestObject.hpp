@@ -20,7 +20,7 @@ public:
 
     void update(Game& game, float dt, bool onWater, bool loopAnimation) override;
 
-    bool damage(int amount, Game& game, ChunkManager& chunkManager, ParticleSystem& particleSystem, bool giveItems = true) override;
+    bool damage(int amount, Game& game, ChunkManager& chunkManager, ParticleSystem* particleSystem, bool giveItems = true, bool createHitMarkers = true) override;
 
     void interact(Game& game, bool isClient) override;
     bool isInteractable() const override;
