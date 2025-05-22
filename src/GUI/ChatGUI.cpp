@@ -128,21 +128,26 @@ void ChatGUI::attemptSendMessage(NetworkHandler& networkHandler)
     packetData.userId = SteamUser()->GetSteamID().ConvertToUint64();
     packetData.message = messageBuffer;
 
+    sendMessageData(networkHandler, packetData);
+
+    messageBuffer.clear();
+}
+
+void ChatGUI::sendMessageData(NetworkHandler& networkHandler, const PacketDataChatMessage& chatMessagePacket)
+{
     Packet packet;
-    packet.set(packetData);
+    packet.set(chatMessagePacket);
 
     if (networkHandler.getIsLobbyHost())
     {
         networkHandler.sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0);
 
-        addChatMessage(networkHandler, packetData);
+        addChatMessage(networkHandler, chatMessagePacket);
     }
     else
     {
         networkHandler.sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
     }
-
-    messageBuffer.clear();
 }
 
 void ChatGUI::addChatMessage(NetworkHandler& networkHandler, const PacketDataChatMessage& chatMessagePacket, bool notify)

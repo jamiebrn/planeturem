@@ -54,6 +54,8 @@ public:
 
     void addChatMessage(NetworkHandler& networkHandler, const PacketDataChatMessage& chatMessagePacket, bool notify = true);
 
+    void sendMessageData(NetworkHandler& networkHandler, const PacketDataChatMessage& chatMessagePacket);
+
 private:
     void attemptSendMessage(NetworkHandler& networkHandler);
 

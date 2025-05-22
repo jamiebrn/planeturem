@@ -2984,6 +2984,15 @@ void Game::travelToPlanet(PlanetType planetType, ObjectReference newRocketObject
     camera.instantUpdate(player.getPosition());
 
     networkHandler.sendPlayerData();
+
+    // Send travel alert message to network players
+    if (networkHandler.isMultiplayerGame())
+    {
+        PacketDataChatMessage chatMessage;
+        const PlanetGenData& planetData = PlanetGenDataLoader::getPlanetGenData(locationState.getPlanetType());
+        chatMessage.message = currentSaveFileSummary.playerName + " has travelled to planet \"" + planetData.displayName + "\"";
+        chatGUI.sendMessageData(networkHandler, chatMessage);
+    }
 }
 
 void Game::travelToPlanetFromHost(const PacketDataPlanetTravelReply& planetTravelReplyPacket)
@@ -3058,6 +3067,15 @@ void Game::travelToRoomDestination(RoomType destinationRoomType)
     camera.instantUpdate(player.getPosition());
 
     networkHandler.sendPlayerData();
+    
+    // Send travel alert message to network players
+    if (networkHandler.isMultiplayerGame())
+    {
+        PacketDataChatMessage chatMessage;
+        const RoomData& roomData = StructureDataLoader::getRoomData(locationState.getRoomDestType());
+        chatMessage.message = currentSaveFileSummary.playerName + " has travelled to planet \"" + roomData.displayName + "\"";
+        chatGUI.sendMessageData(networkHandler, chatMessage);
+    }
 }
 
 ChunkPosition Game::initialiseNewPlanet(PlanetType planetType)
