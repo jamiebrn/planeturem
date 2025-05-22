@@ -2,8 +2,6 @@
 
 // CONSIDER: Landmarks will no longer work as "placedByThisPlayer" is not considered in chunk setObject
 
-// FIX: Resource regeneration has no flash on client side (BuildableObjectPOD has no flash value)
-
 // FIX: Weather inconsistency (gametime)
 
 // FIX: Client enter structure
@@ -274,6 +272,8 @@ void Game::runMainMenu(float dt)
     }
 
     // pl::Vector2f mouseScreenPos = static_cast<pl::Vector2f>(sf::Mouse::getPosition(window));
+
+    gameTime += dt;
 
     mainMenuGUI.update(dt, mouseScreenPos, *this);
 

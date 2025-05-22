@@ -57,7 +57,7 @@ void Chunk::generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNo
 {
     RandInt randGen = generateTilesAndStructure(heightNoise, biomeNoise, riverNoise, planetType, chunkManager, allowStructureGen, forceStructureType);
 
-    generateObjects(heightNoise, biomeNoise, riverNoise, planetType, randGen, game, chunkManager);
+    generateObjects(heightNoise, biomeNoise, riverNoise, planetType, randGen, game, chunkManager, pathfindingEngine);
 
     if (spawnEntities)
     {
@@ -123,8 +123,8 @@ RandInt Chunk::generateTilesAndStructure(const FastNoise& heightNoise, const Fas
     return randGen;
 }
 
-void Chunk::generateObjects(const FastNoise& heightNoise, const FastNoise& biomeNoise, const FastNoise& riverNoise, PlanetType planetType, RandInt& randGen,
-    Game& game, ChunkManager& chunkManager, bool calledWhileGenerating, float probabilityMult)
+bool Chunk::generateObjects(const FastNoise& heightNoise, const FastNoise& biomeNoise, const FastNoise& riverNoise, PlanetType planetType, RandInt& randGen,
+    Game& game, ChunkManager& chunkManager, PathfindingEngine& pathfindingEngine, bool calledWhileGenerating, float probabilityMult)
 {
     pl::Vector2<int> worldNoisePosition = pl::Vector2<int>(chunkPosition.x, chunkPosition.y) * static_cast<int>(CHUNK_TILE_SIZE);
 
@@ -132,6 +132,8 @@ void Chunk::generateObjects(const FastNoise& heightNoise, const FastNoise& biome
     createParameters.flashOnCreate = !calledWhileGenerating;
     createParameters.randomisePlantAge = true;
     createParameters.randomisePlantAgeDeterministic = calledWhileGenerating;
+
+    bool modified = false;
 
     // Set tile maps / spawn objects
     for (int y = 0; y < CHUNK_TILE_SIZE; y++)
@@ -161,8 +163,17 @@ void Chunk::generateObjects(const FastNoise& heightNoise, const FastNoise& biome
             {
                 objectGrid[y][x] = nullptr;
             }
+
+            modified = true;
         }
     }
+
+    if (!calledWhileGenerating)
+    {
+        recalculateCollisionRects(chunkManager, &pathfindingEngine);
+    }
+
+    return modified;
 }
 
 void Chunk::spawnChunkEntities(int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise, const FastNoise& riverNoise, PlanetType planetType)
@@ -836,6 +847,8 @@ bool Chunk::updateChunkObjects(Game& game, float dt, float gameTime, int worldSi
         }
     }
 
+    bool modifiedObjects = false;
+
     // Regenerate resources
     if (nextResourceRegenerationTime <= gameTime)
     {
@@ -844,19 +857,20 @@ bool Chunk::updateChunkObjects(Game& game, float dt, float gameTime, int worldSi
         if (biomeGenData)
         {
             RandInt randGen(rand());
-            generateObjects(chunkManager.getHeightNoise(), chunkManager.getBiomeNoise(), chunkManager.getRiverNoise(),
-                chunkManager.getPlanetType(), randGen, game, chunkManager, false, biomeGenData->resourceRegenerationDensity);
-                    
+            modifiedObjects = generateObjects(chunkManager.getHeightNoise(), chunkManager.getBiomeNoise(), chunkManager.getRiverNoise(),
+                chunkManager.getPlanetType(), randGen, game, chunkManager, pathfindingEngine, false, biomeGenData->resourceRegenerationDensity);
+            
             nextResourceRegenerationTime = gameTime + Helper::randFloat(biomeGenData->resourceRegenerationTimeMin, biomeGenData->resourceRegenerationTimeMax);
         }
 
-        // Resources regenerated, chunk modified
-        return true;
+        // Chunk has been modified from default state
+        if (modifiedObjects)
+        {
+            modified = true;
+        }
     }
 
-    return false;
-
-    // recalculateCollisionRects(chunkManager);
+    return modifiedObjects;
 }
 
 std::vector<WorldObject*> Chunk::getObjects()
@@ -1522,6 +1536,12 @@ void Chunk::loadFromChunkPOD(const ChunkPOD& pod, Game& game, ChunkManager& chun
             const std::optional<BuildableObjectPOD>& objectPOD = pod.objectGrid[y][x];
             if (objectPOD.has_value())
             {
+                // If objectGrid already has object, do not add new object
+                if (objectGrid[y][x])
+                {
+                    continue;
+                }
+
                 pl::Vector2f objectPos;
                 objectPos.x = worldPosition.x + (x + 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
                 objectPos.y = worldPosition.y + (y + 0.5f) * TILE_SIZE_PIXELS_UNSCALED;

@@ -84,8 +84,9 @@ public:
     RandInt generateTilesAndStructure(const FastNoise& heightNoise, const FastNoise& biomeNoise, const FastNoise& riverNoise, PlanetType planetType,
         ChunkManager& chunkManager, bool allowStructureGen = true, std::optional<StructureType> forceStructureType = std::nullopt);
 
-    void generateObjects(const FastNoise& heightNoise, const FastNoise& biomeNoise, const FastNoise& riverNoise, PlanetType planetType, RandInt& randGen,
-        Game& game, ChunkManager& chunkManager, bool calledWhileGenerating = true, float probabilityMult = 1.0f);
+    // Returns true if any objects modified / placed
+    bool generateObjects(const FastNoise& heightNoise, const FastNoise& biomeNoise, const FastNoise& riverNoise, PlanetType planetType, RandInt& randGen,
+        Game& game, ChunkManager& chunkManager, PathfindingEngine& pathfindingEngine, bool calledWhileGenerating = true, float probabilityMult = 1.0f);
     
     void spawnChunkEntities(int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise, const FastNoise& riverNoise, PlanetType planetType);
 
