@@ -37,10 +37,20 @@ class ChunkManager;
 constexpr int DUMMY_OBJECT_COLLISION = -10;
 constexpr int DUMMY_OBJECT_NO_COLLISION = -11;
 
+struct BuildableObjectCreateParameters
+{
+    bool placedByPlayer = false;
+    bool placedByThisPlayer = false;
+    bool flashOnCreate = false;
+    bool randomisePlantAge = false;
+    bool randomisePlantAgeDeterministic = false;
+    bool randomiseAnimation = true;
+};
+
 class BuildableObject : public WorldObject
 {
 public:
-    BuildableObject(pl::Vector2f position, ObjectType objectType, bool randomiseAnimation = true, bool flash = false);
+    BuildableObject(pl::Vector2f position, ObjectType objectType, const BuildableObjectCreateParameters& parameters);
 
     virtual BuildableObject* clone();
 

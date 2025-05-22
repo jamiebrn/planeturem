@@ -14,7 +14,7 @@ class Game;
 class ChestObject : public BuildableObject
 {
 public:
-    ChestObject(pl::Vector2f position, ObjectType objectType, bool flash = false);
+    ChestObject(pl::Vector2f position, ObjectType objectType, const BuildableObjectCreateParameters& parameters);
 
     BuildableObject* clone() override;
 

@@ -25,7 +25,7 @@ class ChunkManager;
 class PlantObject : public BuildableObject
 {
 public:
-    PlantObject(pl::Vector2f position, ObjectType objectType, Game& game, const ChunkManager* chunkManager = nullptr, bool randomiseAge = false, bool flash = false);
+    PlantObject(pl::Vector2f position, ObjectType objectType, const BuildableObjectCreateParameters& parameters, Game& game, const ChunkManager* chunkManager = nullptr);
 
     BuildableObject* clone() override;
 

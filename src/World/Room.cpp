@@ -233,7 +233,7 @@ void Room::setObjectFromBitmask(pl::Vector2<int> tile, uint8_t bitmaskValue, Che
 
     pl::Vector2f objectPos = pl::Vector2f(tile.x + 0.5f, tile.y + 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
     
-    std::unique_ptr<BuildableObject> object = BuildableObjectFactory::create(objectPos, objectTypeToSpawn);
+    std::unique_ptr<BuildableObject> object = BuildableObjectFactory::create(objectPos, objectTypeToSpawn, {});
 
     if (roomObjectData.chestContents.has_value() && chestDataPool != nullptr)
     {
@@ -434,7 +434,7 @@ void Room::loadObjectPODs()
             // Object from POD
             pl::Vector2f objectPos((x + 0.5f) * TILE_SIZE_PIXELS_UNSCALED, (y + 0.5f) * TILE_SIZE_PIXELS_UNSCALED);
 
-            std::unique_ptr<BuildableObject> object = BuildableObjectFactory::create(objectPos, loadingObjectPodsTemp->at(y).at(x)->objectType);
+            std::unique_ptr<BuildableObject> object = BuildableObjectFactory::create(objectPos, loadingObjectPodsTemp->at(y).at(x)->objectType, {});
 
             object->loadFromPOD(loadingObjectPodsTemp->at(y).at(x).value());
 

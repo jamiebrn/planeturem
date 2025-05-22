@@ -1,8 +1,8 @@
 #include "Object/RocketObject.hpp"
 #include "Game.hpp"
 
-RocketObject::RocketObject(pl::Vector2f position, ObjectType objectType, bool flash)
-    : BuildableObject(position, objectType, true, flash)
+RocketObject::RocketObject(pl::Vector2f position, ObjectType objectType, const BuildableObjectCreateParameters& parameters)
+    : BuildableObject(position, objectType, parameters)
 {
 
 }

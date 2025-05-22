@@ -1,10 +1,10 @@
 #include "Object/NPCObject.hpp"
 #include "Game.hpp"
 
-NPCObject::NPCObject(pl::Vector2f position, ObjectType objectType, bool flash)
-    : BuildableObject(position, objectType, false, flash)
+NPCObject::NPCObject(pl::Vector2f position, ObjectType objectType, const BuildableObjectCreateParameters& parameters)
+    : BuildableObject(position, objectType, parameters)
 {
-
+    
 }
 
 BuildableObject* NPCObject::clone()

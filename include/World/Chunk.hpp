@@ -139,7 +139,7 @@ public:
 
     // Sets object (and object references if size > (1, 1), across chunks)
     void setObject(pl::Vector2<int> position, ObjectType objectType, Game& game, ChunkManager& chunkManager, PathfindingEngine* pathfindingEngine,
-        bool recalculateCollision = true, bool calledWhileGenerating = false);
+        const BuildableObjectCreateParameters& parameters, bool recalculateCollision = true);
 
     // Deletes object (including object references if size > (1, 1), across chunks)
     void deleteObject(pl::Vector2<int> position, ChunkManager& chunkManager, PathfindingEngine& pathfindingEngine);

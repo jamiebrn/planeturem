@@ -544,7 +544,7 @@ const BiomeGenData* ChunkManager::getChunkBiome(ChunkPosition chunk)
     return biomeGenData;
 }
 
-void ChunkManager::setObject(ChunkPosition chunk, pl::Vector2<int> tile, ObjectType objectType, Game& game)
+void ChunkManager::setObject(ChunkPosition chunk, pl::Vector2<int> tile, ObjectType objectType, Game& game, const BuildableObjectCreateParameters& parameters)
 {
     Chunk* chunkPtr = getChunk(chunk);
     // Chunk does not exist
@@ -554,7 +554,7 @@ void ChunkManager::setObject(ChunkPosition chunk, pl::Vector2<int> tile, ObjectT
     }
 
     // Set chunk object at position
-    chunkPtr->setObject(tile, objectType, game, *this, &pathfindingEngine);
+    chunkPtr->setObject(tile, objectType, game, *this, &pathfindingEngine, parameters);
 }
 
 void ChunkManager::deleteObject(ChunkPosition chunk, pl::Vector2<int> tile)

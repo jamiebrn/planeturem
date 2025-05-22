@@ -140,7 +140,7 @@ public:
 
     // Sets object in chunk at tile
     // Places object references if required
-    void setObject(ChunkPosition chunk, pl::Vector2<int> tile, ObjectType objectType, Game& game);
+    void setObject(ChunkPosition chunk, pl::Vector2<int> tile, ObjectType objectType, Game& game, const BuildableObjectCreateParameters& parameters);
 
     // Deletes object in chunk at tile
     // Deletes object references if required

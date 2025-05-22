@@ -2,17 +2,26 @@
 #include "Game.hpp"
 #include "World/ChunkManager.hpp"
 
-PlantObject::PlantObject(pl::Vector2f position, ObjectType objectType, Game& game, const ChunkManager* chunkManager, bool randomiseAge, bool flash)
-    : BuildableObject(position, objectType, false, flash)
+PlantObject::PlantObject(pl::Vector2f position, ObjectType objectType, const BuildableObjectCreateParameters& parameters, Game& game, const ChunkManager* chunkManager)
+    : BuildableObject(position, objectType, parameters)
 {
     int currentDay = game.getDayCycleManager().getCurrentDay();
 
-    if (randomiseAge)
+    if (parameters.randomisePlantAge)
     {
         // Set seed for randgen
-        unsigned long int chunkSeed = (game.getPlanetSeed() + chunkManager->getPlanetType()) ^ getChunkInside(chunkManager->getWorldSize()).hash();
-        pl::Vector2<int> tile = getChunkTileInside(position, chunkManager->getWorldSize());
-        chunkSeed |= tile.x | tile.y;
+        unsigned long int chunkSeed;
+
+        if (parameters.randomisePlantAgeDeterministic)
+        {
+            chunkSeed = (game.getPlanetSeed() + chunkManager->getPlanetType()) ^ getChunkInside(chunkManager->getWorldSize()).hash();
+            pl::Vector2<int> tile = getChunkTileInside(position, chunkManager->getWorldSize());
+            chunkSeed |= (tile.x << 8) | tile.y;
+        }
+        else
+        {
+            chunkSeed = rand();
+        }
 
         RandInt randGen(chunkSeed);
         

@@ -2,7 +2,7 @@
 #include "World/ChunkManager.hpp"
 #include "Game.hpp"
 
-BuildableObject::BuildableObject(pl::Vector2f position, ObjectType objectType, bool randomiseAnimation, bool flash)
+BuildableObject::BuildableObject(pl::Vector2f position, ObjectType objectType, const BuildableObjectCreateParameters& parameters)
     : WorldObject(position)
 {
     this->objectType = objectType;
@@ -18,7 +18,7 @@ BuildableObject::BuildableObject(pl::Vector2f position, ObjectType objectType, b
         health = objectData.health;
     }
     
-    flashAmount = flash ? 1.0f : 0.0f;
+    flashAmount = parameters.flashOnCreate ? 1.0f : 0.0f;
 
     drawLayer = objectData.drawLayer;
 
@@ -30,7 +30,7 @@ BuildableObject::BuildableObject(pl::Vector2f position, ObjectType objectType, b
     // }
 
     // Randomise animation start frame
-    if (randomiseAnimation && objectData.textureRects.size() > 0)
+    if (parameters.randomiseAnimation && objectData.textureRects.size() > 0)
     {
         animatedTexture.setFrame(rand() % objectData.textureRects.size());
     }

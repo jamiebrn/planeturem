@@ -128,6 +128,11 @@ void Chunk::generateObjects(const FastNoise& heightNoise, const FastNoise& biome
 {
     pl::Vector2<int> worldNoisePosition = pl::Vector2<int>(chunkPosition.x, chunkPosition.y) * static_cast<int>(CHUNK_TILE_SIZE);
 
+    BuildableObjectCreateParameters createParameters;
+    createParameters.flashOnCreate = !calledWhileGenerating;
+    createParameters.randomisePlantAge = true;
+    createParameters.randomisePlantAgeDeterministic = calledWhileGenerating;
+
     // Set tile maps / spawn objects
     for (int y = 0; y < CHUNK_TILE_SIZE; y++)
     {
@@ -150,7 +155,7 @@ void Chunk::generateObjects(const FastNoise& heightNoise, const FastNoise& biome
 
             if (objectSpawnType >= 0)
             {
-                setObject(pl::Vector2<int>(x, y), objectSpawnType, game, chunkManager, nullptr, false, calledWhileGenerating);
+                setObject(pl::Vector2<int>(x, y), objectSpawnType, game, chunkManager, nullptr, createParameters, false);
             }
             else
             {
@@ -293,6 +298,8 @@ void Chunk::generateRandomStructure(int worldSize, const FastNoise& biomeNoise, 
 
     bool spawnedStructureObject = false;
 
+    BuildableObjectCreateParameters dummyCreateParameters;
+
     for (int x = 0; x < structureData.size.x; x++)
     {
         // Iterate over y backwards to place structure object in bottom left of dummy objects
@@ -318,13 +325,13 @@ void Chunk::generateRandomStructure(int worldSize, const FastNoise& biomeNoise, 
             // Collision
             if (bitmaskColor == pl::Color(255, 0, 0))
             {
-                objectGrid[tileY][tileX] = std::make_unique<BuildableObject>(tileWorldPos, DUMMY_OBJECT_COLLISION);
+                objectGrid[tileY][tileX] = std::make_unique<BuildableObject>(tileWorldPos, DUMMY_OBJECT_COLLISION, dummyCreateParameters);
             }
 
             // Dummy object with no collision (for warp / structure entrance)
             if (bitmaskColor == pl::Color(0, 255, 0))
             {
-                objectGrid[tileY][tileX] = std::make_unique<BuildableObject>(tileWorldPos, DUMMY_OBJECT_NO_COLLISION);
+                objectGrid[tileY][tileX] = std::make_unique<BuildableObject>(tileWorldPos, DUMMY_OBJECT_NO_COLLISION, dummyCreateParameters);
 
                 structureObject->createWarpRect(tileWorldPos - pl::Vector2f(0.5, 0.5) * TILE_SIZE_PIXELS_UNSCALED);
             }
@@ -888,9 +895,9 @@ int Chunk::getTileType(pl::Vector2<int> position) const
 }
 
 void Chunk::setObject(pl::Vector2<int> position, ObjectType objectType, Game& game, ChunkManager& chunkManager, PathfindingEngine* pathfindingEngine,
-    bool recalculateCollision, bool calledWhileGenerating)
+    const BuildableObjectCreateParameters& parameters, bool recalculateCollision)
 {
-    if (!calledWhileGenerating)
+    if (parameters.placedByPlayer)
     {
         modified = true;
     }
@@ -907,8 +914,7 @@ void Chunk::setObject(pl::Vector2<int> position, ObjectType objectType, Game& ga
     }
 
     // Set object in chunk
-    objectGrid[position.y][position.x] = BuildableObjectFactory::create(objectPos, objectType, &game, !calledWhileGenerating, false, &chunkManager,
-        !calledWhileGenerating);
+    objectGrid[position.y][position.x] = BuildableObjectFactory::create(objectPos, objectType, parameters, &game, &chunkManager);
 
     // Create object reference objects if object is larger than one tile
     if (objectSize != pl::Vector2<int>(1, 1))
@@ -1506,6 +1512,9 @@ void Chunk::loadFromChunkPOD(const ChunkPOD& pod, Game& game, ChunkManager& chun
     groundTileGrid = pod.groundTileGrid;
     worldPosition = pl::Vector2f(chunkPosition.x * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED, chunkPosition.y * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED);
 
+    BuildableObjectCreateParameters createParameters;
+    createParameters.flashOnCreate = newObjectFlash;
+
     for (int y = 0; y < 8; y++)
     {
         for (int x = 0; x < 8; x++)
@@ -1517,8 +1526,7 @@ void Chunk::loadFromChunkPOD(const ChunkPOD& pod, Game& game, ChunkManager& chun
                 objectPos.x = worldPosition.x + (x + 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
                 objectPos.y = worldPosition.y + (y + 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
 
-                std::unique_ptr<BuildableObject> object = BuildableObjectFactory::create(objectPos, objectPOD->objectType, &game, false, false, &chunkManager,
-                    newObjectFlash);
+                std::unique_ptr<BuildableObject> object = BuildableObjectFactory::create(objectPos, objectPOD->objectType, createParameters, &game, &chunkManager);
 
                 object->loadFromPOD(objectPOD.value());
 

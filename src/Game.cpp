@@ -2048,7 +2048,12 @@ void Game::buildObject(ChunkPosition chunk, pl::Vector2<int> tile, ObjectType ob
     }
 
     // Build object
-    getChunkManager(planetType).setObject(chunk, tile, objectType, *this);
+    BuildableObjectCreateParameters createParameters;
+    createParameters.placedByPlayer = builtByPlayer;
+    // createParameters.placedByThisPlayer
+    createParameters.flashOnCreate = true;
+
+    getChunkManager(planetType).setObject(chunk, tile, objectType, *this, createParameters);
 
     // If not built by player or not in same location as object built, don't create build particles or play build sound
     if (!builtByPlayer || locationState != LocationState::createFromPlanetType(planetType.value()))
@@ -2328,7 +2333,11 @@ void Game::drawGhostPlaceObjectAtCursor(ObjectType object)
     if (canPlace && inRange)
         drawColor = pl::Color(0, 255, 0, 180);
     
-    BuildableObject objectGhost(Cursor::getLerpedSelectPos() + pl::Vector2f(TILE_SIZE_PIXELS_UNSCALED / 2.0f, TILE_SIZE_PIXELS_UNSCALED / 2.0f), object, false);
+    BuildableObjectCreateParameters createParameters;
+    createParameters.randomiseAnimation = false;
+
+    BuildableObject objectGhost(Cursor::getLerpedSelectPos() + pl::Vector2f(TILE_SIZE_PIXELS_UNSCALED / 2.0f, TILE_SIZE_PIXELS_UNSCALED / 2.0f), object,
+        createParameters);
 
     objectGhost.draw(window, spriteBatch, *this, camera, 0.0f, 0, getChunkManager().getWorldSize(), drawColor);
 
