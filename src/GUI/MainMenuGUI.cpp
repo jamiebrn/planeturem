@@ -21,6 +21,10 @@ void MainMenuGUI::initialise()
     worldViewPosition.y = worldViewChunk.y * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
 
     menuCamera.instantUpdate(worldViewPosition);
+
+    discordIconSize = 1.0f;
+    redditIconSize = 1.0f;
+    youtubeIconSize = 1.0f;
 }
 
 void MainMenuGUI::initialisePauseMenu()
@@ -43,7 +47,7 @@ void MainMenuGUI::update(float dt, pl::Vector2f mouseScreenPos, Game& game)
     menuWorldData.chunkManager.updateChunksEntities(dt, menuWorldData.projectileManager, game, false);
 }
 
-std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, float dt, float gameTime)
+std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, float dt, float gameTime, bool steamInitialised)
 {
     float intScale = ResolutionHandler::getResolutionIntegerScale();
     pl::Vector2f resolution = static_cast<pl::Vector2f>(ResolutionHandler::getResolution());
@@ -387,6 +391,70 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(pl::RenderTarget& window
     }
 
     guiContext.draw(window);
+
+    // Social icons
+    pl::DrawData socialIconDrawData;
+    socialIconDrawData.shader = Shaders::getShader(ShaderType::Default);
+    socialIconDrawData.texture = TextureManager::getTexture(TextureType::UI);
+    socialIconDrawData.position = pl::Vector2f(resolution.x - 50 * intScale, resolution.y - 50 * intScale);
+    socialIconDrawData.centerRatio = pl::Vector2f(0.5f, 0.5f);
+    socialIconDrawData.vertexPixelClamp = false;
+
+    pl::Vector2f mouseScreenPos(guiContext.getInputState().mouseX, guiContext.getInputState().mouseY);
+
+    static constexpr float SOCIAL_ICON_LERP_DEST = 1.3f;
+    
+    // youtube icon
+    float lerpDest = 1.0f;
+    if (CollisionCircle(socialIconDrawData.position.x, socialIconDrawData.position.y, 16 * 3 * intScale).isPointColliding(mouseScreenPos.x, mouseScreenPos.y))
+    {
+        lerpDest = SOCIAL_ICON_LERP_DEST;
+        if (guiContext.getInputState().leftMouseJustDown && steamInitialised)
+        {
+            SteamFriends()->ActivateGameOverlayToWebPage(SOCIAL_YOUTUBE_URL.c_str(), EActivateGameOverlayToWebPageMode::k_EActivateGameOverlayToWebPageMode_Modal);
+        }
+    }
+    youtubeIconSize = Helper::lerp(youtubeIconSize, lerpDest, 16 * dt);
+
+    socialIconDrawData.textureRect = pl::Rect<int>(335, 112, 24, 24);
+    socialIconDrawData.scale = pl::Vector2f(3, 3) * intScale * youtubeIconSize;
+    spriteBatch.draw(window, socialIconDrawData);
+        
+    socialIconDrawData.position.x -= 90 * intScale;
+    
+    // discord icon
+    lerpDest = 1.0f;
+    if (CollisionCircle(socialIconDrawData.position.x, socialIconDrawData.position.y, 16 * 3 * intScale).isPointColliding(mouseScreenPos.x, mouseScreenPos.y))
+    {
+        lerpDest = SOCIAL_ICON_LERP_DEST;
+        if (guiContext.getInputState().leftMouseJustDown && steamInitialised)
+        {
+            SteamFriends()->ActivateGameOverlayToWebPage(SOCIAL_DISCORD_URL.c_str(), EActivateGameOverlayToWebPageMode::k_EActivateGameOverlayToWebPageMode_Modal);
+        }
+    }
+    discordIconSize = Helper::lerp(discordIconSize, lerpDest, 16 * dt);
+
+    socialIconDrawData.textureRect = pl::Rect<int>(288, 112, 24, 24);
+    socialIconDrawData.scale = pl::Vector2f(3, 3) * intScale * discordIconSize;
+    spriteBatch.draw(window, socialIconDrawData);
+    
+    socialIconDrawData.position.x -= 90 * intScale;
+    
+    // reddit icon
+    lerpDest = 1.0f;
+    if (CollisionCircle(socialIconDrawData.position.x, socialIconDrawData.position.y, 16 * 3 * intScale).isPointColliding(mouseScreenPos.x, mouseScreenPos.y))
+    {
+        lerpDest = SOCIAL_ICON_LERP_DEST;
+        if (guiContext.getInputState().leftMouseJustDown && steamInitialised)
+        {
+            SteamFriends()->ActivateGameOverlayToWebPage(SOCIAL_REDDIT_URL.c_str(), EActivateGameOverlayToWebPageMode::k_EActivateGameOverlayToWebPageMode_Modal);
+        }
+    }
+    redditIconSize = Helper::lerp(redditIconSize, lerpDest, 16 * dt);
+
+    socialIconDrawData.textureRect = pl::Rect<int>(312, 112, 23, 23);
+    socialIconDrawData.scale = pl::Vector2f(3, 3) * intScale * redditIconSize;
+    spriteBatch.draw(window, socialIconDrawData);
 
     guiContext.endGUI();
 

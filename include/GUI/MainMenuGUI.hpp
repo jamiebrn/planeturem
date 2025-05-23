@@ -83,7 +83,7 @@ public:
 
     void update(float dt, pl::Vector2f mouseScreenPos, Game& game);
 
-    std::optional<MainMenuEvent> createAndDraw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, float dt, float gameTime);
+    std::optional<MainMenuEvent> createAndDraw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, float dt, float gameTime, bool steamInitialised);
 
     void setMainMenuJoinGame();
 
@@ -127,5 +127,9 @@ private:
 
     // Demo stuff
     bool showPauseMenuWishlist;
+
+    float discordIconSize;
+    float redditIconSize;
+    float youtubeIconSize;
 
 };
