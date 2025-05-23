@@ -1582,7 +1582,7 @@ void Game::enterRocket(RocketObject& rocket)
 
     handleInventoryClose();
     
-    saveGame();
+    // saveGame();
 
     worldMenuState = WorldMenuState::TravelSelect;
 
@@ -2736,6 +2736,23 @@ void Game::travelToDestination()
 {
     travelTrigger = false;
 
+    // Set last used rocket if travelling from planet
+    if (locationState.isOnPlanet())
+    {
+        BuildableObject* rocketObject = getChunkManager().getChunkObject(rocketEnteredReference.chunk, rocketEnteredReference.tile);
+        if (rocketObject)
+        {
+            player.setLastUsedPlanetRocketType(rocketObject->getObjectType());
+        }
+        else
+        {
+            printf("ERROR: Could not find valid rocket object during travel from planet\n");
+        }
+        
+        // Update network with new data
+        networkHandler.sendPlayerData();
+    }
+
     // If client, request travel from host
     if (networkHandler.isClient())
     {
@@ -2775,18 +2792,7 @@ void Game::travelToDestination()
         travelToRoomDestination(destinationLocationState.getRoomDestType());
     }
 
-    // Only clear other world / room dest datas if not multiplayer / is client
-    if (!networkHandler.getIsLobbyHost())
-    {
-        if (previousLocationState.isOnPlanet())
-        {
-            worldDatas.erase(previousLocationState.getPlanetType());
-        }
-        if (previousLocationState.isInRoomDest())
-        {
-            roomDestDatas.erase(previousLocationState.getRoomDestType());
-        }
-    }
+    saveGame();
 
     particleSystem.clear();
     nearbyCraftingStationLevels.clear();
@@ -2794,7 +2800,7 @@ void Game::travelToDestination()
     destinationLocationState.setToNull();
 }
 
-void Game::deleteObjectSynced(ObjectReference objectReference, PlanetType planetType)
+void Game::deleteObjectSynced(ObjectReference objectReference, PlanetType planetType, bool createItemDrops)
 {
     if (!networkHandler.isLobbyHostOrSolo() || planetType < 0)
     {
@@ -2807,7 +2813,7 @@ void Game::deleteObjectSynced(ObjectReference objectReference, PlanetType planet
         return;
     }
 
-    getChunkManager(planetType).deleteObject(objectReference.chunk, objectReference.tile, *this, true);
+    getChunkManager(planetType).deleteObject(objectReference.chunk, objectReference.tile, *this, createItemDrops);
 
     // Alert clients if required
     if (!networkHandler.isMultiplayerGame())
@@ -2835,20 +2841,26 @@ ObjectReference Game::setupPlanetTravel(PlanetType planetType, const LocationSta
     }
 
     // Get used rocket object data
-    RocketObject* rocketObject = getObjectFromLocation<RocketObject>(rocketObjectUsed, currentLocation);
-    if (!rocketObject)
-    {
-        printf("ERROR: Attempted to set up planet travel for null rocket object (%d, %d, %d, %d)\n",
-            rocketObjectUsed.chunk.x, rocketObjectUsed.chunk.y, rocketObjectUsed.tile.x, rocketObjectUsed.tile.y);
-        return {{0, 0}, {0, 0}};
-    }
+    // RocketObject* rocketObject = getObjectFromLocation<RocketObject>(rocketObjectUsed, currentLocation);
+    // if (!rocketObject)
+    // {
+    //     printf("ERROR: Attempted to set up planet travel for null rocket object (%d, %d, %d, %d)\n",
+    //         rocketObjectUsed.chunk.x, rocketObjectUsed.chunk.y, rocketObjectUsed.tile.x, rocketObjectUsed.tile.y);
+    //     return {{0, 0}, {0, 0}};
+    // }
 
-    ObjectType rocketObjectType = rocketObject->getObjectType();
+    // ObjectType rocketObjectType = rocketObject->getObjectType();
+
+    ObjectType rocketObjectType = player.getLastUsedPlanetRocketType();
+    if (clientID.has_value())
+    {
+        rocketObjectType = networkHandler.getNetworkPlayer(clientID.value())->getPlayerData().lastUsedPlanetRocketType;
+    }
 
     // Delete used rocket object if on planet
     if (currentLocation.getGameState() == GameState::OnPlanet)
     {
-        deleteObjectSynced(rocketObjectUsed, currentLocation.getPlanetType());
+        deleteObjectSynced(rocketObjectUsed, currentLocation.getPlanetType(), false);
     }
 
     const std::unordered_map<PlanetType, ObjectReference>* planetRocketsUsedPtr = &planetRocketUsedPositions;
@@ -2907,6 +2919,9 @@ ObjectReference Game::setupPlanetTravel(PlanetType planetType, const LocationSta
         Packet packet;
         packet.set(packetData, true);
         networkHandler.sendPacketToClient(clientID.value(), packet, k_nSteamNetworkingSend_Reliable, 0);
+
+        // Save game as client is travelling
+        saveGame();
     }
 
     return placeRocketReference;
@@ -2932,7 +2947,7 @@ void Game::travelToRoomDestinationForClient(RoomType roomDest, const LocationSta
     // Delete used rocket object if on planet
     if (currentLocation.getGameState() == GameState::OnPlanet)
     {
-        deleteObjectSynced(rocketObjectUsed, currentLocation.getPlanetType());
+        deleteObjectSynced(rocketObjectUsed, currentLocation.getPlanetType(), false);
     }
 
     // Send reply to client
@@ -2944,6 +2959,8 @@ void Game::travelToRoomDestinationForClient(RoomType roomDest, const LocationSta
     Packet packet;
     packet.set(packetData, true);
     networkHandler.sendPacketToClient(clientID, packet, k_nSteamNetworkingSend_Reliable, 0);
+
+    saveGame();
 }
 
 void Game::travelToPlanet(PlanetType planetType, ObjectReference newRocketObjectReference)
@@ -3378,6 +3395,7 @@ bool Game::loadGame(const SaveFileSummary& saveFileSummary)
     chatGUI.initialise();
 
     planetRocketUsedPositions = playerGameSave.playerData.planetRocketUsedPositions;
+    player.setLastUsedPlanetRocketType(playerGameSave.playerData.lastUsedPlanetRocketType);
 
     closeChest();
     
@@ -3562,6 +3580,7 @@ PlayerData Game::createPlayerData()
     playerData.recipesSeen = InventoryGUI::getSeenRecipes();
 
     playerData.planetRocketUsedPositions = planetRocketUsedPositions;
+    playerData.lastUsedPlanetRocketType = player.getLastUsedPlanetRocketType();
 
     return playerData;
 }
@@ -3731,6 +3750,7 @@ void Game::joinWorld(const PacketDataJoinInfo& joinInfo)
     roomDestDatas.clear();
 
     planetRocketUsedPositions = joinInfo.playerData.planetRocketUsedPositions;
+    player.setLastUsedPlanetRocketType(joinInfo.playerData.lastUsedPlanetRocketType);
 
     GameState nextGameState = GameState::OnPlanet;
 

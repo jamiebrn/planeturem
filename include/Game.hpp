@@ -294,7 +294,7 @@ private:
 
     void travelToDestination();
     void travelToPlanet(PlanetType planetType, ObjectReference newRocketObjectReference);
-    void deleteObjectSynced(ObjectReference objectReference, PlanetType planetType);
+    void deleteObjectSynced(ObjectReference objectReference, PlanetType planetType, bool createItemDrops);
     
     void travelToRoomDestination(RoomType destinationRoomType);
 

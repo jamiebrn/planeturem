@@ -39,6 +39,7 @@ struct PlayerData
     std::unordered_set<uint64_t> recipesSeen;
     
     std::unordered_map<PlanetType, ObjectReference> planetRocketUsedPositions;
+    ObjectType lastUsedPlanetRocketType;
     
     std::string name;
     
@@ -61,7 +62,7 @@ struct PlayerData
     template <class Archive>
     void serialize(Archive& ar, uint32_t version)
     {
-        ar(inventory, armourInventory, recipesSeen, planetRocketUsedPositions, name, bodyColor, skinColor, position.x, position.y,
+        ar(inventory, armourInventory, recipesSeen, planetRocketUsedPositions, lastUsedPlanetRocketType, name, bodyColor, skinColor, position.x, position.y,
             locationState, structureExitPos.x, structureExitPos.y, maxHealth);
     }
 };
@@ -115,6 +116,15 @@ inline void from_json(const nlohmann::json& json, PlayerData& data)
             data.planetRocketUsedPositions[PlanetGenDataLoader::getPlanetTypeFromName(iter.key())] = rocketObjectReference;
         }
     }
+
+    if (json.contains("last-used-planet-rocket-type"))
+    {
+        data.lastUsedPlanetRocketType = ObjectDataLoader::getObjectTypeFromName(json.at("last-used-planet-rocket-type"));
+    }
+    else
+    {
+        data.lastUsedPlanetRocketType = ObjectDataLoader::getObjectTypeFromName("Rocket Launch Pad");
+    }
 }
 
 inline void to_json(nlohmann::json& json, const PlayerData& data)
@@ -148,5 +158,10 @@ inline void to_json(nlohmann::json& json, const PlayerData& data)
         const PlanetGenData& planetData = PlanetGenDataLoader::getPlanetGenData(rocketUsed.first);
         std::vector<int> objectReference = {rocketUsed.second.chunk.x, rocketUsed.second.chunk.y, rocketUsed.second.tile.x, rocketUsed.second.tile.y};
         json["rockets-used"][planetData.name] = objectReference;
+    }
+
+    if (data.lastUsedPlanetRocketType >= 0)
+    {
+        json["last-used-planet-rocket-type"] = ObjectDataLoader::getObjectData(data.lastUsedPlanetRocketType).name;
     }
 }

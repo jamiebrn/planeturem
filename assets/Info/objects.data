@@ -333,6 +333,30 @@
         "sell-value": 10
     },
     {
+        "name": "Metal Rocket",
+        "health": 10,
+        "textures": [[384, 320]],
+        "texture-width": 32,
+        "texture-height": 32,
+        "texture-x-origin": 0.25,
+        "texture-y-origin": 0.25,
+        "size-x": 2,
+        "size-y": 2,
+        "has-collision": true,
+        "light-absorption": 0.3,
+        "rocket-info": {
+            "texture": [32, 343, 16, 41],
+            "texture-origin": [0.5, 1],
+            "launch-position": [16, 14],
+            "available-destinations": ["Earthlike", "Frozen"],
+            "available-room-destinations": ["SpaceStation"]
+        },
+        "item-drops": {
+            "Metal Rocket": [1, 1, 1.0]
+        },
+        "sell-value": 10
+    },
+    {
         "name": "Wooden Clock",
         "health": 6,
         "textures": [[160, 160], [176, 160], [192, 160], [208, 160], [224, 160], [240, 160], [256, 160], [272, 160]],

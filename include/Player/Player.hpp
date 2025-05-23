@@ -136,6 +136,9 @@ public:
     void exitRocket(int worldSize);
     bool isInRocket();
 
+    void setLastUsedPlanetRocketType(ObjectType rocketType);
+    ObjectType getLastUsedPlanetRocketType() const;
+
     bool canReachPosition(pl::Vector2f worldPos);
 
     void setPosition(pl::Vector2f worldPos, int worldSize);
@@ -241,6 +244,8 @@ protected:
     // In rocket state
     bool inRocket;
     pl::Vector2f rocketExitPos;
+
+    ObjectType lastUsedPlanetRocketType;
 
     static constexpr std::array<float, 5> runningShadowScale = {1.0f, 0.8f, 0.7f, 0.8f, 0.9f};
     

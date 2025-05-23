@@ -49,6 +49,7 @@ Player::Player(pl::Vector2f position, int maxHealth, pl::Color bodyColor, pl::Co
     fishBitingLine = false;
 
     inRocket = false;
+    lastUsedPlanetRocketType = -1;
 }
 
 void Player::update(float dt, pl::Vector2f mouseWorldPos, ChunkManager& chunkManager, ProjectileManager& projectileManager)
@@ -1229,6 +1230,16 @@ void Player::exitRocket(int worldSize)
 bool Player::isInRocket()
 {
     return inRocket;
+}
+
+void Player::setLastUsedPlanetRocketType(ObjectType rocketType)
+{
+    lastUsedPlanetRocketType = rocketType;
+}
+
+ObjectType Player::getLastUsedPlanetRocketType() const
+{
+    return lastUsedPlanetRocketType;
 }
 
 void Player::setPosition(pl::Vector2f worldPos, int worldSize)
