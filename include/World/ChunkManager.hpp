@@ -222,7 +222,8 @@ public:
     bool canPlaceLand(ChunkPosition chunk, pl::Vector2<int> tile);
 
     // Place land at position
-    void placeLand(ChunkPosition chunk, pl::Vector2<int> tile);
+    // Pass in NetworkHandler to automatically sync network land placements
+    void placeLand(ChunkPosition chunk, pl::Vector2<int> tile, NetworkHandler* networkHandler);
 
 
     // -- Structures -- //

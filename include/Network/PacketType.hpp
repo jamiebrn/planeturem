@@ -24,6 +24,8 @@ enum class PacketType : uint8_t
     ObjectBuilt,
     ObjectDestroyed,
 
+    LandPlaced,
+
     ItemPickupsCreated,
     ItemPickupCollected,
     ItemPickupsCreateRequest,

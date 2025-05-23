@@ -17,6 +17,12 @@ struct Packet
     bool compressed = false;
     uint32_t uncompressedSize = 0;
 
+    Packet() = default;
+    inline Packet(const IPacketData& packetData, bool applyCompression = true)
+    {
+        set(packetData, applyCompression);
+    }
+
     inline std::vector<char> serialise() const
     {
         int size = sizeof(type) + sizeof(compressed) + data.size();

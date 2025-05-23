@@ -2187,8 +2187,8 @@ void Game::attemptPlaceLand()
         return;
 
     // Do not build if holding tool in inventory
-    if (player.getTool() >= 0)
-        return;
+    // if (player.getTool() >= 0)
+    //     return;
 
     // bool placeFromHotbar = false;
 
@@ -2207,11 +2207,11 @@ void Game::attemptPlaceLand()
     if (!getChunkManager().canPlaceLand(Cursor::getSelectedChunk(getChunkManager().getWorldSize()), Cursor::getSelectedChunkTile()))
         return;
     
-    if (!player.canReachPosition(camera.screenToWorldTransform(mouseScreenPos, getChunkManager().getWorldSize())))
+    if (!player.canReachPosition(camera.screenToWorldTransform(mouseScreenPos, 0)))
         return;
     
     // Place land
-    getChunkManager().placeLand(Cursor::getSelectedChunk(getChunkManager().getWorldSize()), Cursor::getSelectedChunkTile());
+    getChunkManager().placeLand(Cursor::getSelectedChunk(getChunkManager().getWorldSize()), Cursor::getSelectedChunkTile(), &networkHandler);
 
     // Play build sound
     int soundChance = rand() % 2;

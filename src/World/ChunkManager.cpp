@@ -1091,8 +1091,28 @@ bool ChunkManager::canPlaceLand(ChunkPosition chunk, pl::Vector2<int> tile)
     return chunkPtr->canPlaceLand(tile);
 }
 
-void ChunkManager::placeLand(ChunkPosition chunk, pl::Vector2<int> tile)
+void ChunkManager::placeLand(ChunkPosition chunk, pl::Vector2<int> tile, NetworkHandler* networkHandler)
 {
+    if (networkHandler && networkHandler->isMultiplayerGame())
+    {
+        PacketDataLandPlaced packetData;
+        packetData.planetType = planetType;
+        packetData.chunk = chunk;
+        packetData.tile = tile;
+
+        Packet packet(packetData);
+
+        if (networkHandler->getIsLobbyHost())
+        {
+            networkHandler->sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0);
+        }
+        else
+        {
+            networkHandler->sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
+            return;
+        }
+    }
+
     // Chunk not loaded
     Chunk* chunkPtr = getChunk(chunk);
     if (!chunkPtr)

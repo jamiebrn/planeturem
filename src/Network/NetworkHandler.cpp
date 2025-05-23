@@ -679,6 +679,21 @@ void NetworkHandler::processMessage(const SteamNetworkingMessage_t& message, con
                 sentFromHost, packetData.builtByPlayer);
             break;
         }
+        case PacketType::LandPlaced:
+        {
+            PacketDataLandPlaced packetData;
+            packetData.deserialise(packet.data);
+            if (!game->isLocationStateInitialised(LocationState::createFromPlanetType(packetData.planetType)))
+            {
+                break;
+            }
+
+            // Provide NetworkHandler pointer when placing land only if we are host,
+            // as client receiving LandPlaced packet does not require networking (assumes to be truth)
+            NetworkHandler* networkHandlerParam = isLobbyHost ? this : nullptr;
+            game->getChunkManager(packetData.planetType).placeLand(packetData.chunk, packetData.tile, networkHandlerParam);
+            break;
+        }
         case PacketType::ItemPickupsCreated:
         {
             PacketDataItemPickupsCreated packetData;
