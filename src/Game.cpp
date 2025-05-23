@@ -13,8 +13,6 @@
 
 // FIX: Fishing rod missing sample points on some upward casts
 
-// TODO: Keep track of last rocket type used
-
 // TODO: HSV sliders over RGB sliders for customisation, with colour gradient slider background
 
 // PRIORITY: MEDIUM (MULTIPLAYER)
@@ -2789,6 +2787,12 @@ void Game::travelToDestination()
     }
     else if (destinationLocationState.isInRoomDest())
     {
+        // Delete used rocket object if on planet
+        if (locationState.getGameState() == GameState::OnPlanet)
+        {
+            deleteObjectSynced(rocketEnteredReference, locationState.getPlanetType(), false);
+        }
+
         travelToRoomDestination(destinationLocationState.getRoomDestType());
     }
 
