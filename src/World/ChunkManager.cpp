@@ -1,6 +1,7 @@
 #include "World/ChunkManager.hpp"
 #include "Network/NetworkHandler.hpp"
 #include "Game.hpp"
+#include "Player/Player.hpp"
 
 void ChunkManager::setSeed(int seed)
 {
@@ -592,7 +593,7 @@ void ChunkManager::setObjectReference(const ChunkPosition& chunk, const ObjectRe
     chunkPtr->setObjectReference(objectReference, tile, *this, pathfindingEngine);
 }
 
-bool ChunkManager::canPlaceObject(ChunkPosition chunk, pl::Vector2<int> tile, ObjectType objectType, const CollisionRect& playerCollisionRect)
+bool ChunkManager::canPlaceObject(ChunkPosition chunk, pl::Vector2<int> tile, ObjectType objectType, const std::vector<Player*>& players)
 {
     // Chunk does not exist
     Chunk* chunkPtr = getChunk(chunk);
@@ -614,9 +615,14 @@ bool ChunkManager::canPlaceObject(ChunkPosition chunk, pl::Vector2<int> tile, Ob
         objectCollisionRect.width = objectData.size.x * TILE_SIZE_PIXELS_UNSCALED;
         objectCollisionRect.height = objectData.size.y * TILE_SIZE_PIXELS_UNSCALED;
 
-        // Test if colliding with player
-        if (playerCollisionRect.isColliding(objectCollisionRect, worldSize))
-            return false;
+        // Test if colliding with players
+        for (Player* player : players)
+        {
+            if (player->getCollisionRect().isColliding(objectCollisionRect, worldSize))
+            {
+                return false;
+            }
+        }
         
         // Test if colliding with entities in adjacent chunks
         for (int y = chunk.y - 1; y <= chunk.y + 1; y++)
@@ -642,7 +648,7 @@ bool ChunkManager::canPlaceObject(ChunkPosition chunk, pl::Vector2<int> tile, Ob
     return chunkPtr->canPlaceObject(tile, objectType, worldSize, *this);
 }
 
-bool ChunkManager::canDestroyObject(ChunkPosition chunk, pl::Vector2<int> tile, const CollisionRect& playerCollisionRect)
+bool ChunkManager::canDestroyObject(ChunkPosition chunk, pl::Vector2<int> tile, const std::vector<Player*>& players)
 {
     Chunk* chunkPtr = getChunk(chunk);
 
@@ -675,9 +681,14 @@ bool ChunkManager::canDestroyObject(ChunkPosition chunk, pl::Vector2<int> tile, 
         objectCollisionRect.width = objectData.size.x * TILE_SIZE_PIXELS_UNSCALED;
         objectCollisionRect.height = objectData.size.y * TILE_SIZE_PIXELS_UNSCALED;
 
-        // Test if colliding with player
-        if (playerCollisionRect.isColliding(objectCollisionRect, worldSize))
-            return false;
+        // Test if colliding with players
+        for (Player* player : players)
+        {
+            if (player->getCollisionRect().isColliding(objectCollisionRect, worldSize))
+            {
+                return false;
+            }
+        }
         
         // Test if colliding with entities in adjacent chunks
         for (int x = chunk.x - 1; x <= chunk.x + 1; x++)
@@ -686,15 +697,15 @@ bool ChunkManager::canDestroyObject(ChunkPosition chunk, pl::Vector2<int> tile, 
             {
                 int wrappedX = (x % worldSize + worldSize) % worldSize;
                 int wrappedY = (y % worldSize + worldSize) % worldSize;
-
-                // FIX: May have to check entities in stored chunks as well
-
-                // If chunk does not exist, do not attempt to check collision
-                if (loadedChunks.count(ChunkPosition(wrappedX, wrappedY)) <= 0)
-                    continue;
                 
-                if (loadedChunks[ChunkPosition(wrappedX, wrappedY)]->isCollisionRectCollidingWithEntities(objectCollisionRect, worldSize))
-                    return false;
+                // If chunk does not exist, do not attempt to check collision
+                if (Chunk* chunkPtr = getChunk(ChunkPosition(wrappedX, wrappedY)))
+                {
+                    if (chunkPtr->isCollisionRectCollidingWithEntities(objectCollisionRect, worldSize))
+                    {
+                        return false;
+                    }
+                }
             }
         }
     }

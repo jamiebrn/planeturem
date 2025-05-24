@@ -2,8 +2,6 @@
 
 // CONSIDER: Landmarks will no longer work as "placedByThisPlayer" is not considered in chunk setObject
 
-// FIX: Placement of objects with collision when colliding with network players
-
 // FIX: Weather inconsistency (gametime)
 
 // FIX: Client enter structure
@@ -999,7 +997,8 @@ void Game::updateOnPlanet(float dt)
     int worldSize = getChunkManager().getWorldSize();
 
     // Update cursor
-    Cursor::updateTileCursor(camera.screenToWorldTransform(mouseScreenPos, worldSize), dt, getChunkManager(), player.getCollisionRect(), inventory, worldMenuState);
+    Cursor::updateTileCursor(camera.screenToWorldTransform(mouseScreenPos, worldSize), dt, getChunkManager(),
+        networkHandler.getPlayersAtLocation(locationState, &player), inventory, worldMenuState);
 
     // Update player
     if (!isStateTransitioning())
@@ -1910,7 +1909,7 @@ void Game::hitObject(ChunkPosition chunk, pl::Vector2<int> tile, int damage, std
         return;
     }
 
-    bool canDestroyObject = getChunkManager(planetType).canDestroyObject(chunk, tile, player.getCollisionRect());
+    bool canDestroyObject = getChunkManager(planetType).canDestroyObject(chunk, tile, networkHandler.getPlayersAtLocation(locationState, &player));
 
     if (!canDestroyObject)
         return;
@@ -2165,7 +2164,8 @@ void Game::attemptBuildObject()
         return;
     }
 
-    if (!getChunkManager().canPlaceObject(Cursor::getSelectedChunk(getChunkManager().getWorldSize()), Cursor::getSelectedChunkTile(), objectType, player.getCollisionRect()))
+    if (!getChunkManager().canPlaceObject(Cursor::getSelectedChunk(getChunkManager().getWorldSize()), Cursor::getSelectedChunkTile(),
+        objectType, networkHandler.getPlayersAtLocation(locationState, &player)))
     {
         return;
     }
@@ -2325,7 +2325,7 @@ void Game::drawGhostPlaceObjectAtCursor(ObjectType object)
     bool canPlace = getChunkManager().canPlaceObject(Cursor::getSelectedChunk(getChunkManager().getWorldSize()),
                                                 Cursor::getSelectedChunkTile(),
                                                 object,
-                                                player.getCollisionRect());
+                                                networkHandler.getPlayersAtLocation(locationState, &player));
 
     bool inRange = player.canReachPosition(camera.screenToWorldTransform(mouseScreenPos, 0));
 

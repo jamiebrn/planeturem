@@ -15,7 +15,7 @@ pl::Vector2<int> Cursor::selectSize = {1, 1};
 void Cursor::updateTileCursor(pl::Vector2f mouseWorldPos,
                               float dt,
                               ChunkManager& chunkManager,
-                              const CollisionRect& playerCollisionRect,
+                              const std::vector<Player*>& players,
                               InventoryData& inventory,
                               WorldMenuState worldMenuState)
 {
@@ -51,7 +51,7 @@ void Cursor::updateTileCursor(pl::Vector2f mouseWorldPos,
         switch (toolData.toolBehaviourType)
         {
             case ToolBehaviourType::Pickaxe:
-                updateTileCursorOnPlanetToolPickaxe(mouseWorldPos, dt, chunkManager, playerCollisionRect);
+                updateTileCursorOnPlanetToolPickaxe(mouseWorldPos, dt, chunkManager, players);
                 break;
             case ToolBehaviourType::FishingRod:
                 updateTileCursorOnPlanetToolFishingRod(dt, chunkManager);
@@ -102,42 +102,9 @@ void Cursor::updateTileCursorOnPlanetPlaceLand()
     drawState = CursorDrawState::Tile;
 }
 
-void Cursor::updateTileCursorOnPlanetToolPickaxe(pl::Vector2f mouseWorldPos, float dt, ChunkManager& chunkManager, const CollisionRect& playerCollisionRect)
+void Cursor::updateTileCursorOnPlanetToolPickaxe(pl::Vector2f mouseWorldPos, float dt, ChunkManager& chunkManager, const std::vector<Player*>& players)
 {
     int worldSize = chunkManager.getWorldSize();
-    // pl::Vector2f mouseWorldPos = getMouseWorldPos(window, camera);
-
-    // Get entity selected at cursor position (if any)
-    // Entity* selectedEntity = chunkManager.getSelectedEntity(Cursor::getSelectedChunk(worldSize), mouseWorldPos);
-    
-    // // If entity is selected and in main world state, set size of cursor to entity size
-    // if (selectedEntity != nullptr)
-    // {
-    //     selectPos = selectedEntity->getPosition();
-
-    //     pl::Vector2f selectSizeFloat = selectedEntity->getSize();
-
-    //     // Set tile cursor corner tile positions
-    //     cursorCornerPositions[0].worldPositionDestination = selectPos - selectSizeFloat / 2.0f;
-    //     cursorCornerPositions[1].worldPositionDestination = selectPos + pl::Vector2f(selectSizeFloat.x, -selectSizeFloat.y) / 2.0f;
-    //     cursorCornerPositions[2].worldPositionDestination = selectPos + pl::Vector2f(-selectSizeFloat.x, selectSizeFloat.y) / 2.0f;
-    //     cursorCornerPositions[3].worldPositionDestination = selectPos + selectSizeFloat / 2.0f;
-
-    //     // Immediately set cursor position to destination position (no lerp)
-    //     setCursorCornersToDestination();
-
-    //     // Set cursor animation to freeze at index 0
-    //     for (int cursorCornerIdx = 0; cursorCornerIdx < cursorAnimatedTextures.size(); cursorCornerIdx++)
-    //     {
-    //         cursorAnimatedTextures[cursorCornerIdx].setFrame(0);
-    //     }
-
-    //     // Set dynamic draw to true as is not a tile-based selection
-    //     drawState = CursorDrawState::Dynamic;
-
-    //     // Entity is selected, so should not attempt to find object
-    //     return;
-    // }
 
     // Get object selected at cursor position (if any)
     BuildableObject* selectedObject = chunkManager.getChunkObject(Cursor::getSelectedChunk(worldSize), Cursor::getSelectedChunkTile());
@@ -146,7 +113,7 @@ void Cursor::updateTileCursorOnPlanetToolPickaxe(pl::Vector2f mouseWorldPos, flo
     if (selectedObject)
     {
         // Test if can destroy selected object - don't draw cursor if cannot destroy
-        if (!chunkManager.canDestroyObject(getSelectedChunk(worldSize), getSelectedChunkTile(), playerCollisionRect))
+        if (!chunkManager.canDestroyObject(getSelectedChunk(worldSize), getSelectedChunkTile(), players))
         {
             drawState = CursorDrawState::Hidden;
             return;

@@ -46,6 +46,7 @@ class Game;
 class Entity;
 class ProjectileManager;
 class NetworkHandler;
+class Player;
 
 class ChunkManager
 {
@@ -154,10 +155,10 @@ public:
     void setObjectReference(const ChunkPosition& chunk, const ObjectReference& objectReference, pl::Vector2<int> tile);
 
     // Tests whether an object can be placed in chunk at tile, taking into account object size etc
-    bool canPlaceObject(ChunkPosition chunk, pl::Vector2<int> tile, ObjectType objectType, const CollisionRect& playerCollisionRect);
+    bool canPlaceObject(ChunkPosition chunk, pl::Vector2<int> tile, ObjectType objectType, const std::vector<Player*>& players);
 
     // Tests whether an object can be destroyed, e.g. can't destroy bridge object if player or entity is on it
-    bool canDestroyObject(ChunkPosition chunk, pl::Vector2<int> tile, const CollisionRect& playerCollisionRect);
+    bool canDestroyObject(ChunkPosition chunk, pl::Vector2<int> tile, const std::vector<Player*>& players);
 
     // Get all objects in loaded chunks (used for drawing)
     std::vector<WorldObject*> getChunkObjects(ChunkViewRange chunkViewRange);

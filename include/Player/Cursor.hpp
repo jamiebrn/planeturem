@@ -38,6 +38,8 @@
 
 // #include "GUI/InventoryGUI.hpp"
 
+class Player;
+
 enum CursorDrawState
 {
     Hidden,
@@ -61,7 +63,7 @@ public:
     static void updateTileCursor(pl::Vector2f mouseWorldPos,
                                  float dt,
                                  ChunkManager& chunkManager,
-                                 const CollisionRect& playerCollisionRect,
+                                 const std::vector<Player*>& players,
                                  InventoryData& inventory,
                                  WorldMenuState worldMenuState);
 
@@ -93,7 +95,7 @@ private:
     static void updateTileCursorOnPlanetPlaceObject(ObjectType objectType);
     static void updateTileCursorOnPlanetPlaceLand();
     
-    static void updateTileCursorOnPlanetToolPickaxe(pl::Vector2f mouseWorldPos, float dt, ChunkManager& chunkManager, const CollisionRect& playerCollisionRect);
+    static void updateTileCursorOnPlanetToolPickaxe(pl::Vector2f mouseWorldPos, float dt, ChunkManager& chunkManager, const std::vector<Player*>& players);
     static void updateTileCursorOnPlanetToolFishingRod(float dt, ChunkManager& chunkManager);
 
     static void updateTileCursorOnPlanetNoItem(float dt, ChunkManager& chunkManager);
