@@ -3,6 +3,8 @@
 // CONSIDER: Entering rocket when entered by other players
 // CONSIDER: If rocket entered destroyed by another player, exit
 
+// FIX: Rocket in the ocean
+
 // FIX: Land placement multiplayer crash???
 
 // FIX: Weather inconsistency (gametime)
@@ -2954,6 +2956,7 @@ ObjectReference Game::setupPlanetTravel(PlanetType planetType, const LocationSta
         // Send chunks to client
         PacketDataPlanetTravelReply packetData;
         packetData.chunkDatas.planetType = planetType;
+        packetData.landmarks.landmarkManager = getLandmarkManager(planetType);
         packetData.rocketObjectReference = placeRocketReference;
 
         for (auto iter = playerChunkViewRange.begin(); iter != playerChunkViewRange.end(); iter++)
