@@ -43,6 +43,9 @@ enum class PacketType : uint8_t
     Entities,
     Projectiles,
     Bosses,
+    
+    Landmarks,
+    LandmarkModified,
 
     ProjectileCreateRequest,
 

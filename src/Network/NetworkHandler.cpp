@@ -676,7 +676,7 @@ void NetworkHandler::processMessage(const SteamNetworkingMessage_t& message, con
             packetData.deserialise(packet.data);
             bool sentFromHost = !isLobbyHost;
             game->buildObject(packetData.objectReference.chunk, packetData.objectReference.tile, packetData.objectType, packetData.planetType,
-                sentFromHost, packetData.builtByPlayer);
+                sentFromHost, packetData.userId.has_value(), packetData.userId);
             break;
         }
         case PacketType::LandPlaced:
@@ -813,6 +813,53 @@ void NetworkHandler::processMessage(const SteamNetworkingMessage_t& message, con
             game->closeChest(packetData.chestObject, packetData.locationState, true, packetData.userID);
             break;
         }
+        case PacketType::LandmarkModified:
+        {
+            PacketDataLandmarkModified packetData;
+            packetData.deserialise(packet.data);
+
+            LocationState packetLocationState = LocationState::createFromPlanetType(packetData.planetType);
+
+            if (!game->isLocationStateInitialised(packetLocationState))
+            {
+                if (isLobbyHost)
+                {
+                    // Should not be receiving uninitialised planet type landmark modified packets when host - all active planets should be loaded
+                    printf("ERROR: Received landmark modified packet of uninitialised planet type %d\n", packetData.planetType);
+                }
+                break;
+            }
+
+            LandmarkObject* landmarkObject = game->getObjectFromLocation<LandmarkObject>(packetData.landmarkObjectReference, packetLocationState);
+
+            if (!landmarkObject)
+            {
+                if (isLobbyHost)
+                {
+                    printf("ERROR: Received landmark modified packet for null object (%d, %d, %d, %d)\n",
+                        packetData.landmarkObjectReference.chunk.x, packetData.landmarkObjectReference.chunk.y,
+                        packetData.landmarkObjectReference.tile.x, packetData.landmarkObjectReference.tile.y);
+                }
+                else
+                {
+                    // If client and landmark missing, request chunk from host as is likely we are out of date with world data
+                    std::vector<ChunkPosition> chunksToRequest = {packetData.landmarkObjectReference.chunk};
+                    requestChunksFromHost(packetData.planetType, chunksToRequest, true);
+                }
+                return;
+            }
+
+            landmarkObject->setLandmarkColour(packetData.newColorA, packetData.newColorB);
+
+            game->getLandmarkManager(packetData.planetType).addLandmark(packetData.landmarkObjectReference);
+
+            // Forward to clients
+            if (isLobbyHost)
+            {
+                sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0);
+            }
+            break;
+        }
     }
 }
 
@@ -888,7 +935,15 @@ void NetworkHandler::processMessageAsHost(const SteamNetworkingMessage_t& messag
             {
                 packetData.currentPlayerDatas[iter->first] = iter->second.getPlayerData();
             }
-    
+            
+            // Send landmark data if required
+            if (packetData.playerData.locationState.isOnPlanet())
+            {
+                packetData.landmarks = PacketDataLandmarks();
+                packetData.landmarks->planetType = packetData.playerData.locationState.getPlanetType();
+                packetData.landmarks->landmarkManager = game->getLandmarkManager(packetData.landmarks->planetType);
+            }
+
             registerNetworkPlayer(message.m_identityPeer.GetSteamID64(), packetDataJoinReply.playerName, packetDataJoinReply.pingLocation, &chatGUI);
             
             Packet packetToSend;

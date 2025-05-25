@@ -166,7 +166,7 @@ public:
     void hitObject(ChunkPosition chunk, pl::Vector2<int> tile, int damage, std::optional<PlanetType> planetType = std::nullopt,
         bool sentFromHost = false, std::optional<uint64_t> userId = std::nullopt);
     void buildObject(ChunkPosition chunk, pl::Vector2<int> tile, ObjectType objectType, std::optional<PlanetType> planetType = std::nullopt,
-        bool sentFromHost = false, bool builtByPlayer = true);
+        bool sentFromHost = false, bool builtByPlayer = true, std::optional<uint64_t> userId = std::nullopt);
     void destroyObjectFromHost(ChunkPosition chunk, pl::Vector2<int> tile, std::optional<PlanetType> planetType);
 
     // Networking
@@ -185,6 +185,11 @@ public:
     void enterStructureFromHost(PlanetType planetType, ChunkPosition chunk, uint32_t structureID, pl::Vector2f entrancePos, RoomType roomType);
 
     PlayerData createPlayerData();
+
+    // For chunks, will use chunk and tile from object reference
+    // For rooms, will use tile from object reference
+    template <class T = BuildableObject>
+    T* getObjectFromLocation(ObjectReference objectReference, const LocationState& objectLocationState);
 
 
     // Misc
@@ -275,11 +280,6 @@ private:
     // Returns pointer (may be null) to selected / hovered object
     // Depending on game state, will check chunks / room
     BuildableObject* getSelectedObjectFromChunkOrRoom();
-
-    // For chunks, will use chunk and tile from object reference
-    // For rooms, will use tile from object reference
-    template <class T = BuildableObject>
-    T* getObjectFromLocation(ObjectReference objectReference, const LocationState& objectLocationState);
 
 
     // -- Inventory / Chests -- //

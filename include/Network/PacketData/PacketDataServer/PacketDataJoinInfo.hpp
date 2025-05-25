@@ -1,9 +1,10 @@
 #pragma once
 
 #include <string>
-#include <vector>
+#include <optional>
 
 #include <extlib/cereal/types/unordered_map.hpp>
+#include <extlib/cereal/types/optional.hpp>
 #include <extlib/cereal/archives/binary.hpp>
 
 #include "Network/IPacketData.hpp"
@@ -11,6 +12,8 @@
 #include "Player/PlayerData.hpp"
 #include "World/ChestDataPool.hpp"
 #include "Entity/Projectile/ProjectileManager.hpp"
+
+#include "Network/PacketData/PacketDataWorld/PacketDataLandmarks.hpp"
 
 struct PacketDataJoinInfo : public IPacketData
 {
@@ -23,10 +26,12 @@ struct PacketDataJoinInfo : public IPacketData
 
     std::unordered_map<uint64_t, PlayerData> currentPlayerDatas;
 
+    std::optional<PacketDataLandmarks> landmarks;
+
     template <class Archive>
     void serialize(Archive& ar)
     {
-        ar(seed, gameTime, time, day, playerData, currentPlayerDatas);
+        ar(seed, gameTime, time, day, playerData, currentPlayerDatas, landmarks);
     }
 
     PACKET_SERIALISATION();

@@ -15,12 +15,11 @@ struct PacketDataObjectBuilt : public IPacketData
     ObjectReference objectReference;
     ObjectType objectType;
     std::optional<uint64_t> userId;
-    bool builtByPlayer = true;
 
     template <class Archive>
     void serialize(Archive& ar)
     {
-        ar(planetType, objectReference, objectType, userId, builtByPlayer);
+        ar(planetType, objectReference, objectType, userId);
     }
 
     PACKET_SERIALISATION();

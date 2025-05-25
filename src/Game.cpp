@@ -1,10 +1,11 @@
 #include "Game.hpp"
 
-// CONSIDER: Landmarks will no longer work as "placedByThisPlayer" is not considered in chunk setObject
+// CONSIDER: Entering rocket when entered by other players
+// CONSIDER: If rocket entered destroyed by another player, exit
+
+// FIX: Land placement multiplayer crash???
 
 // FIX: Weather inconsistency (gametime)
-
-// FIX: Client enter structure
 
 // FIX: VSync disable not working in initial fullscreen
 // FIX: Viewport not resizing on window disable fullscreen
@@ -892,7 +893,31 @@ void Game::runInGame(float dt)
                     LandmarkObject* landmarkObjectPtr = getObjectFromLocation<LandmarkObject>(landmarkSetGUI.getLandmarkObjectReference(), locationState);
                     if (landmarkObjectPtr)
                     {
-                        landmarkObjectPtr->setLandmarkColour(landmarkSetGUI.getColorA(), landmarkSetGUI.getColorB());
+                        // Send landmark modified update to all players if multiplayer game
+                        if (networkHandler.isMultiplayerGame())
+                        {
+                            PacketDataLandmarkModified packetData;
+                            packetData.planetType = locationState.getPlanetType();
+                            packetData.landmarkObjectReference = landmarkSetGUI.getLandmarkObjectReference();
+                            packetData.newColorA = landmarkSetGUI.getColorA();
+                            packetData.newColorB = landmarkSetGUI.getColorB();
+
+                            Packet packet(packetData);
+                            if (networkHandler.getIsLobbyHost())
+                            {
+                                networkHandler.sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0);
+                            }
+                            else
+                            {
+                                networkHandler.sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
+                            }
+                        }
+
+                        // Set landmark color if solo / host
+                        if (networkHandler.isLobbyHostOrSolo())
+                        {
+                            landmarkObjectPtr->setLandmarkColour(landmarkSetGUI.getColorA(), landmarkSetGUI.getColorB());
+                        }
                     }
                 }
                 if (landmarkSetGUIEvent.closed)
@@ -1384,7 +1409,7 @@ void Game::drawLandmarks()
 
     int worldSize = getChunkManager().getWorldSize();
     
-    for (const LandmarkSummaryData& landmarkSummary : getLandmarkManager().getLandmarkSummaryDatas(camera, getChunkManager()))
+    for (const LandmarkSummaryData& landmarkSummary : getLandmarkManager().getLandmarkSummaryDatas(camera, getChunkManager(), networkHandler))
     {
         if (landmarkSummary.screenPos.x >= 0 && landmarkSummary.screenPos.x < resolution.x &&
             landmarkSummary.screenPos.y >= 0 && landmarkSummary.screenPos.y < resolution.y)
@@ -1984,10 +2009,10 @@ void Game::hitObject(ChunkPosition chunk, pl::Vector2<int> tile, int damage, std
 }
 
 void Game::buildObject(ChunkPosition chunk, pl::Vector2<int> tile, ObjectType objectType, std::optional<PlanetType> planetType, bool sentFromHost,
-    bool builtByPlayer)
+    bool builtByPlayer, std::optional<uint64_t> userId)
 {
     // If multiplayer game and this client builds object, send build object packet to host
-    if (networkHandler.isClient() && !sentFromHost)
+    if (networkHandler.isClient() && !sentFromHost && builtByPlayer)
     {
         if (!locationState.isOnPlanet())
         {
@@ -1998,7 +2023,6 @@ void Game::buildObject(ChunkPosition chunk, pl::Vector2<int> tile, ObjectType ob
         packetData.objectReference.chunk = chunk;
         packetData.objectReference.tile = tile;
         packetData.objectType = objectType;
-        packetData.builtByPlayer = builtByPlayer;
         packetData.userId = SteamUser()->GetSteamID().ConvertToUint64();
 
         Packet packet;
@@ -2027,9 +2051,15 @@ void Game::buildObject(ChunkPosition chunk, pl::Vector2<int> tile, ObjectType ob
         packetData.objectReference.chunk = chunk;
         packetData.objectReference.tile = tile;
         packetData.objectType = objectType;
-        packetData.builtByPlayer = builtByPlayer;
-        packetData.userId = SteamUser()->GetSteamID().ConvertToUint64();
 
+        // If no userId passed in and built by player, default userId to our ID
+        if (builtByPlayer && !userId.has_value())
+        {
+            userId = SteamUser()->GetSteamID().ConvertToUint64();
+        }
+
+        packetData.userId = userId;
+        
         Packet packet;
         packet.set(packetData);
         networkHandler.sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0);
@@ -2042,7 +2072,7 @@ void Game::buildObject(ChunkPosition chunk, pl::Vector2<int> tile, ObjectType ob
         if (!chunkPtr)
         {
             std::vector<ChunkPosition> requestedChunks = {chunk};
-            networkHandler.requestChunksFromHost(locationState.getPlanetType(), requestedChunks);
+            networkHandler.requestChunksFromHost(locationState.getPlanetType(), requestedChunks, true);
             return;
         }
     }
@@ -2050,8 +2080,16 @@ void Game::buildObject(ChunkPosition chunk, pl::Vector2<int> tile, ObjectType ob
     // Build object
     BuildableObjectCreateParameters createParameters;
     createParameters.placedByPlayer = builtByPlayer;
-    // createParameters.placedByThisPlayer
     createParameters.flashOnCreate = true;
+
+    if (!networkHandler.isMultiplayerGame())
+    {
+        createParameters.placedByThisPlayer = builtByPlayer;
+    }
+    else if (builtByPlayer && userId.has_value())
+    {
+        createParameters.placedByThisPlayer = userId.value() == SteamUser()->GetSteamID().ConvertToUint64();
+    }
 
     getChunkManager(planetType).setObject(chunk, tile, objectType, *this, createParameters);
 
@@ -3044,6 +3082,8 @@ void Game::travelToPlanetFromHost(const PacketDataPlanetTravelReply& planetTrave
     player.exitRocket(0);
 
     travelToPlanet(planetTravelReplyPacket.chunkDatas.planetType, planetTravelReplyPacket.rocketObjectReference);
+
+    worldDatas[locationState.getPlanetType()].landmarkManager = planetTravelReplyPacket.landmarks.landmarkManager;
 }
 
 void Game::travelToRoomDestinationFromHost(const PacketDataRoomTravelReply& roomTravelReplyPacket)
@@ -3770,6 +3810,8 @@ void Game::joinWorld(const PacketDataJoinInfo& joinInfo)
             nextGameState = GameState::InStructure;
             structureEnteredPos = joinInfo.playerData.structureExitPos;
         }
+
+        worldDatas[locationState.getPlanetType()].landmarkManager = joinInfo.landmarks->landmarkManager;
 
         weatherSystem = WeatherSystem(gameTime, planetSeed + locationState.getPlanetType());
         weatherSystem.presimulateWeather(gameTime, camera, getChunkManager());
