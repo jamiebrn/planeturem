@@ -1,4 +1,5 @@
 #include "Object/BuildableObjectFactory.hpp"
+#include "World/ChunkManager.hpp"
 
 namespace BuildableObjectFactory
 {
@@ -20,8 +21,8 @@ std::unique_ptr<BuildableObject> create(pl::Vector2f position, ObjectType object
             position, objectType, parameters, *game, chunkManager)
         OBJECT_CREATE(NPCObject, objectData.npcObjectData.has_value(),
             position, objectType, parameters)
-        OBJECT_CREATE(LandmarkObject, objectData.isLandmark && game,
-            position, objectType, *game, parameters)
+        OBJECT_CREATE(LandmarkObject, objectData.isLandmark && game && chunkManager,
+            position, objectType, chunkManager->getPlanetType(), *game, parameters)
     }
 
     // Default case
