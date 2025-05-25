@@ -108,7 +108,8 @@ bool Game::initialise()
     InputManager::initialise(window.getSDLWindow());
 
     // Initialise values
-    gameTime = 0;
+    gameTime = 0.0f;
+    applicationTime = 0.0f;
     //mainMenuState = MainMenuState::Main;
     gameState = GameState::MainMenu;
     destinationGameState = gameState;
