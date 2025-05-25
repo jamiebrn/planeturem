@@ -1,10 +1,10 @@
 #include "Object/LandmarkObject.hpp"
 #include "Game.hpp"
 
-LandmarkObject::LandmarkObject(pl::Vector2f position, ObjectType objectType, Game& game, const BuildableObjectCreateParameters& parameters)
+LandmarkObject::LandmarkObject(pl::Vector2f position, ObjectType objectType, PlanetType planetType, Game& game, const BuildableObjectCreateParameters& parameters)
     : BuildableObject(position, objectType, parameters)
 {
-    game.landmarkPlaced(*this, parameters.placedByThisPlayer);
+    game.landmarkPlaced(*this, planetType, parameters.placedByThisPlayer);
 }
 
 BuildableObject* LandmarkObject::clone()
@@ -58,7 +58,11 @@ bool LandmarkObject::damage(int amount, Game& game, ChunkManager& chunkManager, 
 
 void LandmarkObject::interact(Game& game, bool isClient)
 {
-    game.landmarkPlaced(*this, true);
+    ChunkManager* activeChunkManager = game.getChunkManagerPtr();
+    if (activeChunkManager)
+    {
+        game.landmarkPlaced(*this, activeChunkManager->getPlanetType(), true);
+    }
 }
 
 bool LandmarkObject::isInteractable() const

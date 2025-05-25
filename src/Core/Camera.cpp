@@ -113,6 +113,8 @@ pl::Vector2f Camera::worldToScreenTransform(pl::Vector2f worldPos, int worldSize
     float scale = ResolutionHandler::getScale();
 
     pl::Vector2f screenCentre = static_cast<pl::Vector2f>(ResolutionHandler::getResolution()) / 2.0f;
+    screenCentre.x = std::round(screenCentre.x);
+    screenCentre.y = std::round(screenCentre.y);
     pl::Vector2f screenCentreWorld = screenCentre / scale;
 
     pl::Vector2f screenPos;

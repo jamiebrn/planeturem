@@ -24,7 +24,7 @@ class Game;
 class LandmarkObject : public BuildableObject
 {
 public:
-    LandmarkObject(pl::Vector2f position, ObjectType objectType, Game& game, const BuildableObjectCreateParameters& parameters);
+    LandmarkObject(pl::Vector2f position, ObjectType objectType, PlanetType planetType, Game& game, const BuildableObjectCreateParameters& parameters);
 
     BuildableObject* clone() override;
 

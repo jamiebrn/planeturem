@@ -1684,12 +1684,18 @@ void Game::interactWithNPC(NPCObject& npc)
 }
 
 // Landmark
-void Game::landmarkPlaced(const LandmarkObject& landmark, bool createGUI)
+void Game::landmarkPlaced(const LandmarkObject& landmark, PlanetType planetType, bool createGUI)
 {
-    ObjectReference landmarkObjectReference = ObjectReference{landmark.getChunkInside(getChunkManager().getWorldSize()),
-        landmark.getChunkTileInside(getChunkManager().getWorldSize())};
+    if (!isLocationStateInitialised(LocationState::createFromPlanetType(planetType)))
+    {
+        printf("ERROR: Landmark creation attempted at uninitialised planet type %d\n", planetType);
+        return;
+    }
 
-    getLandmarkManager().addLandmark(landmarkObjectReference);
+    ObjectReference landmarkObjectReference = ObjectReference{landmark.getChunkInside(getChunkManager(planetType).getWorldSize()),
+        landmark.getChunkTileInside(getChunkManager(planetType).getWorldSize())};
+
+    getLandmarkManager(planetType).addLandmark(landmarkObjectReference);
 
     if (createGUI)
     {
@@ -2803,7 +2809,6 @@ void Game::travelToDestination()
         }
         else if (destinationLocationState.isInRoomDest())
         {
-            // TODO: Room travel request
             PacketDataRoomTravelRequest packetData;
             packetData.roomType = destinationLocationState.getRoomDestType();
             packetData.rocketUsedReference = rocketEnteredReference;
@@ -2964,7 +2969,7 @@ ObjectReference Game::setupPlanetTravel(PlanetType planetType, const LocationSta
         networkHandler.sendPacketToClient(clientID.value(), packet, k_nSteamNetworkingSend_Reliable, 0);
 
         // Save game as client is travelling
-        saveGame();
+        // saveGame();
     }
 
     return placeRocketReference;
@@ -3003,7 +3008,7 @@ void Game::travelToRoomDestinationForClient(RoomType roomDest, const LocationSta
     packet.set(packetData, true);
     networkHandler.sendPacketToClient(clientID, packet, k_nSteamNetworkingSend_Reliable, 0);
 
-    saveGame();
+    // saveGame();
 }
 
 void Game::travelToPlanet(PlanetType planetType, ObjectReference newRocketObjectReference)

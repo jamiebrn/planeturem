@@ -145,7 +145,7 @@ public:
     void interactWithNPC(NPCObject& npc);
 
     // Landmark
-    void landmarkPlaced(const LandmarkObject& landmark, bool createGUI);
+    void landmarkPlaced(const LandmarkObject& landmark, PlanetType planetType, bool createGUI);
     void landmarkDestroyed(const LandmarkObject& landmark);
 
     // Melee combat
