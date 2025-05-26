@@ -1,7 +1,6 @@
 #include "Game.hpp"
 
 // CONSIDER: Entering rocket when entered by other players
-// CONSIDER: Server authenticating rocket enter
 
 // FIX: Rocket in the ocean
 
@@ -648,7 +647,7 @@ void Game::runInGame(float dt)
                 }
                 case WorldMenuState::TravelSelect:
                 {
-                    exitRocket();
+                    exitRocket(locationState, nullptr);
                     InputManager::consumeInputAction(InputAction::UI_BACK);
                     break;
                 }
@@ -885,7 +884,7 @@ void Game::runInGame(float dt)
                     if (rocketObject)
                     {
                         worldMenuState = WorldMenuState::FlyingRocket;
-                        rocketObject->startFlyingUpwards();
+                        rocketObject->startFlyingUpwards(*this, locationState, &networkHandler);
                         // Fade out music
                         Sounds::stopMusic(0.5f);
                         musicGap = MUSIC_GAP_MIN;
@@ -913,14 +912,7 @@ void Game::runInGame(float dt)
                             packetData.newColorB = landmarkSetGUI.getColorB();
 
                             Packet packet(packetData);
-                            if (networkHandler.getIsLobbyHost())
-                            {
-                                networkHandler.sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0);
-                            }
-                            else
-                            {
-                                networkHandler.sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
-                            }
+                            networkHandler.sendPacketToServer(packet, k_nSteamNetworkingSend_Reliable, 0);
                         }
 
                         // Set landmark color if solo / host
@@ -973,7 +965,7 @@ void Game::runInGame(float dt)
                     RocketObject* rocketObject = getObjectFromLocation<RocketObject>(rocketEnteredReference, locationState);
                     if (rocketObject)
                     {
-                        rocketObject->startFlyingDownwards(*this);
+                        rocketObject->startFlyingDownwards(*this, locationState, &networkHandler, true);
                     }
                 }
             }
@@ -1148,17 +1140,9 @@ void Game::updateOnPlanet(float dt)
                     packetData.locationState = locationState;
                     packetData.pickup = itemPickupColliding.value();
                     packetData.count = amountAdded;
-                    Packet packet;
-                    packet.set(packetData);
 
-                    if (networkHandler.getIsLobbyHost())
-                    {
-                        networkHandler.sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0);
-                    }
-                    else
-                    {
-                        networkHandler.sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
-                    }
+                    Packet packet(packetData);
+                    networkHandler.sendPacketToServer(packet, k_nSteamNetworkingSend_Reliable, 0);
 
                     // Queue send player data if required
                     if (modifyInventory)
@@ -1586,19 +1570,32 @@ void Game::testExitStructure()
 }
 
 // Rocket
-void Game::enterRocket(RocketObject& rocket)
+void Game::enterRocketFromReference(ObjectReference rocketObjectReference, bool sentFromHost)
+{
+    RocketObject* rocketObject = getObjectFromLocation<RocketObject>(rocketObjectReference, locationState);
+
+    if (!rocketObject)
+    {
+        printf("ERROR: Attempted to enter null rocket from reference at (%d, %d, %d, %d)\n",
+            rocketObjectReference.chunk.x, rocketObjectReference.chunk.y, rocketObjectReference.tile.x, rocketObjectReference.tile.y);
+        return;
+    }
+
+    enterRocket(*rocketObject, sentFromHost);
+}
+
+void Game::enterRocket(RocketObject& rocket, bool sentFromHost)
 {
     int worldSize = 0;
+
+    ObjectReference rocketObjectReference;
 
     switch (gameState)
     {
         case GameState::OnPlanet:
         {
-            rocketEnteredReference.chunk = rocket.getChunkInside(getChunkManager().getWorldSize());
-            rocketEnteredReference.tile = rocket.getChunkTileInside(getChunkManager().getWorldSize());
-
-            // Add to used rockets
-            planetRocketUsedPositions[locationState.getPlanetType()] = rocketEnteredReference;
+            rocketObjectReference.chunk = rocket.getChunkInside(getChunkManager().getWorldSize());
+            rocketObjectReference.tile = rocket.getChunkTileInside(getChunkManager().getWorldSize());
 
             // Set world size
             worldSize = getChunkManager().getWorldSize();
@@ -1607,10 +1604,30 @@ void Game::enterRocket(RocketObject& rocket)
         case GameState::InStructure: // fallthrough
         case GameState::InRoomDestination:
         {
-            rocketEnteredReference.chunk = ChunkPosition(0, 0);
-            rocketEnteredReference.tile = rocket.getTileInside();
+            rocketObjectReference.chunk = ChunkPosition(0, 0);
+            rocketObjectReference.tile = rocket.getTileInside();
             break;
         }
+    }
+
+    // If not sent from host and is client, request rocket enter from host
+    if (!sentFromHost && networkHandler.isClient())
+    {
+        PacketDataRocketEnterRequest packetData;
+        packetData.locationState = locationState;
+        packetData.rocketObjectReference = rocketObjectReference;
+        
+        Packet packet(packetData);
+        networkHandler.sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
+        return;
+    }
+
+    rocketEnteredReference = rocketObjectReference;
+
+    if (locationState.isOnPlanet())
+    {
+        // Add to used rockets
+        planetRocketUsedPositions[locationState.getPlanetType()] = rocketEnteredReference;
     }
 
     handleInventoryClose();
@@ -1638,19 +1655,48 @@ void Game::enterRocket(RocketObject& rocket)
     travelSelectGUI.setAvailableDestinations(planetDestinations, roomDestinations);
 
     player.enterRocket(rocket.getRocketPosition(), worldSize);
+
+    // Alert host of rocket enter if is client
+    if (networkHandler.isClient())
+    {
+        PacketDataRocketInteraction packetData;
+        packetData.locationState = locationState;
+        packetData.rocketObjectReference = rocketEnteredReference;
+        packetData.interactionType = PacketDataRocketInteraction::InteractionType::Enter;
+        Packet packet(packetData);
+        networkHandler.sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
+    }
 }
 
-void Game::exitRocket()
+void Game::exitRocket(const LocationState& locationState, RocketObject* rocket)
 {
+    if (locationState != this->locationState)
+    {
+        return;
+    }
+
+    // If rocket passed in, check if rocket is currently entered rocket
+    // Also must be on planet as this function is called with a valid RocketObject* only on destruction of a rocket, which cannot occur in a room
+    if (rocket && locationState.isOnPlanet())
+    {
+        if (rocketEnteredReference != rocket->getThisObjectReference(getChunkManager(locationState.getPlanetType()).getWorldSize()))
+        {
+            return;
+        }
+    }
+
     worldMenuState = WorldMenuState::Main;
 
-    // Get rocket object
-    RocketObject* rocketObject = getObjectFromLocation<RocketObject>(rocketEnteredReference, locationState);
+    // Get rocket object if none provided
+    if (!rocket)
+    {
+        rocket = getObjectFromLocation<RocketObject>(rocketEnteredReference, locationState);
+    }
 
     // Exit rocket object
-    if (rocketObject)
+    if (rocket)
     {
-        rocketObject->exit();
+        rocket->exit();
     }
     else
     {
@@ -1666,6 +1712,17 @@ void Game::exitRocket()
     }
 
     player.exitRocket(worldSize);
+
+    // Alert host of rocket exit if is client
+    if (networkHandler.isClient())
+    {
+        PacketDataRocketInteraction packetData;
+        packetData.locationState = locationState;
+        packetData.rocketObjectReference = rocketEnteredReference;
+        packetData.interactionType = PacketDataRocketInteraction::InteractionType::Exit;
+        Packet packet(packetData);
+        networkHandler.sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
+    }
 }
 
 void Game::enterIncomingRocket(RocketObject& rocket)
@@ -1680,7 +1737,7 @@ void Game::rocketFinishedUp(RocketObject& rocket)
 
 void Game::rocketFinishedDown(RocketObject& rocket)
 {
-    exitRocket();
+    exitRocket(locationState, nullptr);
 }
 
 // NPC
@@ -2014,12 +2071,6 @@ void Game::hitObject(ChunkPosition chunk, pl::Vector2<int> tile, int damage, std
                         applyScreenShake = false;
                     }
                 }
-            }
-
-            // If object is rocket entered, exit rocket
-            if (rocketEnteredReference == ObjectReference{chunk, tile})
-            {
-                exitRocket();
             }
 
             if (applyScreenShake)
@@ -2986,7 +3037,7 @@ ObjectReference Game::setupPlanetTravel(PlanetType planetType, const LocationSta
         networkHandler.sendPacketToClient(clientID.value(), packet, k_nSteamNetworkingSend_Reliable, 0);
 
         // Save game as client is travelling
-        saveDeferred = true;
+        // saveDeferred = true;
     }
 
     return placeRocketReference;
@@ -3025,7 +3076,7 @@ void Game::travelToRoomDestinationForClient(RoomType roomDest, const LocationSta
     packet.set(packetData, true);
     networkHandler.sendPacketToClient(clientID, packet, k_nSteamNetworkingSend_Reliable, 0);
 
-    saveDeferred = true;
+    // saveDeferred = true;
 }
 
 void Game::travelToPlanet(PlanetType planetType, ObjectReference newRocketObjectReference)
@@ -3058,7 +3109,7 @@ void Game::travelToPlanet(PlanetType planetType, ObjectReference newRocketObject
             .findClosestOpenTile(rocketEnteredReference.getWorldTile().x, rocketEnteredReference.getWorldTile().y, 20, true);
         
         player.setPosition(rocketObject->getPosition() + pl::Vector2f(openTile->x, openTile->y) * TILE_SIZE_PIXELS_UNSCALED, 0);
-        rocketObject->startFlyingDownwards(*this);
+        rocketObject->startFlyingDownwards(*this, locationState, &networkHandler, true);
     }
     else
     {
@@ -3142,7 +3193,7 @@ void Game::travelToRoomDestination(RoomType destinationRoomType)
         {
             player.setPosition(rocketObject->getPosition() - pl::Vector2f(TILE_SIZE_PIXELS_UNSCALED, 0), 0);
 
-            rocketObject->startFlyingDownwards(*this);
+            rocketObject->startFlyingDownwards(*this, locationState, &networkHandler, true);
         }
     }
     else

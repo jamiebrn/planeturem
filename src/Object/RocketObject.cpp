@@ -45,6 +45,18 @@ void RocketObject::update(Game& game, float dt, bool onWater, bool loopAnimation
     }
 }
 
+bool RocketObject::damage(int amount, Game& game, ChunkManager& chunkManager, ParticleSystem* particleSystem, bool giveItems = true, bool createHitMarkers)
+{
+    bool destroyed = BuildableObject::damage(amount, game, chunkManager, particleSystem, giveItems, createHitMarkers);
+
+    if (destroyed)
+    {
+        game.exitRocket(LocationState::createFromPlanetType(chunkManager.getPlanetType()), this);
+    }
+
+    return destroyed;
+}
+
 void RocketObject::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const pl::Color& color) const
 {
     BuildableObject::draw(window, spriteBatch, game, camera, dt, gameTime, worldSize, color);
@@ -60,17 +72,17 @@ void RocketObject::interact(Game& game, bool isClient)
     // Rocket interaction stuff
     if (!entered)
     {
-        game.enterRocket(*this);
+        game.enterRocket(*this, false);
         entered = true;
     }
 }
 
 bool RocketObject::isInteractable() const
 {
-    return true;
+    return !entered;
 }
 
-void RocketObject::startFlyingUpwards()
+void RocketObject::startFlyingUpwards(Game& game, const LocationState& locationState, NetworkHandler* networkHandler)
 {
     // Just to be sure
     entered = true;
@@ -80,9 +92,27 @@ void RocketObject::startFlyingUpwards()
 
     rocketFlyingTweenID = floatTween.startTween(&rocketYOffset, rocketYOffset, TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE * -4, 3.0f,
         TweenTransition::Quint, TweenEasing::EaseInOut);
+    
+    if (networkHandler && networkHandler->isMultiplayerGame())
+    {
+        PacketDataRocketInteraction packetData;
+        packetData.locationState = locationState;
+        if (locationState.isOnPlanet())
+        {
+            packetData.rocketObjectReference = getThisObjectReference(game.getChunkManager(locationState.getPlanetType()).getWorldSize());
+        }
+        else
+        {
+            packetData.rocketObjectReference.tile = getTileInside();
+        }
+        packetData.interactionType = PacketDataRocketInteraction::InteractionType::FlyUp;
+        
+        Packet packet(packetData);
+        networkHandler->sendPacketToServer(packet, k_nSteamNetworkingSend_Reliable, 0);
+    }
 }
 
-void RocketObject::startFlyingDownwards(Game& game)
+void RocketObject::startFlyingDownwards(Game& game, const LocationState& locationState, NetworkHandler* networkHandler, bool enterRocket)
 {
     // Just to be sure
     entered = true;
@@ -93,12 +123,43 @@ void RocketObject::startFlyingDownwards(Game& game)
     rocketFlyingTweenID = floatTween.startTween(&rocketYOffset, rocketYOffset, 0.0f, 3.0f,
         TweenTransition::Quint, TweenEasing::EaseInOut);
     
-    game.enterIncomingRocket(*this);
+    if (enterRocket)
+    {
+        game.enterIncomingRocket(*this);
+    }
+
+    if (networkHandler && networkHandler->isMultiplayerGame())
+    {
+        PacketDataRocketInteraction packetData;
+        packetData.locationState = locationState;
+        if (locationState.isOnPlanet())
+        {
+            packetData.rocketObjectReference = getThisObjectReference(game.getChunkManager(locationState.getPlanetType()).getWorldSize());
+        }
+        else
+        {
+            packetData.rocketObjectReference.tile = getTileInside();
+        }
+        packetData.interactionType = PacketDataRocketInteraction::InteractionType::FlyDown;
+        
+        Packet packet(packetData);
+        networkHandler->sendPacketToServer(packet, k_nSteamNetworkingSend_Reliable, 0);
+    }
+}
+
+void RocketObject::enter()
+{
+    entered = true;
 }
 
 void RocketObject::exit()
 {
     entered = false;
+}
+
+bool RocketObject::isEntered()
+{
+    return entered;
 }
 
 void RocketObject::getRocketAvailableDestinations(PlanetType currentPlanetType, RoomType currentRoomType,

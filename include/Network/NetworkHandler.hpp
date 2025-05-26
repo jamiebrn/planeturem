@@ -49,7 +49,10 @@ public:
     EResult sendPacketToClients(const Packet& packet, int nSendFlags, int nRemoteChannel, std::unordered_set<uint64_t> exceptions = {});
     EResult sendPacketToClient(uint64_t steamID, const Packet& packet, int nSendFlags, int nRemoteChannel);
     EResult sendPacketToHost(const Packet& packet, int nSendFlags, int nRemoteChannel);
-    
+
+    // Sends packet to host if is client, or sends packet to all clients if is host
+    EResult sendPacketToServer(const Packet& packet, int nSendFlags, int nRemoteChannel);
+
     void requestChunksFromHost(PlanetType planetType, std::vector<ChunkPosition>& chunks, bool forceRequest = false);
 
     void queueSendPlayerData();

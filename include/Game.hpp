@@ -135,8 +135,9 @@ public:
     uint16_t getOpenChestID();
 
     // Rocket
-    void enterRocket(RocketObject& rocket);
-    void exitRocket();
+    void enterRocketFromReference(ObjectReference rocketObjectReference, bool sentFromHost);
+    void enterRocket(RocketObject& rocket, bool sentFromHost);
+    void exitRocket(const LocationState& locationState, RocketObject* rocket);
     void enterIncomingRocket(RocketObject& rocket);
     void rocketFinishedUp(RocketObject& rocket);
     void rocketFinishedDown(RocketObject& rocket);

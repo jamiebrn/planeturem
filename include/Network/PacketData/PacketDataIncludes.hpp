@@ -30,6 +30,9 @@
 #include "Network/PacketData/PacketDataWorld/PacketDataBosses.hpp"
 #include "Network/PacketData/PacketDataWorld/PacketDataLandmarks.hpp"
 #include "Network/PacketData/PacketDataWorld/PacketDataLandmarkModified.hpp"
+#include "Network/PacketData/PacketDataWorld/PacketDataRocketEnterRequest.hpp"
+#include "Network/PacketData/PacketDataWorld/PacketDataRocketEnterReply.hpp"
+#include "Network/PacketData/PacketDataWorld/PacketDataRocketInteraction.hpp"
 
 #include "Network/PacketData/PacketDataTravel/PacketDataPlanetTravelRequest.hpp"
 #include "Network/PacketData/PacketDataTravel/PacketDataPlanetTravelReply.hpp"

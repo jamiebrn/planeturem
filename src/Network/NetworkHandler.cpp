@@ -846,7 +846,7 @@ void NetworkHandler::processMessage(const SteamNetworkingMessage_t& message, con
                     std::vector<ChunkPosition> chunksToRequest = {packetData.landmarkObjectReference.chunk};
                     requestChunksFromHost(packetData.planetType, chunksToRequest, true);
                 }
-                return;
+                break;
             }
 
             landmarkObject->setLandmarkColour(packetData.newColorA, packetData.newColorB);
@@ -857,6 +857,59 @@ void NetworkHandler::processMessage(const SteamNetworkingMessage_t& message, con
             if (isLobbyHost)
             {
                 sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0);
+            }
+            break;
+        }
+        case PacketType::RocketInteraction:
+        {
+            PacketDataRocketInteraction packetData;
+            packetData.deserialise(packet.data);
+
+            if (!game->isLocationStateInitialised(packetData.locationState))
+            {
+                if (isLobbyHost)
+                {
+                    printf("ERROR: Received rocket interaction for null location\n");
+                }
+                break;
+            }
+
+            RocketObject* rocketObject = game->getObjectFromLocation<RocketObject>(packetData.rocketObjectReference, packetData.locationState);
+
+            if (!rocketObject)
+            {
+                printf("ERROR: Received rocket interaction for null rocket\n");
+                break;
+            }
+
+            switch (packetData.interactionType)
+            {
+                case PacketDataRocketInteraction::InteractionType::Enter:
+                {
+                    rocketObject->enter();
+                    break;
+                }
+                case PacketDataRocketInteraction::InteractionType::Exit:
+                {
+                    rocketObject->exit();
+                    break;
+                }
+                case PacketDataRocketInteraction::InteractionType::FlyUp:
+                {
+                    rocketObject->startFlyingUpwards(*game, packetData.locationState, nullptr);
+                    break;
+                }
+                case PacketDataRocketInteraction::InteractionType::FlyDown:
+                {
+                    rocketObject->startFlyingDownwards(*game, packetData.locationState, nullptr, false);
+                    break;
+                }
+            }
+
+            // Redistribute to clients (except sender) if host
+            if (isLobbyHost)
+            {
+                sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0, {message.m_identityPeer.GetSteamID64()});
             }
             break;
         }
@@ -1023,6 +1076,33 @@ void NetworkHandler::processMessageAsHost(const SteamNetworkingMessage_t& messag
 
             game->getProjectileManager(packetData.planetType).addProjectile(projectile, packetData.weaponType);
             break;
+        }
+        case PacketType::RocketEnterRequest:
+        {
+            PacketDataRocketEnterRequest packetData;
+            packetData.deserialise(packet.data);
+
+            if (!game->isLocationStateInitialised(packetData.locationState))
+            {
+                printf("ERROR: Received rocket enter request for uninitialised location\n");
+                return;
+            }
+
+            RocketObject* rocketObject = game->getObjectFromLocation<RocketObject>(packetData.rocketObjectReference, packetData.locationState);
+            if (!rocketObject)
+            {
+                printf("ERROR: Received rocket enter request for null rocket\n");
+            }
+
+            // Accept enter request if rocket is not already entered
+            if (!rocketObject->isEntered())
+            {
+                PacketDataRocketEnterReply rocketEnterReply;
+                rocketEnterReply.locationState = packetData.locationState;
+                rocketEnterReply.rocketObjectReference = packetData.rocketObjectReference;
+                Packet packetRocketEnterReply(rocketEnterReply);
+                sendPacketToClient(message.m_identityPeer.GetSteamID64(), packetRocketEnterReply, k_nSteamNetworkingSend_Reliable, 0);
+            }
         }
         case PacketType::PlanetTravelRequest:
         {
@@ -1203,6 +1283,20 @@ void NetworkHandler::processMessageAsClient(const SteamNetworkingMessage_t& mess
                 break;
             }
             game->getBossManager(packetData.planetType) = packetData.bossManager;
+            break;
+        }
+        case PacketType::RocketEnterRequest:
+        {
+            PacketDataRocketEnterReply packetData;
+            packetData.deserialise(packet.data);
+
+            if (!game->isLocationStateInitialised(packetData.locationState))
+            {
+                printf("ERROR: Received rocket enter request for uninitialised location\n");
+                return;
+            }
+
+            game->enterRocketFromReference(packetData.rocketObjectReference, true);
             break;
         }
         case PacketType::PlanetTravelReply:
@@ -1436,6 +1530,18 @@ EResult NetworkHandler::sendPacketToHost(const Packet& packet, int nSendFlags, i
     hostIdentity.SetSteamID64(lobbyHost);
 
     return packet.sendToUser(hostIdentity, nSendFlags, nRemoteChannel);
+}
+
+EResult NetworkHandler::sendPacketToServer(const Packet& packet, int nSendFlags, int nRemoteChannel)
+{
+    if (isLobbyHost)
+    {
+        sendPacketToClients(packet, nSendFlags, nRemoteChannel);
+    }
+    else
+    {
+        sendPacketToHost(packet, nSendFlags, nRemoteChannel);
+    }
 }
 
 void NetworkHandler::requestChunksFromHost(PlanetType planetType, std::vector<ChunkPosition>& chunks, bool forceRequest)

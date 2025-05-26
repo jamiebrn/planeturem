@@ -28,15 +28,19 @@ public:
 
     void update(Game& game, float dt, bool onWater, bool loopAnimation = true) override;
 
+    bool damage(int amount, Game& game, ChunkManager& chunkManager, ParticleSystem* particleSystem, bool giveItems = true, bool createHitMarkers = true) override;
+
     void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const pl::Color& color) const override;
 
     void interact(Game& game, bool isClient) override;
     bool isInteractable() const override;
 
-    void startFlyingUpwards();
-    void startFlyingDownwards(Game& game);
+    void startFlyingUpwards(Game& game, const LocationState& locationState, NetworkHandler* networkHandler);
+    void startFlyingDownwards(Game& game, const LocationState& locationState, NetworkHandler* networkHandler, bool enterRocket);
 
+    void enter();
     void exit();
+    bool isEntered();
 
     void getRocketAvailableDestinations(PlanetType currentPlanetType, RoomType currentRoomType,
         std::vector<PlanetType>& planetDestinations, std::vector<RoomType>& roomDestinations);
