@@ -1534,14 +1534,18 @@ EResult NetworkHandler::sendPacketToHost(const Packet& packet, int nSendFlags, i
 
 EResult NetworkHandler::sendPacketToServer(const Packet& packet, int nSendFlags, int nRemoteChannel)
 {
+    EResult result = EResult::k_EResultOK;
+
     if (isLobbyHost)
     {
-        sendPacketToClients(packet, nSendFlags, nRemoteChannel);
+        result = sendPacketToClients(packet, nSendFlags, nRemoteChannel);
     }
     else
     {
-        sendPacketToHost(packet, nSendFlags, nRemoteChannel);
+        result = sendPacketToHost(packet, nSendFlags, nRemoteChannel);
     }
+
+    return result;
 }
 
 void NetworkHandler::requestChunksFromHost(PlanetType planetType, std::vector<ChunkPosition>& chunks, bool forceRequest)

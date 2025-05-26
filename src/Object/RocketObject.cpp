@@ -1,5 +1,6 @@
 #include "Object/RocketObject.hpp"
 #include "Game.hpp"
+#include "Network/NetworkHandler.hpp"
 
 RocketObject::RocketObject(pl::Vector2f position, ObjectType objectType, const BuildableObjectCreateParameters& parameters)
     : BuildableObject(position, objectType, parameters)
@@ -45,7 +46,7 @@ void RocketObject::update(Game& game, float dt, bool onWater, bool loopAnimation
     }
 }
 
-bool RocketObject::damage(int amount, Game& game, ChunkManager& chunkManager, ParticleSystem* particleSystem, bool giveItems = true, bool createHitMarkers)
+bool RocketObject::damage(int amount, Game& game, ChunkManager& chunkManager, ParticleSystem* particleSystem, bool giveItems, bool createHitMarkers)
 {
     bool destroyed = BuildableObject::damage(amount, game, chunkManager, particleSystem, giveItems, createHitMarkers);
 

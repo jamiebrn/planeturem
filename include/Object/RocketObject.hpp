@@ -14,10 +14,12 @@
 #include "Object/BuildableObject.hpp"
 #include "Object/BuildableObjectPOD.hpp"
 #include "Object/ParticleSystem.hpp"
+#include "Player/LocationState.hpp"
 
 #include "Data/typedefs.hpp"
 
 class Game;
+class NetworkHandler;
 
 class RocketObject : public BuildableObject
 {
