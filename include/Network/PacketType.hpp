@@ -47,6 +47,8 @@ enum class PacketType : uint8_t
     Landmarks,
     LandmarkModified,
 
+    RocketInteraction,
+
     ProjectileCreateRequest,
 
     StructureEnterRequest,

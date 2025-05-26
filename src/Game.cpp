@@ -1,7 +1,7 @@
 #include "Game.hpp"
 
 // CONSIDER: Entering rocket when entered by other players
-// CONSIDER: If rocket entered destroyed by another player, exit
+// CONSIDER: Server authenticating rocket enter
 
 // FIX: Rocket in the ocean
 
@@ -118,6 +118,8 @@ bool Game::initialise()
     destinationGameState = gameState;
     transitionGameStateTimer = 0.0f;
     worldMenuState = WorldMenuState::Main;
+
+    saveDeferred = false;
 
     initialiseWorldData(0);
     locationState.setToNull();
@@ -354,6 +356,12 @@ void Game::runMainMenu(float dt)
 void Game::runInGame(float dt)
 {
     // pl::Vector2f mouseScreenPos = static_cast<pl::Vector2f>(sf::Mouse::getPosition(window));
+
+    // Save if required
+    if (saveDeferred && networkHandler.isLobbyHostOrSolo())
+    {
+        saveGame();
+    }
 
     bool shiftMode = InputManager::isActionActive(InputAction::UI_SHIFT);
     bool ctrlMode = InputManager::isActionActive(InputAction::UI_CTRL);
@@ -2008,6 +2016,12 @@ void Game::hitObject(ChunkPosition chunk, pl::Vector2<int> tile, int damage, std
                 }
             }
 
+            // If object is rocket entered, exit rocket
+            if (rocketEnteredReference == ObjectReference{chunk, tile})
+            {
+                exitRocket();
+            }
+
             if (applyScreenShake)
             {
                 camera.setScreenShakeTime(0.3f);
@@ -2842,7 +2856,7 @@ void Game::travelToDestination()
         travelToRoomDestination(destinationLocationState.getRoomDestType());
     }
 
-    saveGame();
+    saveDeferred = true;
 
     particleSystem.clear();
     nearbyCraftingStationLevels.clear();
@@ -2972,7 +2986,7 @@ ObjectReference Game::setupPlanetTravel(PlanetType planetType, const LocationSta
         networkHandler.sendPacketToClient(clientID.value(), packet, k_nSteamNetworkingSend_Reliable, 0);
 
         // Save game as client is travelling
-        // saveGame();
+        saveDeferred = true;
     }
 
     return placeRocketReference;
@@ -3011,7 +3025,7 @@ void Game::travelToRoomDestinationForClient(RoomType roomDest, const LocationSta
     packet.set(packetData, true);
     networkHandler.sendPacketToClient(clientID, packet, k_nSteamNetworkingSend_Reliable, 0);
 
-    // saveGame();
+    saveDeferred = true;
 }
 
 void Game::travelToPlanet(PlanetType planetType, ObjectReference newRocketObjectReference)
@@ -3334,6 +3348,8 @@ void Game::startNewGame(int seed)
 
     gameTime = 0.0f;
 
+    saveDeferred = false;
+
     weatherSystem = WeatherSystem(gameTime, seed + locationState.getPlanetType());
     weatherSystem.presimulateWeather(gameTime, camera, getChunkManager());
 
@@ -3417,6 +3433,8 @@ bool Game::saveGame()
 
         iter++;
     }
+
+    saveDeferred = false;
 
     return true;
 }
@@ -3553,6 +3571,8 @@ bool Game::loadGame(const SaveFileSummary& saveFileSummary)
     currentSaveFileSummary = saveFileSummary;
     currentSaveFileSummary.playerName = playerGameSave.playerData.name;
     startChangeStateTransition(nextGameState);
+
+    saveDeferred = false;
 
     gameTime = 0.0f;
 

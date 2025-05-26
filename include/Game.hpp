@@ -358,6 +358,7 @@ private:
 
     SaveFileSummary currentSaveFileSummary;
     // float saveSessionPlayTime;
+    bool saveDeferred;
 
     pl::SpriteBatch spriteBatch;
     pl::Framebuffer worldTexture;
