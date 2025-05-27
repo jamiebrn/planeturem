@@ -4076,6 +4076,7 @@ void Game::handleEventsWindow(const SDL_Event& event)
     if (event.type == SDL_QUIT || event.type == SDL_APP_TERMINATING)
     {
         // Safe quit
+        clientEnsureSafeQuit();
     }
 
     if (event.type == SDL_WINDOWEVENT)
