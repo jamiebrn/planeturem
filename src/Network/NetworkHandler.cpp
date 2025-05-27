@@ -1285,15 +1285,15 @@ void NetworkHandler::processMessageAsClient(const SteamNetworkingMessage_t& mess
             game->getBossManager(packetData.planetType) = packetData.bossManager;
             break;
         }
-        case PacketType::RocketEnterRequest:
+        case PacketType::RocketEnterReply:
         {
             PacketDataRocketEnterReply packetData;
             packetData.deserialise(packet.data);
 
             if (!game->isLocationStateInitialised(packetData.locationState))
             {
-                printf("ERROR: Received rocket enter request for uninitialised location\n");
-                return;
+                printf("ERROR: Received rocket enter reply for uninitialised location\n");
+                break;
             }
 
             game->enterRocketFromReference(packetData.rocketObjectReference, true);

@@ -74,7 +74,6 @@ void RocketObject::interact(Game& game, bool isClient)
     if (!entered)
     {
         game.enterRocket(*this, false);
-        entered = true;
     }
 }
 
@@ -115,7 +114,7 @@ void RocketObject::startFlyingUpwards(Game& game, const LocationState& locationS
 
 void RocketObject::startFlyingDownwards(Game& game, const LocationState& locationState, NetworkHandler* networkHandler, bool enterRocket)
 {
-    // Just to be sure
+    // A player is in rocket - do not allow other players to enter
     entered = true;
 
     flyingDown = true;

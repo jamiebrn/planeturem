@@ -25,6 +25,8 @@
 
 // TODO: Boss networking
 
+// TODO: Networked melee collision
+
 // TODO: Night and menu music
 
 // PRIORITY: LOW
@@ -4025,6 +4027,11 @@ void Game::handleZoom(int zoomChange)
 
 void Game::handleEventsWindow(const SDL_Event& event)
 {
+    if (event.type == SDL_QUIT || event.type == SDL_APP_TERMINATING)
+    {
+        // Safe quit
+    }
+
     if (event.type == SDL_WINDOWEVENT)
     {
         if (event.window.event == SDL_WINDOWEVENT_RESIZED)

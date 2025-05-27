@@ -185,6 +185,8 @@ public:
     std::optional<uint32_t> initialiseStructureOrGet(PlanetType planetType, ChunkPosition chunk, pl::Vector2f* entrancePos, RoomType* roomType);
     void enterStructureFromHost(PlanetType planetType, ChunkPosition chunk, uint32_t structureID, pl::Vector2f entrancePos, RoomType roomType);
 
+    void clientEnsureSafeQuit();
+
     PlayerData createPlayerData();
 
     // For chunks, will use chunk and tile from object reference
