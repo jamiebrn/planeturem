@@ -1658,15 +1658,15 @@ void Game::enterRocket(RocketObject& rocket, bool sentFromHost)
 
     player.enterRocket(rocket.getRocketPosition(), worldSize);
 
-    // Alert host of rocket enter if is client
-    if (networkHandler.isClient())
+    // Alert players of rocket enter
+    if (networkHandler.isMultiplayerGame())
     {
         PacketDataRocketInteraction packetData;
         packetData.locationState = locationState;
         packetData.rocketObjectReference = rocketEnteredReference;
         packetData.interactionType = PacketDataRocketInteraction::InteractionType::Enter;
         Packet packet(packetData);
-        networkHandler.sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
+        networkHandler.sendPacketToServer(packet, k_nSteamNetworkingSend_Reliable, 0);
     }
 }
 

@@ -1085,7 +1085,7 @@ void NetworkHandler::processMessageAsHost(const SteamNetworkingMessage_t& messag
             if (!game->isLocationStateInitialised(packetData.locationState))
             {
                 printf("ERROR: Received rocket enter request for uninitialised location\n");
-                return;
+                break;
             }
 
             RocketObject* rocketObject = game->getObjectFromLocation<RocketObject>(packetData.rocketObjectReference, packetData.locationState);
@@ -1103,6 +1103,7 @@ void NetworkHandler::processMessageAsHost(const SteamNetworkingMessage_t& messag
                 Packet packetRocketEnterReply(rocketEnterReply);
                 sendPacketToClient(message.m_identityPeer.GetSteamID64(), packetRocketEnterReply, k_nSteamNetworkingSend_Reliable, 0);
             }
+            break;
         }
         case PacketType::PlanetTravelRequest:
         {
