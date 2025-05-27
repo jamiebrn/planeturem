@@ -63,7 +63,7 @@ public:
 
     std::vector<std::vector<std::unique_ptr<BuildableObject>>>& getObjectGrid() {return objectGrid;}
 
-    void updateObjects(Game& game, float dt);
+    void updateObjects(Game& game, const LocationState& locationState, float dt);
 
     template <class T = BuildableObject>
     T* getObject(pl::Vector2<int> tile) const;

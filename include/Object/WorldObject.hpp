@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include <cmath>
 
 #include <Graphics/SpriteBatch.hpp>
@@ -9,8 +8,8 @@
 #include <Vector.hpp>
 #include <Rect.hpp>
 
-// #include "Core/SpriteBatch.hpp"
 #include "Core/Camera.hpp"
+#include "Player/LocationState.hpp"
 #include "World/ChunkPosition.hpp"
 #include "Object/ObjectReference.hpp"
 #include "World/LightingEngine.hpp"
@@ -37,7 +36,12 @@ public:
     pl::Vector2<uint8_t> getChunkTileInside(int worldSize) const;
 
     static ObjectReference getObjectReferenceFromPosition(pl::Vector2f position, int worldSize);
+
+    // Only use if object is known to be on planet
     ObjectReference getThisObjectReference(int worldSize) const;
+
+    // Returns chunk, tile reference for planet objects, and 0, tile reference for room
+    ObjectReference getThisObjectReference(const LocationState& locationState) const;
 
     static pl::Vector2<uint8_t> getTileInside(pl::Vector2f position);
     pl::Vector2<uint8_t> getTileInside() const;

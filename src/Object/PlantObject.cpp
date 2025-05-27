@@ -46,7 +46,7 @@ BuildableObject* PlantObject::clone()
     return new PlantObject(*this);
 }
 
-void PlantObject::update(Game& game, float dt, bool onWater, bool loopAnimation)
+void PlantObject::update(Game& game, const LocationState& locationState, float dt, bool onWater, bool loopAnimation)
 {
     flashAmount = std::max(flashAmount - dt * 3, 0.0f);
 

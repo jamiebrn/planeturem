@@ -139,8 +139,8 @@ public:
     void enterRocket(RocketObject& rocket, bool sentFromHost);
     void exitRocket(const LocationState& locationState, RocketObject* rocket);
     void enterIncomingRocket(RocketObject& rocket);
-    void rocketFinishedUp(RocketObject& rocket);
-    void rocketFinishedDown(RocketObject& rocket);
+    void rocketFinishedUp(const LocationState& locationState, RocketObject& rocket);
+    void rocketFinishedDown(const LocationState& locationState, RocketObject& rocket);
 
     // NPC
     void interactWithNPC(NPCObject& npc);

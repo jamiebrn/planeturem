@@ -20,12 +20,12 @@
 #include "Core/ResolutionHandler.hpp"
 #include "Core/Camera.hpp"
 #include "Core/AnimatedTexture.hpp"
-// #include "Core/SpriteBatch.hpp"
 #include "Object/WorldObject.hpp"
 #include "Object/ObjectReference.hpp"
 #include "Object/BuildableObjectPOD.hpp"
 #include "Object/ParticleSystem.hpp"
 #include "Player/InventoryData.hpp"
+#include "Player/LocationState.hpp"
 #include "Data/ObjectData.hpp"
 #include "Data/ObjectDataLoader.hpp"
 
@@ -54,7 +54,7 @@ public:
 
     virtual BuildableObject* clone();
 
-    virtual void update(Game& game, float dt, bool onWater, bool loopAnimation = true);
+    virtual void update(Game& game, const LocationState& locationState, float dt, bool onWater, bool loopAnimation = true);
 
     virtual void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
         const pl::Color& color) const override;

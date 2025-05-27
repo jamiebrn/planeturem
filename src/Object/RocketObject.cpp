@@ -13,9 +13,9 @@ BuildableObject* RocketObject::clone()
     return new RocketObject(*this);
 }
 
-void RocketObject::update(Game& game, float dt, bool onWater, bool loopAnimation)
+void RocketObject::update(Game& game, const LocationState& locationState, float dt, bool onWater, bool loopAnimation)
 {
-    BuildableObject::update(game, dt, onWater);
+    BuildableObject::update(game, locationState, dt, onWater);
 
     particleSystem.update(dt);
     
@@ -28,12 +28,12 @@ void RocketObject::update(Game& game, float dt, bool onWater, bool loopAnimation
             if (flyingUp)
             {
                 flyingUp = false;
-                game.rocketFinishedUp(*this);
+                game.rocketFinishedUp(locationState, *this);
             }
             else if (flyingDown)
             {
                 flyingDown = false;
-                game.rocketFinishedDown(*this);
+                game.rocketFinishedDown(locationState, *this);
             }
         }
 
@@ -97,14 +97,7 @@ void RocketObject::startFlyingUpwards(Game& game, const LocationState& locationS
     {
         PacketDataRocketInteraction packetData;
         packetData.locationState = locationState;
-        if (locationState.isOnPlanet())
-        {
-            packetData.rocketObjectReference = getThisObjectReference(game.getChunkManager(locationState.getPlanetType()).getWorldSize());
-        }
-        else
-        {
-            packetData.rocketObjectReference.tile = getTileInside();
-        }
+        packetData.rocketObjectReference = getThisObjectReference(locationState);
         packetData.interactionType = PacketDataRocketInteraction::InteractionType::FlyUp;
         
         Packet packet(packetData);
@@ -132,14 +125,7 @@ void RocketObject::startFlyingDownwards(Game& game, const LocationState& locatio
     {
         PacketDataRocketInteraction packetData;
         packetData.locationState = locationState;
-        if (locationState.isOnPlanet())
-        {
-            packetData.rocketObjectReference = getThisObjectReference(game.getChunkManager(locationState.getPlanetType()).getWorldSize());
-        }
-        else
-        {
-            packetData.rocketObjectReference.tile = getTileInside();
-        }
+        packetData.rocketObjectReference = getThisObjectReference(locationState);
         packetData.interactionType = PacketDataRocketInteraction::InteractionType::FlyDown;
         
         Packet packet(packetData);
@@ -258,6 +244,8 @@ void RocketObject::drawRocket(pl::RenderTarget& window, pl::SpriteBatch& spriteB
     pl::Vector2f rocketPosOffset = objectData.rocketObjectData->launchPosition - pl::Vector2f(TILE_SIZE_PIXELS_UNSCALED, TILE_SIZE_PIXELS_UNSCALED) * 0.5f;
 
     static constexpr float FLYING_SHAKE = 1.0f;
+
+    float alpha = 1.0f;
 
     pl::Vector2f worldPos = position + rocketPosOffset + pl::Vector2f(0, rocketYOffset);
     if (flyingUp || flyingDown)

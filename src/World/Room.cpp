@@ -188,7 +188,7 @@ std::optional<pl::Vector2f> Room::getEntrancePosition() const
     return entrancePos;
 }
 
-void Room::updateObjects(Game& game, float dt)
+void Room::updateObjects(Game& game, const LocationState& locationState, float dt)
 {
     for (int y = 0; y < objectGrid.size(); y++)
     {
@@ -199,7 +199,7 @@ void Room::updateObjects(Game& game, float dt)
             if (!object)
                 continue;
 
-            object->update(game, dt, false);
+            object->update(game, locationState, dt, false);
         }
     }
 }

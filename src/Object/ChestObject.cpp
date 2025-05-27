@@ -13,26 +13,13 @@ BuildableObject* ChestObject::clone()
     return new ChestObject(*this);
 }
 
-void ChestObject::update(Game& game, float dt, bool onWater, bool loopAnimation)
+void ChestObject::update(Game& game, const LocationState& locationState, float dt, bool onWater, bool loopAnimation)
 {
-    BuildableObject::update(game, dt, onWater, false);
-
-    // if (game.getOpenChestID() != chestID)
-    // {
-    //     closeChest();
-    // }
+    BuildableObject::update(game, locationState, dt, onWater, false);
 }
 
 bool ChestObject::damage(int amount, Game& game, ChunkManager& chunkManager, ParticleSystem* particleSystem, bool giveItems, bool createHitMarkers)
 {
-    // if (chestID != 0xFFFF)
-    // {
-    //     if (!game.getChestDataPool().getChestDataPtr(chestID)->isEmpty())
-    //     {
-    //         amount = 0;
-    //     }
-    // }
-
     bool destroyed = BuildableObject::damage(amount, game, chunkManager, particleSystem, giveItems, createHitMarkers);
 
     if (destroyed)
@@ -123,16 +110,6 @@ uint16_t ChestObject::createChestID(Game& game, std::optional<LocationState> loc
     chestID = game.getChestDataPool(locationState).createChest(objectData.chestCapacity);
     return chestID;
 }
-
-// int ChestObject::getChestCapactity()
-// {
-//     if (objectType < 0)
-//         return 0;
-
-//     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
-
-//     return objectData.chestCapacity;
-// }
 
 void ChestObject::openChest()
 {

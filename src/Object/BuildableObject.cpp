@@ -47,7 +47,7 @@ BuildableObject::BuildableObject(ObjectReference objectReference)
     this->objectReference = objectReference;
 }
 
-void BuildableObject::update(Game& game, float dt, bool onWater, bool loopAnimation)
+void BuildableObject::update(Game& game, const LocationState& locationState, float dt, bool onWater, bool loopAnimation)
 {
     if (objectType < 0 || isObjectReference())
         return;

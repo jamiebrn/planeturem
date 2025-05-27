@@ -1,7 +1,5 @@
 #pragma once
 
-
-
 #include <Graphics/SpriteBatch.hpp>
 #include <Graphics/Color.hpp>
 #include <Graphics/RenderTarget.hpp>
@@ -29,7 +27,7 @@ public:
 
     BuildableObject* clone() override;
 
-    void update(Game& game, float dt, bool onWater, bool loopAnimation) override;
+    void update(Game& game, const LocationState& locationState, float dt, bool onWater, bool loopAnimation) override;
 
     bool damage(int amount, Game& game, ChunkManager& chunkManager, ParticleSystem* particleSystem, bool giveItems = true, bool createHitMarkers = true) override;
 

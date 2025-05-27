@@ -1,6 +1,6 @@
 #include "Game.hpp"
 
-// CONSIDER: Entering rocket when entered by other players
+// FIX: High DPI scaling issues
 
 // FIX: Rocket in the ocean
 
@@ -1678,13 +1678,9 @@ void Game::exitRocket(const LocationState& locationState, RocketObject* rocket)
     }
 
     // If rocket passed in, check if rocket is currently entered rocket
-    // Also must be on planet as this function is called with a valid RocketObject* only on destruction of a rocket, which cannot occur in a room
-    if (rocket && locationState.isOnPlanet())
+    if (rocket && rocketEnteredReference != rocket->getThisObjectReference(locationState))
     {
-        if (rocketEnteredReference != rocket->getThisObjectReference(getChunkManager(locationState.getPlanetType()).getWorldSize()))
-        {
-            return;
-        }
+        return;
     }
 
     worldMenuState = WorldMenuState::Main;
@@ -1732,14 +1728,24 @@ void Game::enterIncomingRocket(RocketObject& rocket)
     player.enterRocket(rocket.getRocketPosition(), 0);
 }
 
-void Game::rocketFinishedUp(RocketObject& rocket)
+void Game::rocketFinishedUp(const LocationState& locationState, RocketObject& rocket)
 {
+    if (this->locationState != locationState || rocketEnteredReference != rocket.getThisObjectReference(locationState))
+    {
+        return;
+    }
+
     travelTrigger = true;
 }
 
-void Game::rocketFinishedDown(RocketObject& rocket)
+void Game::rocketFinishedDown(const LocationState& locationState, RocketObject& rocket)
 {
-    exitRocket(locationState, nullptr);
+    if (this->locationState != locationState || rocketEnteredReference != rocket.getThisObjectReference(locationState))
+    {
+        return;
+    }
+
+    exitRocket(locationState, &rocket);
 }
 
 // NPC
@@ -1798,13 +1804,16 @@ void Game::updateInRoom(float dt, Room& room, bool inStructure)
     }
 
     // Update room objects
-    room.updateObjects(*this, dt);
+    room.updateObjects(*this, locationState, dt);
 
     if (inStructure)
     {
         // Continue to update objects and entities in world
-        getChunkManager().updateChunksObjects(*this, dt, networkHandler.isLobbyHostOrSolo() ? gameTime : 0);
-        getChunkManager().updateChunksEntities(dt, getProjectileManager(), *this, networkHandler.isClient());
+        if (!networkHandler.getIsLobbyHost())
+        {
+            getChunkManager().updateChunksObjects(*this, dt, networkHandler.isLobbyHostOrSolo() ? gameTime : 0);
+            getChunkManager().updateChunksEntities(dt, getProjectileManager(), *this, networkHandler.isClient());
+        }
             
         weatherSystem.update(dt, gameTime, camera, getChunkManager());
 
@@ -3663,7 +3672,7 @@ bool Game::loadPlanet(PlanetType planetType)
 
 bool Game::loadRoomDest(RoomType roomType)
 {
-    if (roomDestDatas.contains(locationState.getRoomDestType()))
+    if (roomDestDatas.contains(roomType))
     {
         return false;
     }
@@ -3672,20 +3681,51 @@ bool Game::loadRoomDest(RoomType roomType)
 
     RoomDestinationGameSave roomDestinationGameSave;
 
-    roomDestDatas[locationState.getRoomDestType()] = RoomDestinationData();
+    roomDestDatas[roomType] = RoomDestinationData();
 
     if (io.loadRoomDestinationSave(roomType, roomDestinationGameSave))
     {
-        getChestDataPool(locationState) = roomDestinationGameSave.chestDataPool;
-        getRoomDestination(locationState.getRoomDestType()) = roomDestinationGameSave.roomDestination;
+        getChestDataPool(LocationState::createFromRoomDestType(roomType)) = roomDestinationGameSave.chestDataPool;
+        getRoomDestination(roomType) = roomDestinationGameSave.roomDestination;
     }
     else
     {
-        getChestDataPool() = ChestDataPool();
-        getRoomDestination() = Room(roomType, &getChestDataPool());
+        getChestDataPool(LocationState::createFromRoomDestType(roomType)) = ChestDataPool();
+        getRoomDestination(roomType) = Room(roomType, &getChestDataPool());
     }
 
     return true;
+}
+
+void Game::clientEnsureSafeQuit()
+{
+    if (!networkHandler.isClient())
+    {
+        return;
+    }
+
+    // Ensure safe quit for clients, to prevent state locking on server
+    if (openedChestID != 0xFFFF)
+    {
+        PacketDataChestClosed packetData;
+        packetData.locationState = locationState;
+        packetData.chestObject = openedChest;
+        packetData.userID = SteamUser()->GetSteamID().ConvertToUint64();
+        
+        Packet packet(packetData);
+        networkHandler.sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
+    }
+
+    if (worldMenuState == WorldMenuState::TravelSelect || worldMenuState == WorldMenuState::FlyingRocket)
+    {
+        PacketDataRocketInteraction packetData;
+        packetData.locationState = locationState;
+        packetData.interactionType = PacketDataRocketInteraction::InteractionType::Exit;
+        packetData.rocketObjectReference = rocketEnteredReference;
+
+        Packet packet(packetData);
+        networkHandler.sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
+    }
 }
 
 PlayerData Game::createPlayerData()
@@ -3841,6 +3881,7 @@ void Game::quitWorld()
 
     if (networkHandler.isMultiplayerGame())
     {
+        clientEnsureSafeQuit();
         networkHandler.leaveLobby();
         networkHandler.reset(this);
     }

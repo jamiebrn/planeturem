@@ -825,6 +825,8 @@ void Chunk::drawChunkWater(pl::RenderTarget& window, const Camera& camera, Chunk
 
 bool Chunk::updateChunkObjects(Game& game, float dt, float gameTime, int worldSize, ChunkManager& chunkManager, PathfindingEngine& pathfindingEngine)
 {
+    LocationState locationState = LocationState::createFromPlanetType(chunkManager.getPlanetType());
+
     for (int y = 0; y < objectGrid.size(); y++)
     {
         auto& object_row = objectGrid[y];
@@ -840,7 +842,7 @@ bool Chunk::updateChunkObjects(Game& game, float dt, float gameTime, int worldSi
                 // Determine whether on water
                 bool onWater = (getTileType(object->getChunkTileInside(worldSize)) == 0);
                 
-                object->update(game, dt, onWater);
+                object->update(game, locationState, dt, onWater);
                 if (!object->isAlive())
                     deleteObject(pl::Vector2<int>(x, y), game, chunkManager, pathfindingEngine);
             }

@@ -12,9 +12,9 @@ BuildableObject* NPCObject::clone()
     return new NPCObject(*this);
 }
 
-void NPCObject::update(Game& game, float dt, bool onWater, bool loopAnimation)
+void NPCObject::update(Game& game, const LocationState& locationState, float dt, bool onWater, bool loopAnimation)
 {
-    BuildableObject::update(game, dt, onWater, true);
+    BuildableObject::update(game, locationState, dt, onWater, true);
 }
 
 bool NPCObject::damage(int amount, Game& game, ChunkManager& chunkManager, ParticleSystem* particleSystem, bool giveItems, bool createHitMarkers)

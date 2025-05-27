@@ -1,4 +1,6 @@
 #include "Object/WorldObject.hpp"
+#include "Data/PlanetGenData.hpp"
+#include "Data/PlanetGenDataLoader.hpp"
 
 pl::Vector2f WorldObject::getPosition() const
 {
@@ -53,6 +55,17 @@ ObjectReference WorldObject::getObjectReferenceFromPosition(pl::Vector2f positio
 ObjectReference WorldObject::getThisObjectReference(int worldSize) const
 {
     return getObjectReferenceFromPosition(position, worldSize);
+}
+
+ObjectReference WorldObject::getThisObjectReference(const LocationState& locationState) const
+{
+    if (locationState.isOnPlanet())
+    {
+        const PlanetGenData& planetGenData = PlanetGenDataLoader::getPlanetGenData(locationState.getPlanetType());
+        return getThisObjectReference(planetGenData.worldSize);
+    }
+    
+    return ObjectReference{{0, 0}, getTileInside()};
 }
 
 pl::Vector2<uint8_t> WorldObject::getTileInside(pl::Vector2f position)
