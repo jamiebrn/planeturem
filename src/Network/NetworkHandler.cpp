@@ -975,6 +975,16 @@ void NetworkHandler::processMessageAsHost(const SteamNetworkingMessage_t& messag
             if (playerData.locationState.isOnPlanet())
             {    
                 game->loadPlanet(playerData.locationState.getPlanetType());
+
+                if (playerData.locationState.isInStructure())
+                {
+                    packetData.inStructureRoomType = game->
+                    getStructureRoomPool(playerData.locationState.getPlanetType()).getRoom(playerData.locationState.getInStructureID()).getRoomType();
+                }
+            }
+            else if (playerData.locationState.isInRoomDest())
+            {
+                game->loadRoomDest(playerData.locationState.getRoomDestType());
             }
 
             // Send player data

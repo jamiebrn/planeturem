@@ -9,6 +9,7 @@
 
 #include "Network/IPacketData.hpp"
 
+#include "Data/typedefs.hpp"
 #include "Player/PlayerData.hpp"
 #include "World/ChestDataPool.hpp"
 #include "Entity/Projectile/ProjectileManager.hpp"
@@ -28,10 +29,13 @@ struct PacketDataJoinInfo : public IPacketData
 
     std::optional<PacketDataLandmarks> landmarks;
 
+    // If player previously saved in structure, send room type
+    std::optional<RoomType> inStructureRoomType;
+
     template <class Archive>
     void serialize(Archive& ar)
     {
-        ar(seed, gameTime, time, day, playerData, currentPlayerDatas, landmarks);
+        ar(seed, gameTime, time, day, playerData, currentPlayerDatas, landmarks, inStructureRoomType);
     }
 
     PACKET_SERIALISATION();

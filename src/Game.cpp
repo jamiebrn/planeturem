@@ -3931,6 +3931,10 @@ void Game::joinWorld(const PacketDataJoinInfo& joinInfo)
         {
             nextGameState = GameState::InStructure;
             structureEnteredPos = joinInfo.playerData.structureExitPos;
+
+            assert(joinInfo.inStructureRoomType.has_value());
+
+            getStructureRoomPool().overwriteRoomData(locationState.getInStructureID(), Room(joinInfo.inStructureRoomType.value(), nullptr));
         }
 
         worldDatas[locationState.getPlanetType()].landmarkManager = joinInfo.landmarks->landmarkManager;
@@ -3942,6 +3946,7 @@ void Game::joinWorld(const PacketDataJoinInfo& joinInfo)
     {
         nextGameState = GameState::InRoomDestination;
         roomDestDatas[locationState.getRoomDestType()] = RoomDestinationData();
+        roomDestDatas[locationState.getRoomDestType()].roomDestination = Room(locationState.getRoomDestType(), nullptr);
     }
 
     // chunkManager.setSeed(joinInfo.seed);

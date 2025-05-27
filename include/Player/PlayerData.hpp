@@ -29,9 +29,6 @@
 
 struct PlayerData
 {
-    // PlanetType planetType = -1;
-    // uint32_t inStructureID = 0xFFFFFFFF;
-    // RoomType roomDestinationType = -1;
     InventoryData inventory;
     InventoryData armourInventory;
     
@@ -47,9 +44,6 @@ struct PlayerData
     pl::Color skinColor = pl::Color(230, 144, 78, 255);
 
     pl::Vector2f position;
-    
-    // Structure
-    // bool isInStructure = false;
     
     LocationState locationState;
     pl::Vector2f structureExitPos; // used to determine structure exit position on planet
