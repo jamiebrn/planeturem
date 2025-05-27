@@ -1715,15 +1715,15 @@ void Game::exitRocket(const LocationState& locationState, RocketObject* rocket)
 
     player.exitRocket(worldSize);
 
-    // Alert host of rocket exit if is client
-    if (networkHandler.isClient())
+    // Alert players of rocket exit
+    if (networkHandler.isMultiplayerGame())
     {
         PacketDataRocketInteraction packetData;
         packetData.locationState = locationState;
         packetData.rocketObjectReference = rocketEnteredReference;
         packetData.interactionType = PacketDataRocketInteraction::InteractionType::Exit;
         Packet packet(packetData);
-        networkHandler.sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
+        networkHandler.sendPacketToServer(packet, k_nSteamNetworkingSend_Reliable, 0);
     }
 }
 
