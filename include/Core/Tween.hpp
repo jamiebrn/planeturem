@@ -117,20 +117,19 @@ public:
         return (tweenData.end - tweenData.start) * easingFunction(tweenData.transitionType, tweenData.easingType, progress) + tweenData.start;
     }
 
-    inline T getTweenValueVelocity(TweenID tween)
+    inline T getTweenValueVelocity(TweenID tween, float dt)
     {
-        static constexpr float gradientStep = 0.01f;
-
         TweenData<T>& tweenData = activeTweens[tween].front();
 
         float progress = std::min(tweenData.progress / tweenData.duration, 1.0f);
+        float progressNext = std::min((tweenData.progress + dt) / tweenData.duration, 1.0f);
 
         T currentValue = (tweenData.end - tweenData.start) * easingFunction(tweenData.transitionType, tweenData.easingType, progress) + tweenData.start;
-        T nextValue = (tweenData.end - tweenData.start) * easingFunction(tweenData.transitionType, tweenData.easingType, progress + gradientStep) + tweenData.start;
+        T nextValue = (tweenData.end - tweenData.start) * easingFunction(tweenData.transitionType, tweenData.easingType, progressNext) + tweenData.start;
 
         T diff = nextValue - currentValue;
 
-        return diff / gradientStep;
+        return diff / dt;
     }
 
     inline bool isTweenFinished(TweenID tween)

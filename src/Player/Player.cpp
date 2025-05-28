@@ -1302,7 +1302,7 @@ PacketDataPlayerCharacterInfo Player::getNetworkPlayerInfo(const Camera* camera,
 
     if (usingTool)
     {
-        info.toolRotationVelocity = toolTweener.getTweenValueVelocity(rotationTweenID);
+        info.toolRotationVelocity = toolTweener.getTweenValueVelocity(rotationTweenID, dt);
     }
     else
     {
