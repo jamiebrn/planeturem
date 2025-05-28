@@ -52,16 +52,17 @@ bool BossManager::createBoss(const std::string& name, pl::Vector2f playerPositio
 void BossManager::update(Game& game, ProjectileManager& projectileManager, ChunkManager& chunkManager, std::vector<Player*>& players, float dt,
     float gameTime)
 {
-    if (game.getNetworkHandler().isClient())
-    {
-        return;
-    }
-    
     for (auto iter = bosses.begin(); iter != bosses.end();)
     {
         BossEntity* boss = iter->get();
         if (boss->isAlive() && boss->inPlayerRange(players, chunkManager.getWorldSize()))
         {
+            if (game.getNetworkHandler().isClient())
+            {
+                boss->updateNetwork(dt, chunkManager.getWorldSize());
+                continue;
+            }
+
             boss->update(game, projectileManager, players, dt, chunkManager.getWorldSize());
 
             for (auto& projectilePair : projectileManager.getProjectiles())
@@ -78,13 +79,16 @@ void BossManager::update(Game& game, ProjectileManager& projectileManager, Chunk
         }
         else
         {
-            if (!boss->isAlive())
+            if (game.getNetworkHandler().isLobbyHostOrSolo())
             {
-                boss->createItemPickups(game.getNetworkHandler(), chunkManager, gameTime);
+                if (!boss->isAlive())
+                {
+                    boss->createItemPickups(game.getNetworkHandler(), chunkManager, gameTime);
+                }
+    
+                bossAliveNames.erase(boss->getName());
+                iter = bosses.erase(iter);
             }
-
-            bossAliveNames.erase(boss->getName());
-            iter = bosses.erase(iter);
 
             // Stop boss music if required
             if (bosses.size() <= 0)

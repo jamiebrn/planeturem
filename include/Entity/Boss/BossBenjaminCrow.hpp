@@ -52,6 +52,7 @@ public:
     BossEntity* clone() const override;
 
     void update(Game& game, ProjectileManager& projectileManager, std::vector<Player*>& players, float dt, int worldSize) override;
+    void updateNetwork(float dt, int worldSize) override;
 
     bool isAlive() override;
 
@@ -76,6 +77,8 @@ public:
     }
 
 private:
+    void initialise();
+
     void updateCollision();
 
     void takeDamage(int damage, pl::Vector2f damagePosition);

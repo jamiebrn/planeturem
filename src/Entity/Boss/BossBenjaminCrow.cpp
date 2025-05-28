@@ -11,6 +11,11 @@ const std::array<pl::Rect<int>, 2> BossBenjaminCrow::dashGhostTextureRects = {
 const pl::Rect<int> BossBenjaminCrow::deadTextureRect = pl::Rect<int>(448, 160, 48, 64);
 const pl::Rect<int> BossBenjaminCrow::shadowTextureRect = pl::Rect<int>(64, 208, 48, 16);
 
+BossBenjaminCrow::BossBenjaminCrow()
+{
+    initialise();
+}
+
 BossBenjaminCrow::BossBenjaminCrow(pl::Vector2f playerPosition)
 {
     Sounds::playSound(SoundType::Crow);
@@ -24,24 +29,30 @@ BossBenjaminCrow::BossBenjaminCrow(pl::Vector2f playerPosition)
     };
 
     this->position = playerPosition - pl::Vector2f(400, 400);
+
+    health = MAX_HEALTH;
+    dead = false;
+    
+    flyingHeight = 50.0f;
+    behaviourState = BossBenjaminState::Chase;
+    
+    flashTime = 0.0f;
+    
+    stage = 0;
+    
+    dashCooldownTimer = 0.0f;
+    dashGhostTimer = 0.0f;
+    
+    initialise();
+}
+
+void BossBenjaminCrow::initialise()
+{
     drawLayer = -999;
 
     idleAnims[0].create(6, 48, 64, 112, 160, 0.1);
     idleAnims[1].create(6, 48, 64, 112, 224, 0.1);
-
-    health = MAX_HEALTH;
-    dead = false;
-
-    flyingHeight = 50.0f;
-    behaviourState = BossBenjaminState::Chase;
-
-    flashTime = 0.0f;
-
-    stage = 0;
-
-    dashCooldownTimer = 0.0f;
-    dashGhostTimer = 0.0f;
-
+    
     updateCollision();
 }
 
@@ -206,6 +217,22 @@ void BossBenjaminCrow::update(Game& game, ProjectileManager& projectileManager, 
     dashCooldownTimer -= dt;
 
     // Update dash ghost effects
+    updateDashGhostEffects(dt);
+}
+
+void BossBenjaminCrow::updateNetwork(float dt, int worldSize)
+{
+    if (behaviourState != BossBenjaminState::Killed)
+    {    
+        position += velocity * dt;
+    }
+
+    Helper::wrapPosition(position, worldSize);
+
+    updateCollision();
+
+    dashCooldownTimer -= dt;
+
     updateDashGhostEffects(dt);
 }
 
