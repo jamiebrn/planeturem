@@ -993,7 +993,7 @@ void Player::useTool(ProjectileManager& projectileManager, InventoryData& invent
             rotationTweenID = toolTweener.startTween(&toolRotation, 0.0f, destRotation, tweenTime, TweenTransition::Circ, TweenEasing::EaseInOut);
             toolTweener.addTweenToQueue(rotationTweenID, &toolRotation, destRotation, 0.0f, 0.15, TweenTransition::Expo, TweenEasing::EaseOut);
 
-            game.testMeleeCollision(meleeHitRects);
+            game.testMeleeCollision(game.getLocationState(), meleeHitRects, position);
 
             meleeSwingAnimation.setFrame(0);
             break;

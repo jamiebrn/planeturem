@@ -1,7 +1,5 @@
 #include "Game.hpp"
 
-// FIX: High DPI scaling issues
-
 // FIX: Rocket in the ocean
 
 // FIX: Land placement multiplayer crash???
@@ -17,9 +15,6 @@
 
 // PRIORITY: MEDIUM (MULTIPLAYER)
 // TODO: Player customisation (colours, maybe hair, eyes)
-
-// TODO: Make entities persistent across network and send state updates (movement, health etc)
-// TODO: Use per-world entity chunk ID counter, rather than per chunk, to prevent collisions
 
 // TODO: Improve entity movement over network
 
@@ -2212,11 +2207,27 @@ void Game::destroyObjectFromHost(ChunkPosition chunk, pl::Vector2<int> tile, std
     getChunkManager(planetType).deleteObject(chunk, tile, *this);
 }
 
-// TODO: Use client melee data / location state
-void Game::testMeleeCollision(const std::vector<HitRect>& hitRects)
+void Game::testMeleeCollision(const LocationState& locationState, const std::vector<HitRect>& hitRects, pl::Vector2f hitOrigin)
 {
-    getChunkManager().testChunkEntityHitCollision(hitRects, *this, gameTime);
-    getBossManager().testHitRectCollision(hitRects, getChunkManager().getWorldSize());
+    if (!isLocationStateInitialised(locationState) || !locationState.isOnPlanet())
+    {
+        return;
+    }
+
+    // Request melee collision check if is client
+    if (networkHandler.isClient())
+    {
+        PacketDataMeleeRequest packetData;
+        packetData.planetType = locationState.getPlanetType();
+        packetData.hitRects = hitRects;
+
+        Packet packet(packetData);
+        networkHandler.sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
+        return;
+    }
+    
+    getChunkManager(locationState.getPlanetType()).testChunkEntityHitCollision(hitRects, hitOrigin, *this, gameTime);
+    getBossManager(locationState.getPlanetType()).testHitRectCollision(hitRects, getChunkManager(locationState.getPlanetType()).getWorldSize());
 }
 
 void Game::catchRandomFish(pl::Vector2<int> fishedTile)

@@ -150,7 +150,7 @@ public:
     void landmarkDestroyed(const LandmarkObject& landmark);
 
     // Melee combat
-    void testMeleeCollision(const std::vector<HitRect>& hitRects);
+    void testMeleeCollision(const LocationState& locationState, const std::vector<HitRect>& hitRects, pl::Vector2f hitOrigin);
 
     // Item pickups created alert
     // void itemPickupsCreated(const std::vector<ItemPickupReference>& itemPickupsCreated, std::optional<LocationState> pickupsLocationState);

@@ -167,11 +167,8 @@ bool Chunk::generateObjects(const FastNoise& heightNoise, const FastNoise& biome
             modified = true;
         }
     }
-
-    if (!calledWhileGenerating)
-    {
-        recalculateCollisionRects(chunkManager, &pathfindingEngine);
-    }
+    
+    recalculateCollisionRects(chunkManager, &pathfindingEngine);
 
     return modified;
 }
@@ -1148,11 +1145,11 @@ void Chunk::updateChunkEntities(float dt, int worldSize, ProjectileManager* proj
     }
 }
 
-void Chunk::testEntityHitCollision(const std::vector<HitRect>& hitRects, ChunkManager& chunkManager, Game& game, float gameTime)
+void Chunk::testEntityHitCollision(const std::vector<HitRect>& hitRects, pl::Vector2f hitOrigin, ChunkManager& chunkManager, Game& game, float gameTime)
 {
     for (auto& entity : entities)
     {
-        entity->testHitCollision(hitRects, game, LocationState::createFromPlanetType(chunkManager.getPlanetType()), gameTime);
+        entity->testHitCollision(hitRects, hitOrigin, game, LocationState::createFromPlanetType(chunkManager.getPlanetType()), gameTime);
     }
 }
 

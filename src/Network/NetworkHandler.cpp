@@ -1059,6 +1059,13 @@ void NetworkHandler::processMessageAsHost(const SteamNetworkingMessage_t& messag
             sendPacketToClients(pickupsCreatedPacket, k_nSteamNetworkingSend_Reliable, 0);
             break;
         }
+        case PacketType::MeleeRequest:
+        {
+            PacketDataMeleeRequest packetData;
+            packetData.deserialise(packet.data);
+            game->testMeleeCollision(LocationState::createFromPlanetType(packetData.planetType), packetData.hitRects, packetData.hitOrigin);
+            break;
+        }
         case PacketType::ChunkRequests:
         {
             PacketDataChunkRequests packetData;

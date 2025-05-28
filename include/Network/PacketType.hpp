@@ -36,6 +36,8 @@ enum class PacketType : uint8_t
     ChestClosed,
     ChestDataModified,
 
+    MeleeRequest,
+
     ChunkDatas,
     ChunkRequests,
     ChunkModifiedAlerts,

@@ -179,17 +179,19 @@ void Entity::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& 
 // }
 
 
-void Entity::testHitCollision(const std::vector<HitRect>& hitRects, Game& game, const LocationState& locationState, float gameTime)
+void Entity::testHitCollision(const std::vector<HitRect>& hitRects, pl::Vector2f hitOrigin, Game& game, const LocationState& locationState, float gameTime)
 {
     // Get world size
     int worldSize = game.getChunkManager(locationState.getPlanetType()).getWorldSize();
+
+    hitOrigin = Camera::translateWorldPos(hitOrigin, position, worldSize);
 
     for (HitRect hitRect : hitRects)
     {
         if (hitRect.isColliding(collisionRect, worldSize))
         {
             damage(hitRect.damage, game, locationState, gameTime);
-            behaviour->onHit(*this, game, game.getPlayer().getPosition());
+            behaviour->onHit(*this, game, hitOrigin);
             return;
         }
     }

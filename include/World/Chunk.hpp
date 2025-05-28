@@ -158,7 +158,7 @@ public:
     // -- Entity handling -- //
     void updateChunkEntities(float dt, int worldSize, ProjectileManager* projectileManager, ChunkManager& chunkManager, Game* game, bool networkUpdateOnly);
 
-    void testEntityHitCollision(const std::vector<HitRect>& hitRects, ChunkManager& chunkManager, Game& game, float gameTime);
+    void testEntityHitCollision(const std::vector<HitRect>& hitRects, pl::Vector2f hitOrigin, ChunkManager& chunkManager, Game& game, float gameTime);
 
     void moveEntityToChunk(std::unique_ptr<Entity> entity);
 
