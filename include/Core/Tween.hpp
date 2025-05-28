@@ -7,7 +7,7 @@
 
 #include <extlib/cereal/archives/binary.hpp>
 
-enum TweenTransition
+enum TweenTransition : uint8_t
 {
     Linear,
     Sine,
@@ -22,7 +22,7 @@ enum TweenTransition
     Bounce
 };
 
-enum TweenEasing
+enum TweenEasing : uint8_t
 {
     EaseIn,
     EaseOut,

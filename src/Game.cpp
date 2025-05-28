@@ -2220,6 +2220,7 @@ void Game::testMeleeCollision(const LocationState& locationState, const std::vec
         PacketDataMeleeRequest packetData;
         packetData.planetType = locationState.getPlanetType();
         packetData.hitRects = hitRects;
+        packetData.hitOrigin = hitOrigin;
 
         Packet packet(packetData);
         networkHandler.sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
