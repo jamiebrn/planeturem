@@ -73,7 +73,7 @@ public:
     template <class Archive>
     void serialize(Archive& ar)
     {
-        ar(cereal::base_class<BossEntity>(this), velocity.x, velocity.y, health, stage, flyingHeight, flashTime, behaviourState, dashGhostEffects);
+        ar(cereal::base_class<BossEntity>(this), velocity.x, velocity.y, health, dead, stage, flyingHeight, flashTime, behaviourState, dashGhostEffects);
     }
 
 private:
