@@ -60,6 +60,7 @@ void BossManager::update(Game& game, ProjectileManager& projectileManager, Chunk
             if (game.getNetworkHandler().isClient())
             {
                 boss->updateNetwork(dt, chunkManager.getWorldSize());
+                iter++;
                 continue;
             }
 
@@ -87,8 +88,9 @@ void BossManager::update(Game& game, ProjectileManager& projectileManager, Chunk
                 }
     
                 bossAliveNames.erase(boss->getName());
-                iter = bosses.erase(iter);
             }
+
+            iter = bosses.erase(iter);
 
             // Stop boss music if required
             if (bosses.size() <= 0)
