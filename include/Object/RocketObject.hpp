@@ -58,11 +58,15 @@ public:
 private:
     void drawRocket(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera, int worldSize, const pl::Color& color) const;
 
+    float getRocketAlpha() const;
+
 private:
     bool flyingUp = false;
     bool flyingDown = false;
     bool entered = false;
 
+    static constexpr float ROCKET_Y_OFFSET_MAX = TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE * -4.0f;
+    static constexpr float ALPHA_FALLOFF_MIN_HEIGHT = ROCKET_Y_OFFSET_MAX * 0.75f;
     float rocketYOffset = 0.0f;
 
     Tween<float> floatTween;

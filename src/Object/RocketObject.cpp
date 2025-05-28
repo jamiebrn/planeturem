@@ -90,7 +90,7 @@ void RocketObject::startFlyingUpwards(Game& game, const LocationState& locationS
     flyingUp = true;
     rocketYOffset = 0.0f;
 
-    rocketFlyingTweenID = floatTween.startTween(&rocketYOffset, rocketYOffset, TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE * -4, 3.0f,
+    rocketFlyingTweenID = floatTween.startTween(&rocketYOffset, rocketYOffset, ROCKET_Y_OFFSET_MAX, 3.0f,
         TweenTransition::Quint, TweenEasing::EaseInOut);
     
     if (networkHandler && networkHandler->isMultiplayerGame())
@@ -215,6 +215,7 @@ void RocketObject::createRocketParticles()
 {
     ParticleStyle style;
     style.timePerFrame = Helper::randFloat(0.05f, 0.4f);
+    style.alpha = getRocketAlpha();
     
     int particleType = Helper::randInt(0, 2);
 
@@ -251,13 +252,15 @@ void RocketObject::drawRocket(pl::RenderTarget& window, pl::SpriteBatch& spriteB
     if (flyingUp || flyingDown)
     {
         worldPos.x += Helper::randFloat(-FLYING_SHAKE, FLYING_SHAKE);
+
+        alpha = getRocketAlpha();
     }
 
     pl::DrawData rocketDrawData;
     rocketDrawData.texture = TextureManager::getTexture(TextureType::Objects);
     rocketDrawData.shader = Shaders::getShader(ShaderType::Default);
     rocketDrawData.position = camera.worldToScreenTransform(worldPos, worldSize);
-    rocketDrawData.color = color;
+    rocketDrawData.color = pl::Color(color.r, color.g, color.b, color.a * alpha);
     rocketDrawData.scale = scale;
     rocketDrawData.centerRatio = objectData.rocketObjectData->textureOrigin;
     rocketDrawData.textureRect = objectData.rocketObjectData->textureRect;
@@ -269,4 +272,9 @@ void RocketObject::drawRocket(pl::RenderTarget& window, pl::SpriteBatch& spriteB
     }
 
     spriteBatch.draw(window, rocketDrawData);
+}
+
+float RocketObject::getRocketAlpha() const
+{
+    return (1.0f - std::max((rocketYOffset - ALPHA_FALLOFF_MIN_HEIGHT) / (ROCKET_Y_OFFSET_MAX - ALPHA_FALLOFF_MIN_HEIGHT), 0.0f));
 }

@@ -7,6 +7,7 @@ Particle::Particle(pl::Vector2f position, pl::Vector2f velocity, pl::Vector2f ac
     this->acceleration = acceleration;
 
     textureRects = style.textureRects;
+    alpha = style.alpha;
     currentFrame = 0;
     frameTimer = 0.0f;
     timePerFrame = style.timePerFrame;
@@ -42,7 +43,7 @@ void Particle::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, cons
 
     // float alpha = std::min((lifetime - timeAlive) / (lifetime * 0.2f), 1.0f);
 
-    // drawData.color = pl::Color(255, 255, 255, 255 * alpha);
+    drawData.color = pl::Color(255, 255, 255, 255 * alpha);
 
     spriteBatch.draw(window, drawData);
 }

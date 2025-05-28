@@ -19,6 +19,7 @@ struct ParticleStyle
 {
     std::vector<pl::Rect<int>> textureRects;
     float timePerFrame;
+    float alpha = 1.0f;
 };
 
 class Particle
@@ -40,6 +41,7 @@ private:
     pl::Vector2f acceleration;
 
     std::vector<pl::Rect<int>> textureRects;
+    float alpha;
     int currentFrame;
     float frameTimer;
     float timePerFrame;
