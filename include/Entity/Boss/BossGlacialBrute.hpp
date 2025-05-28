@@ -46,6 +46,7 @@ public:
     BossEntity* clone() const override;
 
     void update(Game& game, ProjectileManager& projectileManager, std::vector<Player*>& players, float dt, int worldSize) override;
+    inline void updateNetwork(float dt, int worldSize) override {}
 
     bool isAlive() override;
 

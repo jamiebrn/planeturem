@@ -47,7 +47,7 @@
 class BossBenjaminCrow : public BossEntity
 {
 public:
-    BossBenjaminCrow() = default;
+    BossBenjaminCrow();
     BossBenjaminCrow(pl::Vector2f playerPosition);
     BossEntity* clone() const override;
 
