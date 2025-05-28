@@ -227,6 +227,10 @@ void BossBenjaminCrow::updateNetwork(float dt, int worldSize)
         position += velocity * dt;
     }
 
+    idleAnims[stage].update(dt);
+
+    flashTime = std::max(flashTime - dt, 0.0f);
+
     Helper::wrapPosition(position, worldSize);
 
     updateCollision();
