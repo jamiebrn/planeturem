@@ -39,7 +39,6 @@ void NetworkPlayer::updateOnPlanet(float dt, ChunkManager& chunkManager)
     position = playerData.position;
 
     toolRotation += toolRotationVelocity * dt;
-    toolRotationVelocity += toolRotationAcceleration * dt;
 }
 
 void NetworkPlayer::updateInRoom(float dt, const Room& room)
@@ -52,7 +51,6 @@ void NetworkPlayer::updateInRoom(float dt, const Room& room)
     position = playerData.position;
 
     toolRotation += toolRotationVelocity * dt;
-    toolRotationVelocity += toolRotationAcceleration * dt;
 }
 
 void NetworkPlayer::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
@@ -123,7 +121,6 @@ void NetworkPlayer::setNetworkPlayerCharacterInfo(const PacketDataPlayerCharacte
     toolRotation = info.toolRotation;
     usingTool = info.usingTool;
     toolRotationVelocity = info.toolRotationVelocity;
-    toolRotationAcceleration = info.toolRotationAcceleration;
     fishingRodCasted = info.fishingRodCasted;
     fishBitingLine = info.fishBitingLine;
     
