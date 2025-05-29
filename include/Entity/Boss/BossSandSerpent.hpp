@@ -163,3 +163,5 @@ private:
     // forward = 0, left = -1, right = 1
     uint8_t headDirection;
 };
+
+CEREAL_REGISTER_TYPE(BossSandSerpent);
