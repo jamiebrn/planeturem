@@ -81,7 +81,7 @@ public:
     {
         CompactFloat<uint8_t> headFlashTimeCompact(headFlashTime, 2);
         CompactFloat<uint8_t> bodyFlashTimeCompact(bodyFlashTime, 2);
-        uint8_t animFrame = animations[behaviourState].getFrame();
+        uint8_t animFrame = animations.at(behaviourState).getFrame();
         ar(cereal::base_class<BossEntity>(this), velocity.x, velocity.y, headHealth, bodyHealth, dead, behaviourState,
             headFlashTimeCompact, bodyFlashTimeCompact, headDirection, animFrame);
     }
