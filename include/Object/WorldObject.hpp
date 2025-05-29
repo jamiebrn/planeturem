@@ -43,11 +43,11 @@ public:
     // Returns chunk, tile reference for planet objects, and 0, tile reference for room
     ObjectReference getThisObjectReference(const LocationState& locationState) const;
 
-    static pl::Vector2<uint8_t> getTileInside(pl::Vector2f position);
-    pl::Vector2<uint8_t> getTileInside() const;
+    static pl::Vector2<uint32_t> getTileInside(pl::Vector2f position);
+    pl::Vector2<uint32_t> getTileInside() const;
 
-    static pl::Vector2<uint8_t> getWorldTileInside(pl::Vector2f position, int worldSize);
-    pl::Vector2<uint8_t> getWorldTileInside(int worldSize) const;
+    static pl::Vector2<uint32_t> getWorldTileInside(pl::Vector2f position, int worldSize);
+    pl::Vector2<uint32_t> getWorldTileInside(int worldSize) const;
 
     // Assumes on water
     static float getWaterBobYOffset(pl::Vector2f position, int worldSize, float gameTime);

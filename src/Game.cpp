@@ -4562,6 +4562,8 @@ void Game::drawDebugMenu(float dt)
             std::to_string(getChunkManager().getLoadedChunkCount()) + " Chunks loaded" : ""),
         ((gameState == GameState::OnPlanet || gameState == GameState::InStructure) ?
             std::to_string(getChunkManager().getGeneratedChunkCount()) + " Chunks generated" : ""),
+        (gameState == GameState::OnPlanet) ? Chunk::getBiomeGenAtWorldTile(player.getWorldTileInside(getChunkManager().getWorldSize()), getChunkManager().getWorldSize(),
+            getChunkManager().getBiomeNoise(), locationState.getPlanetType())->name : "",
         std::to_string(worldDatas.size()) + " world datas active",
         std::to_string(roomDestDatas.size()) + " roomdest datas active",
         "Seed: " + std::to_string(planetSeed),

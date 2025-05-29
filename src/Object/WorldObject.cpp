@@ -68,29 +68,29 @@ ObjectReference WorldObject::getThisObjectReference(const LocationState& locatio
     return ObjectReference{{0, 0}, getTileInside()};
 }
 
-pl::Vector2<uint8_t> WorldObject::getTileInside(pl::Vector2f position)
+pl::Vector2<uint32_t> WorldObject::getTileInside(pl::Vector2f position)
 {
-    pl::Vector2<uint8_t> tile;
+    pl::Vector2<uint32_t> tile;
     tile.x = std::floor(position.x / TILE_SIZE_PIXELS_UNSCALED);
     tile.y = std::floor(position.y / TILE_SIZE_PIXELS_UNSCALED);
     return tile;
 }
 
-pl::Vector2<uint8_t> WorldObject::getTileInside() const
+pl::Vector2<uint32_t> WorldObject::getTileInside() const
 {
     return getTileInside(position);
 }
 
-pl::Vector2<uint8_t> WorldObject::getWorldTileInside(pl::Vector2f position, int worldSize)
+pl::Vector2<uint32_t> WorldObject::getWorldTileInside(pl::Vector2f position, int worldSize)
 {
     int worldTileSize = worldSize * static_cast<int>(CHUNK_TILE_SIZE);
-    pl::Vector2<uint8_t> tile = getTileInside(position);
+    pl::Vector2<uint32_t> tile = getTileInside(position);
     tile.x = (tile.x % worldTileSize + worldTileSize) % worldTileSize;
     tile.y = (tile.y % worldTileSize + worldTileSize) % worldTileSize;
     return tile;
 }
 
-pl::Vector2<uint8_t> WorldObject::getWorldTileInside(int worldSize) const
+pl::Vector2<uint32_t> WorldObject::getWorldTileInside(int worldSize) const
 {
     return getWorldTileInside(position, worldSize);
 }

@@ -383,7 +383,6 @@ const TileGenData* Chunk::getTileGenAtWorldTile(pl::Vector2<int> worldTile, int 
     
     if (!biomeGenData)
         return nullptr;
-
     
     float heightNoiseValue = heightNoise.GetNoiseSeamless2D(worldTile.x, worldTile.y, worldTileSize, worldTileSize);
     heightNoiseValue = FastNoise::Normalise(heightNoiseValue);
