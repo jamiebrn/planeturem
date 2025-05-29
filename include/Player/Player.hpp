@@ -153,7 +153,7 @@ public:
 
     // Multiplayer
     
-    virtual PacketDataPlayerCharacterInfo getNetworkPlayerInfo(const Camera* camera, uint64_t steamID, float dt);
+    PacketDataPlayerCharacterInfo getNetworkPlayerInfo(const Camera* camera, uint64_t steamID, float dt);
 
 
 protected:
@@ -215,6 +215,7 @@ protected:
     // Tool animation
     float toolRotation;
     float toolRotationLastFrame; // networking
+    float toolRotationVelocityLast;
     bool usingTool;
 
     Tween<float> toolTweener;

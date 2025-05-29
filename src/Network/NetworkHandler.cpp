@@ -1391,6 +1391,9 @@ void NetworkHandler::sendGameUpdatesToClients(float dt)
     PacketDataPlayerCharacterInfo localCharacterPacketData = game->getPlayer().getNetworkPlayerInfo(nullptr, steamID, dt);
     playerInfoPackets[steamID].set(localCharacterPacketData, true);
 
+    printf("Tool rot: %f, vel: %f, acc: %f\n", localCharacterPacketData.toolRotation, localCharacterPacketData.toolRotationVelocity,
+        localCharacterPacketData.toolRotationAcceleration);
+
     // Get player infos
     for (auto iter = networkPlayers.begin(); iter != networkPlayers.end(); iter++)
     {

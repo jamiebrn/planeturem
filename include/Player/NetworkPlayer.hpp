@@ -46,8 +46,6 @@ public:
         const pl::Color& color, bool drawName) const;
 
     // Multiplayer
-
-    virtual PacketDataPlayerCharacterInfo getNetworkPlayerInfo(const Camera* camera, uint64_t steamID, float dt) override;
     void setNetworkPlayerCharacterInfo(const PacketDataPlayerCharacterInfo& info);
     
     // Player position is of player on this machine, not for this network player
@@ -64,6 +62,7 @@ private:
     ChunkViewRange chunkViewRange;
 
     float toolRotationVelocity;
+    float toolRotationAcceleration;
 
     // Before world wrap translation applied
     // pl::Vector2f fishingRodBobWorldPos;

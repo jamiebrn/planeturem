@@ -132,6 +132,24 @@ public:
         return diff / dt;
     }
 
+    inline T getTweenValueAcceleration(TweenID tween, float dt)
+    {
+        TweenData<T>& tweenData = activeTweens[tween].front();
+
+        T velocity = getTweenValueVelocity(tween, dt);
+
+        float progressBefore = tweenData.progress;
+        tweenData.progress += dt;
+
+        T velocityNext = getTweenValueVelocity(tween, dt);
+
+        tweenData.progress = progressBefore;
+
+        T diffVelocity = velocityNext - velocity;
+
+        return diffVelocity / dt;
+    }
+
     inline bool isTweenFinished(TweenID tween)
     {
         if (activeTweens.count(tween) <= 0)

@@ -42,6 +42,7 @@ struct PacketDataPlayerCharacterInfo : public IPacketData, public IPacketTimeDep
     int8_t toolType;
     float toolRotation;
     float toolRotationVelocity = 0.0f;
+    float toolRotationAcceleration = 0.0f;
 
     std::array<int8_t, 3> armour;
 
@@ -66,8 +67,11 @@ struct PacketDataPlayerCharacterInfo : public IPacketData, public IPacketTimeDep
         CompactFloat<uint8_t> animationFrameTickCompact(animationFrameTick, 2);
         CompactFloat<uint8_t> yScaleMultCompact(yScaleMult, 2);
 
-        ar(position.x, position.y, direction.x, direction.y, speed, health, animationFrame, animationFrameTickCompact, yScaleMultCompact, toolType, toolRotation,
-            toolRotationVelocity, armour, chunkViewRange, userID, bitPacked);
+        CompactFloat<int16_t> toolRotationCompact(toolRotation, 2);
+        int16_t toolRotationVelocityCompact = toolRotationVelocity;
+
+        ar(position.x, position.y, direction.x, direction.y, speed, health, animationFrame, animationFrameTickCompact, yScaleMultCompact, toolType, toolRotationCompact,
+            toolRotationVelocityCompact, toolRotationAcceleration, armour, chunkViewRange, userID, bitPacked);
         
         if (fishingRodCasted)
         {
@@ -82,8 +86,11 @@ struct PacketDataPlayerCharacterInfo : public IPacketData, public IPacketTimeDep
         CompactFloat<uint8_t> animationFrameTickCompact;
         CompactFloat<uint8_t> yScaleMultCompact;
 
-        ar(position.x, position.y, direction.x, direction.y, speed, health, animationFrame, animationFrameTickCompact, yScaleMultCompact, toolType, toolRotation,
-            toolRotationVelocity, armour, chunkViewRange, userID, bitPacked);
+        CompactFloat<int16_t> toolRotationCompact;
+        int16_t toolRotationVelocityCompact;
+
+        ar(position.x, position.y, direction.x, direction.y, speed, health, animationFrame, animationFrameTickCompact, yScaleMultCompact, toolType, toolRotationCompact,
+            toolRotationVelocityCompact, toolRotationAcceleration, armour, chunkViewRange, userID, bitPacked);
         
         std::vector<bool*> bitPackValues = getBitPackValues();
         for (int i = 0; i < bitPackValues.size(); i++)
@@ -98,6 +105,9 @@ struct PacketDataPlayerCharacterInfo : public IPacketData, public IPacketTimeDep
 
         animationFrameTick = animationFrameTickCompact.getValue(2);
         yScaleMult = yScaleMultCompact.getValue(2);
+
+        toolRotation = toolRotationCompact.getValue(2);
+        toolRotationVelocity = toolRotationVelocityCompact;
     }
 
     PACKET_SERIALISATION();
