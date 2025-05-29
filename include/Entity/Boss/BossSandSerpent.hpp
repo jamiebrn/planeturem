@@ -4,6 +4,10 @@
 #include <vector>
 #include <array>
 
+#include <extlib/cereal/archives/binary.hpp>
+#include <extlib/cereal/types/vector.hpp>
+#include <extlib/cereal/types/memory.hpp>
+
 #include <Graphics/SpriteBatch.hpp>
 #include <Graphics/Color.hpp>
 #include <Graphics/RenderTarget.hpp>
@@ -37,16 +41,19 @@
 #include "Entity/Projectile/ProjectileManager.hpp"
 #include "Entity/HitRect.hpp"
 
+#include "Network/CompactFloat.hpp"
+
 #include "BossEntity.hpp"
 
 class BossSandSerpent : public BossEntity
 {
 public:
+    BossSandSerpent();
     BossSandSerpent(pl::Vector2f playerPosition, Game& game);
     BossEntity* clone() const override;
 
     void update(Game& game, ProjectileManager& projectileManager, std::vector<Player*>& players, float dt, int worldSize) override;
-    inline void updateNetwork(float dt, int worldSize) override {}
+    void updateNetwork(float dt, int worldSize) override;
 
     bool isAlive() override;
 
@@ -68,7 +75,33 @@ public:
 
     void getWorldObjects(std::vector<WorldObject*>& worldObjects) override;
 
+    template <class Archive>
+    void save(Archive& ar) const
+    {
+        CompactFloat<uint8_t> headFlashTimeCompact(headFlashTime, 2);
+        CompactFloat<uint8_t> bodyFlashTimeCompact(bodyFlashTime, 2);
+        uint8_t animFrame = animations[behaviourState].getFrame();
+        ar(cereal::base_class<BossEntity>(this), velocity.x, velocity.y, headHealth, bodyHealth, dead, behaviourState,
+            headFlashTimeCompact, bodyFlashTimeCompact, headDirection, animFrame);
+    }
+
+    template <class Archive>
+    void load(Archive& ar)
+    {
+        CompactFloat<uint8_t> headFlashTimeCompact;
+        CompactFloat<uint8_t> bodyFlashTimeCompact;
+        uint8_t animFrame;
+        ar(cereal::base_class<BossEntity>(this), velocity.x, velocity.y, headHealth, bodyHealth, dead, behaviourState,
+            headFlashTimeCompact, bodyFlashTimeCompact, headDirection, animFrame);
+        
+        headFlashTime = headFlashTimeCompact.getValue(2);
+        bodyFlashTime = bodyFlashTimeCompact.getValue(2);
+        animations[behaviourState].setFrame(animFrame);
+    }
+
 private:
+    void initialise();
+
     void updateCollision();
 
     // void setPathfindStepIndex(int index);
@@ -78,7 +111,7 @@ private:
     void applyKnockback(Projectile& projectile);
 
 private:
-    enum class BossSandSerpentState
+    enum class BossSandSerpentState : uint8_t
     {
         IdleStage1,
         ShootingStage1,
@@ -89,11 +122,13 @@ private:
 private:
     static constexpr int MAX_HEAD_HEALTH = 750;
     static constexpr int MAX_BODY_HEALTH = 300;
-    int headHealth;
-    int bodyHealth;
+    int16_t headHealth;
+    int16_t bodyHealth;
     bool dead;
 
     BossSandSerpentState behaviourState;
+
+    pl::Vector2f velocity;
 
     static constexpr int HEAD_HITBOX_RADIUS = 17;
     static constexpr int BODY_HITBOX_WIDTH = 56;
@@ -125,5 +160,5 @@ private:
     static const pl::Rect<int> SHOOTING_HEAD_FRAME;
     AnimatedTextureMinimal headAnimation;
     // forward = 0, left = -1, right = 1
-    int headDirection;
+    uint8_t headDirection;
 };

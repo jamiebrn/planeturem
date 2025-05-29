@@ -10,6 +10,11 @@ const std::array<pl::Rect<int>, 4> BossSandSerpent::HEAD_FRAMES = {
 
 const pl::Rect<int> BossSandSerpent::SHOOTING_HEAD_FRAME = pl::Rect<int>(192, 416, 48, 32);
 
+BossSandSerpent::BossSandSerpent()
+{
+    initialise();
+}
+
 BossSandSerpent::BossSandSerpent(pl::Vector2f playerPosition, Game& game)
 {
     // Sounds::playSound(SoundType::Crow);
@@ -29,11 +34,6 @@ BossSandSerpent::BossSandSerpent(pl::Vector2f playerPosition, Game& game)
 
     position = pl::Vector2f(playerTile.x + spawnTileRelative.x + 0.5f, playerTile.y + spawnTileRelative.y + 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
 
-    animations[BossSandSerpentState::IdleStage1] = AnimatedTexture(4, 80, 51, 0, 301, 0.1);
-    animations[BossSandSerpentState::ShootingStage1] = AnimatedTexture(3, 80, 51, 0, 301, 0.1, false);
-    animations[BossSandSerpentState::MovingToPlayer] = AnimatedTexture(4, 16, 32, 192, 384, 0.1);
-    animations[BossSandSerpentState::Leaving] = animations[BossSandSerpentState::MovingToPlayer];
-
     headHealth = MAX_HEAD_HEALTH;
     bodyHealth = MAX_BODY_HEALTH;
     dead = false;
@@ -47,6 +47,16 @@ BossSandSerpent::BossSandSerpent(pl::Vector2f playerPosition, Game& game)
 
     behaviourState = BossSandSerpentState::IdleStage1;
 
+    initialise();
+}
+
+void BossSandSerpent::initialise()
+{
+    animations[BossSandSerpentState::IdleStage1] = AnimatedTexture(4, 80, 51, 0, 301, 0.1);
+    animations[BossSandSerpentState::ShootingStage1] = AnimatedTexture(3, 80, 51, 0, 301, 0.1, false);
+    animations[BossSandSerpentState::MovingToPlayer] = AnimatedTexture(4, 16, 32, 192, 384, 0.1);
+    animations[BossSandSerpentState::Leaving] = animations[BossSandSerpentState::MovingToPlayer];
+    
     updateCollision();
 }
 
@@ -76,6 +86,8 @@ void BossSandSerpent::update(Game& game, ProjectileManager& projectileManager, s
     {
         case BossSandSerpentState::IdleStage1:
         {
+            velocity = pl::Vector2f(0, 0);
+
             // Update shooting
             idleCooldownTime += dt;
             if (idleCooldownTime >= MAX_IDLE_COOLDOWN_TIME && headHealth > 0)
@@ -112,6 +124,8 @@ void BossSandSerpent::update(Game& game, ProjectileManager& projectileManager, s
         }
         case BossSandSerpentState::ShootingStage1:
         {
+            velocity = pl::Vector2f(0, 0);
+
             shootCooldownTime += dt;
             if (shootCooldownTime >= MAX_SHOOT_COOLDOWN_TIME || headHealth <= 0)
             {
@@ -138,7 +152,9 @@ void BossSandSerpent::update(Game& game, ProjectileManager& projectileManager, s
             }
 
             // Move towards
-            position = pathFollower.updateFollower(250.0f * dt);
+            pl::Vector2f nextPosition = pathFollower.updateFollower(250.0f * dt);
+            velocity = (nextPosition - position) / dt;
+            position = nextPosition;
 
             break;
         }
@@ -150,7 +166,8 @@ void BossSandSerpent::update(Game& game, ProjectileManager& projectileManager, s
                 behaviourState = BossSandSerpentState::IdleStage1;
             }
 
-            position += Helper::normaliseVector(position - closestPlayerRelativePos) * 100.0f * dt;
+            velocity = Helper::normaliseVector(position - closestPlayerRelativePos) * 100.0f;
+            position += velocity * dt;
 
             break;
         }
@@ -160,6 +177,8 @@ void BossSandSerpent::update(Game& game, ProjectileManager& projectileManager, s
     {
         behaviourState = BossSandSerpentState::Leaving;
     }
+
+    Helper::wrapPosition(position, worldSize);
 
     // Update animations
     animations[behaviourState].update(dt);
@@ -185,6 +204,20 @@ void BossSandSerpent::update(Game& game, ProjectileManager& projectileManager, s
     {
         headDirection = 0;
     }
+
+    updateCollision();
+}
+
+void BossSandSerpent::updateNetwork(float dt, int worldSize)
+{
+    animations[behaviourState].update(dt);
+    
+    position += velocity * dt;
+
+    Helper::wrapPosition(position, worldSize);
+
+    headFlashTime -= dt;
+    bodyFlashTime -= dt;
 
     updateCollision();
 }

@@ -7,7 +7,6 @@
 #include <extlib/cereal/archives/binary.hpp>
 #include <extlib/cereal/types/vector.hpp>
 #include <extlib/cereal/types/memory.hpp>
-#include <extlib/cereal/types/base_class.hpp>
 
 #include <Graphics/SpriteBatch.hpp>
 #include <Graphics/Color.hpp>
@@ -42,6 +41,8 @@
 #include "Entity/Projectile/ProjectileManager.hpp"
 #include "Entity/HitRect.hpp"
 
+#include "Network/CompactFloat.hpp"
+
 #include "BossEntity.hpp"
 
 class BossBenjaminCrow : public BossEntity
@@ -71,9 +72,22 @@ public:
     void getWorldObjects(std::vector<WorldObject*>& worldObjects) override;
 
     template <class Archive>
-    void serialize(Archive& ar)
+    void save(Archive& ar) const
     {
-        ar(cereal::base_class<BossEntity>(this), velocity.x, velocity.y, health, dead, stage, flyingHeight, flashTime, behaviourState, dashGhostEffects);
+        CompactFloat<uint16_t> flyingHeightCompact(flyingHeight, 2);
+        uint8_t animFrame = idleAnims[stage].getFrame();
+        ar(cereal::base_class<BossEntity>(this), velocity.x, velocity.y, health, dead, stage, flyingHeightCompact, animFrame, flashTime, behaviourState, dashGhostEffects);
+    }
+    
+    template <class Archive>
+    void load(Archive& ar)
+    {
+        CompactFloat<uint16_t> flyingHeightCompact;
+        uint8_t animFrame;
+        ar(cereal::base_class<BossEntity>(this), velocity.x, velocity.y, health, dead, stage, flyingHeightCompact, animFrame, flashTime, behaviourState, dashGhostEffects);
+
+        flyingHeight = flyingHeightCompact.getValue(2);
+        idleAnims[stage].setFrame(animFrame);
     }
 
 private:
@@ -127,7 +141,7 @@ private:
     CollisionCircle collision;
 
     static constexpr int MAX_HEALTH = 450;
-    int health;
+    int16_t health;
     bool dead;
 
     static constexpr int HEALTH_SECOND_STAGE_THRESHOLD = 250;
