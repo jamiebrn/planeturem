@@ -18,6 +18,8 @@
 #include "Core/Helper.hpp"
 #include "Core/CollisionCircle.hpp"
 
+#include "Network/CompactFloat.hpp"
+
 #include "Data/typedefs.hpp"
 #include "Data/ToolData.hpp"
 #include "Data/ToolDataLoader.hpp"
@@ -63,15 +65,29 @@ public:
     void save(Archive& ar, const std::uint32_t version) const
     {
         uint8_t projectileTypeCompact = projectileType;
-        ar(projectileTypeCompact, position.x, position.y, velocity.x, velocity.y);
+
+        pl::Vector2f direction = velocity.normalise();
+        CompactFloat<int8_t> directionXCompact(direction.x, 2);
+        CompactFloat<int8_t> directionYCompact(direction.y, 2);
+        uint16_t speed = velocity.getLength();
+
+        ar(projectileTypeCompact, position.x, position.y, speed, directionXCompact, directionYCompact);
     }
 
     template <class Archive>
     void load(Archive& ar, const std::uint32_t version)
     {
         uint8_t projectileTypeCompact;
-        ar(projectileTypeCompact, position.x, position.y, velocity.x, velocity.y);
+        
+        CompactFloat<int8_t> directionXCompact;
+        CompactFloat<int8_t> directionYCompact;
+        uint16_t speed;
+        
+        ar(projectileTypeCompact, position.x, position.y, speed, directionXCompact, directionYCompact);
+        
         projectileType = projectileTypeCompact;
+
+        velocity = pl::Vector2f(directionXCompact.getValue(2), directionYCompact.getValue(2)) * speed;
     }
 
 private:
