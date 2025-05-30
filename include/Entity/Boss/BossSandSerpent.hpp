@@ -161,7 +161,7 @@ private:
     static const pl::Rect<int> SHOOTING_HEAD_FRAME;
     AnimatedTextureMinimal headAnimation;
     // forward = 0, left = -1, right = 1
-    uint8_t headDirection;
+    int8_t headDirection;
 };
 
 CEREAL_REGISTER_TYPE(BossSandSerpent);

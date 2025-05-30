@@ -188,8 +188,8 @@ void BossSandSerpent::update(Game& game, ProjectileManager& projectileManager, s
         headAnimation.setFrame(animations[behaviourState].getFrame());
     }
 
-    headFlashTime -= dt;
-    bodyFlashTime -= dt;
+    headFlashTime = std::max(headFlashTime - dt, 0.0f);
+    bodyFlashTime = std::max(bodyFlashTime - dt, 0.0f);
 
     // Update head direction
     pl::Vector2f playerPosDiff = closestPlayerRelativePos - position;
@@ -216,8 +216,8 @@ void BossSandSerpent::updateNetwork(float dt, int worldSize)
 
     Helper::wrapPosition(position, worldSize);
 
-    headFlashTime -= dt;
-    bodyFlashTime -= dt;
+    headFlashTime = std::max(headFlashTime - dt, 0.0f);
+    bodyFlashTime = std::max(bodyFlashTime - dt, 0.0f);
 
     updateCollision();
 }
@@ -328,7 +328,7 @@ void BossSandSerpent::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatc
                 if (headDirection != 0)
                 {
                     drawData.scale.x *= headDirection;
-                    headTextureRect.x += HEAD_TEXTURE_Y_OFFSET;
+                    headTextureRect.y += HEAD_TEXTURE_Y_OFFSET;
                 }
             }
 
@@ -386,6 +386,11 @@ void BossSandSerpent::testCollisionWithPlayer(Player& player, int worldSize)
 void BossSandSerpent::testProjectileCollision(Projectile& projectile, int worldSize)
 {
     if (behaviourState != BossSandSerpentState::IdleStage1 && behaviourState != BossSandSerpentState::ShootingStage1)
+    {
+        return;
+    }
+
+    if (projectile.getHitLayer() != HitLayer::Entity)
     {
         return;
     }

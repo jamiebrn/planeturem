@@ -8,7 +8,7 @@ bool BossEntity::inPlayerRange(std::vector<Player*>& players, int worldSize)
     {
         pl::Vector2f relativePos = Camera::translateWorldPos(player->getPosition(), position, worldSize);
 
-        if (playerMaxRange >= (relativePos - position).getLength())
+        if ((relativePos - position).getLength() <= playerMaxRange)
         {
             return true;
         }
@@ -67,7 +67,7 @@ Player* BossEntity::findClosestPlayer(std::vector<Player*>& players, int worldSi
     {
         pl::Vector2f relativePos = Camera::translateWorldPos(player->getPosition(), position, worldSize);
         
-        float distanceSq = -((relativePos - position).getLengthSq());
+        float distanceSq = (relativePos - position).getLengthSq();
         
         if (distanceSq < closestDistanceSq)
         {

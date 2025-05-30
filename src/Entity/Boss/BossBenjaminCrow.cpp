@@ -75,9 +75,14 @@ void BossBenjaminCrow::update(Game& game, ProjectileManager& projectileManager, 
 
     // Find closest player
     Player* player = findClosestPlayer(players, worldSize);
+    
+    if (!player)
+    {
+        return;
+    }
 
-    // If player is dead (or cannot find), fly away
-    if (game.getIsDay() || !player || (!isPlayerAlive(players) && behaviourState != BossBenjaminState::Killed && behaviourState != BossBenjaminState::Dash))
+    // If player is dead, fly away
+    if (game.getIsDay() || (!isPlayerAlive(players) && behaviourState != BossBenjaminState::Killed && behaviourState != BossBenjaminState::Dash))
     {
         behaviourState = BossBenjaminState::FlyAway;
     }
