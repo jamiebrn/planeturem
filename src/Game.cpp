@@ -2388,8 +2388,10 @@ void Game::attemptUseBossSpawn()
     // Take boss summon item and spawn
     if (networkHandler.isLobbyHostOrSolo())
     {
-        attemptSpawnBoss(locationState.getPlanetType(), heldItemType);
-        InventoryGUI::subtractHeldItem(inventory);
+        if (attemptSpawnBoss(locationState.getPlanetType(), heldItemType))
+        {
+            InventoryGUI::subtractHeldItem(inventory);
+        }
     }
     else
     {
@@ -2797,7 +2799,7 @@ void Game::checkChestOpenInRange()
         return;
     }
 
-    if (!player.canReachPosition(chestObject->getPosition()))
+    if (!player.canReachPosition(Camera::translateWorldPos(chestObject->getPosition(), player.getPosition(), 0)))
     {
         closeChest();
     }

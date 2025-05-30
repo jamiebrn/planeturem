@@ -156,3 +156,5 @@ private:
 
     PathFollower pathFollower;
 };
+
+CEREAL_REGISTER_TYPE(BossGlacialBrute);
