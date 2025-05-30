@@ -425,6 +425,6 @@ void PathFollower::setPathfindStepIndex(int index)
     }
 
     PathfindGridCoordinate target = stepSequence[stepIndex];
-    pl::Vector2<int> tilePosition = WorldObject::getTileInside(lastStepPosition);
+    pl::Vector2<uint32_t> tilePosition = WorldObject::getTileInside(lastStepPosition);
     stepTargetPosition = pl::Vector2f(target.x + tilePosition.x + 0.5f, target.y + tilePosition.y + 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
 }

@@ -65,7 +65,7 @@ BossEntity* BossSandSerpent::clone() const
     return new BossSandSerpent(*this);
 }
 
-void BossSandSerpent::update(Game& game, ProjectileManager& projectileManager, std::vector<Player*>& players, float dt, int worldSize)
+void BossSandSerpent::update(Game& game, ChunkManager& chunkManager, ProjectileManager& projectileManager, std::vector<Player*>& players, float dt, int worldSize)
 {
     if (game.getNetworkHandler().isClient())
     {

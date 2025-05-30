@@ -40,7 +40,7 @@ public:
     BossManager(const BossManager& bossManager);
     BossManager& operator=(const BossManager& bossManager);
 
-    bool createBoss(const std::string& name, pl::Vector2f playerPosition, Game& game);
+    bool createBoss(const std::string& name, pl::Vector2f playerPosition, Game& game, ChunkManager& chunkManager);
 
     void update(Game& game, ProjectileManager& projectileManager, ChunkManager& chunkManager, std::vector<Player*>& players, float dt, float gameTime);
 

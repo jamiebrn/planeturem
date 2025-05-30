@@ -3,7 +3,12 @@
 
 const pl::Rect<int> BossGlacialBrute::shadowTextureRect = pl::Rect<int>(64, 208, 48, 16);
 
-BossGlacialBrute::BossGlacialBrute(pl::Vector2f playerPosition, Game& game)
+BossGlacialBrute::BossGlacialBrute()
+{
+    initialise();
+}
+
+BossGlacialBrute::BossGlacialBrute(pl::Vector2f playerPosition, Game& game, ChunkManager& chunkManager)
 {
     itemDrops = {
         {{ItemDataLoader::getItemTypeFromName("Snowball Slingshot"), 1, 1}, 1.0},
@@ -12,18 +17,25 @@ BossGlacialBrute::BossGlacialBrute(pl::Vector2f playerPosition, Game& game)
 
     Sounds::playMusic(MusicType::BossTheme1);
 
-    pl::Vector2<int> playerTile = getWorldTileInside(playerPosition, game.getChunkManager().getWorldSize());
+    pl::Vector2<int> playerTile = getWorldTileInside(playerPosition, chunkManager.getWorldSize());
 
-    PathfindGridCoordinate spawnTileRelative = game.getChunkManager().getPathfindingEngine().findFurthestOpenTile(playerTile.x, playerTile.y, 40, true);
+    PathfindGridCoordinate spawnTileRelative = chunkManager.getPathfindingEngine().findFurthestOpenTile(playerTile.x, playerTile.y, 40, true);
 
     position = pl::Vector2f(playerTile.x + spawnTileRelative.x + 0.5f, playerTile.y + spawnTileRelative.y + 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
+
+    Helper::wrapPosition(position, chunkManager.getWorldSize());
 
     behaviourState = BossGlacialBruteState::WalkingToPlayer;
 
     health = MAX_HEALTH;
 
-    walkAnimation.create(8, 48, 64, 496, 448, 0.1);
+    initialise();
+}
 
+void BossGlacialBrute::initialise()
+{
+    walkAnimation.create(8, 48, 64, 496, 448, 0.1);
+    
     updateCollision();
 }
 
@@ -32,7 +44,7 @@ BossEntity* BossGlacialBrute::clone() const
     return new BossGlacialBrute(*this);
 }
 
-void BossGlacialBrute::update(Game& game, ProjectileManager& projectileManager, std::vector<Player*>& players, float dt, int worldSize)
+void BossGlacialBrute::update(Game& game, ChunkManager& chunkManager, ProjectileManager& projectileManager, std::vector<Player*>& players, float dt, int worldSize)
 {
     if (game.getNetworkHandler().isLobbyHostOrSolo())
     {
@@ -45,10 +57,10 @@ void BossGlacialBrute::update(Game& game, ProjectileManager& projectileManager, 
             {
                 if (!pathFollower.isActive())
                 {
-                    const PathfindingEngine& pathfindingEngine = game.getChunkManager().getPathfindingEngine();
+                    const PathfindingEngine& pathfindingEngine = chunkManager.getPathfindingEngine();
     
-                    pl::Vector2<int> tile = getWorldTileInside(worldSize);
-                    pl::Vector2<int> playerTile = closestPlayer->getWorldTileInside(worldSize);
+                    pl::Vector2<uint32_t> tile = getWorldTileInside(worldSize);
+                    pl::Vector2<uint32_t> playerTile = closestPlayer->getWorldTileInside(worldSize);
     
                     std::vector<PathfindGridCoordinate> pathfindResult;
                     if (pathfindingEngine.findPath(tile.x, tile.y, playerTile.x, playerTile.y, pathfindResult, true, 200))
@@ -60,7 +72,8 @@ void BossGlacialBrute::update(Game& game, ProjectileManager& projectileManager, 
                 {
                     pl::Vector2f beforePos = position;
                     position = pathFollower.updateFollower(75.0f * dt);
-                    direction = (position - beforePos) / dt;
+                    velocity = (position - beforePos) / dt;
+                    direction = velocity.normalise();
                 }
     
                 if (!playerAlive || !closestPlayer)
@@ -88,20 +101,21 @@ void BossGlacialBrute::update(Game& game, ProjectileManager& projectileManager, 
             {
                 if (!pathFollower.isActive())
                 {
-                    pl::Vector2<int> tile = getWorldTileInside(game.getChunkManager().getWorldSize());
-                    PathfindGridCoordinate furthestTile = game.getChunkManager().getPathfindingEngine().findFurthestOpenTile(tile.x, tile.y, 200);
+                    pl::Vector2<int> tile = getWorldTileInside(chunkManager.getWorldSize());
+                    PathfindGridCoordinate furthestTile = chunkManager.getPathfindingEngine().findFurthestOpenTile(tile.x, tile.y, 200);
     
                     std::vector<PathfindGridCoordinate> pathfindResult;
-                    if (game.getChunkManager().getPathfindingEngine().findPath(tile.x, tile.y, furthestTile.x, furthestTile.y, pathfindResult, true, 250))
+                    if (chunkManager.getPathfindingEngine().findPath(tile.x, tile.y, furthestTile.x, furthestTile.y, pathfindResult, true, 250))
                     {
-                        pathFollower.beginPath(position, game.getChunkManager().getPathfindingEngine().createStepSequenceFromPath(pathfindResult));
+                        pathFollower.beginPath(position, chunkManager.getPathfindingEngine().createStepSequenceFromPath(pathfindResult));
                     }
                 }
                 else
                 {
                     pl::Vector2f beforePos = position;
                     position = pathFollower.updateFollower(75.0f * LEAVE_SPEED_MULT * dt);
-                    direction = (position - beforePos) / dt;
+                    velocity = (position - beforePos) / dt;
+                    direction = velocity.normalise();
                 }
     
                 if (playerAlive)
@@ -115,7 +129,8 @@ void BossGlacialBrute::update(Game& game, ProjectileManager& projectileManager, 
             }
             case BossGlacialBruteState::ThrowSnowball:
             {
-                direction = Helper::normaliseVector(Camera::translateWorldPos(closestPlayer->getPosition(), position, worldSize) - position);
+                velocity = pl::Vector2f(0, 0);
+                direction = (Camera::translateWorldPos(closestPlayer->getPosition(), position, worldSize) - position).normalise();
     
                 throwSnowballTimer -= dt;
     
@@ -128,6 +143,17 @@ void BossGlacialBrute::update(Game& game, ProjectileManager& projectileManager, 
             }
         }
     }
+
+    Helper::wrapPosition(position, worldSize);
+
+    flashTime = std::max(flashTime - dt, 0.0f);
+
+    updateCollision();
+}
+
+void BossGlacialBrute::updateNetwork(float dt, int worldSize)
+{
+    position += velocity * dt;
 
     Helper::wrapPosition(position, worldSize);
 
@@ -157,12 +183,6 @@ bool BossGlacialBrute::isAlive()
     return (health > 0);
 }
 
-// void BossGlacialBrute::handleWorldWrap(pl::Vector2f positionDelta)
-// {
-//     position += positionDelta;
-//     pathFollower.handleWorldWrap(positionDelta);
-// }
-
 void BossGlacialBrute::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
     const pl::Color& color) const
 {
@@ -191,7 +211,7 @@ void BossGlacialBrute::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBat
     }
 
     // Flip if required
-    if (direction.x < 0)
+    if (velocity.x < 0)
     {
         drawData.scale.x *= -1;
     }
@@ -233,6 +253,11 @@ void BossGlacialBrute::testCollisionWithPlayer(Player& player, int worldSize)
 
 void BossGlacialBrute::testProjectileCollision(Projectile& projectile, int worldSize)
 {
+    if (projectile.getHitLayer() != HitLayer::Entity)
+    {
+        return;
+    }
+    
     if (hitCollision.isColliding(projectile.getCollisionCircle(), worldSize))
     {
         damage(projectile.getDamage(), projectile.getPosition());

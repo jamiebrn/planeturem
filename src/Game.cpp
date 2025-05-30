@@ -1,5 +1,7 @@
 #include "Game.hpp"
 
+// FIX: Glacial brute pathfinding at world edges???
+
 // FIX: Rocket in the ocean
 
 // FIX: Land placement multiplayer crash???
@@ -18,9 +20,7 @@
 
 // TODO: Improve entity movement over network
 
-// TODO: Boss networking
-
-// TODO: Networked melee collision
+// TODO: Boss spawn networking
 
 // TODO: Night and menu music
 
@@ -2385,21 +2385,40 @@ void Game::attemptUseBossSpawn()
         return;
     }
 
-    const ItemData& itemData = ItemDataLoader::getItemData(heldItemType);
+    // Take boss summon item and spawn
+    if (networkHandler.isLobbyHostOrSolo())
+    {
+        attemptSpawnBoss(locationState.getPlanetType(), heldItemType);
+        InventoryGUI::subtractHeldItem(inventory);
+    }
+    else
+    {
+        // Request boss spawn from host
+    }
+}
+
+bool Game::attemptSpawnBoss(PlanetType planetType, ItemType bossSpawnItem)
+{
+    if (!networkHandler.isLobbyHostOrSolo() || !isLocationStateInitialised(LocationState::createFromPlanetType(planetType)))
+    {
+        return false;
+    }
+
+    const ItemData& itemData = ItemDataLoader::getItemData(bossSpawnItem);
 
     if (!itemData.bossSummonData.has_value())
     {
-        return;
+        return false;
     }
 
     if (itemData.bossSummonData->useAtNight && isDay)
     {
-        return;
+        return false;
     }
 
     const PlanetGenData& planetGenData = PlanetGenDataLoader::getPlanetGenData(locationState.getPlanetType());
-    const BiomeGenData* biomeGenData = Chunk::getBiomeGenAtWorldTile(player.getWorldTileInside(getChunkManager().getWorldSize()), getChunkManager().getWorldSize(),
-        getChunkManager().getBiomeNoise(), locationState.getPlanetType());
+    const BiomeGenData* biomeGenData = Chunk::getBiomeGenAtWorldTile(player.getWorldTileInside(getChunkManager(planetType).getWorldSize()),
+        getChunkManager(planetType).getWorldSize(), getChunkManager(planetType).getBiomeNoise(), locationState.getPlanetType());
     
     std::unordered_set<std::string> bossesSpawnAllowedNames = planetGenData.bossesSpawnAllowedNames;
     if (biomeGenData)
@@ -2409,17 +2428,16 @@ void Game::attemptUseBossSpawn()
 
     if (!bossesSpawnAllowedNames.contains(itemData.bossSummonData->bossName))
     {
-        return;
+        return false;
     }
 
     // Summon boss
-    if (!getBossManager().createBoss(itemData.bossSummonData->bossName, player.getPosition(), *this))
+    if (!getBossManager().createBoss(itemData.bossSummonData->bossName, player.getPosition(), *this, getChunkManager(planetType)));
     {
-        return;
+        return false;
     }
 
-    // Take boss summon item
-    InventoryGUI::subtractHeldItem(inventory);
+    return true;
 }
 
 void Game::attemptUseConsumable()

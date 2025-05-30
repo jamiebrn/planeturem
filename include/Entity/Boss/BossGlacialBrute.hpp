@@ -4,6 +4,11 @@
 #include <vector>
 #include <array>
 
+#include <extlib/cereal/archives/binary.hpp>
+#include <extlib/cereal/types/vector.hpp>
+#include <extlib/cereal/types/memory.hpp>
+#include <extlib/cereal/types/base_class.hpp>
+
 #include <Graphics/SpriteBatch.hpp>
 #include <Graphics/Color.hpp>
 #include <Graphics/RenderTarget.hpp>
@@ -42,11 +47,12 @@
 class BossGlacialBrute : public BossEntity
 {
 public:
-    BossGlacialBrute(pl::Vector2f playerPosition, Game& game);
+    BossGlacialBrute();
+    BossGlacialBrute(pl::Vector2f playerPosition, Game& game, ChunkManager& chunkManager);
     BossEntity* clone() const override;
 
-    void update(Game& game, ProjectileManager& projectileManager, std::vector<Player*>& players, float dt, int worldSize) override;
-    inline void updateNetwork(float dt, int worldSize) override {}
+    void update(Game& game, ChunkManager& chunkManager, ProjectileManager& projectileManager, std::vector<Player*>& players, float dt, int worldSize) override;
+    void updateNetwork(float dt, int worldSize) override;
 
     bool isAlive() override;
 
@@ -68,7 +74,43 @@ public:
 
     void getWorldObjects(std::vector<WorldObject*>& worldObjects) override;
 
+    template <class Archive>
+    void save(Archive& ar) const
+    {
+        CompactFloat<uint8_t> flashTimeCompact(flashTime, 2);
+
+        CompactFloat<uint8_t> directionXCompact(direction.x, 2);
+        CompactFloat<uint8_t> directionYCompact(direction.y, 2);
+        CompactFloat<uint16_t> speed(velocity.getLength(), 2);
+        
+        uint8_t animFrame = walkAnimation.getFrame();
+        ar(cereal::base_class<BossEntity>(this), speed, directionXCompact, directionYCompact, health, behaviourState, flashTimeCompact, animFrame);
+    }
+    
+    template <class Archive>
+    void load(Archive& ar)
+    {
+        CompactFloat<uint8_t> flashTimeCompact;
+
+        CompactFloat<uint8_t> directionXCompact;
+        CompactFloat<uint8_t> directionYCompact;
+        CompactFloat<uint16_t> speed;
+
+        uint8_t animFrame;
+        ar(cereal::base_class<BossEntity>(this), speed, directionXCompact, directionYCompact, health, behaviourState, flashTimeCompact, animFrame);
+        
+        flashTime = flashTimeCompact.getValue(2);
+
+        direction.x = directionXCompact.getValue(2);
+        direction.y = directionYCompact.getValue(2);
+        velocity = direction * speed.getValue(2);
+
+        walkAnimation.setFrame(animFrame);
+    }
+
 private:
+    void initialise();
+
     void damage(int amount, pl::Vector2f damageSource);
 
     void updateCollision();
@@ -76,7 +118,7 @@ private:
     void throwSnowball(ProjectileManager& projectileManager, Player& player, int worldSize);
 
 private:
-    enum class BossGlacialBruteState
+    enum class BossGlacialBruteState : uint8_t
     {
         WalkingToPlayer,
         LeavingPlayer,
@@ -86,6 +128,7 @@ private:
 private:
     BossGlacialBruteState behaviourState;
 
+    pl::Vector2f velocity;
     pl::Vector2f direction;
 
     AnimatedTexture walkAnimation;
@@ -93,7 +136,7 @@ private:
     static const pl::Rect<int> shadowTextureRect;
 
     static constexpr int MAX_HEALTH = 3500;
-    int health;
+    int16_t health;
 
     static constexpr float MAX_FLASH_TIME = 0.3f;
     float flashTime = 0.0f;

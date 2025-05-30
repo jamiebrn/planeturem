@@ -61,7 +61,7 @@ BossEntity* BossBenjaminCrow::clone() const
     return new BossBenjaminCrow(*this);
 }
 
-void BossBenjaminCrow::update(Game& game, ProjectileManager& projectileManager, std::vector<Player*>& players, float dt, int worldSize)
+void BossBenjaminCrow::update(Game& game, ChunkManager& chunkManager, ProjectileManager& projectileManager, std::vector<Player*>& players, float dt, int worldSize)
 {
     if (game.getNetworkHandler().isClient())
     {

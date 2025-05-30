@@ -53,7 +53,7 @@ public:
     BossBenjaminCrow(pl::Vector2f playerPosition);
     BossEntity* clone() const override;
 
-    void update(Game& game, ProjectileManager& projectileManager, std::vector<Player*>& players, float dt, int worldSize) override;
+    void update(Game& game, ChunkManager& chunkManager, ProjectileManager& projectileManager, std::vector<Player*>& players, float dt, int worldSize) override;
     void updateNetwork(float dt, int worldSize) override;
 
     bool isAlive() override;
