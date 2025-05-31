@@ -1324,7 +1324,6 @@ void Game::drawLighting(float dt, std::vector<WorldObject*>& worldObjects)
         lightingEngine.calculateLighting();
     }
 
-
     lightTexture.clear({ambientRedLight, ambientGreenLight, ambientBlueLight, 255});
 
     // draw from lighting engine
@@ -3010,17 +3009,6 @@ ObjectReference Game::setupPlanetTravel(PlanetType planetType, const LocationSta
     {
         loadPlanet(planetType);
     }
-
-    // Get used rocket object data
-    // RocketObject* rocketObject = getObjectFromLocation<RocketObject>(rocketObjectUsed, currentLocation);
-    // if (!rocketObject)
-    // {
-    //     printf("ERROR: Attempted to set up planet travel for null rocket object (%d, %d, %d, %d)\n",
-    //         rocketObjectUsed.chunk.x, rocketObjectUsed.chunk.y, rocketObjectUsed.tile.x, rocketObjectUsed.tile.y);
-    //     return {{0, 0}, {0, 0}};
-    // }
-
-    // ObjectType rocketObjectType = rocketObject->getObjectType();
 
     ObjectType rocketObjectType = player.getLastUsedPlanetRocketType();
     if (clientID.has_value())

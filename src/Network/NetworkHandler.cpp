@@ -370,6 +370,7 @@ void NetworkHandler::registerNetworkPlayer(uint64_t id, const std::string& name,
     {
         PacketDataPlayerJoined packetData;
         packetData.id = id;
+        packetData.name = name;
         packetData.pingLocation = pingLocation;
         Packet packet;
         packet.set(packetData);
