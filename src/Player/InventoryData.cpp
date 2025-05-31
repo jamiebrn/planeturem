@@ -91,7 +91,7 @@ int InventoryData::addItem(ItemType item, int amount, bool createPopup, bool cre
     // inventoryData.push_back({item, amount});
 }
 
-void InventoryData::takeItem(ItemType item, int amount)
+int InventoryData::takeItem(ItemType item, int amount)
 {
     int amountToTake = amount;
 
@@ -101,12 +101,16 @@ void InventoryData::takeItem(ItemType item, int amount)
         std::optional<ItemCount>& itemSlot = inventoryData[i];
 
         if (!itemSlot.has_value())
+        {
             continue;
+        }
         
         ItemCount& itemCount = itemSlot.value();
 
         if (itemCount.first != item)
+        {
             continue;
+        }
 
         int amountTaken = std::min(static_cast<int>(itemCount.second), amountToTake);
 
@@ -122,8 +126,12 @@ void InventoryData::takeItem(ItemType item, int amount)
         }
 
         if (amountToTake <= 0)
-            return;
+        {
+            return amount;
+        }
     }
+
+    return (amount - amountToTake);
 }
 
 void InventoryData::addItemAtIndex(int index, ItemType item, int amount)

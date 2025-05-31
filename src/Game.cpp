@@ -20,8 +20,6 @@
 
 // TODO: Improve entity movement over network
 
-// TODO: Boss spawn networking
-
 // TODO: Night and menu music
 
 // PRIORITY: LOW
@@ -1040,31 +1038,6 @@ void Game::updateOnPlanet(float dt)
         camera.handleWorldWrap(wrapPositionDelta);
     }
 
-    // Handle world wrapping for camera and cursor, if player wrapped around
-    // if (wrappedAroundWorld)
-    // {
-        // camera.handleWorldWrap(wrapPositionDelta);
-        // Cursor::handleWorldWrap(wrapPositionDelta);
-        // handleOpenChestPositionWorldWrap(wrapPositionDelta);
-        // getChunkManager().reloadChunks(camera.getChunkViewRange());
-
-        // Wrap bosses
-        // getBossManager().handleWorldWrap(wrapPositionDelta);
-
-        // Wrap projectiles
-        // getProjectileManager().handleWorldWrap(wrapPositionDelta);
-        // enemyProjectileManager.handleWorldWrap(wrapPositionDelta);
-
-        // Wrap hit markers
-        // HitMarkers::handleWorldWrap(wrapPositionDelta);
-
-        // Wrap particles
-        // particleSystem.handleWorldWrap(wrapPositionDelta);
-
-        // Wrap weather particles
-        // weatherSystem.handleWorldWrap(wrapPositionDelta);
-    // }
-
     // Update (loaded) chunks
     // Enable / disable chunk generation depending on multiplayer state
     if (!networkHandler.getIsLobbyHost())
@@ -1168,13 +1141,10 @@ void Game::updateActivePlanets(float dt)
     {
         std::vector<ChunkViewRange> chunkViewRanges = networkHandler.getNetworkPlayersChunkViewRanges(planetType);
 
-        std::optional<pl::Vector2f> localPlayerPosition;
-
         // Add this player (host) chunk view range and set player position, if also on this planet
         if (locationState.getPlanetType() == planetType)
         {
             chunkViewRanges.push_back(camera.getChunkViewRange());
-            localPlayerPosition = player.getPosition();
         }
 
         ChunkManager& chunkManager = getChunkManager(planetType);
@@ -2388,7 +2358,7 @@ void Game::attemptUseBossSpawn()
     // Take boss summon item and spawn
     if (networkHandler.isLobbyHostOrSolo())
     {
-        if (attemptSpawnBoss(locationState.getPlanetType(), heldItemType))
+        if (attemptSpawnBoss(locationState.getPlanetType(), heldItemType, player))
         {
             InventoryGUI::subtractHeldItem(inventory);
         }
@@ -2396,16 +2366,39 @@ void Game::attemptUseBossSpawn()
     else
     {
         // Request boss spawn from host
+        PacketDataBossSpawnCheck packetData;
+        packetData.planetType = locationState.getPlanetType();
+        packetData.bossSpawnItem = heldItemType;
+        Packet packet(packetData);
+        networkHandler.sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
     }
 }
 
-bool Game::attemptSpawnBoss(PlanetType planetType, ItemType bossSpawnItem)
+bool Game::attemptSpawnBoss(PlanetType planetType, ItemType bossSpawnItem, Player& player)
 {
     if (!networkHandler.isLobbyHostOrSolo() || !isLocationStateInitialised(LocationState::createFromPlanetType(planetType)))
     {
         return false;
     }
 
+    if (!canPlayerSpawnBoss(planetType, bossSpawnItem, player))
+    {
+        return false;
+    }
+
+    const ItemData& itemData = ItemDataLoader::getItemData(bossSpawnItem);
+
+    // Summon boss
+    if (!getBossManager().createBoss(itemData.bossSummonData->bossName, player.getPosition(), *this, getChunkManager(planetType)))
+    {
+        return false;
+    }
+
+    return true;
+}
+
+bool Game::canPlayerSpawnBoss(PlanetType planetType, ItemType bossSpawnItem, Player& player)
+{
     const ItemData& itemData = ItemDataLoader::getItemData(bossSpawnItem);
 
     if (!itemData.bossSummonData.has_value())
@@ -2433,13 +2426,33 @@ bool Game::attemptSpawnBoss(PlanetType planetType, ItemType bossSpawnItem)
         return false;
     }
 
-    // Summon boss
-    if (!getBossManager().createBoss(itemData.bossSummonData->bossName, player.getPosition(), *this, getChunkManager(planetType)));
+    return true;
+}
+
+bool Game::attemptUseBossSpawnFromHost(PlanetType planetType, ItemType bossSpawnItem)
+{
+    if (!locationState.isOnPlanet() || locationState.getPlanetType() != planetType)
     {
         return false;
     }
 
-    return true;
+    int itemTaken = inventory.takeItem(bossSpawnItem, 1);
+
+    if (itemTaken > 0)
+    {
+        return true;
+    }
+
+    // Attempt take from item held
+    ItemType heldItemType = InventoryGUI::getHeldItemType(inventory);
+
+    if (heldItemType == bossSpawnItem)
+    {
+        InventoryGUI::subtractHeldItem(inventory);
+        return true;
+    }
+
+    return false;
 }
 
 void Game::attemptUseConsumable()

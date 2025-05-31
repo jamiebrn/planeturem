@@ -276,12 +276,9 @@ std::unordered_set<PlanetType> NetworkHandler::getPlayersPlanetTypeSet(std::opti
         planetTypeSet.insert(iter->second.getPlayerData().locationState.getPlanetType());
     }
 
-    if (thisPlayerPlanetType.has_value())
+    if (thisPlayerPlanetType.has_value() && thisPlayerPlanetType.value() >= 0)
     {
-        if (thisPlayerPlanetType.value() >= 0)
-        {
-            planetTypeSet.insert(thisPlayerPlanetType.value());
-        }
+        planetTypeSet.insert(thisPlayerPlanetType.value());
     }
 
     return planetTypeSet;
@@ -1094,6 +1091,45 @@ void NetworkHandler::processMessageAsHost(const SteamNetworkingMessage_t& messag
             game->getProjectileManager(packetData.planetType).addProjectile(projectile, packetData.weaponType);
             break;
         }
+        case PacketType::BossSpawnCheck:
+        {
+            PacketDataBossSpawnCheck packetData;
+            packetData.deserialise(packet.data);
+
+            if (!game->isLocationStateInitialised(LocationState::createFromPlanetType(packetData.planetType)))
+            {
+                printf("ERROR: Received boss spawn check for uninitialised location\n");
+                break;
+            }
+
+            if (!game->canPlayerSpawnBoss(packetData.planetType, packetData.bossSpawnItem, *getNetworkPlayer(message.m_identityPeer.GetSteamID64())))
+            {
+                break;
+            }
+
+            // Player can spawn boss - send check to ensure still has item so they can request boss spawn
+            PacketDataBossSpawnCheckReply packetDataReply;
+            packetDataReply.planetType = packetData.planetType;
+            packetDataReply.bossSpawnItem = packetData.bossSpawnItem;
+
+            Packet packetReply(packetDataReply);
+            sendPacketToClient(message.m_identityPeer.GetSteamID64(), packetDataReply, k_nSteamNetworkingSend_Reliable, 0);
+            break;
+        }
+        case PacketType::BossSpawnRequest:
+        {
+            PacketDataBossSpawnCheck packetData;
+            packetData.deserialise(packet.data);
+
+            if (!game->isLocationStateInitialised(LocationState::createFromPlanetType(packetData.planetType)))
+            {
+                printf("ERROR: Received boss spawn REQUEST for uninitialised location\n");
+                break;
+            }
+
+            game->attemptSpawnBoss(packetData.planetType, packetData.bossSpawnItem, *getNetworkPlayer(message.m_identityPeer.GetSteamID64()));
+            break;
+        }
         case PacketType::RocketEnterRequest:
         {
             PacketDataRocketEnterRequest packetData;
@@ -1301,6 +1337,22 @@ void NetworkHandler::processMessageAsClient(const SteamNetworkingMessage_t& mess
                 break;
             }
             game->getBossManager(packetData.planetType) = packetData.bossManager;
+            break;
+        }
+        case PacketType::BossSpawnCheckReply:
+        {
+            PacketDataBossSpawnCheckReply packetData;
+            packetData.deserialise(packet.data);
+            if (!game->attemptUseBossSpawnFromHost(packetData.planetType, packetData.bossSpawnItem))
+            {
+                break;
+            }
+
+            PacketDataBossSpawnRequest packetDataReply;
+            packetDataReply.planetType = packetData.planetType;
+            packetDataReply.bossSpawnItem = packetData.bossSpawnItem;
+            Packet packetReply(packetDataReply);
+            sendPacketToHost(packetReply, k_nSteamNetworkingSend_Reliable, 0);
             break;
         }
         case PacketType::RocketEnterReply:
