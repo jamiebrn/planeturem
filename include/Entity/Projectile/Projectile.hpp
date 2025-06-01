@@ -64,6 +64,7 @@ public:
     template <class Archive>
     void save(Archive& ar, const std::uint32_t version) const
     {
+        static constexpr float PI = 3.14159265358979f;
         uint8_t projectileTypeCompact = projectileType;
 
         // Chunk inside
@@ -93,6 +94,7 @@ public:
     template <class Archive>
     void load(Archive& ar, const std::uint32_t version)
     {
+        static constexpr float PI = 3.14159265358979f;
         uint8_t projectileTypeCompact;
 
         uint64_t positionVelocityData;
