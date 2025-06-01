@@ -76,7 +76,7 @@ public:
         positionDataLocal |= static_cast<uint32_t>(fmod(position.x, CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED) * 10) & 0x7FF;
         positionDataLocal |= (static_cast<uint32_t>(fmod(position.y, CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED) * 10) & 0x7FF) << 11;
 
-        float angle = (std::atan2(velocity.y, velocity.x) + M_PI) / M_PI * 180.0f;
+        float angle = (std::atan2(velocity.y, velocity.x) + PI) / PI * 180.0f;
 
         // Velocity (uses 25 bits)
         uint32_t velocityData = 0;
@@ -113,7 +113,7 @@ public:
         position.y = chunkPositionY * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
         position.y += static_cast<float>((positionDataLocal >> 11) & 0x7FF) / 10.0f;
 
-        float angle = static_cast<float>(velocityData & 0xFFF) / 10.0f / 180.0f * M_PI - M_PI;
+        float angle = static_cast<float>(velocityData & 0xFFF) / 10.0f / 180.0f * PI - PI;
         float speed = static_cast<float>((velocityData >> 12) & 0x1FFF) / 10.0f;
         velocity.x = std::cos(angle) * speed;
         velocity.y = std::sin(angle) * speed;
