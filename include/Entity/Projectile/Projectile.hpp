@@ -72,20 +72,20 @@ public:
 
         // Position in current chunk (uses 22 bits)
         uint32_t positionDataLocal = 0;
-        positionDataLocal |= static_cast<int>(fmod(position.x, CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED) * 10) & 0x7FF;
-        positionDataLocal |= (static_cast<int>(fmod(position.y, CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED) * 10) & 0x7FF) << 11;
+        positionDataLocal |= static_cast<uint32_t>(fmod(position.x, CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED) * 10) & 0x7FF;
+        positionDataLocal |= (static_cast<uint32_t>(fmod(position.y, CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED) * 10) & 0x7FF) << 11;
 
         float angle = (std::atan2(velocity.y, velocity.x) + M_PI) / M_PI * 180.0f;
 
         // Velocity (uses 25 bits)
         uint32_t velocityData = 0;
-        velocityData |= static_cast<int>(angle * 10) & 0xFFF;
-        velocityData |= (static_cast<int>(velocity.getLength() * 10) & 0x1FFF) << 12;
+        velocityData |= static_cast<uint32_t>(angle * 10) & 0xFFF;
+        velocityData |= (static_cast<uint32_t>(velocity.getLength() * 10) & 0x1FFF) << 12;
 
         uint64_t positionVelocityData = chunkPositionX;
-        positionVelocityData |= chunkPositionY << 8;
-        positionVelocityData |= (positionDataLocal & 0x3FFFFF) << 16;
-        positionVelocityData |= (velocityData & 0x1FFFFFF) << 38;
+        positionVelocityData |= static_cast<uint64_t>(chunkPositionY) << 8;
+        positionVelocityData |= static_cast<uint64_t>(positionDataLocal & 0x3FFFFF) << 16;
+        positionVelocityData |= static_cast<uint64_t>(velocityData & 0x1FFFFFF) << 38;
 
         ar(projectileTypeCompact, positionVelocityData);
     }
