@@ -66,28 +66,55 @@ public:
     {
         uint8_t projectileTypeCompact = projectileType;
 
-        pl::Vector2f direction = velocity.normalise();
-        CompactFloat<int8_t> directionXCompact(direction.x, 2);
-        CompactFloat<int8_t> directionYCompact(direction.y, 2);
-        uint16_t speed = velocity.getLength();
+        // Chunk inside
+        uint8_t chunkPositionX = std::floor(position.x / (CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED));
+        uint8_t chunkPositionY = std::floor(position.y / (CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED));
 
-        ar(projectileTypeCompact, position.x, position.y, speed, directionXCompact, directionYCompact);
+        // Position in current chunk (uses 22 bits)
+        uint32_t positionDataLocal = 0;
+        positionDataLocal |= static_cast<int>(fmod(position.x, CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED) * 10) & 0x7FF;
+        positionDataLocal |= (static_cast<int>(fmod(position.y, CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED) * 10) & 0x7FF) << 11;
+
+        float angle = (std::atan2(velocity.y, velocity.x) + M_PI) / M_PI * 180.0f;
+
+        // Velocity (uses 25 bits)
+        uint32_t velocityData = 0;
+        velocityData |= static_cast<int>(angle * 10) & 0xFFF;
+        velocityData |= (static_cast<int>(velocity.getLength() * 10) & 0x1FFF) << 12;
+
+        uint64_t positionVelocityData = chunkPositionX;
+        positionVelocityData |= chunkPositionY << 8;
+        positionVelocityData |= (positionDataLocal & 0x3FFFFF) << 16;
+        positionVelocityData |= (velocityData & 0x1FFFFFF) << 38;
+
+        ar(projectileTypeCompact, positionVelocityData);
     }
 
     template <class Archive>
     void load(Archive& ar, const std::uint32_t version)
     {
         uint8_t projectileTypeCompact;
+
+        uint64_t positionVelocityData;
         
-        CompactFloat<int8_t> directionXCompact;
-        CompactFloat<int8_t> directionYCompact;
-        uint16_t speed;
-        
-        ar(projectileTypeCompact, position.x, position.y, speed, directionXCompact, directionYCompact);
+        ar(projectileTypeCompact, positionVelocityData);
         
         projectileType = projectileTypeCompact;
 
-        velocity = pl::Vector2f(directionXCompact.getValue(2), directionYCompact.getValue(2)) * speed;
+        uint8_t chunkPositionX = positionVelocityData & 0xFF;
+        uint8_t chunkPositionY = (positionVelocityData >> 8) & 0xFF;
+        uint32_t positionDataLocal = (positionVelocityData >> 16) & 0x3FFFFF;
+        uint32_t velocityData = (positionVelocityData >> 38) & 0x1FFFFFF;
+
+        position.x = chunkPositionX * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
+        position.x += static_cast<float>(positionDataLocal & 0x7FF) / 10.0f;
+        position.y = chunkPositionY * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
+        position.y += static_cast<float>((positionDataLocal >> 11) & 0x7FF) / 10.0f;
+
+        float angle = static_cast<float>(velocityData & 0xFFF) / 10.0f / 180.0f * M_PI - M_PI;
+        float speed = static_cast<float>((velocityData >> 12) & 0x1FFF) / 10.0f;
+        velocity.x = std::cos(angle) * speed;
+        velocity.y = std::sin(angle) * speed;
     }
 
 private:
