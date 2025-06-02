@@ -248,6 +248,11 @@ bool ObjectDataLoader::loadData(std::string objectDataPath)
             objectData.isLandmark = jsonObjectData.at("is-landmark");
         }
 
+        if (jsonObjectData.contains("set-spawn-point"))
+        {
+            objectData.setSpawnSpawn = jsonObjectData.at("set-spawn-point");
+        }
+
         loaded_objectData.push_back(objectData);
     }
 

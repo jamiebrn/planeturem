@@ -85,7 +85,7 @@ public:
     Player() = default;
     Player(pl::Vector2f position, int maxHealth = 0, pl::Color bodyColor = pl::Color(158, 69, 57, 255), pl::Color skinColor = pl::Color(230, 144, 78, 255));
 
-    void update(float dt, pl::Vector2f mouseWorldPos, ChunkManager& chunkManager, ProjectileManager& projectileManager);
+    void update(float dt, pl::Vector2f mouseWorldPos, ChunkManager& chunkManager, ProjectileManager& projectileManager, Game& game);
     bool testWorldWrap(int worldSize, pl::Vector2f& wrapPositionDelta);
     
     void updateInRoom(float dt, pl::Vector2f mouseWorldPos, const Room& room);
@@ -162,12 +162,12 @@ protected:
     void updateMovementInRoom(float dt, const Room& room, bool isLocalPlayer = true);
     void updateAnimation(float dt);
     void updateToolRotation(pl::Vector2f mouseWorldPos);
-    void updateTimers(float dt);
+    void updateTimers(float dt, Game& game);
 
 private:
     bool takeDamage(float rawAmount);
 
-    void respawn();
+    void respawn(Game& game);
 
     void updateFishingRodCatch(float dt);
     void castFishingRod();

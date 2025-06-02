@@ -23,6 +23,8 @@ std::unique_ptr<BuildableObject> create(pl::Vector2f position, ObjectType object
             position, objectType, parameters)
         OBJECT_CREATE(LandmarkObject, objectData.isLandmark && game && chunkManager,
             position, objectType, chunkManager->getPlanetType(), *game, parameters)
+        OBJECT_CREATE(SpawnPointObject, objectData.setSpawnSpawn,
+            position, objectType, parameters)
     }
 
     // Default case

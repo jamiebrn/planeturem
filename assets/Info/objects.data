@@ -180,6 +180,22 @@
         "sell-value": 1
     },
     {
+        "name": "Bed",
+        "health": 5,
+        "textures": [[176, 208]],
+        "texture-width": 16,
+        "texture-height": 32,
+        "texture-x-origin": 0.5,
+        "texture-y-origin": 0.25,
+        "size-y": 2,
+        "has-collision": true,
+        "set-spawn-point": true,
+        "item-drops": {
+            "Bed": [1, 1, 1]
+        },
+        "sell-value": 1
+    },
+    {
         "name": "Chest",
         "health": 10,
         "textures": [[112, 14], [128, 14], [144, 14], [160, 14]],

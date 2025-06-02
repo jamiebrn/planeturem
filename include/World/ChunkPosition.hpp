@@ -6,6 +6,8 @@
 
 #include <extlib/cereal/archives/binary.hpp>
 
+#include <Core/json.hpp>
+
 struct ChunkPosition
 {
     int16_t x, y;
@@ -56,3 +58,15 @@ struct std::hash<ChunkPosition>
         return std::hash<int>()(chunk.x * ChunkPosition::xPrime) ^ std::hash<int>()(chunk.y * ChunkPosition::yPrime);
     }
 };
+
+inline void from_json(const nlohmann::json& json, ChunkPosition& chunkPosition)
+{
+    chunkPosition.x = json[0];
+    chunkPosition.y = json[1];
+}
+
+inline void to_json(nlohmann::json& json, const ChunkPosition& chunkPosition)
+{
+    json[0] = chunkPosition.x;
+    json[1] = chunkPosition.y;
+}

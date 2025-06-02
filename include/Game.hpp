@@ -142,6 +142,9 @@ public:
     void enterIncomingRocket(RocketObject& rocket);
     void rocketFinishedUp(const LocationState& locationState, RocketObject& rocket);
     void rocketFinishedDown(const LocationState& locationState, RocketObject& rocket);
+    
+    void setSpawnLocation(PlanetType planetType, ObjectReference spawnLocation);
+    ObjectReference getSpawnLocation(std::optional<PlanetType> planetType = std::nullopt);
 
     // NPC
     void interactWithNPC(NPCObject& npc);
@@ -409,6 +412,7 @@ private:
     int planetSeed;
 
     std::unordered_map<PlanetType, ObjectReference> planetRocketUsedPositions;
+    std::unordered_map<PlanetType, ObjectReference> planetSpawnLocations;
 
     LightingEngine lightingEngine;
     float lightingTickTime = 0;

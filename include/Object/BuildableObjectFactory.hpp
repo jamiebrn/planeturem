@@ -9,6 +9,7 @@
 #include "Object/PlantObject.hpp"
 #include "Object/NPCObject.hpp"
 #include "Object/LandmarkObject.hpp"
+#include "Object/SpawnPointObject.hpp"
 
 class Game;
 class ChunkManager;

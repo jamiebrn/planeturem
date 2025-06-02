@@ -15,4 +15,6 @@ static constexpr int CHUNK_VIEW_LOAD_BORDER = 1;
 static constexpr int TILE_LIGHTING_RESOLUTION = 2;
 static constexpr float LIGHTING_TICK_TIME = 0.1f;
 
+static constexpr float PI = 3.14159265358979f;
+
 static const std::string CLOCK_CRAFTING_STATION = "CLOCK_TIME";

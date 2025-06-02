@@ -1,5 +1,8 @@
 #include "Game.hpp"
 
+// CONSIDER: Client travel definitely saving and removing world data somehow
+// CONSIDER: Projectile serialisation seems to be overestimating velocity (lack of precision)
+
 // FIX: Glacial brute pathfinding at world edges???
 
 // FIX: Rocket in the ocean
@@ -1026,7 +1029,7 @@ void Game::updateOnPlanet(float dt)
     // Update player
     if (!isStateTransitioning())
     {
-        player.update(dt, camera.screenToWorldTransform(mouseScreenPos, 0), getChunkManager(), getProjectileManager());
+        player.update(dt, camera.screenToWorldTransform(mouseScreenPos, 0), getChunkManager(), getProjectileManager(), *this);
     }
 
     // Test world wrapping
@@ -1710,6 +1713,42 @@ void Game::rocketFinishedDown(const LocationState& locationState, RocketObject& 
     }
 
     exitRocket(locationState, &rocket);
+}
+
+void Game::setSpawnLocation(PlanetType planetType, ObjectReference spawnLocation)
+{
+    planetSpawnLocations[planetType] = spawnLocation;
+
+    printf("Spawn location set\n");
+
+    networkHandler.sendPlayerData();
+}
+
+ObjectReference Game::getSpawnLocation(std::optional<PlanetType> planetType)
+{
+    if (!planetType.has_value())
+    {
+        assert(locationState.isOnPlanet());
+        planetType = locationState.getPlanetType();
+    }
+
+    assert(worldDatas.contains(planetType.value()));
+
+    if (planetSpawnLocations.contains(planetType.value()))
+    {
+        // TODO: Find closest open tile from spawn location, will require complete pathfinding information on client
+        return planetSpawnLocations.at(planetType.value());
+    }
+
+    // Find spawn location
+    ObjectReference spawnLocation;
+    spawnLocation.chunk = getChunkManager(planetType).findValidSpawnChunk(2);
+    spawnLocation.tile.x = CHUNK_TILE_SIZE / 2;
+    spawnLocation.tile.y = CHUNK_TILE_SIZE / 2;
+
+    planetSpawnLocations[planetType.value()] = spawnLocation;
+
+    return spawnLocation;
 }
 
 // NPC
@@ -3780,6 +3819,8 @@ PlayerData Game::createPlayerData()
 
     playerData.planetRocketUsedPositions = planetRocketUsedPositions;
     playerData.lastUsedPlanetRocketType = player.getLastUsedPlanetRocketType();
+
+    playerData.planetSpawnLocations = planetSpawnLocations;
 
     return playerData;
 }

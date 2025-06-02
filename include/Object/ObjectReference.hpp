@@ -6,6 +6,10 @@
 
 #include <extlib/cereal/archives/binary.hpp>
 
+#include <Core/json.hpp>
+
+#include "Data/Serialise/Vector2Serialise.hpp"
+
 #include "GameConstants.hpp"
 
 struct ObjectReference
@@ -40,3 +44,15 @@ struct std::hash<ObjectReference>
 };
 
 CEREAL_CLASS_VERSION(ObjectReference, 1);
+
+inline void from_json(const nlohmann::json& json, ObjectReference& objectReference)
+{
+    objectReference.chunk = json[0];
+    objectReference.tile = json[1];
+}
+
+inline void to_json(nlohmann::json& json, const ObjectReference& objectReference)
+{
+    json[0] = objectReference.chunk;
+    json[1] = objectReference.tile;
+}

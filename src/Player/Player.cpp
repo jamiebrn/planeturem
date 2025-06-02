@@ -52,9 +52,9 @@ Player::Player(pl::Vector2f position, int maxHealth, pl::Color bodyColor, pl::Co
     lastUsedPlanetRocketType = -1;
 }
 
-void Player::update(float dt, pl::Vector2f mouseWorldPos, ChunkManager& chunkManager, ProjectileManager& projectileManager)
+void Player::update(float dt, pl::Vector2f mouseWorldPos, ChunkManager& chunkManager, ProjectileManager& projectileManager, Game& game)
 {
-    updateTimers(dt);
+    updateTimers(dt, game);
 
     if (inRocket || !isAlive())
     {
@@ -298,8 +298,19 @@ void Player::updateToolRotation(pl::Vector2f mouseWorldPos)
     }
 }
 
-void Player::updateTimers(float dt)
+void Player::updateTimers(float dt, Game& game)
 {
+    if (respawnTimer > 0)
+    {
+        respawnTimer -= dt;
+        if (respawnTimer <= 0)
+        {
+            respawn(game);
+        }
+
+        return;
+    }
+
     healthRegenCooldownTimer = std::max(healthRegenCooldownTimer - dt, 0.0f);
 
     if (healthRegenCooldownTimer <= 0 && health < maxHealth)
@@ -308,15 +319,6 @@ void Player::updateTimers(float dt)
     }
 
     damageCooldownTimer = std::max(damageCooldownTimer - dt, 0.0f);
-
-    if (respawnTimer > 0)
-    {
-        respawnTimer -= dt;
-        if (respawnTimer <= 0)
-        {
-            respawn();
-        }
-    }
 
     healthConsumableTimer = std::max(healthConsumableTimer - dt, 0.0f);
 
@@ -363,10 +365,16 @@ bool Player::testWorldWrap(int worldSize, pl::Vector2f& wrapPositionDelta)
     return wrapped;
 }
 
-void Player::respawn()
+void Player::respawn(Game& game)
 {
+    ObjectReference spawnLocation = game.getSpawnLocation();
+    setPosition(pl::Vector2f((spawnLocation.chunk.x * CHUNK_TILE_SIZE + spawnLocation.tile.x + 0.5f), 
+        (spawnLocation.chunk.y * CHUNK_TILE_SIZE + spawnLocation.tile.y + 0.5f)) * TILE_SIZE_PIXELS_UNSCALED, 0);
+
     health = maxHealth;
     healthConsumableTimer = 0.0f;
+
+    reelInFishingRod();
 }
 
 void Player::updateFishingRodCatch(float dt)

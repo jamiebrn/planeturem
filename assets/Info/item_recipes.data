@@ -544,5 +544,14 @@
         },
         "crafting-station": "furnace",
         "crafting-station-level": 1
+    },
+    {
+        "product": "Bed",
+        "item-requirements": {
+            "Wood": 10,
+            "Hide": 20
+        },
+        "crafting-station": "bench",
+        "crafting-station-level": 1
     }
 ]

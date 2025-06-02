@@ -92,5 +92,8 @@ struct ObjectData
     // If is landmark
     bool isLandmark = false;
 
+    // If is bed / spawn point
+    bool setSpawnSpawn = false;
+
     bool mythicalItem = false;
 };

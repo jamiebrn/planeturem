@@ -32,11 +32,13 @@ struct PlayerData
     InventoryData inventory;
     InventoryData armourInventory;
     
-    // Index of recipe
+    // Hash of recipe
     std::unordered_set<uint64_t> recipesSeen;
     
     std::unordered_map<PlanetType, ObjectReference> planetRocketUsedPositions;
     ObjectType lastUsedPlanetRocketType;
+
+    std::unordered_map<PlanetType, ObjectReference> planetSpawnLocations;
     
     std::string name;
     
@@ -56,8 +58,8 @@ struct PlayerData
     template <class Archive>
     void serialize(Archive& ar, uint32_t version)
     {
-        ar(inventory, armourInventory, recipesSeen, planetRocketUsedPositions, lastUsedPlanetRocketType, name, bodyColor, skinColor, position.x, position.y,
-            locationState, structureExitPos.x, structureExitPos.y, maxHealth);
+        ar(inventory, armourInventory, recipesSeen, planetRocketUsedPositions, lastUsedPlanetRocketType, planetSpawnLocations,
+            name, bodyColor, skinColor, position.x, position.y, locationState, structureExitPos.x, structureExitPos.y, maxHealth);
     }
 };
 
@@ -119,6 +121,15 @@ inline void from_json(const nlohmann::json& json, PlayerData& data)
     {
         data.lastUsedPlanetRocketType = ObjectDataLoader::getObjectTypeFromName("Rocket Launch Pad");
     }
+
+    if (json.contains("planet-spawn-locations"))
+    {
+        for (auto iter = json["planet-spawn-locations"].begin(); iter != json["planet-spawn-locations"].end(); iter++)
+        {
+            ObjectReference spawnLocation = iter.value();
+            data.planetRocketUsedPositions[PlanetGenDataLoader::getPlanetTypeFromName(iter.key())] = spawnLocation;
+        }
+    }
 }
 
 inline void to_json(nlohmann::json& json, const PlayerData& data)
@@ -157,5 +168,11 @@ inline void to_json(nlohmann::json& json, const PlayerData& data)
     if (data.lastUsedPlanetRocketType >= 0)
     {
         json["last-used-planet-rocket-type"] = ObjectDataLoader::getObjectData(data.lastUsedPlanetRocketType).name;
+    }
+
+    for (const auto& spawnLocation : data.planetSpawnLocations)
+    {
+        const PlanetGenData& planetData = PlanetGenDataLoader::getPlanetGenData(spawnLocation.first);
+        json["planet-spawn-locations"][planetData.name] = spawnLocation.second;
     }
 }
