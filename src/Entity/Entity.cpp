@@ -102,6 +102,11 @@ void Entity::updateNetwork(float dt, ChunkManager& chunkManager)
 
 bool Entity::isProjectileColliding(Projectile& projectile)
 {
+    if (!isAlive())
+    {
+        return false;
+    }
+    
     return (hitCollision.isPointInRect(projectile.getPosition().x, projectile.getPosition().y));
 }
 
@@ -181,6 +186,11 @@ void Entity::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& 
 
 void Entity::testHitCollision(const std::vector<HitRect>& hitRects, pl::Vector2f hitOrigin, Game& game, const LocationState& locationState, float gameTime)
 {
+    if (!isAlive())
+    {
+        return;
+    }
+    
     // Get world size
     int worldSize = game.getChunkManager(locationState.getPlanetType()).getWorldSize();
 

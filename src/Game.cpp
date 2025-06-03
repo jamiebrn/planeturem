@@ -3,6 +3,9 @@
 // CONSIDER: Client travel definitely saving and removing world data somehow
 // CONSIDER: Projectile serialisation seems to be overestimating velocity (lack of precision)
 
+// FIX: Space station use rocket while other player use glitch
+// FIX: Client planet travel removal of world data on host, crash
+
 // FIX: Glacial brute pathfinding at world edges???
 
 // FIX: Rocket in the ocean
@@ -3131,17 +3134,6 @@ void Game::travelToRoomDestinationForClient(RoomType roomDest, const LocationSta
     assert(networkHandler.getIsLobbyHost());
 
     loadRoomDest(roomDest);
-
-    // Get used rocket object data
-    RocketObject* rocketObject = getObjectFromLocation<RocketObject>(rocketObjectUsed, currentLocation);
-    if (!rocketObject)
-    {
-        printf("ERROR: Attempted to set up planet travel for null rocket object (%d, %d, %d, %d)\n",
-            rocketObjectUsed.chunk.x, rocketObjectUsed.chunk.y, rocketObjectUsed.tile.x, rocketObjectUsed.tile.y);
-        return;
-    }
-
-    ObjectType rocketObjectType = rocketObject->getObjectType();
 
     // Delete used rocket object if on planet
     if (currentLocation.getGameState() == GameState::OnPlanet)

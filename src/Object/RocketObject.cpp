@@ -29,6 +29,7 @@ void RocketObject::update(Game& game, const LocationState& locationState, float 
             {
                 flyingUp = false;
                 game.rocketFinishedUp(locationState, *this);
+                startFlyingDownwards(game, locationState, nullptr, false);
             }
             else if (flyingDown)
             {
@@ -48,6 +49,11 @@ void RocketObject::update(Game& game, const LocationState& locationState, float 
 
 bool RocketObject::damage(int amount, Game& game, ChunkManager& chunkManager, ParticleSystem* particleSystem, bool giveItems, bool createHitMarkers)
 {
+    if (flyingUp || flyingDown)
+    {
+        amount = 0;
+    }
+
     bool destroyed = BuildableObject::damage(amount, game, chunkManager, particleSystem, giveItems, createHitMarkers);
 
     if (destroyed)
