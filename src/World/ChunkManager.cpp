@@ -112,9 +112,12 @@ bool ChunkManager::updateChunks(Game& game, float gameTime, const std::vector<Ch
             continue;
         }
 
-        if (isClient && chunksToRequestFromHost != nullptr)
+        if (isClient)
         {
-            chunksToRequestFromHost->push_back(chunkPos);
+            if (chunksToRequestFromHost)
+            {
+                chunksToRequestFromHost->push_back(chunkPos);
+            }
             continue;
         }
     

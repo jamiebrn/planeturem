@@ -3,8 +3,6 @@
 // CONSIDER: Projectile serialisation seems to be overestimating velocity (lack of precision)
 // CONSIDER: More frequent / reliable saves (not dependent)
 
-// FIX: Client planet travel unable to use pathfinding???
-
 // FIX: Space station use rocket while other player use glitch
 
 // FIX: Glacial brute pathfinding at world edges???
@@ -2463,9 +2461,9 @@ bool Game::canPlayerSpawnBoss(PlanetType planetType, ItemType bossSpawnItem, Pla
         return false;
     }
 
-    const PlanetGenData& planetGenData = PlanetGenDataLoader::getPlanetGenData(locationState.getPlanetType());
+    const PlanetGenData& planetGenData = PlanetGenDataLoader::getPlanetGenData(planetType);
     const BiomeGenData* biomeGenData = Chunk::getBiomeGenAtWorldTile(player.getWorldTileInside(getChunkManager(planetType).getWorldSize()),
-        getChunkManager(planetType).getWorldSize(), getChunkManager(planetType).getBiomeNoise(), locationState.getPlanetType());
+        getChunkManager(planetType).getWorldSize(), getChunkManager(planetType).getBiomeNoise(), planetType);
     
     std::unordered_set<std::string> bossesSpawnAllowedNames = planetGenData.bossesSpawnAllowedNames;
     if (biomeGenData)
@@ -3177,12 +3175,12 @@ void Game::travelToPlanet(PlanetType planetType, ObjectReference newRocketObject
     
     overrideState(GameState::OnPlanet);
 
+    player.setPosition(pl::Vector2f(newRocketObjectReference.getWorldTile() * TILE_SIZE_PIXELS_UNSCALED), 0);
+
     camera.instantUpdate(player.getPosition());
+
+    getChunkManager().updateChunks(*this, gameTime, {camera.getChunkViewRange()}, networkHandler.isClient());
     
-    if (gameState == GameState::OnPlanet && networkHandler.isLobbyHostOrSolo())
-    {
-        getChunkManager().updateChunks(*this, gameTime, {camera.getChunkViewRange()});
-    }
     lightingTickTime = LIGHTING_TICK_TIME;
 
     rocketEnteredReference = newRocketObjectReference;
