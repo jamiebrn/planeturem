@@ -1,7 +1,7 @@
 #include "Game.hpp"
 
 // CONSIDER: Projectile serialisation seems to be overestimating velocity (lack of precision)
-// CONSIDER: More frequent / reliable saves (not dependent)
+// CONSIDER: More frequent / reliable saves (not dependent on host travel)
 
 // FIX: Space station use rocket while other player use glitch
 
@@ -3127,6 +3127,8 @@ ObjectReference Game::setupPlanetTravel(PlanetType planetType, const LocationSta
 
         printf(("PLANET TRAVEL: Sending planet travel data to client for planet type " + std::to_string(planetType) + "\n").c_str());
 
+        networkHandler.getNetworkPlayer(clientID.value())->getPlayerData().locationState.setPlanetType(planetType);
+
         Packet packet;
         packet.set(packetData, true);
         networkHandler.sendPacketToClient(clientID.value(), packet, k_nSteamNetworkingSend_Reliable, 0);
@@ -3155,6 +3157,8 @@ void Game::travelToRoomDestinationForClient(RoomType roomDest, const LocationSta
     packetData.roomType = roomDest;
 
     printf("ROOM TRAVEL: Sending room travel reply to client for room dest type %s\n", std::to_string(roomDest).c_str());
+    
+    networkHandler.getNetworkPlayer(clientID)->getPlayerData().locationState.setRoomDestType(roomDest);
 
     Packet packet;
     packet.set(packetData, true);
