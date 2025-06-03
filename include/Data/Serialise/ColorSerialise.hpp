@@ -31,7 +31,10 @@ namespace cereal
 template <class Archive>
 void serialize(Archive& ar, pl::Color& colour)
 {
-    ar(colour.r, colour.g, colour.b);
+    uint8_t r = colour.r;
+    uint8_t g = colour.g;
+    uint8_t b = colour.b;
+    ar(r, g, b);
 }
 
 }

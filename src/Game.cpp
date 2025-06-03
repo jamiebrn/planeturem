@@ -1,10 +1,8 @@
 #include "Game.hpp"
 
-// CONSIDER: Client travel definitely saving and removing world data somehow
 // CONSIDER: Projectile serialisation seems to be overestimating velocity (lack of precision)
 
 // FIX: Space station use rocket while other player use glitch
-// FIX: Client planet travel removal of world data on host, crash
 
 // FIX: Glacial brute pathfinding at world edges???
 
@@ -1700,6 +1698,11 @@ void Game::enterIncomingRocket(RocketObject& rocket)
 
 void Game::rocketFinishedUp(const LocationState& locationState, RocketObject& rocket)
 {
+    if (!player.isInRocket())
+    {
+        return;
+    }
+
     if (this->locationState != locationState || rocketEnteredReference != rocket.getThisObjectReference(locationState))
     {
         return;
@@ -1710,6 +1713,11 @@ void Game::rocketFinishedUp(const LocationState& locationState, RocketObject& ro
 
 void Game::rocketFinishedDown(const LocationState& locationState, RocketObject& rocket)
 {
+    if (!player.isInRocket())
+    {
+        return;
+    }
+
     if (this->locationState != locationState || rocketEnteredReference != rocket.getThisObjectReference(locationState))
     {
         return;
