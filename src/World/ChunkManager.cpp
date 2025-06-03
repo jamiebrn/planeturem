@@ -68,30 +68,12 @@ bool ChunkManager::updateChunks(Game& game, float gameTime, const std::vector<Ch
     // Check any chunks needed to load
     for (ChunkPosition chunkPos : ChunkViewRange::getCombinedChunkSet(chunkViewRanges, worldSize))
     {
-        // ChunkPosition chunkPos = iter.get(worldSize);
-        
         // Chunk not loaded
         hasModifiedChunks = true;
-    
-        // Calculate chunk world pos
-        // pl::Vector2f chunkWorldPos;
-        // chunkWorldPos.x = chunkPos.x * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
-        // chunkWorldPos.y = chunkPos.y * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
-        
+
         // Chunk already loaded
         if (loadedChunks.count(chunkPos))
         {
-            // Chunk already in correct world position, skip
-            // if (loadedChunks.at(chunkPos)->getWorldPosition() == chunkWorldPos)
-            // {
-            //     continue;
-            // }
-            // else
-            // {
-                // Chunk is loaded but in incorrect position, reload
-                // storedChunks[chunkPos] = std::move(loadedChunks[chunkPos]);
-                // loadedChunks.erase(chunkPos);
-            // }
             continue;
         }
     
@@ -1292,17 +1274,6 @@ ChunkPosition ChunkManager::findValidSpawnChunk(int waterlessAreaSize)
                     if (!chunk.getContainsWater())
                         continue;
                     
-                   /* if (!chunk.hasStructure())
-                        continue;*/
-
-                    // If not generated, generate
-                    // if (storedChunks.count(ChunkPosition(wrappedX, wrappedY)) <= 0)
-                    //     generateChunk(ChunkPosition(wrappedX, wrappedY), false);
-                    
-                    // // If chunk does not contain water, continue to check other chunks
-                    // if (!storedChunks[ChunkPosition(wrappedX, wrappedY)]->getContainsWater())
-                    //     continue;
-                    
                     // Chunk contains water - move onto checking next area
                     validSpawn = false;
                     break;
@@ -1314,11 +1285,6 @@ ChunkPosition ChunkManager::findValidSpawnChunk(int waterlessAreaSize)
 
             if (!validSpawn)
                 continue;
-            
-            // Is valid spawn - calculate position of centre of chunk and return
-            // pl::Vector2f spawnPosition;
-            // spawnPosition.x = x * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED + 0.5f * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
-            // spawnPosition.y = y * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED + 0.5f * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
 
             return ChunkPosition(x, y);
         }
@@ -1382,62 +1348,9 @@ std::unordered_map<std::string, int> ChunkManager::getNearbyCraftingStationLevel
     return craftingStationLevels;
 }
 
-// pl::Vector2f ChunkManager::translatePositionAroundWorld(pl::Vector2f position, pl::Vector2f originPosition) const
-// {
-//     return translatePositionAroundWorld(position, originPosition, worldSize);
-// }
-
-// pl::Vector2f ChunkManager::translatePositionAroundWorld(pl::Vector2f position, pl::Vector2f originPosition, int worldSize)
-// {
-//     int worldPixelSize = worldSize * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
-//     float halfWorldPixelSize = worldPixelSize / 2.0f;
-
-//     if (std::abs(originPosition.x - position.x) >= halfWorldPixelSize)
-//     {
-//         if (originPosition.x >= halfWorldPixelSize)
-//         {
-//             if (position.x < halfWorldPixelSize)
-//             {
-//                 position.x += worldPixelSize;
-//             }
-//         }
-//         else
-//         {
-//             if (position.x >= halfWorldPixelSize)
-//             {
-//                 position.x -= worldPixelSize;
-//             }
-//         }
-//     }
-
-//     if (std::abs(originPosition.y - position.y) >= halfWorldPixelSize)
-//     {
-//         if (originPosition.y >= halfWorldPixelSize)
-//         {
-//             if (position.y < halfWorldPixelSize)
-//             {
-//                 position.y += worldPixelSize;
-//             }
-//         }
-//         else
-//         {
-//             if (position.y >= halfWorldPixelSize)
-//             {
-//                 position.y -= worldPixelSize;
-//             }
-//         }
-//     }
-
-//     return position;
-// }
-
 Chunk* ChunkManager::generateChunk(const ChunkPosition& chunkPosition, Game& game, float gameTime, bool putInLoaded)
 {
     std::unique_ptr<Chunk> chunk = std::make_unique<Chunk>(chunkPosition, gameTime);
-
-    // pl::Vector2f chunkWorldPos;
-    // chunkWorldPos.x = chunkPosition.x * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
-    // chunkWorldPos.y = chunkPosition.y * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
 
     Chunk* chunkPtr = nullptr;
     if (putInLoaded)
@@ -1450,9 +1363,6 @@ Chunk* ChunkManager::generateChunk(const ChunkPosition& chunkPosition, Game& gam
         storedChunks.emplace(chunkPosition, std::move(chunk));
         chunkPtr = storedChunks[chunkPosition].get();
     }
-
-    // Set chunk position
-    // chunkPtr->setWorldPosition(chunkWorldPos, *this);
 
     resetChunkEntitySpawnCooldown(chunkPosition);
 

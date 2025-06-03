@@ -1,6 +1,9 @@
 #include "Game.hpp"
 
 // CONSIDER: Projectile serialisation seems to be overestimating velocity (lack of precision)
+// CONSIDER: More frequent / reliable saves (not dependent)
+
+// FIX: Client planet travel unable to use pathfinding???
 
 // FIX: Space station use rocket while other player use glitch
 

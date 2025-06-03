@@ -9,18 +9,18 @@
 namespace pl
 {
 
-inline void from_json(const nlohmann::json& json, pl::Color& colour)
+inline void from_json(const nlohmann::json& json, pl::Color& color)
 {
-    colour.r = json[0];
-    colour.g = json[1];
-    colour.b = json[2];
+    color.r = json[0];
+    color.g = json[1];
+    color.b = json[2];
 }
 
-inline void to_json(nlohmann::json& json, const pl::Color& colour)
+inline void to_json(nlohmann::json& json, const pl::Color& color)
 {
-    json[0] = colour.r;
-    json[1] = colour.g;
-    json[2] = colour.b;
+    json[0] = color.r;
+    json[1] = color.g;
+    json[2] = color.b;
 }
 
 }
@@ -29,12 +29,25 @@ namespace cereal
 {
 
 template <class Archive>
-void serialize(Archive& ar, pl::Color& colour)
+void save(Archive& ar, const pl::Color& color)
 {
-    uint8_t r = colour.r;
-    uint8_t g = colour.g;
-    uint8_t b = colour.b;
+    uint8_t r = color.r;
+    uint8_t g = color.g;
+    uint8_t b = color.b;
     ar(r, g, b);
+}
+
+template <class Archive>
+void load(Archive& ar, pl::Color& color)
+{
+    uint8_t r;
+    uint8_t g;
+    uint8_t b;
+    ar(r, g, b);
+
+    color.r = r;
+    color.g = g;
+    color.b = b;
 }
 
 }
