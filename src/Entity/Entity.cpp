@@ -59,13 +59,13 @@ void Entity::update(float dt, ProjectileManager& projectileManager, ChunkManager
     hitCollision.y += position.y;
 
     // Test collision with projectiles
-    for (auto& projectilePair : projectileManager.getProjectiles())
+    for (auto& projectile : projectileManager.getProjectiles())
     {
-        if (isProjectileColliding(projectilePair.second) && projectilePair.second.isAlive())
+        if (isProjectileColliding(projectile) && projectile.isAlive())
         {
-            damage(projectilePair.second.getDamage(), game, LocationState::createFromPlanetType(chunkManager.getPlanetType()), gameTime);
-            projectilePair.second.onCollision();
-            behaviour->onHit(*this, game, projectilePair.second.getPosition());
+            damage(projectile.getDamage(), game, LocationState::createFromPlanetType(chunkManager.getPlanetType()), gameTime);
+            projectile.onCollision();
+            behaviour->onHit(*this, game, projectile.getPosition());
         }
     }
 

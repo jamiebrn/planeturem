@@ -1,6 +1,6 @@
 #pragma once
 
-#include <unordered_map>
+#include <vector>
 #include <memory>
 #include <cstdint>
 
@@ -11,7 +11,7 @@
 #include <Rect.hpp>
 
 #include <extlib/cereal/archives/binary.hpp>
-#include <extlib/cereal/types/unordered_map.hpp>
+#include <extlib/cereal/types/vector.hpp>
 
 #include "Network/Packet.hpp"
 #include "Network/PacketData/PacketDataWorld/PacketDataProjectileCreateRequest.hpp"
@@ -36,9 +36,9 @@ public:
     // Will request projectile from host if is client
     void addProjectile(const Projectile& projectile, ToolType weaponType = -1);
 
-    void createProjectileWithID(uint16_t id, const Projectile& projectile);
+    // void createProjectileWithID(uint16_t id, const Projectile& projectile);
 
-    std::unordered_map<uint16_t, Projectile>& getProjectiles();
+    std::vector<Projectile>& getProjectiles();
 
     uint16_t getProjectileCount() const;
 
@@ -53,8 +53,7 @@ public:
     }
 
 private:
-    std::unordered_map<uint16_t, Projectile> projectiles;
-    uint16_t projectileCounter = 0;
+    std::vector<Projectile> projectiles;
 
     Game* game;
     PlanetType planetType;

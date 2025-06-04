@@ -53,7 +53,7 @@ void Projectile::update(float dt, int worldSize)
     }
 }
 
-void Projectile::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const ChunkManager& chunkManager, const Camera& camera)
+void Projectile::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const ChunkManager& chunkManager, const Camera& camera) const
 {
     const ProjectileData& projectileData = ToolDataLoader::getProjectileData(projectileType);
 

@@ -74,11 +74,11 @@ void Player::update(float dt, pl::Vector2f mouseWorldPos, ChunkManager& chunkMan
     position.y = collisionRect.y + collisionRect.height / 2.0f;
 
     // Test projectile collisions
-    for (auto& projectilePair : projectileManager.getProjectiles())
+    for (auto& projectile : projectileManager.getProjectiles())
     {
-        if (testHitCollision(projectilePair.second, chunkManager.getWorldSize()))
+        if (testHitCollision(projectile, chunkManager.getWorldSize()))
         {
-            projectilePair.second.onCollision();
+            projectile.onCollision();
         }
     }
 

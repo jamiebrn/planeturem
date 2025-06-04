@@ -42,7 +42,7 @@ public:
 
     void update(float dt, int worldSize);
 
-    void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const ChunkManager& chunkManager, const Camera& camera);
+    void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const ChunkManager& chunkManager, const Camera& camera) const;
 
     int getDamage() const;
 

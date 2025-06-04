@@ -66,14 +66,14 @@ void BossManager::update(Game& game, ProjectileManager& projectileManager, Chunk
 
             boss->update(game, chunkManager, projectileManager, players, dt, chunkManager.getWorldSize());
 
-            for (auto& projectilePair : projectileManager.getProjectiles())
+            for (auto& projectile : projectileManager.getProjectiles())
             {
-                if (!projectilePair.second.isAlive())
+                if (!projectile.isAlive())
                 {
                     continue;
                 }
 
-                boss->testProjectileCollision(projectilePair.second, chunkManager.getWorldSize());
+                boss->testProjectileCollision(projectile, chunkManager.getWorldSize());
             }
 
             iter++;

@@ -3134,7 +3134,7 @@ ObjectReference Game::setupPlanetTravel(PlanetType planetType, const LocationSta
         networkHandler.sendPacketToClient(clientID.value(), packet, k_nSteamNetworkingSend_Reliable, 0);
 
         // Save game as client is travelling
-        // saveDeferred = true;
+        saveDeferred = true;
     }
 
     return placeRocketReference;
@@ -3164,7 +3164,7 @@ void Game::travelToRoomDestinationForClient(RoomType roomDest, const LocationSta
     packet.set(packetData, true);
     networkHandler.sendPacketToClient(clientID, packet, k_nSteamNetworkingSend_Reliable, 0);
 
-    // saveDeferred = true;
+    saveDeferred = true;
 }
 
 void Game::travelToPlanet(PlanetType planetType, ObjectReference newRocketObjectReference)
