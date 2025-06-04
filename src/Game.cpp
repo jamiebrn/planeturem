@@ -1,7 +1,6 @@
 #include "Game.hpp"
 
 // CONSIDER: Projectile serialisation seems to be overestimating velocity (lack of precision)
-// CONSIDER: More frequent / reliable saves (not dependent on host travel)
 
 // FIX: Space station use rocket while other player use glitch
 
@@ -10,8 +9,6 @@
 // FIX: Rocket in the ocean
 
 // FIX: Land placement multiplayer crash???
-
-// FIX: Weather inconsistency (gametime)
 
 // FIX: VSync disable not working in initial fullscreen
 // FIX: Viewport not resizing on window disable fullscreen
@@ -3188,6 +3185,8 @@ void Game::travelToPlanet(PlanetType planetType, ObjectReference newRocketObject
     lightingTickTime = LIGHTING_TICK_TIME;
 
     rocketEnteredReference = newRocketObjectReference;
+
+    weatherSystem = WeatherSystem(gameTime, planetSeed + locationState.getPlanetType());
     
     // Start rocket flying downwards
     RocketObject* rocketObject = getObjectFromLocation<RocketObject>(rocketEnteredReference, locationState);
