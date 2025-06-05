@@ -13,38 +13,24 @@ void NetworkPlayer::updateNetworkPlayer(float dt, Game& game)
     {
         return;
     }
+    
+    updateAnimation(dt);
+    
+    damageCooldownTimer = std::max(damageCooldownTimer - dt, 0.0f);
 
     switch (playerData.locationState.getGameState())
     {
         case GameState::OnPlanet:
-            updateOnPlanet(dt, game.getChunkManager(playerData.locationState.getPlanetType()));
+            updateMovement(dt, game.getChunkManager(playerData.locationState.getPlanetType()), false);
             break;
         case GameState::InStructure:
-            updateInRoom(dt, game.getStructureRoomPool(playerData.locationState.getPlanetType())
-                .getRoom(playerData.locationState.getInStructureID()));
+            updateMovementInRoom(dt, game.getStructureRoomPool(playerData.locationState.getPlanetType())
+                .getRoom(playerData.locationState.getInStructureID()), false);
             break;
         case GameState::InRoomDestination:
-            updateInRoom(dt, game.getRoomDestination(playerData.locationState.getRoomDestType()));
+            updateMovementInRoom(dt, game.getRoomDestination(playerData.locationState.getRoomDestType()), false);
             break;
     }
-}
-
-void NetworkPlayer::updateOnPlanet(float dt, ChunkManager& chunkManager)
-{
-    updateAnimation(dt);
-    updateMovement(dt, chunkManager, false);
-
-    playerData.position.x = collisionRect.x + collisionRect.width / 2.0f;
-    playerData.position.y = collisionRect.y + collisionRect.height / 2.0f;
-    position = playerData.position;
-
-    toolRotation += toolRotationVelocity * dt;
-}
-
-void NetworkPlayer::updateInRoom(float dt, const Room& room)
-{
-    updateAnimation(dt);
-    updateMovementInRoom(dt, room, false);
     
     playerData.position.x = collisionRect.x + collisionRect.width / 2.0f;
     playerData.position.y = collisionRect.y + collisionRect.height / 2.0f;

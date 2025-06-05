@@ -37,8 +37,6 @@ public:
     NetworkPlayer(pl::Vector2f position, int maxHealth = 0);
 
     void updateNetworkPlayer(float dt, Game& game);
-    void updateOnPlanet(float dt, ChunkManager& chunkManager);
-    void updateInRoom(float dt, const Room& room);
 
     void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const pl::Color& color) const override;
 
