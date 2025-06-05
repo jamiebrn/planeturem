@@ -36,7 +36,7 @@ public:
     virtual BossEntity* clone() const = 0;
 
     virtual void update(Game& game, ChunkManager& chunkManager, ProjectileManager& projectileManager, std::vector<Player*>& players, float dt, int worldSize) = 0;
-    virtual void updateNetwork(float dt, int worldSize) = 0;
+    virtual void updateNetwork(Player& player, float dt, int worldSize) = 0;
 
     virtual bool isAlive() = 0;
 

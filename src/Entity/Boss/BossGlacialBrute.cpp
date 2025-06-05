@@ -151,7 +151,7 @@ void BossGlacialBrute::update(Game& game, ChunkManager& chunkManager, Projectile
     updateCollision();
 }
 
-void BossGlacialBrute::updateNetwork(float dt, int worldSize)
+void BossGlacialBrute::updateNetwork(Player& player, float dt, int worldSize)
 {
     position += velocity * dt;
 

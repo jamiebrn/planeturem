@@ -57,9 +57,9 @@ void BossManager::update(Game& game, ProjectileManager& projectileManager, Chunk
         BossEntity* boss = iter->get();
         if (boss->isAlive() && boss->inPlayerRange(players, chunkManager.getWorldSize()))
         {
-            if (game.getNetworkHandler().isClient())
+            if (game.getNetworkHandler().isClient() && players.size() > 0)
             {
-                boss->updateNetwork(dt, chunkManager.getWorldSize());
+                boss->updateNetwork(*players[0], dt, chunkManager.getWorldSize());
                 iter++;
                 continue;
             }

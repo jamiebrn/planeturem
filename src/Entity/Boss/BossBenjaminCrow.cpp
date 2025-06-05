@@ -225,7 +225,7 @@ void BossBenjaminCrow::update(Game& game, ChunkManager& chunkManager, Projectile
     updateDashGhostEffects(dt);
 }
 
-void BossBenjaminCrow::updateNetwork(float dt, int worldSize)
+void BossBenjaminCrow::updateNetwork(Player& player, float dt, int worldSize)
 {
     if (behaviourState != BossBenjaminState::Killed)
     {    
@@ -241,6 +241,10 @@ void BossBenjaminCrow::updateNetwork(float dt, int worldSize)
     Helper::wrapPosition(position, worldSize);
 
     updateCollision();
+    if (player.isAlive())
+    {
+        testCollisionWithPlayer(player, worldSize);
+    }
 
     dashCooldownTimer -= dt;
 

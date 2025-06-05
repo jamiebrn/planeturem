@@ -208,7 +208,7 @@ void BossSandSerpent::update(Game& game, ChunkManager& chunkManager, ProjectileM
     updateCollision();
 }
 
-void BossSandSerpent::updateNetwork(float dt, int worldSize)
+void BossSandSerpent::updateNetwork(Player& player, float dt, int worldSize)
 {
     animations[behaviourState].update(dt);
     

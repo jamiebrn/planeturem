@@ -52,7 +52,7 @@ public:
     BossEntity* clone() const override;
 
     void update(Game& game, ChunkManager& chunkManager, ProjectileManager& projectileManager, std::vector<Player*>& players, float dt, int worldSize) override;
-    void updateNetwork(float dt, int worldSize) override;
+    void updateNetwork(Player& player, float dt, int worldSize) override;
 
     bool isAlive() override;
 
