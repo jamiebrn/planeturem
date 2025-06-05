@@ -1575,6 +1575,11 @@ EResult NetworkHandler::sendPacketToClients(const Packet& packet, int nSendFlags
 
 EResult NetworkHandler::sendPacketToClient(uint64_t steamID, const Packet& packet, int nSendFlags, int nRemoteChannel)
 {
+    if (!multiplayerGame)
+    {
+        return EResult::k_EResultAccessDenied;
+    }
+    
     if (!isLobbyHost)
     {
         return EResult::k_EResultAccessDenied;
@@ -1590,6 +1595,11 @@ EResult NetworkHandler::sendPacketToClient(uint64_t steamID, const Packet& packe
 
 EResult NetworkHandler::sendPacketToHost(const Packet& packet, int nSendFlags, int nRemoteChannel)
 {
+    if (!multiplayerGame)
+    {
+        return EResult::k_EResultAccessDenied;
+    }
+    
     if (isLobbyHost)
     {
         return EResult::k_EResultAccessDenied;
@@ -1605,6 +1615,11 @@ EResult NetworkHandler::sendPacketToHost(const Packet& packet, int nSendFlags, i
 
 EResult NetworkHandler::sendPacketToServer(const Packet& packet, int nSendFlags, int nRemoteChannel)
 {
+    if (!multiplayerGame)
+    {
+        return EResult::k_EResultAccessDenied;
+    }
+    
     EResult result = EResult::k_EResultOK;
 
     if (isLobbyHost)

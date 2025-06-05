@@ -51,7 +51,7 @@ bool ChatGUI::isActive()
 
 void ChatGUI::handleEvent(const SDL_Event& event, NetworkHandler& networkHandler)
 {
-    if (!active)
+    if (!active || !networkHandler.isMultiplayerGame())
     {
         return;
     }
@@ -138,7 +138,7 @@ void ChatGUI::sendMessageData(NetworkHandler& networkHandler, const PacketDataCh
     Packet packet;
     packet.set(chatMessagePacket);
 
-    if (networkHandler.getIsLobbyHost())
+    if (networkHandler.isLobbyHostOrSolo())
     {
         networkHandler.sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0);
 
@@ -152,11 +152,6 @@ void ChatGUI::sendMessageData(NetworkHandler& networkHandler, const PacketDataCh
 
 void ChatGUI::addChatMessage(NetworkHandler& networkHandler, const PacketDataChatMessage& chatMessagePacket, bool notify)
 {
-    if (!networkHandler.isMultiplayerGame())
-    {
-        return;
-    }
-
     ChatMessage chatMessage;
     chatMessage.userId = chatMessagePacket.userId;
 
@@ -183,7 +178,7 @@ void ChatGUI::addChatMessage(NetworkHandler& networkHandler, const PacketDataCha
     }
 }
 
-void ChatGUI::draw(pl::RenderTarget& window)
+void ChatGUI::draw(pl::RenderTarget& window, NetworkHandler& networkHandler)
 {
     if (menuAlpha <= 0.0f)
     {
@@ -193,8 +188,14 @@ void ChatGUI::draw(pl::RenderTarget& window)
     float intScale = ResolutionHandler::getResolutionIntegerScale();
 
     const int width = 600 * intScale;
-    const int height = 335 * intScale;
+    int height = 335 * intScale;
     const int padding = 30 * intScale;
+
+    // Skip drawing "enter message" prompt if not multiplayer
+    if (!networkHandler.isMultiplayerGame())
+    {
+        height -= 30 * intScale;
+    }
 
     const int messageCount = 10;
 
@@ -206,12 +207,19 @@ void ChatGUI::draw(pl::RenderTarget& window)
 
     pl::TextDrawData drawData;
     drawData.size = 20 * intScale;
-    drawData.position = pl::Vector2f(window.getWidth() - padding - width + 10 * intScale, window.getHeight() - padding - 30 * intScale);
-    drawData.color = pl::Color(200, 200, 200, 255 * menuAlpha);
-
-    drawData.text = messageBuffer.empty() ? "Enter a message" : messageBuffer;
-
-    TextDraw::drawText(window, drawData);
+    
+    if (networkHandler.isMultiplayerGame())
+    {
+        drawData.position = pl::Vector2f(window.getWidth() - padding - width + 10 * intScale, window.getHeight() - padding - 30 * intScale);
+        drawData.color = pl::Color(200, 200, 200, 255 * menuAlpha);
+        drawData.text = messageBuffer.empty() ? "Enter a message" : messageBuffer;
+        
+        TextDraw::drawText(window, drawData);
+    }
+    else
+    {
+        drawData.position = pl::Vector2f(window.getWidth() - padding - width + 10 * intScale, window.getHeight() - padding * intScale);
+    }
 
     for (int i = static_cast<int>(chatLog.size()) - 1; i >= std::max(static_cast<int>(chatLog.size()) - messageCount, 0); i--)
     {
