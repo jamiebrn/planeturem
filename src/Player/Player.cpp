@@ -1,8 +1,9 @@
 #include "Player/Player.hpp"
 #include "Player/Cursor.hpp"
 #include "Game.hpp"
+#include "GUI/ChatGUI.hpp"
 
-Player::Player(pl::Vector2f position, int maxHealth, pl::Color bodyColor, pl::Color skinColor)
+Player::Player(pl::Vector2f position, Game* game, int maxHealth, pl::Color bodyColor, pl::Color skinColor)
     : WorldObject(position)
 {
     collisionRect.width = 12.0f;
@@ -50,6 +51,8 @@ Player::Player(pl::Vector2f position, int maxHealth, pl::Color bodyColor, pl::Co
 
     inRocket = false;
     lastUsedPlanetRocketType = -1;
+
+    this->game = game;
 }
 
 void Player::update(float dt, pl::Vector2f mouseWorldPos, ChunkManager& chunkManager, ProjectileManager& projectileManager, Game& game)
@@ -305,7 +308,8 @@ void Player::updateTimers(float dt, Game& game)
         respawnTimer -= dt;
         if (respawnTimer <= 0)
         {
-            respawn(game);
+            game.onRespawn();
+            // respawn(game);
         }
 
         return;
@@ -1132,6 +1136,14 @@ bool Player::takeDamage(float rawAmount)
     if (!isAlive())
     {
         respawnTimer = MAX_RESPAWN_TIMER;
+
+        // Create chat message if required
+        if (game)
+        {
+            PacketDataChatMessage chatMessage;
+            chatMessage.message = game->getPlayerName() + " has been killed";
+            game->getChatGUI().sendMessageData(game->getNetworkHandler(), chatMessage);
+        }
     }
 
     return true;

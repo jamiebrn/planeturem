@@ -2,6 +2,8 @@
 
 // CONSIDER: Projectile serialisation seems to be overestimating velocity (lack of precision)
 
+// CONSIDER: Custom death chat messages depending on source of death
+
 // FIX: Space station use rocket while other player use glitch
 
 // FIX: Glacial brute pathfinding at world edges???
@@ -108,6 +110,8 @@ bool Game::initialise()
 
     // Initialise values
     gameTime = 0.0f;
+    screenFadeProgress = 0.0f;
+    awaitingRespawn = false;
     applicationTime = 0.0f;
     //mainMenuState = MainMenuState::Main;
     gameState = GameState::MainMenu;
@@ -129,7 +133,7 @@ bool Game::initialise()
     musicGapTimer = 0.0f;
     musicGap = 0.0f;
 
-    player = Player(pl::Vector2f(0, 0));
+    player = Player(pl::Vector2f(0, 0), this);
     inventory = InventoryData(32);
     armourInventory = InventoryData(3);
 
@@ -224,7 +228,7 @@ void Game::run()
         if (isStateTransitioning())
         {
             updateStateTransition(dt);
-            drawStateTransition();
+            drawScreenFade(1.0f - transitionGameStateTimer / TRANSITION_STATE_FADE_TIME);
         }
 
         pl::TextDrawData textDrawData;
@@ -1124,6 +1128,11 @@ void Game::updateOnPlanet(float dt)
         }
     }
 
+    if (awaitingRespawn && floatTween.isTweenFinished(screenFadeProgressTweenID))
+    {
+        respawnPlayer();
+    }
+
     if (!isStateTransitioning() && !player.isInRocket() && player.isAlive())
     {
         testEnterStructure();
@@ -1344,6 +1353,12 @@ void Game::drawLighting(float dt, std::vector<WorldObject*>& worldObjects)
         pl::Rect<float>(0, worldTexture.getHeight(), worldTexture.getWidth(), -worldTexture.getHeight()));
 
     window.draw(worldRect, *Shaders::getShader(ShaderType::Default), &worldTexture.getTexture(), pl::BlendMode::Alpha);
+
+    // Draw respawn transition if required
+    if (awaitingRespawn)
+    {
+        drawScreenFade(screenFadeProgress);
+    }
 }
 
 void Game::drawLandmarks()
@@ -1758,6 +1773,23 @@ ObjectReference Game::getSpawnLocation(std::optional<PlanetType> planetType)
     planetSpawnLocations[planetType.value()] = spawnLocation;
 
     return spawnLocation;
+}
+
+void Game::onRespawn()
+{
+    static constexpr float SCREEN_FADE_TIME = 0.3f;
+    screenFadeProgressTweenID = floatTween.startTween(&screenFadeProgress, screenFadeProgress, 1.0f, SCREEN_FADE_TIME, TweenTransition::Quart, TweenEasing::EaseOut);
+    floatTween.addTweenToQueue(screenFadeProgressTweenID, &screenFadeProgress, 1.0f, 0.0f, SCREEN_FADE_TIME, TweenTransition::Quart, TweenEasing::EaseIn);
+
+    awaitingRespawn = true;
+}
+
+void Game::respawnPlayer()
+{
+    player.respawn(*this);
+    camera.instantUpdate(player.getPosition());
+
+    awaitingRespawn = false;
 }
 
 // NPC
@@ -3352,12 +3384,12 @@ void Game::updateStateTransition(float dt)
     }
 }
 
-void Game::drawStateTransition()
+void Game::drawScreenFade(float progress)
 {
-    float alpha = 1.0f - transitionGameStateTimer / TRANSITION_STATE_FADE_TIME;
+    // float alpha = 1.0f - fadeCurrentDuration / maxDuration;
     
     pl::VertexArray fadeRect;
-    fadeRect.addQuad(pl::Rect<float>(0, 0, window.getWidth(), window.getHeight()), pl::Color(0, 0, 0, 255 * alpha), pl::Rect<float>());
+    fadeRect.addQuad(pl::Rect<float>(0, 0, window.getWidth(), window.getHeight()), pl::Color(0, 0, 0, 255 * progress), pl::Rect<float>());
 
     window.draw(fadeRect, *Shaders::getShader(ShaderType::DefaultNoTexture), nullptr, pl::BlendMode::Alpha);
 }
@@ -3444,7 +3476,7 @@ void Game::startNewGame(int seed)
 {
     networkHandler.reset(this);
 
-    player = Player(pl::Vector2f(0, 0));
+    player = Player(pl::Vector2f(0, 0), this);
     player.setBodyColor(currentSaveFileSummary.playerData.bodyColor);
     player.setSkinColor(currentSaveFileSummary.playerData.skinColor);
 
@@ -3472,13 +3504,13 @@ void Game::startNewGame(int seed)
     dayCycleManager.setCurrentDay(1);
 
     gameTime = 0.0f;
+    screenFadeProgress = 0.0f;
+    awaitingRespawn = false;
 
     getBossManager().clearBosses();
     getProjectileManager().clear();
     // enemyProjectileManager.clear();
     getLandmarkManager().clear();
-
-    gameTime = 0.0f;
 
     saveDeferred = false;
 
@@ -3587,7 +3619,8 @@ bool Game::loadGame(const SaveFileSummary& saveFileSummary)
     worldDatas.clear();
     roomDestDatas.clear();
 
-    player = Player(playerGameSave.playerData.position, playerGameSave.playerData.maxHealth, playerGameSave.playerData.bodyColor, playerGameSave.playerData.skinColor);
+    player = Player(playerGameSave.playerData.position, this,
+        playerGameSave.playerData.maxHealth, playerGameSave.playerData.bodyColor, playerGameSave.playerData.skinColor);
 
     inventory = playerGameSave.playerData.inventory;
     armourInventory = playerGameSave.playerData.armourInventory;
@@ -3707,6 +3740,8 @@ bool Game::loadGame(const SaveFileSummary& saveFileSummary)
     saveDeferred = false;
 
     gameTime = 0.0f;
+    screenFadeProgress = 0.0f;
+    awaitingRespawn = false;
 
     // Fade out previous music
     Sounds::stopMusic(0.3f);
@@ -3969,7 +4004,7 @@ void Game::quitWorld()
 
 void Game::joinWorld(const PacketDataJoinInfo& joinInfo)
 {
-    player = Player(joinInfo.playerData.position, joinInfo.playerData.maxHealth, joinInfo.playerData.bodyColor, joinInfo.playerData.skinColor);
+    player = Player(joinInfo.playerData.position, this, joinInfo.playerData.maxHealth, joinInfo.playerData.bodyColor, joinInfo.playerData.skinColor);
     inventory = joinInfo.playerData.inventory;
     armourInventory = joinInfo.playerData.armourInventory;
 
@@ -4035,6 +4070,8 @@ void Game::joinWorld(const PacketDataJoinInfo& joinInfo)
     dayCycleManager.setCurrentDay(joinInfo.day);
 
     gameTime = joinInfo.gameTime;
+    screenFadeProgress = 0.0f;
+    awaitingRespawn = false;
 
     lightingTickTime = LIGHTING_TICK_TIME;
 

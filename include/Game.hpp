@@ -146,6 +146,9 @@ public:
     void setSpawnLocation(PlanetType planetType, ObjectReference spawnLocation);
     ObjectReference getSpawnLocation(std::optional<PlanetType> planetType = std::nullopt);
 
+    void onRespawn();
+    void respawnPlayer();
+
     // NPC
     void interactWithNPC(NPCObject& npc);
 
@@ -228,6 +231,8 @@ public:
 
     inline Player& getPlayer() {return player;}
     inline InventoryData& getInventory() {return inventory;}
+
+    inline const std::string& getPlayerName() {return currentSaveFileSummary.playerName;}
 
     inline float getGameTime() {return gameTime;}
     inline void setGameTime(float gameTime) {this->gameTime = gameTime;}
@@ -316,13 +321,14 @@ private:
     // -- Game State / Transition -- //
 
     void updateStateTransition(float dt);
-    void drawStateTransition();
     bool isStateTransitioning();
     void startChangeStateTransition(GameState newState);
     void changeState(GameState newState);
     // Only use to prevent game state changing default behaviour
     void overrideState(GameState newState);
     
+    void drawScreenFade(float progress);
+
 
     // -- Save / load -- //
 
@@ -426,6 +432,11 @@ private:
     GameState destinationGameState;
     static constexpr float TRANSITION_STATE_FADE_TIME = 0.3f;
     float transitionGameStateTimer;
+
+    float screenFadeProgress = 0.0f;
+    TweenID screenFadeProgressTweenID;
+
+    bool awaitingRespawn;
 
     WorldMenuState worldMenuState;
 

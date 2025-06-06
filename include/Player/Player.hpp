@@ -83,7 +83,7 @@ class Player : public WorldObject
 {
 public:
     Player() = default;
-    Player(pl::Vector2f position, int maxHealth = 0, pl::Color bodyColor = pl::Color(158, 69, 57, 255), pl::Color skinColor = pl::Color(230, 144, 78, 255));
+    Player(pl::Vector2f position, Game* game, int maxHealth = 0, pl::Color bodyColor = pl::Color(158, 69, 57, 255), pl::Color skinColor = pl::Color(230, 144, 78, 255));
 
     void update(float dt, pl::Vector2f mouseWorldPos, ChunkManager& chunkManager, ProjectileManager& projectileManager, Game& game);
     bool testWorldWrap(int worldSize, pl::Vector2f& wrapPositionDelta);
@@ -144,6 +144,8 @@ public:
     void setPosition(pl::Vector2f worldPos, int worldSize);
 
     const CollisionRect& getCollisionRect();
+    
+    void respawn(Game& game);
 
     bool isAlive() const;
     inline int getMaxHealth() const {return maxHealth;}
@@ -166,8 +168,6 @@ protected:
 
 private:
     bool takeDamage(float rawAmount);
-
-    void respawn(Game& game);
 
     void updateFishingRodCatch(float dt);
     void castFishingRod();
@@ -247,6 +247,8 @@ protected:
     pl::Vector2f rocketExitPos;
 
     ObjectType lastUsedPlanetRocketType;
+
+    Game* game = nullptr;
 
     static constexpr std::array<float, 5> runningShadowScale = {1.0f, 0.8f, 0.7f, 0.8f, 0.9f};
     

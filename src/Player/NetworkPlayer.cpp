@@ -2,7 +2,7 @@
 #include "Game.hpp"
 
 NetworkPlayer::NetworkPlayer(pl::Vector2f position, int maxHealth)
-    : Player(position, maxHealth)
+    : Player(position, nullptr, maxHealth)
 {
 
 }
