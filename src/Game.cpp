@@ -1758,25 +1758,50 @@ ObjectReference Game::getSpawnLocation(std::optional<PlanetType> planetType)
 
     assert(worldDatas.contains(planetType.value()));
 
+    ObjectReference spawnLocation;
+
+    // Get spawn location from saved
     if (planetSpawnLocations.contains(planetType.value()))
     {
-        // TODO: Find closest open tile from spawn location, will require complete pathfinding information on client
         return planetSpawnLocations.at(planetType.value());
     }
+    else
+    {
+        // Find spawn location
+        spawnLocation.chunk = getChunkManager(planetType).findValidSpawnChunk(2);
+        spawnLocation.tile.x = CHUNK_TILE_SIZE / 2;
+        spawnLocation.tile.y = CHUNK_TILE_SIZE / 2;
+    
+        planetSpawnLocations[planetType.value()] = spawnLocation;
+    }
 
-    // Find spawn location
-    ObjectReference spawnLocation;
-    spawnLocation.chunk = getChunkManager(planetType).findValidSpawnChunk(2);
-    spawnLocation.tile.x = CHUNK_TILE_SIZE / 2;
-    spawnLocation.tile.y = CHUNK_TILE_SIZE / 2;
+    // Find open tile
+    pl::Vector2<uint32_t> spawnWorldTile = spawnLocation.getWorldTile();
+    std::optional<PathfindGridCoordinate> openTile = getChunkManager(planetType).getPathfindingEngine().findClosestOpenTile(spawnWorldTile.x, spawnWorldTile.y, 30, false);
+    if (openTile.has_value())
+    {
+        // Found open tile, return
+        return ObjectReference::createChunkTileFromWorldTile(pl::Vector2<uint32_t>(openTile->x, openTile->y));
+    }
 
-    planetSpawnLocations[planetType.value()] = spawnLocation;
-
+    // Could not find tile, return default spawn
     return spawnLocation;
 }
 
 void Game::onRespawn()
 {
+    // Create camera copy and update to spawn location
+    Camera cameraCopy = camera;
+    cameraCopy.instantUpdate(static_cast<pl::Vector2f>(getSpawnLocation(locationState.getPlanetType()).getWorldTile()) * TILE_SIZE_PIXELS_UNSCALED);
+
+    // Update / request chunks for complete pathfinding information
+    std::vector<ChunkPosition> chunksToRequest;
+    getChunkManager().updateChunks(*this, gameTime, {cameraCopy.getChunkViewRange()}, networkHandler.isClient(), &chunksToRequest);
+    if (networkHandler.isClient())
+    {
+        networkHandler.requestChunksFromHost(locationState.getPlanetType(), chunksToRequest, true);
+    }
+
     static constexpr float SCREEN_FADE_TIME = 0.3f;
     screenFadeProgressTweenID = floatTween.startTween(&screenFadeProgress, screenFadeProgress, 1.0f, SCREEN_FADE_TIME, TweenTransition::Quart, TweenEasing::EaseOut);
     floatTween.addTweenToQueue(screenFadeProgressTweenID, &screenFadeProgress, 1.0f, 0.0f, SCREEN_FADE_TIME, TweenTransition::Quart, TweenEasing::EaseIn);

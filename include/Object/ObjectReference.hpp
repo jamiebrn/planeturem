@@ -32,6 +32,16 @@ struct ObjectReference
     {
         return pl::Vector2<uint32_t>(chunk.x * CHUNK_TILE_SIZE + tile.x, chunk.y * CHUNK_TILE_SIZE + tile.y);
     }
+
+    inline static ObjectReference createChunkTileFromWorldTile(pl::Vector2<uint32_t> worldTile)
+    {
+        ObjectReference objectReference;
+        objectReference.chunk.x = std::floor(worldTile.x / CHUNK_TILE_SIZE);
+        objectReference.chunk.y = std::floor(worldTile.y / CHUNK_TILE_SIZE);
+        objectReference.tile.x = worldTile.x % static_cast<int>(CHUNK_TILE_SIZE);
+        objectReference.tile.y = worldTile.y % static_cast<int>(CHUNK_TILE_SIZE);
+        return objectReference;
+    }
 };
 
 template<>
