@@ -1763,7 +1763,7 @@ ObjectReference Game::getSpawnLocation(std::optional<PlanetType> planetType)
     // Get spawn location from saved
     if (planetSpawnLocations.contains(planetType.value()))
     {
-        return planetSpawnLocations.at(planetType.value());
+        spawnLocation = planetSpawnLocations.at(planetType.value());
     }
     else
     {
