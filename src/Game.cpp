@@ -4,6 +4,8 @@
 
 // CONSIDER: Custom death chat messages depending on source of death
 
+// FIX: URGENT Projectiles not working in multiplayer as client??? Not displaying but logically working, and being hit by own projectile for 0 damage???
+
 // FIX: Space station use rocket while other player use glitch
 
 // FIX: Glacial brute pathfinding at world edges???

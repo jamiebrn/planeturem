@@ -12,15 +12,25 @@ void HealthGUI::drawHealth(pl::RenderTarget& window, pl::SpriteBatch& spriteBatc
     int maxHearts = std::ceil(static_cast<float>(player.getMaxHealth()) / HEALTH_PER_HEART);
     int fullHearts = std::ceil(player.getHealth() / HEALTH_PER_HEART);
 
+    int heartXPos = 0;
+
     // Draw hearts
     for (int i = 1; i <= maxHearts; i++)
     {
-        int xPos = HEART_X_PADDING + (HEART_SIZE * 3) * i + HEART_SPACING * (i - 1);
+        if ((maxHearts - i + 1) % HEARTS_PER_ROW == 0)
+        {
+            heartXPos = 0;
+        }
+
+        heartXPos++;
+
+        int xPos = HEART_X_PADDING + (HEART_SIZE * 3) * heartXPos + HEART_X_SPACING * (heartXPos - 1);
+        int yPos = HEART_Y_PADDING + std::floor((maxHearts - i) / HEARTS_PER_ROW) * HEART_Y_SPACING;
 
         pl::DrawData drawData;
         drawData.texture = TextureManager::getTexture(TextureType::UI);
         drawData.shader = Shaders::getShader(ShaderType::Default);
-        drawData.position = pl::Vector2f(resolution.x - xPos  * intScale, HEART_Y_PADDING  * intScale);
+        drawData.position = pl::Vector2f(resolution.x - xPos  * intScale, yPos * intScale);
         drawData.scale = pl::Vector2f(3, 3) * intScale;
         drawData.textureRect = heartEmptyRect;
         drawData.vertexPixelClamp = false;
@@ -67,7 +77,7 @@ void HealthGUI::drawHealth(pl::RenderTarget& window, pl::SpriteBatch& spriteBatc
     // Draw text showing health
     pl::TextDrawData textDrawData;
     textDrawData.text = std::to_string(static_cast<int>(player.getHealth())) + " / " + std::to_string(player.getMaxHealth());
-    textDrawData.position = pl::Vector2f(resolution.x, (HEART_Y_PADDING * 1.5f + HEART_SIZE * 3) * intScale);
+    textDrawData.position = pl::Vector2f(resolution.x, (HEART_Y_PADDING + (std::floor(maxHearts / HEARTS_PER_ROW) + 1) * HEART_Y_SPACING) * intScale);
     textDrawData.size = 24 * intScale;
     textDrawData.outlineColor = pl::Color(46, 34, 47);
     textDrawData.outlineThickness = 2 * intScale;
