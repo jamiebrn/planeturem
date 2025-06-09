@@ -26,7 +26,7 @@
 
 class ChunkManager;
 
-enum class HitLayer
+enum class HitLayer : uint8_t
 {
     Player,
     Entity
@@ -35,7 +35,7 @@ enum class HitLayer
 class Projectile
 {
 public:
-    Projectile() = default;
+    Projectile();
     // Angle in DEGREES
     Projectile(pl::Vector2f position, float angle, ProjectileType type, float damageMult, float shootPower, HitLayer hitLayer);
     Projectile(pl::Vector2f position, pl::Vector2f velocity, ProjectileType type, float damageMult, HitLayer hitLayer);
@@ -87,7 +87,7 @@ public:
         positionVelocityData |= static_cast<uint64_t>(positionDataLocal & 0x3FFFFF) << 16;
         positionVelocityData |= static_cast<uint64_t>(velocityData & 0x1FFFFFF) << 38;
 
-        ar(projectileTypeCompact, positionVelocityData);
+        ar(projectileTypeCompact, hitLayer, positionVelocityData);
     }
 
     template <class Archive>
@@ -97,7 +97,7 @@ public:
 
         uint64_t positionVelocityData;
         
-        ar(projectileTypeCompact, positionVelocityData);
+        ar(projectileTypeCompact, hitLayer, positionVelocityData);
         
         projectileType = projectileTypeCompact;
 

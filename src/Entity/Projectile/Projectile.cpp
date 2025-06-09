@@ -1,6 +1,12 @@
 #include "Entity/Projectile/Projectile.hpp"
 #include "World/ChunkManager.hpp"
 
+Projectile::Projectile()
+{
+    alive = true;
+    timeAlive = 0.0f;
+}
+
 Projectile::Projectile(pl::Vector2f position, float angle, ProjectileType type, float damageMult, float shootPower, HitLayer hitLayer)
 {
     const ProjectileData& projectileData = ToolDataLoader::getProjectileData(type);
