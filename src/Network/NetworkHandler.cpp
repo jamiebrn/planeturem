@@ -532,34 +532,29 @@ void NetworkHandler::updateNetworkPlayers(float dt, const LocationState& locatio
 {
     for (auto& networkPlayerPair : networkPlayers)
     {
-        if (isClient())
+        if (networkPlayerPair.second.getPlayerData().locationState != locationState)
         {
-            if (networkPlayerPair.second.getPlayerData().locationState != locationState)
-            {
-                continue;
-            }
+            continue;
         }
+
         networkPlayerPair.second.updateNetworkPlayer(dt, *game);
     }
 }
 
 void NetworkHandler::receiveMessages(ChatGUI& chatGUI)
 {
-    static const int MAX_MESSAGES = 10;
+    static constexpr int MAX_MESSAGES = 10;
 
-    int totalMessageCount = 0;
+    SteamNetworkingMessage_t* messages[MAX_MESSAGES];
 
     while (true)
     {
-        SteamNetworkingMessage_t* messages[MAX_MESSAGES];
         int messageCount = SteamNetworkingMessages()->ReceiveMessagesOnChannel(0, messages, MAX_MESSAGES);
 
         if (messageCount <= 0)
         {
             break;
         }
-
-        totalMessageCount += messageCount;
     
         for (int i = 0; i < messageCount; i++)
         {
@@ -639,7 +634,7 @@ void NetworkHandler::processMessage(const SteamNetworkingMessage_t& message, con
             }
 
             // If host, save data and redistribute
-            if (getIsLobbyHost())
+            if (isLobbyHost)
             {
                 networkPlayerDatasSaved[packetData.userID] = packetData.playerData;
                 sendPlayerDataToClients(packetData);

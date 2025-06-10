@@ -17,6 +17,8 @@
 
 // FIX: Fishing rod missing sample points on some upward casts
 
+// TODO: Optimise entity networking
+
 // TODO: HSV sliders over RGB sliders for customisation, with colour gradient slider background
 
 // PRIORITY: MEDIUM (MULTIPLAYER)

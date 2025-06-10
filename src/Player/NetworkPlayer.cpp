@@ -20,8 +20,11 @@ void NetworkPlayer::updateNetworkPlayer(float dt, Game& game)
 
     // Calculate velocity using interpolated position
     pl::Vector2f velocity = (positionNext - position) / SERVER_UPDATE_TICK;
+    pl::Vector2f previousDirection = direction;
     direction = velocity.normalise();
     speed = velocity.getLength();
+
+    printf("positionNext: %f, %f      position: %f, %f\n", positionNext.x, positionNext.y, position.x, position.y);
 
     switch (playerData.locationState.getGameState())
     {
@@ -37,9 +40,10 @@ void NetworkPlayer::updateNetworkPlayer(float dt, Game& game)
             break;
     }
     
-    playerData.position.x = collisionRect.x + collisionRect.width / 2.0f;
-    playerData.position.y = collisionRect.y + collisionRect.height / 2.0f;
-    position = playerData.position;
+    position.x = collisionRect.x + collisionRect.width / 2.0f;
+    position.y = collisionRect.y + collisionRect.height / 2.0f;
+
+    direction = previousDirection;
     
     float toolRotationVelocity = (toolRotationNext - toolRotation) / SERVER_UPDATE_TICK;
     toolRotation += toolRotationVelocity * dt;
@@ -87,8 +91,8 @@ void NetworkPlayer::setNetworkPlayerCharacterInfo(const PacketDataPlayerCharacte
 
     health = info.health;
 
-    collisionRect.x = playerData.position.x - collisionRect.width / 2.0f;
-    collisionRect.y = playerData.position.y - collisionRect.height / 2.0f;
+    collisionRect.x = position.x - collisionRect.width / 2.0f;
+    collisionRect.y = position.y - collisionRect.height / 2.0f;
 
     if (direction == pl::Vector2f(0, 0))
     {
@@ -113,7 +117,7 @@ void NetworkPlayer::setNetworkPlayerCharacterInfo(const PacketDataPlayerCharacte
     equippedTool = info.toolType;
     toolRotation = info.toolRotation;
     usingTool = info.usingTool;
-    // toolRotation = info.toolRotationPrevious;
+    toolRotation = toolRotationNext;
     toolRotationNext = info.toolRotation;
     fishingRodCasted = info.fishingRodCasted;
     fishBitingLine = info.fishBitingLine;
