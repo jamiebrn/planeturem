@@ -88,6 +88,16 @@ void NetworkPlayer::setNetworkPlayerCharacterInfo(const PacketDataPlayerCharacte
     positionNext = info.position;
     direction = info.direction;
 
+    // Prevent position interpolation
+    if (skipPositionInterpolation || info.inRocket != inRocket)
+    {
+        position = positionNext;
+        skipPositionInterpolation = false;
+    }
+    
+    collisionRect.x = position.x - collisionRect.width / 2.0f;
+    collisionRect.y = position.y - collisionRect.height / 2.0f;
+
     health = info.health;
 
     if (direction == pl::Vector2f(0, 0))
@@ -117,16 +127,6 @@ void NetworkPlayer::setNetworkPlayerCharacterInfo(const PacketDataPlayerCharacte
     toolRotationNext = info.toolRotation;
     fishingRodCasted = info.fishingRodCasted;
     fishBitingLine = info.fishBitingLine;
-
-    // Prevent position interpolation
-    if (skipPositionInterpolation)
-    {
-        position = positionNext;
-        skipPositionInterpolation = false;
-    }
-    
-    collisionRect.x = position.x - collisionRect.width / 2.0f;
-    collisionRect.y = position.y - collisionRect.height / 2.0f;
     
     if (fishingRodCasted)
     {
