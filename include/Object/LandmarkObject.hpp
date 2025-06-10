@@ -1,6 +1,14 @@
 #pragma once
 
-#include <SFML/Graphics.hpp>
+#include <vector>
+
+#include <Graphics/VertexArray.hpp>
+#include <Graphics/SpriteBatch.hpp>
+#include <Graphics/Color.hpp>
+#include <Graphics/RenderTarget.hpp>
+#include <Graphics/Framebuffer.hpp>
+#include <Vector.hpp>
+#include <Rect.hpp>
 
 #include "Core/Shaders.hpp"
 
@@ -16,26 +24,26 @@ class Game;
 class LandmarkObject : public BuildableObject
 {
 public:
-    LandmarkObject(sf::Vector2f position, ObjectType objectType, Game& game, bool placedByPlayer);
+    LandmarkObject(pl::Vector2f position, ObjectType objectType, PlanetType planetType, Game& game, const BuildableObjectCreateParameters& parameters);
 
     BuildableObject* clone() override;
 
-    virtual void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
-        const sf::Color& color) const override;
+    virtual void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
+        const pl::Color& color) const override;
     
-    bool damage(int amount, Game& game, ChunkManager& chunkManager, ParticleSystem& particleSystem, bool giveItems = true) override;
+    bool damage(int amount, Game& game, ChunkManager& chunkManager, ParticleSystem* particleSystem, bool giveItems = true, bool createHitMarkers = true) override;
 
-    virtual void interact(Game& game) override;
+    virtual void interact(Game& game, bool isClient) override;
     virtual bool isInteractable() const override;
 
-    void setLandmarkColour(const sf::Color& colourA, const sf::Color& colourB);
-    const sf::Color& getColourA() const;
-    const sf::Color& getColourB() const;
+    void setLandmarkColour(const pl::Color& colourA, const pl::Color& colourB);
+    const pl::Color& getColorA() const;
+    const pl::Color& getColorB() const;
 
     virtual BuildableObjectPOD getPOD() const override;
     virtual void loadFromPOD(const BuildableObjectPOD& pod) override;
 
 private:
-    sf::Color colourA, colourB;
+    pl::Color colorA, colorB;
 
 };

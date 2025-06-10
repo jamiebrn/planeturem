@@ -1,6 +1,9 @@
 #pragma once
 
-#include <SFML/Graphics.hpp>
+
+
+#include <Vector.hpp>
+#include <Rect.hpp>
 
 #include "Core/Helper.hpp"
 
@@ -13,7 +16,7 @@ public:
 
     void update(Entity& entity, ChunkManager& chunkManager, Game& game, float dt) override;
 
-    virtual void onHit(Entity& entity, Game& game, sf::Vector2f hitSource) override;
+    virtual void onHit(Entity& entity, Game& game, pl::Vector2f hitSource) override;
 
 private:
     static constexpr float VELOCITY_MULT_LERP_WEIGHT = 1.9f;

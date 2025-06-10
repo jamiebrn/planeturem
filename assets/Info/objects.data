@@ -180,6 +180,22 @@
         "sell-value": 1
     },
     {
+        "name": "Bed",
+        "health": 5,
+        "textures": [[176, 208]],
+        "texture-width": 16,
+        "texture-height": 32,
+        "texture-x-origin": 0.5,
+        "texture-y-origin": 0.25,
+        "size-y": 2,
+        "has-collision": true,
+        "set-spawn-point": true,
+        "item-drops": {
+            "Bed": [1, 1, 1]
+        },
+        "sell-value": 1
+    },
+    {
         "name": "Chest",
         "health": 10,
         "textures": [[112, 14], [128, 14], [144, 14], [160, 14]],
@@ -321,7 +337,7 @@
         "has-collision": true,
         "light-absorption": 0.3,
         "rocket-info": {
-            "texture": [48, 343, 16, 41],
+            "texture": [48, 343, 32, 41],
             "texture-origin": [0.5, 1],
             "launch-position": [16, 14],
             "available-destinations": ["Earthlike", "Frozen"],
@@ -329,6 +345,30 @@
         },
         "item-drops": {
             "Rocket Launch Pad": [1, 1, 1.0]
+        },
+        "sell-value": 10
+    },
+    {
+        "name": "Metal Rocket",
+        "health": 10,
+        "textures": [[384, 320]],
+        "texture-width": 32,
+        "texture-height": 32,
+        "texture-x-origin": 0.25,
+        "texture-y-origin": 0.25,
+        "size-x": 2,
+        "size-y": 2,
+        "has-collision": true,
+        "light-absorption": 0.3,
+        "rocket-info": {
+            "texture": [32, 343, 16, 41],
+            "texture-origin": [0.5, 1],
+            "launch-position": [16, 14],
+            "available-destinations": ["Earthlike", "Frozen"],
+            "available-room-destinations": ["SpaceStation"]
+        },
+        "item-drops": {
+            "Metal Rocket": [1, 1, 1.0]
         },
         "sell-value": 10
     },
@@ -349,6 +389,20 @@
             "Wooden Clock": [1, 1, 1]
         },
         "sell-value": 1
+    },
+    {
+        "name": "Landmark",
+        "health": 8,
+        "textures": [[128, 92], [144, 92], [160, 92], [176, 92], [192, 92], [208, 92]],
+        "texture-frame-delay": 0.1,
+        "texture-width": 16,
+        "texture-height": 20,
+        "texture-x-origin": 0.5,
+        "texture-y-origin": 1,
+        "is-landmark": true,
+        "item-drops": {
+            "Landmark": [1, 1, 1]
+        }
     },
     {
         "name": "Icicle",
@@ -469,20 +523,6 @@
         "sell-value": 20
     },
     {
-        "name": "Landmark",
-        "health": 8,
-        "textures": [[128, 92], [144, 92], [160, 92], [176, 92], [192, 92], [208, 92]],
-        "texture-frame-delay": 0.1,
-        "texture-width": 16,
-        "texture-height": 20,
-        "texture-x-origin": 0.5,
-        "texture-y-origin": 1,
-        "is-landmark": true,
-        "item-drops": {
-            "Landmark": [1, 1, 1]
-        }
-    },
-    {
         "name": "Glacial Brute Statue",
         "health": 20,
         "textures": [[315, 326]],
@@ -548,6 +588,23 @@
             "buy-prices": {"Snowball": 1.5, "Stone": 4},
             "sell-prices": {"Slush Ice": 0},
             "portrait-texture-offset": [32, 64]
+        }
+    },
+    {
+        "name": "ElderMonkey",
+        "health": 10,
+        "textures": [[112, 464], [128, 464], [144, 464], [160, 464], [176, 464], [192, 464]],
+        "texture-frame-delay": 0.1,
+        "texture-width": 16,
+        "texture-height": 16,
+        "texture-x-origin": 0.5,
+        "texture-y-origin": 1.0,
+        "npc-data": {
+            "npc-name": "Delirious Elder",
+            "behaviour": "shop",
+            "dialogue": ["Hmm?", "I've failed too many times...", "Find the worm and bestow upon it a blade! My legend must remain!"],
+            "shop-items": [["Wooden Pickaxe", 1]],
+            "portrait-texture-offset": [32, 112]
         }
     },
     {

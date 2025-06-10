@@ -12,68 +12,85 @@ void MainMenuGUI::initialise()
     deferHoverRectReset = false;
 
     // static const std::string backgroundWorldSeed = "Planeturem";
-    backgroundChunkManager.setSeed(rand());
-    backgroundChunkManager.setPlanetType(0);
+    menuWorldData.chunkManager.setSeed(rand());
+    menuWorldData.chunkManager.setPlanetType(0);
 
-    int worldSize = backgroundChunkManager.getWorldSize();
-    ChunkPosition worldViewChunk = backgroundChunkManager.findValidSpawnChunk(2);
+    int worldSize = menuWorldData.chunkManager.getWorldSize();
+    ChunkPosition worldViewChunk = menuWorldData.chunkManager.findValidSpawnChunk(2);
     worldViewPosition.x = worldViewChunk.x * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
     worldViewPosition.y = worldViewChunk.y * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
 
-    backgroundCamera.instantUpdate(worldViewPosition);
+    menuCamera.instantUpdate(worldViewPosition);
 }
 
 void MainMenuGUI::initialisePauseMenu()
 {
     pauseMenuState = PauseMenuState::Main;
+    // showPauseMenuWishlist = false;
     resetHoverRect();
 }
 
-void MainMenuGUI::update(float dt, sf::Vector2f mouseScreenPos, Game& game, ProjectileManager& projectileManager)
+void MainMenuGUI::update(float dt, pl::Vector2f mouseScreenPos, Game& game)
 {
     // Update background world / chunk manager
     worldViewPosition.x += 20.0f * dt;
     worldViewPosition.y += 30.0f * dt;
 
-    backgroundCamera.update(worldViewPosition, sf::Vector2f(0, 0), dt);
+    menuCamera.update(worldViewPosition, pl::Vector2f(0, 0), dt);
 
-    backgroundChunkManager.updateChunks(game, backgroundCamera);
-    backgroundChunkManager.updateChunksObjects(game, dt);
-    backgroundChunkManager.updateChunksEntities(dt, projectileManager, game);
+    int worldPixelSize = menuWorldData.chunkManager.getWorldSize() * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
+
+    pl::Vector2f positionBeforeWrap = worldViewPosition;
+    worldViewPosition.x = fmod(fmod(worldViewPosition.x, worldPixelSize) + worldPixelSize, worldPixelSize);
+    worldViewPosition.y = fmod(fmod(worldViewPosition.y, worldPixelSize) + worldPixelSize, worldPixelSize);
+
+    if (worldViewPosition != positionBeforeWrap)
+    {
+        menuCamera.handleWorldWrap(worldViewPosition - positionBeforeWrap);
+    }
+
+    menuWorldData.chunkManager.updateChunks(game, 1.0f, {menuCamera.getChunkViewRange()});
+    menuWorldData.chunkManager.updateChunksObjects(game, dt, 0.0f);
+    menuWorldData.chunkManager.updateChunksEntities(dt, menuWorldData.projectileManager, game, false);
 }
 
-std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, float dt, float gameTime)
+std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, float dt, float applicationTime)
 {
     float intScale = ResolutionHandler::getResolutionIntegerScale();
-    sf::Vector2f resolution = static_cast<sf::Vector2f>(ResolutionHandler::getResolution());
+    pl::Vector2f resolution = static_cast<pl::Vector2f>(ResolutionHandler::getResolution());
     
     // Draw background chunks / world
-    std::vector<WorldObject*> worldObjects = backgroundChunkManager.getChunkObjects();
-    std::vector<WorldObject*> entities = backgroundChunkManager.getChunkEntities();
+    std::vector<WorldObject*> worldObjects = menuWorldData.chunkManager.getChunkObjects(menuCamera.getChunkViewRange());
+    std::vector<WorldObject*> entities = menuWorldData.chunkManager.getChunkEntities(menuCamera.getChunkViewRange());
     worldObjects.insert(worldObjects.end(), entities.begin(), entities.end());
 
-    sf::RenderTexture worldTexture;
-    game.drawWorld(worldTexture, dt, worldObjects, backgroundChunkManager, backgroundCamera);
+    pl::Framebuffer worldTexture;
+    game.drawWorld(worldTexture, dt, worldObjects, menuWorldData, menuCamera);
 
-    sf::Sprite worldTextureSprite(worldTexture.getTexture());
-    window.draw(worldTextureSprite);
+    pl::VertexArray worldRect;
+    worldRect.addQuad(pl::Rect<float>(0, 0, worldTexture.getWidth(), worldTexture.getHeight()), pl::Color(),
+        pl::Rect<float>(0, worldTexture.getHeight(), worldTexture.getWidth(), -worldTexture.getHeight()));
+    
+    window.draw(worldRect, *Shaders::getShader(ShaderType::Default), &worldTexture.getTexture(), pl::BlendMode::Alpha);
 
     drawPanel(window);
 
     int scaledPanelPaddingX = getScaledPanelPaddingX();
 
     // Draw title
-    TextureDrawData titleDrawData;
-    titleDrawData.type = TextureType::UI;
-    titleDrawData.scale = sf::Vector2f(3, 3) * intScale;
-    titleDrawData.position = sf::Vector2f(scaledPanelPaddingX + panelWidth / 2 * intScale, std::round((140 + std::sin(gameTime) * 20) * intScale));
-    titleDrawData.centerRatio = sf::Vector2f(0.5f, 0.5f);
+    pl::DrawData titleDrawData;
+    titleDrawData.texture = TextureManager::getTexture(TextureType::UI);
+    titleDrawData.shader = Shaders::getShader(ShaderType::Default);
+    titleDrawData.scale = pl::Vector2f(3, 3) * intScale;
+    titleDrawData.position = pl::Vector2f(scaledPanelPaddingX + panelWidth / 2 * intScale, std::round((140 + std::sin(applicationTime) * 20) * intScale));
+    titleDrawData.centerRatio = pl::Vector2f(0.5f, 0.5f);
+    titleDrawData.textureRect = pl::Rect<int>(21, 160, 212, 32);
 
-    TextureManager::drawSubTexture(window, titleDrawData, sf::IntRect(21, 160, 212, 32));
+    TextureManager::drawSubTexture(window, titleDrawData);
 
     MainMenuState nextUIState = mainMenuState;
 
-    const int startElementYPos = resolution.y * 0.37f;
+    const int startElementYPos = resolution.y * 0.33f;
     int elementYPos = startElementYPos;
 
     std::optional<MainMenuEvent> menuEvent = std::nullopt;
@@ -91,6 +108,11 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
             {
                 saveNameInput = "";
                 worldSeedInput = "";
+                newGamePage = 0;
+                selectedBodyColor = pl::Color(158, 69, 57);
+                selectedBodyColorValueHSV = 1.0f;
+                selectedSkinColor = pl::Color(230, 144, 78);
+                selectedSkinColorValueHSV = 1.0f;
                 nextUIState = MainMenuState::StartingNew;
             }
 
@@ -130,20 +152,83 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
         }
         case MainMenuState::StartingNew:
         {
-            guiContext.createTextEnter(scaledPanelPaddingX, elementYPos,
-                panelWidth * intScale, 75 * intScale, 20 * intScale, "Save Name", &saveNameInput, panelWidth / 5 * intScale, 30 * intScale, 30);
+            if (newGamePage == 0)
+            {
+                guiContext.createTextEnter(scaledPanelPaddingX, elementYPos,
+                    panelWidth * intScale, 75 * intScale, 20 * intScale, "Save Name", &saveNameInput, panelWidth / 5 * intScale, 30 * intScale, 30);
+    
+                elementYPos += 100 * intScale;
+    
+                guiContext.createTextEnter(scaledPanelPaddingX, elementYPos,
+                    panelWidth * intScale, 75 * intScale, 20 * intScale, "Player Name", &playerNameInput, panelWidth / 5 * intScale, 30 * intScale, 30);
+    
+                elementYPos += 100 * intScale;
 
-            elementYPos += 150 * intScale;
+                if (guiContext.createButton(scaledPanelPaddingX + panelWidth / 2.0f * intScale, elementYPos,
+                        panelWidth / 2.0f * intScale, 75 * intScale, buttonTextSize, ">", buttonStyle).isClicked())
+                {
+                    newGamePage++;
+                    deferHoverRectReset = true;
+                }
+            }
+            else if (newGamePage == 1)
+            {
+                guiContext.createTextEnter(scaledPanelPaddingX, elementYPos,
+                    panelWidth * intScale, 75 * intScale, 20 * intScale, "World Seed", &worldSeedInput, panelWidth / 5 * intScale, 30 * intScale, 30);
+                
+                elementYPos += 130 * intScale;
 
-            guiContext.createTextEnter(scaledPanelPaddingX, elementYPos,
-                panelWidth * intScale, 75 * intScale, 20 * intScale, "World Seed", &worldSeedInput, panelWidth / 5 * intScale, 30 * intScale, 30);
+                guiContext.createColorWheel(scaledPanelPaddingX + panelWidth * intScale / 4, elementYPos, 50, selectedBodyColorValueHSV, selectedBodyColor);
+
+                guiContext.createColorWheel(scaledPanelPaddingX + panelWidth * intScale / 4 * 3, elementYPos, 50, selectedSkinColorValueHSV, selectedSkinColor);
+
+                ResolutionHandler::overrideZoom(0);
+
+                // Draw player preview
+                NetworkPlayer playerPreview(pl::Vector2f(0, 0));
+                playerPreview.setPosition(pl::Vector2f(scaledPanelPaddingX + panelWidth / 2 * intScale, elementYPos + (24 * intScale)), 0);
+                playerPreview.setBodyColor(selectedBodyColor);
+                playerPreview.setSkinColor(selectedSkinColor);
+
+                playerPreview.draw(window, spriteBatch, game, nullptr, 0.0f, 0.0f, 1, pl::Color(), false);
+                spriteBatch.endDrawing(window);
+
+                elementYPos += 60 * intScale;
+
+                if (guiContext.createSlider(scaledPanelPaddingX, elementYPos, panelWidth * intScale / 2, 75 * intScale,
+                    0.0f, 1.0f, &selectedBodyColorValueHSV, 20 * intScale, "", panelWidth / 8 * intScale, panelWidth / 8 * intScale, 40 * intScale).isHeld())
+                {
+                    pl::Color hsvColor = Helper::convertRGBtoHSV(selectedBodyColor);
+                    selectedBodyColor = Helper::convertHSVtoRGB(hsvColor.r, hsvColor.g, selectedBodyColorValueHSV);
+                }
+
+                if (guiContext.createSlider(scaledPanelPaddingX + panelWidth / 2 * intScale, elementYPos, panelWidth * intScale / 2, 75 * intScale,
+                    0.0f, 1.0f, &selectedSkinColorValueHSV, 20 * intScale, "", panelWidth / 8 * intScale, panelWidth / 8 * intScale, 40 * intScale).isHeld())
+                {
+                    pl::Color hsvColor = Helper::convertRGBtoHSV(selectedSkinColor);
+                    selectedSkinColor = Helper::convertHSVtoRGB(hsvColor.r, hsvColor.g, selectedSkinColorValueHSV);
+                }
+                
+                elementYPos += 100 * intScale;
+
+                if (guiContext.createButton(scaledPanelPaddingX, elementYPos, panelWidth / 2.0f * intScale, 75 * intScale, buttonTextSize, "<", buttonStyle).isClicked())
+                {
+                    newGamePage--;
+                    deferHoverRectReset = true;
+                }
+            }
 
             elementYPos += 200 * intScale;
+
+            if (resolution.y < 900)
+            {
+                elementYPos -= 110 * intScale;
+            }
 
             if (guiContext.createButton(scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale, buttonTextSize, "Start", buttonStyle)
                 .isClicked())
             {
-                if (!saveNameInput.empty())
+                if (!saveNameInput.empty() && canInteract)
                 {
                     // Check save name does not already exist
                     bool nameExists = false;
@@ -160,6 +245,9 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
                         menuEvent = MainMenuEvent();
                         menuEvent->type = MainMenuEventType::StartNew;
                         menuEvent->saveFileSummary.name = saveNameInput;
+                        menuEvent->saveFileSummary.playerName = playerNameInput;
+                        menuEvent->saveFileSummary.playerData.bodyColor = selectedBodyColor;
+                        menuEvent->saveFileSummary.playerData.skinColor = selectedSkinColor;
                         menuEvent->worldSeed = getWorldSeedFromString(worldSeedInput);
                     }
                 }
@@ -181,6 +269,8 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
         {
             static constexpr int saveFilesPerPage = 4;
 
+            ResolutionHandler::overrideZoom(0);
+
             for (int i = saveFilesPerPage * saveFilePage; i < std::min(static_cast<int>(saveFileSummaries.size()), saveFilesPerPage * (saveFilePage + 1)); i++)
             {
                 const SaveFileSummary& saveFileSummary = saveFileSummaries[i];
@@ -195,6 +285,15 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
                     menuEvent->type = MainMenuEventType::Load;
                     menuEvent->saveFileSummary = saveFileSummary;
                 }
+
+                // Draw player preview
+                NetworkPlayer playerPreview(pl::Vector2f(0, 0));
+                playerPreview.setPlayerData(saveFileSummary.playerData);
+                playerPreview.setPosition(pl::Vector2f(scaledPanelPaddingX + 35 * intScale, elementYPos + (60 * intScale)), 0);
+                playerPreview.setArmourFromInventory(saveFileSummary.playerData.armourInventory);
+
+                playerPreview.draw(window, spriteBatch, game, nullptr, 0.0f, 0.0f, 1, pl::Color(), false);
+                spriteBatch.endDrawing(window);
 
                 elementYPos += 100 * intScale;
             }
@@ -220,7 +319,7 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
                 if (deletingSaveElement)
                 {
                     deleteSaveHoldTime += dt;
-                    deletingRect = static_cast<sf::FloatRect>(deletingSaveElement->getBoundingBox());
+                    deletingRect = deletingSaveElement->getBoundingBox();
                     deletingRect.width *= deleteSaveHoldTime / DELETE_SAVE_MAX_HOLD_TIME;
                 }
                 else
@@ -241,13 +340,13 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
             // Text if no save files
             if (saveFileSummaries.size() <= 0)
             {
-                TextDrawData textDrawData;
+                pl::TextDrawData textDrawData;
                 textDrawData.text = "No save files found";
-                textDrawData.position = sf::Vector2f((scaledPanelPaddingX + panelWidth / 2) * intScale, elementYPos);
+                textDrawData.position = pl::Vector2f((scaledPanelPaddingX + panelWidth / 2) * intScale, elementYPos);
                 textDrawData.size = 24 * intScale;
                 textDrawData.centeredX = true;
                 textDrawData.centeredY = true;
-                textDrawData.colour = sf::Color(255, 255, 255);
+                textDrawData.color = pl::Color(255, 255, 255);
 
                 TextDraw::drawText(window, textDrawData);
             }
@@ -297,6 +396,85 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
             }
             break;
         }
+        case MainMenuState::JoiningGame:
+        {
+            pl::TextDrawData textDrawData;
+            textDrawData.text = "Join Multiplayer";
+            textDrawData.position = pl::Vector2f((scaledPanelPaddingX + panelWidth / 2) * intScale, elementYPos);
+            textDrawData.size = 24 * intScale;
+            textDrawData.centeredX = true;
+            textDrawData.centeredY = true;
+            textDrawData.color = pl::Color(255, 255, 255);
+
+            TextDraw::drawText(window, textDrawData);
+
+            elementYPos += 60 * intScale;
+
+            guiContext.createTextEnter(scaledPanelPaddingX, elementYPos,
+                panelWidth * intScale, 75 * intScale, 20 * intScale, "Player Name", &playerNameInput, panelWidth / 5 * intScale, 30 * intScale, 30);
+
+            elementYPos += 130 * intScale;
+
+            guiContext.createColorWheel(scaledPanelPaddingX + panelWidth * intScale / 4, elementYPos, 50, selectedBodyColorValueHSV, selectedBodyColor);
+
+            guiContext.createColorWheel(scaledPanelPaddingX + panelWidth * intScale / 4 * 3, elementYPos, 50, selectedSkinColorValueHSV, selectedSkinColor);
+
+            ResolutionHandler::overrideZoom(0);
+
+            // Draw player preview
+            NetworkPlayer playerPreview(pl::Vector2f(0, 0));
+            playerPreview.setPosition(pl::Vector2f(scaledPanelPaddingX + panelWidth / 2 * intScale, elementYPos + (24 * intScale)), 0);
+            playerPreview.setBodyColor(selectedBodyColor);
+            playerPreview.setSkinColor(selectedSkinColor);
+
+            playerPreview.draw(window, spriteBatch, game, nullptr, 0.0f, 0.0f, 1, pl::Color(), false);
+            spriteBatch.endDrawing(window);
+
+            elementYPos += 60 * intScale;
+
+            if (guiContext.createSlider(scaledPanelPaddingX, elementYPos, panelWidth * intScale / 2, 75 * intScale,
+                0.0f, 1.0f, &selectedBodyColorValueHSV, 20 * intScale, "", panelWidth / 8 * intScale, panelWidth / 8 * intScale, 40 * intScale).isHeld())
+            {
+                pl::Color hsvColor = Helper::convertRGBtoHSV(selectedBodyColor);
+                selectedBodyColor = Helper::convertHSVtoRGB(hsvColor.r, hsvColor.g, selectedBodyColorValueHSV);
+            }
+
+            if (guiContext.createSlider(scaledPanelPaddingX + panelWidth / 2 * intScale, elementYPos, panelWidth * intScale / 2, 75 * intScale,
+                0.0f, 1.0f, &selectedSkinColorValueHSV, 20 * intScale, "", panelWidth / 8 * intScale, panelWidth / 8 * intScale, 40 * intScale).isHeld())
+            {
+                pl::Color hsvColor = Helper::convertRGBtoHSV(selectedSkinColor);
+                selectedSkinColor = Helper::convertHSVtoRGB(hsvColor.r, hsvColor.g, selectedSkinColorValueHSV);
+            }
+            
+            elementYPos += 100 * intScale;
+
+            if (guiContext.createButton(scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale, buttonTextSize, "Join", buttonStyle)
+                .isClicked())
+            {
+                if (!playerNameInput.empty())
+                {
+                    menuEvent = MainMenuEvent();
+                    menuEvent->type = MainMenuEventType::JoinGame;
+                    menuEvent->saveFileSummary.playerName = playerNameInput;
+                    menuEvent->saveFileSummary.playerData.bodyColor = selectedBodyColor;
+                    menuEvent->saveFileSummary.playerData.skinColor = selectedSkinColor;
+                }
+            }
+
+            elementYPos += 100 * intScale;
+            
+            if (guiContext.createButton(scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale, buttonTextSize, "Back", buttonStyle)
+                .isClicked())
+            {
+                if (canInteract)
+                {
+                    nextUIState = MainMenuState::Main;
+                    menuEvent = MainMenuEvent();
+                    menuEvent->type = MainMenuEventType::CancelJoinGame;
+                }
+            }
+            break;   
+        }
         case MainMenuState::Options:
         {
             if (createOptionsMenu(window, elementYPos))
@@ -314,12 +492,10 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
 
     if (mainMenuState == MainMenuState::SelectingLoad && deletingSaveIndex >= 0)
     {
-        sf::RectangleShape deleteRectDraw;
-        deleteRectDraw.setPosition(sf::Vector2f(deletingRect.left, deletingRect.top));
-        deleteRectDraw.setSize(sf::Vector2f(deletingRect.width, deletingRect.height));
-        deleteRectDraw.setFillColor(sf::Color(230, 20, 20, 150));
+        pl::VertexArray deleteRect;
+        deleteRect.addQuad(deletingRect, pl::Color(230, 20, 20, 150), pl::Rect<float>());
 
-        window.draw(deleteRectDraw);
+        window.draw(deleteRect, *Shaders::getShader(ShaderType::DefaultNoTexture), nullptr, pl::BlendMode::Alpha);
     }
 
     if (nextUIState != mainMenuState)
@@ -332,20 +508,31 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(sf::RenderTarget& window
     guiContext.endGUI();
 
     // Version number text
-    TextDrawData versionTextDrawData;
+    pl::TextDrawData versionTextDrawData;
     versionTextDrawData.text = GAME_VERSION;
-    versionTextDrawData.colour = sf::Color(255, 255, 255);
+    versionTextDrawData.color = pl::Color(255, 255, 255);
     versionTextDrawData.size = 24 * intScale;
-    versionTextDrawData.position = sf::Vector2f(10 * intScale, resolution.y - (24 + 10 ) * intScale);
+    versionTextDrawData.position = pl::Vector2f(10 * intScale, resolution.y - (24 + 10) * intScale);
 
     TextDraw::drawText(window, versionTextDrawData);
 
     return menuEvent;
 }
 
-bool MainMenuGUI::createOptionsMenu(sf::RenderTarget& window, int startElementYPos)
+void MainMenuGUI::setMainMenuJoinGame()
+{
+    playerNameInput = "";
+    selectedBodyColor = pl::Color(158, 69, 57);
+    selectedBodyColorValueHSV = 1.0f;
+    selectedSkinColor = pl::Color(230, 144, 78);
+    selectedSkinColorValueHSV = 1.0f;
+    changeUIState(MainMenuState::JoiningGame, mainMenuState);
+}
+
+bool MainMenuGUI::createOptionsMenu(pl::RenderTarget& window, int startElementYPos)
 {
     float intScale = ResolutionHandler::getResolutionIntegerScale();
+    pl::Vector2<uint32_t> resolution = ResolutionHandler::getResolution();
 
     int scaledPanelPaddingX = getScaledPanelPaddingX();
 
@@ -370,6 +557,16 @@ bool MainMenuGUI::createOptionsMenu(sf::RenderTarget& window, int startElementYP
     }
     
     startElementYPos += 100 * intScale;
+
+    bool vSyncEnabled = ResolutionHandler::getVSync();
+    if (guiContext.createCheckbox(scaledPanelPaddingX, startElementYPos, panelWidth * intScale, 75 * intScale, 20 * intScale, "V-Sync", &vSyncEnabled,
+        (panelWidth / 2 + 80) * intScale, (panelWidth / 10 + 80) * intScale, 40 * intScale)
+        .isClicked())
+    {
+        ResolutionHandler::setVSync(vSyncEnabled);
+    }
+
+    startElementYPos += 100 * intScale;
     
     // Create button glyph switch buttons
     if (guiContext.createButton(scaledPanelPaddingX, startElementYPos,
@@ -389,16 +586,18 @@ bool MainMenuGUI::createOptionsMenu(sf::RenderTarget& window, int startElementYP
     }
 
     // Text showing current controller glyph type
-    TextDrawData glyphTypeDrawData;
+    pl::TextDrawData glyphTypeDrawData;
     glyphTypeDrawData.text = "Controller Glyph " + std::to_string(InputManager::getGlyphType() + 1);
-    glyphTypeDrawData.position = sf::Vector2f(scaledPanelPaddingX + panelWidth / 2 * intScale, startElementYPos + 50 * 0.5f * intScale);
+    glyphTypeDrawData.position = pl::Vector2f(scaledPanelPaddingX + panelWidth / 2 * intScale, startElementYPos + 50 * 0.5f * intScale);
     glyphTypeDrawData.centeredX = true;
     glyphTypeDrawData.centeredY = true;
     glyphTypeDrawData.size = 24 * intScale;
-    glyphTypeDrawData.colour = sf::Color(255, 255, 255);
+    glyphTypeDrawData.color = pl::Color(255, 255, 255);
     TextDraw::drawText(window, glyphTypeDrawData);
 
     startElementYPos += 200 * intScale;
+
+    startElementYPos = std::min(startElementYPos, static_cast<int>(resolution.y - 100 * intScale));
 
     if (guiContext.createButton(scaledPanelPaddingX, startElementYPos, panelWidth * intScale, 75 * intScale, buttonTextSize, "Back", buttonStyle)
         .isClicked())
@@ -409,23 +608,26 @@ bool MainMenuGUI::createOptionsMenu(sf::RenderTarget& window, int startElementYP
     return false;
 }
 
-std::optional<PauseMenuEventType> MainMenuGUI::createAndDrawPauseMenu(sf::RenderTarget& window, float dt, float gameTime)
+std::optional<PauseMenuEventType> MainMenuGUI::createAndDrawPauseMenu(pl::RenderTarget& window, float dt, float applicationTime, bool steamInitialised,
+    std::optional<uint64_t> lobbyId)
 {
     float intScale = ResolutionHandler::getResolutionIntegerScale();
-    sf::Vector2f resolution = static_cast<sf::Vector2f>(ResolutionHandler::getResolution());
+    pl::Vector2f resolution = static_cast<pl::Vector2f>(ResolutionHandler::getResolution());
     
     drawPanel(window);
 
     int scaledPanelPaddingX = getScaledPanelPaddingX();
 
     // Draw title
-    TextureDrawData titleDrawData;
-    titleDrawData.type = TextureType::UI;
-    titleDrawData.scale = sf::Vector2f(3, 3) * intScale;
-    titleDrawData.position = sf::Vector2f((scaledPanelPaddingX + panelWidth / 2 * intScale), std::round((140 + std::sin(gameTime) * 20) * intScale));
-    titleDrawData.centerRatio = sf::Vector2f(0.5f, 0.5f);
+    pl::DrawData titleDrawData;
+    titleDrawData.texture = TextureManager::getTexture(TextureType::UI);
+    titleDrawData.shader = Shaders::getShader(ShaderType::Default);
+    titleDrawData.scale = pl::Vector2f(3, 3) * intScale;
+    titleDrawData.position = pl::Vector2f(scaledPanelPaddingX + panelWidth / 2 * intScale, std::round((140 + std::sin(applicationTime) * 20) * intScale));
+    titleDrawData.centerRatio = pl::Vector2f(0.5f, 0.5f);
+    titleDrawData.textureRect = pl::Rect<int>(21, 160, 212, 32);
 
-    TextureManager::drawSubTexture(window, titleDrawData, sf::IntRect(21, 160, 212, 32));
+    TextureManager::drawSubTexture(window, titleDrawData);
 
     const int startElementYPos = resolution.y * 0.37f;
     int elementYPos = startElementYPos;
@@ -444,6 +646,31 @@ std::optional<PauseMenuEventType> MainMenuGUI::createAndDrawPauseMenu(sf::Render
             }
 
             elementYPos += 100 * intScale;
+
+            if (steamInitialised)
+            {
+                if (lobbyId.has_value())
+                {
+                    if (guiContext.createButton(scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale, 24 * intScale, "Invite Friends", buttonStyle)
+                        .isClicked())
+                    {
+                        SteamFriends()->ActivateGameOverlayInviteDialog(lobbyId.value());
+                        resetHoverRect();
+                    }
+                }
+                else
+                {
+                    if (guiContext.createButton(scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale, 24 * intScale, "Start Multiplayer", buttonStyle)
+                        .isClicked())
+                    {
+                        // showPauseMenuWishlist = true;
+                        menuEvent = PauseMenuEventType::StartMultiplayer;
+                        resetHoverRect();
+                    }
+                }
+
+                elementYPos += 100 * intScale;
+            }
             
             if (guiContext.createButton(scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale, 24 * intScale, "Options", buttonStyle).isClicked())
             {

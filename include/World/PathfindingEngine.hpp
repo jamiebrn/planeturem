@@ -10,7 +10,9 @@
 #include "Core/Helper.hpp"
 #include "Object/WorldObject.hpp"
 
-#include <SFML/Graphics.hpp>
+
+
+#include "Vector.hpp"
 
 struct PathfindGridCoordinate
 {
@@ -33,6 +35,7 @@ public:
     std::vector<PathfindGridCoordinate> createStepSequenceFromPath(const std::vector<PathfindGridCoordinate>& path) const;
 
     PathfindGridCoordinate findFurthestOpenTile(int x, int y, int maxSearchRange, bool coordinateRelativeToStart = false) const;
+    std::optional<PathfindGridCoordinate> findClosestOpenTile(int x, int y, int maxSearchRange, bool coordinateRelativeToStart = false) const;
 
     inline const std::vector<char>& getObstacles() const {return obstacleGrid;}
     inline int getWidth() const {return width;}
@@ -76,6 +79,12 @@ private:
         const std::unordered_map<int, PathNode>& nodes;
     };
 
+    struct TileSearchNode
+    {
+        int index;
+        int distanceTravelled;
+    };
+
     void advancePathNode(int idx, int previousIdx, int previousPathCost, int direction, int previousDirection, int destIdx,
         std::unordered_map<int, PathNode>& pathNodes, std::priority_queue<int, std::vector<int>, PathNodeComparator>& idxQueue, bool straightening,
         std::optional<int> maxDistance) const;
@@ -95,22 +104,22 @@ class PathFollower
 public:
     PathFollower() = default;
 
-    void beginPath(sf::Vector2f startPos, const std::vector<PathfindGridCoordinate>& pathfindStepSequence);
+    void beginPath(pl::Vector2f startPos, const std::vector<PathfindGridCoordinate>& pathfindStepSequence);
 
-    sf::Vector2f updateFollower(float speed);
+    pl::Vector2f updateFollower(float speed);
 
     bool isActive();
 
-    void handleWorldWrap(sf::Vector2f positionDelta);
+    // void handleWorldWrap(pl::Vector2f positionDelta);
 
 private:
     void setPathfindStepIndex(int index);
 
 private:
     std::vector<PathfindGridCoordinate> stepSequence;
-    sf::Vector2f position;
-    sf::Vector2f lastStepPosition;
-    sf::Vector2f stepTargetPosition;
+    pl::Vector2f position;
+    pl::Vector2f lastStepPosition;
+    pl::Vector2f stepTargetPosition;
     int stepIndex = 0;
 
     static constexpr float TARGET_REACH_THRESHOLD = 2.0f;

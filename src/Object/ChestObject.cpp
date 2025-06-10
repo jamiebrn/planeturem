@@ -1,9 +1,10 @@
 #include "Object/ChestObject.hpp"
 #include "Game.hpp"
 
-ChestObject::ChestObject(sf::Vector2f position, ObjectType objectType)
-    : BuildableObject(position, objectType, false)
+ChestObject::ChestObject(pl::Vector2f position, ObjectType objectType, const BuildableObjectCreateParameters& parameters)
+    : BuildableObject(position, objectType, parameters)
 {
+    animatedTexture.setFrame(0);
     closeChest();
 }
 
@@ -12,27 +13,14 @@ BuildableObject* ChestObject::clone()
     return new ChestObject(*this);
 }
 
-void ChestObject::update(Game& game, float dt, bool onWater, bool loopAnimation)
+void ChestObject::update(Game& game, const LocationState& locationState, float dt, bool onWater, bool loopAnimation)
 {
-    BuildableObject::update(game, dt, onWater, false);
-
-    if (game.getOpenChestID() != chestID)
-    {
-        closeChest();
-    }
+    BuildableObject::update(game, locationState, dt, onWater, false);
 }
 
-bool ChestObject::damage(int amount, Game& game, ChunkManager& chunkManager, ParticleSystem& particleSystem, bool giveItems)
+bool ChestObject::damage(int amount, Game& game, ChunkManager& chunkManager, ParticleSystem* particleSystem, bool giveItems, bool createHitMarkers)
 {
-    // if (chestID != 0xFFFF)
-    // {
-    //     if (!game.getChestDataPool().getChestDataPtr(chestID)->isEmpty())
-    //     {
-    //         amount = 0;
-    //     }
-    // }
-
-    bool destroyed = BuildableObject::damage(amount, game, chunkManager, particleSystem);
+    bool destroyed = BuildableObject::damage(amount, game, chunkManager, particleSystem, giveItems, createHitMarkers);
 
     if (destroyed)
     {
@@ -59,7 +47,10 @@ bool ChestObject::damage(int amount, Game& game, ChunkManager& chunkManager, Par
                     itemDrops.push_back(itemDrop);
                 }
 
-                BuildableObject::createItemPickups(chunkManager, itemDrops, game.getGameTime()); 
+                if (giveItems)
+                {
+                    BuildableObject::createItemPickups(chunkManager, game, itemDrops, game.getGameTime()); 
+                }
             }
         }
 
@@ -74,17 +65,30 @@ bool ChestObject::damage(int amount, Game& game, ChunkManager& chunkManager, Par
     return destroyed;
 }
 
-void ChestObject::interact(Game& game)
+void ChestObject::interact(Game& game, bool isClient)
 {
     // Chest interaction stuff
-    if (chestID == 0xFFFF)
+    if (!isClient)
     {
-        const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
-        chestID = game.getChestDataPool().createChest(objectData.chestCapacity);
+        if (chestID == 0xFFFF)
+        {
+            const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
+            chestID = game.getChestDataPool().createChest(objectData.chestCapacity);
+        }
+    
+        // If chestID is still 0xFFFF, then max chest number has been reached
+        if (chestID == 0xFFFF)
+        {
+            return;
+        }
+
+        // Animation
+        // openChest();
     }
-    else
+
+    // Close chest if already open
+    if (chestID != 0xFFFF)
     {
-        // Close chest if already open
         if (game.getOpenChestID() == chestID)
         {
             game.closeChest();
@@ -92,16 +96,7 @@ void ChestObject::interact(Game& game)
         }
     }
 
-    // If chestID is still 0xFFFF, then max chest number has been reached
-    if (chestID == 0xFFFF)
-    {
-        return;
-    }
-
-    // Animation
-    openChest();
-
-    game.openChest(*this);
+    game.openChest(*this, std::nullopt, isClient);
 }
 
 bool ChestObject::isInteractable() const
@@ -109,20 +104,12 @@ bool ChestObject::isInteractable() const
     return true;
 }
 
-void ChestObject::triggerBehaviour(Game& game, ObjectBehaviourTrigger trigger)
+uint16_t ChestObject::createChestID(Game& game, std::optional<LocationState> locationState)
 {
-
+    const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
+    chestID = game.getChestDataPool(locationState).createChest(objectData.chestCapacity);
+    return chestID;
 }
-
-// int ChestObject::getChestCapactity()
-// {
-//     if (objectType < 0)
-//         return 0;
-
-//     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
-
-//     return objectData.chestCapacity;
-// }
 
 void ChestObject::openChest()
 {
@@ -134,6 +121,11 @@ void ChestObject::closeChest()
 {
     // Rewind open chest animation
     animationDirection = -1;
+}
+
+bool ChestObject::isOpen()
+{
+    return (animationDirection > 0);
 }
 
 void ChestObject::removeChestFromPool(Game& game)

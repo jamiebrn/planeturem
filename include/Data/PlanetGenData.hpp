@@ -5,14 +5,14 @@
 #include <vector>
 #include <unordered_set>
 
-#include <SFML/System/Vector2.hpp>
-#include <SFML/Graphics/Color.hpp>
+#include <Graphics/Color.hpp>
+#include <Vector.hpp>
 
 #include "Data/typedefs.hpp"
 
 struct TilemapData
 {
-    sf::Vector2i textureOffset;
+    pl::Vector2<int> textureOffset;
     int variation;
 };
 
@@ -62,10 +62,14 @@ struct BiomeGenData
     std::vector<StructureGenData> structureGenDatas;
     std::vector<FishCatchData> fishCatchDatas;
 
-    sf::Color waterColour;
+    pl::Color waterColor;
 
     float noiseRangeMin;
     float noiseRangeMax;
+
+    float resourceRegenerationTimeMin;
+    float resourceRegenerationTimeMax;
+    float resourceRegenerationDensity;
 
     std::unordered_set<std::string> bossesSpawnAllowedNames;
 };
@@ -77,10 +81,10 @@ struct PlanetGenData
 
     std::vector<BiomeGenData> biomeGenDatas;
 
-    // sf::Color waterColour;
-    sf::Vector2i waterTextureOffset;
+    // sf::Color waterColor;
+    pl::Vector2<int> waterTextureOffset;
 
-    sf::Vector2i cliffTextureOffset;
+    pl::Vector2<int> cliffTextureOffset;
 
     int worldSize;
 

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <SFML/Graphics.hpp>
 #include <unordered_map>
 #include <unordered_set>
 #include <array>
@@ -9,6 +8,14 @@
 #include <cmath>
 #include <stack>
 
+#include <Graphics/SpriteBatch.hpp>
+#include <Graphics/Color.hpp>
+#include <Graphics/RenderTarget.hpp>
+#include <Graphics/DrawData.hpp>
+#include <Graphics/TextDrawData.hpp>
+#include <Vector.hpp>
+#include <Rect.hpp>
+
 #include "Core/TextureManager.hpp"
 #include "Core/TextDraw.hpp"
 #include "Core/ResolutionHandler.hpp"
@@ -16,7 +23,7 @@
 #include "Core/Sounds.hpp"
 #include "Core/AnimatedTexture.hpp"
 #include "Core/Helper.hpp"
-#include "Core/SpriteBatch.hpp"
+// #include "Core/SpriteBatch.hpp"
 #include "Core/InputManager.hpp"
 
 #include "Player/PlayerStats.hpp"
@@ -43,11 +50,16 @@
 
 #include "GUI/ItemSlot.hpp"
 
+// Forward declare
+class Game;
+class NetworkHandler;
+class ChunkManager;
+
 struct ItemInfoString
 {
     std::string string;
     unsigned int size = 24;
-    sf::Color color = sf::Color(255, 255, 255);
+    pl::Color color = pl::Color(255, 255, 255);
 
     std::optional<ItemCount> itemCount = std::nullopt;
 
@@ -79,37 +91,39 @@ public:
 
     static void reset();
 
-    static void updateInventory(sf::Vector2f mouseScreenPos, float dt, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData = nullptr);
+    static void updateInventory(pl::Vector2f mouseScreenPos, float dt, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData = nullptr);
 
     // May pick up item stack, may put down item stack
-    static void handleLeftClick(sf::Vector2f mouseScreenPos, bool shiftMode, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData = nullptr);
+    static void handleLeftClick(Game& game, pl::Vector2f mouseScreenPos, bool shiftMode, bool ctrlMode, NetworkHandler& networkHandler,
+        InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData = nullptr);
 
     // May pick up single item
-    static void handleRightClick(sf::Vector2f mouseScreenPos, bool shiftMode, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData = nullptr);
+    static bool handleRightClick(Game& game, pl::Vector2f mouseScreenPos, bool shiftMode, NetworkHandler& networkHandler, ChunkManager* chunkManager,
+        InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData = nullptr);
 
-    static bool handleScroll(sf::Vector2f mouseScreenPos, int direction, InventoryData& inventory);
+    static bool handleScroll(pl::Vector2f mouseScreenPos, int direction, InventoryData& inventory);
 
     // Pickup max stack size to pickup whole stack (may be less than whole stack)
     // Pickup less (e.g 1) to limit pickup amount
-    static void pickUpItem(sf::Vector2f mouseScreenPos, unsigned int amount, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData = nullptr);
+    static bool pickUpItem(Game& game, pl::Vector2f mouseScreenPos, unsigned int amount, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData = nullptr);
 
     // Put down whole stack held in cursor
-    static void putDownItem(sf::Vector2f mouseScreenPos, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData = nullptr);
+    static void putDownItem(Game& game, pl::Vector2f mouseScreenPos, InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData = nullptr);
 
     // Called when inventory is closed, handles item picked up (if any)
     static void handleClose(InventoryData& inventory, InventoryData* chestData = nullptr);
 
-    static bool isMouseOverUI(sf::Vector2f mouseScreenPos);
+    static bool isMouseOverUI(pl::Vector2f mouseScreenPos);
 
     static void updateAvailableRecipes(InventoryData& inventory, std::unordered_map<std::string, int> nearbyCraftingStationLevels);
-    static void setSeenRecipes(const std::unordered_set<ItemType>& recipes);
-    static const std::unordered_set<ItemType>& getSeenRecipes();
+    static void setSeenRecipes(const std::unordered_set<uint64_t>& recipes);
+    static const std::unordered_set<uint64_t>& getSeenRecipes();
 
     static ItemType getHeldItemType(InventoryData& inventory);
 
     // Gets type of object that will be placed from item currently picked up / selected in hotbar
     // INCLUDES HOTBAR AND ITEM PICKED UP
-    static ObjectType getHeldObjectType(InventoryData& inventory);
+    static ObjectType getHeldObjectType(InventoryData& inventory, bool isInInventory);
 
     // Get type of tool currently picked up from inventory
     // INCLUDES HOTBAR AND ITEM PICKED UP
@@ -119,18 +133,16 @@ public:
     // Subtracts from item picked up, if not will attempt to place from hotbar
     static void subtractHeldItem(InventoryData& inventory);
 
-    static bool heldItemPlacesLand(InventoryData& inventory);
+    static bool heldItemPlacesLand(InventoryData& inventory, bool isInInventory);
 
-    static void draw(sf::RenderTarget& window, float gameTime, sf::Vector2f mouseScreenPos, InventoryData& inventory, InventoryData& armourInventory,
-        InventoryData* chestData = nullptr);
-
-    static inline const std::vector<int>& getAvailableRecipes() {return availableRecipes;}
+    static void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, float gameTime, pl::Vector2f mouseScreenPos,
+        InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData = nullptr);
 
     // -- Hotbar -- //
 
-    static void updateHotbar(float dt, sf::Vector2f mouseScreenPos);
+    static void updateHotbar(float dt, pl::Vector2f mouseScreenPos);
 
-    static bool handleLeftClickHotbar(sf::Vector2f mouseScreenPos);
+    static bool handleLeftClickHotbar(pl::Vector2f mouseScreenPos);
 
     static void handleScrollHotbar(int direction);
     static void setHotbarSelectedIndex(int index);
@@ -142,7 +154,7 @@ public:
     static void subtractHotbarItem(InventoryData& inventory);
 
     // Hotbar drawn when not in inventory
-    static void drawHotbar(sf::RenderTarget& window, sf::Vector2f mouseScreenPos, InventoryData& inventory);
+    static void drawHotbar(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, pl::Vector2f mouseScreenPos, InventoryData& inventory);
 
     // -- Chest -- //
     static void chestOpened(InventoryData* chestData);
@@ -157,15 +169,18 @@ public:
 
     static void pushItemPopup(const ItemCount& itemCount, bool notEnoughSpace = false, std::optional<std::string> textOverride = std::nullopt);
 
-    static void drawItemPopups(sf::RenderTarget& window, float gameTime);
+    static void drawItemPopups(pl::RenderTarget& window, float gameTime);
 
     // -- Controller navigation -- //
 
     // Returns true if any inventory is modified
-    static bool handleControllerInput(InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData);
+    static bool handleControllerInput(Game& game, NetworkHandler& networkHandler, ChunkManager* chunkManager,
+        InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData);
 
     // -- Misc -- //
-    static bool canQuickTransfer(sf::Vector2f mouseScreenPos, bool shiftMode, InventoryData& inventory, InventoryData* chestData);
+    static bool canQuickTransfer(pl::Vector2f mouseScreenPos, bool shiftMode, InventoryData& inventory, InventoryData* chestData);
+
+    static bool canQuickBin(pl::Vector2f mouseScreenPos, bool ctrlMode, InventoryData& inventory, InventoryData* chestData);
 
 private:
     static void initialiseInventory(InventoryData& inventory);
@@ -174,32 +189,32 @@ private:
     static void createChestItemSlots(InventoryData* chestData);
 
     // Returns -1 if no index selected (mouse not hovered over item)
-    static int getHoveredItemSlotIndex(const std::vector<ItemSlot>& itemSlots, sf::Vector2f mouseScreenPos);
+    static int getHoveredItemSlotIndex(const std::vector<ItemSlot>& itemSlots, pl::Vector2f mouseScreenPos);
 
-    static bool isBinSelected(sf::Vector2f mouseScreenPos);
-    static bool isInventorySelected(sf::Vector2f mouseScreenPos);
-    static bool isCraftingSelected(sf::Vector2f mouseScreenPos);
+    static bool isBinSelected(pl::Vector2f mouseScreenPos);
+    static bool isInventorySelected(pl::Vector2f mouseScreenPos);
+    static bool isCraftingSelected(pl::Vector2f mouseScreenPos);
 
     // Attempt to craft recipe selected
     static void craftRecipe(InventoryData& inventory, int selectedRecipe);
 
-    static void drawInventory(sf::RenderTarget& window, InventoryData& inventory);
-    static void drawArmourInventory(sf::RenderTarget& window, InventoryData& armourInventory);
-    static void drawBin(sf::RenderTarget& window);
-    static void drawRecipes(sf::RenderTarget& window);
-    static void drawChest(sf::RenderTarget& window, InventoryData* chestData);
-    static void drawPickedUpItem(sf::RenderTarget& window, float gameTime, sf::Vector2f mouseScreenPos);
-    static void drawHoveredItemInfoBox(sf::RenderTarget& window, float gameTime, sf::Vector2f mouseScreenPos, InventoryData& inventory,
+    static void drawInventory(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, InventoryData& inventory);
+    static void drawArmourInventory(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, InventoryData& armourInventory);
+    static void drawBin(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch);
+    static void drawRecipes(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch);
+    static void drawChest(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, InventoryData* chestData);
+    static void drawPickedUpItem(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, float gameTime, pl::Vector2f mouseScreenPos);
+    static void drawHoveredItemInfoBox(pl::RenderTarget& window, float gameTime, pl::Vector2f mouseScreenPos, InventoryData& inventory,
         InventoryData& armourInventory, InventoryData* chestData);
 
-    static sf::Vector2f drawItemInfoBox(sf::RenderTarget& window, float gameTime, int itemIndex, InventoryData& inventory, sf::Vector2f mouseScreenPos,
+    static pl::Vector2f drawItemInfoBox(pl::RenderTarget& window, float gameTime, int itemIndex, InventoryData& inventory, pl::Vector2f mouseScreenPos,
         InventoryShopInfoMode shopInfoMode);
-    static sf::Vector2f drawItemInfoBox(sf::RenderTarget& window, float gameTime, ItemCount itemCount, sf::Vector2f mouseScreenPos,
+    static pl::Vector2f drawItemInfoBox(pl::RenderTarget& window, float gameTime, ItemCount itemCount, pl::Vector2f mouseScreenPos,
         InventoryShopInfoMode shopInfoMode);
-    static sf::Vector2f drawItemInfoBoxRecipe(sf::RenderTarget& window, float gameTime, int recipeIdx, sf::Vector2f mouseScreenPos);
+    static pl::Vector2f drawItemInfoBoxRecipe(pl::RenderTarget& window, float gameTime, uint64_t recipeHash, pl::Vector2f mouseScreenPos);
 
     // Returns size of drawn info box
-    static sf::Vector2f drawInfoBox(sf::RenderTarget& window, sf::Vector2f position, const std::vector<ItemInfoString>& infoStrings, int alpha = 255, float flashAmount = 0.0f);
+    static pl::Vector2f drawInfoBox(pl::RenderTarget& window, pl::Vector2f position, const std::vector<ItemInfoString>& infoStrings, int alpha = 255, float flashAmount = 0.0f);
 
     // Armour inventory helper
     static bool canPutDownItemInArmourInventory(int hoveredIndex);
@@ -208,14 +223,16 @@ private:
     static void handleHotbarItemChange();
 
     // -- Chest --
-    static void inventoryChestItemQuickTransfer(sf::Vector2f mouseScreenPos, unsigned int amount, InventoryData& inventory, InventoryData& chestData);
+    static void inventoryChestItemQuickTransfer(Game& game, pl::Vector2f mouseScreenPos, unsigned int amount, InventoryData& inventory, InventoryData& chestData);
+
+    static void quickBin(pl::Vector2f mouseScreenPos, InventoryData& inventory, InventoryData* chestData);
 
     // -- Shop --
     static bool attemptPurchaseItem(InventoryData& inventory, int shopIndex);
     static bool attemptSellItemHeld(InventoryData& inventory);
 
 private:
-    // static sf::Vector2f screenPos;
+    // static pl::Vector2f screenPos;
 
     static int itemBoxSize;
     static int itemBoxSpacing;
@@ -230,9 +247,9 @@ private:
 
     static std::unordered_map<std::string, int> previous_nearbyCraftingStationLevels;
     static std::unordered_map<ItemType, unsigned int> previous_inventoryItemCount;
-    static std::vector<int> availableRecipes;
-    static std::unordered_set<ItemType> recipesSeen;
-    static std::stack<ItemType> recipesSeenToNotify;
+    static std::vector<uint64_t> availableRecipes;
+    static std::unordered_set<uint64_t> recipesSeen;
+    static std::stack<uint64_t> recipesSeenToNotify;
     static constexpr float MAX_RECIPE_SEEN_NOTIFY_COOLDOWN = 0.2f;
     static float recipeSeenNotifyCooldown;
 

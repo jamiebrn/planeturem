@@ -1,9 +1,15 @@
 #pragma once
 
-#include <SFML/Graphics.hpp>
 #include <vector>
 #include <array>
 #include <string>
+
+#include <Graphics/VertexArray.hpp>
+#include <Graphics/Color.hpp>
+#include <Graphics/RenderTarget.hpp>
+#include <Graphics/Texture.hpp>
+#include <Vector.hpp>
+#include <Rect.hpp>
 
 #include "Core/ResolutionHandler.hpp"
 #include "Core/TextDraw.hpp"
@@ -29,17 +35,17 @@ class LandmarkSetGUI : public DefaultGUIPanel
 public:
     LandmarkSetGUI() = default;
 
-    void initialise(ObjectReference landmarkObject, sf::Color colourA, sf::Color colourB);
+    void initialise(ObjectReference landmarkObject, pl::Color colorA, pl::Color colorB);
 
-    LandmarkSetGUIEvent createAndDraw(sf::RenderWindow& window, float dt);
+    LandmarkSetGUIEvent createAndDraw(pl::RenderTarget& window, float dt);
 
-    sf::Color getColourA() const;
-    sf::Color getColourB() const;
+    pl::Color getColorA() const;
+    pl::Color getColorB() const;
     const ObjectReference& getLandmarkObjectReference() const;
 
 private:
-    float aColour[3];
-    float bColour[3];
+    float aColor[3];
+    float bColor[3];
 
     ObjectReference landmarkSettingObjectReference;
 

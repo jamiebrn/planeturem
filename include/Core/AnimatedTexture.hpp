@@ -1,6 +1,7 @@
 #pragma once
 
-#include <SFML/Graphics.hpp>
+#include <cstdint>
+#include <Rect.hpp>
 
 class AnimatedTexture
 {
@@ -9,10 +10,13 @@ public:
     AnimatedTexture(int frameCount, int frameWidth, int frameHeight, int xStart, int y, float maxFrameTick, bool looping = true);
 
     void create(int frameCount, int frameWidth, int frameHeight, int xStart, int y, float maxFrameTick, bool looping = true);
-    
+
     void update(float dt, int direction = 1);
 
-    sf::IntRect getTextureRect() const;
+    void setFrameTick(float frameTick);
+    int getFrameTick();
+
+    pl::Rect<int> getTextureRect() const;
 
     inline void setFrame(int frame) {this->frame = frame;}
     inline int getFrame() const {return frame;}

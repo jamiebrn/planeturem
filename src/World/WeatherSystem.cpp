@@ -1,15 +1,15 @@
 #include "World/WeatherSystem.hpp"
 
-WeatherParticle::WeatherParticle(sf::Vector2f position, const WeatherTypeData& weatherTypeData)
+WeatherParticle::WeatherParticle(pl::Vector2f position, const WeatherTypeData& weatherTypeData)
     : WorldObject(position)
 {
-    sf::Vector2u resolution = ResolutionHandler::getResolution();
+    pl::Vector2<uint32_t> resolution = ResolutionHandler::getResolution();
     float scale = ResolutionHandler::getScale();
 
     animatedTexture = weatherTypeData.particleAnimatedTexture;
 
     float fallSpeed = Helper::randFloat(weatherTypeData.fallSpeedMin, weatherTypeData.fallSpeedMax);
-    velocity = Helper::rotateVector(sf::Vector2f(1, 0), weatherTypeData.fallAngle / 180.0f * M_PI) * fallSpeed;
+    velocity = pl::Vector2f(1, 0).rotate(weatherTypeData.fallAngle / 180.0f * M_PI) * fallSpeed;
 
     fallTime = 0.0f;
     targetFallTime = Helper::randFloat(0.2f, resolution.y / velocity.y / scale * 1.2f);
@@ -34,28 +34,30 @@ bool WeatherParticle::update(float dt, const Camera& camera, ChunkManager& chunk
     return true;
 }
 
-sf::Vector2f WeatherParticle::getPosition() const
+pl::Vector2f WeatherParticle::getPosition() const
 {
     return (position + (targetFallTime - fallTime) * velocity);
 }
 
-void WeatherParticle::handleWorldWrap(sf::Vector2f positionDelta)
-{
-    position += positionDelta;
-}
+// void WeatherParticle::handleWorldWrap(pl::Vector2f positionDelta)
+// {
+//     position += positionDelta;
+// }
 
-void WeatherParticle::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
-    const sf::Color& color) const
+void WeatherParticle::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
+    const pl::Color& color) const
 {
     float scale = ResolutionHandler::getScale();
 
-    TextureDrawData drawData;
-    drawData.type = TextureType::Objects;
-    drawData.position = camera.worldToScreenTransform(position);
-    drawData.centerRatio = sf::Vector2f(0.5f, 1.0f);
-    drawData.scale = sf::Vector2f(scale, scale);
+    pl::DrawData drawData;
+    drawData.texture = TextureManager::getTexture(TextureType::Objects);
+    drawData.shader = Shaders::getShader(ShaderType::Default);
+    drawData.position = camera.worldToScreenTransform(position, worldSize);
+    drawData.centerRatio = pl::Vector2f(0.5f, 1.0f);
+    drawData.scale = pl::Vector2f(scale, scale);
+    drawData.textureRect = animatedTexture.getTextureRect();
 
-    spriteBatch.draw(window, drawData, animatedTexture.getTextureRect());
+    spriteBatch.draw(window, drawData);
 }
 
 const std::unordered_map<WeatherType, WeatherTypeData> WeatherSystem::weatherTypeDatas = {
@@ -75,13 +77,14 @@ WeatherSystem::WeatherSystem(float gameTime, int seed)
 
     weatherNoise.SetSeed(seed);
     weatherNoise.SetNoiseType(FastNoise::NoiseType::SimplexFractal);
+    weatherNoise.SetFrequency(0.001);
     
     updateCurrentWeather(gameTime, true);
 }
 
 void WeatherSystem::update(float dt, float gameTime, const Camera& camera, ChunkManager& chunkManager)
 {
-    sf::Vector2u resolution = ResolutionHandler::getResolution();
+    pl::Vector2<uint32_t> resolution = ResolutionHandler::getResolution();
     float scale = ResolutionHandler::getScale();
     
     const WeatherTypeData& destinationWeatherTypeData = weatherTypeDatas.at(destinationWeatherType);
@@ -94,7 +97,7 @@ void WeatherSystem::update(float dt, float gameTime, const Camera& camera, Chunk
     {
         particleSpawnTimer -= PARTICLE_SPAWN_RATE;
 
-        sf::Vector2f position;
+        pl::Vector2f position;
         position.x = Helper::randInt(-camera.getDrawOffset().x - resolution.x / 2, -camera.getDrawOffset().x + resolution.x / 3 + resolution.x / 2);
         position.y = -camera.getDrawOffset().y;
 
@@ -205,13 +208,13 @@ void WeatherSystem::presimulateWeather(float gameTime, const Camera& camera, Chu
     }
 }
 
-void WeatherSystem::handleWorldWrap(sf::Vector2f positionDelta)
-{
-    for (WeatherParticle& weatherParticle : weatherParticles)
-    {
-        weatherParticle.handleWorldWrap(positionDelta);
-    }
-}
+// void WeatherSystem::handleWorldWrap(pl::Vector2f positionDelta)
+// {
+//     for (WeatherParticle& weatherParticle : weatherParticles)
+//     {
+//         weatherParticle.handleWorldWrap(positionDelta);
+//     }
+// }
 
 std::vector<WorldObject*> WeatherSystem::getWeatherParticles()
 {

@@ -1,9 +1,5 @@
 #pragma once
 
-#include "GameConstants.hpp"
-
-#if (!RELEASE_BUILD)
-
 #include <map>
 
 namespace DebugOptions
@@ -19,7 +15,12 @@ extern bool drawEntityChunkParents;
 extern bool godMode;
 extern float godSpeedMultiplier;
 extern bool limitlessZoom;
+extern bool crazyAttack;
+
+extern float gameTimeMult;
+
+extern float lightPropMult;
+
+extern int colorWheelDivisions;
 
 }
-
-#endif

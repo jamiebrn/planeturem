@@ -10,7 +10,7 @@ InventoryData::InventoryData(int size)
     inventoryData = std::vector<std::optional<ItemCount>>(size, std::nullopt);
 }
 
-int InventoryData::addItem(ItemType item, int amount, bool createPopup, bool createPopupIfNotEnoughSpace)
+int InventoryData::addItem(ItemType item, int amount, bool createPopup, bool createPopupIfNotEnoughSpace, bool modifyInventory)
 {
     if (amount <= 0)
     {
@@ -39,7 +39,10 @@ int InventoryData::addItem(ItemType item, int amount, bool createPopup, bool cre
 
         amountToAdd -= amountAddedToStack;
 
-        itemCount.second += amountAddedToStack;
+        if (modifyInventory)
+        {
+            itemCount.second += amountAddedToStack;
+        }
 
         if (amountToAdd <= 0)
             break;
@@ -59,7 +62,10 @@ int InventoryData::addItem(ItemType item, int amount, bool createPopup, bool cre
 
             amountToAdd -= amountPutInSlot;
 
-            itemSlot = ItemCount(item, amountPutInSlot);
+            if (modifyInventory)
+            {
+                itemSlot = ItemCount(item, amountPutInSlot);
+            }
 
             if (amountToAdd <= 0)
                 break;
@@ -85,7 +91,7 @@ int InventoryData::addItem(ItemType item, int amount, bool createPopup, bool cre
     // inventoryData.push_back({item, amount});
 }
 
-void InventoryData::takeItem(ItemType item, int amount)
+int InventoryData::takeItem(ItemType item, int amount)
 {
     int amountToTake = amount;
 
@@ -95,12 +101,16 @@ void InventoryData::takeItem(ItemType item, int amount)
         std::optional<ItemCount>& itemSlot = inventoryData[i];
 
         if (!itemSlot.has_value())
+        {
             continue;
+        }
         
         ItemCount& itemCount = itemSlot.value();
 
         if (itemCount.first != item)
+        {
             continue;
+        }
 
         int amountTaken = std::min(static_cast<int>(itemCount.second), amountToTake);
 
@@ -116,8 +126,12 @@ void InventoryData::takeItem(ItemType item, int amount)
         }
 
         if (amountToTake <= 0)
-            return;
+        {
+            return amount;
+        }
     }
+
+    return (amount - amountToTake);
 }
 
 void InventoryData::addItemAtIndex(int index, ItemType item, int amount)
@@ -360,6 +374,11 @@ void InventoryData::takeCurrencyValueItems(int currencyValue)
     {
         addCurrencyValueItems(-currencyValue);
     }
+}
+
+void InventoryData::giveStartingItems()
+{
+    addItem(ItemDataLoader::getItemTypeFromName("Wooden Pickaxe"), 1);
 }
 
 // Save / load

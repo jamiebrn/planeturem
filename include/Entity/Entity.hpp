@@ -2,14 +2,18 @@
 
 #include <memory>
 
-#include <SFML/Graphics.hpp>
+#include <Graphics/SpriteBatch.hpp>
+#include <Graphics/Color.hpp>
+#include <Graphics/RenderTarget.hpp>
+#include <Vector.hpp>
+#include <Rect.hpp>
 
 #include "Core/TextureManager.hpp"
+#include "Core/Shaders.hpp"
 #include "Core/Camera.hpp"
 #include "Core/ResolutionHandler.hpp"
 #include "Core/CollisionRect.hpp"
 #include "Core/AnimatedTexture.hpp"
-#include "Core/SpriteBatch.hpp"
 
 #include "Object/WorldObject.hpp"
 #include "World/ChunkManager.hpp"
@@ -23,7 +27,8 @@
 #include "Entity/Projectile/ProjectileManager.hpp"
 #include "Entity/EntityBehaviour/EntityBehaviour.hpp"
 
-#include "GUI/InventoryGUI.hpp"
+#include "Network/PacketData/PacketDataWorld/PacketDataEntities.hpp"
+
 #include "GUI/HitMarkers.hpp"
 
 #include "DebugOptions.hpp"
@@ -34,38 +39,41 @@ class ChunkManager;
 class Entity : public WorldObject
 {
 public:
-    Entity(sf::Vector2f position, EntityType entityType);
+    Entity(pl::Vector2f position, EntityType entityType);
     Entity();
 
-    void update(float dt, ProjectileManager& projectileManager, ChunkManager& chunkManager, Game& game, bool onWater, float gameTime);
+    void update(float dt, ProjectileManager& projectileManager, ChunkManager& chunkManager, Game& game, bool onWater, float gameTime, bool networkUpdateOnly);
 
-    void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const sf::Color& color) const override;
-    void createLightSource(LightingEngine& lightingEngine, sf::Vector2f topLeftChunkPos) const override;
+    void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const pl::Color& color) const override;
+    // void createLightSource(LightingEngine& lightingEngine, pl::Vector2f topLeftChunkPos) const override;
 
-    void testHitCollision(const std::vector<HitRect>& hitRects, ChunkManager& chunkManager, Game& game, float gameTime);
-    void damage(int amount, ChunkManager& chunkManager, float gameTime);
+    void testHitCollision(const std::vector<HitRect>& hitRects, pl::Vector2f hitOrigin , Game& game, const LocationState& locationState, float gameTime);
+    void damage(int amount, Game& game, const LocationState& locationState, float gameTime);
     void interact();
 
-    bool isSelectedWithCursor(sf::Vector2f cursorWorldPos);
+    bool isSelectedWithCursor(pl::Vector2f cursorWorldPos);
 
-    void setWorldPosition(sf::Vector2f newPosition);
+    void setWorldPosition(pl::Vector2f newPosition);
 
     EntityType getEntityType();
 
-    sf::Vector2f getSize();
+    pl::Vector2f getSize();
 
     const CollisionRect& getCollisionRect();
     void setCollisionRect(const CollisionRect& rect);
 
-    sf::Vector2f getVelocity();
-    void setVelocity(sf::Vector2f velocity);
+    pl::Vector2f getVelocity();
+    void setVelocity(pl::Vector2f velocity);
 
     void setAnimationSpeed(float speed);
 
     inline bool isAlive() {return health > 0;}
 
-    EntityPOD getPOD(sf::Vector2f chunkPosition);
-    void loadFromPOD(const EntityPOD& pod, sf::Vector2f chunkPosition);
+    EntityPOD getPOD(pl::Vector2f chunkPosition);
+    void loadFromPOD(const EntityPOD& pod, pl::Vector2f chunkPosition);
+
+    PacketDataEntities::EntityPacketData getPacketData(pl::Vector2f chunkPosition);
+    void loadFromPacketData(const PacketDataEntities::EntityPacketData& packetData, pl::Vector2f chunkPosition);
 
 private:
     bool isProjectileColliding(Projectile& projectile);
@@ -75,13 +83,13 @@ private:
 private:
     EntityType entityType;
     int health;
-    float flash_amount;
+    float flashAmount;
 
     std::unique_ptr<EntityBehaviour> behaviour;
 
     CollisionRect collisionRect;
     CollisionRect hitCollision;
-    sf::Vector2f velocity;
+    pl::Vector2f velocity;
 
     float animationSpeed;
 

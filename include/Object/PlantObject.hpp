@@ -1,6 +1,10 @@
 #pragma once
 
-#include <SFML/Graphics.hpp>
+#include <Graphics/SpriteBatch.hpp>
+#include <Graphics/Color.hpp>
+#include <Graphics/RenderTarget.hpp>
+#include <Vector.hpp>
+#include <Rect.hpp>
 
 #include <cstdint>
 
@@ -14,19 +18,20 @@
 #include "World/DayCycleManager.hpp"
 
 class Game;
+class ChunkManager;
 
 class PlantObject : public BuildableObject
 {
 public:
-    PlantObject(sf::Vector2f position, ObjectType objectType, Game& game, bool randomiseAge = false);
+    PlantObject(pl::Vector2f position, ObjectType objectType, const BuildableObjectCreateParameters& parameters, Game& game, const ChunkManager* chunkManager = nullptr);
 
     BuildableObject* clone() override;
 
-    void update(Game& game, float dt, bool onWater, bool loopAnimation) override;
+    void update(Game& game, const LocationState& locationState, float dt, bool onWater, bool loopAnimation) override;
 
-    bool damage(int amount, Game& game, ChunkManager& chunkManager, ParticleSystem& particleSystem, bool giveItems = true) override;
+    bool damage(int amount, Game& game, ChunkManager& chunkManager, ParticleSystem* particleSystem, bool giveItems = true, bool createHitMarkers = true) override;
 
-    void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const sf::Color& color) const override;
+    void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const pl::Color& color) const override;
 
     // Save / load
     BuildableObjectPOD getPOD() const override;

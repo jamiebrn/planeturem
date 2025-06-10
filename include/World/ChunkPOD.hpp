@@ -28,12 +28,19 @@ struct ChunkPOD
 
     std::optional<StructureObjectPOD> structureObject;
 
+    float gameTimeCreated = -999.0f;
+
     bool modified;
 
     template <class Archive>
     void serialize(Archive& ar, const std::uint32_t version)
     {
         ar(chunkPosition.x, chunkPosition.y, groundTileGrid, objectGrid, entities, structureObject, modified);
+
+        if (version >= 2)
+        {
+            ar(gameTimeCreated);
+        }
     }
 
     void mapVersions(const std::unordered_map<ObjectType, ObjectType>& objectVersionMap)
@@ -53,4 +60,4 @@ struct ChunkPOD
     }
 };
 
-CEREAL_CLASS_VERSION(ChunkPOD, 1);
+CEREAL_CLASS_VERSION(ChunkPOD, 2);

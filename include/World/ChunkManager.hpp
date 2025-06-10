@@ -9,11 +9,17 @@
 
 #include <World/FastNoise.h>
 
+#include <Graphics/SpriteBatch.hpp>
+#include <Graphics/Color.hpp>
+#include <Graphics/RenderTarget.hpp>
+#include <Vector.hpp>
+#include <Rect.hpp>
+
 #include "Core/ResolutionHandler.hpp"
 #include "Core/Camera.hpp"
 #include "Core/CollisionRect.hpp"
 #include "Core/Shaders.hpp"
-#include "Core/SpriteBatch.hpp"
+// #include "Core/SpriteBatch.hpp"
 #include "World/Chunk.hpp"
 #include "World/ChunkPosition.hpp"
 #include "World/TileMap.hpp"
@@ -23,18 +29,24 @@
 #include "Player/InventoryData.hpp"
 #include "Player/ItemPickup.hpp"
 
+#include "World/Chunk.hpp"
 #include "World/ChunkPOD.hpp"
+#include "World/ChunkViewRange.hpp"
 #include "World/PathfindingEngine.hpp"
 
 #include "Data/typedefs.hpp"
 #include "Data/PlanetGenData.hpp"
 #include "Data/PlanetGenDataLoader.hpp"
 
+#include "Network/PacketData/PacketDataWorld/PacketDataChunkDatas.hpp"
+#include "Network/PacketData/PacketDataWorld/PacketDataEntities.hpp"
+
 // Forward declaration
 class Game;
-class Chunk;
 class Entity;
 class ProjectileManager;
+class NetworkHandler;
+class Player;
 
 class ChunkManager
 {
@@ -51,20 +63,23 @@ public:
     // Delete all chunks (used when switching planets)
     void deleteAllChunks();
 
-    // Load/unload chunks every frame
-    // Returns true if any chunks loaded / unloaded
-    bool updateChunks(Game& game, const Camera& camera);
+    // Load chunks every frame
+    // Returns true if any chunks loaded
+    bool updateChunks(Game& game, float gameTime, const std::vector<ChunkViewRange>& chunkViewRanges,
+            bool isClient = false, std::vector<ChunkPosition>* chunksToRequestFromHost = nullptr);
+    
+    bool unloadChunksOutOfView(const std::vector<ChunkViewRange>& chunkViewRanges);
 
     // Forces a reload of chunks, used when wrapping around world
-    void reloadChunks();
+    // void reloadChunks(ChunkViewRange chunkViewRange);
 
     // Used when a chunk is required to have no structure generated to ensure no collision interference
     // E.g. when travelling to a new planet and rocket is placed, rocket may be placed inside structure (if there is one)
-    void regenerateChunkWithoutStructure(ChunkPosition chunk, Game& game);
+    void regenerateChunkWithStructureType(ChunkPosition chunk, Game& game, std::optional<StructureType> structureType);
 
     // Drawing functions for chunk terrain
-    void drawChunkTerrain(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Camera& camera, float time);
-    void drawChunkWater(sf::RenderTarget& window, const Camera& camera, float time);
+    void drawChunkTerrain(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera, float time);
+    void drawChunkWater(pl::RenderTarget& window, const Camera& camera, float time);
 
     // Returns a pointer to the chunk with ChunkPosition key
     // Chunk can be in loaded chunks or stored chunks
@@ -81,12 +96,12 @@ public:
 
     // Returns tilemaps which have been modified
     // IF GRAPHIC UPDATE IS DISABLED, ENSURE TO CALL performChunkSetTileUpdate AFTER
-    std::set<int> setChunkTile(ChunkPosition chunk, int tileMap, sf::Vector2i position, bool tileGraphicUpdate = true);
+    std::set<int> setChunkTile(ChunkPosition chunk, int tileMap, pl::Vector2<int> position, bool tileGraphicUpdate = true);
 
     // Sets tilemap tiles for the current tile for background, depending on adjacent tiles
     // Also sets adjacent tilemap tiles to have backing for the current tile
     // Returns set of tilemaps modified
-    std::set<int> setBackgroundAdjacentTilesForTile(ChunkPosition chunk, int tileMap, sf::Vector2i position);
+    std::set<int> setBackgroundAdjacentTilesForTile(ChunkPosition chunk, int tileMap, pl::Vector2<int> position);
 
     // Updates chunks edge tiles, adjacent to a chunk
     void updateAdjacentChunkTiles(ChunkPosition chunk, int tileMap);
@@ -102,82 +117,93 @@ public:
     void performChunkSetTileUpdate(ChunkPosition chunk, std::set<int> tileMapsModified);
 
     // Get tile type from loaded chunks (used in object placement/collisions)
-    int getLoadedChunkTileType(ChunkPosition chunk, sf::Vector2i tile) const;
+    int getLoadedChunkTileType(ChunkPosition chunk, pl::Vector2<int> tile) const;
 
     // Get tile type from all generated chunks (used in chunk visual detail generation)
-    int getChunkTileType(ChunkPosition chunk, sf::Vector2i tile) const;
+    int getChunkTileType(ChunkPosition chunk, pl::Vector2<int> tile) const;
 
     // Gets tile type from all generated chunks
     // Falls back to generation prediction if chunk has not yet been generated
-    int getChunkTileTypeOrPredicted(ChunkPosition chunk, sf::Vector2i tile);
+    int getChunkTileTypeOrPredicted(ChunkPosition chunk, pl::Vector2<int> tile);
+
 
 
     // -- Objects -- //
+    
     // Update objects in all chunks
-    void updateChunksObjects(Game& game, float dt);
+    // Returns all chunks modified (resources regenerated)
+    std::vector<ChunkPosition> updateChunksObjects(Game& game, float dt, float gameTime);
 
     // Get object at certain world position
     // Returns actual object if object reference is at position requested
-    BuildableObject* getChunkObject(ChunkPosition chunk, sf::Vector2i tile);
+    template <class T = BuildableObject>
+    T* getChunkObject(ChunkPosition chunk, pl::Vector2<int> tile);
 
     // Sets object in chunk at tile
     // Places object references if required
-    void setObject(ChunkPosition chunk, sf::Vector2i tile, ObjectType objectType, Game& game);
+    void setObject(ChunkPosition chunk, pl::Vector2<int> tile, ObjectType objectType, Game& game, const BuildableObjectCreateParameters& parameters);
 
     // Deletes object in chunk at tile
     // Deletes object references if required
-    void deleteObject(ChunkPosition chunk, sf::Vector2i tile);
+    void deleteObject(ChunkPosition chunk, pl::Vector2<int> tile, Game& game, bool dropItems = false);
 
     // Deletes single object (does not delete object references)
     // Used in deleteObject function
-    void deleteSingleObject(ChunkPosition chunk, sf::Vector2i tile);
+    void deleteSingleObject(ChunkPosition chunk, pl::Vector2<int> tile);
 
     // Creates an object reference object in chunk at tile, with given data
-    void setObjectReference(const ChunkPosition& chunk, const ObjectReference& objectReference, sf::Vector2i tile);
+    void setObjectReference(const ChunkPosition& chunk, const ObjectReference& objectReference, pl::Vector2<int> tile);
 
     // Tests whether an object can be placed in chunk at tile, taking into account object size etc
-    bool canPlaceObject(ChunkPosition chunk, sf::Vector2i tile, ObjectType objectType, const CollisionRect& playerCollisionRect);
+    bool canPlaceObject(ChunkPosition chunk, pl::Vector2<int> tile, ObjectType objectType, const std::vector<Player*>& players);
 
     // Tests whether an object can be destroyed, e.g. can't destroy bridge object if player or entity is on it
-    bool canDestroyObject(ChunkPosition chunk, sf::Vector2i tile, const CollisionRect& playerCollisionRect);
+    bool canDestroyObject(ChunkPosition chunk, pl::Vector2<int> tile, const std::vector<Player*>& players);
 
     // Get all objects in loaded chunks (used for drawing)
-    std::vector<WorldObject*> getChunkObjects();
+    std::vector<WorldObject*> getChunkObjects(ChunkViewRange chunkViewRange);
 
 
     // -- Entities -- //
     // Update all entities in loaded chunks
-    void updateChunksEntities(float dt, ProjectileManager& projectileManager, Game& game);
+    void updateChunksEntities(float dt, ProjectileManager& projectileManager, Game& game, bool networkUpdateOnly);
 
     // Damages any entities hit by any hit rect
-    void testChunkEntityHitCollision(const std::vector<HitRect>& hitRects, Game& game, float gameTime);
+    void testChunkEntityHitCollision(const std::vector<HitRect>& hitRects, pl::Vector2f hitOrigin, Game& game, float gameTime);
 
     // Handle moving of entity from one chunk to another chunk
     void moveEntityToChunkFromChunk(std::unique_ptr<Entity> entity, ChunkPosition newChunk);
 
     // Get entity selected at cursor position (IN WORLD SPACE), if any
-    Entity* getSelectedEntity(ChunkPosition chunk, sf::Vector2f cursorPos);
+    Entity* getSelectedEntity(ChunkPosition chunk, pl::Vector2f cursorPos);
 
     // Get all entities in loaded chunks (used for drawing)
-    std::vector<WorldObject*> getChunkEntities();
+    std::vector<WorldObject*> getChunkEntities(ChunkViewRange chunkViewRange);
 
     int getChunkEntitySpawnCooldown(ChunkPosition chunk);
 
     void resetChunkEntitySpawnCooldown(ChunkPosition chunk);
 
+    PacketDataEntities getEntityPacketDatas(ChunkViewRange chunkViewRange);
+    void loadEntityPacketDatas(const PacketDataEntities& entityPacketDatas);
+
 
     // -- Item pickups -- //
+
     // Adds item pickup automatically to correct chunk
     // If chunk is not loaded / generated, item pickup will be discarded
-    void addItemPickup(const ItemPickup& itemPickup);
+    // Will request pickup creation from host if network handler provided is client
+    std::optional<ItemPickupReference> addItemPickup(const ItemPickup& itemPickup, NetworkHandler* networkHandler, std::optional<uint64_t> idOverride = std::nullopt);
 
     // Check chunks in 3x3 area around player for colliding item pickups
     // Returns first item pickup collided with (if any)
-    // Call deleteItemPickup if successfully picked up
+    // Call reduceItemPickupCount if successfully picked up
     std::optional<ItemPickupReference> getCollidingItemPickup(const CollisionRect& playerCollision, float gameTime);
-    void deleteItemPickup(const ItemPickupReference& itemPickupReference);
 
-    std::vector<WorldObject*> getItemPickups();
+    // Will delete pickup if count <= 0
+    void reduceItemPickupCount(const ItemPickupReference& itemPickupReference, int count);
+
+    std::vector<WorldObject*> getItemPickups(ChunkViewRange chunkViewRange);
 
 
     // -- Collision -- //
@@ -194,19 +220,31 @@ public:
 
     // -- Land -- //
     // Check whether land can be placed at position
-    bool canPlaceLand(ChunkPosition chunk, sf::Vector2i tile);
+    bool canPlaceLand(ChunkPosition chunk, pl::Vector2<int> tile);
 
     // Place land at position
-    void placeLand(ChunkPosition chunk, sf::Vector2i tile);
+    // Pass in NetworkHandler to automatically sync network land placements
+    void placeLand(ChunkPosition chunk, pl::Vector2<int> tile, NetworkHandler* networkHandler);
 
 
     // -- Structures -- //
-    bool isPlayerInStructureEntrance(sf::Vector2f playerPos, StructureEnterEvent& enterEvent);
+
+    // Returns chunk containing structure entered, if any
+    std::optional<ChunkPosition> isPlayerInStructureEntrance(pl::Vector2f playerPos);
 
 
     // Save / load
     std::vector<ChunkPOD> getChunkPODs();
     void loadFromChunkPODs(const std::vector<ChunkPOD>& pods, Game& game);
+
+
+    // -- Networking --
+
+    // Get chunk data to send over network
+    // Generates chunk minimally (as if loaded from POD and out of view) if does not exist
+    PacketDataChunkDatas::ChunkData getChunkDataAndGenerate(ChunkPosition chunk, Game& game);
+
+    void setChunkData(const PacketDataChunkDatas::ChunkData& chunkData, Game& game);
     
 
     // Misc
@@ -215,6 +253,7 @@ public:
     inline int getWorldSize() const {return worldSize;}
     inline const FastNoise& getBiomeNoise() const {return biomeNoise;}
     inline const FastNoise& getHeightNoise() const {return heightNoise;}
+    inline const FastNoise& getRiverNoise() const {return riverNoise;}
     inline PlanetType getPlanetType() const {return planetType;}
     inline const PathfindingEngine& getPathfindingEngine() const {return pathfindingEngine;}
 
@@ -227,24 +266,29 @@ public:
     // Search area grows with one extra tile in each direction per 1 increase
     // E.g. 0 search area searches only player tile, 1 searches 3x3 area around player, 2 searches 5x5 etc
     std::unordered_map<std::string, int> getNearbyCraftingStationLevels(ChunkPosition playerChunk,
-                                                                        sf::Vector2i playerTile,
+                                                                        pl::Vector2<int> playerTile,
                                                                         int searchArea);
+    
+    // Translate position relative to player position and world size, to make position closest possible to player
+    // Provides planet / wraparound effect
+    // pl::Vector2f translatePositionAroundWorld(pl::Vector2f position, pl::Vector2f originPosition) const;
+    // static pl::Vector2f translatePositionAroundWorld(pl::Vector2f position, pl::Vector2f originPosition, int worldSize);
 
     // Used to calculate chunk and tile positions from an offset value, from another chunk and tile
     // Correct for offsets < worldSize * CHUNK_TILE_SIZE
-    static std::pair<ChunkPosition, sf::Vector2i> getChunkTileFromOffset(ChunkPosition chunk, sf::Vector2i tile, int xOffset, int yOffset, int worldSize);
+    static std::pair<ChunkPosition, pl::Vector2<int>> getChunkTileFromOffset(ChunkPosition chunk, pl::Vector2<int> tile, int xOffset, int yOffset, int worldSize);
 
     // Returns rectangle area of size containing chunks in view
     // Used in lighting calculations
-    static sf::Vector2i getChunksSizeInView(const Camera& camera);
-    static sf::Vector2f topLeftChunkPosInView(const Camera& camera);
+    static pl::Vector2<int> getChunksSizeInView(const Camera& camera);
+    static pl::Vector2f topLeftChunkPosInView(const Camera& camera);
 
 private:
     // Generates a chunk and stores it
-    void generateChunk(const ChunkPosition& chunkPosition,
+    Chunk* generateChunk(const ChunkPosition& chunkPosition,
                        Game& game,
-                       bool putInLoaded = true,
-                       std::optional<sf::Vector2f> positionOverride = std::nullopt);
+                       float gameTime,
+                       bool putInLoaded = true);
 
     void clearUnmodifiedStoredChunks();
 
@@ -269,3 +313,32 @@ private:
     PathfindingEngine pathfindingEngine;
 
 };
+
+template <class T>
+inline T* ChunkManager::getChunkObject(ChunkPosition chunk, pl::Vector2<int> tile)
+{
+    Chunk* chunkPtr = getChunk(chunk);
+
+    // Chunk does not exist
+    if (!chunkPtr)
+    {
+        return nullptr;
+    }
+    
+    // Get object from chunk
+    // Get as BuildableObject as could be object reference
+    BuildableObject* selectedObject = chunkPtr->getObject(tile);
+
+    if (!selectedObject)
+        return nullptr;
+
+    // Test if object is object reference object, to then get the actual object
+    if (selectedObject->isObjectReference())
+    {
+        const ObjectReference& objectReference = selectedObject->getObjectReference().value();
+        return getChunkObject<T>(objectReference.chunk, objectReference.tile);
+    }
+
+    // Return casted object
+    return chunkPtr->getObject<T>(tile);
+}

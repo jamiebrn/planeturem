@@ -15,18 +15,16 @@
 
 #include "Data/typedefs.hpp"
 
-// static constexpr unsigned int INVENTORY_STACK_SIZE = 20;
-// static constexpr unsigned int MAX_INVENTORY_SIZE = 32;
-
 class InventoryData
 {
 public:
     InventoryData() = default;
     InventoryData(int size);
 
-    int addItem(ItemType item, int amount, bool createPopup = false, bool createPopupIfNotEnoughSpace = false);
+    // Use modify inventory = false to test whether item can fit in inventory
+    int addItem(ItemType item, int amount, bool createPopup = false, bool createPopupIfNotEnoughSpace = false, bool modifyInventory = true);
 
-    void takeItem(ItemType item, int amount);
+    int takeItem(ItemType item, int amount);
 
     void addItemAtIndex(int index, ItemType item, int amount);
 
@@ -45,7 +43,9 @@ public:
     int addCurrencyValueItems(int currencyValue);
     void takeCurrencyValueItems(int currencyValue);
 
-    inline int getSize() {return inventoryData.size();}
+    void giveStartingItems();
+
+    inline int getSize() const {return inventoryData.size();}
 
     inline const std::vector<std::optional<ItemCount>>& getData() const {return inventoryData;}
     inline std::vector<std::optional<ItemCount>>& getData() {return inventoryData;}

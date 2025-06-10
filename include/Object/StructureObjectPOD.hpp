@@ -6,6 +6,8 @@
 #include <extlib/cereal/archives/binary.hpp>
 #include <extlib/cereal/types/optional.hpp>
 
+#include "Vector.hpp"
+
 #include "Core/CollisionRect.hpp"
 
 #include "Data/typedefs.hpp"
@@ -14,7 +16,7 @@ struct StructureObjectPOD
 {
     StructureType structureType;
 
-    sf::Vector2f relativePos;
+    pl::Vector2f relativePos;
     std::optional<CollisionRect> warpEntranceRectRelative = std::nullopt;
 
     uint32_t structureID;

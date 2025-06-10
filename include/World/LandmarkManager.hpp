@@ -3,21 +3,26 @@
 #include <unordered_set>
 #include <vector>
 
-#include <SFML/System/Vector2.hpp>
-#include <SFML/Graphics/Color.hpp>
+#include <extlib/cereal/archives/binary.hpp>
+#include <extlib/cereal/types/unordered_set.hpp>
+
+#include <Graphics/Color.hpp>
+#include <Vector.hpp>
 
 #include "GameConstants.hpp"
 #include "Object/ObjectReference.hpp"
 #include "Object/BuildableObject.hpp"
 #include "Object/LandmarkObject.hpp"
+#include "Core/Camera.hpp"
 
 class Player;
 class ChunkManager;
+class NetworkHandler;
 
 struct LandmarkSummaryData
 {
-    sf::Vector2f worldPos;
-    sf::Color colourA, colourB;
+    pl::Vector2f screenPos;
+    pl::Color colorA, colorB;
 };
 
 class LandmarkManager
@@ -29,12 +34,17 @@ public:
 
     void removeLandmark(ObjectReference objectReference);
 
-    // Gets world position for each landmark, using shortest distance from player
-    // E.g. if player is at top of world, and landmark is at bottom of world, landmark position will be
-    // given as a negative value from top of world
-    std::vector<LandmarkSummaryData> getLandmarkSummaryDatas(const Player& player, ChunkManager& chunkManager);
+    std::vector<LandmarkSummaryData> getLandmarkSummaryDatas(const Camera& camera, ChunkManager& chunkManager, NetworkHandler& networkHandler);
+
+    int getLandmarkCount() const;
 
     void clear();
+
+    template <class Archive>
+    void serialize(Archive& ar)
+    {
+        ar(landmarks);
+    }
 
 private:
     std::unordered_set<ObjectReference> landmarks;

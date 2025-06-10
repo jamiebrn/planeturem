@@ -5,11 +5,11 @@ Room::Room()
     
 }
 
-Room::Room(RoomType roomType, ChestDataPool& chestDataPool)
+Room::Room(RoomType roomType, ChestDataPool* chestDataPool)
 {
     this->roomType = roomType;
 
-    createObjects(&chestDataPool);
+    createObjects(chestDataPool);
 
     createCollisionRects();
 }
@@ -55,7 +55,7 @@ bool Room::handleStaticCollisionX(CollisionRect& collisionRect, float dx) const
     bool collision = false;
     for (const CollisionRect& rect : collisionRects)
     {
-        if (collisionRect.handleStaticCollisionX(rect, dx))
+        if (collisionRect.handleStaticCollisionX(rect, dx, 0))
             collision = true;
     }
     return collision;
@@ -66,7 +66,7 @@ bool Room::handleStaticCollisionY(CollisionRect& collisionRect, float dy) const
     bool collision = false;
     for (const CollisionRect& rect : collisionRects)
     {
-        if (collisionRect.handleStaticCollisionY(rect, dy))
+        if (collisionRect.handleStaticCollisionY(rect, dy, 0))
             collision = true;
     }
     return collision;
@@ -74,7 +74,7 @@ bool Room::handleStaticCollisionY(CollisionRect& collisionRect, float dy) const
 
 void Room::createObjects(ChestDataPool* chestDataPool)
 {
-    const sf::Image& bitmaskImage = TextureManager::getBitmask(BitmaskType::Structures);
+    const pl::Image& bitmaskImage = TextureManager::getBitmask(BitmaskType::Structures);
 
     const RoomData& roomData = StructureDataLoader::getRoomData(roomType);
 
@@ -98,10 +98,10 @@ void Room::createObjects(ChestDataPool* chestDataPool)
             // std::unique_ptr<BuildableObject> object = nullptr;
 
             // Sample bitmask
-            sf::Color bitmaskColour = bitmaskImage.getPixel(roomData.collisionBitmaskOffset.x + x, roomData.collisionBitmaskOffset.y + y);
+            pl::Color bitmaskColour = bitmaskImage.getPixel(roomData.collisionBitmaskOffset.x + x, roomData.collisionBitmaskOffset.y + y);
 
             // Create object
-            setObjectFromBitmask(sf::Vector2i(x, y), bitmaskColour.b, chestDataPool);
+            setObjectFromBitmask(pl::Vector2<int>(x, y), bitmaskColour.b, chestDataPool);
 
             // Add to array
             // objectGrid.back().push_back(std::move(object));
@@ -113,7 +113,7 @@ void Room::createCollisionRects()
 {
     collisionRects.clear();
 
-    const sf::Image& bitmaskImage = TextureManager::getBitmask(BitmaskType::Structures);
+    const pl::Image& bitmaskImage = TextureManager::getBitmask(BitmaskType::Structures);
 
     const RoomData& roomData = StructureDataLoader::getRoomData(roomType);
 
@@ -130,7 +130,7 @@ void Room::createCollisionRects()
             bool collisionCreated = false;
 
             // Check object first
-            BuildableObject* object = getObject(sf::Vector2i(x, y));
+            BuildableObject* object = getObject(pl::Vector2<int>(x, y));
             if (object)
             {
                 const ObjectData& objectData = ObjectDataLoader::getObjectData(object->getObjectType());
@@ -142,19 +142,21 @@ void Room::createCollisionRects()
             }
 
             // Sample bitmask
-            sf::Color bitmaskColor = bitmaskImage.getPixel(roomData.collisionBitmaskOffset.x + x, roomData.collisionBitmaskOffset.y + y);
+            pl::Color bitmaskColor = bitmaskImage.getPixel(roomData.collisionBitmaskOffset.x + x, roomData.collisionBitmaskOffset.y + y);
 
-            if (bitmaskColor == sf::Color(0, 0, 0, 0))
+            if (bitmaskColor == pl::Color(0, 0, 0, 0))
+            {
                 continue;
+            }
 
             // Collision
-            if (bitmaskColor == sf::Color(255, 0, 0) && !collisionCreated)
+            if (bitmaskColor == pl::Color(255, 0, 0) && !collisionCreated)
             {
                 collisionRects.push_back(collisionRect);
             }
 
             // Warp
-            if (bitmaskColor == sf::Color(0, 255, 0))
+            if (bitmaskColor == pl::Color(0, 255, 0))
             {
                 warpExitRect = collisionRect;
             }
@@ -162,7 +164,7 @@ void Room::createCollisionRects()
     }
 }
 
-bool Room::isPlayerInExit(sf::Vector2f playerPos) const
+bool Room::isPlayerInExit(pl::Vector2f playerPos) const
 {
     if (!warpExitRect.has_value())
     {
@@ -172,21 +174,21 @@ bool Room::isPlayerInExit(sf::Vector2f playerPos) const
     return (warpExitRect->isPointInRect(playerPos.x, playerPos.y));
 }
 
-std::optional<sf::Vector2f> Room::getEntrancePosition() const
+std::optional<pl::Vector2f> Room::getEntrancePosition() const
 {
     if (!warpExitRect.has_value())
     {
         return std::nullopt;
     }
 
-    sf::Vector2f entrancePos;
+    pl::Vector2f entrancePos;
     entrancePos.x = warpExitRect->x + 0.5f * TILE_SIZE_PIXELS_UNSCALED;
     entrancePos.y = warpExitRect->y - 0.5f * TILE_SIZE_PIXELS_UNSCALED;
 
     return entrancePos;
 }
 
-void Room::updateObjects(Game& game, float dt)
+void Room::updateObjects(Game& game, const LocationState& locationState, float dt)
 {
     for (int y = 0; y < objectGrid.size(); y++)
     {
@@ -197,19 +199,19 @@ void Room::updateObjects(Game& game, float dt)
             if (!object)
                 continue;
 
-            object->update(game, dt, false);
+            object->update(game, locationState, dt, false);
         }
     }
 }
 
-// BuildableObject* Room::getObject(sf::Vector2f mouseWorldPos)
+// BuildableObject* Room::getObject(pl::Vector2f mouseWorldPos)
 // {
-//     sf::Vector2i selectedTile = getSelectedTile(mouseWorldPos);
+//     pl::Vector2<int> selectedTile = getSelectedTile(mouseWorldPos);
 
 //     return getObject(selectedTile);
 // }
 
-void Room::setObjectFromBitmask(sf::Vector2i tile, uint8_t bitmaskValue, ChestDataPool* chestDataPool)
+void Room::setObjectFromBitmask(pl::Vector2<int> tile, uint8_t bitmaskValue, ChestDataPool* chestDataPool)
 {
     const RoomData& roomData = StructureDataLoader::getRoomData(roomType);
 
@@ -229,9 +231,9 @@ void Room::setObjectFromBitmask(sf::Vector2i tile, uint8_t bitmaskValue, ChestDa
 
     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectTypeToSpawn);
 
-    sf::Vector2f objectPos = sf::Vector2f(tile.x + 0.5f, tile.y + 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
+    pl::Vector2f objectPos = pl::Vector2f(tile.x + 0.5f, tile.y + 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
     
-    std::unique_ptr<BuildableObject> object = BuildableObjectFactory::create(objectPos, objectTypeToSpawn);
+    std::unique_ptr<BuildableObject> object = BuildableObjectFactory::create(objectPos, objectTypeToSpawn, {});
 
     if (roomObjectData.chestContents.has_value() && chestDataPool != nullptr)
     {
@@ -250,14 +252,14 @@ void Room::setObjectFromBitmask(sf::Vector2i tile, uint8_t bitmaskValue, ChestDa
 
     objectGrid[tile.y][tile.x] = std::move(object);
 
-    if (objectData.size == sf::Vector2i(1, 1))
+    if (objectData.size == pl::Vector2<int>(1, 1))
     {
         return;
     }
 
     // Create object references
     ObjectReference objectReference;
-    objectReference.tile = sf::Vector2i(tile.x, tile.y);
+    objectReference.tile = pl::Vector2<int>(tile.x, tile.y);
 
     for (int y = 0; y < objectData.size.y; y++)
     {
@@ -283,30 +285,6 @@ void Room::setObjectFromBitmask(sf::Vector2i tile, uint8_t bitmaskValue, ChestDa
     }
 }
 
-BuildableObject* Room::getObject(sf::Vector2i tile) const
-{
-    // Bounds checking
-    if (tile.y < 0 || tile.y >= objectGrid.size())
-        return nullptr;
-    
-    if (tile.x < 0 || tile.x >= objectGrid[tile.y].size())
-        return nullptr;
-    
-    BuildableObject* object = objectGrid[tile.y][tile.x].get();
-
-    if (object == nullptr)
-    {
-        return nullptr;
-    }
-
-    if (object->isObjectReference())
-    {
-        return getObject(object->getObjectReference()->tile);
-    }
-
-    return object;
-}
-
 bool Room::getFirstRocketObjectReference(ObjectReference& objectReference) const
 {
     for (int y = 0; y < objectGrid.size(); y++)
@@ -330,7 +308,7 @@ bool Room::getFirstRocketObjectReference(ObjectReference& objectReference) const
             if (objectData.rocketObjectData.has_value())
             {
                 objectReference.chunk = ChunkPosition(0, 0);
-                objectReference.tile = sf::Vector2i(x, y);
+                objectReference.tile = pl::Vector2<int>(x, y);
                 return true;
             }
         }
@@ -344,9 +322,9 @@ RoomType Room::getRoomType() const
     return roomType;
 }
 
-// sf::Vector2i Room::getSelectedTile(sf::Vector2f mouseWorldPos)
+// pl::Vector2<int> Room::getSelectedTile(pl::Vector2f mouseWorldPos)
 // {
-//     sf::Vector2i selectedTile;
+//     pl::Vector2<int> selectedTile;
 //     selectedTile.x = std::floor(mouseWorldPos.x / TILE_SIZE_PIXELS_UNSCALED);
 //     selectedTile.y = std::floor(mouseWorldPos.y / TILE_SIZE_PIXELS_UNSCALED);
 //     return selectedTile;
@@ -379,25 +357,27 @@ std::vector<const WorldObject*> Room::getObjects() const
     return objects;
 }
 
-void Room::draw(sf::RenderTarget& window, const Camera& camera) const
+void Room::draw(pl::RenderTarget& window, const Camera& camera) const
 {
     float scale = ResolutionHandler::getScale();
 
-    TextureDrawData drawData;
-    drawData.position = camera.worldToScreenTransform(sf::Vector2f(0, 0));
-    drawData.scale = sf::Vector2f(scale, scale);
-    drawData.type = TextureType::Rooms;
-
     const RoomData& roomData = StructureDataLoader::getRoomData(roomType);
+    
+    pl::DrawData drawData;
+    drawData.texture = TextureManager::getTexture(TextureType::Rooms);
+    drawData.shader = Shaders::getShader(ShaderType::Default);
+    drawData.position = camera.worldToScreenTransform(pl::Vector2f(0, 0), 0);
+    drawData.scale = pl::Vector2f(scale, scale);
+    drawData.textureRect = roomData.textureRect;
 
-    TextureManager::drawSubTexture(window, drawData, roomData.textureRect);
+    TextureManager::drawSubTexture(window, drawData);
 
     #if (!RELEASE_BUILD)
     if (DebugOptions::drawCollisionRects)
     {
         for (const CollisionRect& rect : collisionRects)
         {
-            rect.debugDraw(window, camera);
+            rect.debugDraw(window, camera, 0);
         }
     }
     #endif
@@ -452,9 +432,9 @@ void Room::loadObjectPODs()
             }
 
             // Object from POD
-            sf::Vector2f objectPos((x + 0.5f) * TILE_SIZE_PIXELS_UNSCALED, (y + 0.5f) * TILE_SIZE_PIXELS_UNSCALED);
+            pl::Vector2f objectPos((x + 0.5f) * TILE_SIZE_PIXELS_UNSCALED, (y + 0.5f) * TILE_SIZE_PIXELS_UNSCALED);
 
-            std::unique_ptr<BuildableObject> object = BuildableObjectFactory::create(objectPos, loadingObjectPodsTemp->at(y).at(x)->objectType);
+            std::unique_ptr<BuildableObject> object = BuildableObjectFactory::create(objectPos, loadingObjectPodsTemp->at(y).at(x)->objectType, {});
 
             object->loadFromPOD(loadingObjectPodsTemp->at(y).at(x).value());
 

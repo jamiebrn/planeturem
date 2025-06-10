@@ -1,6 +1,8 @@
 #pragma once
 
-#include <SFML/Graphics.hpp>
+#include <Graphics/Color.hpp>
+#include <Vector.hpp>
+#include <Rect.hpp>
 
 #include "Object/WorldObject.hpp"
 #include "Object/BuildableObject.hpp"
@@ -10,18 +12,16 @@ class Game;
 class NPCObject : public BuildableObject
 {
 public:
-    NPCObject(sf::Vector2f position, ObjectType objectType);
+    NPCObject(pl::Vector2f position, ObjectType objectType, const BuildableObjectCreateParameters& parameters);
 
     BuildableObject* clone() override;
 
-    void update(Game& game, float dt, bool onWater, bool loopAnimation) override;
+    void update(Game& game, const LocationState& locationState, float dt, bool onWater, bool loopAnimation) override;
 
-    bool damage(int amount, Game& game, ChunkManager& chunkManager, ParticleSystem& particleSystem, bool giveItems = true) override;
+    bool damage(int amount, Game& game, ChunkManager& chunkManager, ParticleSystem* particleSystem, bool giveItems = true, bool createHitMarkers = true) override;
 
-    void interact(Game& game) override;
+    void interact(Game& game, bool isClient) override;
     bool isInteractable() const override;
-
-    void triggerBehaviour(Game& game, ObjectBehaviourTrigger trigger) override;
 
     const NPCObjectData& getNPCObjectData() const;
 

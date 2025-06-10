@@ -1,13 +1,29 @@
 #include "Entity/Boss/BossEntity.hpp"
 #include "Player/Player.hpp"
+#include "Network/NetworkHandler.hpp"
 
-bool BossEntity::inPlayerRange(Player& player)
+bool BossEntity::inPlayerRange(std::vector<Player*>& players, int worldSize)
 {
-    return (playerMaxRange >= Helper::getVectorLength(player.getPosition() - position));
+    for (const Player* player : players)
+    {
+        pl::Vector2f relativePos = Camera::translateWorldPos(player->getPosition(), position, worldSize);
+
+        if ((relativePos - position).getLength() <= playerMaxRange)
+        {
+            return true;
+        }
+    }
+
+    return false;
 }
 
-void BossEntity::createItemPickups(ChunkManager& chunkManager, float gameTime)
+void BossEntity::createItemPickups(NetworkHandler& networkHandler, ChunkManager& chunkManager, float gameTime)
 {
+    if (networkHandler.isClient())
+    {
+        return;
+    }
+
     for (const auto& itemDropChance : itemDrops)
     {
         float randChance = (rand() % 10000) / 10000.0f;
@@ -20,15 +36,47 @@ void BossEntity::createItemPickups(ChunkManager& chunkManager, float gameTime)
 
         for (int i = 0; i < itemAmount; i++)
         {
-            sf::Vector2f spawnPos = position - sf::Vector2f(0.5f, 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
+            pl::Vector2f spawnPos = position - pl::Vector2f(0.5f, 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
             spawnPos.x += Helper::randFloat(-itemPickupDropRadius, itemPickupDropRadius);
             spawnPos.y += Helper::randFloat(-itemPickupDropRadius, itemPickupDropRadius);
 
-            chunkManager.addItemPickup(ItemPickup(spawnPos, itemDropChance.first.itemType, gameTime));
+            chunkManager.addItemPickup(ItemPickup(spawnPos, itemDropChance.first.itemType, gameTime, 1), &networkHandler);
         }
-
-        // inventory.addItem(itemDropChance.first.itemType, amount, true);
     }
+}
+
+bool BossEntity::isPlayerAlive(std::vector<Player*>& players) const
+{
+    for (const Player* player : players)
+    {
+        if (player->isAlive())
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+Player* BossEntity::findClosestPlayer(std::vector<Player*>& players, int worldSize) const
+{
+    float closestDistanceSq = std::pow(worldSize * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED, 2);
+    Player* closestPlayerPtr = nullptr;
+
+    for (Player* player : players)
+    {
+        pl::Vector2f relativePos = Camera::translateWorldPos(player->getPosition(), position, worldSize);
+        
+        float distanceSq = (relativePos - position).getLengthSq();
+        
+        if (distanceSq < closestDistanceSq)
+        {
+            closestDistanceSq = distanceSq;
+            closestPlayerPtr = player;
+        }
+    }
+
+    return closestPlayerPtr;
 }
 
 void BossEntity::setName(const std::string& name)

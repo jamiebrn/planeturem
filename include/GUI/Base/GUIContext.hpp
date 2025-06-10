@@ -7,7 +7,17 @@
 #include <optional>
 #include <iostream>
 
-#include <SFML/Graphics.hpp>
+#include <SDL_events.h>
+
+#include <Graphics/SpriteBatch.hpp>
+#include <Graphics/Color.hpp>
+#include <Graphics/RenderTarget.hpp>
+#include <Graphics/Texture.hpp>
+#include <Vector.hpp>
+#include <Rect.hpp>
+
+#include "Core/TextDraw.hpp"
+#include "Core/Shaders.hpp"
 
 #include "GUIInputState.hpp"
 #include "GUIElement.hpp"
@@ -15,13 +25,14 @@
 #include "Checkbox.hpp"
 #include "Slider.hpp"
 #include "TextEnter.hpp"
+#include "ColorWheel.hpp"
 
 class GUIContext
 {
 public:
     GUIContext() = default;
 
-    void processEvent(const sf::Event& event);
+    void processEvent(const SDL_Event& event);
 
     void endGUI();
 
@@ -37,8 +48,10 @@ public:
 
     const TextEnter& createTextEnter(int x, int y, int width, int height, int textSize, const std::string& text, std::string* textPtr,
         int paddingX = 0, int paddingY = 0, int maxLength = 9999);
+    
+    const ColorWheel& createColorWheel(int x, int y, int size, float& value, pl::Color& currentColor);
 
-    void draw(sf::RenderTarget& window);
+    void draw(pl::RenderTarget& window);
 
     // Used with other control methods, e.g. controller
     void forceElementActivation(ElementID element);

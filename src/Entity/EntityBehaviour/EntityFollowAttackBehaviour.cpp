@@ -13,13 +13,13 @@ void EntityFollowAttackBehaviour::update(Entity& entity, ChunkManager& chunkMana
 
     if (!pathFollower.isActive() || collisionLastFrame)
     {
-        sf::Vector2i tile = WorldObject::getWorldTileInside(sf::Vector2f(collisionRect.x, collisionRect.y), chunkManager.getWorldSize());
-        sf::Vector2i playerTile = game.getPlayer().getWorldTileInside(chunkManager.getWorldSize());
+        pl::Vector2<int> tile = WorldObject::getWorldTileInside(pl::Vector2f(collisionRect.x, collisionRect.y), chunkManager.getWorldSize());
+        pl::Vector2<int> playerTile = game.getPlayer().getWorldTileInside(chunkManager.getWorldSize());
 
         std::vector<PathfindGridCoordinate> pathfindResult;
         if (chunkManager.getPathfindingEngine().findPath(tile.x, tile.y, playerTile.x, playerTile.y, pathfindResult, true, 70))
         {
-            pathFollower.beginPath(sf::Vector2f(collisionRect.x, collisionRect.y), chunkManager.getPathfindingEngine().createStepSequenceFromPath(pathfindResult));
+            pathFollower.beginPath(pl::Vector2f(collisionRect.x, collisionRect.y), chunkManager.getPathfindingEngine().createStepSequenceFromPath(pathfindResult));
         }
 
         collisionLastFrame = false;
@@ -27,8 +27,8 @@ void EntityFollowAttackBehaviour::update(Entity& entity, ChunkManager& chunkMana
     else
     {
         // TODO: Replace with custom speed
-        sf::Vector2f pathPos = pathFollower.updateFollower(60.0f * dt);
-        sf::Vector2f velocity = (pathPos - sf::Vector2f(collisionRect.x, collisionRect.y)) / dt;
+        pl::Vector2f pathPos = pathFollower.updateFollower(60.0f * dt);
+        pl::Vector2f velocity = (pathPos - pl::Vector2f(collisionRect.x, collisionRect.y)) / dt;
         entity.setVelocity(velocity);
 
         // Test collision after x movement

@@ -7,7 +7,7 @@ ChestDataPool::ChestDataPool()
 
     openDataSlots.clear();
 
-    // topDataSlot = 0;
+    topDataSlot = 0;
 }
 
 // ID 0xFFFF returned means chest was not initialised, as data is full
@@ -19,13 +19,15 @@ uint16_t ChestDataPool::createChest(const InventoryData& chestContents)
         uint16_t chestID = openDataSlots.back();
         openDataSlots.pop_back();
         chestData[chestID] = chestContents;
+        return chestID;
     }
     else
     {
-        if (chestData.size() < 0xFFFF)
+        if (topDataSlot < 0xFFFF)
         {
-            chestData.push_back(chestContents);
-            uint16_t chestID = chestData.size() - 1;
+            chestData[topDataSlot] = chestContents;
+            topDataSlot++;
+            uint16_t chestID = topDataSlot - 1;
             return chestID;
         }
     }
@@ -46,28 +48,33 @@ uint16_t ChestDataPool::createChest(int capacity)
 
 void ChestDataPool::destroyChest(uint16_t id)
 {
-    if (id >= chestData.size())
+    if (!chestData.contains(id))
     {
         return;
     }
 
-    chestData[id] = std::nullopt;
+    chestData.erase(id);
     openDataSlots.push_back(id);
 }
 
 InventoryData& ChestDataPool::getChestData(uint16_t id)
 {
-    assert(id < chestData.size());
+    assert(chestData.contains(id));
 
-    return chestData.at(id).value();
+    return chestData.at(id);
 }
 
 InventoryData* ChestDataPool::getChestDataPtr(uint16_t id)
 {
-    if (id >= chestData.size())
+    if (!chestData.contains(id))
     {
         return nullptr;
     }
 
-    return &(chestData.at(id).value());
+    return &(chestData.at(id));
+}
+
+void ChestDataPool::overwriteChestData(uint16_t id, const InventoryData& chestContents)
+{
+    chestData[id] = chestContents;
 }

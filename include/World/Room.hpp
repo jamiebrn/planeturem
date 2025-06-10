@@ -1,12 +1,18 @@
 #pragma once
 
-#include <SFML/Graphics.hpp>
-
 #include <vector>
 #include <array>
 #include <optional>
 #include <memory>
 #include <unordered_map>
+
+#include <Graphics/SpriteBatch.hpp>
+#include <Graphics/Color.hpp>
+#include <Graphics/RenderTarget.hpp>
+#include <Graphics/Shader.hpp>
+#include <Graphics/Texture.hpp>
+#include <Vector.hpp>
+#include <Rect.hpp>
 
 #include <extlib/cereal/archives/binary.hpp>
 #include <extlib/cereal/types/vector.hpp>
@@ -14,6 +20,7 @@
 
 #include "Core/CollisionRect.hpp"
 #include "Core/TextureManager.hpp"
+#include "Core/Shaders.hpp"
 #include "Core/Camera.hpp"
 #include "Core/ResolutionHandler.hpp"
 
@@ -39,7 +46,7 @@ class Room
 {
 public:
     Room();
-    Room(RoomType roomType, ChestDataPool& chestDataPool);
+    Room(RoomType roomType, ChestDataPool* chestDataPool);
 
     // Copying
     Room(const Room& room);
@@ -48,24 +55,24 @@ public:
     bool handleStaticCollisionX(CollisionRect& collisionRect, float dx) const;
     bool handleStaticCollisionY(CollisionRect& collisionRect, float dy) const;
 
-    bool isPlayerInExit(sf::Vector2f playerPos) const;
+    bool isPlayerInExit(pl::Vector2f playerPos) const;
 
-    std::optional<sf::Vector2f> getEntrancePosition() const;
+    std::optional<pl::Vector2f> getEntrancePosition() const;
 
     std::vector<const WorldObject*> getObjects() const;
 
     std::vector<std::vector<std::unique_ptr<BuildableObject>>>& getObjectGrid() {return objectGrid;}
 
-    void updateObjects(Game& game, float dt);
+    void updateObjects(Game& game, const LocationState& locationState, float dt);
 
-    // BuildableObject* getObject(sf::Vector2f mouseWorldPos) const;
-    BuildableObject* getObject(sf::Vector2i tile) const;
+    template <class T = BuildableObject>
+    T* getObject(pl::Vector2<int> tile) const;
 
     bool getFirstRocketObjectReference(ObjectReference& objectReference) const;
 
     RoomType getRoomType() const;
 
-    void draw(sf::RenderTarget& window, const Camera& camera) const;
+    void draw(pl::RenderTarget& window, const Camera& camera) const;
 
 
     // Save / load
@@ -174,7 +181,7 @@ public:
 
 private:
     void createObjects(ChestDataPool* chestDataPool);
-    void setObjectFromBitmask(sf::Vector2i tile, uint8_t bitmaskValue, ChestDataPool* chestDataPool);
+    void setObjectFromBitmask(pl::Vector2<int> tile, uint8_t bitmaskValue, ChestDataPool* chestDataPool);
 
     void createCollisionRects();
     
@@ -194,5 +201,35 @@ private:
     std::unique_ptr<std::vector<uint16_t>> unusedMetadataChestIDs = nullptr;
 
 };
+
+template <class T>
+inline T* Room::getObject(pl::Vector2<int> tile) const
+{
+    // Bounds checking
+    if (tile.y < 0 || tile.y >= objectGrid.size())
+        return nullptr;
+    
+    if (tile.x < 0 || tile.x >= objectGrid[tile.y].size())
+        return nullptr;
+    
+    BuildableObject* object = objectGrid[tile.y][tile.x].get();
+
+    if (!object)
+    {
+        return nullptr;
+    }
+
+    if (object->isObjectReference())
+    {
+        return getObject<T>(object->getObjectReference()->tile);
+    }
+
+    if constexpr (std::is_same_v<T, BuildableObject>)
+    {
+        return object;
+    }
+
+    return dynamic_cast<T*>(object);
+}
 
 CEREAL_CLASS_VERSION(Room, 2);

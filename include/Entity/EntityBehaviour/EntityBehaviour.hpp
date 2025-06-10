@@ -1,6 +1,9 @@
 #pragma once
 
-#include <SFML/Graphics.hpp>
+
+
+#include <Vector.hpp>
+#include <Rect.hpp>
 
 class Game;
 class Entity;
@@ -13,5 +16,5 @@ public:
 
     virtual void update(Entity& entity, ChunkManager& chunkManager, Game& game, float dt) = 0;
 
-    inline virtual void onHit(Entity& entity, Game& game, sf::Vector2f hitSource) {}
+    inline virtual void onHit(Entity& entity, Game& game, pl::Vector2f hitSource) {}
 };

@@ -9,10 +9,10 @@ void TravelSelectGUI::setAvailableDestinations(const std::vector<PlanetType>& av
     resetHoverRect();
 }
 
-bool TravelSelectGUI::createAndDraw(sf::RenderWindow& window, float dt, PlanetType& selectedPlanetType, RoomType& selectedRoomType)
+bool TravelSelectGUI::createAndDraw(pl::RenderTarget& window, float dt, LocationState& selectedLocationState)
 {
     float intScale = ResolutionHandler::getResolutionIntegerScale();
-    sf::Vector2f resolution = static_cast<sf::Vector2f>(ResolutionHandler::getResolution());
+    pl::Vector2f resolution = static_cast<pl::Vector2f>(ResolutionHandler::getResolution());
 
     drawPanel(window);
 
@@ -20,10 +20,10 @@ bool TravelSelectGUI::createAndDraw(sf::RenderWindow& window, float dt, PlanetTy
 
     int yPos = 100;
 
-    TextDrawData titleTextDrawData;
-    titleTextDrawData.position = sf::Vector2f(scaledPanelPaddingX + panelWidth / 2 * intScale, yPos * intScale);
+    pl::TextDrawData titleTextDrawData;
+    titleTextDrawData.position = pl::Vector2f(scaledPanelPaddingX + panelWidth / 2 * intScale, yPos * intScale);
     titleTextDrawData.size = 36 * intScale;
-    titleTextDrawData.colour = sf::Color(255, 255, 255);
+    titleTextDrawData.color = pl::Color(255, 255, 255);
     titleTextDrawData.centeredX = true;
     titleTextDrawData.centeredY = true;
 
@@ -44,7 +44,7 @@ bool TravelSelectGUI::createAndDraw(sf::RenderWindow& window, float dt, PlanetTy
             {
                 if (!clicked)
                 {
-                    selectedPlanetType = planetDestination;
+                    selectedLocationState.setPlanetType(planetDestination);
                 }
                 clicked = true;
             }
@@ -71,7 +71,7 @@ bool TravelSelectGUI::createAndDraw(sf::RenderWindow& window, float dt, PlanetTy
             {
                 if (!clicked)
                 {
-                    selectedRoomType = roomDestination;
+                    selectedLocationState.setRoomDestType(roomDestination);
                 }
                 clicked = true;
             }

@@ -2,10 +2,17 @@
 
 #define _USE_MATH_DEFINES
 #include <cmath>
-#include <SFML/Graphics.hpp>
+
 #include <optional>
 #include <iostream>
 #include <unordered_map>
+
+#include <Graphics/SpriteBatch.hpp>
+#include <Graphics/Color.hpp>
+#include <Graphics/RenderTarget.hpp>
+#include <Graphics/Texture.hpp>
+#include <Vector.hpp>
+#include <Rect.hpp>
 
 #include "Core/TextureManager.hpp"
 #include "Core/Shaders.hpp"
@@ -13,64 +20,67 @@
 #include "Core/ResolutionHandler.hpp"
 #include "Core/Camera.hpp"
 #include "Core/AnimatedTexture.hpp"
-#include "Core/SpriteBatch.hpp"
 #include "Object/WorldObject.hpp"
 #include "Object/ObjectReference.hpp"
 #include "Object/BuildableObjectPOD.hpp"
 #include "Object/ParticleSystem.hpp"
 #include "Player/InventoryData.hpp"
+#include "Player/LocationState.hpp"
 #include "Data/ObjectData.hpp"
 #include "Data/ObjectDataLoader.hpp"
 
-#include "GUI/InventoryGUI.hpp"
 #include "GUI/HitMarkers.hpp"
 
 class Game;
 class ChunkManager;
 
-enum ObjectBehaviourTrigger
-{
-    RocketFlyUp, RocketFlyDown,
-    RocketExit
-};
-
 constexpr int DUMMY_OBJECT_COLLISION = -10;
 constexpr int DUMMY_OBJECT_NO_COLLISION = -11;
+
+struct BuildableObjectCreateParameters
+{
+    bool placedByPlayer = false;
+    bool placedByThisPlayer = false;
+    bool flashOnCreate = false;
+    bool randomisePlantAge = false;
+    bool randomisePlantAgeDeterministic = false;
+    bool randomiseAnimation = true;
+};
 
 class BuildableObject : public WorldObject
 {
 public:
-    BuildableObject(sf::Vector2f position, ObjectType objectType, bool randomiseAnimation = true);
+    BuildableObject(pl::Vector2f position, ObjectType objectType, const BuildableObjectCreateParameters& parameters);
 
     virtual BuildableObject* clone();
 
-    virtual void update(Game& game, float dt, bool onWater, bool loopAnimation = true);
+    virtual void update(Game& game, const LocationState& locationState, float dt, bool onWater, bool loopAnimation = true);
 
-    virtual void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
-        const sf::Color& color) const override;
+    virtual void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
+        const pl::Color& color) const override;
 
-    void createLightSource(LightingEngine& lightingEngine, sf::Vector2f topLeftChunkPos) const override;
+    void createLightSource(LightingEngine& lightingEngine, pl::Vector2f topLeftChunkPos, pl::Vector2f playerPos, int worldSize) const override;
 
     // Returns true if destroyed
-    virtual bool damage(int amount, Game& game, ChunkManager& chunkManager, ParticleSystem& particleSystem, bool giveItems = true);
+    virtual bool damage(int amount, Game& game, ChunkManager& chunkManager, ParticleSystem* particleSystem, bool giveItems = true, bool createHitMarkers = true);
+
+    void forceKill(Game& game, ChunkManager& chunkManager);
 
     void createHitParticles(ParticleSystem& particleSystem);
 
     void createHitMarker(int amount);
     
-    void setWorldPosition(sf::Vector2f position);
+    void setWorldPosition(pl::Vector2f position);
 
     inline ObjectType getObjectType() const {return objectType;}
 
     inline bool isAlive() {return health > 0;}
 
-    virtual void interact(Game& game);
+    virtual void interact(Game& game, bool isClient);
     virtual bool isInteractable() const;
-
-    virtual void triggerBehaviour(Game& game, ObjectBehaviourTrigger trigger);
-
+    
     // -- Object reference -- //
-    BuildableObject(ObjectReference _objectReference);
+    BuildableObject(ObjectReference objectReference);
 
     inline bool isObjectReference() const {return objectReference.has_value();}
 
@@ -98,16 +108,16 @@ public:
     }
 
 protected:
-    void createItemPickups(ChunkManager& chunkManager, const std::vector<ItemDrop>& itemDrops, float gameTime);
+    void createItemPickups(ChunkManager& chunkManager, Game& game, const std::vector<ItemDrop>& itemDrops, float gameTime);
 
-    void drawObject(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Camera& camera, float gameTime, int worldSize, const sf::Color& color,
-        std::optional<std::vector<sf::IntRect>> textureRectsOverride = std::nullopt, std::optional<sf::Vector2f> textureOriginOverride = std::nullopt,
-        const sf::Texture* textureOverride = nullptr) const;
+    void drawObject(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera, float gameTime, int worldSize, const pl::Color& color,
+        std::optional<std::vector<pl::Rect<int>>> textureRectsOverride = std::nullopt, std::optional<pl::Vector2f> textureOriginOverride = std::nullopt,
+        const pl::Texture* textureOverride = nullptr) const;
 
 protected:
     ObjectType objectType = 0;
     int health = 1;
-    float flash_amount;
+    float flashAmount;
 
     int8_t animationDirection = 1;
     AnimatedTextureMinimal animatedTexture;

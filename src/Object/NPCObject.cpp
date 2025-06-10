@@ -1,10 +1,10 @@
 #include "Object/NPCObject.hpp"
 #include "Game.hpp"
 
-NPCObject::NPCObject(sf::Vector2f position, ObjectType objectType)
-    : BuildableObject(position, objectType, false)
+NPCObject::NPCObject(pl::Vector2f position, ObjectType objectType, const BuildableObjectCreateParameters& parameters)
+    : BuildableObject(position, objectType, parameters)
 {
-
+    
 }
 
 BuildableObject* NPCObject::clone()
@@ -12,18 +12,18 @@ BuildableObject* NPCObject::clone()
     return new NPCObject(*this);
 }
 
-void NPCObject::update(Game& game, float dt, bool onWater, bool loopAnimation)
+void NPCObject::update(Game& game, const LocationState& locationState, float dt, bool onWater, bool loopAnimation)
 {
-    BuildableObject::update(game, dt, onWater, true);
+    BuildableObject::update(game, locationState, dt, onWater, true);
 }
 
-bool NPCObject::damage(int amount, Game& game, ChunkManager& chunkManager, ParticleSystem& particleSystem, bool giveItems)
+bool NPCObject::damage(int amount, Game& game, ChunkManager& chunkManager, ParticleSystem* particleSystem, bool giveItems, bool createHitMarkers)
 {
     // Cannot damage NPC
     return false;
 }
 
-void NPCObject::interact(Game& game)
+void NPCObject::interact(Game& game, bool isClient)
 {
     game.interactWithNPC(*this);
 }
@@ -31,11 +31,6 @@ void NPCObject::interact(Game& game)
 bool NPCObject::isInteractable() const
 {
     return true;
-}
-
-void NPCObject::triggerBehaviour(Game& game, ObjectBehaviourTrigger trigger)
-{
-
 }
 
 const NPCObjectData& NPCObject::getNPCObjectData() const

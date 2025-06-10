@@ -2,18 +2,26 @@
 #include "Game.hpp"
 #include "World/ChunkManager.hpp"
 
-PlantObject::PlantObject(sf::Vector2f position, ObjectType objectType, Game& game, bool randomiseAge)
-    : BuildableObject(position, objectType, false)
+PlantObject::PlantObject(pl::Vector2f position, ObjectType objectType, const BuildableObjectCreateParameters& parameters, Game& game, const ChunkManager* chunkManager)
+    : BuildableObject(position, objectType, parameters)
 {
     int currentDay = game.getDayCycleManager().getCurrentDay();
 
-    if (randomiseAge)
+    if (parameters.randomisePlantAge)
     {
         // Set seed for randgen
-        const ChunkManager& chunkManager = game.getChunkManager();
-        unsigned long int chunkSeed = (chunkManager.getSeed() + chunkManager.getPlanetType()) ^ getChunkInside(chunkManager.getWorldSize()).hash();
-        sf::Vector2i tile = getChunkTileInside(position, chunkManager.getWorldSize());
-        chunkSeed |= tile.x | tile.y;
+        unsigned long int chunkSeed;
+
+        if (parameters.randomisePlantAgeDeterministic)
+        {
+            chunkSeed = (game.getPlanetSeed() + chunkManager->getPlanetType()) ^ getChunkInside(chunkManager->getWorldSize()).hash();
+            pl::Vector2<int> tile = getChunkTileInside(position, chunkManager->getWorldSize());
+            chunkSeed |= (tile.x << 8) | tile.y;
+        }
+        else
+        {
+            chunkSeed = rand();
+        }
 
         RandInt randGen(chunkSeed);
         
@@ -38,9 +46,9 @@ BuildableObject* PlantObject::clone()
     return new PlantObject(*this);
 }
 
-void PlantObject::update(Game& game, float dt, bool onWater, bool loopAnimation)
+void PlantObject::update(Game& game, const LocationState& locationState, float dt, bool onWater, bool loopAnimation)
 {
-    flash_amount = std::max(flash_amount - dt * 3, 0.0f);
+    flashAmount = std::max(flashAmount - dt * 3, 0.0f);
 
     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
     const PlantStageObjectData& plantStageData = objectData.plantStageObjectData->at(currentStage);
@@ -64,11 +72,11 @@ void PlantObject::changePlantStage(int newStage)
     health = objectData.plantStageObjectData->at(currentStage).health;
 }
 
-bool PlantObject::damage(int amount, Game& game, ChunkManager& chunkManager, ParticleSystem& particleSystem, bool giveItems)
+bool PlantObject::damage(int amount, Game& game, ChunkManager& chunkManager, ParticleSystem* particleSystem, bool giveItems, bool createHitMarkers)
 {
-    bool destroyed = BuildableObject::damage(amount, game, chunkManager, particleSystem, false);
+    bool destroyed = BuildableObject::damage(amount, game, chunkManager, particleSystem, false, createHitMarkers);
 
-    if (destroyed)
+    if (destroyed && giveItems)
     {
         // Give items based on current growth stage
         const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
@@ -87,7 +95,7 @@ bool PlantObject::damage(int amount, Game& game, ChunkManager& chunkManager, Par
         }
 
         // Give item drops
-        createItemPickups(chunkManager, plantStageData->itemDrops, game.getGameTime());
+        createItemPickups(chunkManager, game, plantStageData->itemDrops, game.getGameTime());
 
         return true;
     }
@@ -95,7 +103,7 @@ bool PlantObject::damage(int amount, Game& game, ChunkManager& chunkManager, Par
     return false;
 }
 
-void PlantObject::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const sf::Color& color) const
+void PlantObject::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const pl::Color& color) const
 {
     // int currentDay = game.getDayCycleManager().getCurrentDay();
 

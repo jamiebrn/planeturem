@@ -44,13 +44,13 @@ bool PlanetGenDataLoader::loadPlanet(nlohmann::ordered_json::iterator& planetDat
 
     // if (planetData->contains("water-colour"))
     // {
-    //     planetGenData.waterColour.r = planetData->at("water-colour")[0];
-    //     planetGenData.waterColour.g = planetData->at("water-colour")[1];
-    //     planetGenData.waterColour.b = planetData->at("water-colour")[2];
+    //     planetGenData.waterColor.r = planetData->at("water-colour")[0];
+    //     planetGenData.waterColor.g = planetData->at("water-colour")[1];
+    //     planetGenData.waterColor.b = planetData->at("water-colour")[2];
     // }
     // else
     // {
-    //     planetGenData.waterColour = sf::Color(255, 255, 255);
+    //     planetGenData.waterColor = sf::Color(255, 255, 255);
     // }
 
     planetGenData.waterTextureOffset = planetData->at("water-texture-offset");
@@ -105,14 +105,20 @@ bool PlanetGenDataLoader::loadPlanet(nlohmann::ordered_json::iterator& planetDat
 
         if (biomeIter->contains("water-colour"))
         {
-            biomeGenData.waterColour.r = biomeIter->at("water-colour")[0];
-            biomeGenData.waterColour.g = biomeIter->at("water-colour")[1];
-            biomeGenData.waterColour.b = biomeIter->at("water-colour")[2];
+            biomeGenData.waterColor.r = biomeIter->at("water-colour")[0];
+            biomeGenData.waterColor.g = biomeIter->at("water-colour")[1];
+            biomeGenData.waterColor.b = biomeIter->at("water-colour")[2];
         }
         else
         {
-            biomeGenData.waterColour = sf::Color(255, 255, 255);
+            biomeGenData.waterColor = pl::Color(255, 255, 255);
         }
+
+        auto resourceRegenTime = biomeIter->at("resource-regeneration-time");
+        biomeGenData.resourceRegenerationTimeMin = resourceRegenTime[0];
+        biomeGenData.resourceRegenerationTimeMax = resourceRegenTime[1];
+
+        biomeGenData.resourceRegenerationDensity = biomeIter->at("resource-regeneration-density");
 
         // Load biome tilemaps
         if (!biomeIter->contains("tiles"))
@@ -209,6 +215,9 @@ bool PlanetGenDataLoader::loadPlanet(nlohmann::ordered_json::iterator& planetDat
 
         if (biomeIter->contains("fish-catches"))
         {
+            // Get total fish chance then normalise after loading
+            float totalChance = 0.0f;
+
             auto fishCatches = biomeIter->at("fish-catches");
             for (nlohmann::ordered_json::iterator fishCatchIter = fishCatches.begin(); fishCatchIter != fishCatches.end(); ++fishCatchIter)
             {
@@ -218,7 +227,15 @@ bool PlanetGenDataLoader::loadPlanet(nlohmann::ordered_json::iterator& planetDat
                 fishCatchData.count = fishCatchIter.value()[1];
                 fishCatchData.chance = fishCatchIter.value()[2];
 
+                totalChance += fishCatchData.chance;
+
                 biomeGenData.fishCatchDatas.push_back(fishCatchData);
+            }
+
+            // Normalise probabilities
+            for (FishCatchData& fishCatchData : biomeGenData.fishCatchDatas)
+            {
+                fishCatchData.chance /= totalChance;
             }
         }
 

@@ -19,13 +19,14 @@
                         ["Cactus Bulb", 0.025]
                     ],
                     "fish-catches": [
-                        ["Sandfish", 1, 0.5],
-                        ["Fish", 1, 0.3],
-                        ["Wood", 1, 0.1],
-                        ["Stone", 1, 0.1]
+                        ["Sandfish", 1, 5],
+                        ["Wood", 1, 1],
+                        ["Stone", 1, 4]
                     ],
                     "water-colour": [173, 152, 93],
                     "noise-range": [0, 0.3],
+                    "resource-regeneration-time": [270, 400],
+                    "resource-regeneration-density": 0.3,
                     "bosses-spawn-allowed": ["The Sand Serpent"]
                 },
                 {
@@ -50,12 +51,17 @@
                         ["Stone Dungeon", 0.02]
                     ],
                     "fish-catches": [
-                        ["Fish", 1, 0.8],
-                        ["Coal", 1, 0.1],
-                        ["Wood", 2, 0.1]
+                        ["Golden Carp", 1, 0.3],
+                        ["Carp", 1, 1],
+                        ["Bream", 1, 1],
+                        ["Dace", 1, 1],
+                        ["Coal", 1, 1],
+                        ["Wood", 2, 1]
                     ],
                     "water-colour": [77, 155, 230],
-                    "noise-range": [0.3, 0.6]
+                    "noise-range": [0.3, 0.6],
+                    "resource-regeneration-time": [200, 350],
+                    "resource-regeneration-density": 0.4
                 },
                 {
                     "name": "Rocky",
@@ -72,12 +78,14 @@
                         ["Stone Dungeon", 0.02]
                     ],
                     "fish-catches": [
-                        ["Rockfish", 1, 0.6],
-                        ["Fish", 1, 0.2],
-                        ["Stone", 1, 0.2]
+                        ["Rockfish", 1, 6],
+                        ["Quillback", 1, 4],
+                        ["Stone", 1, 4]
                     ],
                     "water-colour": [82, 113, 151],
-                    "noise-range": [0.6, 1]
+                    "noise-range": [0.6, 1],
+                    "resource-regeneration-time": [250, 380],
+                    "resource-regeneration-density": 0.3
                 }
             ],
             "water-texture-offset": [0, 0],
@@ -102,7 +110,9 @@
                     ],
                     "fish-catches": [],
                     "water-colour": [77, 155, 230],
-                    "noise-range": [0, 0.5]
+                    "noise-range": [0, 0.5],
+                    "resource-regeneration-time": [170, 240],
+                    "resource-regeneration-density": 0.2
                 },
                 {
                     "name": "Tundra",
@@ -120,7 +130,9 @@
                     ],
                     "fish-catches": [],
                     "water-colour": [77, 155, 230],
-                    "noise-range": [0.5, 1]
+                    "noise-range": [0.5, 1],
+                    "resource-regeneration-time": [250, 420],
+                    "resource-regeneration-density": 0.3
                 }
             ],
             "water-texture-offset": [0, 0],

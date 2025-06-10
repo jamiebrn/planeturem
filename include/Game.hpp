@@ -1,19 +1,35 @@
 #pragma once
 
-#include <SFML/Graphics.hpp>
+#define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
-#include <imgui.h>
-#include <imgui-SFML.h>
 #include <extlib/steam/steam_api.h>
+#include <chrono>
+
+#include "GameConstants.hpp"
+
+#if (!RELEASE_BUILD)
+#include <imgui.h>
+#include <backends/imgui_impl_sdl2.h>
+#include <backends/imgui_impl_opengl3.h>
+#endif
 
 #include <World/FastNoise.h>
 #include <Core/json.hpp>
+#define _USE_MATH_DEFINES
 #include <cmath>
 #include <array>
 #include <unordered_map>
 #include <iostream>
 #include <string>
 #include <memory>
+
+#include <Graphics/TextDrawData.hpp>
+#include <Graphics/Color.hpp>
+#include <Graphics/Framebuffer.hpp>
+#include <Graphics/Texture.hpp>
+#include <Graphics/VertexArray.hpp>
+#include <Graphics/SpriteBatch.hpp>
+#include <Window.hpp>
 
 #include "Core/TextureManager.hpp"
 #include "Core/Shaders.hpp"
@@ -22,7 +38,6 @@
 #include "Core/ResolutionHandler.hpp"
 #include "Core/Helper.hpp"
 #include "Core/Tween.hpp"
-#include "Core/SpriteBatch.hpp"
 #include "Core/InputManager.hpp"
 
 #include "World/ChunkManager.hpp"
@@ -37,8 +52,12 @@
 #include "World/PathfindingEngine.hpp"
 #include "World/LandmarkManager.hpp"
 #include "World/WeatherSystem.hpp"
+#include "World/WorldData.hpp"
+#include "World/RoomDestinationData.hpp"
 
 #include "Player/Player.hpp"
+#include "Player/PlayerData.hpp"
+#include "Player/LocationState.hpp"
 #include "Player/Cursor.hpp"
 #include "Player/InventoryData.hpp"
 #include "Player/ItemPickup.hpp"
@@ -79,11 +98,19 @@
 
 #include "GUI/MainMenuGUI.hpp"
 #include "GUI/InventoryGUI.hpp"
+#include "GUI/ChatGUI.hpp"
 #include "GUI/HealthGUI.hpp"
 #include "GUI/TravelSelectGUI.hpp"
 #include "GUI/LandmarkSetGUI.hpp"
 #include "GUI/NPCInteractionGUI.hpp"
 #include "GUI/HitMarkers.hpp"
+#include "GUI/DemoEndGUI.hpp"
+
+#include "Network/Packet.hpp"
+#include "Network/IPacketData.hpp"
+#include "Network/PacketData/PacketDataIncludes.hpp"
+
+#include "Network/NetworkHandler.hpp"
 
 #include "IO/GameSaveIO.hpp"
 
@@ -94,49 +121,125 @@ class Game
 public:
     bool initialise();
 
+    void deinit();
+
     void run();
 
 public:
     // Chest
-    void openChest(ChestObject& chest);
-    void closeChest();
+    void openChest(ChestObject& chest, std::optional<LocationState> chestLocationState, bool initiatedClientSide);
+    void openChestForClient(PacketDataChestOpened packetData);
+    void openChestFromHost(const PacketDataChestOpened& packetData);
+    void openedChestDataModified();
+    void closeChest(std::optional<ObjectReference> chestObjectRef = std::nullopt, std::optional<LocationState> chestLocationState = std::nullopt,
+        bool sentFromHost = false, std::optional<uint64_t> userId = std::nullopt);
     uint16_t getOpenChestID();
-    ChestDataPool& getChestDataPool();
 
     // Rocket
-    void enterRocket(RocketObject& rocket);
-    void exitRocket();
+    void enterRocketFromReference(ObjectReference rocketObjectReference, bool sentFromHost);
+    void enterRocket(RocketObject& rocket, bool sentFromHost);
+    void exitRocket(const LocationState& locationState, RocketObject* rocket);
     void enterIncomingRocket(RocketObject& rocket);
-    void rocketFinishedUp(RocketObject& rocket);
-    void rocketFinishedDown(RocketObject& rocket);
+    void rocketFinishedUp(const LocationState& locationState, RocketObject& rocket);
+    void rocketFinishedDown(const LocationState& locationState, RocketObject& rocket);
+    
+    void setSpawnLocation(PlanetType planetType, ObjectReference spawnLocation);
+    ObjectReference getSpawnLocation(std::optional<PlanetType> planetType = std::nullopt);
+
+    void onRespawn();
+    void respawnPlayer();
 
     // NPC
     void interactWithNPC(NPCObject& npc);
 
     // Landmark
-    void landmarkPlaced(const LandmarkObject& landmark, bool createGUI);
+    void landmarkPlaced(const LandmarkObject& landmark, PlanetType planetType, bool createGUI);
     void landmarkDestroyed(const LandmarkObject& landmark);
 
     // Melee combat
-    void testMeleeCollision(const std::vector<HitRect>& hitRects);
+    void testMeleeCollision(const LocationState& locationState, const std::vector<HitRect>& hitRects, pl::Vector2f hitOrigin);
 
-    void drawWorld(sf::RenderTexture& renderTexture, float dt, std::vector<WorldObject*>& worldObjects, ChunkManager& chunkManagerArg, const Camera& cameraArg);
+    // Item pickups created alert
+    // void itemPickupsCreated(const std::vector<ItemPickupReference>& itemPickupsCreated, std::optional<LocationState> pickupsLocationState);
+
+    void drawWorld(pl::Framebuffer& renderTexture, float dt, std::vector<WorldObject*>& worldObjects, WorldData& worldData, const Camera& cameraArg);
+
+    void joinWorld(const PacketDataJoinInfo& joinInfo);
+    void quitWorld();
+
+    // Attempts to load planet from disk if required - initialises new planet if not available
+    bool loadPlanet(PlanetType planetType);
+    bool loadRoomDest(RoomType roomType);
+
+    void hitObject(ChunkPosition chunk, pl::Vector2<int> tile, int damage, std::optional<PlanetType> planetType = std::nullopt,
+        bool sentFromHost = false, std::optional<uint64_t> userId = std::nullopt);
+    void buildObject(ChunkPosition chunk, pl::Vector2<int> tile, ObjectType objectType, std::optional<PlanetType> planetType = std::nullopt,
+        bool sentFromHost = false, bool builtByPlayer = true, std::optional<uint64_t> userId = std::nullopt);
+    void destroyObjectFromHost(ChunkPosition chunk, pl::Vector2<int> tile, std::optional<PlanetType> planetType);
+
+    // Networking
+    void joinedLobby(bool requiresNameInput);
+
+    void handleChunkRequestsFromClient(const PacketDataChunkRequests& chunkRequests, const SteamNetworkingIdentity& client);
+    void handleChunkDataFromHost(const PacketDataChunkDatas& chunkDataPacket);
+
+    ObjectReference setupPlanetTravel(PlanetType planetType, const LocationState& currentLocation, ObjectReference rocketObjectUsed, std::optional<uint64_t> clientID);
+    void travelToRoomDestinationForClient(RoomType roomDest, const LocationState& currentLocation, ObjectReference rocketObjectUsed, uint64_t clientID);
+
+    void travelToPlanetFromHost(const PacketDataPlanetTravelReply& planetTravelReplyPacket);
+    void travelToRoomDestinationFromHost(const PacketDataRoomTravelReply& roomTravelReplyPacket);
+    
+    std::optional<uint32_t> initialiseStructureOrGet(PlanetType planetType, ChunkPosition chunk, pl::Vector2f* entrancePos, RoomType* roomType);
+    void enterStructureFromHost(PlanetType planetType, ChunkPosition chunk, uint32_t structureID, pl::Vector2f entrancePos, RoomType roomType);
+
+    bool attemptSpawnBoss(PlanetType planetType, ItemType bossSpawnItem, Player& player);
+    bool canPlayerSpawnBoss(PlanetType planetType, ItemType bossSpawnItem, Player& player);
+    bool attemptUseBossSpawnFromHost(PlanetType planetType, ItemType bossSpawnItem);
+
+    void clientEnsureSafeQuit();
+
+    PlayerData createPlayerData();
+
+    // For chunks, will use chunk and tile from object reference
+    // For rooms, will use tile from object reference
+    template <class T = BuildableObject>
+    T* getObjectFromLocation(ObjectReference objectReference, const LocationState& objectLocationState);
+
+
+    // Misc
 
     inline bool getIsDay() {return isDay;}
-    const DayCycleManager& getDayCycleManager();
+    DayCycleManager& getDayCycleManager(bool overrideMenuSwap = false);
 
-    inline const ChunkManager& getChunkManager() {return chunkManager;}
+    ChunkManager& getChunkManager(std::optional<PlanetType> planetTypeOverride = std::nullopt);
+    ChunkManager* getChunkManagerPtr(std::optional<PlanetType> planetTypeOverride = std::nullopt);
+    ProjectileManager& getProjectileManager(std::optional<PlanetType> planetTypeOverride = std::nullopt);
+    BossManager& getBossManager(std::optional<PlanetType> planetTypeOverride = std::nullopt);
+    LandmarkManager& getLandmarkManager(std::optional<PlanetType> planetTypeOverride = std::nullopt);
+    RoomPool& getStructureRoomPool(std::optional<PlanetType> planetTypeOverride = std::nullopt);
+    Room& getRoomDestination(std::optional<RoomType> roomDestOverride = std::nullopt);
+    ChestDataPool& getChestDataPool(std::optional<LocationState> locationState = std::nullopt);
+    bool isLocationStateInitialised(const LocationState& locationState);
+
+    inline NetworkHandler& getNetworkHandler() {return networkHandler;}
+
+    inline const LocationState& getLocationState() {return locationState;}
 
     inline const Camera& getCamera() {return camera;}
 
-    inline const Player& getPlayer() {return player;}
+    inline ChatGUI& getChatGUI() {return chatGUI;}
+
+    inline Player& getPlayer() {return player;}
+    inline InventoryData& getInventory() {return inventory;}
+
+    inline const std::string& getPlayerName() {return currentSaveFileSummary.playerName;}
 
     inline float getGameTime() {return gameTime;}
+    inline void setGameTime(float gameTime) {this->gameTime = gameTime;}
 
+    inline int getPlanetSeed() {return planetSeed;}
+    
 private:
-
-    // test
-    void runFeatureTest();
 
     // -- Main Menu -- //
 
@@ -152,6 +255,9 @@ private:
 
     void updateOnPlanet(float dt);
     void drawOnPlanet(float dt);
+
+    // Used when host
+    void updateActivePlanets(float dt);
 
     void drawLighting(float dt, std::vector<WorldObject*>& worldObjects);
     void drawLandmarks();
@@ -174,8 +280,8 @@ private:
     void attemptUseToolFishingRod();
     void attemptUseToolWeapon();
 
-    void catchRandomFish(sf::Vector2i fishedTile);
-
+    void catchRandomFish(pl::Vector2<int> fishedTile);
+    
     void attemptObjectInteract();
     void attemptBuildObject();
     void attemptPlaceLand();
@@ -191,61 +297,61 @@ private:
     // Depending on game state, will check chunks / room
     BuildableObject* getSelectedObjectFromChunkOrRoom();
 
-    // For chunks, will use chunk and tile from object reference
-    // For rooms, will use tile from object reference
-    BuildableObject* getObjectFromChunkOrRoom(ObjectReference objectReference);
-
 
     // -- Inventory / Chests -- //
-
-    void giveStartingInventory();
 
     void handleInventoryClose();
 
     void checkChestOpenInRange();
-    void handleOpenChestPositionWorldWrap(sf::Vector2f positionDelta);
+    // void handleOpenChestPositionWorldWrap(pl::Vector2f positionDelta);
 
 
     // -- Planet travelling -- //
 
     void travelToDestination();
-    void travelToPlanet(PlanetType planetType);
+    void travelToPlanet(PlanetType planetType, ObjectReference newRocketObjectReference);
+    void deleteObjectSynced(ObjectReference objectReference, PlanetType planetType, bool createItemDrops);
+    
     void travelToRoomDestination(RoomType destinationRoomType);
 
-    void initialiseNewPlanet(PlanetType planetType, bool placeRocket = false);
+    // Returns spawn chunk
+    ChunkPosition initialiseNewPlanet(PlanetType planetType);
 
 
     // -- Game State / Transition -- //
 
     void updateStateTransition(float dt);
-    void drawStateTransition();
     bool isStateTransitioning();
     void startChangeStateTransition(GameState newState);
     void changeState(GameState newState);
     // Only use to prevent game state changing default behaviour
     void overrideState(GameState newState);
     
+    void drawScreenFade(float progress);
+
 
     // -- Save / load -- //
 
     void startNewGame(int seed);
-    bool saveGame(bool gettingInRocket = false);
+    bool saveGame();
     bool loadGame(const SaveFileSummary& saveFileSummary);
-    bool loadPlanet(PlanetType planetType);
 
+    void initialiseWorldData(PlanetType planetType);
+    
     void saveOptions();
     void loadOptions();
 
+    void loadInputBindings();
+    
 
     // -- Window -- //
 
     void handleZoom(int zoomChange);
 
-    void handleEventsWindow(sf::Event& event);
-    void handleSDLEvents();
+    void handleEventsWindow(const SDL_Event& event);
 
     void toggleFullScreen();
-    void handleWindowResize(sf::Vector2u newSize);
+    void handleWindowResize(pl::Vector2<uint32_t> newSize);
 
 
     // -- Misc -- //
@@ -264,22 +370,20 @@ private:
 
 
 private:
-    sf::RenderWindow window;
-    SDL_Window* sdlWindow = nullptr;
-    sf::View view;
-    sf::Image icon;
-    bool fullScreen = true;
+    pl::Window window;
+    pl::Image icon;
 
     SaveFileSummary currentSaveFileSummary;
-    float saveSessionPlayTime;
+    // float saveSessionPlayTime;
+    bool saveDeferred;
 
-    SpriteBatch spriteBatch;
-    sf::RenderTexture worldTexture;
+    pl::SpriteBatch spriteBatch;
+    pl::Framebuffer worldTexture;
 
     bool steamInitialised;
 
-    sf::Clock clock;
     float gameTime;
+    float applicationTime;
 
     bool isDay;
 
@@ -292,33 +396,47 @@ private:
     NPCInteractionGUI npcInteractionGUI;
     TravelSelectGUI travelSelectGUI;
     LandmarkSetGUI landmarkSetGUI;
-    sf::Vector2f mouseScreenPos;
+    pl::Vector2f mouseScreenPos;
 
+    ChatGUI chatGUI;
+
+    DemoEndGUI demoEndGUI;
+    
     // Game general data
     Player player;
+    LocationState locationState;
     Camera camera;
     InventoryData inventory;
     InventoryData armourInventory;
-    ChunkManager chunkManager;
     WeatherSystem weatherSystem;
-    ProjectileManager projectileManager;
-    ProjectileManager enemyProjectileManager;
-    BossManager bossManager;
-    LandmarkManager landmarkManager;
     ParticleSystem particleSystem;
     DayCycleManager dayCycleManager;
-    Room roomDestination;
+
+    // Set planet / room dest type to -1 when selecting other
+    std::unordered_map<PlanetType, WorldData> worldDatas;
+    std::unordered_map<RoomType, RoomDestinationData> roomDestDatas;
+    int planetSeed;
+
+    std::unordered_map<PlanetType, ObjectReference> planetRocketUsedPositions;
+    std::unordered_map<PlanetType, ObjectReference> planetSpawnLocations;
 
     LightingEngine lightingEngine;
-    int lightingTick = 0;
+    float lightingTickTime = 0;
     bool smoothLighting = true;
 
-    std::array<sf::Texture, 2> waterNoiseTextures;
+    NetworkHandler networkHandler;
+
+    std::array<pl::Texture, 2> waterNoiseTextures;
 
     GameState gameState;
     GameState destinationGameState;
     static constexpr float TRANSITION_STATE_FADE_TIME = 0.3f;
     float transitionGameStateTimer;
+
+    float screenFadeProgress = 0.0f;
+    TweenID screenFadeProgressTweenID;
+
+    bool awaitingRespawn;
 
     WorldMenuState worldMenuState;
 
@@ -326,20 +444,16 @@ private:
 
     // 0xFFFF chest ID reserved for no chest opened / non-initialised chest
     uint16_t openedChestID;
-    // ObjectReference openedChest;
-    sf::Vector2f openedChestPos;
-    ChestDataPool chestDataPool;
+    ObjectReference openedChest;
 
     // Structure
-    uint32_t structureEnteredID;
-    sf::Vector2f structureEnteredPos;
-    RoomPool structureRoomPool;
+    pl::Vector2f structureEnteredPos;
 
     // Rocket
     ObjectReference rocketEnteredReference;
-    PlanetType destinationPlanet;
-    RoomType destinationRoom;
+    LocationState destinationLocationState;
     bool travelTrigger = false;
 
     Tween<float> floatTween;
+
 };

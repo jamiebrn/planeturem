@@ -1,6 +1,9 @@
 #pragma once
 
-#include <SFML/Graphics.hpp>
+
+
+#include <Vector.hpp>
+#include <Rect.hpp>
 
 #include "World/PathfindingEngine.hpp"
 

@@ -7,7 +7,17 @@
 #include <optional>
 #include <unordered_set>
 
-#include <SFML/Graphics.hpp>
+#include <extlib/cereal/archives/binary.hpp>
+#include <extlib/cereal/types/vector.hpp>
+#include <extlib/cereal/types/memory.hpp>
+
+#include <Graphics/SpriteBatch.hpp>
+#include <Graphics/Color.hpp>
+#include <Graphics/RenderTarget.hpp>
+#include <Graphics/Shader.hpp>
+#include <Graphics/Texture.hpp>
+#include <Vector.hpp>
+#include <Rect.hpp>
 
 #include "Core/Sounds.hpp"
 #include "Core/Camera.hpp"
@@ -15,6 +25,9 @@
 #include "Player/Cursor.hpp"
 
 #include "BossEntity.hpp"
+#include "Entity/Boss/BossBenjaminCrow.hpp"
+#include "Entity/Boss/BossSandSerpent.hpp"
+#include "Entity/Boss/BossGlacialBrute.hpp"
 
 class Player;
 class Game;
@@ -24,14 +37,16 @@ class BossManager
 {
 public:
     BossManager() = default;
+    BossManager(const BossManager& bossManager);
+    BossManager& operator=(const BossManager& bossManager);
 
-    bool createBoss(const std::string& name, sf::Vector2f playerPosition, Game& game);
+    bool createBoss(const std::string& name, pl::Vector2f playerPosition, Game& game, ChunkManager& chunkManager);
 
-    void update(Game& game, ProjectileManager& projectileManager, ProjectileManager& enemyProjectileManager, ChunkManager& chunkManager, Player& player, float dt, float gameTime);
+    void update(Game& game, ProjectileManager& projectileManager, ChunkManager& chunkManager, std::vector<Player*>& players, float dt, float gameTime);
 
-    void testHitRectCollision(const std::vector<HitRect>& hitRects);
+    void testHitRectCollision(const std::vector<HitRect>& hitRects, int worldSize);
 
-    void handleWorldWrap(sf::Vector2f positionDelta);
+    // void handleWorldWrap(pl::Vector2f positionDelta);
 
     void stopBossMusic();
 
@@ -39,11 +54,21 @@ public:
 
     void clearBosses();
 
-    void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch);
+    void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch);
 
-    void drawStatsAtCursor(sf::RenderTarget& window, const Camera& camera, sf::Vector2f mouseScreenPos);
+    void drawStatsAtCursor(pl::RenderTarget& window, const Camera& camera, pl::Vector2f mouseScreenPos, int worldSize);
 
     void getBossWorldObjects(std::vector<WorldObject*>& worldObjects);
+
+    std::vector<std::unique_ptr<BossEntity>>& getBosses();
+
+    int getBossCount() const;
+
+    template <class Archive>
+    void serialize(Archive& ar)
+    {
+        ar(bosses);
+    }
 
 private:
     std::vector<std::unique_ptr<BossEntity>> bosses;

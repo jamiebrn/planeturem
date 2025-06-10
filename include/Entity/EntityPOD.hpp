@@ -5,15 +5,16 @@
 
 #include <extlib/cereal/archives/binary.hpp>
 #include <extlib/cereal/types/optional.hpp>
-#include <SFML/System/Vector2.hpp>
+
+#include <Vector.hpp>
 
 #include "Data/typedefs.hpp"
 
 struct EntityPOD
 {
     EntityType entityType;
-    sf::Vector2f chunkRelativePosition;
-    sf::Vector2f velocity;
+    pl::Vector2f chunkRelativePosition;
+    pl::Vector2f velocity;
 
     template <class Archive>
     void serialize(Archive& ar, const std::uint32_t version)

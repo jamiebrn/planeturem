@@ -4,13 +4,23 @@
 #include <vector>
 #include <array>
 
-#include <SFML/Graphics.hpp>
+#include <extlib/cereal/archives/binary.hpp>
+#include <extlib/cereal/types/vector.hpp>
+#include <extlib/cereal/types/memory.hpp>
+#include <extlib/cereal/types/base_class.hpp>
+
+#include <Graphics/SpriteBatch.hpp>
+#include <Graphics/Color.hpp>
+#include <Graphics/RenderTarget.hpp>
+#include <Graphics/Shader.hpp>
+#include <Graphics/Texture.hpp>
+#include <Vector.hpp>
+#include <Rect.hpp>
 
 #include "Core/TextureManager.hpp"
-#include "Core/SpriteBatch.hpp"
+#include "Core/Shaders.hpp"
 #include "Core/TextDraw.hpp"
 #include "Core/ResolutionHandler.hpp"
-#include "Core/Shaders.hpp"
 #include "Core/Camera.hpp"
 #include "Core/Tween.hpp"
 #include "Core/Helper.hpp"
@@ -26,53 +36,83 @@
 #include "World/ChunkManager.hpp"
 #include "World/PathfindingEngine.hpp"
 
-#include "GUI/InventoryGUI.hpp"
 #include "GUI/HitMarkers.hpp"
 
 #include "Entity/Projectile/Projectile.hpp"
 #include "Entity/Projectile/ProjectileManager.hpp"
 #include "Entity/HitRect.hpp"
 
+#include "Network/CompactFloat.hpp"
+
 #include "BossEntity.hpp"
 
 class BossSandSerpent : public BossEntity
 {
 public:
-    BossSandSerpent(sf::Vector2f playerPosition, Game& game);
+    BossSandSerpent();
+    BossSandSerpent(pl::Vector2f playerPosition, Game& game);
+    BossEntity* clone() const override;
 
-    void update(Game& game, ProjectileManager& enemyProjectileManager, Player& player, float dt) override;
+    void update(Game& game, ChunkManager& chunkManager, ProjectileManager& projectileManager, std::vector<Player*>& players, float dt, int worldSize) override;
+    void updateNetwork(Player& player, float dt, int worldSize) override;
 
     bool isAlive() override;
 
-    void handleWorldWrap(sf::Vector2f positionDelta) override;
+    // void handleWorldWrap(pl::Vector2f positionDelta) override;
 
-    // void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch) override;
-    void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
-        const sf::Color& color) const override;
+    // void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch) override;
+    void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
+        const pl::Color& color) const override;
 
-    inline void createLightSource(LightingEngine& lightingEngine, sf::Vector2f topLeftChunkPos) const override {}
+    // inline void createLightSource(LightingEngine& lightingEngine, pl::Vector2f topLeftChunkPos) const override {}
 
-    void getHoverStats(sf::Vector2f mouseWorldPos, std::vector<std::string>& hoverStats) override;
+    void getHoverStats(pl::Vector2f mouseWorldPos, std::vector<std::string>& hoverStats) override;
 
-    void testCollisionWithPlayer(Player& player) override;
+    void testCollisionWithPlayer(Player& player, int worldSize) override;
 
-    void testProjectileCollision(Projectile& projectile) override;
+    void testProjectileCollision(Projectile& projectile, int worldSize) override;
 
-    void testHitRectCollision(const std::vector<HitRect>& hitRects) override;
+    void testHitRectCollision(const std::vector<HitRect>& hitRects, int worldSize) override;
 
     void getWorldObjects(std::vector<WorldObject*>& worldObjects) override;
 
+    template <class Archive>
+    void save(Archive& ar) const
+    {
+        CompactFloat<uint8_t> headFlashTimeCompact(headFlashTime, 2);
+        CompactFloat<uint8_t> bodyFlashTimeCompact(bodyFlashTime, 2);
+        uint8_t animFrame = animations.at(behaviourState).getFrame();
+        ar(cereal::base_class<BossEntity>(this), velocity.x, velocity.y, headHealth, bodyHealth, dead, behaviourState,
+            headFlashTimeCompact, bodyFlashTimeCompact, headDirection, animFrame);
+    }
+
+    template <class Archive>
+    void load(Archive& ar)
+    {
+        CompactFloat<uint8_t> headFlashTimeCompact;
+        CompactFloat<uint8_t> bodyFlashTimeCompact;
+        uint8_t animFrame;
+        ar(cereal::base_class<BossEntity>(this), velocity.x, velocity.y, headHealth, bodyHealth, dead, behaviourState,
+            headFlashTimeCompact, bodyFlashTimeCompact, headDirection, animFrame);
+        
+        headFlashTime = headFlashTimeCompact.getValue(2);
+        bodyFlashTime = bodyFlashTimeCompact.getValue(2);
+        animations[behaviourState].setFrame(animFrame);
+    }
+
 private:
+    void initialise();
+
     void updateCollision();
 
     // void setPathfindStepIndex(int index);
 
-    bool takeHeadDamage(int damage, sf::Vector2f damagePosition);
-    void takeBodyDamage(int damage, sf::Vector2f damagePosition);
+    bool takeHeadDamage(int damage, pl::Vector2f damagePosition);
+    void takeBodyDamage(int damage, pl::Vector2f damagePosition);
     void applyKnockback(Projectile& projectile);
 
 private:
-    enum class BossSandSerpentState
+    enum class BossSandSerpentState : uint8_t
     {
         IdleStage1,
         ShootingStage1,
@@ -83,11 +123,13 @@ private:
 private:
     static constexpr int MAX_HEAD_HEALTH = 750;
     static constexpr int MAX_BODY_HEALTH = 300;
-    int headHealth;
-    int bodyHealth;
+    int16_t headHealth;
+    int16_t bodyHealth;
     bool dead;
 
     BossSandSerpentState behaviourState;
+
+    pl::Vector2f velocity;
 
     static constexpr int HEAD_HITBOX_RADIUS = 17;
     static constexpr int BODY_HITBOX_WIDTH = 56;
@@ -102,8 +144,8 @@ private:
     static constexpr int START_MOVE_PLAYER_DISTANCE = 300;
     PathFollower pathFollower;
     // std::vector<PathfindGridCoordinate> pathfindStepSequence;
-    // sf::Vector2f pathfindLastStepPosition;
-    // sf::Vector2f pathfindStepTargetPosition;
+    // pl::Vector2f pathfindLastStepPosition;
+    // pl::Vector2f pathfindStepTargetPosition;
     // int pathfindStepIndex;
 
     static constexpr float MAX_SHOOT_COOLDOWN_TIME = 4.0f;
@@ -115,9 +157,11 @@ private:
 
     std::unordered_map<BossSandSerpentState, AnimatedTexture> animations;
 
-    static const std::array<sf::IntRect, 4> HEAD_FRAMES;
-    static const sf::IntRect SHOOTING_HEAD_FRAME;
+    static const std::array<pl::Rect<int>, 4> HEAD_FRAMES;
+    static const pl::Rect<int> SHOOTING_HEAD_FRAME;
     AnimatedTextureMinimal headAnimation;
     // forward = 0, left = -1, right = 1
-    int headDirection;
+    int8_t headDirection;
 };
+
+CEREAL_REGISTER_TYPE(BossSandSerpent);

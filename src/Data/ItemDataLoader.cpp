@@ -125,7 +125,7 @@ void ItemDataLoader::createItemFromObject(ObjectType objectType, const ObjectDat
     if (objectData.mythicalItem)
     {
         // Rainbow
-        objectItemData.nameColor = sf::Color(0, 0, 0);
+        objectItemData.nameColor = pl::Color(0, 0, 0);
     }
 
     int itemIndex = loaded_itemData.size();

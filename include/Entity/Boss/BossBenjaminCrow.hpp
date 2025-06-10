@@ -4,10 +4,21 @@
 #include <vector>
 #include <array>
 
-#include <SFML/Graphics.hpp>
+#include <extlib/cereal/archives/binary.hpp>
+#include <extlib/cereal/types/vector.hpp>
+#include <extlib/cereal/types/memory.hpp>
+#include <extlib/cereal/types/base_class.hpp>
+
+#include <Graphics/SpriteBatch.hpp>
+#include <Graphics/Color.hpp>
+#include <Graphics/RenderTarget.hpp>
+#include <Graphics/Shader.hpp>
+#include <Graphics/Texture.hpp>
+#include <Vector.hpp>
+#include <Rect.hpp>
 
 #include "Core/TextureManager.hpp"
-#include "Core/SpriteBatch.hpp"
+#include "Core/Shaders.hpp"
 #include "Core/TextDraw.hpp"
 #include "Core/ResolutionHandler.hpp"
 #include "Core/Shaders.hpp"
@@ -25,52 +36,76 @@
 #include "Data/ItemData.hpp"
 #include "Data/ItemDataLoader.hpp"
 
-#include "GUI/InventoryGUI.hpp"
 #include "GUI/HitMarkers.hpp"
 
 #include "Entity/Projectile/Projectile.hpp"
 #include "Entity/Projectile/ProjectileManager.hpp"
 #include "Entity/HitRect.hpp"
 
+#include "Network/CompactFloat.hpp"
+
 #include "BossEntity.hpp"
 
 class BossBenjaminCrow : public BossEntity
 {
 public:
-    BossBenjaminCrow(sf::Vector2f playerPosition);
+    BossBenjaminCrow();
+    BossBenjaminCrow(pl::Vector2f playerPosition);
+    BossEntity* clone() const override;
 
-    void update(Game& game, ProjectileManager& enemyProjectileManager, Player& player, float dt) override;
+    void update(Game& game, ChunkManager& chunkManager, ProjectileManager& projectileManager, std::vector<Player*>& players, float dt, int worldSize) override;
+    void updateNetwork(Player& player, float dt, int worldSize) override;
 
     bool isAlive() override;
 
-    void handleWorldWrap(sf::Vector2f positionDelta) override;
+    // void handleWorldWrap(pl::Vector2f positionDelta) override;
 
-    // void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch) override;
-    void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const sf::Color& color) const override;
+    void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const pl::Color& color) const override;
 
-    inline void createLightSource(LightingEngine& lightingEngine, sf::Vector2f topLeftChunkPos) const override {}
+    // inline void createLightSource(LightingEngine& lightingEngine, pl::Vector2f topLeftChunkPos) const override {}
 
-    void getHoverStats(sf::Vector2f mouseWorldPos, std::vector<std::string>& hoverStats) override;
+    void getHoverStats(pl::Vector2f mouseWorldPos, std::vector<std::string>& hoverStats) override;
 
-    void testCollisionWithPlayer(Player& player) override;
+    void testCollisionWithPlayer(Player& player, int worldSize) override;
 
-    void testProjectileCollision(Projectile& projectile) override;
+    void testProjectileCollision(Projectile& projectile, int worldSize) override;
 
     void getWorldObjects(std::vector<WorldObject*>& worldObjects) override;
 
+    template <class Archive>
+    void save(Archive& ar) const
+    {
+        CompactFloat<uint16_t> flyingHeightCompact(flyingHeight, 2);
+        uint8_t animFrame = idleAnims[stage].getFrame();
+        ar(cereal::base_class<BossEntity>(this), velocity.x, velocity.y, health, dead, stage, flyingHeightCompact, animFrame, flashTime, behaviourState, dashGhostEffects);
+    }
+    
+    template <class Archive>
+    void load(Archive& ar)
+    {
+        CompactFloat<uint16_t> flyingHeightCompact;
+        uint8_t animFrame;
+        ar(cereal::base_class<BossEntity>(this), velocity.x, velocity.y, health, dead, stage, flyingHeightCompact, animFrame, flashTime, behaviourState, dashGhostEffects);
+
+        flyingHeight = flyingHeightCompact.getValue(2);
+        idleAnims[stage].setFrame(animFrame);
+    }
+
 private:
+    void initialise();
+
     void updateCollision();
 
-    void takeDamage(int damage, sf::Vector2f damagePosition);
+    void takeDamage(int damage, pl::Vector2f damagePosition);
     void applyKnockback(Projectile& projectile);
 
-    bool isProjectileColliding(Projectile& projectile);
+    bool isProjectileColliding(Projectile& projectile, int worldSize);
 
     void addDashGhostEffect();
     void updateDashGhostEffects(float dt);
 
 private:
-    enum class BossBenjaminState
+    enum class BossBenjaminState : uint8_t
     {
         Chase,
         FastChase,
@@ -82,37 +117,43 @@ private:
 
     struct DashGhostEffect
     {
-        sf::Vector2f position;
-        int scaleX = 1;
-        int stage;
+        pl::Vector2f position;
+        int8_t scaleX = 1;
+        int8_t stage;
 
         static constexpr float MAX_TIME = 0.3f;
         float timer;
 
         static constexpr int MAX_ALPHA = 140;
+        
+        template <class Archive>
+        void serialize(Archive& ar)
+        {
+            ar(position.x, position.y, scaleX, stage, timer);
+        }
     };
 
 private:
     static constexpr float VELOCITY_LERP_WEIGHT = 3.0f;
-    sf::Vector2f velocity;
-    sf::Vector2f direction;
+    pl::Vector2f velocity;
+    pl::Vector2f direction;
 
     static constexpr float HITBOX_SIZE = 16.0f;
     CollisionCircle collision;
 
     static constexpr int MAX_HEALTH = 450;
-    int health;
+    int16_t health;
     bool dead;
 
     static constexpr int HEALTH_SECOND_STAGE_THRESHOLD = 250;
-    int stage;
+    int8_t stage;
 
     float flyingHeight;
 
     static constexpr float DASH_TARGET_INITIATE_DISTANCE = 100.0f;
     static constexpr float DASH_TARGET_OVERSHOOT = 150.0f;
     static constexpr float DASH_TARGET_FINISH_DISTANCE = 20.0f;
-    sf::Vector2f dashTargetPosition;
+    pl::Vector2f dashTargetPosition;
 
     static constexpr float MAX_DASH_COOLDOWN_TIMER = 1.0f;
     static constexpr float SECOND_STAGE_MAX_DASH_COOLDOWN_TIMER = 0.6f;
@@ -143,7 +184,9 @@ private:
     TweenID fallingTweenID;
 
     std::array<AnimatedTexture, 2> idleAnims;
-    static const std::array<sf::IntRect, 2> dashGhostTextureRects;
-    static const sf::IntRect deadTextureRect;
-    static const sf::IntRect shadowTextureRect;
+    static const std::array<pl::Rect<int>, 2> dashGhostTextureRects;
+    static const pl::Rect<int> deadTextureRect;
+    static const pl::Rect<int> shadowTextureRect;
 };
+
+CEREAL_REGISTER_TYPE(BossBenjaminCrow);

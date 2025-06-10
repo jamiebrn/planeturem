@@ -1,10 +1,10 @@
 #include "Object/LandmarkObject.hpp"
 #include "Game.hpp"
 
-LandmarkObject::LandmarkObject(sf::Vector2f position, ObjectType objectType, Game& game, bool placedByPlayer)
-    : BuildableObject(position, objectType)
+LandmarkObject::LandmarkObject(pl::Vector2f position, ObjectType objectType, PlanetType planetType, Game& game, const BuildableObjectCreateParameters& parameters)
+    : BuildableObject(position, objectType, parameters)
 {
-    game.landmarkPlaced(*this, placedByPlayer);
+    game.landmarkPlaced(*this, planetType, parameters.placedByThisPlayer);
 }
 
 BuildableObject* LandmarkObject::clone()
@@ -12,36 +12,41 @@ BuildableObject* LandmarkObject::clone()
     return new LandmarkObject(*this);
 }
 
-void LandmarkObject::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
-    const sf::Color& color) const
+void LandmarkObject::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
+    const pl::Color& color) const
 {
     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
 
-    sf::RenderTexture colouredTexture;
-    colouredTexture.create(objectData.textureRects[animatedTexture.getFrame()].width, objectData.textureRects[animatedTexture.getFrame()].height);
-    colouredTexture.clear(sf::Color(0, 0, 0, 0));
+    pl::Rect<int> textureRect = objectData.textureRects[animatedTexture.getFrame()];
 
-    sf::Glsl::Vec4 replaceKeys[2] = {sf::Glsl::Vec4(sf::Color(255, 255, 255)), sf::Glsl::Vec4(sf::Color(0, 0, 0))};
-    sf::Glsl::Vec4 replaceValues[2] = {sf::Glsl::Vec4(colourA), sf::Glsl::Vec4(colourB)};
+    pl::Framebuffer coloredTexture;
+    coloredTexture.create(textureRect.width, textureRect.height);
+    coloredTexture.clear(pl::Color(0, 0, 0, 0));
 
-    sf::Shader* replaceColourShader = Shaders::getShader(ShaderType::ReplaceColour);
-    replaceColourShader->setUniform("replaceKeyCount", 2);
-    replaceColourShader->setUniformArray("replaceKeys", replaceKeys, 2);
-    replaceColourShader->setUniformArray("replaceValues", replaceValues, 2);
+    std::vector<float> replaceKeys = {1.0f, 1.0f, 1.0f, 1.0f, 0, 0, 0, 1.0f};
+    std::vector<float> replaceValues = {colorA.r / 255.0f, colorA.g / 255.0f, colorA.b / 255.0f, 1.0f, colorB.r / 255.0f, colorB.g / 255.0f, colorB.b / 255.0f, 1.0f};
 
-    sf::Sprite colouredTextureSprite;
-    colouredTextureSprite.setTexture(*TextureManager::getTexture(TextureType::Objects));
-    colouredTextureSprite.setTextureRect(objectData.textureRects[animatedTexture.getFrame()]);
+    pl::Shader* replaceColorShader = Shaders::getShader(ShaderType::ReplaceColour);
+    replaceColorShader->setUniform1i("replaceKeyCount", replaceKeys.size() / 4);
+    replaceColorShader->setUniform4fv("replaceKeys", replaceKeys);
+    replaceColorShader->setUniform4fv("replaceValues", replaceValues);
 
-    colouredTexture.draw(colouredTextureSprite, replaceColourShader);
-    colouredTexture.display();
+    pl::VertexArray rect;
+    rect.addQuad(pl::Rect<int>(0, coloredTexture.getHeight(), coloredTexture.getWidth(), -coloredTexture.getHeight()), pl::Color(255, 255, 255, 255), textureRect);
 
-    drawObject(window, spriteBatch, camera, gameTime, worldSize, color, std::nullopt, std::nullopt, &colouredTexture.getTexture());
+    coloredTexture.draw(rect, *replaceColorShader, TextureManager::getTexture(TextureType::Objects), pl::BlendMode::Alpha);
+
+    std::vector<pl::Rect<int>> textureRectOverride = {pl::Rect<int>(0, 0, coloredTexture.getWidth(), coloredTexture.getHeight())};
+
+    drawObject(window, spriteBatch, camera, gameTime, worldSize, color, textureRectOverride, std::nullopt, &coloredTexture.getTexture());
+
+    // End batch as texture will be freed
+    spriteBatch.endDrawing(window);
 }
 
-bool LandmarkObject::damage(int amount, Game& game, ChunkManager& chunkManager, ParticleSystem& particleSystem, bool giveItems)
+bool LandmarkObject::damage(int amount, Game& game, ChunkManager& chunkManager, ParticleSystem* particleSystem, bool giveItems, bool createHitMarkers)
 {
-    bool destroyed = BuildableObject::damage(amount, game, chunkManager, particleSystem);
+    bool destroyed = BuildableObject::damage(amount, game, chunkManager, particleSystem, giveItems, createHitMarkers);
 
     if (destroyed)
     {
@@ -51,9 +56,13 @@ bool LandmarkObject::damage(int amount, Game& game, ChunkManager& chunkManager, 
     return destroyed;
 }
 
-void LandmarkObject::interact(Game& game)
+void LandmarkObject::interact(Game& game, bool isClient)
 {
-    game.landmarkPlaced(*this, true);
+    ChunkManager* activeChunkManager = game.getChunkManagerPtr();
+    if (activeChunkManager)
+    {
+        game.landmarkPlaced(*this, activeChunkManager->getPlanetType(), true);
+    }
 }
 
 bool LandmarkObject::isInteractable() const
@@ -61,33 +70,33 @@ bool LandmarkObject::isInteractable() const
     return true;
 }
 
-void LandmarkObject::setLandmarkColour(const sf::Color& colourA, const sf::Color& colourB)
+void LandmarkObject::setLandmarkColour(const pl::Color& colorA, const pl::Color& colorB)
 {
-    this->colourA = colourA;
-    this->colourB = colourB;
+    this->colorA = colorA;
+    this->colorB = colorB;
 }
 
-const sf::Color& LandmarkObject::getColourA() const
+const pl::Color& LandmarkObject::getColorA() const
 {
-    return colourA;
+    return colorA;
 }
 
-const sf::Color& LandmarkObject::getColourB() const
+const pl::Color& LandmarkObject::getColorB() const
 {
-    return colourB;
+    return colorB;
 }
 
 BuildableObjectPOD LandmarkObject::getPOD() const
 {
     BuildableObjectPOD pod = BuildableObject::getPOD();
-    pod.landmarkColourA = colourA;
-    pod.landmarkColourB = colourB;
+    pod.landmarkColorA = colorA;
+    pod.landmarkColorB = colorB;
     return pod;
 }
 
 void LandmarkObject::loadFromPOD(const BuildableObjectPOD& pod)
 {
     BuildableObject::loadFromPOD(pod);
-    colourA = pod.landmarkColourA.value();
-    colourB = pod.landmarkColourB.value();
+    colorA = pod.landmarkColorA.value();
+    colorB = pod.landmarkColorB.value();
 }

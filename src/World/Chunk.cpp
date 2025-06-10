@@ -1,9 +1,18 @@
 #include "World/Chunk.hpp"
+#include "World/ChunkManager.hpp"
+#include "Entity/Entity.hpp"
 #include "Game.hpp"
 
-Chunk::Chunk(ChunkPosition chunkPosition)
+Chunk::Chunk(ChunkPosition chunkPosition, float gameTime)
 {
     this->chunkPosition = chunkPosition;
+    
+    worldPosition.x = chunkPosition.x * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
+    worldPosition.y = chunkPosition.y * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
+
+    gameTimeCreated = gameTime;
+
+    itemPickupCounter = 0;
 
     reset();
 }
@@ -44,19 +53,37 @@ void Chunk::reset(bool fullReset)
 }
 
 void Chunk::generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNoise, const FastNoise& riverNoise, PlanetType planetType, Game& game, ChunkManager& chunkManager,
-    PathfindingEngine& pathfindingEngine, bool allowStructureGen, bool spawnEntities)
+    PathfindingEngine& pathfindingEngine, bool allowStructureGen, std::optional<StructureType> forceStructureType, bool spawnEntities, bool initialise)
 {
-    RandInt randGen = generateTilesAndStructure(heightNoise, biomeNoise, riverNoise, planetType, chunkManager, allowStructureGen);
+    RandInt randGen = generateTilesAndStructure(heightNoise, biomeNoise, riverNoise, planetType, chunkManager, allowStructureGen, forceStructureType);
 
-    generateObjectsAndEntities(heightNoise, biomeNoise, riverNoise, planetType, randGen, game, chunkManager, spawnEntities);
+    generateObjects(heightNoise, biomeNoise, riverNoise, planetType, randGen, game, chunkManager, pathfindingEngine);
 
-    generateTilemapsAndInit(chunkManager, pathfindingEngine);
+    if (spawnEntities)
+    {
+        spawnChunkEntities(chunkManager.getWorldSize(), heightNoise, biomeNoise, riverNoise, planetType);
+    }
+
+    if (initialise)
+    {
+        generateTilemapsAndInit(chunkManager, pathfindingEngine);
+    }
+    else
+    {
+        generatedFromPOD = true;
+    }
+
+    const BiomeGenData* biomeGenData = chunkManager.getChunkBiome(chunkPosition);
+    if (biomeGenData)
+    {
+        nextResourceRegenerationTime = gameTimeCreated + Helper::randFloat(biomeGenData->resourceRegenerationTimeMin, biomeGenData->resourceRegenerationTimeMax);
+    }
 }
 
 RandInt Chunk::generateTilesAndStructure(const FastNoise& heightNoise, const FastNoise& biomeNoise, const FastNoise& riverNoise, PlanetType planetType,
-    ChunkManager& chunkManager, bool allowStructureGen)
+    ChunkManager& chunkManager, bool allowStructureGen, std::optional<StructureType> forceStructureType)
 {
-    sf::Vector2i worldNoisePosition = sf::Vector2i(chunkPosition.x, chunkPosition.y) * static_cast<int>(CHUNK_TILE_SIZE);
+    pl::Vector2<int> worldNoisePosition = pl::Vector2<int>(chunkPosition.x, chunkPosition.y) * static_cast<int>(CHUNK_TILE_SIZE);
 
     // Create random generator for chunk
     unsigned long int randSeed = (chunkManager.getSeed() + planetType) ^ chunkPosition.hash();
@@ -68,7 +95,7 @@ RandInt Chunk::generateTilesAndStructure(const FastNoise& heightNoise, const Fas
         for (int x = 0; x < CHUNK_TILE_SIZE; x++)
         {
             const TileGenData* tileGenData = getTileGenAtWorldTile(
-                sf::Vector2i(worldNoisePosition.x + x, worldNoisePosition.y + y), chunkManager.getWorldSize(), heightNoise, biomeNoise, riverNoise, planetType
+                pl::Vector2<int>(worldNoisePosition.x + x, worldNoisePosition.y + y), chunkManager.getWorldSize(), heightNoise, biomeNoise, riverNoise, planetType
                 );
             
             int tileType = 0;
@@ -90,16 +117,23 @@ RandInt Chunk::generateTilesAndStructure(const FastNoise& heightNoise, const Fas
     // Create structure if required
     if (!containsWater)
     {
-        generateRandomStructure(chunkManager.getWorldSize(), biomeNoise, randGen, planetType, allowStructureGen);
+        generateRandomStructure(chunkManager.getWorldSize(), biomeNoise, randGen, planetType, allowStructureGen, forceStructureType);
     }
 
     return randGen;
 }
 
-void Chunk::generateObjectsAndEntities(const FastNoise& heightNoise, const FastNoise& biomeNoise, const FastNoise& riverNoise, PlanetType planetType, RandInt& randGen,
-    Game& game, ChunkManager& chunkManager, bool spawnEntities)
+bool Chunk::generateObjects(const FastNoise& heightNoise, const FastNoise& biomeNoise, const FastNoise& riverNoise, PlanetType planetType, RandInt& randGen,
+    Game& game, ChunkManager& chunkManager, PathfindingEngine& pathfindingEngine, bool calledWhileGenerating, float probabilityMult)
 {
-    sf::Vector2i worldNoisePosition = sf::Vector2i(chunkPosition.x, chunkPosition.y) * static_cast<int>(CHUNK_TILE_SIZE);
+    pl::Vector2<int> worldNoisePosition = pl::Vector2<int>(chunkPosition.x, chunkPosition.y) * static_cast<int>(CHUNK_TILE_SIZE);
+
+    BuildableObjectCreateParameters createParameters;
+    createParameters.flashOnCreate = !calledWhileGenerating;
+    createParameters.randomisePlantAge = true;
+    createParameters.randomisePlantAgeDeterministic = calledWhileGenerating;
+
+    bool modified = false;
 
     // Set tile maps / spawn objects
     for (int y = 0; y < CHUNK_TILE_SIZE; y++)
@@ -118,41 +152,42 @@ void Chunk::generateObjectsAndEntities(const FastNoise& heightNoise, const FastN
                 continue;
 
             // Create random object
-            ObjectType objectSpawnType = getRandomObjectToSpawnAtWorldTile(sf::Vector2i(worldNoisePosition.x + x, worldNoisePosition.y + y),
-                chunkManager.getWorldSize(), heightNoise, biomeNoise, riverNoise, randGen, planetType);
+            ObjectType objectSpawnType = getRandomObjectToSpawnAtWorldTile(pl::Vector2<int>(worldNoisePosition.x + x, worldNoisePosition.y + y),
+                chunkManager.getWorldSize(), heightNoise, biomeNoise, riverNoise, randGen, planetType, probabilityMult);
 
             if (objectSpawnType >= 0)
             {
-                setObject(sf::Vector2i(x, y), objectSpawnType, game, chunkManager, nullptr, false, true);
+                setObject(pl::Vector2<int>(x, y), objectSpawnType, game, chunkManager, nullptr, createParameters, false);
             }
             else
             {
                 objectGrid[y][x] = nullptr;
             }
+
+            modified = true;
         }
     }
+    
+    recalculateCollisionRects(chunkManager, &pathfindingEngine);
 
-    if (spawnEntities)
-    {
-        spawnChunkEntities(chunkManager.getWorldSize(), heightNoise, biomeNoise, riverNoise, planetType);
-    }
+    return modified;
 }
 
 void Chunk::spawnChunkEntities(int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise, const FastNoise& riverNoise, PlanetType planetType)
 {
-    sf::Vector2i worldNoisePosition = sf::Vector2i(chunkPosition.x, chunkPosition.y) * static_cast<int>(CHUNK_TILE_SIZE);
+    pl::Vector2<int> worldNoisePosition = pl::Vector2<int>(chunkPosition.x, chunkPosition.y) * static_cast<int>(CHUNK_TILE_SIZE);
 
     for (int y = 0; y < CHUNK_TILE_SIZE; y++)
     {
         for (int x = 0; x < CHUNK_TILE_SIZE; x++)
         {
             // Create random entity
-            EntityType entitySpawnType = getRandomEntityToSpawnAtWorldTile(sf::Vector2i(worldNoisePosition.x + x, worldNoisePosition.y + y),
+            EntityType entitySpawnType = getRandomEntityToSpawnAtWorldTile(pl::Vector2<int>(worldNoisePosition.x + x, worldNoisePosition.y + y),
                 worldSize, heightNoise, biomeNoise, riverNoise, planetType);
             
             if (entitySpawnType >= 0)
             {
-                sf::Vector2f entityPos;
+                pl::Vector2f entityPos;
                 entityPos.x = worldPosition.x + (x + 0.5) * TILE_SIZE_PIXELS_UNSCALED;
                 entityPos.y = worldPosition.y + (y + 0.5) * TILE_SIZE_PIXELS_UNSCALED;
 
@@ -187,7 +222,7 @@ void Chunk::generateTilemapsAndInit(ChunkManager& chunkManager, PathfindingEngin
             }
 
             // Set tile without graphics update
-            std::set<int> additional_tileMapsModified = chunkManager.setChunkTile(chunkPosition, tileType, sf::Vector2i(x, y), false);
+            std::set<int> additional_tileMapsModified = chunkManager.setChunkTile(chunkPosition, tileType, pl::Vector2<int>(x, y), false);
             tileMapsModified.insert(additional_tileMapsModified.begin(), additional_tileMapsModified.end());
         }
     }
@@ -201,46 +236,62 @@ void Chunk::generateTilemapsAndInit(ChunkManager& chunkManager, PathfindingEngin
     generatedFromPOD = false;
 }
 
-void Chunk::generateRandomStructure(int worldSize, const FastNoise& biomeNoise, RandInt& randGen, PlanetType planetType, bool allowStructureGen)
+void Chunk::generateRandomStructure(int worldSize, const FastNoise& biomeNoise, RandInt& randGen, PlanetType planetType, bool allowStructureGen,
+    std::optional<StructureType> forceStructureType)
 {
     // Get biome gen data
-    const BiomeGenData* biomeGenData = getBiomeGenAtWorldTile(sf::Vector2i(chunkPosition.x * CHUNK_TILE_SIZE, chunkPosition.y * CHUNK_TILE_SIZE),
+    const BiomeGenData* biomeGenData = getBiomeGenAtWorldTile(pl::Vector2<int>(chunkPosition.x * CHUNK_TILE_SIZE, chunkPosition.y * CHUNK_TILE_SIZE),
         worldSize, biomeNoise, planetType);
     if (!biomeGenData)
+    {
         return;
+    }
     
     // Get random structure type
     StructureType structureType = -1;
 
-    float cumulativeChance = 0;
-    float randomSpawn = randGen.generate(0, 10000) / 10000.0f;
-    for (const StructureGenData& structureGenData : biomeGenData->structureGenDatas)
+    if (forceStructureType.has_value())
     {
-        cumulativeChance += structureGenData.spawnChance;
-
-        if (randomSpawn <= cumulativeChance)
+        structureType = forceStructureType.value();
+    }
+    else
+    {
+        float cumulativeChance = 0;
+        float randomSpawn = randGen.generate(0, 10000) / 10000.0f;
+        for (const StructureGenData& structureGenData : biomeGenData->structureGenDatas)
         {
-            structureType = structureGenData.structure;
-            break;
+            cumulativeChance += structureGenData.spawnChance;
+    
+            if (randomSpawn <= cumulativeChance)
+            {
+                structureType = structureGenData.structure;
+                break;
+            }
         }
     }
-
+    
     // No structure chosen
     if (structureType < 0)
+    {
         return;
-    
-    // Generate structure
-
-    // Read collision bitmask and create dummy objects in required positions
-    const sf::Image& bitmaskImage = TextureManager::getBitmask(BitmaskType::Structures);
+    }
 
     const StructureData& structureData = StructureDataLoader::getStructureData(structureType);
 
-    // Randomise spawn position in chunk
-    sf::Vector2i spawnTile;
-    spawnTile.x = randGen.generate(0, CHUNK_TILE_SIZE - 1 - structureData.size.x);
-    spawnTile.y = randGen.generate(0, CHUNK_TILE_SIZE - 1 - structureData.size.y);
+    pl::Vector2<int> spawnTile;
 
+    if (forceStructureType.has_value())
+    {
+        spawnTile.x = 0;
+        spawnTile.y = 0;
+    }
+    else
+    {
+        // Randomise spawn position in chunk
+        spawnTile.x = randGen.generate(0, CHUNK_TILE_SIZE - 1 - structureData.size.x);
+        spawnTile.y = randGen.generate(0, CHUNK_TILE_SIZE - 1 - structureData.size.y);
+    }
+    
     // If not actually spawning structure, i.e. simply using this function to continue randgen sequence
     // then can skip actually generating the structure, as no more randgen for structures from this point
     if (!allowStructureGen)
@@ -248,19 +299,26 @@ void Chunk::generateRandomStructure(int worldSize, const FastNoise& biomeNoise, 
         return;
     }
 
+    // Generate structure
+
+    // Read collision bitmask and create dummy objects in required positions
+    const pl::Image& bitmaskImage = TextureManager::getBitmask(BitmaskType::Structures);
+
     bool spawnedStructureObject = false;
+
+    BuildableObjectCreateParameters dummyCreateParameters;
 
     for (int x = 0; x < structureData.size.x; x++)
     {
         // Iterate over y backwards to place structure object in bottom left of dummy objects
         for (int y = structureData.size.y - 1; y >= 0; y--)
         {
-            sf::Color bitmaskColor = bitmaskImage.getPixel(structureData.collisionBitmaskOffset.x + x, structureData.collisionBitmaskOffset.y + y);
+            pl::Color bitmaskColor = bitmaskImage.getPixel(structureData.collisionBitmaskOffset.x + x, structureData.collisionBitmaskOffset.y + y);
 
             int tileX = x + spawnTile.x;
             int tileY = y + spawnTile.y;
 
-            sf::Vector2f tileWorldPos;
+            pl::Vector2f tileWorldPos;
             tileWorldPos.x = worldPosition.x + (tileX + 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
             tileWorldPos.y = worldPosition.y + (tileY + 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
 
@@ -273,23 +331,23 @@ void Chunk::generateRandomStructure(int worldSize, const FastNoise& biomeNoise, 
             }
 
             // Collision
-            if (bitmaskColor == sf::Color(255, 0, 0))
+            if (bitmaskColor == pl::Color(255, 0, 0))
             {
-                objectGrid[tileY][tileX] = std::make_unique<BuildableObject>(tileWorldPos, DUMMY_OBJECT_COLLISION);
+                objectGrid[tileY][tileX] = std::make_unique<BuildableObject>(tileWorldPos, DUMMY_OBJECT_COLLISION, dummyCreateParameters);
             }
 
             // Dummy object with no collision (for warp / structure entrance)
-            if (bitmaskColor == sf::Color(0, 255, 0))
+            if (bitmaskColor == pl::Color(0, 255, 0))
             {
-                objectGrid[tileY][tileX] = std::make_unique<BuildableObject>(tileWorldPos, DUMMY_OBJECT_NO_COLLISION);
+                objectGrid[tileY][tileX] = std::make_unique<BuildableObject>(tileWorldPos, DUMMY_OBJECT_NO_COLLISION, dummyCreateParameters);
 
-                structureObject->createWarpRect(tileWorldPos - sf::Vector2f(0.5, 0.5) * TILE_SIZE_PIXELS_UNSCALED);
+                structureObject->createWarpRect(tileWorldPos - pl::Vector2f(0.5, 0.5) * TILE_SIZE_PIXELS_UNSCALED);
             }
         }
     }
 }
 
-const BiomeGenData* Chunk::getBiomeGenAtWorldTile(sf::Vector2i worldTile, int worldSize, const FastNoise& biomeNoise, PlanetType planetType)
+const BiomeGenData* Chunk::getBiomeGenAtWorldTile(pl::Vector2<int> worldTile, int worldSize, const FastNoise& biomeNoise, PlanetType planetType)
 {
     const PlanetGenData& planetGenData = PlanetGenDataLoader::getPlanetGenData(planetType);
 
@@ -307,7 +365,7 @@ const BiomeGenData* Chunk::getBiomeGenAtWorldTile(sf::Vector2i worldTile, int wo
     return nullptr;
 }
 
-const TileGenData* Chunk::getTileGenAtWorldTile(sf::Vector2i worldTile, int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise, const FastNoise& riverNoise,
+const TileGenData* Chunk::getTileGenAtWorldTile(pl::Vector2<int> worldTile, int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise, const FastNoise& riverNoise,
     PlanetType planetType)
 {
     int worldTileSize = worldSize * CHUNK_TILE_SIZE;
@@ -325,7 +383,6 @@ const TileGenData* Chunk::getTileGenAtWorldTile(sf::Vector2i worldTile, int worl
     
     if (!biomeGenData)
         return nullptr;
-
     
     float heightNoiseValue = heightNoise.GetNoiseSeamless2D(worldTile.x, worldTile.y, worldTileSize, worldTileSize);
     heightNoiseValue = FastNoise::Normalise(heightNoiseValue);
@@ -368,8 +425,8 @@ const TileGenData* Chunk::getTileGenAtWorldTile(sf::Vector2i worldTile, int worl
     return tileGenDataPtr;
 }
 
-ObjectType Chunk::getRandomObjectToSpawnAtWorldTile(sf::Vector2i worldTile, int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise,
-    const FastNoise& riverNoise, RandInt& randGen, PlanetType planetType)
+ObjectType Chunk::getRandomObjectToSpawnAtWorldTile(pl::Vector2<int> worldTile, int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise,
+    const FastNoise& riverNoise, RandInt& randGen, PlanetType planetType, float probabilityMult)
 {
     const TileGenData* tileGenData = getTileGenAtWorldTile(worldTile, worldSize, heightNoise, biomeNoise, riverNoise, planetType);
 
@@ -382,7 +439,7 @@ ObjectType Chunk::getRandomObjectToSpawnAtWorldTile(sf::Vector2i worldTile, int 
     float randomSpawn = static_cast<float>(randGen.generate(0, 10000)) / 10000.0f;
     for (const ObjectGenData& objectGenData : biomeGenData->objectGenDatas)
     {
-        cumulativeChance += objectGenData.spawnChance;
+        cumulativeChance += objectGenData.spawnChance * probabilityMult;
 
         if (randomSpawn <= cumulativeChance)
         {
@@ -393,7 +450,7 @@ ObjectType Chunk::getRandomObjectToSpawnAtWorldTile(sf::Vector2i worldTile, int 
     return -1;
 }
 
-EntityType Chunk::getRandomEntityToSpawnAtWorldTile(sf::Vector2i worldTile, int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise,
+EntityType Chunk::getRandomEntityToSpawnAtWorldTile(pl::Vector2<int> worldTile, int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise,
     const FastNoise& riverNoise, PlanetType planetType)
 {
     const TileGenData* tileGenData = getTileGenAtWorldTile(worldTile, worldSize, heightNoise, biomeNoise, riverNoise, planetType);
@@ -455,10 +512,10 @@ void Chunk::generateVisualEffectTiles(ChunkManager& chunkManager)
         return TileType::Visual_BLANK;
     };
 
-    auto getTileTypeAt = [this](ChunkPosition chunk, sf::Vector2i tile, int xOffset, int yOffset,
+    auto getTileTypeAt = [this](ChunkPosition chunk, pl::Vector2<int> tile, int xOffset, int yOffset,
                                 ChunkManager& chunkManager)
     {
-        std::pair<ChunkPosition, sf::Vector2i> wrappedChunkTile = ChunkManager::getChunkTileFromOffset(chunk, tile, xOffset, yOffset, chunkManager.getWorldSize());
+        std::pair<ChunkPosition, pl::Vector2<int>> wrappedChunkTile = ChunkManager::getChunkTileFromOffset(chunk, tile, xOffset, yOffset, chunkManager.getWorldSize());
 
         if (wrappedChunkTile.first == chunk)
         {
@@ -483,7 +540,7 @@ void Chunk::generateVisualEffectTiles(ChunkManager& chunkManager)
             if (groundTileType != 0) // water
                 continue;
 
-            sf::Vector2i tilePos(x, y);
+            pl::Vector2<int> tilePos(x, y);
 
             visualTileGrid[y][x] = getVisualTileType(
                 getTileTypeAt(chunkPosition, tilePos, -1, -1, chunkManager),
@@ -499,7 +556,7 @@ void Chunk::generateVisualEffectTiles(ChunkManager& chunkManager)
     }
 }
 
-void Chunk::setTile(int tileMap, sf::Vector2i position, TileMap* upTiles, TileMap* downTiles, TileMap* leftTiles, TileMap* rightTiles, bool graphicsUpdate)
+void Chunk::setTile(int tileMap, pl::Vector2<int> position, TileMap* upTiles, TileMap* downTiles, TileMap* leftTiles, TileMap* rightTiles, bool graphicsUpdate)
 {
     if (!tileMaps.contains(tileMap))
     {
@@ -517,7 +574,7 @@ void Chunk::setTile(int tileMap, sf::Vector2i position, TileMap* upTiles, TileMa
     }
 }
 
-void Chunk::setTile(int tileMap, sf::Vector2i position, Chunk* upChunk, Chunk* downChunk, Chunk* leftChunk, Chunk* rightChunk, bool graphicsUpdate)
+void Chunk::setTile(int tileMap, pl::Vector2<int> position, Chunk* upChunk, Chunk* downChunk, Chunk* leftChunk, Chunk* rightChunk, bool graphicsUpdate)
 {
     if (!tileMaps.contains(tileMap))
     {
@@ -584,7 +641,7 @@ TileMap* Chunk::getTileMap(int tileMap)
     return &(tileMaps[tileMap]);
 }
 
-void Chunk::drawChunkTerrain(sf::RenderTarget& window, const Camera& camera, float time)
+void Chunk::drawChunkTerrain(pl::RenderTarget& window, const Camera& camera, float time, int worldSize)
 {
     // Get tile size and scale
     float scale = ResolutionHandler::getScale();
@@ -596,37 +653,42 @@ void Chunk::drawChunkTerrain(sf::RenderTarget& window, const Camera& camera, flo
             continue;
         #endif
 
-        iter->second.draw(window, camera.worldToScreenTransform(worldPosition), sf::Vector2f(scale, scale));
+        iter->second.draw(window, camera.worldToScreenTransform(worldPosition, worldSize), pl::Vector2f(scale, scale));
     }
 
 
     #if (!RELEASE_BUILD)
+    pl::VertexArray debugLines;
+    debugLines.setPrimitiveMode(pl::PrimitiveMode::Lines);
+
     // DEBUG DRAW LINE TO ENTITIES
     if (DebugOptions::drawEntityChunkParents)
     {
         for (auto& entity : entities)
         {
-            sf::VertexArray lines(sf::Lines, 2);
-            lines[0].position = camera.worldToScreenTransform(worldPosition);
-            lines[1].position = camera.worldToScreenTransform(entity->getPosition());
-            window.draw(lines);
+            debugLines.addVertex(pl::Vertex(camera.worldToScreenTransform(worldPosition, worldSize)));
+            debugLines.addVertex(pl::Vertex(camera.worldToScreenTransform(entity->getPosition(), worldSize)));
         }
     }
 
     // DEBUG CHUNK OUTLINE DRAW
     if (DebugOptions::drawChunkBoundaries)
     {
-        sf::VertexArray lines(sf::Lines, 8);
-        lines[0].position = camera.worldToScreenTransform(worldPosition);
-        lines[1].position = camera.worldToScreenTransform(worldPosition + sf::Vector2f(CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED, 0));
-        lines[2].position = camera.worldToScreenTransform(worldPosition);
-        lines[3].position = camera.worldToScreenTransform(worldPosition + sf::Vector2f(0, CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED));
-        lines[4].position = camera.worldToScreenTransform(worldPosition + sf::Vector2f(CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED, 0));
-        lines[5].position = camera.worldToScreenTransform(worldPosition + sf::Vector2f(CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED, CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED));
-        lines[6].position = camera.worldToScreenTransform(worldPosition + sf::Vector2f(0, CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED));
-        lines[7].position = camera.worldToScreenTransform(worldPosition + sf::Vector2f(CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED, CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED));
-        
-        window.draw(lines);
+        debugLines.addVertex(pl::Vertex(camera.worldToScreenTransform(worldPosition, worldSize)));
+        debugLines.addVertex(pl::Vertex(camera.worldToScreenTransform(worldPosition + pl::Vector2f(CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED, 0), worldSize)));
+        debugLines.addVertex(pl::Vertex(camera.worldToScreenTransform(worldPosition, worldSize)));
+        debugLines.addVertex(pl::Vertex(camera.worldToScreenTransform(worldPosition + pl::Vector2f(0, CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED), worldSize)));
+        debugLines.addVertex(pl::Vertex(camera.worldToScreenTransform(worldPosition + pl::Vector2f(CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED, 0), worldSize)));
+        debugLines.addVertex(pl::Vertex(camera.worldToScreenTransform(worldPosition +
+            pl::Vector2f(CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED, CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED), worldSize)));
+        debugLines.addVertex(pl::Vertex(camera.worldToScreenTransform(worldPosition + pl::Vector2f(0, CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED), worldSize)));
+        debugLines.addVertex(pl::Vertex(camera.worldToScreenTransform(worldPosition +
+            pl::Vector2f(CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED, CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED), worldSize)));
+    }
+
+    if (debugLines.size() > 0)
+    {
+        window.draw(debugLines, *Shaders::getShader(ShaderType::DefaultNoTexture), nullptr, pl::BlendMode::Alpha);
     }
 
     // DRAW COLLISIONS
@@ -634,19 +696,24 @@ void Chunk::drawChunkTerrain(sf::RenderTarget& window, const Camera& camera, flo
     {
         for (auto& collisionRect : collisionRects)
         {
-            collisionRect.debugDraw(window, camera);
+            collisionRect.debugDraw(window, camera, worldSize);
         }
     }
     #endif
 }
 
-void Chunk::drawChunkTerrainVisual(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Camera& camera, PlanetType planetType, float time)
+void Chunk::drawChunkTerrainVisual(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera, PlanetType planetType, int worldSize, float time)
 {
     // Get tile size and scale
     float scale = ResolutionHandler::getScale();
     // float tileSize = ResolutionHandler::getTileSize();
 
     const PlanetGenData& planetGenData = PlanetGenDataLoader::getPlanetGenData(planetType);
+
+    pl::DrawData drawData;
+    drawData.texture = TextureManager::getTexture(TextureType::GroundTiles);
+    drawData.shader = Shaders::getShader(ShaderType::Default);
+    drawData.scale = pl::Vector2f(scale, scale);
 
     // Draw visual stuff (edge of tiles/cliffs etc)
     for (int y = 0; y < 8; y++)
@@ -658,47 +725,43 @@ void Chunk::drawChunkTerrainVisual(sf::RenderTarget& window, SpriteBatch& sprite
             if (visualTileType == TileType::Visual_BLANK)
                 continue;
 
-            sf::Vector2f tileWorldPosition(worldPosition.x + x * TILE_SIZE_PIXELS_UNSCALED, worldPosition.y + y * TILE_SIZE_PIXELS_UNSCALED);
-            sf::IntRect textureRect;
+            pl::Vector2f tileWorldPosition(worldPosition.x + x * TILE_SIZE_PIXELS_UNSCALED, worldPosition.y + y * TILE_SIZE_PIXELS_UNSCALED);
 
             int cliffWaterFrame = static_cast<int>(std::min(std::max(std::sin(time / 2.0f + chunkPosition.x + x) * 3.5f / 2.0f + 3.5f / 2.0f, 0.0f), 3.0f));
             
             switch (visualTileType)
             {
                 case TileType::Visual_Cliff:
-                    textureRect = sf::IntRect(planetGenData.cliffTextureOffset.x + cliffWaterFrame * 16, planetGenData.cliffTextureOffset.y, 16, 16);
+                    drawData.textureRect = pl::Rect<int>(planetGenData.cliffTextureOffset.x + cliffWaterFrame * 16, planetGenData.cliffTextureOffset.y, 16, 16);
                     tileWorldPosition.y -= 2;
                     break;
                 case TileType::Visual_LCliff:
-                    textureRect = sf::IntRect(planetGenData.cliffTextureOffset.x + cliffWaterFrame * 16, planetGenData.cliffTextureOffset.y + 16, 16, 16);
+                    drawData.textureRect = pl::Rect<int>(planetGenData.cliffTextureOffset.x + cliffWaterFrame * 16, planetGenData.cliffTextureOffset.y + 16, 16, 16);
                     tileWorldPosition.y -= 2;
                     break;
                 case TileType::Visual_RCliff:
-                    textureRect = sf::IntRect(planetGenData.cliffTextureOffset.x + cliffWaterFrame * 16, planetGenData.cliffTextureOffset.y + 32, 16, 16);
+                    drawData.textureRect = pl::Rect<int>(planetGenData.cliffTextureOffset.x + cliffWaterFrame * 16, planetGenData.cliffTextureOffset.y + 32, 16, 16);
                     tileWorldPosition.y -= 2;
                     break;
                 case TileType::Visual_LRCliff:
-                    textureRect = sf::IntRect(planetGenData.cliffTextureOffset.x + cliffWaterFrame * 16, planetGenData.cliffTextureOffset.y + 48, 16, 16);
+                    drawData.textureRect = pl::Rect<int>(planetGenData.cliffTextureOffset.x + cliffWaterFrame * 16, planetGenData.cliffTextureOffset.y + 48, 16, 16);
                     tileWorldPosition.y -= 2;
                     break;
             }
 
-            // sf::Shader* cliffShader = Shaders::getShader(ShaderType::Cliff);
+            drawData.position = camera.worldToScreenTransform(tileWorldPosition, worldSize);
 
-            spriteBatch.draw(window, {TextureType::GroundTiles, camera.worldToScreenTransform(tileWorldPosition), 0, {scale, scale}},
-                textureRect);
-
-            // TextureManager::drawSubTexture(window, {TextureType::GroundTiles, Camera::worldToScreenTransform(tileWorldPosition), 0, {scale, scale}}, textureRect);
+            spriteBatch.draw(window, drawData);
         }
     }
 }
 
-void Chunk::drawChunkWater(sf::RenderTarget& window, const Camera& camera, ChunkManager& chunkManager)
+void Chunk::drawChunkWater(pl::RenderTarget& window, const Camera& camera, ChunkManager& chunkManager)
 {
     // Get scale
     float scale = ResolutionHandler::getScale();
 
-    // Set water colour
+    // Set water color
     const BiomeGenData* chunkBiome = chunkManager.getChunkBiome(chunkPosition);
     
     const BiomeGenData* surroundingChunkBiomes[8] = {
@@ -721,7 +784,7 @@ void Chunk::drawChunkWater(sf::RenderTarget& window, const Camera& camera, Chunk
         return;
     }
 
-    sf::Glsl::Vec4 surroundingWaterColors[8];
+    std::vector<float> surroundingWaterColors(8 * 4);
     
     for (int i = 0; i < 8; i++)
     {
@@ -730,28 +793,36 @@ void Chunk::drawChunkWater(sf::RenderTarget& window, const Camera& camera, Chunk
             return;
         }
 
-        surroundingWaterColors[i] = surroundingChunkBiomes[i]->waterColour;
-    }
-    
-    sf::Shader* waterShader = Shaders::getShader(ShaderType::Water);
+        pl::Color waterColorNormalised = surroundingChunkBiomes[i]->waterColor.normalise();
 
-    waterShader->setUniform("waterColor", sf::Glsl::Vec4(chunkBiome->waterColour));
-    waterShader->setUniformArray("surroundingWaterColors", surroundingWaterColors, 8);
-    waterShader->setUniform("spriteSheetSize", sf::Glsl::Vec2(TextureManager::getTextureSize(TextureType::Water)));
+        surroundingWaterColors[i * 4] = waterColorNormalised.r;
+        surroundingWaterColors[i * 4 + 1] = waterColorNormalised.g;
+        surroundingWaterColors[i * 4 + 2] = waterColorNormalised.b;
+        surroundingWaterColors[i * 4 + 3] = waterColorNormalised.a;
+    }
+
+    pl::Texture* waterTexture = TextureManager::getTexture(TextureType::Water);
+    pl::Shader* waterShader = Shaders::getShader(ShaderType::Water);
+
+    waterShader->setUniformColor("waterColor", chunkBiome->waterColor);
+    waterShader->setUniform4fv("surroundingWaterColors", surroundingWaterColors);
 
     const PlanetGenData& planetGenData = PlanetGenDataLoader::getPlanetGenData(chunkManager.getPlanetType());
 
-    waterShader->setUniform("textureRect", sf::Glsl::Vec4(planetGenData.waterTextureOffset.x, planetGenData.waterTextureOffset.y, 32, 32));
-
     // Draw water
-    sf::Vector2f waterPos = camera.worldToScreenTransform(worldPosition);
-    sf::IntRect waterRect(0, 0, TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE, TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE);
+    pl::Vector2f waterPos = camera.worldToScreenTransform(worldPosition, chunkManager.getWorldSize());
+    pl::Rect<int> waterRect(waterPos.x, waterPos.y, TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE * scale, TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE * scale);
 
-    TextureManager::drawSubTexture(window, {TextureType::Water, waterPos, 0, {scale, scale}}, waterRect, waterShader);
+    pl::VertexArray waterVertices;
+    waterVertices.addQuad(waterRect, pl::Color(), pl::Rect<float>(planetGenData.waterTextureOffset.x, planetGenData.waterTextureOffset.y, 32 * 4, 32 * 4));
+
+    window.draw(waterVertices, *waterShader, waterTexture, pl::BlendMode::Alpha);
 }
 
-void Chunk::updateChunkObjects(Game& game, float dt, int worldSize, ChunkManager& chunkManager, PathfindingEngine& pathfindingEngine)
+bool Chunk::updateChunkObjects(Game& game, float dt, float gameTime, int worldSize, ChunkManager& chunkManager, PathfindingEngine& pathfindingEngine)
 {
+    LocationState locationState = LocationState::createFromPlanetType(chunkManager.getPlanetType());
+
     for (int y = 0; y < objectGrid.size(); y++)
     {
         auto& object_row = objectGrid[y];
@@ -760,7 +831,6 @@ void Chunk::updateChunkObjects(Game& game, float dt, int worldSize, ChunkManager
             BuildableObject* object = object_row[x].get();
             if (object)
             {
-                // OccupiedTileObject* occupiedTile = dynamic_cast<OccupiedTileObject*>(object.get());
                 // If object is object reference, do not update
                 if (object->isObjectReference())
                     continue;
@@ -768,14 +838,37 @@ void Chunk::updateChunkObjects(Game& game, float dt, int worldSize, ChunkManager
                 // Determine whether on water
                 bool onWater = (getTileType(object->getChunkTileInside(worldSize)) == 0);
                 
-                object->update(game, dt, onWater);
+                object->update(game, locationState, dt, onWater);
                 if (!object->isAlive())
-                    deleteObject(sf::Vector2i(x, y), chunkManager, pathfindingEngine);
+                    deleteObject(pl::Vector2<int>(x, y), game, chunkManager, pathfindingEngine);
             }
         }
     }
 
-    // recalculateCollisionRects(chunkManager);
+    bool modifiedObjects = false;
+
+    // Regenerate resources
+    if (nextResourceRegenerationTime <= gameTime)
+    {
+        const BiomeGenData* biomeGenData = chunkManager.getChunkBiome(chunkPosition);
+
+        if (biomeGenData)
+        {
+            RandInt randGen(rand());
+            modifiedObjects = generateObjects(chunkManager.getHeightNoise(), chunkManager.getBiomeNoise(), chunkManager.getRiverNoise(),
+                chunkManager.getPlanetType(), randGen, game, chunkManager, pathfindingEngine, false, biomeGenData->resourceRegenerationDensity);
+            
+            nextResourceRegenerationTime = gameTime + Helper::randFloat(biomeGenData->resourceRegenerationTimeMin, biomeGenData->resourceRegenerationTimeMax);
+        }
+
+        // Chunk has been modified from default state
+        if (modifiedObjects)
+        {
+            modified = true;
+        }
+    }
+
+    return modifiedObjects;
 }
 
 std::vector<WorldObject*> Chunk::getObjects()
@@ -785,7 +878,6 @@ std::vector<WorldObject*> Chunk::getObjects()
     {
         for (int x = 0; x < 8; x++)
         {
-            // OccupiedTileObject* occupiedTile = dynamic_cast<OccupiedTileObject*>(objectGrid[y][x].get());
             if (!objectGrid[y][x])
                 continue;
 
@@ -809,40 +901,41 @@ std::vector<WorldObject*> Chunk::getObjects()
     return objects;
 }
 
-BuildableObject* Chunk::getObject(sf::Vector2i position)
-{
-    return objectGrid[position.y][position.x].get();
-}
-
-int Chunk::getTileType(sf::Vector2i position) const
+int Chunk::getTileType(pl::Vector2<int> position) const
 {
     return groundTileGrid[position.y][position.x];
 }
 
-void Chunk::setObject(sf::Vector2i position, ObjectType objectType, Game& game, ChunkManager& chunkManager, PathfindingEngine* pathfindingEngine,
-    bool recalculateCollision, bool calledWhileGenerating)
+void Chunk::setObject(pl::Vector2<int> position, ObjectType objectType, Game& game, ChunkManager& chunkManager, PathfindingEngine* pathfindingEngine,
+    const BuildableObjectCreateParameters& parameters, bool recalculateCollision)
 {
-    if (!calledWhileGenerating)
+    if (parameters.placedByPlayer)
     {
         modified = true;
     }
 
-    // sf::Vector2f worldPosition = static_cast<sf::Vector2f>(chunkPosition) * 8.0f * tileSize;
-    sf::Vector2f objectPos;
+    // pl::Vector2f worldPosition = static_cast<pl::Vector2f>(chunkPosition) * 8.0f * tileSize;
+    pl::Vector2f objectPos;
     objectPos.x = worldPosition.x + position.x * TILE_SIZE_PIXELS_UNSCALED + TILE_SIZE_PIXELS_UNSCALED / 2.0f;
     objectPos.y = worldPosition.y + position.y * TILE_SIZE_PIXELS_UNSCALED + TILE_SIZE_PIXELS_UNSCALED / 2.0f;
 
-    sf::Vector2i objectSize(1, 1);
+    pl::Vector2<int> objectSize(1, 1);
     if (objectType >= 0)
     {
         objectSize = ObjectDataLoader::getObjectData(objectType).size;
     }
 
+    // Object present - destroy and drop items
+    if (BuildableObject* currentObject = chunkManager.getChunkObject(chunkPosition, position))
+    {
+        chunkManager.deleteObject(currentObject->getChunkInside(chunkManager.getWorldSize()), currentObject->getChunkTileInside(chunkManager.getWorldSize()), game, true);
+    }
+
     // Set object in chunk
-    objectGrid[position.y][position.x] = BuildableObjectFactory::create(objectPos, objectType, &game, !calledWhileGenerating);
+    objectGrid[position.y][position.x] = BuildableObjectFactory::create(objectPos, objectType, parameters, &game, &chunkManager);
 
     // Create object reference objects if object is larger than one tile
-    if (objectSize != sf::Vector2i(1, 1))
+    if (objectSize != pl::Vector2<int>(1, 1))
     {
         ObjectReference objectReference;
         objectReference.chunk = ChunkPosition(chunkPosition.x, chunkPosition.y);
@@ -859,6 +952,14 @@ void Chunk::setObject(sf::Vector2i position, ObjectType objectType, Game& game, 
                 }
 
                 auto chunkTile = ChunkManager::getChunkTileFromOffset(chunkPosition, position, x, y, chunkManager.getWorldSize());
+
+                // Object present - destroy and drop items
+                if (BuildableObject* currentObject = chunkManager.getChunkObject(chunkTile.first, chunkTile.second))
+                {
+                    chunkManager.deleteObject(currentObject->getChunkInside(chunkManager.getWorldSize()),
+                        currentObject->getChunkTileInside(chunkManager.getWorldSize()), game, true);
+                }
+
                 chunkManager.setObjectReference(chunkTile.first, objectReference, chunkTile.second);
             }
         }
@@ -870,22 +971,34 @@ void Chunk::setObject(sf::Vector2i position, ObjectType objectType, Game& game, 
     }
 }
 
-void Chunk::deleteObject(sf::Vector2i position, ChunkManager& chunkManager, PathfindingEngine& pathfindingEngine)
+void Chunk::deleteObject(pl::Vector2<int> position, Game& game, ChunkManager& chunkManager, PathfindingEngine& pathfindingEngine, bool dropItems)
 {
+    BuildableObject* object = objectGrid[position.y][position.x].get();
+    if (!object)
+    {
+        return;
+    }
+
     modified = true;
 
     // Get size of object to handle different deletion cases
-    ObjectType objectType = objectGrid[position.y][position.x]->getObjectType();
+    ObjectType objectType = object->getObjectType();
 
-    sf::Vector2i objectSize(1, 1);
+    pl::Vector2<int> objectSize(1, 1);
     if (objectType >= 0)
     {
         const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
         objectSize = objectData.size;
     }
 
+    // Drop items if required
+    if (dropItems)
+    {
+        object->forceKill(game, chunkManager);
+    }
+
     // Object is single tile
-    if (objectSize == sf::Vector2i(1, 1))
+    if (objectSize == pl::Vector2<int>(1, 1))
     {
         deleteSingleObject(position, chunkManager, pathfindingEngine);
         return;
@@ -903,13 +1016,13 @@ void Chunk::deleteObject(sf::Vector2i position, ChunkManager& chunkManager, Path
     }
 }
 
-void Chunk::deleteSingleObject(sf::Vector2i position, ChunkManager& chunkManager, PathfindingEngine& pathfindingEngine)
+void Chunk::deleteSingleObject(pl::Vector2<int> position, ChunkManager& chunkManager, PathfindingEngine& pathfindingEngine)
 {
     objectGrid[position.y][position.x].reset();
     recalculateCollisionRects(chunkManager, &pathfindingEngine);
 }
 
-void Chunk::setObjectReference(const ObjectReference& objectReference, sf::Vector2i tile, ChunkManager& chunkManager, PathfindingEngine& pathfindingEngine)
+void Chunk::setObjectReference(const ObjectReference& objectReference, pl::Vector2<int> tile, ChunkManager& chunkManager, PathfindingEngine& pathfindingEngine)
 {
     modified = true;
 
@@ -918,7 +1031,7 @@ void Chunk::setObjectReference(const ObjectReference& objectReference, sf::Vecto
     recalculateCollisionRects(chunkManager, &pathfindingEngine);
 }
 
-bool Chunk::canPlaceObject(sf::Vector2i position, ObjectType objectType, int worldSize, ChunkManager& chunkManager)
+bool Chunk::canPlaceObject(pl::Vector2<int> position, ObjectType objectType, int worldSize, ChunkManager& chunkManager)
 {
     // Get data of object type to test
     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
@@ -954,16 +1067,27 @@ bool Chunk::canPlaceObject(sf::Vector2i position, ObjectType objectType, int wor
     return true;
 }
 
-void Chunk::updateChunkEntities(float dt, int worldSize, ProjectileManager& projectileManager, ChunkManager& chunkManager, Game& game)
+void Chunk::updateChunkEntities(float dt, int worldSize, ProjectileManager* projectileManager, ChunkManager& chunkManager, Game* game, bool networkUpdateOnly)
 {
-    for (std::vector<std::unique_ptr<Entity>>::iterator entityIter = entities.begin(); entityIter != entities.end();)
+    if (!networkUpdateOnly && (!projectileManager || !game))
+    {
+        return;
+    }
+
+    for (auto entityIter = entities.begin(); entityIter != entities.end();)
     {
         std::unique_ptr<Entity>& entity = *entityIter;
 
         // Determine whether on water
         bool onWater = (getTileType(entity->getChunkTileInside(worldSize)) == 0);
 
-        entity->update(dt, projectileManager, chunkManager, game, onWater, game.getGameTime());
+        entity->update(dt, *projectileManager, chunkManager, *game, onWater, game->getGameTime(), networkUpdateOnly);
+
+        if (networkUpdateOnly)
+        {
+            entityIter++;
+            continue;
+        }
 
         // Check if requires deleting (not alive)
         if (!entity->isAlive())
@@ -973,7 +1097,7 @@ void Chunk::updateChunkEntities(float dt, int worldSize, ProjectileManager& proj
         }
 
         // Check if requires moving to different chunk
-        sf::Vector2f relativePosition = entity->getPosition() - worldPosition;
+        pl::Vector2f relativePosition = entity->getPosition() - worldPosition;
 
         bool requiresMove = false;
         ChunkPosition newChunk(chunkPosition.x, chunkPosition.y);
@@ -982,26 +1106,35 @@ void Chunk::updateChunkEntities(float dt, int worldSize, ProjectileManager& proj
         {
             newChunk.x = (((chunkPosition.x - 1) % worldSize) + worldSize) % worldSize;
             requiresMove = true;
+            relativePosition.x += CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
         }
         else if (relativePosition.x > TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE)
         {
             newChunk.x = (((chunkPosition.x + 1) % worldSize) + worldSize) % worldSize;
             requiresMove = true;
+            relativePosition.x -= CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
         }
         else if (relativePosition.y < 0)
         {
             newChunk.y = (((chunkPosition.y - 1) % worldSize) + worldSize) % worldSize;
             requiresMove = true;
+            relativePosition.y += CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
         }
         else if (relativePosition.y > TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE)
         {
             newChunk.y = (((chunkPosition.y + 1) % worldSize) + worldSize) % worldSize;
             requiresMove = true;
+            relativePosition.y -= CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
         }
 
         if (requiresMove)
         {
-            chunkManager.moveEntityToChunkFromChunk(std::move(entity), newChunk);
+            Chunk* chunkPtr = chunkManager.getChunk(newChunk);
+            if (chunkPtr)
+            {
+                entity->setWorldPosition(relativePosition + chunkPtr->getWorldPosition());
+                chunkManager.moveEntityToChunkFromChunk(std::move(entity), newChunk);
+            }
             entityIter = entities.erase(entityIter);
             continue;
         }
@@ -1010,11 +1143,11 @@ void Chunk::updateChunkEntities(float dt, int worldSize, ProjectileManager& proj
     }
 }
 
-void Chunk::testEntityHitCollision(const std::vector<HitRect>& hitRects, ChunkManager& chunkManager, Game& game, float gameTime)
+void Chunk::testEntityHitCollision(const std::vector<HitRect>& hitRects, pl::Vector2f hitOrigin, ChunkManager& chunkManager, Game& game, float gameTime)
 {
     for (auto& entity : entities)
     {
-        entity->testHitCollision(hitRects, chunkManager, game, gameTime);
+        entity->testHitCollision(hitRects, hitOrigin, game, LocationState::createFromPlanetType(chunkManager.getPlanetType()), gameTime);
     }
 }
 
@@ -1023,7 +1156,7 @@ void Chunk::moveEntityToChunk(std::unique_ptr<Entity> entity)
     entities.push_back(std::move(entity));
 }
 
-Entity* Chunk::getSelectedEntity(sf::Vector2f cursorPos)
+Entity* Chunk::getSelectedEntity(pl::Vector2f cursorPos)
 {
     for (auto& entity : entities)
     {
@@ -1033,19 +1166,50 @@ Entity* Chunk::getSelectedEntity(sf::Vector2f cursorPos)
     return nullptr;
 }
 
-void Chunk::addItemPickup(const ItemPickup& itemPickup)
+std::vector<PacketDataEntities::EntityPacketData> Chunk::getEntityPacketDatas()
 {
-    itemPickups.push_back(itemPickup);
+    std::vector<PacketDataEntities::EntityPacketData> entityPacketDatas;
+    for (auto& entity : entities)
+    {
+        PacketDataEntities::EntityPacketData packetData = entity->getPacketData(worldPosition);
+        packetData.chunkPosition = chunkPosition;
+        entityPacketDatas.push_back(packetData);
+    }
+    return entityPacketDatas;
+}
+
+void Chunk::loadEntityPacketData(const PacketDataEntities::EntityPacketData& packetData)
+{
+    auto entity = std::make_unique<Entity>(pl::Vector2f(0, 0), 0);
+    entity->loadFromPacketData(packetData, worldPosition);
+    entities.push_back(std::move(entity));
+}
+
+void Chunk::clearEntities()
+{
+    entities.clear();
+}
+
+uint64_t Chunk::addItemPickup(const ItemPickup& itemPickup, std::optional<uint64_t> idOverride)
+{
+    if (idOverride.has_value())
+    {
+        itemPickups[idOverride.value()] = itemPickup;
+        return idOverride.value();
+    }
+
+    itemPickups[itemPickupCounter] = itemPickup;
+    return itemPickupCounter++;
 }
     
-std::optional<ItemPickupReference> Chunk::getCollidingItemPickup(const CollisionRect& playerCollision, float gameTime)
+std::optional<ItemPickupReference> Chunk::getCollidingItemPickup(const CollisionRect& playerCollision, float gameTime, int worldSize)
 {
     for (auto iter = itemPickups.begin(); iter != itemPickups.end();)
     {
-        if (iter->isBeingPickedUp(playerCollision, gameTime))
+        if (iter->second.isBeingPickedUp(playerCollision, gameTime, worldSize))
         {
-            iter->resetSpawnTime(gameTime);
-            return ItemPickupReference{*iter, chunkPosition, iter};
+            // iter->second.resetSpawnTime(gameTime);
+            return ItemPickupReference{chunkPosition, iter->first};
         }
 
         iter++;
@@ -1054,26 +1218,46 @@ std::optional<ItemPickupReference> Chunk::getCollidingItemPickup(const Collision
     return std::nullopt;
 }
 
-void Chunk::deleteItemPickup(const ItemPickupReference& itemPickupReference)
+void Chunk::deleteItemPickup(uint64_t id)
 {
-    if (itemPickupReference.pickupIter == itemPickups.end())
+    if (!itemPickups.contains(id))
     {
         return;
     }
 
-    itemPickups.erase(itemPickupReference.pickupIter);
+    itemPickups.erase(id);
+}
+
+ItemPickup* Chunk::getItemPickup(uint64_t id)
+{
+    if (!itemPickups.contains(id))
+    {
+        return nullptr;
+    }
+
+    return &itemPickups[id];
 }
 
 std::vector<WorldObject*> Chunk::getItemPickups()
 {
     std::vector<WorldObject*> itemPickupWorldObjects;
 
-    for (ItemPickup& itemPickup : itemPickups)
+    for (auto& itemPickup : itemPickups)
     {
-        itemPickupWorldObjects.push_back(&itemPickup);
+        itemPickupWorldObjects.push_back(&itemPickup.second);
     }
 
     return itemPickupWorldObjects;
+}
+
+void Chunk::overwriteItemPickupsMap(const std::unordered_map<uint64_t, ItemPickup>& itemPickups)
+{
+    this->itemPickups = itemPickups;
+}
+
+const std::unordered_map<uint64_t, ItemPickup>& Chunk::getItemPickupsMap()
+{
+    return itemPickups;
 }
 
 void Chunk::recalculateCollisionRects(ChunkManager& chunkManager, PathfindingEngine* pathfindingEngine)
@@ -1149,7 +1333,7 @@ void Chunk::recalculateCollisionRects(ChunkManager& chunkManager, PathfindingEng
                 continue;
 
             // Go through chunk manager in case of object reference
-            BuildableObject* object = chunkManager.getChunkObject(chunkPosition, sf::Vector2i(x, y));
+            BuildableObject* object = chunkManager.getChunkObject(chunkPosition, pl::Vector2<int>(x, y));
 
             if (!object)
                 continue;
@@ -1192,40 +1376,40 @@ std::vector<CollisionRect*> Chunk::getCollisionRects()
     return collisionRectPtrs;
 }
 
-bool Chunk::collisionRectStaticCollisionX(CollisionRect& collisionRect, float dx)
+bool Chunk::collisionRectStaticCollisionX(CollisionRect& collisionRect, float dx, int worldSize)
 {
     bool collision = false;
     for (auto& rect : collisionRects)
     {
-        if (collisionRect.handleStaticCollisionX(rect, dx))
+        if (collisionRect.handleStaticCollisionX(rect, dx, worldSize))
             collision = true;
     }
     return collision;
 }
 
-bool Chunk::collisionRectStaticCollisionY(CollisionRect& collisionRect, float dy)
+bool Chunk::collisionRectStaticCollisionY(CollisionRect& collisionRect, float dy, int worldSize)
 {
     bool collision = false;
     for (auto& rect : collisionRects)
     {
-        if (collisionRect.handleStaticCollisionY(rect, dy))
+        if (collisionRect.handleStaticCollisionY(rect, dy, worldSize))
             collision = true;
     }
     return collision;
 }
 
-bool Chunk::isCollisionRectCollidingWithEntities(const CollisionRect& collisionRect)
+bool Chunk::isCollisionRectCollidingWithEntities(const CollisionRect& collisionRect, int worldSize)
 {
     for (auto& entity : entities)
     {
         const CollisionRect& entityCollisionRect = entity->getCollisionRect();
-        if (entityCollisionRect.isColliding(collisionRect))
+        if (entityCollisionRect.isColliding(collisionRect, worldSize))
             return true;
     }
     return false;
 }
 
-bool Chunk::canPlaceLand(sf::Vector2i tile)
+bool Chunk::canPlaceLand(pl::Vector2<int> tile)
 {
     if (objectGrid[tile.y][tile.x])
         return false;
@@ -1236,7 +1420,7 @@ bool Chunk::canPlaceLand(sf::Vector2i tile)
     return true;
 }
 
-void Chunk::placeLand(sf::Vector2i tile, int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise,
+void Chunk::placeLand(pl::Vector2<int> tile, int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise,
     PlanetType planetType, ChunkManager& chunkManager, PathfindingEngine& pathfindingEngine)
 {
     modified = true;
@@ -1246,9 +1430,9 @@ void Chunk::placeLand(sf::Vector2i tile, int worldSize, const FastNoise& heightN
     // Chunk* leftChunk = chunkManager.getChunk(ChunkPosition(((chunkPosition.x - 1) % worldSize + worldSize) % worldSize, chunkPosition.y));
     // Chunk* rightChunk = chunkManager.getChunk(ChunkPosition(((chunkPosition.x + 1) % worldSize + worldSize) % worldSize, chunkPosition.y));
 
-    sf::Vector2i worldNoisePosition = sf::Vector2i(chunkPosition.x, chunkPosition.y) * static_cast<int>(CHUNK_TILE_SIZE);
+    pl::Vector2<int> worldNoisePosition = pl::Vector2<int>(chunkPosition.x, chunkPosition.y) * static_cast<int>(CHUNK_TILE_SIZE);
 
-    const BiomeGenData* biomeGenData = getBiomeGenAtWorldTile(sf::Vector2i(worldNoisePosition.x + tile.x, worldNoisePosition.y + tile.y),
+    const BiomeGenData* biomeGenData = getBiomeGenAtWorldTile(pl::Vector2<int>(worldNoisePosition.x + tile.x, worldNoisePosition.y + tile.y),
         worldSize, biomeNoise, planetType);
     
     if (!biomeGenData)
@@ -1275,12 +1459,12 @@ void Chunk::placeLand(sf::Vector2i tile, int worldSize, const FastNoise& heightN
     recalculateCollisionRects(chunkManager, &pathfindingEngine);
 }
 
-bool Chunk::isPlayerInStructureEntrance(sf::Vector2f playerPos, StructureEnterEvent& enterEvent)
+bool Chunk::isPlayerInStructureEntrance(pl::Vector2f playerPos)
 {
     if (!structureObject.has_value())
         return false;
    
-    bool inEntrance = structureObject->isPlayerInEntrance(playerPos, enterEvent);
+    bool inEntrance = structureObject->isPlayerInEntrance(playerPos);
 
     if (inEntrance)
     {
@@ -1292,17 +1476,22 @@ bool Chunk::isPlayerInStructureEntrance(sf::Vector2f playerPos, StructureEnterEv
     return inEntrance;
 }
 
-bool Chunk::hasStructure()
+StructureObject* Chunk::getStructureObject()
 {
-    return (structureObject.has_value());
+    if (!structureObject.has_value())
+    {
+        return nullptr;
+    }
+    return &structureObject.value();
 }
 
-ChunkPOD Chunk::getChunkPOD()
+ChunkPOD Chunk::getChunkPOD(bool includeEntities)
 {
     ChunkPOD pod;
     pod.chunkPosition = chunkPosition;
     pod.groundTileGrid = groundTileGrid;
     pod.modified = modified;
+    pod.gameTimeCreated = gameTimeCreated;
 
     for (int y = 0; y < 8; y++)
     {
@@ -1319,9 +1508,12 @@ ChunkPOD Chunk::getChunkPOD()
         }
     }
 
-    for (auto& entity : entities)
+    if (includeEntities)
     {
-        pod.entities.push_back(entity->getPOD(worldPosition));
+        for (auto& entity : entities)
+        {
+            pod.entities.push_back(entity->getPOD(worldPosition));
+        }
     }
 
     if (structureObject.has_value())
@@ -1336,13 +1528,23 @@ ChunkPOD Chunk::getChunkPOD()
     return pod;
 }
 
-void Chunk::loadFromChunkPOD(const ChunkPOD& pod, Game& game)
+void Chunk::loadFromChunkPOD(const ChunkPOD& pod, Game& game, ChunkManager& chunkManager, bool newObjectFlash)
 {
     generatedFromPOD = true;
     modified = pod.modified;
+    gameTimeCreated = (pod.gameTimeCreated >= 0.0f) ? pod.gameTimeCreated : game.getGameTime();
+
+    const BiomeGenData* biomeGenData = chunkManager.getChunkBiome(chunkPosition);
+    if (biomeGenData)
+    {
+        nextResourceRegenerationTime = gameTimeCreated + Helper::randFloat(biomeGenData->resourceRegenerationTimeMin, biomeGenData->resourceRegenerationTimeMax);
+    }
 
     groundTileGrid = pod.groundTileGrid;
-    worldPosition = sf::Vector2f(chunkPosition.x * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED, chunkPosition.y * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED);
+    worldPosition = pl::Vector2f(chunkPosition.x * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED, chunkPosition.y * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED);
+
+    BuildableObjectCreateParameters createParameters;
+    createParameters.flashOnCreate = newObjectFlash;
 
     for (int y = 0; y < 8; y++)
     {
@@ -1351,11 +1553,17 @@ void Chunk::loadFromChunkPOD(const ChunkPOD& pod, Game& game)
             const std::optional<BuildableObjectPOD>& objectPOD = pod.objectGrid[y][x];
             if (objectPOD.has_value())
             {
-                sf::Vector2f objectPos;
+                // If objectGrid already has object, do not add new object
+                if (objectGrid[y][x])
+                {
+                    continue;
+                }
+
+                pl::Vector2f objectPos;
                 objectPos.x = worldPosition.x + (x + 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
                 objectPos.y = worldPosition.y + (y + 0.5f) * TILE_SIZE_PIXELS_UNSCALED;
 
-                std::unique_ptr<BuildableObject> object = BuildableObjectFactory::create(objectPos, objectPOD->objectType, &game);
+                std::unique_ptr<BuildableObject> object = BuildableObjectFactory::create(objectPos, objectPOD->objectType, createParameters, &game, &chunkManager);
 
                 object->loadFromPOD(objectPOD.value());
 
@@ -1370,14 +1578,14 @@ void Chunk::loadFromChunkPOD(const ChunkPOD& pod, Game& game)
 
     for (const EntityPOD& entityPOD : pod.entities)
     {
-        std::unique_ptr<Entity> entity = std::make_unique<Entity>(sf::Vector2f(0, 0), 0);
+        std::unique_ptr<Entity> entity = std::make_unique<Entity>(pl::Vector2f(0, 0), 0);
         entity->loadFromPOD(entityPOD, worldPosition);
         entities.push_back(std::move(entity));
     }
 
     if (pod.structureObject.has_value())
     {
-        StructureObject structure(sf::Vector2f(0, 0), 0);
+        StructureObject structure(pl::Vector2f(0, 0), 0);
         structure.loadFromPOD(pod.structureObject.value(), worldPosition);
         structureObject = structure;
     }
@@ -1388,57 +1596,57 @@ bool Chunk::wasGeneratedFromPOD()
     return generatedFromPOD;
 }
 
-void Chunk::setWorldPosition(sf::Vector2f position, ChunkManager& chunkManager)
-{
-    // Update all entity positions
-    for (auto& entity : entities)
-    {
-        // Get position relative to chunk before updating chunk position
-        sf::Vector2f relativePosition = entity->getPosition() - worldPosition;
-        // Set entity position to new chunk position + relative
-        entity->setWorldPosition(position + relativePosition);
-    }
+// void Chunk::setWorldPosition(pl::Vector2f position, ChunkManager& chunkManager)
+// {
+//     // Update all entity positions
+//     for (auto& entity : entities)
+//     {
+//         // Get position relative to chunk before updating chunk position
+//         pl::Vector2f relativePosition = entity->getPosition() - worldPosition;
+//         // Set entity position to new chunk position + relative
+//         entity->setWorldPosition(position + relativePosition);
+//     }
 
-    // Update all item pickup positions
-    for (auto& itemPickup : itemPickups)
-    {
-        // Get position relative to chunk before updating chunk position
-        sf::Vector2f relativePosition = itemPickup.getPosition() - worldPosition;
-        // Set entity position to new chunk position + relative
-        itemPickup.setPosition(position + relativePosition);
-    }
+//     // Update all item pickup positions
+//     for (auto& itemPickup : itemPickups)
+//     {
+//         // Get position relative to chunk before updating chunk position
+//         pl::Vector2f relativePosition = itemPickup.second.getPosition() - worldPosition;
+//         // Set entity position to new chunk position + relative
+//         itemPickup.second.setPosition(position + relativePosition);
+//     }
 
-    // Update structure position if necessary
-    if (structureObject.has_value())
-    {
-        sf::Vector2f relativePosition = structureObject->getPosition() - worldPosition;
-        structureObject->setWorldPosition(position + relativePosition);
-    }
+//     // Update structure position if necessary
+//     if (structureObject.has_value())
+//     {
+//         pl::Vector2f relativePosition = structureObject->getPosition() - worldPosition;
+//         structureObject->setWorldPosition(position + relativePosition);
+//     }
 
-    worldPosition = position;
+//     worldPosition = position;
 
-    // float tileSize = ResolutionHandler::getTileSize();
+//     // float tileSize = ResolutionHandler::getTileSize();
 
-    // Update all object positions
-    for (int y = 0; y < objectGrid.size(); y++)
-    {
-        for (int x = 0; x < objectGrid[0].size(); x++)
-        {
-            // If no object at position, don't update position
-            if (!objectGrid[y][x])
-                continue;
+//     // Update all object positions
+//     // for (int y = 0; y < objectGrid.size(); y++)
+//     // {
+//     //     for (int x = 0; x < objectGrid[0].size(); x++)
+//     //     {
+//     //         // If no object at position, don't update position
+//     //         if (!objectGrid[y][x])
+//     //             continue;
             
-            // Calculate updated object position
-            sf::Vector2f objectPos = worldPosition + sf::Vector2f(x * TILE_SIZE_PIXELS_UNSCALED + TILE_SIZE_PIXELS_UNSCALED / 2.0f, y * TILE_SIZE_PIXELS_UNSCALED + TILE_SIZE_PIXELS_UNSCALED / 2.0f);
+//     //         // Calculate updated object position
+//     //         pl::Vector2f objectPos = worldPosition + pl::Vector2f(x * TILE_SIZE_PIXELS_UNSCALED + TILE_SIZE_PIXELS_UNSCALED / 2.0f, y * TILE_SIZE_PIXELS_UNSCALED + TILE_SIZE_PIXELS_UNSCALED / 2.0f);
 
-            objectGrid[y][x]->setWorldPosition(objectPos);
-        }
-    }
+//     //         objectGrid[y][x]->setWorldPosition(objectPos);
+//     //     }
+//     // }
 
-    recalculateCollisionRects(chunkManager, nullptr);
-}
+//     recalculateCollisionRects(chunkManager, nullptr);
+// }
 
-sf::Vector2f Chunk::getWorldPosition()
+pl::Vector2f Chunk::getWorldPosition()
 {
     return worldPosition;
 }
@@ -1451,6 +1659,11 @@ bool Chunk::getContainsWater()
 bool Chunk::hasBeenModified()
 {
     return modified;
+}
+
+ChunkPosition Chunk::getChunkPosition()
+{
+    return chunkPosition;
 }
 
 std::vector<WorldObject*> Chunk::getEntities()

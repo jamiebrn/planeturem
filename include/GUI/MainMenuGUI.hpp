@@ -3,16 +3,29 @@
 #include <string>
 #include <optional>
 
-#include <SFML/Graphics.hpp>
+#include <extlib/steam/steam_api.h>
+
+#include <Graphics/SpriteBatch.hpp>
+#include <Graphics/Color.hpp>
+#include <Graphics/RenderTarget.hpp>
+#include <Graphics/Framebuffer.hpp>
+#include <Graphics/Shader.hpp>
+#include <Graphics/Texture.hpp>
+#include <Vector.hpp>
+#include <Rect.hpp>
 
 #include "Core/TextureManager.hpp"
+#include "Core/Shaders.hpp"
+#include "Core/TextDraw.hpp"
 #include "Core/Camera.hpp"
-#include "Core/SpriteBatch.hpp"
 #include "Core/InputManager.hpp"
 
 #include "IO/GameSaveIO.hpp"
 
+#include "World/WorldData.hpp"
 #include "World/ChunkManager.hpp"
+
+#include "Player/NetworkPlayer.hpp"
 
 #include "GUI/Base/GUIContext.hpp"
 #include "GUI/DefaultGUIPanel.hpp"
@@ -22,6 +35,7 @@ enum class MainMenuState
     Main,
     StartingNew,
     SelectingLoad,
+    JoiningGame,
     Options
 };
 
@@ -29,6 +43,8 @@ enum class MainMenuEventType
 {
     StartNew,
     Load,
+    JoinGame,
+    CancelJoinGame,
     SaveOptions,
     Quit
 };
@@ -49,6 +65,7 @@ enum class PauseMenuState
 enum class PauseMenuEventType
 {
     Resume,
+    StartMultiplayer,
     SaveOptions,
     Quit
 };
@@ -66,11 +83,13 @@ public:
 
     void initialisePauseMenu();
 
-    void update(float dt, sf::Vector2f mouseScreenPos, Game& game, ProjectileManager& projectileManager);
+    void update(float dt, pl::Vector2f mouseScreenPos, Game& game);
 
-    std::optional<MainMenuEvent> createAndDraw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, float dt, float gameTime);
+    std::optional<MainMenuEvent> createAndDraw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, float dt, float applicationTime);
 
-    std::optional<PauseMenuEventType> createAndDrawPauseMenu(sf::RenderTarget& window, float dt, float gameTime);
+    void setMainMenuJoinGame();
+
+    std::optional<PauseMenuEventType> createAndDrawPauseMenu(pl::RenderTarget& window, float dt, float applicationTime, bool steamInitialised, std::optional<uint64_t> lobbyId);
 
     void setCanInteract(bool value);
 
@@ -81,7 +100,7 @@ private:
     void changeUIState(StateType newState, StateType& currentState);
 
     // Returns true if back is pressed
-    bool createOptionsMenu(sf::RenderTarget& window, int startElementYPos);
+    bool createOptionsMenu(pl::RenderTarget& window, int startElementYPos);
 
 private:
     std::string menuErrorMessage;
@@ -94,17 +113,27 @@ private:
     int saveFilePage;
 
     std::string saveNameInput;
+    std::string playerNameInput;
     std::string worldSeedInput;
+    int newGamePage;
+
+    pl::Color selectedBodyColor;
+    float selectedBodyColorValueHSV = 1.0f;
+    pl::Color selectedSkinColor;
+    float selectedSkinColorValueHSV = 1.0f;
 
     static constexpr float DELETE_SAVE_MAX_HOLD_TIME = 3.0f;
     float deleteSaveHoldTime;
     int deletingSaveIndex;
-    sf::FloatRect deletingRect;
+    pl::Rect<float> deletingRect;
 
     bool canInteract;
 
-    ChunkManager backgroundChunkManager;
-    sf::Vector2f worldViewPosition;
-    Camera backgroundCamera;
+    WorldData menuWorldData;
+    pl::Vector2f worldViewPosition;
+    Camera menuCamera;
+
+    // Demo stuff
+    // bool showPauseMenuWishlist;
 
 };

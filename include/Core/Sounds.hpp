@@ -1,7 +1,6 @@
 #pragma once
 
-// Include libraries
-#include <SFML/Audio.hpp>
+#include <Audio/Sound.hpp>
 #include <unordered_map>
 #include <string>
 #include <memory>
@@ -13,10 +12,13 @@
 enum class SoundType
 {
     HitObject, HitObject2, HitObject3,
+    HitAnimal, HitAnimal2, HitAnimal3,
     CraftBuild1, CraftBuild2,
     Pop0, Pop1, Pop2, Pop3,
     Notify0,
     UIClick0,
+    InventoryClick1, InventoryClick2, InventoryClick3,
+    InventoryStack1, InventoryStack2,
     Crow
 };
 
@@ -76,35 +78,18 @@ private:
     static Tween<float> fadeOutTween;
 
     // Map storing buffers, which store sound effect data
-    inline static std::unordered_map<SoundType, sf::SoundBuffer> soundBufferMap;
+    // inline static std::unordered_map<SoundType, sf::SoundBuffer> soundBufferMap;
 
     // Map storing sound objects which interface the sound buffers
-    inline static std::unordered_map<SoundType, sf::Sound> soundMap;
+    static std::unordered_map<SoundType, std::unique_ptr<pl::Sound>> soundMap;
 
     // Constant map storing file paths for all sound effects
-    inline static const std::unordered_map<SoundType, std::string> soundPaths = {
-        {SoundType::HitObject, "Data/Sounds/hit_object.ogg"},
-        {SoundType::HitObject2, "Data/Sounds/hit_object_2.ogg"},
-        {SoundType::HitObject3, "Data/Sounds/hit_object_3.ogg"},
-        {SoundType::CraftBuild1, "Data/Sounds/craftbuild1.ogg"},
-        {SoundType::CraftBuild2, "Data/Sounds/craftbuild2.ogg"},
-        {SoundType::Pop0, "Data/Sounds/pop0.ogg"},
-        {SoundType::Pop1, "Data/Sounds/pop1.ogg"},
-        {SoundType::Pop2, "Data/Sounds/pop2.ogg"},
-        {SoundType::Pop3, "Data/Sounds/pop3.ogg"},
-        {SoundType::Notify0, "Data/Sounds/notify0.ogg"},
-        {SoundType::UIClick0, "Data/Sounds/uiclick0.ogg"},
-        {SoundType::Crow, "Data/Sounds/crow.ogg"}
-    };
+    static const std::unordered_map<SoundType, std::string> soundPaths;
 
     // Map storing music objects, which interface with the music streams
-    inline static std::unordered_map<MusicType, std::unique_ptr<sf::Music>> musicMap;
+    static std::unordered_map<MusicType, std::unique_ptr<pl::Sound>> musicMap;
 
     // Constant map storing file paths for all music tracks
-    inline static const std::unordered_map<MusicType, std::string> musicPaths = {
-        {MusicType::WorldTheme, "Data/Sounds/world_theme.ogg"},
-        {MusicType::WorldTheme2, "Data/Sounds/world_theme_2.ogg"},
-        {MusicType::BossTheme1, "Data/Sounds/boss_theme_1.ogg"}
-    };
+    static const std::unordered_map<MusicType, std::string> musicPaths;
 
 };

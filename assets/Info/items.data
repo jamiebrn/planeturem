@@ -73,19 +73,49 @@
         "sell-value": 0.5
     },
     {
-        "name": "Fish",
-        "texture": [0, 112, 16, 16],
+        "name": "Carp",
+        "texture": [0, 128, 16, 16],
         "consumable-data": {
-            "cooldown-time": 20,
-            "health-increase": 25
+            "cooldown-time": 25,
+            "health-increase": 40
         },
-        "sell-value": 0.5
+        "sell-value": 2
+    },
+    {
+        "name": "Golden Carp",
+        "texture": [0, 144, 16, 16],
+        "description": "Shiny!",
+        "sell-value": 20
+    },
+    {
+        "name": "Bream",
+        "texture": [16, 128, 16, 16],
+        "consumable-data": {
+            "cooldown-time": 15,
+            "health-increase": 20
+        },
+        "sell-value": 2
+    },
+    {
+        "name": "Dace",
+        "texture": [32, 128, 16, 16],
+        "consumable-data": {
+            "cooldown-time": 25,
+            "health-increase": 35
+        },
+        "sell-value": 2
     },
     {
         "name": "Rockfish",
         "texture": [16, 96, 16, 16],
         "description": "\"Too rough to eat\"",
         "sell-value": 1
+    },
+    {
+        "name": "Quillback",
+        "texture": [0, 160, 16, 16],
+        "description": "Pointy",
+        "sell-value": 2
     },
     {
         "name": "Sandfish",

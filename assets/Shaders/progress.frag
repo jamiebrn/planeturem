@@ -1,4 +1,4 @@
-#version 120
+#version 330 core
 
 uniform sampler2D texture;
 
@@ -9,17 +9,22 @@ uniform vec4 textureRect;
 // between 0 and 1
 uniform float progress;
 
+out vec4 FragColor;
+
+in vec4 fragColor;
+in vec2 fragUV;
+
 void main()
 {
-    float textureProgress = (gl_TexCoord[0].x - textureRect.x / spriteSheetSize.x) / (textureRect.z / spriteSheetSize.x);
+    float textureProgress = (fragUV.x - textureRect.x / spriteSheetSize.x) / (textureRect.z / spriteSheetSize.x);
 
     if (textureProgress > progress)
     {
-        gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
+        FragColor = vec4(0.0, 0.0, 0.0, 0.0);
         return;
     }
 
-    vec4 texColor = texture2D(texture, gl_TexCoord[0].xy);
+    vec4 texColor = texture2D(texture, fragUV.xy);
 
-    gl_FragColor = texColor * gl_Color;
+    FragColor = texColor * fragColor;
 }

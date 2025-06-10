@@ -4,7 +4,11 @@
 #include <cmath>
 #include <string>
 #include <format>
-#include <SFML/System/Vector2.hpp>
+
+#include <Graphics/Color.hpp>
+#include <Vector.hpp>
+
+#include "GameConstants.hpp"
 
 namespace Helper
 {
@@ -62,28 +66,95 @@ inline int wrap(int value, int max)
 };
 
 // Angle in radians
-inline sf::Vector2f rotateVector(sf::Vector2f vector, float angle)
+inline pl::Vector2f rotateVector(pl::Vector2f vector, float angle)
 {
-    sf::Vector2f rotatedVector;
+    pl::Vector2f rotatedVector;
     rotatedVector.x = vector.x * std::cos(angle) - vector.y * std::sin(angle);
     rotatedVector.y = vector.x * std::sin(angle) + vector.y * std::cos(angle);
 
     return rotatedVector;
 }
 
-inline float getVectorLength(sf::Vector2f vector)
+inline float getVectorLength(pl::Vector2f vector)
 {
     return std::sqrt(vector.x * vector.x + vector.y * vector.y);
 }
 
-inline sf::Vector2f normaliseVector(sf::Vector2f vector)
+inline pl::Vector2f normaliseVector(pl::Vector2f vector)
 {
     float length = getVectorLength(vector);
     if (length > 0)
     {
         return vector / length;
     }
-    return sf::Vector2f(0, 0);
+    return pl::Vector2f(0, 0);
+}
+
+inline pl::Color convertHSVtoRGB(float h, float s, float v)
+{
+    float c = v * s;
+    float x = c * (1.0f - std::abs(fmod(fmod(h / 60.0f, 2.0f) + 2, 2.0f) - 1.0f));
+    float m = v - c;
+    float r = 0.0f, g = 0.0f, b = 0.0f;
+    switch (static_cast<int>(h / 60.0f))
+    {
+        case 0: r = c; g = x; break;
+        case 1: r = x; g = c; break;
+        case 2: g = c; b = x; break;
+        case 3: g = x; b = c; break;
+        case 4: r = x; b = c; break;
+        case 5: r = c; b = x; break;
+    }
+
+    return pl::Color((r + m) * 255.0f, (g + m) * 255.0f, (b + m) * 255.0f);
+}
+
+// Uses RGB channels in color struct for HSV respectively
+inline pl::Color convertRGBtoHSV(const pl::Color& color)
+{
+    float r = color.r / 255.0f;
+    float g = color.g / 255.0f;
+    float b = color.b / 255.0f;
+
+    float cmax = std::max(std::max(r, g), b);
+    float cmin = std::min(std::min(r, g), b);
+    float delta = cmax - cmin;
+
+    pl::Color hsv(0, 0, 0);
+    if (delta != 0)
+    {
+        if (cmax == r)
+        {
+            hsv.r = 60 * fmod(fmod((g - b) / delta, 6) + 6, 6);
+        }
+        else if (cmax == g)
+        {
+            hsv.r = 60 * ((b - r) / delta + 2);
+        }
+        else if (cmax == b)
+        {
+            hsv.r = 60 * ((r - g) / delta + 4);
+        }
+    }
+
+    if (cmax != 0)
+    {
+        hsv.g = delta / cmax;
+    }
+
+    hsv.b = cmax;
+
+    return hsv;
+}
+
+inline pl::Vector2f wrapPosition(pl::Vector2f position, int worldSize)
+{
+    int worldPixelSize = worldSize * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
+
+    position.x = fmod(fmod(position.x, worldPixelSize) + worldPixelSize, worldPixelSize);
+    position.y = fmod(fmod(position.y, worldPixelSize) + worldPixelSize, worldPixelSize);
+
+    return position;
 }
 
 }

@@ -1,7 +1,5 @@
 #include "DebugOptions.hpp"
 
-#if (!RELEASE_BUILD)
-
 bool DebugOptions::debugOptionsMenuOpen = false;
 
 std::map<int, bool> DebugOptions::tileMapsVisible;
@@ -12,5 +10,10 @@ bool DebugOptions::drawEntityChunkParents = false;
 bool DebugOptions::godMode = false;
 float DebugOptions::godSpeedMultiplier = 1.0f;
 bool DebugOptions::limitlessZoom = false;
+bool DebugOptions::crazyAttack = false;
 
-#endif
+float DebugOptions::gameTimeMult = 1.0f;
+
+float DebugOptions::lightPropMult = 0.90f;
+
+int DebugOptions::colorWheelDivisions = 20;

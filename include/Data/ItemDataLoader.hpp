@@ -1,10 +1,12 @@
 #pragma once
 
-#include <SFML/Graphics.hpp>
 #include <fstream>
 #include <string>
 #include <unordered_map>
 #include <vector>
+
+#include <Vector.hpp>
+#include <Rect.hpp>
 
 #include "Core/json.hpp"
 #include "Data/Serialise/IntRectSerialise.hpp"

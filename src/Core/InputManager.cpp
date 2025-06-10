@@ -51,43 +51,49 @@ void InputManager::openGameControllers()
 }
 
 template <typename InputType>
-void InputManager::bindInput(InputAction action, std::optional<InputType> input, std::unordered_map<InputAction, InputType>& bindMap)
+void InputManager::bindInput(InputAction action, std::optional<InputType> input, std::unordered_map<InputAction, InputType>& bindMap, bool overwrite)
 {
     if (!input.has_value())
     {
-        if (bindMap.count(action) > 0)
+        if (bindMap.contains(action))
         {
             bindMap.erase(action);
         }
+        return;
+    }
+
+    // Do not overwrite previous binding if overwrite is disabled
+    if (bindMap.contains(action) && !overwrite)
+    {
         return;
     }
     
     bindMap[action] = input.value();
 }
 
-void InputManager::bindKey(InputAction action, std::optional<SDL_Scancode> key)
+void InputManager::bindKey(InputAction action, std::optional<SDL_Scancode> key, bool overwrite)
 {
-    bindInput<SDL_Scancode>(action, key, keyBindings);
+    bindInput<SDL_Scancode>(action, key, keyBindings, overwrite);
 }
 
-void InputManager::bindMouseButton(InputAction action, std::optional<int> button)
+void InputManager::bindMouseButton(InputAction action, std::optional<int> button, bool overwrite)
 {
-    bindInput<int>(action, button, mouseBindings);
+    bindInput<int>(action, button, mouseBindings, overwrite);
 }
 
-void InputManager::bindMouseWheel(InputAction action, std::optional<MouseWheelScroll> wheelDirection)
+void InputManager::bindMouseWheel(InputAction action, std::optional<MouseWheelScroll> wheelDirection, bool overwrite)
 {
-    bindInput<MouseWheelScroll>(action, wheelDirection, mouseWheelBindings);
+    bindInput<MouseWheelScroll>(action, wheelDirection, mouseWheelBindings, overwrite);
 }
 
-void InputManager::bindControllerAxis(InputAction action, std::optional<JoystickAxisWithDirection> axisWithDirection)
+void InputManager::bindControllerAxis(InputAction action, std::optional<JoystickAxisWithDirection> axisWithDirection, bool overwrite)
 {
-    bindInput<JoystickAxisWithDirection>(action, axisWithDirection, controllerAxisBindings);
+    bindInput<JoystickAxisWithDirection>(action, axisWithDirection, controllerAxisBindings, overwrite);
 }
 
-void InputManager::bindControllerButton(InputAction action, std::optional<SDL_GameControllerButton> button)
+void InputManager::bindControllerButton(InputAction action, std::optional<SDL_GameControllerButton> button, bool overwrite)
 {
-    bindInput<SDL_GameControllerButton>(action, button, controllerButtonBindings);
+    bindInput<SDL_GameControllerButton>(action, button, controllerButtonBindings, overwrite);
 }
 
 void InputManager::setControllerAxisDeadzone(float deadzone)
@@ -291,7 +297,7 @@ void InputManager::consumeInput(InputAction action, std::unordered_map<InputActi
     }
 }
 
-sf::Vector2f InputManager::getMousePosition(SDL_Window* window, float dt)
+pl::Vector2f InputManager::getMousePosition(SDL_Window* window, float dt)
 {
     int mouseX = 0;
     int mouseY = 0;
@@ -304,10 +310,10 @@ sf::Vector2f InputManager::getMousePosition(SDL_Window* window, float dt)
         {
             controllerMovedMouseThisFrame = true;
 
-            sf::Vector2f controllerMouseMovement;
+            pl::Vector2f controllerMouseMovement;
             controllerMouseMovement.x = getActionAxisActivation(InputAction::DIRECT_LEFT, InputAction::DIRECT_RIGHT);
             controllerMouseMovement.y = getActionAxisActivation(InputAction::DIRECT_UP, InputAction::DIRECT_DOWN);
-            controllerMouseMovement *= controllerMouseSens * dt;
+            controllerMouseMovement = controllerMouseMovement * controllerMouseSens * dt;
 
             controllerMousePosX += controllerMouseMovement.x;
             controllerMousePosY += controllerMouseMovement.y;
@@ -320,10 +326,10 @@ sf::Vector2f InputManager::getMousePosition(SDL_Window* window, float dt)
             controllerMousePosY = std::clamp(controllerMousePosY, 0, windowHeight);
         }
 
-        return sf::Vector2f(controllerMousePosX, controllerMousePosY);
+        return pl::Vector2f(controllerMousePosX, controllerMousePosY);
     }
 
-    return sf::Vector2f(mouseX, mouseY);
+    return pl::Vector2f(mouseX, mouseY);
 }
 
 void InputManager::recentreControllerCursor(SDL_Window* window)
@@ -391,4 +397,27 @@ int InputManager::getGlyphType()
 int InputManager::getGlyphTypeCount()
 {
     return CONTROLLER_MAX_GLYPH_TYPE_COUNT;
+}
+
+void InputManager::loadInputBindingsSave(const InputBindingsSave& bindingsSave)
+{
+    keyBindings = bindingsSave.keyBindings;
+    mouseBindings = bindingsSave.mouseBindings;
+    mouseWheelBindings = bindingsSave.mouseWheelBindings;
+    controllerAxisBindings = bindingsSave.controllerAxisBindings;
+    controllerButtonBindings = bindingsSave.controllerButtonBindings;
+    controllerAxisDeadzone = bindingsSave.controllerAxisDeadzone;
+}
+
+InputBindingsSave InputManager::createInputBindingsSave()
+{
+    InputBindingsSave bindingsSave;
+    bindingsSave.keyBindings = keyBindings;
+    bindingsSave.mouseBindings = mouseBindings;
+    bindingsSave.mouseWheelBindings = mouseWheelBindings;
+    bindingsSave.controllerAxisBindings = controllerAxisBindings;
+    bindingsSave.controllerButtonBindings = controllerButtonBindings;
+    bindingsSave.controllerAxisDeadzone = controllerAxisDeadzone;
+
+    return bindingsSave;
 }

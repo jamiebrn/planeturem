@@ -1,15 +1,23 @@
 #pragma once
 
-#include <SFML/Graphics.hpp>
 #include <cmath>
 #include <vector>
+
+#include <Graphics/SpriteBatch.hpp>
+#include <Graphics/Color.hpp>
+#include <Graphics/RenderTarget.hpp>
+#include <Vector.hpp>
+#include <Rect.hpp>
+
+#include <extlib/cereal/archives/binary.hpp>
 
 #include "Core/ResolutionHandler.hpp"
 #include "Core/CollisionRect.hpp"
 #include "Core/CollisionCircle.hpp"
 #include "Core/TextureManager.hpp"
+#include "Core/Shaders.hpp"
 #include "Core/TextDraw.hpp"
-#include "Core/SpriteBatch.hpp"
+// #include "Core/SpriteBatch.hpp"
 
 #include "Data/typedefs.hpp"
 #include "Data/ItemData.hpp"
@@ -30,28 +38,45 @@
 class ItemPickup : public WorldObject
 {
 public:
-    ItemPickup(sf::Vector2f position, ItemType itemType, float gameTime) : WorldObject(position), itemType(itemType), spawnGameTime(gameTime) {}
+    ItemPickup() = default;
+    ItemPickup(pl::Vector2f position, ItemType itemType, float gameTime, int count) : WorldObject(position),
+        itemType(itemType), count(count), spawnGameTime(gameTime) {}
     void resetSpawnTime(float gameTime);
 
-    bool isBeingPickedUp(const CollisionRect& playerCollision, float gameTime);
+    bool isBeingPickedUp(const CollisionRect& playerCollision, float gameTime, int worldSize) const;
 
-    void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
-        const sf::Color& color) const override;
+    void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
+        const pl::Color& color) const override;
     
-    inline ItemType getItemType() {return itemType;}
+    inline ItemType getItemType() const {return itemType;}
+    
+    inline uint16_t getItemCount() const {return count;}
+    inline void setItemCount(uint16_t count) {this->count = count;}
+
+    template <class Archive>
+    void serialize(Archive& ar)
+    {
+        ar(position.x, position.y, itemType, count, spawnGameTime);
+    }
 
 private:
     static constexpr float PICKUP_RADIUS = 4.0f;
     static constexpr float SPAWN_FLASH_TIME = 0.4f;
 
     ItemType itemType;
+    uint16_t count;
     float spawnGameTime;
 
 };
 
 struct ItemPickupReference
 {
-    ItemPickup itemPickup;
     ChunkPosition chunk;
-    std::vector<ItemPickup>::iterator pickupIter;
+    uint64_t id = 0;
+
+    template <class Archive>
+    void serialize(Archive& ar)
+    {
+        ar(chunk.x, chunk.y, id);
+    }
 };

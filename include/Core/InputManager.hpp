@@ -1,17 +1,19 @@
 #pragma once
 
-// #include <SFML/Window/Keyboard.hpp>
-// #include <SFML/Window/Mouse.hpp>
-// #include <SFML/Window/Joystick.hpp>
-// #include <SFML/Window/Event.hpp>
-// #include <SFML/Window/Window.hpp>
-#include <SFML/System/Vector2.hpp>
 #include <SDL2/SDL_events.h>
 
+#include <Vector.hpp>
+
+#include <iostream>
 #include <algorithm>
 #include <vector>
 #include <unordered_map>
 #include <optional>
+
+#include <Core/json.hpp>
+
+#define MAGIC_ENUM_RANGE_MAX SDL_NUM_SCANCODES
+#include <extlib/magic_enum.hpp>
 
 enum class InputAction
 {
@@ -22,6 +24,7 @@ enum class InputAction
     UI_CONFIRM,
     UI_CONFIRM_OTHER,
     UI_SHIFT,
+    UI_CTRL,
     UI_BACK,
     UI_TAB_LEFT,
     UI_TAB_RIGHT,
@@ -47,6 +50,8 @@ enum class InputAction
 
     ZOOM_IN,
     ZOOM_OUT,
+
+    OPEN_CHAT,
 
     PAUSE_GAME,
 
@@ -88,7 +93,7 @@ enum class MouseWheelScroll
 
 struct JoystickAxisWithDirection
 {
-    SDL_GameControllerAxis axis;
+    SDL_GameControllerAxis axis = SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_INVALID;
     JoystickAxisDirection direction;
 
     bool operator==(const JoystickAxisWithDirection& other) const
@@ -97,18 +102,126 @@ struct JoystickAxisWithDirection
     }
 };
 
+inline void from_json(const nlohmann::json& json, JoystickAxisWithDirection& joystick)
+{
+    auto joystickAxis = magic_enum::enum_cast<SDL_GameControllerAxis>(json["axis"].get<std::string>());
+    auto joystickDirection = magic_enum::enum_cast<JoystickAxisDirection>(json["direction"].get<std::string>());
+
+    if (joystickAxis.has_value())
+    {
+        joystick.axis = joystickAxis.value();
+    }
+    if (joystickDirection.has_value())
+    {
+        joystick.direction = joystickDirection.value();
+    }
+}
+
+inline void to_json(nlohmann::json& json, const JoystickAxisWithDirection& joystick)
+{
+    json["axis"] = magic_enum::enum_name(joystick.axis);
+    json["direction"] = magic_enum::enum_name(joystick.direction);
+}
+
+struct InputBindingsSave
+{
+    std::unordered_map<InputAction, SDL_Scancode> keyBindings;
+    std::unordered_map<InputAction, int> mouseBindings;
+    std::unordered_map<InputAction, MouseWheelScroll> mouseWheelBindings;
+    std::unordered_map<InputAction, JoystickAxisWithDirection> controllerAxisBindings;
+    std::unordered_map<InputAction, SDL_GameControllerButton> controllerButtonBindings;
+
+    float controllerAxisDeadzone;
+
+    template <typename T, bool isEnum>
+    inline void writeBindings(nlohmann::json& json, const std::unordered_map<InputAction, T>& bindings, const std::string& name) const
+    {
+        for (const auto& binding : bindings)
+        {
+            auto inputActionString = magic_enum::enum_name(binding.first);
+
+            if constexpr (isEnum)
+            {
+                json[name][inputActionString] = magic_enum::enum_name(binding.second);
+                continue;
+            }
+
+            json[name][inputActionString] = binding.second;
+        }
+    }
+
+    template <typename T, bool isEnum>
+    inline void loadBindings(const nlohmann::json& json, std::unordered_map<InputAction, T>& bindings, const std::string& name)
+    {
+        if (!json.contains(name))
+        {
+            return;
+        }
+        
+        for (auto iter = json[name].begin(); iter != json[name].end(); iter++)
+        {
+            auto inputAction = magic_enum::enum_cast<InputAction>(iter.key());
+            if (!inputAction.has_value())
+            {
+                continue;
+            }
+
+            if constexpr (isEnum)
+            {
+                auto enumCasted = magic_enum::enum_cast<T>(iter.value().get<std::string>());
+                if (enumCasted.has_value())
+                {
+                    bindings[inputAction.value()] = enumCasted.value();
+                }
+                continue;
+            }
+
+            try
+            {
+                bindings[inputAction.value()] = iter.value().get<T>();
+            }
+            catch(const std::exception& e)
+            {
+                std::cerr << e.what() << '\n';
+            }
+        }
+    }
+};
+
+inline void from_json(const nlohmann::json& json, InputBindingsSave& bindingsSave)
+{
+    bindingsSave.loadBindings<SDL_Scancode, true>(json, bindingsSave.keyBindings, "keys");
+    bindingsSave.loadBindings<int, false>(json, bindingsSave.mouseBindings, "mouse-buttons");
+    bindingsSave.loadBindings<MouseWheelScroll, true>(json, bindingsSave.mouseWheelBindings, "mouse-wheel");
+    bindingsSave.loadBindings<JoystickAxisWithDirection, false>(json, bindingsSave.controllerAxisBindings, "controller-axis");
+    bindingsSave.loadBindings<SDL_GameControllerButton, true>(json, bindingsSave.controllerButtonBindings, "controller-button");
+
+    bindingsSave.controllerAxisDeadzone = json["controller-axis-deadzone"];
+}
+
+inline void to_json(nlohmann::json& json, const InputBindingsSave& bindingsSave)
+{
+    bindingsSave.writeBindings<SDL_Scancode, true>(json, bindingsSave.keyBindings, "keys");
+    bindingsSave.writeBindings<int, false>(json, bindingsSave.mouseBindings, "mouse-buttons");
+    bindingsSave.writeBindings<MouseWheelScroll, true>(json, bindingsSave.mouseWheelBindings, "mouse-wheel");
+    bindingsSave.writeBindings<JoystickAxisWithDirection, false>(json, bindingsSave.controllerAxisBindings, "controller-axis");
+    bindingsSave.writeBindings<SDL_GameControllerButton, true>(json, bindingsSave.controllerButtonBindings, "controller-button");
+
+    json["controller-axis-deadzone"] = bindingsSave.controllerAxisDeadzone;
+}
+
 class InputManager
 {
     InputManager() = delete;
 
 public:
     static void initialise(SDL_Window* window);
-
-    static void bindKey(InputAction action, std::optional<SDL_Scancode> key);
-    static void bindMouseButton(InputAction action, std::optional<int> button);
-    static void bindMouseWheel(InputAction action, std::optional<MouseWheelScroll> wheelDirection);
-    static void bindControllerAxis(InputAction action, std::optional<JoystickAxisWithDirection> axisWithDirection);
-    static void bindControllerButton(InputAction action, std::optional<SDL_GameControllerButton> button);
+    
+    static void bindKey(InputAction action, std::optional<SDL_Scancode> key, bool overwrite = true);
+    static void bindMouseButton(InputAction action, std::optional<int> button, bool overwrite = true);
+    static void bindMouseWheel(InputAction action, std::optional<MouseWheelScroll> wheelDirection, bool overwrite = true);
+    static void bindControllerAxis(InputAction action, std::optional<JoystickAxisWithDirection> axisWithDirection, bool overwrite = true);
+    static void bindControllerButton(InputAction action, std::optional<SDL_GameControllerButton> button, bool overwrite = true);
 
     static void setControllerAxisDeadzone(float deadzone);
 
@@ -132,7 +245,7 @@ public:
     // Disables other actions with same key bindings
     static void consumeInputAction(InputAction action);
 
-    static sf::Vector2f getMousePosition(SDL_Window* window, float dt);
+    static pl::Vector2f getMousePosition(SDL_Window* window, float dt);
 
     static void recentreControllerCursor(SDL_Window* window);
 
@@ -143,9 +256,12 @@ public:
 
     static int getGlyphTypeCount();
 
+    static void loadInputBindingsSave(const InputBindingsSave& bindingsSave);
+    static InputBindingsSave createInputBindingsSave();
+
 private:
     template <typename InputType>
-    static void bindInput(InputAction action, std::optional<InputType> input, std::unordered_map<InputAction, InputType>& bindMap);
+    static void bindInput(InputAction action, std::optional<InputType> input, std::unordered_map<InputAction, InputType>& bindMap, bool overwrite);
 
     template<typename InputType>
     static void consumeInput(InputAction action, std::unordered_map<InputAction, InputType>& bindMap);

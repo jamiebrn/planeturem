@@ -1,10 +1,29 @@
 #include "Entity/Boss/BossManager.hpp"
 #include "World/ChunkManager.hpp"
-#include "Entity/Boss/BossBenjaminCrow.hpp"
-#include "Entity/Boss/BossSandSerpent.hpp"
-#include "Entity/Boss/BossGlacialBrute.hpp"
+#include "Game.hpp"
 
-bool BossManager::createBoss(const std::string& name, sf::Vector2f playerPosition, Game& game)
+BossManager::BossManager(const BossManager& bossManager)
+{
+    *this = bossManager;
+}
+
+BossManager& BossManager::operator=(const BossManager& bossManager)
+{
+    bosses.clear();
+    
+    for (const auto& bossPtr : bossManager.bosses)
+    {
+        bosses.push_back(std::unique_ptr<BossEntity>(bossPtr->clone()));
+    }
+
+    bossAliveNames = bossManager.bossAliveNames;
+
+    return *this;
+}
+
+#define BOSS_SPAWN(T, n, ...) if (name == n) {bosses.push_back(std::make_unique<T>(__VA_ARGS__)); addedBossName = n;}
+
+bool BossManager::createBoss(const std::string& name, pl::Vector2f playerPosition, Game& game, ChunkManager& chunkManager)
 {
     if (bossAliveNames.contains(name))
     {
@@ -14,21 +33,9 @@ bool BossManager::createBoss(const std::string& name, sf::Vector2f playerPositio
     std::string addedBossName;
 
     // Create boss class depending on name
-    if (std::string bossName = "Benjamin"; name == bossName)
-    {
-        bosses.push_back(std::make_unique<BossBenjaminCrow>(playerPosition));
-        addedBossName = bossName;
-    }
-    else if (std::string bossName = "The Sand Serpent"; name == bossName)
-    {
-        bosses.push_back(std::make_unique<BossSandSerpent>(playerPosition, game));
-        addedBossName = bossName;
-    }
-    else if (std::string bossName = "The Glacial Brute"; name == bossName)
-    {
-        bosses.push_back(std::make_unique<BossGlacialBrute>(playerPosition, game));
-        addedBossName = bossName;
-    }
+    BOSS_SPAWN(BossBenjaminCrow, "Benjamin", playerPosition)
+    else BOSS_SPAWN(BossSandSerpent, "The Sand Serpent", playerPosition, game)
+    else BOSS_SPAWN(BossGlacialBrute, "The Glacial Brute", playerPosition, game, chunkManager)
 
     if (!addedBossName.empty())
     {
@@ -40,34 +47,49 @@ bool BossManager::createBoss(const std::string& name, sf::Vector2f playerPositio
     return false;
 }
 
-void BossManager::update(Game& game, ProjectileManager& projectileManager, ProjectileManager& enemyProjectileManager, ChunkManager& chunkManager, Player& player, float dt,
+#undef BOSS_SPAWN
+
+void BossManager::update(Game& game, ProjectileManager& projectileManager, ChunkManager& chunkManager, std::vector<Player*>& players, float dt,
     float gameTime)
 {
     for (auto iter = bosses.begin(); iter != bosses.end();)
     {
         BossEntity* boss = iter->get();
-        if (boss->isAlive() && boss->inPlayerRange(player))
+        if (boss->isAlive() && boss->inPlayerRange(players, chunkManager.getWorldSize()))
         {
-            boss->update(game, enemyProjectileManager, player, dt);
+            if (game.getNetworkHandler().isClient() && players.size() > 0)
+            {
+                boss->updateNetwork(*players[0], dt, chunkManager.getWorldSize());
+                iter++;
+                continue;
+            }
+
+            boss->update(game, chunkManager, projectileManager, players, dt, chunkManager.getWorldSize());
 
             for (auto& projectile : projectileManager.getProjectiles())
             {
-                if (!projectile->isAlive())
+                if (!projectile.isAlive())
                 {
                     continue;
                 }
-                boss->testProjectileCollision(*projectile);
+
+                boss->testProjectileCollision(projectile, chunkManager.getWorldSize());
             }
+
             iter++;
         }
         else
         {
-            if (!boss->isAlive())
+            if (game.getNetworkHandler().isLobbyHostOrSolo())
             {
-                boss->createItemPickups(chunkManager, gameTime);
+                if (!boss->isAlive())
+                {
+                    boss->createItemPickups(game.getNetworkHandler(), chunkManager, gameTime);
+                }
+    
+                bossAliveNames.erase(boss->getName());
             }
 
-            bossAliveNames.erase(boss->getName());
             iter = bosses.erase(iter);
 
             // Stop boss music if required
@@ -79,21 +101,21 @@ void BossManager::update(Game& game, ProjectileManager& projectileManager, Proje
     }
 }
 
-void BossManager::testHitRectCollision(const std::vector<HitRect>& hitRects)
+void BossManager::testHitRectCollision(const std::vector<HitRect>& hitRects, int worldSize)
 {
     for (auto& boss : bosses)
     {
-        boss->testHitRectCollision(hitRects);
+        boss->testHitRectCollision(hitRects, worldSize);
     }
 }
 
-void BossManager::handleWorldWrap(sf::Vector2f positionDelta)
-{
-    for (auto& boss : bosses)
-    {
-        boss->handleWorldWrap(positionDelta);
-    }   
-}
+// void BossManager::handleWorldWrap(pl::Vector2f positionDelta)
+// {
+//     for (auto& boss : bosses)
+//     {
+//         boss->handleWorldWrap(positionDelta);
+//     }   
+// }
 
 void BossManager::stopBossMusic()
 {
@@ -135,7 +157,7 @@ void BossManager::clearBosses()
     bossAliveNames.clear();
 }
 
-// void BossManager::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch)
+// void BossManager::draw(pl::RenderTarget& window, SpriteBatch& spriteBatch)
 // {
 //     for (auto& boss : bosses)
 //     {
@@ -143,11 +165,11 @@ void BossManager::clearBosses()
 //     }
 // }
 
-void BossManager::drawStatsAtCursor(sf::RenderTarget& window, const Camera& camera, sf::Vector2f mouseScreenPos)
+void BossManager::drawStatsAtCursor(pl::RenderTarget& window, const Camera& camera, pl::Vector2f mouseScreenPos, int worldSize)
 {
     std::vector<std::string> hoverStats;
 
-    sf::Vector2f mouseWorldPos = camera.screenToWorldTransform(mouseScreenPos);
+    pl::Vector2f mouseWorldPos = camera.screenToWorldTransform(mouseScreenPos, worldSize);
 
     for (auto& boss : bosses)
     {
@@ -156,16 +178,16 @@ void BossManager::drawStatsAtCursor(sf::RenderTarget& window, const Camera& came
 
     float intScale = ResolutionHandler::getResolutionIntegerScale();
 
-    sf::Vector2f statPos = mouseScreenPos + sf::Vector2f(STATS_DRAW_OFFSET_X, STATS_DRAW_OFFSET_Y) * intScale;
+    pl::Vector2f statPos = mouseScreenPos + pl::Vector2f(STATS_DRAW_OFFSET_X, STATS_DRAW_OFFSET_Y) * intScale;
 
     for (const std::string& bossStat : hoverStats)
     {
-        TextDrawData textDrawData;
+        pl::TextDrawData textDrawData;
         textDrawData.text = bossStat;
         textDrawData.position = statPos;
-        textDrawData.colour = sf::Color(255, 255, 255, 255);
+        textDrawData.color = pl::Color(255, 255, 255, 255);
         textDrawData.size = STATS_DRAW_SIZE * intScale;
-        textDrawData.outlineColour = sf::Color(46, 34, 47);
+        textDrawData.outlineColor = pl::Color(46, 34, 47);
         textDrawData.outlineThickness = STATS_DRAW_OUTLINE_THICKNESS * intScale;
         textDrawData.containOnScreenX = true;
         textDrawData.containOnScreenY = true;
@@ -182,4 +204,14 @@ void BossManager::getBossWorldObjects(std::vector<WorldObject*>& worldObjects)
     {
         boss->getWorldObjects(worldObjects);
     }
+}
+
+std::vector<std::unique_ptr<BossEntity>>& BossManager::getBosses()
+{
+    return bosses;
+}
+
+int BossManager::getBossCount() const
+{
+    return bosses.size();
 }

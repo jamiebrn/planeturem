@@ -13,11 +13,13 @@
 #include <extlib/cereal/types/vector.hpp>
 #include <extlib/cereal/types/optional.hpp>
 
+#include <extlib/lzav.h>
+
 #include <platform_folders.h>
 
 #include <Core/json.hpp>
 
-#include <SFML/System/Vector2.hpp>
+#include "Core/InputManager.hpp"
 
 #include "World/ChunkPOD.hpp"
 #include "World/ChestDataPool.hpp"
@@ -35,64 +37,91 @@
 #include "Data/PlanetGenData.hpp"
 #include "Data/PlanetGenDataLoader.hpp"
 
+#include "Player/PlayerData.hpp"
+
 struct PlayerGameSave
 {
     int seed;
-    PlanetType planetType = -1;
-    RoomType roomDestinationType = -1;
 
-    InventoryData inventory;
-    InventoryData armourInventory;
+    PlayerData playerData;
 
-    std::unordered_set<std::string> recipesSeen;
-
-    int maxHealth = 0;
+    std::unordered_map<uint64_t, PlayerData> networkPlayerDatas;
 
     float time;
     int day;
 
-    // bool isInRoom = false;
-    // uint32_t inRoomID = 0;
-    // sf::Vector2f positionInRoom;
-
     int timePlayed = 0;
-
-    // template <class Archive>
-    // void serialize(Archive& ar)
-    // {
-    //     ar(seed, planetType, inventory, armourInventory, time, day);
-    // }
 };
+
+// Stores current state of item and object types, mapped to their respective names
+struct GameDataVersionState
+{
+    inline GameDataVersionState()
+    {
+        itemNameTypeMap = ItemDataLoader::getItemNameToTypeMap();
+        objectNameTypeMap = ObjectDataLoader::getObjectNameToTypeMap();
+    }
+    
+    std::unordered_map<std::string, ItemType> itemNameTypeMap;
+    std::unordered_map<std::string, ObjectType> objectNameTypeMap;
+    
+    template <class Archive>
+    void serialize(Archive& ar, const std::uint32_t version)
+    {
+        ar(itemNameTypeMap, objectNameTypeMap);
+    }
+};
+
+CEREAL_CLASS_VERSION(GameDataVersionState, 1);
 
 // Stores items and object types saved mapped to same items / objects at current type index
 struct GameDataVersionMapping
 {
+    inline GameDataVersionMapping(const GameDataVersionState& versionState)
+    {
+        for (auto iter = versionState.itemNameTypeMap.begin(); iter != versionState.itemNameTypeMap.end(); iter++)
+        {
+            itemTypeMap[iter->second] = ItemDataLoader::getItemTypeFromName(iter->first);
+        }
+
+        for (auto iter = versionState.objectNameTypeMap.begin(); iter != versionState.objectNameTypeMap.end(); iter++)
+        {
+            objectTypeMap[iter->second] = ObjectDataLoader::getObjectTypeFromName(iter->first);
+        }
+    }
+
     std::unordered_map<ItemType, ItemType> itemTypeMap;
     std::unordered_map<ObjectType, ObjectType> objectTypeMap;
 };
 
 struct PlanetGameSave
 {
-    sf::Vector2f playerLastPlanetPos;
-
-    bool isInRoom = false;
-    uint32_t inRoomID = 0;
-    sf::Vector2f positionInRoom;
-
-    std::optional<ObjectReference> rocketObjectUsed = std::nullopt;
-
     std::vector<ChunkPOD> chunks;
 
     ChestDataPool chestDataPool;
     RoomPool structureRoomPool;
 
+    GameDataVersionState versionState;
+
     template <class Archive>
-    void serialize(Archive& ar, const std::uint32_t version)
+    void save(Archive& ar, const std::uint32_t version) const
     {
-        if (version <= 2)
+        if (version >= 4)
         {
-            ar(playerLastPlanetPos.x, playerLastPlanetPos.y, isInRoom, inRoomID, positionInRoom.x, positionInRoom.y, rocketObjectUsed, chunks, chestDataPool, structureRoomPool);
+            ar(versionState, chunks, chestDataPool, structureRoomPool);
         }
+    }
+
+    template <class Archive>
+    void load(Archive& ar, const std::uint32_t version)
+    {
+        if (version >= 4)
+        {
+            ar(versionState, chunks, chestDataPool, structureRoomPool);
+        }
+
+        GameDataVersionMapping versionMapping(versionState);
+        mapVersions(versionMapping);
     }
 
     void mapVersions(const GameDataVersionMapping& gameDataVersionMapping)
@@ -112,15 +141,26 @@ struct RoomDestinationGameSave
     Room roomDestination;
     ChestDataPool chestDataPool;
 
-    sf::Vector2f playerLastPos;
+    // sf::Vector2f playerLastPos;
+
+    GameDataVersionState versionState;
 
     template <class Archive>
     void serialize(Archive& ar, const std::uint32_t version)
     {
-        if (version == 1)
+        // if (version == 1)
+        // {
+        //     ar(roomDestination, chestDataPool, playerLastPos.x, playerLastPos.y);
+        // }
+        if (version == 3)
         {
-            ar(roomDestination, chestDataPool, playerLastPos.x, playerLastPos.y);
+            ar(versionState, roomDestination, chestDataPool);
         }
+
+        GameDataVersionMapping versionMapping(versionState);
+        mapVersions(versionMapping);
+        
+        roomDestination.clearUnusedChestIDs(chestDataPool);
     }
 
     void mapVersions(const GameDataVersionMapping& gameDataVersionMapping)
@@ -130,14 +170,17 @@ struct RoomDestinationGameSave
     }
 };
 
-CEREAL_CLASS_VERSION(PlanetGameSave, 2);
-CEREAL_CLASS_VERSION(RoomDestinationGameSave, 1);
+CEREAL_CLASS_VERSION(PlanetGameSave, 4);
+CEREAL_CLASS_VERSION(RoomDestinationGameSave, 3);
 
 struct SaveFileSummary
 {
     std::string name;
+    std::string playerName;
     int timePlayed = 0;
     std::string timePlayedString;
+
+    PlayerData playerData;
 };
 
 struct OptionsSave
@@ -145,7 +188,26 @@ struct OptionsSave
     int musicVolume = 30;
     bool screenShakeEnabled = true;
     int controllerGlyphType = 0;
+    bool vSync = true;
 };
+
+struct CompressedData
+{
+    CompressedData() = default;
+    CompressedData(const std::vector<char> uncompressedData);
+    std::vector<char> decompress();
+
+    std::vector<char> data;
+    uint32_t uncompressedSize;
+
+    template <class Archive>
+    void serialize(Archive& ar, const std::uint32_t version)
+    {
+        ar(data, uncompressedSize);
+    }
+};
+
+CEREAL_CLASS_VERSION(CompressedData, 1);
 
 class GameSaveIO
 {
@@ -170,6 +232,8 @@ public:
     bool writeOptionsSave(const OptionsSave& optionsSave);
     bool loadOptionsSave(OptionsSave& optionsSave);
 
+    bool writeInputBindingsSave(const InputBindingsSave& inputBindingsSave);
+    bool loadInputBindingsSave(InputBindingsSave& inputBindingsSave);
 
 private:
     void createSaveDirectoryIfRequired();
@@ -177,11 +241,11 @@ private:
     // Used to temporarily switch save file name, to be able to load all save files and create summaries
     bool loadPlayerSaveFromName(std::string fileName, PlayerGameSave& playerGameSave);
 
-    bool loadGameDataVersionMapping(const std::string& baseFileName, GameDataVersionMapping& gameDataVersionMapping);
-    bool createAndWriteGameDataVersionMapping(const std::string& baseFileName);
+    // bool loadGameDataVersionMapping(const std::string& baseFileName, GameDataVersionMapping& gameDataVersionMapping);
+    // bool createAndWriteGameDataVersionMapping(const std::string& baseFileName);
 
-    std::string getPlanetGameDataVersionMappingFileName(PlanetType planetType);
-    std::string getRoomDestinationGameDataVersionMappingFileName(RoomType roomDestinationType);
+    // std::string getPlanetGameDataVersionMappingFileName(PlanetType planetType);
+    // std::string getRoomDestinationGameDataVersionMappingFileName(RoomType roomDestinationType);
 
     std::string getRootDir();
 

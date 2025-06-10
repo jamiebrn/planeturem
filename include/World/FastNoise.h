@@ -222,7 +222,7 @@ public:
 	FN_DECIMAL GetNoiseSeamless2D(FN_DECIMAL x, FN_DECIMAL y, FN_DECIMAL width, FN_DECIMAL height) const;
 
 	// Normalise noise value between 0 and 1
-	static FN_DECIMAL Normalise(FN_DECIMAL noiseValue);
+	static FN_DECIMAL Normalise(FN_DECIMAL noiseValue, bool clamp = true);
 
 private:
 	unsigned char m_perm[512];

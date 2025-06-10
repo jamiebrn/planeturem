@@ -5,7 +5,7 @@
 #include <unordered_map>
 
 #include <extlib/cereal/archives/binary.hpp>
-#include <extlib/cereal/types/vector.hpp>
+#include <extlib/cereal/types/unordered_map.hpp>
 #include <extlib/cereal/types/optional.hpp>
 
 // #include "Player/Inventory.hpp
@@ -31,32 +31,49 @@ public:
 
     InventoryData* getChestDataPtr(uint16_t id);
 
+    void overwriteChestData(uint16_t id, const InventoryData& chestContents);
+
     template <class Archive>
     void serialize(Archive& ar, const std::uint32_t version)
     {
-        ar(chestData, openDataSlots);
+        if (version == 1)
+        {
+            // Convert
+            std::vector<std::optional<InventoryData>> vectorChestData;
+            ar(vectorChestData, openDataSlots);
+            topDataSlot = vectorChestData.size();
+            for (int i = 0; i < vectorChestData.size(); i++)
+            {
+                if (!vectorChestData[i].has_value())
+                {
+                    continue;
+                }
+                chestData[i] = vectorChestData[i].value();
+            }
+        }
+        else if (version == 2)
+        {
+            ar(chestData, topDataSlot, openDataSlots);
+        }
     }
 
-    void mapVersions(const std::unordered_map<ItemType, ItemType> itemVersionMap)
+    void mapVersions(const std::unordered_map<ItemType, ItemType>& itemVersionMap)
     {
         for (auto& chestContents : chestData)
         {
-            if (!chestContents.has_value())
-            {
-                continue;
-            }
-
-            chestContents->mapVersions(itemVersionMap);
+            chestContents.second.mapVersions(itemVersionMap);
         }   
     }
 
 private:
     // 0xFFFF reserved for uninitialised chest / null
-    std::vector<std::optional<InventoryData>> chestData;
+    std::unordered_map<uint16_t, InventoryData> chestData;
+
+    uint16_t topDataSlot;
 
     std::vector<uint16_t> openDataSlots;
 
     // uint16_t topDataSlot;
 };
 
-CEREAL_CLASS_VERSION(ChestDataPool, 1);
+CEREAL_CLASS_VERSION(ChestDataPool, 2);

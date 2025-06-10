@@ -25,7 +25,7 @@ void AnimatedTexture::update(float dt, int direction)
     frameTick += dt;
     if (frameTick >= maxFrameTick)
     {
-        frameTick = 0;
+        frameTick -= maxFrameTick;
         frame += direction;
 
         if (direction > 0)
@@ -47,11 +47,21 @@ void AnimatedTexture::update(float dt, int direction)
     }
 }
 
-sf::IntRect AnimatedTexture::getTextureRect() const
+void AnimatedTexture::setFrameTick(float frameTick)
 {
-    sf::IntRect textureRect;
-    textureRect.left = xStart + frame * frameWidth;
-    textureRect.top = y;
+    this->frameTick = frameTick;
+}
+
+int AnimatedTexture::getFrameTick()
+{
+    return frameTick;
+}
+
+pl::Rect<int> AnimatedTexture::getTextureRect() const
+{
+    pl::Rect<int> textureRect;
+    textureRect.x = xStart + frame * frameWidth;
+    textureRect.y = y;
     textureRect.width = frameWidth;
     textureRect.height = frameHeight;
 

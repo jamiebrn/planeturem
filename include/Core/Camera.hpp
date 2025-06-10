@@ -1,64 +1,69 @@
 #pragma once
 
-#include <SFML/Graphics.hpp>
+
 #include <algorithm>
 #include <cmath>
 
-// Include headers
+#include "Vector.hpp"
+
 #include "Core/ResolutionHandler.hpp"
 #include "Core/Helper.hpp"
 
+#include "World/ChunkViewRange.hpp"
+
 #include "GameConstants.hpp"
 
-// Declare camera class
 class Camera
 {
 
 private:
 
-// Public class functions
 public:
     Camera() = default;
 
     // Update camera based on player position (or any position)
-    void update(sf::Vector2f playerPosition, sf::Vector2f mouseScreenPos, float deltaTime);
+    void update(pl::Vector2f playerPosition, pl::Vector2f mouseScreenPos, float deltaTime);
 
     // Instantly set position to centre on player
-    void instantUpdate(sf::Vector2f playerPosition);
+    void instantUpdate(pl::Vector2f playerPosition);
 
     // Get draw offset of camera
-    sf::Vector2f getDrawOffset() const;
+    pl::Vector2f getDrawOffset() const;
 
-    sf::Vector2f getIntegerDrawOffset() const;
+    pl::Vector2f getIntegerDrawOffset() const;
 
-    // Get scaled draw offset (applies zoom etc)
-    sf::Vector2f worldToScreenTransform(sf::Vector2f worldPos) const;
+    static pl::Vector2f translateWorldPos(pl::Vector2f position, pl::Vector2f origin, int worldSize);
 
-    sf::Vector2f screenToWorldTransform(sf::Vector2f screenPos) const;
+    // Use worldSize = 0 to disable planet wrapping
+    pl::Vector2f worldToScreenTransform(pl::Vector2f worldPos, int worldSize) const;
 
-    void handleScaleChange(float beforeScale, float afterScale, sf::Vector2f playerPosition);
+    pl::Vector2f screenToWorldTransform(pl::Vector2f screenPos, int worldSize) const;
 
-    void handleWorldWrap(sf::Vector2f positionDelta);
+    void handleScaleChange(float beforeScale, float afterScale, pl::Vector2f playerPosition);
 
+    void handleWorldWrap(pl::Vector2f wrapPositionDelta);
+
+    ChunkViewRange getChunkViewRange() const;
+    ChunkViewRange getChunkViewDrawRange() const;
+    
     // Set offset of camera
-    void setOffset(sf::Vector2f newOffset);
-
-    bool isInView(sf::Vector2f position) const;
-
+    void setOffset(pl::Vector2f newOffset);
+    
+    bool isInView(pl::Vector2f position, int worldSize) const;
+    
     void setScreenShakeTime(float time);
-
+    
     inline static void setScreenShakeEnabled(float enabled) {screenShakeEnabled = enabled;}
     inline static bool getScreenShakeEnabled() {return screenShakeEnabled;}
-
-// Private member variables
+    
 private:
-    // Constant storing interpolation weight for camera movement
+    ChunkViewRange getChunkViewRangeWithBorder(int border = 0) const;
+
     static constexpr float MOVE_LERP_WEIGHT = 6;
     
     static constexpr float MOUSE_DELTA_DAMPEN = 15;
 
-    // Variable storing offset/position of camera
-    sf::Vector2f offset;
+    pl::Vector2f offset;
 
     float screenShakeTime = 0.0f;
 

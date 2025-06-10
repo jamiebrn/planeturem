@@ -54,9 +54,9 @@ bool ObjectDataLoader::loadData(std::string objectDataPath)
             auto textures = jsonObjectData.at("textures");
             for (nlohmann::ordered_json::iterator texturePositionIter = textures.begin(); texturePositionIter != textures.end(); ++texturePositionIter)
             {
-                sf::IntRect textureRect;
-                textureRect.left = texturePositionIter.value()[0];
-                textureRect.top = texturePositionIter.value()[1];
+                pl::Rect<int> textureRect;
+                textureRect.x = texturePositionIter.value()[0];
+                textureRect.y = texturePositionIter.value()[1];
                 textureRect.width = textureWidth;
                 textureRect.height = textureHeight;
 
@@ -124,9 +124,9 @@ bool ObjectDataLoader::loadData(std::string objectDataPath)
             auto availableDestinations = rocketInfo.at("available-destinations");
             auto availableRoomDestinations = rocketInfo.at("available-room-destinations");
 
-            objectData.rocketObjectData->textureRect = sf::IntRect(textureRect[0], textureRect[1], textureRect[2], textureRect[3]);
-            objectData.rocketObjectData->textureOrigin = sf::Vector2f(textureOrigin[0], textureOrigin[1]);
-            objectData.rocketObjectData->launchPosition = sf::Vector2f(launchPosition[0], launchPosition[1]);
+            objectData.rocketObjectData->textureRect = pl::Rect<int>(textureRect[0], textureRect[1], textureRect[2], textureRect[3]);
+            objectData.rocketObjectData->textureOrigin = pl::Vector2f(textureOrigin[0], textureOrigin[1]);
+            objectData.rocketObjectData->launchPosition = pl::Vector2f(launchPosition[0], launchPosition[1]);
 
             for (nlohmann::ordered_json::iterator destinationIter = availableDestinations.begin(); destinationIter != availableDestinations.end(); ++destinationIter)
             {
@@ -152,13 +152,13 @@ bool ObjectDataLoader::loadData(std::string objectDataPath)
             {
                 PlantStageObjectData stageData;
                 
-                sf::Vector2i textureSize = stageIter.value().at("texture-size");
+                pl::Vector2<int> textureSize = stageIter.value().at("texture-size");
                 auto textures = stageIter.value().at("textures");
                 for (auto textureIter = textures.begin(); textureIter != textures.end(); ++textureIter)
                 {
-                    sf::IntRect textureRect;
-                    textureRect.left = textureIter.value()[0];
-                    textureRect.top = textureIter.value()[1];
+                    pl::Rect<int> textureRect;
+                    textureRect.x = textureIter.value()[0];
+                    textureRect.y = textureIter.value()[1];
                     textureRect.width = textureSize.x;
                     textureRect.height = textureSize.y;
                     stageData.textureRects.push_back(textureRect);
@@ -246,6 +246,11 @@ bool ObjectDataLoader::loadData(std::string objectDataPath)
         if (jsonObjectData.contains("is-landmark"))
         {
             objectData.isLandmark = jsonObjectData.at("is-landmark");
+        }
+
+        if (jsonObjectData.contains("set-spawn-point"))
+        {
+            objectData.setSpawnSpawn = jsonObjectData.at("set-spawn-point");
         }
 
         loaded_objectData.push_back(objectData);

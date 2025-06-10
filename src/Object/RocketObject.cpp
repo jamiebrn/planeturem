@@ -1,8 +1,9 @@
 #include "Object/RocketObject.hpp"
 #include "Game.hpp"
+#include "Network/NetworkHandler.hpp"
 
-RocketObject::RocketObject(sf::Vector2f position, ObjectType objectType)
-    : BuildableObject(position, objectType)
+RocketObject::RocketObject(pl::Vector2f position, ObjectType objectType, const BuildableObjectCreateParameters& parameters)
+    : BuildableObject(position, objectType, parameters)
 {
 
 }
@@ -12,12 +13,11 @@ BuildableObject* RocketObject::clone()
     return new RocketObject(*this);
 }
 
-void RocketObject::update(Game& game, float dt, bool onWater, bool loopAnimation)
+void RocketObject::update(Game& game, const LocationState& locationState, float dt, bool onWater, bool loopAnimation)
 {
-    BuildableObject::update(game, dt, onWater);
+    BuildableObject::update(game, locationState, dt, onWater);
 
     particleSystem.update(dt);
-    
     
     if (flyingUp || flyingDown)
     {
@@ -28,12 +28,13 @@ void RocketObject::update(Game& game, float dt, bool onWater, bool loopAnimation
             if (flyingUp)
             {
                 flyingUp = false;
-                game.rocketFinishedUp(*this);
+                game.rocketFinishedUp(locationState, *this);
+                startFlyingDownwards(game, locationState, nullptr, false);
             }
             else if (flyingDown)
             {
                 flyingDown = false;
-                game.rocketFinishedDown(*this);
+                game.rocketFinishedDown(locationState, *this);
             }
         }
 
@@ -46,55 +47,48 @@ void RocketObject::update(Game& game, float dt, bool onWater, bool loopAnimation
     }
 }
 
-void RocketObject::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const sf::Color& color) const
+bool RocketObject::damage(int amount, Game& game, ChunkManager& chunkManager, ParticleSystem* particleSystem, bool giveItems, bool createHitMarkers)
+{
+    if (flyingUp || flyingDown)
+    {
+        amount = 0;
+    }
+
+    bool destroyed = BuildableObject::damage(amount, game, chunkManager, particleSystem, giveItems, createHitMarkers);
+
+    if (destroyed)
+    {
+        game.exitRocket(LocationState::createFromPlanetType(chunkManager.getPlanetType()), this);
+    }
+
+    return destroyed;
+}
+
+void RocketObject::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const pl::Color& color) const
 {
     BuildableObject::draw(window, spriteBatch, game, camera, dt, gameTime, worldSize, color);
 
     // Draw rocket particles
-    particleSystem.draw(window, spriteBatch, camera);
+    particleSystem.draw(window, spriteBatch, camera, worldSize);
 
-    drawRocket(window, spriteBatch, camera, color);
+    drawRocket(window, spriteBatch, camera, worldSize, color);
 }
 
-void RocketObject::interact(Game& game)
+void RocketObject::interact(Game& game, bool isClient)
 {
     // Rocket interaction stuff
     if (!entered)
     {
-        game.enterRocket(*this);
-        entered = true;
+        game.enterRocket(*this, false);
     }
 }
 
 bool RocketObject::isInteractable() const
 {
-    return true;
+    return !entered;
 }
 
-void RocketObject::triggerBehaviour(Game& game, ObjectBehaviourTrigger trigger)
-{
-    switch (trigger)
-    {
-        case ObjectBehaviourTrigger::RocketFlyUp:
-        {
-            startFlyingUpwards();
-            break;
-        }
-        case ObjectBehaviourTrigger::RocketFlyDown:
-        {
-            startFlyingDownwards();
-            game.enterIncomingRocket(*this);
-            break;
-        }
-        case ObjectBehaviourTrigger::RocketExit:
-        {
-            entered = false;
-            break;
-        }
-    }
-}
-
-void RocketObject::startFlyingUpwards()
+void RocketObject::startFlyingUpwards(Game& game, const LocationState& locationState, NetworkHandler* networkHandler)
 {
     // Just to be sure
     entered = true;
@@ -102,13 +96,24 @@ void RocketObject::startFlyingUpwards()
     flyingUp = true;
     rocketYOffset = 0.0f;
 
-    rocketFlyingTweenID = floatTween.startTween(&rocketYOffset, rocketYOffset, TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE * -4, 3.0f,
+    rocketFlyingTweenID = floatTween.startTween(&rocketYOffset, rocketYOffset, ROCKET_Y_OFFSET_MAX, 3.0f,
         TweenTransition::Quint, TweenEasing::EaseInOut);
+    
+    if (networkHandler && networkHandler->isMultiplayerGame())
+    {
+        PacketDataRocketInteraction packetData;
+        packetData.locationState = locationState;
+        packetData.rocketObjectReference = getThisObjectReference(locationState);
+        packetData.interactionType = PacketDataRocketInteraction::InteractionType::FlyUp;
+        
+        Packet packet(packetData);
+        networkHandler->sendPacketToServer(packet, k_nSteamNetworkingSend_Reliable, 0);
+    }
 }
 
-void RocketObject::startFlyingDownwards()
+void RocketObject::startFlyingDownwards(Game& game, const LocationState& locationState, NetworkHandler* networkHandler, bool enterRocket)
 {
-    // Just to be sure
+    // A player is in rocket - do not allow other players to enter
     entered = true;
 
     flyingDown = true;
@@ -116,6 +121,37 @@ void RocketObject::startFlyingDownwards()
 
     rocketFlyingTweenID = floatTween.startTween(&rocketYOffset, rocketYOffset, 0.0f, 3.0f,
         TweenTransition::Quint, TweenEasing::EaseInOut);
+    
+    if (enterRocket)
+    {
+        game.enterIncomingRocket(*this);
+    }
+
+    if (networkHandler && networkHandler->isMultiplayerGame())
+    {
+        PacketDataRocketInteraction packetData;
+        packetData.locationState = locationState;
+        packetData.rocketObjectReference = getThisObjectReference(locationState);
+        packetData.interactionType = PacketDataRocketInteraction::InteractionType::FlyDown;
+        
+        Packet packet(packetData);
+        networkHandler->sendPacketToServer(packet, k_nSteamNetworkingSend_Reliable, 0);
+    }
+}
+
+void RocketObject::enter()
+{
+    entered = true;
+}
+
+void RocketObject::exit()
+{
+    entered = false;
+}
+
+bool RocketObject::isEntered()
+{
+    return entered;
 }
 
 void RocketObject::getRocketAvailableDestinations(PlanetType currentPlanetType, RoomType currentRoomType,
@@ -140,14 +176,14 @@ void RocketObject::getRocketAvailableDestinations(PlanetType currentPlanetType, 
     }
 }
 
-sf::Vector2f RocketObject::getRocketPosition()
+pl::Vector2f RocketObject::getRocketPosition()
 {
     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
     
     if (!objectData.rocketObjectData.has_value())
         return position;
     
-    sf::Vector2f rocketPos;
+    pl::Vector2f rocketPos;
     rocketPos.x = position.x + objectData.rocketObjectData->launchPosition.x - TILE_SIZE_PIXELS_UNSCALED * 0.5f;
     rocketPos.y = position.y + objectData.rocketObjectData->launchPosition.y - TILE_SIZE_PIXELS_UNSCALED * 0.5f;
 
@@ -157,14 +193,14 @@ sf::Vector2f RocketObject::getRocketPosition()
     return rocketPos;
 }
 
-sf::Vector2f RocketObject::getRocketBottomPosition()
+pl::Vector2f RocketObject::getRocketBottomPosition()
 {
     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
     
     if (!objectData.rocketObjectData.has_value())
         return position;
     
-    sf::Vector2f rocketPos;
+    pl::Vector2f rocketPos;
     rocketPos.x = position.x + objectData.rocketObjectData->launchPosition.x - TILE_SIZE_PIXELS_UNSCALED * 0.5f;
     rocketPos.y = position.y + objectData.rocketObjectData->launchPosition.y + rocketYOffset - TILE_SIZE_PIXELS_UNSCALED * 0.5f;
 
@@ -185,49 +221,66 @@ void RocketObject::createRocketParticles()
 {
     ParticleStyle style;
     style.timePerFrame = Helper::randFloat(0.05f, 0.4f);
+    style.alpha = getRocketAlpha();
     
     int particleType = Helper::randInt(0, 2);
 
     for (int i = 0; i < 4; i++)
     {
-        sf::IntRect textureRect;
-        textureRect.left = i * 16;
-        textureRect.top = 384 + particleType * 16;
+        pl::Rect<int> textureRect;
+        textureRect.x = i * 16;
+        textureRect.y = 384 + particleType * 16;
         textureRect.height = 16;
         textureRect.width = 16;
         style.textureRects.push_back(textureRect);
     }
 
-    sf::Vector2f position = getRocketBottomPosition() + sf::Vector2f(Helper::randInt(-1, 1), Helper::randInt(-1, 1));
-    sf::Vector2f velocity(Helper::randFloat(-30.0f, 30.0f), Helper::randFloat(15.0f, 30.0f));
-    sf::Vector2f acceleration(Helper::randFloat(-0.6, 0.6), -Helper::randFloat(0.4f, 1.0f));
+    pl::Vector2f position = getRocketBottomPosition() + pl::Vector2f(Helper::randInt(-1, 1), Helper::randInt(-1, 1));
+    pl::Vector2f velocity(Helper::randFloat(-30.0f, 30.0f), Helper::randFloat(15.0f, 30.0f));
+    pl::Vector2f acceleration(Helper::randFloat(-0.6, 0.6), -Helper::randFloat(0.4f, 1.0f));
 
     particleSystem.addParticle(Particle(position, velocity, acceleration, style));
 }
 
-void RocketObject::drawRocket(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Camera& camera, const sf::Color& color) const
+void RocketObject::drawRocket(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera, int worldSize, const pl::Color& color) const
 {
     const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
 
-    sf::Vector2f scale(ResolutionHandler::getScale(), ResolutionHandler::getScale());
+    pl::Vector2f scale(ResolutionHandler::getScale(), ResolutionHandler::getScale());
 
-    TextureDrawData drawData;
-    drawData.type = TextureType::Objects;
+    pl::Vector2f rocketPosOffset = objectData.rocketObjectData->launchPosition - pl::Vector2f(TILE_SIZE_PIXELS_UNSCALED, TILE_SIZE_PIXELS_UNSCALED) * 0.5f;
 
-    sf::Vector2f rocketPosOffset = objectData.rocketObjectData->launchPosition - sf::Vector2f(TILE_SIZE_PIXELS_UNSCALED, TILE_SIZE_PIXELS_UNSCALED) * 0.5f;
-    drawData.position = camera.worldToScreenTransform(position + rocketPosOffset + sf::Vector2f(0, rocketYOffset));
-    drawData.scale = scale;
-    drawData.centerRatio = objectData.rocketObjectData->textureOrigin;
-    drawData.colour = color;
+    static constexpr float FLYING_SHAKE = 1.0f;
 
-    std::optional<ShaderType> shaderType;
+    float alpha = 1.0f;
 
-    if (flash_amount > 0)
+    pl::Vector2f worldPos = position + rocketPosOffset + pl::Vector2f(0, rocketYOffset);
+    if (flyingUp || flyingDown)
     {
-        shaderType = ShaderType::Flash;
-        sf::Shader* shader = Shaders::getShader(shaderType.value());
-        shader->setUniform("flash_amount", flash_amount);
+        worldPos.x += Helper::randFloat(-FLYING_SHAKE, FLYING_SHAKE);
+
+        alpha = getRocketAlpha();
     }
 
-    spriteBatch.draw(window, drawData, objectData.rocketObjectData->textureRect, shaderType);
+    pl::DrawData rocketDrawData;
+    rocketDrawData.texture = TextureManager::getTexture(TextureType::Objects);
+    rocketDrawData.shader = Shaders::getShader(ShaderType::Default);
+    rocketDrawData.position = camera.worldToScreenTransform(worldPos, worldSize);
+    rocketDrawData.color = pl::Color(color.r, color.g, color.b, color.a * alpha);
+    rocketDrawData.scale = scale;
+    rocketDrawData.centerRatio = objectData.rocketObjectData->textureOrigin;
+    rocketDrawData.textureRect = objectData.rocketObjectData->textureRect;
+
+    if (flashAmount > 0)
+    {
+        rocketDrawData.shader = Shaders::getShader(ShaderType::Flash);
+        rocketDrawData.shader->setUniform1f("flash_amount", flashAmount);
+    }
+
+    spriteBatch.draw(window, rocketDrawData);
+}
+
+float RocketObject::getRocketAlpha() const
+{
+    return (1.0f - std::max((rocketYOffset - ALPHA_FALLOFF_MIN_HEIGHT) / (ROCKET_Y_OFFSET_MAX - ALPHA_FALLOFF_MIN_HEIGHT), 0.0f));
 }

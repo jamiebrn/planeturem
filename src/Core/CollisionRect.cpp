@@ -9,37 +9,53 @@ CollisionRect::CollisionRect(float x, float y, float width, float height)
     this->height = height;
 }
 
-bool CollisionRect::handleCollision(const CollisionRect& otherRect)
+void CollisionRect::translateAroundWorld(float xOrigin, float yOrigin, int worldSize)
 {
+    if (worldSize <= 0)
+    {
+        return;
+    }
+
+    pl::Vector2f translatedPos = Camera::translateWorldPos(pl::Vector2f(x, y), pl::Vector2f(xOrigin, yOrigin), worldSize);
+    x = translatedPos.x;
+    y = translatedPos.y;
+}
+
+bool CollisionRect::handleCollision(CollisionRect otherRect, int worldSize)
+{
+    otherRect.translateAroundWorld(x, y, worldSize);
+
     // If not colliding with other rectangle, return false
     if (!isColliding(otherRect))
         return false;
     
     // Calculate rect intersection
-    float x_intersect = (x + width) - otherRect.x;
-    float y_intersect = (y + height) - otherRect.y;
+    float xIntersect = (x + width) - otherRect.x;
+    float yIntersect = (y + height) - otherRect.y;
 
-    if (x > otherRect.x) x_intersect = otherRect.x + otherRect.width - x;
-    if (y > otherRect.y) y_intersect = otherRect.y + otherRect.height - y;
+    if (x > otherRect.x) xIntersect = otherRect.x + otherRect.width - x;
+    if (y > otherRect.y) yIntersect = otherRect.y + otherRect.height - y;
 
     // Apply push to handle collision
-    if (std::fabs(x_intersect) <= std::fabs(y_intersect))
+    if (std::fabs(xIntersect) <= std::fabs(yIntersect))
     {
-        if (x < otherRect.x) x -= x_intersect;
-        else x += x_intersect;
+        if (x < otherRect.x) x -= xIntersect;
+        else x += xIntersect;
     }
     else
     {
-        if (y < otherRect.y) y -= y_intersect;
-        else y += y_intersect;
+        if (y < otherRect.y) y -= yIntersect;
+        else y += yIntersect;
     }
     
     // Return true as collision has occured
     return true;
 }
 
-bool CollisionRect::handleStaticCollisionX(const CollisionRect& staticRect, float dx)
+bool CollisionRect::handleStaticCollisionX(CollisionRect staticRect, float dx, int worldSize)
 {
+    staticRect.translateAroundWorld(x, y, worldSize);
+
     if (!isColliding(staticRect))
         return false;
     
@@ -51,8 +67,10 @@ bool CollisionRect::handleStaticCollisionX(const CollisionRect& staticRect, floa
     return true;
 }
 
-bool CollisionRect::handleStaticCollisionY(const CollisionRect& staticRect, float dy)
+bool CollisionRect::handleStaticCollisionY(CollisionRect staticRect, float dy, int worldSize)
 {
+    staticRect.translateAroundWorld(x, y, worldSize);
+
     if (!isColliding(staticRect))
         return false;
     
@@ -67,13 +85,26 @@ bool CollisionRect::handleStaticCollisionY(const CollisionRect& staticRect, floa
 bool CollisionRect::isColliding(const CollisionRect& otherRect) const
 {
     return (x < otherRect.x + otherRect.width &&
-    x + width > otherRect.x &&
-    y < otherRect.y + otherRect.height &&
-    y + height > otherRect.y);
+        x + width > otherRect.x &&
+        y < otherRect.y + otherRect.height &&
+        y + height > otherRect.y);
+}
+    
+bool CollisionRect::isColliding(CollisionRect otherRect, int worldSize) const
+{
+    otherRect.translateAroundWorld(x, y, worldSize);
+    return isColliding(otherRect);
 }
 
-bool CollisionRect::isColliding(const CollisionCircle& circle) const
+bool CollisionRect::isColliding(CollisionCircle circle, int worldSize) const
 {
+    if (worldSize > 0)
+    {
+        pl::Vector2f translatedPos = Camera::translateWorldPos(pl::Vector2f(circle.x, circle.y), pl::Vector2f(x, y), worldSize);
+        circle.x = translatedPos.x;
+        circle.y = translatedPos.y;
+    }
+
     float testX = circle.x;
     float testY = circle.y;
 
@@ -107,16 +138,17 @@ bool CollisionRect::isPointInRect(float x, float y) const
     return (this->x <= x && this->x + width >= x && this->y <= y && this->y + height >= y);
 }
 
-sf::Vector2f CollisionRect::getCentre() const
+pl::Vector2f CollisionRect::getCentre() const
 {
-    return sf::Vector2f(x + width / 2, y + height / 2);
+    return pl::Vector2f(x + width / 2, y + height / 2);
 }
 
-void CollisionRect::debugDraw(sf::RenderTarget& window, const Camera& camera, sf::Color color) const
+void CollisionRect::debugDraw(pl::RenderTarget& window, const Camera& camera, int worldSize, pl::Color color) const
 {
     float scale = ResolutionHandler::getScale();
-    sf::RectangleShape rect({width * scale, height * scale});
-    rect.setPosition(camera.worldToScreenTransform(sf::Vector2f(x, y)));
-    rect.setFillColor(color);
-    window.draw(rect);
+
+    pl::VertexArray rect;
+    rect.addQuad(pl::Rect<float>(camera.worldToScreenTransform(pl::Vector2f(x, y), worldSize), pl::Vector2f(width, height) * scale), color, pl::Rect<float>());
+
+    window.draw(rect, *Shaders::getShader(ShaderType::DefaultNoTexture), nullptr, pl::BlendMode::Alpha);
 }

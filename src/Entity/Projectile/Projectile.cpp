@@ -1,33 +1,54 @@
 #include "Entity/Projectile/Projectile.hpp"
+#include "World/ChunkManager.hpp"
 
-Projectile::Projectile(sf::Vector2f position, float angle, ProjectileType type, float damageMult, float shootPower)
+Projectile::Projectile()
 {
-    this->position = position;
+    alive = true;
+    timeAlive = 0.0f;
+}
 
-    this->angle = angle;
-
-    projectileType = type;
-    
+Projectile::Projectile(pl::Vector2f position, float angle, ProjectileType type, float damageMult, float shootPower, HitLayer hitLayer)
+{
     const ProjectileData& projectileData = ToolDataLoader::getProjectileData(type);
     
-    speed = projectileData.speed * shootPower;
-
-    // Randomise damage
-    int damageBaseValue = Helper::randInt(projectileData.damageLow, projectileData.damageHigh);
-    this->damage = std::round(damageBaseValue * damageMult);
-
+    int speed = projectileData.speed * shootPower;
+    
     // Calculate velocity
     float angleRadians = M_PI * angle / 180.0f;
     velocity.x = std::cos(angleRadians) * speed;
     velocity.y = std::sin(angleRadians) * speed;
+    
+    initialise(position, velocity, type, damageMult, hitLayer);
+}
+
+Projectile::Projectile(pl::Vector2f position, pl::Vector2f velocity, ProjectileType type, float damageMult, HitLayer hitLayer)
+{
+    initialise(position, velocity, type, damageMult, hitLayer);
+}
+
+void Projectile::initialise(pl::Vector2f position, pl::Vector2f velocity, ProjectileType type, float damageMult, HitLayer hitLayer)
+{   
+    this->position = position;
+    this->velocity = velocity;
+    
+    projectileType = type;
+    
+    const ProjectileData& projectileData = ToolDataLoader::getProjectileData(type);
+    
+    // Randomise damage
+    int damageBaseValue = Helper::randInt(projectileData.damageLow, projectileData.damageHigh);
+    this->damage = std::round(damageBaseValue * damageMult);
+
+    this->hitLayer = hitLayer;
 
     alive = true;
     timeAlive = 0.0f;
 }
 
-void Projectile::update(float dt)
+void Projectile::update(float dt, int worldSize)
 {
     position += velocity * dt;
+    Helper::wrapPosition(position, worldSize);
 
     timeAlive += dt;
 
@@ -38,21 +59,22 @@ void Projectile::update(float dt)
     }
 }
 
-void Projectile::draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Camera& camera)
+void Projectile::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const ChunkManager& chunkManager, const Camera& camera) const
 {
     const ProjectileData& projectileData = ToolDataLoader::getProjectileData(projectileType);
 
-    TextureDrawData drawData;
-    drawData.type = TextureType::Tools;
-    drawData.position = camera.worldToScreenTransform(position);
-    drawData.rotation = angle;
+    pl::DrawData drawData;
+    drawData.texture = TextureManager::getTexture(TextureType::Tools);
+    drawData.shader = Shaders::getShader(ShaderType::Default);
+    drawData.position = camera.worldToScreenTransform(position, chunkManager.getWorldSize());
+    drawData.rotation = std::atan2(velocity.y, velocity.x) / M_PI * 180.0f;
+    drawData.textureRect = projectileData.textureRect;
 
     float scale = ResolutionHandler::getScale();
-    drawData.scale = sf::Vector2f(scale, scale);
+    drawData.scale = pl::Vector2f(scale, scale);
     drawData.centerRatio = projectileData.origin;
 
-    // TextureManager::drawSubTexture(window, drawData, projectileData.textureRect);
-    spriteBatch.draw(window, drawData, projectileData.textureRect);
+    spriteBatch.draw(window, drawData);
 }
 
 int Projectile::getDamage() const
@@ -65,15 +87,25 @@ void Projectile::onCollision()
     alive = false;
 }
 
-sf::Vector2f Projectile::getPosition() const
+pl::Vector2f Projectile::getPosition() const
 {
     return position;
 }
 
-void Projectile::handleWorldWrap(sf::Vector2f positionDelta)
+pl::Vector2f Projectile::getVelocity() const
 {
-    position += positionDelta;
+    return velocity;
 }
+
+ProjectileType Projectile::getType() const
+{
+    return projectileType;
+}
+
+// void Projectile::handleWorldWrap(pl::Vector2f positionDelta)
+// {
+//     position += positionDelta;
+// }
 
 bool Projectile::isAlive()
 {
@@ -84,8 +116,13 @@ CollisionCircle Projectile::getCollisionCircle() const
 {
     const ProjectileData& projectileData = ToolDataLoader::getProjectileData(projectileType);
 
-    sf::Vector2f collisionPos = position;
-    collisionPos += Helper::rotateVector(projectileData.collisionOffset, angle / 180.0f * M_PI);
+    pl::Vector2f collisionPos = position;
+    collisionPos += projectileData.collisionOffset.rotate(std::atan2(velocity.y, velocity.x));
 
     return CollisionCircle(collisionPos.x, collisionPos.y, projectileData.collisionRadius);
+}
+
+HitLayer Projectile::getHitLayer() const
+{
+    return hitLayer;
 }

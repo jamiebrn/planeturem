@@ -1,8 +1,17 @@
 #pragma once
 
-#include <SFML/Graphics.hpp>
 #include <limits>
 
+#include <SDL_events.h>
+
+#include <Graphics/VertexArray.hpp>
+#include <Graphics/Color.hpp>
+#include <Graphics/RenderTarget.hpp>
+#include <Graphics/Texture.hpp>
+#include <Vector.hpp>
+#include <Rect.hpp>
+
+#include "Core/Shaders.hpp"
 #include "Core/ResolutionHandler.hpp"
 #include "Core/InputManager.hpp"
 
@@ -14,16 +23,20 @@ class DefaultGUIPanel
 public:
     DefaultGUIPanel() = default;
 
-    void handleEvent(sf::Event& event);
+    void handleEvent(const SDL_Event& event);
 
     void resetHoverRect();
 
     const GUIContext& getGUIContext();
     
 protected:
-    void drawPanel(sf::RenderTarget& window);
+    // Implicitly calls updateControllerActivation
+    void drawPanel(pl::RenderTarget& window);
 
-    void updateAndDrawSelectionHoverRect(sf::RenderTarget& window, float dt);
+    // Must call before creating GUI
+    void updateControllerActivation();
+
+    void updateAndDrawSelectionHoverRect(pl::RenderTarget& window, float dt);
     void setSelectedElement(ElementID selected);
 
     int getScaledPanelPaddingX();
@@ -37,9 +50,8 @@ protected:
     GUIContext guiContext;
 
     ElementID selectedElementId = std::numeric_limits<uint64_t>::max();
-    sf::FloatRect selectionHoverRect;
-    // sf::FloatRect selectionHoverRectDestination;
-
+    pl::Rect<float> selectionHoverRect;
+    
     bool deferHoverRectReset = false;
     bool deferForceElementActivation = false;
 };

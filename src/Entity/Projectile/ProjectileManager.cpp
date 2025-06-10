@@ -1,14 +1,22 @@
 #include "Entity/Projectile/ProjectileManager.hpp"
+#include "Game.hpp"
+#include "Network/NetworkHandler.hpp"
 
-void ProjectileManager::update(float dt)
+void ProjectileManager::initialise(Game* game, PlanetType planetType)
+{
+    this->game = game;
+    this->planetType = planetType;
+}
+
+void ProjectileManager::update(float dt, int worldSize)
 {
     for (auto iter = projectiles.begin(); iter != projectiles.end();)
     {
-        Projectile* projectile = iter->get();
+        Projectile& projectile = *iter;
         
-        if (projectile->isAlive())
+        if (projectile.isAlive())
         {
-            projectile->update(dt);
+            projectile.update(dt, worldSize);
         }
         else
         {
@@ -20,31 +28,69 @@ void ProjectileManager::update(float dt)
     }
 }
 
-void ProjectileManager::drawProjectiles(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Camera& camera)
+void ProjectileManager::drawProjectiles(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const ChunkManager& chunkManager,
+    pl::Vector2f playerPos, const Camera& camera)
 {
-    for (auto& projectile : projectiles)
+    for (const Projectile& projectile : projectiles)
     {
-        projectile->draw(window, spriteBatch, camera);
+        projectile.draw(window, spriteBatch, chunkManager, camera);
     }
 }
 
-void ProjectileManager::addProjectile(std::unique_ptr<Projectile> projectile)
+void ProjectileManager::addProjectile(const Projectile& projectile, ToolType weaponType)
 {
-    projectiles.push_back(std::move(projectile));
+    if (!game)
+    {
+        printf("ERROR: Projectile manager of planet type %d uninitialised\n", planetType);
+        return;
+    }
+
+    // Send projectile creation request to host
+    if (game->getNetworkHandler().isClient())
+    {
+        if (weaponType < 0)
+        {
+            printf("ERROR: Attempted to create networked projectile from null weapon type %d\n", weaponType);
+            return;
+        }
+        
+        PacketDataProjectileCreateRequest packetData;
+        packetData.planetType = planetType;
+        packetData.projectile = projectile;
+        packetData.weaponType = weaponType;
+
+        Packet packet;
+        packet.set(packetData);
+
+        game->getNetworkHandler().sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
+        return;
+    }
+
+    projectiles.push_back(projectile);
 }
 
-std::vector<std::unique_ptr<Projectile>>& ProjectileManager::getProjectiles()
+// void ProjectileManager::createProjectileWithID(uint16_t id, const Projectile& projectile)
+// {
+//     projectiles[id] = projectile;
+// }
+
+std::vector<Projectile>& ProjectileManager::getProjectiles()
 {
     return projectiles;
 }
 
-void ProjectileManager::handleWorldWrap(sf::Vector2f positionDelta)
+uint16_t ProjectileManager::getProjectileCount() const
 {
-    for (auto& projectile : projectiles)
-    {
-        projectile->handleWorldWrap(positionDelta);
-    }
+    return projectiles.size();
 }
+
+// void ProjectileManager::handleWorldWrap(pl::Vector2f positionDelta)
+// {
+//     for (auto& projectilePair : projectiles)
+//     {
+//         projectilePair.second.handleWorldWrap(positionDelta);
+//     }
+// }
 
 void ProjectileManager::clear()
 {

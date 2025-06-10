@@ -1,16 +1,18 @@
 #include "Object/WorldObject.hpp"
+#include "Data/PlanetGenData.hpp"
+#include "Data/PlanetGenDataLoader.hpp"
 
-sf::Vector2f WorldObject::getPosition() const
+pl::Vector2f WorldObject::getPosition() const
 {
     return position;
 }
 
-void WorldObject::setPosition(sf::Vector2f pos)
+void WorldObject::setPosition(pl::Vector2f pos)
 {
     position = pos;
 }
 
-ChunkPosition WorldObject::getChunkInside(sf::Vector2f position, int worldSize)
+ChunkPosition WorldObject::getChunkInside(pl::Vector2f position, int worldSize)
 {
     ChunkPosition chunk;
     chunk.x = ((static_cast<int>(std::floor(position.x / (CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED))) % worldSize) + worldSize) % worldSize;
@@ -23,57 +25,81 @@ ChunkPosition WorldObject::getChunkInside(int worldSize) const
     return getChunkInside(position, worldSize);
 }
 
-sf::Vector2i WorldObject::getChunkTileInside(sf::Vector2f position, int worldSize)
+pl::Vector2<uint8_t> WorldObject::getChunkTileInside(pl::Vector2f position, int worldSize)
 {
     int worldTotalSize = worldSize * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
 
-    sf::Vector2f wrappedPosition;
+    pl::Vector2f wrappedPosition;
     wrappedPosition.x = (static_cast<int>(position.x) % worldTotalSize + worldTotalSize) % worldTotalSize;
     wrappedPosition.y = (static_cast<int>(position.y) % worldTotalSize + worldTotalSize) % worldTotalSize;
 
-    sf::Vector2i chunkTile;
+    pl::Vector2<uint8_t> chunkTile;
     chunkTile.x = static_cast<int>((static_cast<int>(wrappedPosition.x / TILE_SIZE_PIXELS_UNSCALED) % static_cast<int>(CHUNK_TILE_SIZE)) + CHUNK_TILE_SIZE) % static_cast<int>(CHUNK_TILE_SIZE);
     chunkTile.y = static_cast<int>((static_cast<int>(wrappedPosition.y / TILE_SIZE_PIXELS_UNSCALED) % static_cast<int>(CHUNK_TILE_SIZE)) + CHUNK_TILE_SIZE) % static_cast<int>(CHUNK_TILE_SIZE);
     return chunkTile;
 }
 
-sf::Vector2i WorldObject::getChunkTileInside(int worldSize) const
+pl::Vector2<uint8_t> WorldObject::getChunkTileInside(int worldSize) const
 {
     return getChunkTileInside(position, worldSize);
 }
 
-sf::Vector2i WorldObject::getTileInside(sf::Vector2f position)
+ObjectReference WorldObject::getObjectReferenceFromPosition(pl::Vector2f position, int worldSize)
 {
-    sf::Vector2i tile;
+    ObjectReference objectReference;
+    objectReference.chunk = getChunkInside(position, worldSize);
+    objectReference.tile = getChunkTileInside(position, worldSize);
+    return objectReference;
+}
+
+ObjectReference WorldObject::getThisObjectReference(int worldSize) const
+{
+    return getObjectReferenceFromPosition(position, worldSize);
+}
+
+ObjectReference WorldObject::getThisObjectReference(const LocationState& locationState) const
+{
+    if (locationState.isOnPlanet())
+    {
+        const PlanetGenData& planetGenData = PlanetGenDataLoader::getPlanetGenData(locationState.getPlanetType());
+        return getThisObjectReference(planetGenData.worldSize);
+    }
+    
+    return ObjectReference{{0, 0}, getTileInside()};
+}
+
+pl::Vector2<uint32_t> WorldObject::getTileInside(pl::Vector2f position)
+{
+    pl::Vector2<uint32_t> tile;
     tile.x = std::floor(position.x / TILE_SIZE_PIXELS_UNSCALED);
     tile.y = std::floor(position.y / TILE_SIZE_PIXELS_UNSCALED);
     return tile;
 }
 
-sf::Vector2i WorldObject::getTileInside() const
+pl::Vector2<uint32_t> WorldObject::getTileInside() const
 {
     return getTileInside(position);
 }
 
-sf::Vector2i WorldObject::getWorldTileInside(sf::Vector2f position, int worldSize)
+pl::Vector2<uint32_t> WorldObject::getWorldTileInside(pl::Vector2f position, int worldSize)
 {
     int worldTileSize = worldSize * static_cast<int>(CHUNK_TILE_SIZE);
-    sf::Vector2i tile = getTileInside(position);
+    pl::Vector2<uint32_t> tile = getTileInside(position);
     tile.x = (tile.x % worldTileSize + worldTileSize) % worldTileSize;
     tile.y = (tile.y % worldTileSize + worldTileSize) % worldTileSize;
     return tile;
 }
 
-sf::Vector2i WorldObject::getWorldTileInside(int worldSize) const
+pl::Vector2<uint32_t> WorldObject::getWorldTileInside(int worldSize) const
 {
     return getWorldTileInside(position, worldSize);
 }
 
 // Assumes on water
-float WorldObject::getWaterBobYOffset(sf::Vector2f position, int worldSize, float gameTime)
+float WorldObject::getWaterBobYOffset(pl::Vector2f position, int worldSize, float gameTime)
 {    
     ChunkPosition chunk = getChunkInside(position, worldSize);
-    sf::Vector2i tile = getChunkTileInside(position, worldSize);
+    pl::Vector2<uint8_t> tile = getChunkTileInside(position, worldSize);
 
     static constexpr float xWavelength = 0.9f;
     static constexpr float yWavelength = 0.7f;

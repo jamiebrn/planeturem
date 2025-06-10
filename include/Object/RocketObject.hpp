@@ -2,7 +2,11 @@
 
 #include <vector>
 
-#include <SFML/Graphics.hpp>
+#include <Graphics/SpriteBatch.hpp>
+#include <Graphics/Color.hpp>
+#include <Graphics/RenderTarget.hpp>
+#include <Vector.hpp>
+#include <Rect.hpp>
 
 #include "Core/Tween.hpp"
 
@@ -10,35 +14,41 @@
 #include "Object/BuildableObject.hpp"
 #include "Object/BuildableObjectPOD.hpp"
 #include "Object/ParticleSystem.hpp"
+#include "Player/LocationState.hpp"
 
 #include "Data/typedefs.hpp"
 
 class Game;
+class NetworkHandler;
 
 class RocketObject : public BuildableObject
 {
 public:
-    RocketObject(sf::Vector2f position, ObjectType objectType);
+    RocketObject(pl::Vector2f position, ObjectType objectType, const BuildableObjectCreateParameters& parameters);
 
     BuildableObject* clone() override;
 
-    void update(Game& game, float dt, bool onWater, bool loopAnimation = true) override;
+    void update(Game& game, const LocationState& locationState, float dt, bool onWater, bool loopAnimation = true) override;
 
-    void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const sf::Color& color) const override;
+    bool damage(int amount, Game& game, ChunkManager& chunkManager, ParticleSystem* particleSystem, bool giveItems = true, bool createHitMarkers = true) override;
 
-    void interact(Game& game) override;
+    void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const pl::Color& color) const override;
+
+    void interact(Game& game, bool isClient) override;
     bool isInteractable() const override;
 
-    void triggerBehaviour(Game& game, ObjectBehaviourTrigger trigger) override;
+    void startFlyingUpwards(Game& game, const LocationState& locationState, NetworkHandler* networkHandler);
+    void startFlyingDownwards(Game& game, const LocationState& locationState, NetworkHandler* networkHandler, bool enterRocket);
 
-    void startFlyingUpwards();
-    void startFlyingDownwards();
+    void enter();
+    void exit();
+    bool isEntered();
 
     void getRocketAvailableDestinations(PlanetType currentPlanetType, RoomType currentRoomType,
         std::vector<PlanetType>& planetDestinations, std::vector<RoomType>& roomDestinations);
 
-    sf::Vector2f getRocketPosition();
-    sf::Vector2f getRocketBottomPosition();
+    pl::Vector2f getRocketPosition();
+    pl::Vector2f getRocketBottomPosition();
 
     void setRocketYOffset(float offset);
     float getRocketYOffset();
@@ -46,13 +56,17 @@ public:
     void createRocketParticles();
 
 private:
-    void drawRocket(sf::RenderTarget& window, SpriteBatch& spriteBatch, const Camera& camera, const sf::Color& color) const;
+    void drawRocket(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera, int worldSize, const pl::Color& color) const;
+
+    float getRocketAlpha() const;
 
 private:
     bool flyingUp = false;
     bool flyingDown = false;
     bool entered = false;
 
+    static constexpr float ROCKET_Y_OFFSET_MAX = TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE * -4.0f;
+    static constexpr float ALPHA_FALLOFF_MIN_HEIGHT = ROCKET_Y_OFFSET_MAX * 0.75f;
     float rocketYOffset = 0.0f;
 
     Tween<float> floatTween;

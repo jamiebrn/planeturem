@@ -1,17 +1,25 @@
 #pragma once
 
-#include <SFML/Graphics.hpp>
-
 #define _USE_MATH_DEFINES
 #include <cmath>
+
+#include <Graphics/SpriteBatch.hpp>
+#include <Graphics/Color.hpp>
+#include <Graphics/RenderTarget.hpp>
+#include <Graphics/Shader.hpp>
+#include <Graphics/Texture.hpp>
+#include <Vector.hpp>
+#include <Rect.hpp>
+
 #include <vector>
 #include <unordered_map>
 
 #include "World/FastNoise.h"
+#include "Core/TextureManager.hpp"
+#include "Core/Shaders.hpp"
 #include "Core/AnimatedTexture.hpp"
 #include "Core/Camera.hpp"
 #include "Core/ResolutionHandler.hpp"
-#include "Core/SpriteBatch.hpp"
 
 #include "Object/WorldObject.hpp"
 
@@ -34,21 +42,21 @@ struct WeatherTypeData
 class WeatherParticle : public WorldObject
 {    
 public:
-    WeatherParticle(sf::Vector2f position, const WeatherTypeData& weatherTypeData);
+    WeatherParticle(pl::Vector2f position, const WeatherTypeData& weatherTypeData);
 
     // Returns false if should be destroyed
     bool update(float dt, const Camera& camera, ChunkManager& chunkManager);
 
     // Returns target position
-    sf::Vector2f getPosition() const override;
+    pl::Vector2f getPosition() const override;
 
-    void handleWorldWrap(sf::Vector2f positionDelta);
+    // void handleWorldWrap(pl::Vector2f positionDelta);
     
-    void draw(sf::RenderTarget& window, SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
-       const sf::Color& color) const override;
+    void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
+       const pl::Color& color) const override;
     
 private:
-    sf::Vector2f velocity;
+    pl::Vector2f velocity;
 
     float fallTime;
     float targetFallTime;
@@ -65,7 +73,7 @@ public:
     
     void update(float dt, float gameTime, const Camera& camera, ChunkManager& chunkManager);
 
-    void handleWorldWrap(sf::Vector2f positionDelta);
+    // void handleWorldWrap(pl::Vector2f positionDelta);
 
     std::vector<WorldObject*> getWeatherParticles();
 
