@@ -133,8 +133,11 @@ private:
     float byteRateSampleTime;
     float byteSendRate;
     float byteReceiveRate;
-    
+
     float updateTick;
+    int updateTickCount;
+    static constexpr int MAX_UPDATE_TICK_COUNT = 2;
+    static constexpr int NON_PLAYER_UPDATE_TICK = 1;
 
     std::unordered_map<uint64_t, NetworkPlayer> networkPlayers;
     std::unordered_map<uint64_t, PlayerData> networkPlayerDatasSaved;

@@ -31,6 +31,7 @@ void NetworkHandler::reset(Game* game)
     byteReceiveRate = 0.0f;
     
     updateTick = 0.0f;
+    updateTickCount = 0;
 
     sendPlayerDataQueued = false;
     sendPlayerDataQueueTime = 0.0f;
@@ -1399,6 +1400,7 @@ void NetworkHandler::sendGameUpdates(float dt, const Camera& camera)
 
     // Update tick
     updateTick = 0.0f;
+    updateTickCount = (updateTickCount + 1) % MAX_UPDATE_TICK_COUNT;
 
     if (isLobbyHost)
     {
@@ -1418,19 +1420,6 @@ void NetworkHandler::sendGameUpdatesToClients(float dt)
     }
 
     uint64_t steamID = SteamUser()->GetSteamID().ConvertToUint64();
-
-    // Send server info
-    PacketDataServerInfo serverInfoData;
-    serverInfoData.gameTime = game->getGameTime();
-    serverInfoData.day = game->getDayCycleManager().getCurrentDay();
-    serverInfoData.time = game->getDayCycleManager().getCurrentTime();
-    Packet serverInfoPacket;
-    serverInfoPacket.set(serverInfoData);
-
-    for (auto& client : networkPlayers)
-    {
-        sendPacketToClient(client.first, serverInfoPacket, k_nSteamNetworkingSend_Unreliable, 0);
-    }
 
     std::unordered_map<uint64_t, Packet> playerInfoPackets;
     
@@ -1463,6 +1452,25 @@ void NetworkHandler::sendGameUpdatesToClients(float dt)
         
         // Send host player data
         sendPacketToClient(iter->first, playerInfoPackets[steamID], k_nSteamNetworkingSend_Unreliable, 0);
+    }
+
+    // Only send non-player info on certain ticks to save bandwidth
+    if (updateTickCount != NON_PLAYER_UPDATE_TICK)
+    {
+        return;
+    }
+
+    // Send server info
+    PacketDataServerInfo serverInfoData;
+    serverInfoData.gameTime = game->getGameTime();
+    serverInfoData.day = game->getDayCycleManager().getCurrentDay();
+    serverInfoData.time = game->getDayCycleManager().getCurrentTime();
+    Packet serverInfoPacket;
+    serverInfoPacket.set(serverInfoData);
+
+    for (auto& client : networkPlayers)
+    {
+        sendPacketToClient(client.first, serverInfoPacket, k_nSteamNetworkingSend_Unreliable, 0);
     }
 
     // Send entity datas to each client as required
