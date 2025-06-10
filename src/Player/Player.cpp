@@ -1291,7 +1291,6 @@ PacketDataPlayerCharacterInfo Player::getNetworkPlayerInfo(const Camera* camera,
     PacketDataPlayerCharacterInfo info;
     info.position = position;
     info.direction = direction;
-    info.speed = speed;
 
     info.health = health;
 

@@ -87,12 +87,8 @@ void NetworkPlayer::setNetworkPlayerCharacterInfo(const PacketDataPlayerCharacte
     // position = positionNext;
     positionNext = info.position;
     direction = info.direction;
-    speed = info.speed;
 
     health = info.health;
-
-    collisionRect.x = position.x - collisionRect.width / 2.0f;
-    collisionRect.y = position.y - collisionRect.height / 2.0f;
 
     if (direction == pl::Vector2f(0, 0))
     {
@@ -121,6 +117,16 @@ void NetworkPlayer::setNetworkPlayerCharacterInfo(const PacketDataPlayerCharacte
     toolRotationNext = info.toolRotation;
     fishingRodCasted = info.fishingRodCasted;
     fishBitingLine = info.fishBitingLine;
+
+    // Prevent position interpolation
+    if (skipPositionInterpolation)
+    {
+        position = positionNext;
+        skipPositionInterpolation = false;
+    }
+    
+    collisionRect.x = position.x - collisionRect.width / 2.0f;
+    collisionRect.y = position.y - collisionRect.height / 2.0f;
     
     if (fishingRodCasted)
     {
@@ -154,6 +160,12 @@ void NetworkPlayer::setPlayerData(const PlayerData& playerData)
 {
     // Retain ping location
     std::string pingLocation = playerData.pingLocation;
+
+    // Skip position interpolation if location state has changed
+    if (this->playerData.locationState != playerData.locationState)
+    {
+        skipPositionInterpolation = true;
+    }
 
     this->playerData = playerData;
 

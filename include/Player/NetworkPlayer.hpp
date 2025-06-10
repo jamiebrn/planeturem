@@ -62,6 +62,8 @@ private:
     pl::Vector2f positionNext;
     float toolRotationNext;
 
+    bool skipPositionInterpolation = true;
+
     // Before world wrap translation applied
     // pl::Vector2f fishingRodBobWorldPos;
 
