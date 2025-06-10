@@ -20,6 +20,7 @@ struct PacketDataPlayerCharacterInfo : public IPacketData, public IPacketTimeDep
     float pingTime;
 
     pl::Vector2f position;
+
     pl::Vector2f direction;
     float speed;
 
@@ -41,7 +42,6 @@ struct PacketDataPlayerCharacterInfo : public IPacketData, public IPacketTimeDep
     
     int8_t toolType;
     float toolRotation;
-    float toolRotationVelocity = 0.0f;
 
     std::array<int8_t, 3> armour;
 
@@ -67,10 +67,9 @@ struct PacketDataPlayerCharacterInfo : public IPacketData, public IPacketTimeDep
         CompactFloat<uint8_t> yScaleMultCompact(yScaleMult, 2);
 
         CompactFloat<int16_t> toolRotationCompact(toolRotation, 2);
-        int16_t toolRotationVelocityCompact = toolRotationVelocity;
 
         ar(position.x, position.y, direction.x, direction.y, speed, health, animationFrame, animationFrameTickCompact, yScaleMultCompact, toolType, toolRotationCompact,
-            toolRotationVelocityCompact, armour, chunkViewRange, userID, bitPacked);
+            armour, chunkViewRange, userID, bitPacked);
         
         if (fishingRodCasted)
         {
@@ -86,10 +85,9 @@ struct PacketDataPlayerCharacterInfo : public IPacketData, public IPacketTimeDep
         CompactFloat<uint8_t> yScaleMultCompact;
 
         CompactFloat<int16_t> toolRotationCompact;
-        int16_t toolRotationVelocityCompact;
 
         ar(position.x, position.y, direction.x, direction.y, speed, health, animationFrame, animationFrameTickCompact, yScaleMultCompact, toolType, toolRotationCompact,
-            toolRotationVelocityCompact, armour, chunkViewRange, userID, bitPacked);
+            armour, chunkViewRange, userID, bitPacked);
         
         std::vector<bool*> bitPackValues = getBitPackValues();
         for (int i = 0; i < bitPackValues.size(); i++)
@@ -106,7 +104,6 @@ struct PacketDataPlayerCharacterInfo : public IPacketData, public IPacketTimeDep
         yScaleMult = yScaleMultCompact.getValue(2);
 
         toolRotation = toolRotationCompact.getValue(2);
-        toolRotationVelocity = toolRotationVelocityCompact;
     }
 
     PACKET_SERIALISATION();

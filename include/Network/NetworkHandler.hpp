@@ -133,8 +133,7 @@ private:
     float byteRateSampleTime;
     float byteSendRate;
     float byteReceiveRate;
-
-    static constexpr float SERVER_UPDATE_TICK = 1 / 30.0f;
+    
     float updateTick;
 
     std::unordered_map<uint64_t, NetworkPlayer> networkPlayers;

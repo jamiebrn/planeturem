@@ -35,7 +35,7 @@ Player::Player(pl::Vector2f position, Game* game, int maxHealth, pl::Color bodyC
 
     equippedTool = -1;
     toolRotation = 0.0f;
-    toolRotationLastFrame = 0.0f;
+    // toolRotationLastFrame = 0.0f;
     usingTool = false;
 
     armour = {-1, -1, -1};
@@ -256,7 +256,7 @@ void Player::updateAnimation(float dt)
 
 void Player::updateToolRotation(pl::Vector2f mouseWorldPos)
 {
-    toolRotationLastFrame = toolRotation;
+    // toolRotationLastFrame = toolRotation;
 
     if (equippedTool < 0)
     {
@@ -918,7 +918,7 @@ void Player::setTool(ToolType toolType)
     equippedTool = toolType;
 
     toolRotation = 0.0f;
-    toolRotationLastFrame = 0.0f;
+    // toolRotationLastFrame = 0.0f;
 
     reelInFishingRod();
 
@@ -1320,16 +1320,16 @@ PacketDataPlayerCharacterInfo Player::getNetworkPlayerInfo(const Camera* camera,
     info.fishBitingLine = fishBitingLine;
     info.fishingRodBobWorldTile = fishingRodBobWorldTile;
 
-    if (usingTool)
-    {
-        info.toolRotationVelocity = toolTweener.getTweenValueVelocity(rotationTweenID, dt);
-    }
-    else
-    {
-        info.toolRotationVelocity = (toolRotation - toolRotationLastFrame) / dt;
-    }
+    // if (usingTool)
+    // {
+    //     info.toolRotationVelocity = toolTweener.getTweenValueVelocity(rotationTweenID, dt);
+    // }
+    // else
+    // {
+    //     info.toolRotationVelocity = (toolRotation - toolRotationLastFrame) / dt;
+    // }
 
-    toolRotationVelocityLast = info.toolRotationVelocity;
+    // toolRotationVelocityLast = info.toolRotationVelocity;
     
     for (int i = 0; i < armour.size(); i++)
     {

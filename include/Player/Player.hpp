@@ -214,8 +214,8 @@ protected:
 
     // Tool animation
     float toolRotation;
-    float toolRotationLastFrame; // networking
-    float toolRotationVelocityLast;
+    // float toolRotationLastFrame; // networking
+    // float toolRotationVelocityLast;
     bool usingTool;
 
     Tween<float> toolTweener;

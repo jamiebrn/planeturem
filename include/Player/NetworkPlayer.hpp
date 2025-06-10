@@ -1,7 +1,5 @@
 #pragma once
 
-#include <vector>
-
 #define _USE_MATH_DEFINES
 #include <cmath>
 #include <algorithm>
@@ -26,6 +24,8 @@
 #include "Player/Player.hpp"
 #include "Player/PlayerData.hpp"
 #include "World/ChunkViewRange.hpp"
+
+#include "GameConstants.hpp"
 
 class Game;
 class ChunkManager;
@@ -58,8 +58,9 @@ private:
     PlayerData playerData;
 
     ChunkViewRange chunkViewRange;
-
-    float toolRotationVelocity;
+    
+    pl::Vector2f positionNext;
+    float toolRotationNext;
 
     // Before world wrap translation applied
     // pl::Vector2f fishingRodBobWorldPos;

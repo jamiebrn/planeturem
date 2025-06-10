@@ -42,11 +42,24 @@ void Entity::initialiseBehaviour(const std::string& behaviour)
     }
 }
 
-void Entity::update(float dt, ProjectileManager& projectileManager, ChunkManager& chunkManager, Game& game, bool onWater, float gameTime)
+void Entity::update(float dt, ProjectileManager& projectileManager, ChunkManager& chunkManager, Game& game, bool onWater, float gameTime, bool networkUpdateOnly)
 {
-    if (behaviour)
+    // Host / solo update (controls behaviour)
+    if (behaviour && !networkUpdateOnly)
     {
         behaviour->update(*this, chunkManager, game, dt);
+    }
+
+    // Update as client (apply velocity)
+    if (networkUpdateOnly)
+    {
+        // Test collision after x movement
+        collisionRect.x += velocity.x * dt;
+        chunkManager.collisionRectChunkStaticCollisionX(collisionRect, velocity.x);
+
+        // Test collision after y movement
+        collisionRect.y += velocity.y * dt;
+        chunkManager.collisionRectChunkStaticCollisionY(collisionRect, velocity.y);
     }
 
     // Update position using collision rect after collision has been handled
@@ -65,7 +78,12 @@ void Entity::update(float dt, ProjectileManager& projectileManager, ChunkManager
         {
             damage(projectile.getDamage(), game, LocationState::createFromPlanetType(chunkManager.getPlanetType()), gameTime);
             projectile.onCollision();
-            behaviour->onHit(*this, game, projectile.getPosition());
+
+            // Only apply behaviour if host / solo
+            if (behaviour && !networkUpdateOnly)
+            {
+                behaviour->onHit(*this, game, projectile.getPosition());
+            }
         }
     }
 
@@ -76,28 +94,6 @@ void Entity::update(float dt, ProjectileManager& projectileManager, ChunkManager
     walkAnim.update(dt * animationSpeed, 1, entityData.walkTextureRects.size(), entityData.walkAnimSpeed);
 
     this->onWater = onWater;
-}
-
-void Entity::updateNetwork(float dt, ChunkManager& chunkManager)
-{
-    // Test collision after x movement
-    collisionRect.x += velocity.x * dt;
-    chunkManager.collisionRectChunkStaticCollisionX(collisionRect, velocity.x);
-
-    // Test collision after y movement
-    collisionRect.y += velocity.y * dt;
-    chunkManager.collisionRectChunkStaticCollisionY(collisionRect, velocity.y);
-
-    position.x = collisionRect.x + collisionRect.width / 2.0f;
-    position.y = collisionRect.y + collisionRect.height / 2.0f;
-
-    const EntityData& entityData = EntityDataLoader::getEntityData(entityType);
-
-    // Update animations
-    flashAmount = std::max(flashAmount - dt * 3.0f, 0.0f);
-
-    idleAnim.update(dt * animationSpeed, 1, entityData.idleTextureRects.size(), entityData.idleAnimSpeed);
-    walkAnim.update(dt * animationSpeed, 1, entityData.walkTextureRects.size(), entityData.walkAnimSpeed);
 }
 
 bool Entity::isProjectileColliding(Projectile& projectile)

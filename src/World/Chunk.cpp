@@ -1078,17 +1078,16 @@ void Chunk::updateChunkEntities(float dt, int worldSize, ProjectileManager* proj
     {
         std::unique_ptr<Entity>& entity = *entityIter;
 
-        if (networkUpdateOnly)
-        {
-            entity->updateNetwork(dt, chunkManager);
-            entityIter++;
-            continue;
-        }
-
         // Determine whether on water
         bool onWater = (getTileType(entity->getChunkTileInside(worldSize)) == 0);
 
-        entity->update(dt, *projectileManager, chunkManager, *game, onWater, game->getGameTime());
+        entity->update(dt, *projectileManager, chunkManager, *game, onWater, game->getGameTime(), networkUpdateOnly);
+
+        if (networkUpdateOnly)
+        {
+            entityIter++;
+            continue;
+        }
 
         // Check if requires deleting (not alive)
         if (!entity->isAlive())

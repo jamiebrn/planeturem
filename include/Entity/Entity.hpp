@@ -42,9 +42,7 @@ public:
     Entity(pl::Vector2f position, EntityType entityType);
     Entity();
 
-    void update(float dt, ProjectileManager& projectileManager, ChunkManager& chunkManager, Game& game, bool onWater, float gameTime);
-
-    void updateNetwork(float dt, ChunkManager& chunkManager);
+    void update(float dt, ProjectileManager& projectileManager, ChunkManager& chunkManager, Game& game, bool onWater, float gameTime, bool networkUpdateOnly);
 
     void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize, const pl::Color& color) const override;
     // void createLightSource(LightingEngine& lightingEngine, pl::Vector2f topLeftChunkPos) const override;
