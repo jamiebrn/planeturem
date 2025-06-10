@@ -66,8 +66,7 @@ struct PacketDataPlayerCharacterInfo : public IPacketData, public IPacketTimeDep
         CompactFloat<uint8_t> yScaleMultCompact(yScaleMult, 2);
 
         CompactFloat<int16_t> toolRotationCompact(toolRotation, 2);
-
-        direction = direction.normalise();
+        
         CompactFloat<int8_t> directionXCompact(direction.x, 2);
         CompactFloat<int8_t> directionYCompact(direction.y, 2);
 
