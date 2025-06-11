@@ -87,7 +87,7 @@ public:
         positionVelocityData |= static_cast<uint64_t>(positionDataLocal & 0x3FFFFF) << 16;
         positionVelocityData |= static_cast<uint64_t>(velocityData & 0x1FFFFFF) << 38;
 
-        ar(projectileTypeCompact, hitLayer, positionVelocityData);
+        ar(projectileTypeCompact, hitLayer, damage, positionVelocityData);
     }
 
     template <class Archive>
@@ -97,7 +97,7 @@ public:
 
         uint64_t positionVelocityData;
         
-        ar(projectileTypeCompact, hitLayer, positionVelocityData);
+        ar(projectileTypeCompact, hitLayer, damage, positionVelocityData);
         
         projectileType = projectileTypeCompact;
 
@@ -121,7 +121,7 @@ private:
     void initialise(pl::Vector2f position, pl::Vector2f velocity, ProjectileType type, float damageMult, HitLayer hitLayer);
 
     ProjectileType projectileType;
-    int damage;
+    uint8_t damage;
 
     pl::Vector2f position;
     pl::Vector2f velocity;
