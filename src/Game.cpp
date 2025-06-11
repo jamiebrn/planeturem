@@ -1,10 +1,6 @@
 #include "Game.hpp"
 
-// CONSIDER: Projectile serialisation seems to be overestimating velocity (lack of precision)
-
 // CONSIDER: Custom death chat messages depending on source of death
-
-// FIX: Entity client hitmarker overflow
 
 // FIX: Space station use rocket while other player use glitch
 

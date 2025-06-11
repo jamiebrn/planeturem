@@ -57,15 +57,6 @@ void BossManager::update(Game& game, ProjectileManager& projectileManager, Chunk
         BossEntity* boss = iter->get();
         if (boss->isAlive() && boss->inPlayerRange(players, chunkManager.getWorldSize()))
         {
-            if (game.getNetworkHandler().isClient() && players.size() > 0)
-            {
-                boss->updateNetwork(*players[0], dt, chunkManager.getWorldSize());
-                iter++;
-                continue;
-            }
-
-            boss->update(game, chunkManager, projectileManager, players, dt, chunkManager.getWorldSize());
-
             for (auto& projectile : projectileManager.getProjectiles())
             {
                 if (!projectile.isAlive())
@@ -75,6 +66,15 @@ void BossManager::update(Game& game, ProjectileManager& projectileManager, Chunk
 
                 boss->testProjectileCollision(projectile, chunkManager.getWorldSize());
             }
+            
+            if (game.getNetworkHandler().isClient() && players.size() > 0)
+            {
+                boss->updateNetwork(*players[0], dt, chunkManager.getWorldSize());
+                iter++;
+                continue;
+            }
+
+            boss->update(game, chunkManager, projectileManager, players, dt, chunkManager.getWorldSize());
 
             iter++;
         }
