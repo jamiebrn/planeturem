@@ -134,6 +134,8 @@ private:
     float byteSendRate;
     float byteReceiveRate;
 
+    static constexpr int MAX_LOBBY_PLAYER_COUNT = 8;
+
     float updateTick;
     int updateTickCount;
     static constexpr int MAX_UPDATE_TICK_COUNT = 2;

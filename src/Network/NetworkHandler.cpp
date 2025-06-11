@@ -47,7 +47,7 @@ void NetworkHandler::startHostServer()
     }   
 
     networkPlayers.clear();
-    SteamAPICall_t steamAPICall = SteamMatchmaking()->CreateLobby(ELobbyType::k_ELobbyTypeFriendsOnly, 8);
+    SteamAPICall_t steamAPICall = SteamMatchmaking()->CreateLobby(ELobbyType::k_ELobbyTypeFriendsOnly, MAX_LOBBY_PLAYER_COUNT);
     m_SteamCallResultCreateLobby.Set(steamAPICall, this, &NetworkHandler::callbackLobbyCreated);
 }
 
