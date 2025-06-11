@@ -4,10 +4,6 @@
 
 // CONSIDER: Custom death chat messages depending on source of death
 
-// FIX: Position interpolation blocked by collisions when enter new locations???
-
-// FIX: World wraparound with position interpolation
-
 // FIX: Entity client hitmarker overflow
 
 // FIX: Space station use rocket while other player use glitch

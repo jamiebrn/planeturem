@@ -35,6 +35,7 @@ void RocketObject::update(Game& game, const LocationState& locationState, float 
             {
                 flyingDown = false;
                 game.rocketFinishedDown(locationState, *this);
+                entered = false;
             }
         }
 
