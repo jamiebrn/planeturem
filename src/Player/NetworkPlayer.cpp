@@ -20,24 +20,35 @@ void NetworkPlayer::updateNetworkPlayer(float dt, Game& game)
 
     // Calculate velocity using interpolated position
     pl::Vector2f velocity = (positionNext - position) / SERVER_UPDATE_TICK;
+
+    // Store previous direction as required for animation
     pl::Vector2f previousDirection = direction;
     direction = velocity.normalise();
     speed = velocity.getLength();
 
-    printf("positionNext: %f, %f      position: %f, %f\n", positionNext.x, positionNext.y, position.x, position.y);
-
     switch (playerData.locationState.getGameState())
     {
         case GameState::OnPlanet:
+        {
             updateMovement(dt, game.getChunkManager(playerData.locationState.getPlanetType()), false);
+            pl::Vector2f wrapPositionDelta;
+            if (testWorldWrap(game.getChunkManager(playerData.locationState.getPlanetType()).getWorldSize(), wrapPositionDelta))
+            {
+                positionNext += wrapPositionDelta;
+            }
             break;
+        }
         case GameState::InStructure:
+        {
             updateMovementInRoom(dt, game.getStructureRoomPool(playerData.locationState.getPlanetType())
                 .getRoom(playerData.locationState.getInStructureID()), false);
             break;
+        }
         case GameState::InRoomDestination:
+        {
             updateMovementInRoom(dt, game.getRoomDestination(playerData.locationState.getRoomDestType()), false);
             break;
+        }
     }
     
     position.x = collisionRect.x + collisionRect.width / 2.0f;
@@ -88,17 +99,36 @@ void NetworkPlayer::setNetworkPlayerCharacterInfo(const PacketDataPlayerCharacte
     positionNext = info.position;
     direction = info.direction;
 
-    // Prevent position interpolation
-    if (skipPositionInterpolation || info.inRocket != inRocket)
+    toolRotation = toolRotationNext;
+    toolRotationNext = info.toolRotation;
+
+    bool alivePreviously = isAlive();
+    health = info.health;
+
+    float positionDeltaSq = (positionNext - position).getLengthSq();
+
+    // Skip interpolation
+    if (skipInterpolation || info.inRocket != inRocket || alivePreviously != isAlive() ||
+        positionDeltaSq > MAX_POSITION_INTERPOLATION_DELTA * MAX_POSITION_INTERPOLATION_DELTA)
     {
         position = positionNext;
-        skipPositionInterpolation = false;
+
+        toolRotation = toolRotationNext;
+
+        skipInterpolation = false;
+    }
+    else
+    {
+        // Interpolating - translate positionNext using position if on planet
+        if (playerData.locationState.isOnPlanet())
+        {
+            int worldSize = PlanetGenDataLoader::getPlanetGenData(playerData.locationState.getPlanetType()).worldSize;
+            positionNext = Camera::translateWorldPos(positionNext, position, worldSize);
+        }
     }
     
     collisionRect.x = position.x - collisionRect.width / 2.0f;
     collisionRect.y = position.y - collisionRect.height / 2.0f;
-
-    health = info.health;
 
     if (direction == pl::Vector2f(0, 0))
     {
@@ -123,8 +153,6 @@ void NetworkPlayer::setNetworkPlayerCharacterInfo(const PacketDataPlayerCharacte
     equippedTool = info.toolType;
     toolRotation = info.toolRotation;
     usingTool = info.usingTool;
-    toolRotation = toolRotationNext;
-    toolRotationNext = info.toolRotation;
     fishingRodCasted = info.fishingRodCasted;
     fishBitingLine = info.fishBitingLine;
     
@@ -164,7 +192,7 @@ void NetworkPlayer::setPlayerData(const PlayerData& playerData)
     // Skip position interpolation if location state has changed
     if (this->playerData.locationState != playerData.locationState)
     {
-        skipPositionInterpolation = true;
+        skipInterpolation = true;
     }
 
     this->playerData = playerData;

@@ -58,11 +58,12 @@ private:
     PlayerData playerData;
 
     ChunkViewRange chunkViewRange;
-    
+
+    static constexpr float MAX_POSITION_INTERPOLATION_DELTA = TILE_SIZE_PIXELS_UNSCALED;
     pl::Vector2f positionNext;
     float toolRotationNext;
 
-    bool skipPositionInterpolation = true;
+    bool skipInterpolation = true;
 
     // Before world wrap translation applied
     // pl::Vector2f fishingRodBobWorldPos;
