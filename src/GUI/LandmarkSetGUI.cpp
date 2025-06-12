@@ -63,7 +63,7 @@ LandmarkSetGUIEvent LandmarkSetGUI::createAndDraw(pl::RenderTarget& window, floa
 
     yPos += 80;
 
-    if (guiContext.createSlider(scaledPanelPaddingX + panelWidth / 8 * intScale, yPos * intScale, panelWidth * intScale / 2, 75 * intScale,
+    if (guiContext.createSlider(scaledPanelPaddingX + panelWidth / 4 * intScale, yPos * intScale, panelWidth * intScale / 2, 75 * intScale,
         0.0f, 1.0f, &aColorValueHSV, 20 * intScale, "", panelWidth / 8 * intScale, panelWidth / 8 * intScale, 40 * intScale).isHeld())
     {
         pl::Color hsvColor = Helper::convertRGBtoHSV(aColor);
@@ -94,7 +94,7 @@ LandmarkSetGUIEvent LandmarkSetGUI::createAndDraw(pl::RenderTarget& window, floa
 
     yPos += 80;
 
-    if (guiContext.createSlider(scaledPanelPaddingX + panelWidth / 8 * intScale, yPos * intScale, panelWidth * intScale / 2, 75 * intScale,
+    if (guiContext.createSlider(scaledPanelPaddingX + panelWidth / 4 * intScale, yPos * intScale, panelWidth * intScale / 2, 75 * intScale,
         0.0f, 1.0f, &bColorValueHSV, 20 * intScale, "", panelWidth / 8 * intScale, panelWidth / 8 * intScale, 40 * intScale).isHeld())
     {
         pl::Color hsvColor = Helper::convertRGBtoHSV(bColor);
