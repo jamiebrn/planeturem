@@ -1,7 +1,5 @@
 #pragma once
 
-
-
 #include <Vector.hpp>
 #include <Rect.hpp>
 

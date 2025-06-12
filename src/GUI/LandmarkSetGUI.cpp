@@ -2,16 +2,10 @@
 
 void LandmarkSetGUI::initialise(ObjectReference landmarkObject, pl::Color colorA, pl::Color colorB)
 {
-    aColor[0] = colorA.r;
-    aColor[1] = colorA.g;
-    aColor[2] = colorA.b;
-    bColor[0] = colorB.r;
-    bColor[1] = colorB.g;
-    bColor[2] = colorB.b;
+    aColor = colorA;
+    bColor = colorB;
 
     landmarkSettingObjectReference = landmarkObject;
-
-    colourPage = 0;
 
     guiContext.resetActiveElement();
 }
@@ -36,7 +30,7 @@ LandmarkSetGUIEvent LandmarkSetGUI::createAndDraw(pl::RenderTarget& window, floa
     textDrawData.centeredX = true;
     textDrawData.centeredY = true;
 
-    textDrawData.text = "Colour A";
+    textDrawData.text = "Color A";
     
     static const pl::Rect<int> colorRect(80, 112, 16, 16);
 
@@ -53,90 +47,64 @@ LandmarkSetGUIEvent LandmarkSetGUI::createAndDraw(pl::RenderTarget& window, floa
     colorDrawData.shader->setUniform1i("replaceKeyCount", 1);
     colorDrawData.shader->setUniform4fv("replaceKeys", replaceColorKey);
     
-    std::vector<float> replaceColorValue = {aColor[0] / 255.0f, aColor[1] / 255.0f, aColor[2] / 255.0f, 1};
-    
-    float* colorArray = aColor;
-
-    bool canFitBothColors = (yPos + 50 + 80 + 100 * 3 + 75) * intScale < resolution.y;
-    
-    // Change values if on next page
-    if (colourPage > 0 && canFitBothColors)
-    {
-        textDrawData.text = "Colour B";
-        replaceColorValue = {bColor[0] / 255.0f, bColor[1] / 255.0f, bColor[2] / 255.0f, 1};
-        colorArray = bColor;
-    }
+    std::vector<float> replaceColorValue = {aColor.r / 255.0f, aColor.g / 255.0f, aColor.b / 255.0f, 1};
     
     colorDrawData.shader->setUniform4fv("replaceValues", replaceColorValue);
     
     TextDraw::drawText(window, textDrawData);
     TextureManager::drawSubTexture(window, colorDrawData);
 
+    yPos += 100;
+
+    if (guiContext.createColorWheel(scaledPanelPaddingX + panelWidth * intScale / 2, yPos * intScale, 50, aColorValueHSV, aColor).isActive())
+    {
+        setGUIEvent.modified = true;
+    }
+
     yPos += 80;
 
-    static const std::array<std::string, 3> colorStrings = {"Red", "Green", "Blue"};
-
-    for (int i = 0; i < 3; i++)
+    if (guiContext.createSlider(scaledPanelPaddingX + panelWidth / 8 * intScale, yPos * intScale, panelWidth * intScale / 2, 75 * intScale,
+        0.0f, 1.0f, &aColorValueHSV, 20 * intScale, "", panelWidth / 8 * intScale, panelWidth / 8 * intScale, 40 * intScale).isHeld())
     {
-        if (guiContext.createSlider(scaledPanelPaddingX, yPos * intScale, panelWidth * intScale, 75 * intScale,
-            0.0f, 255.0f, &colorArray[i], 20 * intScale, colorStrings[i], panelWidth / 2 * intScale, panelWidth / 10 * intScale, 40 * intScale).isHeld())
-        {
-            setGUIEvent.modified = true;
-        }
-
-        yPos += 100;
+        pl::Color hsvColor = Helper::convertRGBtoHSV(aColor);
+        aColor = Helper::convertHSVtoRGB(hsvColor.r, hsvColor.g, aColorValueHSV);
+        setGUIEvent.modified = true;
     }
 
-    // Page selection for when window is too small
-    if (!canFitBothColors)
-    {
-        if (guiContext.createButton(scaledPanelPaddingX, yPos * intScale,
-            panelWidth / 2 * intScale, 50 * intScale, 20 * intScale, "<", buttonStyle)
-            .isClicked())
-        {
-            colourPage = Helper::wrap(colourPage - 1, 2);
-        }
+    yPos += 100;
 
-        if (guiContext.createButton((scaledPanelPaddingX + panelWidth / 2) * intScale, yPos * intScale,
-            panelWidth / 2 * intScale, 50 * intScale, 20 * intScale, ">", buttonStyle)
-            .isClicked())
-        {
-            colourPage = Helper::wrap(colourPage + 1, 2);
-        }
+    textDrawData.position.y = yPos * intScale;
+    textDrawData.text = "Color B";
 
-        yPos += 100;
-    }
-    else
+    TextDraw::drawText(window, textDrawData);
+
+    colorDrawData.position = pl::Vector2f(textDrawData.position.x + 36 * 4 * intScale, textDrawData.position.y);
+    
+    replaceColorValue = {bColor.r / 255.0f, bColor.g / 255.0f, bColor.b / 255.0f, 1};
+    colorDrawData.shader->setUniform4fv("replaceValues", replaceColorValue);
+
+    TextureManager::drawSubTexture(window, colorDrawData);
+
+    yPos += 100;
+
+    if (guiContext.createColorWheel(scaledPanelPaddingX + panelWidth * intScale / 2, yPos * intScale, 50, bColorValueHSV, bColor).isActive())
     {
-        yPos += 50;
-    
-        textDrawData.position.y = yPos * intScale;
-        textDrawData.text = "Colour B";
-    
-        TextDraw::drawText(window, textDrawData);
-    
-        colorDrawData.position = pl::Vector2f(textDrawData.position.x + 36 * 4 * intScale, textDrawData.position.y);
-        
-        replaceColorValue = {bColor[0] / 255.0f, bColor[1] / 255.0f, bColor[2] / 255.0f, 1};
-        colorDrawData.shader->setUniform4fv("replaceValues", replaceColorValue);
-    
-        TextureManager::drawSubTexture(window, colorDrawData);
-    
-        yPos += 80;
-    
-        for (int i = 0; i < 3; i++)
-        {
-            if (guiContext.createSlider(scaledPanelPaddingX, yPos * intScale, panelWidth * intScale, 75 * intScale,
-                0.0f, 255.0f, &bColor[i], 20 * intScale, colorStrings[i], panelWidth / 2 * intScale, panelWidth / 10 * intScale, 40 * intScale).isHeld())
-            {
-                setGUIEvent.modified = true;
-            }
-    
-            yPos += 100;
-        }
+        setGUIEvent.modified = true;
     }
 
-    if (guiContext.createButton(scaledPanelPaddingX, yPos * intScale, panelWidth * intScale, 75 * intScale, 24 * intScale, "Set Colour", buttonStyle)
+    yPos += 80;
+
+    if (guiContext.createSlider(scaledPanelPaddingX + panelWidth / 8 * intScale, yPos * intScale, panelWidth * intScale / 2, 75 * intScale,
+        0.0f, 1.0f, &bColorValueHSV, 20 * intScale, "", panelWidth / 8 * intScale, panelWidth / 8 * intScale, 40 * intScale).isHeld())
+    {
+        pl::Color hsvColor = Helper::convertRGBtoHSV(bColor);
+        bColor = Helper::convertHSVtoRGB(hsvColor.r, hsvColor.g, bColorValueHSV);
+        setGUIEvent.modified = true;
+    }
+
+    yPos += 100;
+
+    if (guiContext.createButton(scaledPanelPaddingX, yPos * intScale, panelWidth * intScale, 75 * intScale, 24 * intScale, "Set Color", buttonStyle)
         .isClicked())
     {
         setGUIEvent.closed = true;
@@ -153,12 +121,12 @@ LandmarkSetGUIEvent LandmarkSetGUI::createAndDraw(pl::RenderTarget& window, floa
 
 pl::Color LandmarkSetGUI::getColorA() const
 {
-    return pl::Color(aColor[0], aColor[1], aColor[2]);
+    return aColor;
 }
 
 pl::Color LandmarkSetGUI::getColorB() const
 {
-    return pl::Color(bColor[0], bColor[1], bColor[2]);
+    return bColor;
 }
 
 const ObjectReference& LandmarkSetGUI::getLandmarkObjectReference() const

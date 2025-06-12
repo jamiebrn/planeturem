@@ -163,6 +163,11 @@ const ColorWheel& GUIContext::createColorWheel(int x, int y, int size, float& va
 {
     std::unique_ptr<ColorWheel> colorWheel = std::make_unique<ColorWheel>(inputState, elements.size(), x, y, size, value, currentColor);
 
+    if (colorWheel->isActive())
+    {
+        inputState.activeElement = elements.size();
+    }
+
     elements.push_back(std::move(colorWheel));
 
     return *static_cast<ColorWheel*>(elements.back().get());

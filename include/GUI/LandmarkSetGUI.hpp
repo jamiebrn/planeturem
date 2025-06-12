@@ -44,11 +44,11 @@ public:
     const ObjectReference& getLandmarkObjectReference() const;
 
 private:
-    float aColor[3];
-    float bColor[3];
+    pl::Color aColor;
+    float aColorValueHSV = 1.0f;
+    pl::Color bColor;
+    float bColorValueHSV = 1.0f;
 
     ObjectReference landmarkSettingObjectReference;
-
-    int colourPage;
 
 };
