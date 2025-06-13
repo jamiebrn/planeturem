@@ -357,6 +357,7 @@ bool GameSaveIO::writeOptionsSave(const OptionsSave& optionsSave)
     {
         nlohmann::json json;
         json["music-volume"] = optionsSave.musicVolume;
+        json["sound-volume"] = optionsSave.soundVolume;
         json["screen-shake-enabled"] = optionsSave.screenShakeEnabled;
         json["controller-glyph-type"] = optionsSave.controllerGlyphType;
         json["v-sync"] = optionsSave.vSync;
@@ -388,6 +389,11 @@ bool GameSaveIO::loadOptionsSave(OptionsSave& optionsSave)
     {
         nlohmann::json json = nlohmann::json::parse(in);
         optionsSave.musicVolume = json["music-volume"];
+
+        if (json.contains("sound-volume"))
+        {
+            optionsSave.soundVolume = json.at("sound-volume");
+        }
 
         if (json.contains("screen-shake-enabled"))
         {

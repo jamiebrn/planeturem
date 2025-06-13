@@ -137,6 +137,7 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(pl::RenderTarget& window
                 button.isClicked())
             {
                 nextUIState = MainMenuState::Options;
+                optionsPage = 0;
             }
 
             elementYPos += 100 * intScale;
@@ -538,66 +539,97 @@ bool MainMenuGUI::createOptionsMenu(pl::RenderTarget& window, int startElementYP
 
     int buttonTextSize = 24 * intScale;
 
-    float musicVolume = Sounds::getMusicVolume();
-    if (guiContext.createSlider(scaledPanelPaddingX, startElementYPos, panelWidth * intScale, 75 * intScale,
-        0.0f, 100.0f, &musicVolume, 20 * intScale, "Music Volume", panelWidth / 2 * intScale, panelWidth / 10 * intScale, 40 * intScale)
-        .isHeld())
+    if (optionsPage == 0)
     {
-        Sounds::setMusicVolume(musicVolume);
-    }
-
-    startElementYPos += 100 * intScale;
+        float musicVolume = Sounds::getMusicVolume();
+        if (guiContext.createSlider(scaledPanelPaddingX, startElementYPos, panelWidth * intScale, 75 * intScale,
+            0.0f, 100.0f, &musicVolume, 20 * intScale, "Music Volume", panelWidth / 2 * intScale, panelWidth / 10 * intScale, 40 * intScale)
+            .isHeld())
+        {
+            Sounds::setMusicVolume(musicVolume);
+        }
     
-    bool screenShakeEnabled = Camera::getScreenShakeEnabled();
-    if (guiContext.createCheckbox(scaledPanelPaddingX, startElementYPos, panelWidth * intScale, 75 * intScale, 20 * intScale, "Screenshake", &screenShakeEnabled,
-        (panelWidth / 2 + 80) * intScale, (panelWidth / 10 + 80) * intScale, 40 * intScale)
-        .isClicked())
-    {
-        Camera::setScreenShakeEnabled(screenShakeEnabled);
-    }
+        startElementYPos += 100 * intScale;
     
-    startElementYPos += 100 * intScale;
-
-    bool vSyncEnabled = ResolutionHandler::getVSync();
-    if (guiContext.createCheckbox(scaledPanelPaddingX, startElementYPos, panelWidth * intScale, 75 * intScale, 20 * intScale, "V-Sync", &vSyncEnabled,
-        (panelWidth / 2 + 80) * intScale, (panelWidth / 10 + 80) * intScale, 40 * intScale)
-        .isClicked())
-    {
-        ResolutionHandler::setVSync(vSyncEnabled);
-    }
-
-    startElementYPos += 100 * intScale;
+        float soundVolume = Sounds::getSoundVolume();
+        if (guiContext.createSlider(scaledPanelPaddingX, startElementYPos, panelWidth * intScale, 75 * intScale,
+            0.0f, 100.0f, &soundVolume, 20 * intScale, "Sound Volume", panelWidth / 2 * intScale, panelWidth / 10 * intScale, 40 * intScale)
+            .isHeld())
+        {
+            Sounds::setSoundVolume(soundVolume);
+        }
     
-    // Create button glyph switch buttons
-    if (guiContext.createButton(scaledPanelPaddingX, startElementYPos,
-        panelWidth / 6 * intScale, 50 * intScale, buttonTextSize, "<", buttonStyle)
+        startElementYPos += 100 * intScale;
+
+        bool vSyncEnabled = ResolutionHandler::getVSync();
+        if (guiContext.createCheckbox(scaledPanelPaddingX, startElementYPos, panelWidth * intScale, 75 * intScale, 20 * intScale, "V-Sync", &vSyncEnabled,
+            (panelWidth / 2 + 80) * intScale, (panelWidth / 10 + 80) * intScale, 40 * intScale)
             .isClicked())
-    {
-        int glyphType = InputManager::getGlyphType();
-        InputManager::setGlyphType(glyphType - 1);
-    }
+        {
+            ResolutionHandler::setVSync(vSyncEnabled);
+        }
 
-    if (guiContext.createButton((scaledPanelPaddingX + panelWidth / 6 * 5) * intScale, startElementYPos,
-        panelWidth / 6 * intScale, 50 * intScale, buttonTextSize, ">", buttonStyle)
+        startElementYPos += 100 * intScale;
+
+        if (guiContext.createButton(scaledPanelPaddingX + panelWidth / 2 * intScale, startElementYPos,
+            panelWidth / 2 * intScale, 50 * intScale, buttonTextSize, ">", buttonStyle)
+                .isClicked())
+        {
+            optionsPage++;
+            resetHoverRect();
+        }
+    }
+    else if (optionsPage == 1)
+    {
+        bool screenShakeEnabled = Camera::getScreenShakeEnabled();
+        if (guiContext.createCheckbox(scaledPanelPaddingX, startElementYPos, panelWidth * intScale, 75 * intScale, 20 * intScale, "Screenshake", &screenShakeEnabled,
+            (panelWidth / 2 + 80) * intScale, (panelWidth / 10 + 80) * intScale, 40 * intScale)
             .isClicked())
-    {
-        int glyphType = InputManager::getGlyphType();
-        InputManager::setGlyphType(glyphType + 1);
+        {
+            Camera::setScreenShakeEnabled(screenShakeEnabled);
+        }
+        
+        startElementYPos += 100 * intScale;
+        
+        // Create button glyph switch buttons
+        if (guiContext.createButton(scaledPanelPaddingX, startElementYPos,
+            panelWidth / 6 * intScale, 50 * intScale, buttonTextSize, "<", buttonStyle)
+                .isClicked())
+        {
+            int glyphType = InputManager::getGlyphType();
+            InputManager::setGlyphType(glyphType - 1);
+        }
+    
+        if (guiContext.createButton((scaledPanelPaddingX + panelWidth / 6 * 5) * intScale, startElementYPos,
+            panelWidth / 6 * intScale, 50 * intScale, buttonTextSize, ">", buttonStyle)
+                .isClicked())
+        {
+            int glyphType = InputManager::getGlyphType();
+            InputManager::setGlyphType(glyphType + 1);
+        }
+    
+        // Text showing current controller glyph type
+        pl::TextDrawData glyphTypeDrawData;
+        glyphTypeDrawData.text = "Controller Glyph " + std::to_string(InputManager::getGlyphType() + 1);
+        glyphTypeDrawData.position = pl::Vector2f(scaledPanelPaddingX + panelWidth / 2 * intScale, startElementYPos + 50 * 0.5f * intScale);
+        glyphTypeDrawData.centeredX = true;
+        glyphTypeDrawData.centeredY = true;
+        glyphTypeDrawData.size = 24 * intScale;
+        glyphTypeDrawData.color = pl::Color(255, 255, 255);
+        TextDraw::drawText(window, glyphTypeDrawData);
+
+        startElementYPos += 100 * intScale;
+
+        if (guiContext.createButton(scaledPanelPaddingX, startElementYPos,
+            panelWidth / 2 * intScale, 50 * intScale, buttonTextSize, "<", buttonStyle)
+                .isClicked())
+        {
+            optionsPage--;
+            resetHoverRect();
+        }
     }
-
-    // Text showing current controller glyph type
-    pl::TextDrawData glyphTypeDrawData;
-    glyphTypeDrawData.text = "Controller Glyph " + std::to_string(InputManager::getGlyphType() + 1);
-    glyphTypeDrawData.position = pl::Vector2f(scaledPanelPaddingX + panelWidth / 2 * intScale, startElementYPos + 50 * 0.5f * intScale);
-    glyphTypeDrawData.centeredX = true;
-    glyphTypeDrawData.centeredY = true;
-    glyphTypeDrawData.size = 24 * intScale;
-    glyphTypeDrawData.color = pl::Color(255, 255, 255);
-    TextDraw::drawText(window, glyphTypeDrawData);
-
-    startElementYPos += 200 * intScale;
-
-    startElementYPos = std::min(startElementYPos, static_cast<int>(resolution.y - 100 * intScale));
+    
+    startElementYPos = std::min(startElementYPos + 200 * intScale, resolution.y - 100 * intScale);
 
     if (guiContext.createButton(scaledPanelPaddingX, startElementYPos, panelWidth * intScale, 75 * intScale, buttonTextSize, "Back", buttonStyle)
         .isClicked())
@@ -675,6 +707,7 @@ std::optional<PauseMenuEventType> MainMenuGUI::createAndDrawPauseMenu(pl::Render
             if (guiContext.createButton(scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale, 24 * intScale, "Options", buttonStyle).isClicked())
             {
                 nextUIState = PauseMenuState::Options;
+                optionsPage = 0;
             }
 
             elementYPos += 100 * intScale;

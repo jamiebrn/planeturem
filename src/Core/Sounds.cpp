@@ -164,7 +164,7 @@ void Sounds::playSound(SoundType type, float volume)
 
     pl::Sound& sound = *soundMap.at(type).get();
 
-    sound.setVolume(volume / 100.0f);
+    sound.setVolume(volume / 100.0f * soundVolume / 100.0f);
 
     // Play sound from sound map
     sound.play();
@@ -263,4 +263,14 @@ void Sounds::setMusicVolume(int volume)
     {
         musicMap[currentlyPlayingMusic.value()]->setVolume(musicVolume / 100.0f);
     }
+}
+
+int Sounds::getSoundVolume()
+{
+    return soundVolume;
+}
+
+void Sounds::setSoundVolume(int volume)
+{
+    soundVolume = volume;
 }

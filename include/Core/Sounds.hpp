@@ -63,6 +63,9 @@ public:
 
     static int getMusicVolume();
     static void setMusicVolume(int volume);
+    
+    static int getSoundVolume();
+    static void setSoundVolume(int volume);
 
     inline static std::optional<MusicType> getPlayingMusic() {return currentlyPlayingMusic;}
 
@@ -71,11 +74,13 @@ private:
     // Variable keeping track of whether sounds are loaded into memory
     inline static bool loadedSounds = false;
 
-    inline static int musicVolume = 100.0f;
+    inline static int musicVolume = 100;
     inline static std::optional<MusicType> currentlyPlayingMusic = std::nullopt;
     inline static std::optional<MusicType> fadingOutMusic = std::nullopt;
     static float fadingMusicVolume;
     static Tween<float> fadeOutTween;
+
+    inline static int soundVolume = 100;
 
     // Map storing buffers, which store sound effect data
     // inline static std::unordered_map<SoundType, sf::SoundBuffer> soundBufferMap;

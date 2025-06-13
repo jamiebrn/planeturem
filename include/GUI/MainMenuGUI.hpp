@@ -127,6 +127,8 @@ private:
     int deletingSaveIndex;
     pl::Rect<float> deletingRect;
 
+    int optionsPage;
+
     bool canInteract;
 
     WorldData menuWorldData;

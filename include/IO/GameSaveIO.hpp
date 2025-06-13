@@ -186,6 +186,7 @@ struct SaveFileSummary
 struct OptionsSave
 {
     int musicVolume = 30;
+    int soundVolume = 80;
     bool screenShakeEnabled = true;
     int controllerGlyphType = 0;
     bool vSync = true;

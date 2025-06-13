@@ -3251,6 +3251,13 @@ void Game::travelToPlanet(PlanetType planetType, ObjectReference newRocketObject
     {
         std::optional<PathfindGridCoordinate> openTile = getChunkManager(planetType).getPathfindingEngine()
             .findClosestOpenTile(rocketEnteredReference.getWorldTile().x, rocketEnteredReference.getWorldTile().y, 20, true);
+
+        if (!openTile.has_value())
+        {
+            openTile = PathfindGridCoordinate();
+            openTile->x = rocketEnteredReference.getWorldTile().x;
+            openTile->y = rocketEnteredReference.getWorldTile().y;
+        }
         
         player.setPosition(rocketObject->getPosition() + pl::Vector2f(openTile->x, openTile->y) * TILE_SIZE_PIXELS_UNSCALED, 0);
         rocketObject->startFlyingDownwards(*this, locationState, &networkHandler, true);
@@ -3914,6 +3921,7 @@ void Game::loadOptions()
     optionsIO.loadOptionsSave(optionsSave);
 
     Sounds::setMusicVolume(optionsSave.musicVolume);
+    Sounds::setSoundVolume(optionsSave.soundVolume);
     Camera::setScreenShakeEnabled(optionsSave.screenShakeEnabled);
     InputManager::setGlyphType(optionsSave.controllerGlyphType);
     ResolutionHandler::setVSync(optionsSave.vSync);
