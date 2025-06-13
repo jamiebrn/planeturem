@@ -141,11 +141,11 @@ private:
     static constexpr float HITBOX_SIZE = 16.0f;
     CollisionCircle collision;
 
-    static constexpr int MAX_HEALTH = 450;
+    static constexpr int MAX_HEALTH = 280;
     int16_t health;
     bool dead;
 
-    static constexpr int HEALTH_SECOND_STAGE_THRESHOLD = 250;
+    static constexpr int HEALTH_SECOND_STAGE_THRESHOLD = 150;
     int8_t stage;
 
     float flyingHeight;

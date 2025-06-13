@@ -4505,7 +4505,18 @@ void Game::updateMusic(float dt)
     musicGapTimer += dt;
 
     if (musicGapTimer < musicGap)
+    {
         return;
+    }
+
+    // If bosses present, do not start new music
+    if (locationState.isOnPlanet())
+    {
+        if (getBossManager().getBossCount() > 0)
+        {
+            return;
+        }
+    }
     
     // Play new music as music gap has ended
     static constexpr std::array<MusicType, 2> musicTypes = {MusicType::WorldTheme, MusicType::WorldTheme2};

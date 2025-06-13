@@ -22,8 +22,8 @@ BossBenjaminCrow::BossBenjaminCrow(pl::Vector2f playerPosition)
     Sounds::playMusic(MusicType::BossTheme1);
 
     itemDrops = {
-        {{ItemDataLoader::getItemTypeFromName("Feather"), 7, 12}, 1.0},
-        {{ItemDataLoader::getItemTypeFromName("Bone"), 3, 7}, 1.0},
+        {{ItemDataLoader::getItemTypeFromName("Feather"), 3, 5}, 1.0},
+        {{ItemDataLoader::getItemTypeFromName("Bone"), 1, 4}, 1.0},
         {{ItemDataLoader::getItemTypeFromName("Crow Claw"), 1, 2}, 0.5},
         {{ItemDataLoader::getItemTypeFromName("Crow Skull"), 1, 1}, 0.4}
     };
