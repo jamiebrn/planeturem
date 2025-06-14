@@ -8,6 +8,13 @@ const std::array<pl::Rect<int>, 4> BossSandSerpent::HEAD_FRAMES = {
     pl::Rect<int>(144, 384, 48, 32),
 };
 
+const std::array<pl::Rect<int>, 4> BossSandSerpent::PANIC_HEAD_FRAMES = {
+    pl::Rect<int>(0, 448, 48, 32),
+    pl::Rect<int>(48, 448, 48, 32),
+    pl::Rect<int>(96, 448, 48, 32),
+    pl::Rect<int>(144, 448, 48, 32),
+};
+
 const pl::Rect<int> BossSandSerpent::SHOOTING_HEAD_FRAME = pl::Rect<int>(192, 416, 48, 32);
 
 BossSandSerpent::BossSandSerpent()
@@ -17,7 +24,6 @@ BossSandSerpent::BossSandSerpent()
 
 BossSandSerpent::BossSandSerpent(pl::Vector2f playerPosition, Game& game)
 {
-    // Sounds::playSound(SoundType::Crow);
     Sounds::playMusic(MusicType::BossTheme1);
 
     itemDrops = {
@@ -36,7 +42,6 @@ BossSandSerpent::BossSandSerpent(pl::Vector2f playerPosition, Game& game)
 
     headHealth = MAX_HEAD_HEALTH;
     bodyHealth = MAX_BODY_HEALTH;
-    dead = false;
 
     headFlashTime = 0.0f;
     bodyFlashTime = 0.0f;
@@ -54,6 +59,8 @@ void BossSandSerpent::initialise()
 {
     animations[BossSandSerpentState::IdleStage1] = AnimatedTexture(4, 80, 51, 0, 301, 0.1);
     animations[BossSandSerpentState::ShootingStage1] = AnimatedTexture(3, 80, 51, 0, 301, 0.1, false);
+    animations[BossSandSerpentState::Panic] = AnimatedTexture(4, 80, 51, 0, 301, 0.075);
+    animations[BossSandSerpentState::FloatingHead] = AnimatedTexture(4, 80, 51, 0, 301, 0.075); // dummy animation for head frame sync
     animations[BossSandSerpentState::MovingToPlayer] = AnimatedTexture(4, 16, 32, 192, 384, 0.1);
     animations[BossSandSerpentState::Leaving] = animations[BossSandSerpentState::MovingToPlayer];
     
@@ -139,6 +146,95 @@ void BossSandSerpent::update(Game& game, ChunkManager& chunkManager, ProjectileM
             {
                 shootProjectileCooldownTime = 0.0f;
                 float angle = std::atan2(closestPlayerRelativePos.y - 4 - (position.y - 50), closestPlayerRelativePos.x - position.x) * 180.0f / M_PI;
+
+                // Angle randomisation
+                static constexpr float SHOOT_ANGLE_DEVIATION = 15.0f;
+                angle += Helper::randFloat(-SHOOT_ANGLE_DEVIATION, SHOOT_ANGLE_DEVIATION);
+
+                projectileManager.addProjectile(Projectile(position - pl::Vector2f(0, 50), angle,
+                    ToolDataLoader::getProjectileTypeFromName("Serpent Venom BOSS"), 1.0f, 1.0f, HitLayer::Player));
+            }
+            break;
+        }
+        case BossSandSerpentState::Panic: // fallthrough
+        case BossSandSerpentState::FloatingHead:
+        {
+            float shootRateMult = 1.4f;
+
+            if (behaviourState == BossSandSerpentState::FloatingHead)
+            {
+                static constexpr float FLOATING_HEAD_PLAYER_DEAD_SPEED_MULT = 2.1f;
+
+                pl::Vector2f relativePlayerPos(closestPlayerRelativePos.x - position.x, closestPlayerRelativePos.y - 4 - (position.y - 50));
+                relativePlayerPos = relativePlayerPos.normalise();
+
+                if (!playerAlive)
+                {
+                    relativePlayerPos = -relativePlayerPos * FLOATING_HEAD_PLAYER_DEAD_SPEED_MULT;
+                }
+
+                velocity.x = Helper::lerp(velocity.x, relativePlayerPos.x * FLOATING_HEAD_MOVE_SPEED, dt * FLOATING_HEAD_MOVE_LERP_WEIGHT);
+                velocity.y = Helper::lerp(velocity.y, relativePlayerPos.y * FLOATING_HEAD_MOVE_SPEED, dt * FLOATING_HEAD_MOVE_LERP_WEIGHT);
+                position += velocity * dt;
+
+                shootRateMult = 1.1f;
+
+                bloodParticleSystem.update(dt);
+
+                bloodParticleCooldown += dt;
+
+                static constexpr float BLOOD_PARTICLE_COOLDOWN_MAX = 0.03f;
+
+                if (bloodParticleCooldown >= BLOOD_PARTICLE_COOLDOWN_MAX)
+                {
+                    bloodParticleCooldown = 0.0f;
+
+                    static constexpr float PARTICLE_VELOCITY_MIN = 20.0f;
+                    static constexpr float PARTICLE_VELOCITY_MAX = 35.0f;
+                    static constexpr float PARTICLE_ACCELERATION = 70.0f;
+                    static constexpr float PARTICLE_ANGLE_VARIATION = M_PI / 8;
+
+                    pl::Vector2f particleVelocity(Helper::randFloat(PARTICLE_VELOCITY_MIN, PARTICLE_VELOCITY_MAX), 0);
+                    particleVelocity = particleVelocity.rotate(std::atan2(velocity.y, velocity.x) + M_PI)
+                        .rotate(Helper::randFloat(-PARTICLE_ANGLE_VARIATION, PARTICLE_ANGLE_VARIATION));
+    
+                    ParticleStyle particleStyle;
+                    particleStyle.timePerFrame = Helper::randFloat(0.05f, 0.12f);
+                        
+                    int particleType = Helper::randInt(0, 2);
+    
+                    for (int i = 0; i < 4; i++)
+                    {
+                        pl::Rect<int> textureRect;
+                        textureRect.x = i * 16;
+                        textureRect.y = 288 + particleType * 16;
+                        textureRect.height = 16;
+                        textureRect.width = 16;
+                        particleStyle.textureRects.push_back(textureRect);
+                    }
+    
+                    bloodParticleSystem.addParticle(Particle(position - pl::Vector2f(0, 50) + particleVelocity.normalise() * 12, particleVelocity,
+                        pl::Vector2f(0, PARTICLE_ACCELERATION), particleStyle));
+                }
+
+                if (!playerAlive)
+                {
+                    break;
+                }
+            }
+
+            shootProjectileCooldownTime += dt * shootRateMult;
+
+            if (shootProjectileCooldownTime >= MAX_SHOOT_PROJECTILE_COOLDOWN_TIME)
+            {
+                shootProjectileCooldownTime = 0.0f;
+
+                float angle = std::atan2(closestPlayerRelativePos.y - 4 - (position.y - 50), closestPlayerRelativePos.x - position.x) * 180.0f / M_PI;
+
+                // Angle randomisation
+                static constexpr float SHOOT_ANGLE_DEVIATION = 35.0f;
+                angle += Helper::randFloat(-SHOOT_ANGLE_DEVIATION, SHOOT_ANGLE_DEVIATION);
+
                 projectileManager.addProjectile(Projectile(position - pl::Vector2f(0, 50), angle,
                     ToolDataLoader::getProjectileTypeFromName("Serpent Venom BOSS"), 1.0f, 1.0f, HitLayer::Player));
             }
@@ -173,7 +269,7 @@ void BossSandSerpent::update(Game& game, ChunkManager& chunkManager, ProjectileM
         }
     }
 
-    if (!playerAlive)
+    if (!playerAlive && behaviourState != BossSandSerpentState::FloatingHead)
     {
         behaviourState = BossSandSerpentState::Leaving;
     }
@@ -183,7 +279,7 @@ void BossSandSerpent::update(Game& game, ChunkManager& chunkManager, ProjectileM
     // Update animations
     animations[behaviourState].update(dt);
 
-    if (behaviourState == BossSandSerpentState::IdleStage1)
+    if (behaviourState == BossSandSerpentState::IdleStage1 || behaviourState == BossSandSerpentState::Panic || behaviourState == BossSandSerpentState::FloatingHead)
     {
         headAnimation.setFrame(animations[behaviourState].getFrame());
     }
@@ -240,6 +336,14 @@ bool BossSandSerpent::takeHeadDamage(int damage, pl::Vector2f damagePosition)
     headHealth -= damage;
     HitMarkers::addHitMarker(damagePosition, damage);
 
+    // Enter panic state
+    if (headHealth <= 0 && bodyHealth > 0)
+    {
+        behaviourState = BossSandSerpentState::Panic;
+        velocity = pl::Vector2f(0, 0);
+        bloodParticleCooldown = 0.0f;
+    }
+
     return true;
 }
 
@@ -247,13 +351,20 @@ void BossSandSerpent::takeBodyDamage(int damage, pl::Vector2f damagePosition)
 {
     if (headHealth > 0)
     {
-        damage = 0;    
+        damage = 0;
     }
 
     bodyFlashTime = MAX_FLASH_TIME;
 
     bodyHealth -= damage;
     HitMarkers::addHitMarker(damagePosition, damage);
+
+    // Switch to floating head state
+    if (bodyHealth <= 0)
+    {
+        behaviourState = BossSandSerpentState::FloatingHead;
+        headHealth = MAX_HEAD_FLOATING_HEALTH;
+    }
 }
 
 void BossSandSerpent::applyKnockback(Projectile& projectile)
@@ -262,21 +373,16 @@ void BossSandSerpent::applyKnockback(Projectile& projectile)
 
 bool BossSandSerpent::isAlive()
 {
-    if (bodyHealth <= 0)
+    bool alive = (bodyHealth > 0 || headHealth > 0);
+
+    if (!alive)
     {
         // Unlock achievement
         Achievements::attemptAchievementUnlock("KILLED_SANDSERPENT");
     }
 
-    return (bodyHealth > 0);
+    return alive;
 }
-
-// void BossSandSerpent::handleWorldWrap(pl::Vector2f positionDelta)
-// {
-//     position += positionDelta;
-
-//     pathFollower.handleWorldWrap(positionDelta);
-// }
 
 void BossSandSerpent::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
     const pl::Color& color) const
@@ -286,7 +392,9 @@ void BossSandSerpent::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatc
     switch (behaviourState)
     {
         case BossSandSerpentState::IdleStage1: // fallthrough
-        case BossSandSerpentState::ShootingStage1:
+        case BossSandSerpentState::ShootingStage1: // fallthrough
+        case BossSandSerpentState::Panic: // fallthrough
+        case BossSandSerpentState::FloatingHead:
         {
             pl::DrawData drawData;
             drawData.texture = TextureManager::getTexture(TextureType::Entities);
@@ -294,23 +402,35 @@ void BossSandSerpent::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatc
             drawData.position = camera.worldToScreenTransform(position, worldSize);
             drawData.centerRatio = pl::Vector2f(0.5f, 1.0f);
             drawData.scale = pl::Vector2f(scale, scale);
-            drawData.textureRect = animations.at(behaviourState).getTextureRect();
-
-            if (bodyFlashTime > 0)
+            
+            // Draw body
+            if (behaviourState != BossSandSerpentState::FloatingHead)
             {
-                drawData.shader = Shaders::getShader(ShaderType::Flash);
-                drawData.shader->setUniform1f("flash_amount", bodyFlashTime / MAX_FLASH_TIME);
+                drawData.textureRect = animations.at(behaviourState).getTextureRect();
+    
+                if (bodyFlashTime > 0)
+                {
+                    drawData.shader = Shaders::getShader(ShaderType::Flash);
+                    drawData.shader->setUniform1f("flash_amount", bodyFlashTime / MAX_FLASH_TIME);
+                }
+            }
+            else
+            {
+                // Draw floating head shadow
+                static const pl::Rect<int> shadowTextureRect(64, 208, 48, 16);
+                
+                drawData.textureRect = shadowTextureRect;
             }
 
-            // Draw body
             spriteBatch.draw(window, drawData);
 
-            // Draw head
-            if (headHealth <= 0)
+            // Draw blood particles if required
+            if (behaviourState == BossSandSerpentState::FloatingHead)
             {
-                break;
+                bloodParticleSystem.draw(window, spriteBatch, camera, worldSize);
             }
             
+            // Draw head
             static const int HEAD_Y_OFFSET = -51;
             static const int HEAD_TEXTURE_Y_OFFSET = 32;
 
@@ -322,6 +442,10 @@ void BossSandSerpent::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatc
             if (behaviourState == BossSandSerpentState::ShootingStage1)
             {
                 headTextureRect = SHOOTING_HEAD_FRAME;
+            }
+            else if (behaviourState == BossSandSerpentState::Panic || behaviourState == BossSandSerpentState::FloatingHead)
+            {
+                headTextureRect = PANIC_HEAD_FRAMES[headAnimation.getFrame()];
             }
             else
             {
@@ -371,9 +495,16 @@ void BossSandSerpent::getHoverStats(pl::Vector2f mouseWorldPos, std::vector<std:
 
     if (headCollision.isPointColliding(mouseWorldPos.x, mouseWorldPos.y) && headHealth > 0)
     {
-        hoverStats.push_back("Sand Serpent Head (" + std::to_string(headHealth) + " / " + std::to_string(MAX_HEAD_HEALTH) + ")");
+        if (behaviourState == BossSandSerpentState::FloatingHead)
+        {
+            hoverStats.push_back("Sand Serpent Head (" + std::to_string(headHealth) + " / " + std::to_string(MAX_HEAD_FLOATING_HEALTH) + ")");
+        }
+        else
+        {
+            hoverStats.push_back("Sand Serpent Head (" + std::to_string(headHealth) + " / " + std::to_string(MAX_HEAD_HEALTH) + ")");
+        }
     }
-    if (bodyCollision.isPointInRect(mouseWorldPos.x, mouseWorldPos.y))
+    if (bodyCollision.isPointInRect(mouseWorldPos.x, mouseWorldPos.y) && bodyHealth > 0)
     {
         hoverStats.push_back("Sand Serpent Body (" + std::to_string(bodyHealth) + " / " + std::to_string(MAX_BODY_HEALTH) + ")");
     }
@@ -385,7 +516,7 @@ void BossSandSerpent::testCollisionWithPlayer(Player& player, int worldSize)
 
 void BossSandSerpent::testProjectileCollision(Projectile& projectile, int worldSize)
 {
-    if (behaviourState != BossSandSerpentState::IdleStage1 && behaviourState != BossSandSerpentState::ShootingStage1)
+    if (behaviourState == BossSandSerpentState::MovingToPlayer || behaviourState == BossSandSerpentState::Leaving)
     {
         return;
     }
@@ -403,6 +534,11 @@ void BossSandSerpent::testProjectileCollision(Projectile& projectile, int worldS
             projectile.onCollision();
             return;
         }
+    }
+
+    if (behaviourState == BossSandSerpentState::FloatingHead)
+    {
+        return;
     }
 
     if (bodyCollision.isColliding(projectile.getCollisionCircle(), worldSize))
