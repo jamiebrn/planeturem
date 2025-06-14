@@ -200,7 +200,7 @@ void BossSandSerpent::update(Game& game, ChunkManager& chunkManager, ProjectileM
     
                     ParticleStyle particleStyle;
                     particleStyle.timePerFrame = Helper::randFloat(0.05f, 0.12f);
-                        
+                    
                     int particleType = Helper::randInt(0, 2);
     
                     for (int i = 0; i < 4; i++)

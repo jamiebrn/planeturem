@@ -5,6 +5,8 @@ void PathfindingEngine::resize(int width, int height)
     obstacleGrid = std::vector<char>(width * height, false);
     this->width = width;
     this->height = height;
+
+    modificationId++;
 }
 
 void PathfindingEngine::setObstacle(int x, int y, bool solid)
@@ -17,6 +19,8 @@ void PathfindingEngine::setObstacle(int x, int y, bool solid)
     }
 
     obstacleGrid[gridIndex] = solid;
+
+    modificationId++;
 }
 
 bool PathfindingEngine::findPath(int startX, int startY, int endX, int endY, std::vector<PathfindGridCoordinate>& result, bool straightening,
@@ -378,8 +382,19 @@ std::optional<PathfindGridCoordinate> PathfindingEngine::findClosestOpenTile(int
     return std::nullopt;
 }
 
-void PathFollower::beginPath(pl::Vector2f startPos, const std::vector<PathfindGridCoordinate>& pathfindStepSequence)
+bool PathfindingEngine::isPathFollowerValid(const PathFollower& pathFollower) const
 {
+    return (modificationId == pathFollower.getModificationId());
+}
+
+uint32_t PathfindingEngine::getModificationId() const
+{
+    return modificationId;
+}
+
+void PathFollower::beginPath(pl::Vector2f startPos, const std::vector<PathfindGridCoordinate>& pathfindStepSequence, const PathfindingEngine& pathfindingEngine)
+{
+    modificationId = pathfindingEngine.getModificationId();
     stepSequence = pathfindStepSequence;
     lastStepPosition = startPos;
     position = lastStepPosition;
@@ -408,12 +423,10 @@ bool PathFollower::isActive()
     return (stepIndex < stepSequence.size());
 }
 
-// void PathFollower::handleWorldWrap(pl::Vector2f positionDelta)
-// {
-//     position += positionDelta;
-//     lastStepPosition += positionDelta;
-//     stepTargetPosition += positionDelta;
-// }
+uint32_t PathFollower::getModificationId() const
+{
+    return modificationId;
+}
 
 void PathFollower::setPathfindStepIndex(int index)
 {

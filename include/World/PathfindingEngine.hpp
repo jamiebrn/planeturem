@@ -10,14 +10,43 @@
 #include "Core/Helper.hpp"
 #include "Object/WorldObject.hpp"
 
-
-
 #include "Vector.hpp"
 
 struct PathfindGridCoordinate
 {
     int x = 0;
     int y = 0;
+};
+
+class PathfindingEngine;
+
+class PathFollower
+{
+public:
+    PathFollower() = default;
+
+    void beginPath(pl::Vector2f startPos, const std::vector<PathfindGridCoordinate>& pathfindStepSequence, const PathfindingEngine& pathfindingEngine);
+
+    pl::Vector2f updateFollower(float speed);
+
+    bool isActive();
+
+    uint32_t getModificationId() const;
+
+private:
+    void setPathfindStepIndex(int index);
+
+private:
+    std::vector<PathfindGridCoordinate> stepSequence;
+    pl::Vector2f position;
+    pl::Vector2f lastStepPosition;
+    pl::Vector2f stepTargetPosition;
+    int stepIndex = 0;
+
+    static constexpr float TARGET_REACH_THRESHOLD = 2.0f;
+
+    uint32_t modificationId = 0;
+
 };
 
 class PathfindingEngine
@@ -37,6 +66,9 @@ public:
     PathfindGridCoordinate findFurthestOpenTile(int x, int y, int maxSearchRange, bool coordinateRelativeToStart = false) const;
     std::optional<PathfindGridCoordinate> findClosestOpenTile(int x, int y, int maxSearchRange, bool coordinateRelativeToStart = false) const;
 
+    bool isPathFollowerValid(const PathFollower& pathFollower) const;
+    uint32_t getModificationId() const;
+
     inline const std::vector<char>& getObstacles() const {return obstacleGrid;}
     inline int getWidth() const {return width;}
     inline int getHeight() const {return height;}
@@ -47,8 +79,6 @@ private:
 
     int calculateHeuristic(int x, int y, int destX, int destY) const;
     int calculateHeuristic(int idx, int destIdx) const;
-
-    // std::vector<int> getNeighbours(int idx);
 
     struct PathNode
     {
@@ -62,7 +92,7 @@ private:
     class PathNodeComparator
     {
     public:
-        PathNodeComparator(const std::unordered_map<int, PathNode>& _nodes) : nodes(_nodes) {}
+        PathNodeComparator(const std::unordered_map<int, PathNode>& nodes) : nodes(nodes) {}
 
         bool operator()(int i, int j) const
         {
@@ -97,31 +127,6 @@ private:
     int width = 0;
     int height = 0;
 
-};
-
-class PathFollower
-{
-public:
-    PathFollower() = default;
-
-    void beginPath(pl::Vector2f startPos, const std::vector<PathfindGridCoordinate>& pathfindStepSequence);
-
-    pl::Vector2f updateFollower(float speed);
-
-    bool isActive();
-
-    // void handleWorldWrap(pl::Vector2f positionDelta);
-
-private:
-    void setPathfindStepIndex(int index);
-
-private:
-    std::vector<PathfindGridCoordinate> stepSequence;
-    pl::Vector2f position;
-    pl::Vector2f lastStepPosition;
-    pl::Vector2f stepTargetPosition;
-    int stepIndex = 0;
-
-    static constexpr float TARGET_REACH_THRESHOLD = 2.0f;
+    uint32_t modificationId = 0;
 
 };

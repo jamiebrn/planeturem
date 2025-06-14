@@ -155,6 +155,7 @@ private:
     CollisionRect hitCollision;
 
     PathFollower pathFollower;
+    PathfindGridCoordinate targetPathfindGridCoordinate;
 };
 
 CEREAL_REGISTER_TYPE(BossGlacialBrute);

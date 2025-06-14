@@ -55,17 +55,27 @@ void BossGlacialBrute::update(Game& game, ChunkManager& chunkManager, Projectile
         {
             case BossGlacialBruteState::WalkingToPlayer:
             {
-                if (!pathFollower.isActive())
+                if (!playerAlive || !closestPlayer)
                 {
-                    const PathfindingEngine& pathfindingEngine = chunkManager.getPathfindingEngine();
-    
+                    behaviourState = BossGlacialBruteState::LeavingPlayer;
+                    pathFollower = PathFollower();
+                    break;
+                }
+
+                pl::Vector2<uint32_t> playerTile = closestPlayer->getWorldTileInside(worldSize);
+
+                const PathfindingEngine& pathfindingEngine = chunkManager.getPathfindingEngine();
+
+                if (!pathFollower.isActive() || !pathfindingEngine.isPathFollowerValid(pathFollower) ||
+                    playerTile.x != targetPathfindGridCoordinate.x || playerTile.y != targetPathfindGridCoordinate.y)
+                {
                     pl::Vector2<uint32_t> tile = getWorldTileInside(worldSize);
-                    pl::Vector2<uint32_t> playerTile = closestPlayer->getWorldTileInside(worldSize);
     
                     std::vector<PathfindGridCoordinate> pathfindResult;
                     if (pathfindingEngine.findPath(tile.x, tile.y, playerTile.x, playerTile.y, pathfindResult, true, 200))
                     {
-                        pathFollower.beginPath(position, pathfindingEngine.createStepSequenceFromPath(pathfindResult));
+                        pathFollower.beginPath(position, pathfindingEngine.createStepSequenceFromPath(pathfindResult), pathfindingEngine);
+                        targetPathfindGridCoordinate = pathfindResult[0];
                     }
                 }
                 else
@@ -74,13 +84,6 @@ void BossGlacialBrute::update(Game& game, ChunkManager& chunkManager, Projectile
                     position = pathFollower.updateFollower(75.0f * dt);
                     velocity = (position - beforePos) / dt;
                     direction = velocity.normalise();
-                }
-    
-                if (!playerAlive || !closestPlayer)
-                {
-                    behaviourState = BossGlacialBruteState::LeavingPlayer;
-                    pathFollower = PathFollower();
-                    break;
                 }
     
                 throwSnowballCooldown -= dt;
@@ -107,7 +110,8 @@ void BossGlacialBrute::update(Game& game, ChunkManager& chunkManager, Projectile
                     std::vector<PathfindGridCoordinate> pathfindResult;
                     if (chunkManager.getPathfindingEngine().findPath(tile.x, tile.y, furthestTile.x, furthestTile.y, pathfindResult, true, 250))
                     {
-                        pathFollower.beginPath(position, chunkManager.getPathfindingEngine().createStepSequenceFromPath(pathfindResult));
+                        pathFollower.beginPath(position, chunkManager.getPathfindingEngine().createStepSequenceFromPath(pathfindResult),
+                            chunkManager.getPathfindingEngine());
                     }
                 }
                 else
