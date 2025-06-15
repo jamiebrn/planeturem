@@ -118,7 +118,7 @@ void BossSandSerpent::update(Game& game, ChunkManager& chunkManager, ProjectileM
                 std::vector<PathfindGridCoordinate> pathfindResult;
                 if (pathfindingEngine.findPath(tile.x, tile.y, playerTile.x, playerTile.y, pathfindResult, false, 50))
                 {
-                    pathFollower.beginPath(position, pathfindingEngine.createStepSequenceFromPath(pathfindResult));
+                    pathFollower.beginPath(position, pathfindingEngine.createStepSequenceFromPath(pathfindResult), pathfindingEngine);
 
                     behaviourState = BossSandSerpentState::MovingToPlayer;
                 }

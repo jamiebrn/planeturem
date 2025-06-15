@@ -117,12 +117,15 @@ private:
 
     void throwSnowball(ProjectileManager& projectileManager, Player& player, int worldSize);
 
+    void shootSnowball(ProjectileManager& projectileManager, Player& player, int worldSize);
+
 private:
     enum class BossGlacialBruteState : uint8_t
     {
         WalkingToPlayer,
         LeavingPlayer,
-        ThrowSnowball
+        ThrowSnowball,
+        SnowballCannon
     };
 
 private:
@@ -132,10 +135,13 @@ private:
     pl::Vector2f direction;
 
     AnimatedTexture walkAnimation;
+    AnimatedTexture cannonWalkAnimation;
 
     static const pl::Rect<int> shadowTextureRect;
 
-    static constexpr int MAX_HEALTH = 3500;
+    static constexpr int MAX_HEALTH = 950;
+    static constexpr int HEALTH_SNOWBALL_CANNON_THRESHOLD = 700;
+    static constexpr int HEALTH_SNOWBALL_CANNON_AGGRESSIVE_THRESHOLD = 250;
     int16_t health;
 
     static constexpr float MAX_FLASH_TIME = 0.3f;
@@ -147,6 +153,8 @@ private:
     static constexpr float MIN_SNOWBALL_CHARGE_TIME = 0.2f;
     float throwSnowballCooldown = 0.0f;
     float throwSnowballTimer = 0.0f;
+
+    static constexpr float MAX_SHOOT_SNOWBALL_COOLDOWN = 0.6f;
 
     static constexpr float LEAVE_SPEED_MULT = 2.4f;
 

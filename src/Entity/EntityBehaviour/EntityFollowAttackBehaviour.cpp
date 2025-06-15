@@ -19,7 +19,8 @@ void EntityFollowAttackBehaviour::update(Entity& entity, ChunkManager& chunkMana
         std::vector<PathfindGridCoordinate> pathfindResult;
         if (chunkManager.getPathfindingEngine().findPath(tile.x, tile.y, playerTile.x, playerTile.y, pathfindResult, true, 70))
         {
-            pathFollower.beginPath(pl::Vector2f(collisionRect.x, collisionRect.y), chunkManager.getPathfindingEngine().createStepSequenceFromPath(pathfindResult));
+            pathFollower.beginPath(pl::Vector2f(collisionRect.x, collisionRect.y), chunkManager.getPathfindingEngine().createStepSequenceFromPath(pathfindResult),
+                chunkManager.getPathfindingEngine());
         }
 
         collisionLastFrame = false;

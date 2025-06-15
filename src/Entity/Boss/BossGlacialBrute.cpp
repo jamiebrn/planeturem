@@ -34,7 +34,8 @@ BossGlacialBrute::BossGlacialBrute(pl::Vector2f playerPosition, Game& game, Chun
 
 void BossGlacialBrute::initialise()
 {
-    walkAnimation.create(8, 48, 64, 496, 448, 0.1);
+    walkAnimation.create(8, 48, 80, 496, 592, 0.1f);
+    cannonWalkAnimation.create(8, 80, 64, 384, 672, 0.1f);
     
     updateCollision();
 }
@@ -53,13 +54,45 @@ void BossGlacialBrute::update(Game& game, ChunkManager& chunkManager, Projectile
     
         switch (behaviourState)
         {
-            case BossGlacialBruteState::WalkingToPlayer:
+            case BossGlacialBruteState::WalkingToPlayer: // fallthrough
+            case BossGlacialBruteState::SnowballCannon:
             {
                 if (!playerAlive || !closestPlayer)
                 {
                     behaviourState = BossGlacialBruteState::LeavingPlayer;
                     pathFollower = PathFollower();
                     break;
+                }
+
+                if (health < HEALTH_SNOWBALL_CANNON_THRESHOLD)
+                {
+                    behaviourState = BossGlacialBruteState::SnowballCannon;
+                }
+
+                throwSnowballCooldown -= dt;
+
+                if (behaviourState == BossGlacialBruteState::WalkingToPlayer)
+                {
+                    walkAnimation.update(dt);
+    
+                    if (Helper::getVectorLength(Camera::translateWorldPos(closestPlayer->getPosition(), position, worldSize) - position)
+                        <= SNOWBALL_THROW_DISTANCE_THRESHOLD && throwSnowballCooldown <= 0.0f)
+                    {
+                        throwSnowballCooldown = MAX_SNOWBALL_THROW_COOLDOWN;
+                        throwSnowballTimer = Helper::randFloat(MIN_SNOWBALL_CHARGE_TIME, MAX_SNOWBALL_CHARGE_TIME);
+                        behaviourState = BossGlacialBruteState::ThrowSnowball;
+                        break;
+                    }
+                }
+                else
+                {
+                    cannonWalkAnimation.update(dt);
+
+                    if (throwSnowballCooldown <= 0.0f)
+                    {
+                        throwSnowballCooldown = MAX_SHOOT_SNOWBALL_COOLDOWN;
+                        shootSnowball(projectileManager, *closestPlayer, worldSize);
+                    }
                 }
 
                 pl::Vector2<uint32_t> playerTile = closestPlayer->getWorldTileInside(worldSize);
@@ -85,19 +118,6 @@ void BossGlacialBrute::update(Game& game, ChunkManager& chunkManager, Projectile
                     velocity = (position - beforePos) / dt;
                     direction = velocity.normalise();
                 }
-    
-                throwSnowballCooldown -= dt;
-    
-                if (Helper::getVectorLength(Camera::translateWorldPos(closestPlayer->getPosition(), position, worldSize) - position)
-                    <= SNOWBALL_THROW_DISTANCE_THRESHOLD && throwSnowballCooldown <= 0.0f)
-                {
-                    throwSnowballCooldown = MAX_SNOWBALL_THROW_COOLDOWN;
-                    throwSnowballTimer = Helper::randFloat(MIN_SNOWBALL_CHARGE_TIME, MAX_SNOWBALL_CHARGE_TIME);
-                    behaviourState = BossGlacialBruteState::ThrowSnowball;
-                    break;
-                }
-    
-                walkAnimation.update(dt);
                 break;
             }
             case BossGlacialBruteState::LeavingPlayer:
@@ -176,6 +196,34 @@ void BossGlacialBrute::throwSnowball(ProjectileManager& projectileManager, Playe
         ToolDataLoader::getProjectileTypeFromName("Large Snowball"), 1.0f, 1.0f, HitLayer::Player));
 }
 
+void BossGlacialBrute::shootSnowball(ProjectileManager& projectileManager, Player& player, int worldSize)
+{
+    int xScale = (direction.x < 0) ? -1 : 1;
+    pl::Vector2f cannonEndPos = position + pl::Vector2f(29 * xScale, -24);
+
+    pl::Vector2f playerRelativePos = Camera::translateWorldPos(player.getPosition(), cannonEndPos, worldSize);
+
+    float angle = std::atan2(playerRelativePos.y - 4 - (cannonEndPos.y - 50), playerRelativePos.x - cannonEndPos.x) * 180.0f / M_PI;
+
+    static constexpr float SHOOT_ANGLE_VARIATION = 10.0f;
+    angle += Helper::randFloat(-SHOOT_ANGLE_VARIATION, SHOOT_ANGLE_VARIATION);
+
+    float SPREAD_ANGLE_DELTA = 20.0f;
+
+    int projectileMax = 1;
+    if (health <= HEALTH_SNOWBALL_CANNON_AGGRESSIVE_THRESHOLD)
+    {
+        projectileMax = 2;
+        SPREAD_ANGLE_DELTA *= 0.66f;
+    }
+
+    for (int i = -projectileMax; i <= projectileMax; i++)
+    {
+        projectileManager.addProjectile(Projectile(cannonEndPos, angle + SPREAD_ANGLE_DELTA * i,
+            ToolDataLoader::getProjectileTypeFromName("Snowball"), 1.0f, 1.0f, HitLayer::Player));
+    }
+}
+
 bool BossGlacialBrute::isAlive()
 {
     if (health <= 0)
@@ -215,7 +263,7 @@ void BossGlacialBrute::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBat
     }
 
     // Flip if required
-    if (velocity.x < 0)
+    if (direction.x < 0)
     {
         drawData.scale.x *= -1;
     }
@@ -227,6 +275,12 @@ void BossGlacialBrute::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBat
         {
             drawData.centerRatio = pl::Vector2f(25 / 48.0f, 62 / 67.0f);
             drawData.textureRect = walkAnimation.getTextureRect();
+            break;
+        }
+        case BossGlacialBruteState::SnowballCannon:
+        {
+            drawData.centerRatio = pl::Vector2f(41 / 80.0f, 62 / 67.0f);
+            drawData.textureRect = cannonWalkAnimation.getTextureRect();
             break;
         }
         case BossGlacialBruteState::ThrowSnowball:
