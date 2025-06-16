@@ -2,6 +2,8 @@
 
 // CONSIDER: Custom death chat messages depending on source of death
 
+// FIX: DPI scaling issues (intScale)
+
 // FIX: Space station use rocket while other player use glitch
 
 // FIX: Glacial brute pathfinding at world edges???
@@ -1008,7 +1010,7 @@ void Game::runInGame(float dt)
     }
     else
     {
-        chatGUI.draw(window, networkHandler);
+        chatGUI.draw(window, networkHandler, player.getTileInside());
     }
 
     spriteBatch.endDrawing(window);

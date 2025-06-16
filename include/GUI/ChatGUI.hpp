@@ -50,7 +50,7 @@ public:
 
     void update(const pl::RenderTarget& window, float dt);
 
-    void draw(pl::RenderTarget& window, NetworkHandler& networkHandler);
+    void draw(pl::RenderTarget& window, NetworkHandler& networkHandler, pl::Vector2<uint32_t> playerTile);
 
     void addChatMessage(NetworkHandler& networkHandler, const PacketDataChatMessage& chatMessagePacket, bool notify = true);
 
