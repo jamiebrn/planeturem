@@ -2,8 +2,6 @@
 
 // CONSIDER: Custom death chat messages depending on source of death
 
-// FIX: DPI scaling issues (intScale)
-
 // FIX: Space station use rocket while other player use glitch
 
 // FIX: Glacial brute pathfinding at world edges???
@@ -34,6 +32,8 @@
 
 bool Game::initialise()
 {
+    SDL_SetHint(SDL_HINT_WINDOWS_DPI_AWARENESS, "permonitorv2");
+
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER) != 0)
     {
         std::cerr << "Failed to initialise SDL: " << SDL_GetError() << std::endl;
@@ -48,7 +48,8 @@ bool Game::initialise()
     SDL_GetCurrentDisplayMode(0, &displayMode);
 
     // Create window
-    window.create(GAME_TITLE, displayMode.w * 0.75f, displayMode.h * 0.75f, SDL_WINDOW_FULLSCREEN_DESKTOP | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN);
+    window.create(GAME_TITLE, displayMode.w * 0.75f, displayMode.h * 0.75f, SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_FULLSCREEN_DESKTOP |
+        SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN);
     
     // Hide mouse cursor
     SDL_ShowCursor(SDL_DISABLE);
@@ -4229,7 +4230,7 @@ void Game::handleEventsWindow(const SDL_Event& event)
     {
         if (event.window.event == SDL_WINDOWEVENT_RESIZED)
         {
-            handleWindowResize(pl::Vector2<uint32_t>(event.window.data1, event.window.data2));
+            handleWindowResize({static_cast<uint32_t>(event.window.data1), static_cast<uint32_t>(event.window.data2)});
             return;
         }
     }
@@ -4272,23 +4273,27 @@ void Game::toggleFullScreen()
     ImGui_ImplSDL2_InitForOpenGL(window.getSDLWindow(), window.getGLContext());
     #endif
 
-    handleWindowResize(pl::Vector2<uint32_t>(window.getWidth(), window.getHeight()));
+    handleWindowResize({static_cast<uint32_t>(window.getWidth()), static_cast<uint32_t>(window.getHeight())});
 }
 
 void Game::handleWindowResize(pl::Vector2<uint32_t> newSize)
 {
-    unsigned int newWidth = newSize.x;
-    unsigned int newHeight = newSize.y;
+    int newWidth;
+    int newHeight;
+
+    SDL_GL_GetDrawableSize(window.getSDLWindow(), &newWidth, &newHeight);
 
     if (!window.getIsFullscreen())
     {
-        newWidth = std::max(newSize.x, 1280U);
-        newHeight = std::max(newSize.y, 720U);
+        newWidth = std::max(newWidth, 1280);
+        newHeight = std::max(newHeight, 720);
+        newSize.x = std::max(newSize.x, 1280U);
+        newSize.y = std::max(newSize.y, 720U);
     }
 
-    window.setWindowSize(newWidth, newHeight);
+    window.setWindowSize(newSize.x, newSize.y);
 
-    ResolutionHandler::setResolution({newWidth, newHeight});
+    ResolutionHandler::setResolution({static_cast<uint32_t>(newWidth), static_cast<uint32_t>(newHeight)});
 
     camera.instantUpdate(player.getPosition());
 
