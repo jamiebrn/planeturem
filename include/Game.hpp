@@ -221,6 +221,8 @@ public:
     ChestDataPool& getChestDataPool(std::optional<LocationState> locationState = std::nullopt);
     bool isLocationStateInitialised(const LocationState& locationState);
 
+    inline ParticleSystem& getParticleSystem() {return particleSystem;}
+
     inline NetworkHandler& getNetworkHandler() {return networkHandler;}
 
     inline const LocationState& getLocationState() {return locationState;}

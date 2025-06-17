@@ -59,6 +59,8 @@ enum class PacketType : uint8_t
 
     ProjectileCreateRequest,
 
+    Particle,
+
     StructureEnterRequest,
     StructureEnterReply,
 

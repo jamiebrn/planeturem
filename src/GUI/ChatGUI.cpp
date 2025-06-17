@@ -242,7 +242,7 @@ void ChatGUI::draw(pl::RenderTarget& window, NetworkHandler& networkHandler, pl:
     }
     else
     {
-        drawData.position = pl::Vector2f(window.getWidth() - padding - width + 10 * intScale, window.getHeight() - padding * intScale);
+        drawData.position = pl::Vector2f(window.getWidth() - padding - width + 10 * intScale, window.getHeight() - padding);
     }
 
     for (int i = static_cast<int>(chatLog.size()) - 1; i >= std::max(static_cast<int>(chatLog.size()) - messageCount, 0); i--)

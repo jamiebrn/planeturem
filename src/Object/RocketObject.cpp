@@ -240,7 +240,7 @@ void RocketObject::createRocketParticles()
     pl::Vector2f velocity(Helper::randFloat(-30.0f, 30.0f), Helper::randFloat(15.0f, 30.0f));
     pl::Vector2f acceleration(Helper::randFloat(-0.6, 0.6), -Helper::randFloat(0.4f, 1.0f));
 
-    particleSystem.addParticle(Particle(position, velocity, acceleration, style));
+    particleSystem.addParticle(Particle(position, velocity, acceleration, 0, style), nullptr);
 }
 
 void RocketObject::drawRocket(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera, int worldSize, const pl::Color& color) const

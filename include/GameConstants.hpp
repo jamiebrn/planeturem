@@ -20,3 +20,5 @@ static constexpr float SERVER_UPDATE_TICK = 1 / 45.0f;
 static constexpr float PI = 3.14159265358979f;
 
 static const std::string CLOCK_CRAFTING_STATION = "CLOCK_TIME";
+
+#define BIT_MASK(bitLevel) (0xFFFFFFFFFFFFFFFF >> (64 - bitLevel))

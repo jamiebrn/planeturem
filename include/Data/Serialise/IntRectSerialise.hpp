@@ -17,6 +17,12 @@ inline void from_json(const nlohmann::json& json, pl::Rect<int>& rect)
     rect.height = json[3];
 }
 
+template <class Archive>
+void serialize(Archive& ar, pl::Rect<uint16_t>& rect)
+{
+    ar(rect.x, rect.y, rect.width, rect.height);
+}
+
 };
 
 inline void from_json(const nlohmann::json& json, CollisionRect& rect)

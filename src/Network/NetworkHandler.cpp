@@ -1366,6 +1366,19 @@ void NetworkHandler::processMessageAsClient(const SteamNetworkingMessage_t& mess
             game->enterRocketFromReference(packetData.rocketObjectReference, true);
             break;
         }
+        case PacketType::Particle:
+        {
+            PacketDataParticle packetData;
+            packetData.deserialise(packet.data);
+
+            if (game->getLocationState() != LocationState::createFromPlanetType(packetData.planetType))
+            {
+                break;
+            }
+
+            game->getParticleSystem().addParticle(packetData.particle, nullptr);
+            break;
+        }
         case PacketType::PlanetTravelReply:
         {
             PacketDataPlanetTravelReply packetData;

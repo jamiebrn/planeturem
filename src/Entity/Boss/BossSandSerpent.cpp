@@ -179,7 +179,7 @@ void BossSandSerpent::update(Game& game, ChunkManager& chunkManager, ProjectileM
 
                 shootRateMult = 1.1f;
 
-                bloodParticleSystem.update(dt);
+                // bloodParticleSystem.update(dt);
 
                 bloodParticleCooldown += dt;
 
@@ -213,8 +213,8 @@ void BossSandSerpent::update(Game& game, ChunkManager& chunkManager, ProjectileM
                         particleStyle.textureRects.push_back(textureRect);
                     }
     
-                    bloodParticleSystem.addParticle(Particle(position - pl::Vector2f(0, 50) + particleVelocity.normalise() * 12, particleVelocity,
-                        pl::Vector2f(0, PARTICLE_ACCELERATION), particleStyle));
+                    game.getParticleSystem().addParticle(Particle(position - pl::Vector2f(0, 50) + particleVelocity.normalise() * 12, particleVelocity,
+                        pl::Vector2f(0, PARTICLE_ACCELERATION), -10, particleStyle), &game);
                 }
 
                 if (!playerAlive)
@@ -425,10 +425,10 @@ void BossSandSerpent::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatc
             spriteBatch.draw(window, drawData);
 
             // Draw blood particles if required
-            if (behaviourState == BossSandSerpentState::FloatingHead)
-            {
-                bloodParticleSystem.draw(window, spriteBatch, camera, worldSize);
-            }
+            // if (behaviourState == BossSandSerpentState::FloatingHead)
+            // {
+            //     bloodParticleSystem.draw(window, spriteBatch, camera, worldSize);
+            // }
             
             // Draw head
             static const int HEAD_Y_OFFSET = -51;

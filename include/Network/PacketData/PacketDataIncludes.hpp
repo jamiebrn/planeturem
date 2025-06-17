@@ -37,6 +37,7 @@
 #include "Network/PacketData/PacketDataWorld/PacketDataRocketEnterRequest.hpp"
 #include "Network/PacketData/PacketDataWorld/PacketDataRocketEnterReply.hpp"
 #include "Network/PacketData/PacketDataWorld/PacketDataRocketInteraction.hpp"
+#include "Network/PacketData/PacketDataWorld/PacketDataParticle.hpp"
 
 #include "Network/PacketData/PacketDataTravel/PacketDataPlanetTravelRequest.hpp"
 #include "Network/PacketData/PacketDataTravel/PacketDataPlanetTravelReply.hpp"

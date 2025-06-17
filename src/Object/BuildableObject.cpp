@@ -246,9 +246,9 @@ void BuildableObject::createHitParticles(ParticleSystem& particleSystem)
         static constexpr float downRotation = 0.25f * 2 * M_PI;
 
         particleSystem.addParticle(Particle(position + pl::Vector2f(x, 0) * TILE_SIZE_PIXELS_UNSCALED,
-            pl::Vector2f(std::cos(upRotation), std::sin(upRotation)) * PARTICLE_SPEED, pl::Vector2f(0, 0), style));
+            pl::Vector2f(std::cos(upRotation), std::sin(upRotation)) * PARTICLE_SPEED, pl::Vector2f(0, 0), 10, style), nullptr);
         particleSystem.addParticle(Particle(position + pl::Vector2f(x, objectData.size.y - 1) * TILE_SIZE_PIXELS_UNSCALED,
-            pl::Vector2f(std::cos(downRotation), std::sin(downRotation)) * PARTICLE_SPEED, pl::Vector2f(0, 0), style));
+            pl::Vector2f(std::cos(downRotation), std::sin(downRotation)) * PARTICLE_SPEED, pl::Vector2f(0, 0), 10, style), nullptr);
     }
 
     for (int y = 0; y < objectData.size.y; y++)
@@ -257,19 +257,20 @@ void BuildableObject::createHitParticles(ParticleSystem& particleSystem)
         static constexpr float rightRotation = 1.0f * 2 * M_PI;
 
         particleSystem.addParticle(Particle(position + pl::Vector2f(0, y) * TILE_SIZE_PIXELS_UNSCALED,
-            pl::Vector2f(std::cos(leftRotation), std::sin(leftRotation)) * PARTICLE_SPEED, pl::Vector2f(0, 0), style));
+            pl::Vector2f(std::cos(leftRotation), std::sin(leftRotation)) * PARTICLE_SPEED, pl::Vector2f(0, 0), 10, style), nullptr);
         particleSystem.addParticle(Particle(position + pl::Vector2f(objectData.size.x - 1, y) * TILE_SIZE_PIXELS_UNSCALED,
-            pl::Vector2f(std::cos(rightRotation), std::sin(rightRotation)) * PARTICLE_SPEED, pl::Vector2f(0, 0), style));
+            pl::Vector2f(std::cos(rightRotation), std::sin(rightRotation)) * PARTICLE_SPEED, pl::Vector2f(0, 0), 10, style), nullptr);
     }
 
     // Create particles on corners
-    particleSystem.addParticle(Particle(position, pl::Vector2f(std::cos(5 / 8.0f * 2 * M_PI), std::sin(5 / 8.0f * 2 * M_PI)) * PARTICLE_SPEED, pl::Vector2f(0, 0), style));
+    particleSystem.addParticle(Particle(position, pl::Vector2f(std::cos(5 / 8.0f * 2 * M_PI), std::sin(5 / 8.0f * 2 * M_PI)) * PARTICLE_SPEED,
+        pl::Vector2f(0, 0), 10, style), nullptr);
     particleSystem.addParticle(Particle(position + pl::Vector2f(objectData.size.x - 1, 0) * TILE_SIZE_PIXELS_UNSCALED,
-        pl::Vector2f(std::cos(7 / 8.0f * 2 * M_PI), std::sin(7 / 8.0f * 2 * M_PI)) * PARTICLE_SPEED, pl::Vector2f(0, 0), style));
+        pl::Vector2f(std::cos(7 / 8.0f * 2 * M_PI), std::sin(7 / 8.0f * 2 * M_PI)) * PARTICLE_SPEED, pl::Vector2f(0, 0), 10, style), nullptr);
     particleSystem.addParticle(Particle(position + pl::Vector2f(objectData.size.x - 1, objectData.size.y - 1) * TILE_SIZE_PIXELS_UNSCALED,
-        pl::Vector2f(std::cos(1 / 8.0f * 2 * M_PI), std::sin(1 / 8.0f * 2 * M_PI)) * PARTICLE_SPEED, pl::Vector2f(0, 0), style));
+        pl::Vector2f(std::cos(1 / 8.0f * 2 * M_PI), std::sin(1 / 8.0f * 2 * M_PI)) * PARTICLE_SPEED, pl::Vector2f(0, 0), 10, style), nullptr);
     particleSystem.addParticle(Particle(position + pl::Vector2f(0, objectData.size.y - 1) * TILE_SIZE_PIXELS_UNSCALED,
-        pl::Vector2f(std::cos(3 / 8.0f * 2 * M_PI), std::sin(3 / 8.0f * 2 * M_PI)) * PARTICLE_SPEED, pl::Vector2f(0, 0), style));
+        pl::Vector2f(std::cos(3 / 8.0f * 2 * M_PI), std::sin(3 / 8.0f * 2 * M_PI)) * PARTICLE_SPEED, pl::Vector2f(0, 0), 10, style), nullptr);
 }
 
 void BuildableObject::createHitMarker(int amount)

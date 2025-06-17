@@ -1,16 +1,21 @@
 #include "Object/ParticleSystem.hpp"
+#include "Game.hpp"
+#include "Network/PacketData/PacketDataWorld/PacketDataParticle.hpp"
 
-Particle::Particle(pl::Vector2f position, pl::Vector2f velocity, pl::Vector2f acceleration, const ParticleStyle& style)
+Particle::Particle(pl::Vector2f position, pl::Vector2f velocity, pl::Vector2f acceleration, int drawLayer, const ParticleStyle& style)
+    : WorldObject(position)
 {
-    this->position = position;
     this->velocity = velocity;
     this->acceleration = acceleration;
 
-    textureRects = style.textureRects;
-    alpha = style.alpha;
+    this->drawLayer = drawLayer;
+
+    particleStyle = style;
+    // textureRects = style.textureRects;
+    // alpha = style.alpha;
     currentFrame = 0;
     frameTimer = 0.0f;
-    timePerFrame = style.timePerFrame;
+    // timePerFrame = style.timePerFrame;
 }
 
 void Particle::update(float dt)
@@ -19,11 +24,17 @@ void Particle::update(float dt)
     position += velocity * dt;
 
     frameTimer += dt;
-    if (frameTimer >= timePerFrame)
+    if (frameTimer >= particleStyle.timePerFrame)
     {
         frameTimer = 0.0f;
         currentFrame++;
     }
+}
+
+void Particle::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
+    const pl::Color& color) const
+{
+    draw(window, spriteBatch, camera, worldSize);
 }
 
 void Particle::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera, int worldSize) const
@@ -34,7 +45,7 @@ void Particle::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, cons
     drawData.position = camera.worldToScreenTransform(position, worldSize);
     drawData.texture = TextureManager::getTexture(TextureType::Objects);
     drawData.shader = Shaders::getShader(ShaderType::Default);
-    drawData.textureRect = textureRects[std::min(currentFrame, static_cast<int>(textureRects.size()) - 1)];
+    drawData.textureRect = particleStyle.textureRects[std::min(currentFrame, static_cast<int>(particleStyle.textureRects.size()) - 1)];
     drawData.scale = pl::Vector2f(scale, scale);
     drawData.centerRatio = pl::Vector2f(0.5, 0.5);
 
@@ -43,14 +54,14 @@ void Particle::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, cons
 
     // float alpha = std::min((lifetime - timeAlive) / (lifetime * 0.2f), 1.0f);
 
-    drawData.color = pl::Color(255, 255, 255, 255 * alpha);
+    drawData.color = pl::Color(255, 255, 255, 255 * particleStyle.alpha);
 
     spriteBatch.draw(window, drawData);
 }
 
 bool Particle::isAlive()
 {
-    return (currentFrame < textureRects.size());
+    return (currentFrame < particleStyle.textureRects.size());
 }
 
 // void Particle::handleWorldWrap(pl::Vector2f positionDelta)
@@ -58,8 +69,18 @@ bool Particle::isAlive()
 //     position += positionDelta;
 // }
 
-void ParticleSystem::addParticle(const Particle& particle)
+void ParticleSystem::addParticle(const Particle& particle, Game* game)
 {
+    if (game && game->getNetworkHandler().getIsLobbyHost() && game->getLocationState().isOnPlanet())
+    {
+        PacketDataParticle packetData;
+        packetData.planetType = game->getLocationState().getPlanetType();
+        packetData.particle = particle;
+        
+        Packet packet(packetData);
+        game->getNetworkHandler().sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0);
+    }
+
     particles.push_back(particle);
 }
 
@@ -96,4 +117,16 @@ void ParticleSystem::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch
 void ParticleSystem::clear()
 {
     particles.clear();
+}
+
+std::vector<WorldObject*> ParticleSystem::getParticleWorldObjects()
+{
+    std::vector<WorldObject*> particleWorldObjects;
+    
+    for (Particle& particle : particles)
+    {
+        particleWorldObjects.push_back(&particle);
+    }
+
+    return particleWorldObjects;
 }

@@ -1212,10 +1212,12 @@ void Game::drawOnPlanet(float dt)
     std::vector<WorldObject*> entities = getChunkManager().getChunkEntities(chunkViewRange);
     std::vector<WorldObject*> itemPickups = getChunkManager().getItemPickups(chunkViewRange);
     std::vector<WorldObject*> weatherParticles = weatherSystem.getWeatherParticles();
+    std::vector<WorldObject*> particles = particleSystem.getParticleWorldObjects();
     std::vector<WorldObject*> playerWorldObjects = player.getDrawWorldObjects(camera, getChunkManager().getWorldSize(), gameTime);
     worldObjects.insert(worldObjects.end(), entities.begin(), entities.end());
     worldObjects.insert(worldObjects.end(), itemPickups.begin(), itemPickups.end());
     worldObjects.insert(worldObjects.end(), weatherParticles.begin(), weatherParticles.end());
+    worldObjects.insert(worldObjects.end(), particles.begin(), particles.end());
     worldObjects.insert(worldObjects.end(), playerWorldObjects.begin(), playerWorldObjects.end());
     getBossManager().getBossWorldObjects(worldObjects);
 
@@ -1283,7 +1285,7 @@ void Game::drawWorld(pl::Framebuffer& renderTexture, float dt, std::vector<World
     worldData.chunkManager.drawChunkTerrain(renderTexture, spriteBatch, cameraArg, gameTime);
 
     // Draw particles
-    particleSystem.draw(renderTexture, spriteBatch, cameraArg, worldData.chunkManager.getWorldSize());
+    // particleSystem.draw(renderTexture, spriteBatch, cameraArg, worldData.chunkManager.getWorldSize());
 
     // Draw objects
     for (WorldObject* worldObject : worldObjects)

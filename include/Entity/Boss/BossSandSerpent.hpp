@@ -169,7 +169,7 @@ private:
     // forward = 0, left = -1, right = 1
     int8_t headDirection;
 
-    ParticleSystem bloodParticleSystem;
+    // ParticleSystem bloodParticleSystem;
     float bloodParticleCooldown = 0.0f;
 };
 
