@@ -72,19 +72,22 @@ bool Particle::isAlive()
 //     position += positionDelta;
 // }
 
-void ParticleSystem::addParticle(const Particle& particle, Game* game)
+void ParticleSystem::addParticle(const Particle& particle, const LocationState& locationState, Game* game)
 {
     if (game && game->getNetworkHandler().getIsLobbyHost() && game->getLocationState().isOnPlanet())
     {
         PacketDataParticle packetData;
-        packetData.planetType = game->getLocationState().getPlanetType();
+        packetData.planetType = locationState.getPlanetType();
         packetData.particle = particle;
         
         Packet packet(packetData);
         game->getNetworkHandler().sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0);
     }
 
-    particles.push_back(particle);
+    if (game->getLocationState() == locationState)
+    {
+        particles.push_back(particle);
+    }
 }
 
 void ParticleSystem::update(float dt)

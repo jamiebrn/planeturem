@@ -2,6 +2,10 @@
 
 // CONSIDER: Custom death chat messages depending on source of death
 
+// FIX: Sand serpent animation not syncing for clients
+
+// FIX: Spawn points not saving
+
 // FIX: Space station use rocket while other player use glitch
 
 // FIX: Glacial brute pathfinding at world edges???
@@ -2264,7 +2268,7 @@ void Game::buildObject(ChunkPosition chunk, pl::Vector2<int> tile, ObjectType ob
         return;
     }
     
-    placedObject->createHitParticles(particleSystem);
+    placedObject->createHitParticles(particleSystem, LocationState::createFromPlanetType(planetType.value()));
     
     // Play build sound if object in view
     if (camera.isInView(placedObject->getPosition(), getChunkManager().getWorldSize()))

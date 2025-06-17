@@ -66,7 +66,7 @@ public:
 
     void forceKill(Game& game, ChunkManager& chunkManager);
 
-    void createHitParticles(ParticleSystem& particleSystem);
+    void createHitParticles(ParticleSystem& particleSystem, const LocationState& locationState);
 
     void createHitMarker(int amount);
     

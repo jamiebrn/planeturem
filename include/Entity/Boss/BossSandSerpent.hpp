@@ -94,10 +94,10 @@ public:
         uint8_t animFrame;
         ar(cereal::base_class<BossEntity>(this), velocity.x, velocity.y, headHealth, bodyHealth, behaviourState,
             headFlashTimeCompact, bodyFlashTimeCompact, headDirection, animFrame);
-        
         headFlashTime = headFlashTimeCompact.getValue(2);
         bodyFlashTime = bodyFlashTimeCompact.getValue(2);
         animations[behaviourState].setFrame(animFrame);
+        headAnimation.setFrame(animFrame);
     }
 
 private:

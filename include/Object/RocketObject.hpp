@@ -53,7 +53,7 @@ public:
     void setRocketYOffset(float offset);
     float getRocketYOffset();
 
-    void createRocketParticles();
+    void createRocketParticles(const LocationState& locationState);
 
 private:
     void drawRocket(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera, int worldSize, const pl::Color& color) const;

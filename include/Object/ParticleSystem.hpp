@@ -142,7 +142,7 @@ public:
     ParticleSystem() = default;
 
     // Pass in game ptr for automatic networking as host
-    void addParticle(const Particle& particle, Game* game);
+    void addParticle(const Particle& particle, const LocationState& locationState, Game* game);
 
     void update(float dt);
 

@@ -43,7 +43,7 @@ void RocketObject::update(Game& game, const LocationState& locationState, float 
         if (rocketParticleCooldown >= ROCKET_PARTICLE_MAX_COOLDOWN)
         {
             rocketParticleCooldown = 0;
-            createRocketParticles();
+            createRocketParticles(locationState);
         }
     }
 }
@@ -218,7 +218,7 @@ float RocketObject::getRocketYOffset()
     return rocketYOffset;
 }
 
-void RocketObject::createRocketParticles()
+void RocketObject::createRocketParticles(const LocationState& locationState)
 {
     ParticleStyle style;
     style.timePerFrame = Helper::randFloat(0.05f, 0.4f);
@@ -240,7 +240,7 @@ void RocketObject::createRocketParticles()
     pl::Vector2f velocity(Helper::randFloat(-30.0f, 30.0f), Helper::randFloat(15.0f, 30.0f));
     pl::Vector2f acceleration(Helper::randFloat(-0.6, 0.6), -Helper::randFloat(0.4f, 1.0f));
 
-    particleSystem.addParticle(Particle(position, velocity, acceleration, 0, style), nullptr);
+    particleSystem.addParticle(Particle(position, velocity, acceleration, 0, style), locationState, nullptr);
 }
 
 void RocketObject::drawRocket(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, const Camera& camera, int worldSize, const pl::Color& color) const

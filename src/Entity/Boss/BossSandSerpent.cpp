@@ -214,7 +214,7 @@ void BossSandSerpent::update(Game& game, ChunkManager& chunkManager, ProjectileM
                     }
     
                     game.getParticleSystem().addParticle(Particle(position - pl::Vector2f(0, 50) + particleVelocity.normalise() * 12, particleVelocity,
-                        pl::Vector2f(0, PARTICLE_ACCELERATION), -10, particleStyle), &game);
+                        pl::Vector2f(0, PARTICLE_ACCELERATION), -10, particleStyle), LocationState::createFromPlanetType(chunkManager.getPlanetType()), &game);
                 }
 
                 if (!playerAlive)

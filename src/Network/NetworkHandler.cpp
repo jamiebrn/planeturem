@@ -1376,7 +1376,7 @@ void NetworkHandler::processMessageAsClient(const SteamNetworkingMessage_t& mess
                 break;
             }
 
-            game->getParticleSystem().addParticle(packetData.particle, nullptr);
+            game->getParticleSystem().addParticle(packetData.particle, LocationState::createFromPlanetType(packetData.planetType), nullptr);
             break;
         }
         case PacketType::PlanetTravelReply:
