@@ -576,5 +576,13 @@ void BossSandSerpent::testHitRectCollision(const std::vector<HitRect>& hitRects,
 
 void BossSandSerpent::getWorldObjects(std::vector<WorldObject*>& worldObjects)
 {
+    if (behaviourState != BossSandSerpentState::FloatingHead)
+    {
+        drawLayer = 0;
+    }
+    else
+    {
+        drawLayer = -11;
+    }
     worldObjects.push_back(this);
 }

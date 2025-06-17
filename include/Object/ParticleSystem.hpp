@@ -54,7 +54,7 @@ struct ParticleStyle
 class Particle : public WorldObject
 {
 public:
-    Particle() = default;
+    Particle();
     Particle(pl::Vector2f position, pl::Vector2f velocity, pl::Vector2f acceleration, int drawLayer, const ParticleStyle& style);
 
     void update(float dt);

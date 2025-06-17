@@ -2,6 +2,12 @@
 #include "Game.hpp"
 #include "Network/PacketData/PacketDataWorld/PacketDataParticle.hpp"
 
+Particle::Particle()
+{
+    currentFrame = 0;
+    frameTimer = 0.0f;
+}
+
 Particle::Particle(pl::Vector2f position, pl::Vector2f velocity, pl::Vector2f acceleration, int drawLayer, const ParticleStyle& style)
     : WorldObject(position)
 {
@@ -11,11 +17,8 @@ Particle::Particle(pl::Vector2f position, pl::Vector2f velocity, pl::Vector2f ac
     this->drawLayer = drawLayer;
 
     particleStyle = style;
-    // textureRects = style.textureRects;
-    // alpha = style.alpha;
     currentFrame = 0;
     frameTimer = 0.0f;
-    // timePerFrame = style.timePerFrame;
 }
 
 void Particle::update(float dt)
