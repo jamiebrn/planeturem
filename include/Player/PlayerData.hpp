@@ -127,7 +127,7 @@ inline void from_json(const nlohmann::json& json, PlayerData& data)
         for (auto iter = json["planet-spawn-locations"].begin(); iter != json["planet-spawn-locations"].end(); iter++)
         {
             ObjectReference spawnLocation = iter.value();
-            data.planetRocketUsedPositions[PlanetGenDataLoader::getPlanetTypeFromName(iter.key())] = spawnLocation;
+            data.planetSpawnLocations[PlanetGenDataLoader::getPlanetTypeFromName(iter.key())] = spawnLocation;
         }
     }
 }

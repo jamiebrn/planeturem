@@ -2,10 +2,6 @@
 
 // CONSIDER: Custom death chat messages depending on source of death
 
-// FIX: Sand serpent animation not syncing for clients
-
-// FIX: Spawn points not saving
-
 // FIX: Space station use rocket while other player use glitch
 
 // FIX: Glacial brute pathfinding at world edges???
@@ -3673,6 +3669,8 @@ bool Game::loadGame(const SaveFileSummary& saveFileSummary)
 
     planetRocketUsedPositions = playerGameSave.playerData.planetRocketUsedPositions;
     player.setLastUsedPlanetRocketType(playerGameSave.playerData.lastUsedPlanetRocketType);
+
+    planetSpawnLocations = playerGameSave.playerData.planetSpawnLocations;
 
     closeChest();
     

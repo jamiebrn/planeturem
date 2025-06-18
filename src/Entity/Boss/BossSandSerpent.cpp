@@ -79,12 +79,13 @@ void BossSandSerpent::update(Game& game, ChunkManager& chunkManager, ProjectileM
         return;
     }
 
-    bool playerAlive = isPlayerAlive(players);
+    bool playerAlive = true;
     Player* closestPlayer = findClosestPlayer(players, worldSize);
 
     if (!closestPlayer)
     {
-        return;
+        closestPlayer = findClosestPlayer(players, worldSize, true);
+        playerAlive = false;
     }
 
     pl::Vector2f closestPlayerRelativePos = Camera::translateWorldPos(closestPlayer->getPosition(), position, worldSize);

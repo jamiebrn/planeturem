@@ -79,7 +79,7 @@ public:
 
 protected:
     bool isPlayerAlive(std::vector<Player*>& players) const;
-    Player* findClosestPlayer(std::vector<Player*>& players, int worldSize) const;
+    Player* findClosestPlayer(std::vector<Player*>& players, int worldSize, bool includeDeadPlayers = false) const;
 
     float playerMaxRange = 1000.0f;
     float itemPickupDropRadius = 16.0f;

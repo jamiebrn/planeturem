@@ -58,13 +58,18 @@ bool BossEntity::isPlayerAlive(std::vector<Player*>& players) const
     return false;
 }
 
-Player* BossEntity::findClosestPlayer(std::vector<Player*>& players, int worldSize) const
+Player* BossEntity::findClosestPlayer(std::vector<Player*>& players, int worldSize, bool includeDeadPlayers) const
 {
     float closestDistanceSq = std::pow(worldSize * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED, 2);
     Player* closestPlayerPtr = nullptr;
 
     for (Player* player : players)
     {
+        if (!includeDeadPlayers && !player->isAlive())
+        {
+            continue;
+        }
+        
         pl::Vector2f relativePos = Camera::translateWorldPos(player->getPosition(), position, worldSize);
         
         float distanceSq = (relativePos - position).getLengthSq();
