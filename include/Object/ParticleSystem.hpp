@@ -107,8 +107,8 @@ public:
 
         ar(positionVelocityCompact, accelerationDirXCompact, accelerationDirYCompact, accelerationMagnitude, drawLayerCompact, particleStyle);
 
-        position.x = ((positionVelocityCompact >> 45) & BIT_MASK(19)) / 10;
-        position.y = ((positionVelocityCompact >> 26) & BIT_MASK(19)) / 10;
+        position.x = ((positionVelocityCompact >> 45) & BIT_MASK(19)) / 10.0f;
+        position.y = ((positionVelocityCompact >> 26) & BIT_MASK(19)) / 10.0f;
 
         uint8_t speed = positionVelocityCompact & BIT_MASK(8);
 
