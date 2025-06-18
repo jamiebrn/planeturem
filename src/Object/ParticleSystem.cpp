@@ -84,7 +84,7 @@ void ParticleSystem::addParticle(const Particle& particle, const LocationState& 
         game->getNetworkHandler().sendPacketToClients(packet, k_nSteamNetworkingSend_Reliable, 0);
     }
 
-    if (game->getLocationState() == locationState)
+    if (!game || game->getLocationState() == locationState)
     {
         particles.push_back(particle);
     }
