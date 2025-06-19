@@ -3871,7 +3871,7 @@ bool Game::loadRoomDest(RoomType roomType)
     else
     {
         getChestDataPool(LocationState::createFromRoomDestType(roomType)) = ChestDataPool();
-        getRoomDestination(roomType) = Room(roomType, &getChestDataPool());
+        getRoomDestination(roomType) = Room(roomType, &getChestDataPool(LocationState::createFromRoomDestType(roomType)));
     }
 
     return true;
