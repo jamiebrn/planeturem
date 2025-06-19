@@ -183,8 +183,8 @@ public:
     void handleChunkRequestsFromClient(const PacketDataChunkRequests& chunkRequests, const SteamNetworkingIdentity& client);
     void handleChunkDataFromHost(const PacketDataChunkDatas& chunkDataPacket);
 
-    ObjectReference setupPlanetTravel(PlanetType planetType, const LocationState& currentLocation, ObjectReference rocketObjectUsed, std::optional<uint64_t> clientID);
-    void travelToRoomDestinationForClient(RoomType roomDest, const LocationState& currentLocation, ObjectReference rocketObjectUsed, uint64_t clientID);
+    std::optional<ObjectReference> setupPlanetTravel(PlanetType planetType, const LocationState& currentLocation, ObjectReference rocketObjectUsed, std::optional<uint64_t> clientID);
+    bool travelToRoomDestinationForClient(RoomType roomDest, const LocationState& currentLocation, ObjectReference rocketObjectUsed, uint64_t clientID);
 
     void travelToPlanetFromHost(const PacketDataPlanetTravelReply& planetTravelReplyPacket);
     void travelToRoomDestinationFromHost(const PacketDataRoomTravelReply& roomTravelReplyPacket);
@@ -314,7 +314,7 @@ private:
     void travelToPlanet(PlanetType planetType, ObjectReference newRocketObjectReference);
     void deleteObjectSynced(ObjectReference objectReference, PlanetType planetType, bool createItemDrops);
     
-    void travelToRoomDestination(RoomType destinationRoomType);
+    bool travelToRoomDestination(RoomType destinationRoomType);
 
     // Returns spawn chunk
     ChunkPosition initialiseNewPlanet(PlanetType planetType);

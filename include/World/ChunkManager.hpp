@@ -127,7 +127,6 @@ public:
     int getChunkTileTypeOrPredicted(ChunkPosition chunk, pl::Vector2<int> tile);
 
 
-
     // -- Objects -- //
     
     // Update objects in all chunks
@@ -138,6 +137,10 @@ public:
     // Returns actual object if object reference is at position requested
     template <class T = BuildableObject>
     T* getChunkObject(ChunkPosition chunk, pl::Vector2<int> tile);
+
+    // Get objects of class in specified area
+    template <class T = BuildableObject>
+    std::vector<T*> getObjectsInArea(ChunkPosition chunk, pl::Vector2<int> tile, pl::Vector2<uint8_t> size);
 
     // Sets object in chunk at tile
     // Places object references if required
@@ -341,4 +344,25 @@ inline T* ChunkManager::getChunkObject(ChunkPosition chunk, pl::Vector2<int> til
 
     // Return casted object
     return chunkPtr->getObject<T>(tile);
+}
+
+template <class T>
+inline std::vector<T*> ChunkManager::getObjectsInArea(ChunkPosition chunk, pl::Vector2<int> tile, pl::Vector2<uint8_t> size)
+{
+    std::vector<T*> objects;
+
+    for (int y = 0; y < size.y; y++)
+    {
+        for (int x = 0; x < size.x; x++)
+        {
+            std::pair<ChunkPosition, pl::Vector2<int>> chunkTilePair = getChunkTileFromOffset(chunk, tile, x, y, worldSize);
+
+            if (T* object = getChunkObject<T>(chunkTilePair.first, chunkTilePair.second))
+            {
+                objects.push_back(object);
+            }
+        }
+    }
+
+    return objects;
 }

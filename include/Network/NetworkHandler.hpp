@@ -144,6 +144,9 @@ private:
     std::unordered_map<uint64_t, NetworkPlayer> networkPlayers;
     std::unordered_map<uint64_t, PlayerData> networkPlayerDatasSaved;
 
+    std::vector<PacketDataPlanetTravelRequest> planetTravelRequests;
+    std::vector<PacketDataRoomTravelRequest> roomTravelRequests;
+
     static constexpr float SEND_PLAYER_DATA_QUEUE_TIME = 1.0f;
     bool sendPlayerDataQueued;
     float sendPlayerDataQueueTime;

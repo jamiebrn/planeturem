@@ -12,6 +12,8 @@ struct PacketDataRoomTravelRequest : public IPacketData
     RoomType roomType;
     ObjectReference rocketUsedReference; // used when travelling from another planet, so rocket can be removed
 
+    uint64_t userId;
+
     template <class Archive>
     void serialize(Archive& ar)
     {

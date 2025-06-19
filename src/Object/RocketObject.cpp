@@ -140,6 +140,11 @@ void RocketObject::startFlyingDownwards(Game& game, const LocationState& locatio
     }
 }
 
+bool RocketObject::isFlying() const
+{
+    return flyingUp || flyingDown;
+}
+
 void RocketObject::enter()
 {
     entered = true;

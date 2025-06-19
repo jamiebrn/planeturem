@@ -1159,16 +1159,16 @@ void NetworkHandler::processMessageAsHost(const SteamNetworkingMessage_t& messag
         {
             PacketDataPlanetTravelRequest packetData;
             packetData.deserialise(packet.data);
-            game->setupPlanetTravel(packetData.planetType, networkPlayers[message.m_identityPeer.GetSteamID64()].getPlayerData().locationState,
-                packetData.rocketUsedReference, message.m_identityPeer.GetSteamID64());
+            packetData.userId = message.m_identityPeer.GetSteamID64();
+            planetTravelRequests.push_back(packetData);
             break;
         }
         case PacketType::RoomTravelRequest:
         {
             PacketDataRoomTravelRequest packetData;
             packetData.deserialise(packet.data);
-            game->travelToRoomDestinationForClient(packetData.roomType, networkPlayers[message.m_identityPeer.GetSteamID64()].getPlayerData().locationState,
-                packetData.rocketUsedReference, message.m_identityPeer.GetSteamID64());
+            packetData.userId = message.m_identityPeer.GetSteamID64();
+            roomTravelRequests.push_back(packetData);
             break;
         }
         case PacketType::StructureEnterRequest:
@@ -1548,6 +1548,29 @@ void NetworkHandler::sendGameUpdatesToClients(float dt)
         // printf("NETWORK: Sending boss data of size %s\n", packet.getSizeStr().c_str());
 
         sendPacketToClient(iter->first, packet, k_nSteamNetworkingSend_Reliable, 0);
+    }
+
+    // Check for travel requests
+    for (auto iter = planetTravelRequests.begin(); iter != planetTravelRequests.end();)
+    {
+        if (game->setupPlanetTravel(iter->planetType, networkPlayers[iter->userId].getPlayerData().locationState,
+            iter->rocketUsedReference, iter->userId))
+        {
+            iter = planetTravelRequests.erase(iter);
+            continue;
+        }
+        iter++;
+    }
+
+    for (auto iter = roomTravelRequests.begin(); iter != roomTravelRequests.end();)
+    {
+        if (game->travelToRoomDestinationForClient(iter->roomType, networkPlayers[iter->userId].getPlayerData().locationState,
+            iter->rocketUsedReference, iter->userId))
+        {
+            iter = roomTravelRequests.erase(iter);
+            continue;
+        }
+        iter++;
     }
 }
 

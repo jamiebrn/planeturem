@@ -40,6 +40,8 @@ public:
     void startFlyingUpwards(Game& game, const LocationState& locationState, NetworkHandler* networkHandler);
     void startFlyingDownwards(Game& game, const LocationState& locationState, NetworkHandler* networkHandler, bool enterRocket);
 
+    bool isFlying() const;
+
     void enter();
     void exit();
     bool isEntered();
