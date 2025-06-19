@@ -9,6 +9,15 @@ const ButtonStyle DefaultGUIPanel::buttonStyle = {
     .clickedTextColor = pl::Color(255, 255, 255)
 };
 
+const SliderStyle DefaultGUIPanel::whiteBlackGradientSliderStyle = {
+    .sliderColorLeft = pl::Color(0, 0, 0),
+    .sliderColorRight = pl::Color(255, 255, 255),
+    .sliderColorLeftHovered = pl::Color(0, 0, 0),
+    .sliderColorRightHovered = pl::Color(255, 255, 255),
+    .valueRectColor = pl::Color(200, 200, 200),
+    .valueRectColorHeld = pl::Color(255, 255, 255)
+};
+
 void DefaultGUIPanel::handleEvent(const SDL_Event& event)
 {
     guiContext.processEvent(event);

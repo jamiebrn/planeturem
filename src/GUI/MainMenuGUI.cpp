@@ -110,9 +110,9 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(pl::RenderTarget& window
                 worldSeedInput = "";
                 newGamePage = 0;
                 selectedBodyColor = pl::Color(158, 69, 57);
-                selectedBodyColorValueHSV = 1.0f;
+                selectedBodyColorValueHSV = 100.0f;
                 selectedSkinColor = pl::Color(230, 144, 78);
-                selectedSkinColorValueHSV = 1.0f;
+                selectedSkinColorValueHSV = 100.0f;
                 nextUIState = MainMenuState::StartingNew;
             }
 
@@ -179,9 +179,9 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(pl::RenderTarget& window
                 
                 elementYPos += 130 * intScale;
 
-                guiContext.createColorWheel(scaledPanelPaddingX + panelWidth * intScale / 4, elementYPos, 50, selectedBodyColorValueHSV, selectedBodyColor);
+                guiContext.createColorWheel(scaledPanelPaddingX + panelWidth * intScale / 4, elementYPos, 50, selectedBodyColorValueHSV / 100.0f, selectedBodyColor);
 
-                guiContext.createColorWheel(scaledPanelPaddingX + panelWidth * intScale / 4 * 3, elementYPos, 50, selectedSkinColorValueHSV, selectedSkinColor);
+                guiContext.createColorWheel(scaledPanelPaddingX + panelWidth * intScale / 4 * 3, elementYPos, 50, selectedSkinColorValueHSV / 100.0f, selectedSkinColor);
 
                 ResolutionHandler::overrideZoom(0);
 
@@ -197,17 +197,19 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(pl::RenderTarget& window
                 elementYPos += 60 * intScale;
 
                 if (guiContext.createSlider(scaledPanelPaddingX, elementYPos, panelWidth * intScale / 2, 75 * intScale,
-                    0.0f, 1.0f, &selectedBodyColorValueHSV, 20 * intScale, "", panelWidth / 8 * intScale, panelWidth / 8 * intScale, 40 * intScale).isHeld())
+                    0.0f, 100.0f, &selectedBodyColorValueHSV, 20 * intScale, "", panelWidth / 8 * intScale, panelWidth / 8 * intScale, 40 * intScale,
+                    whiteBlackGradientSliderStyle).isHeld())
                 {
                     pl::Color hsvColor = Helper::convertRGBtoHSV(selectedBodyColor);
-                    selectedBodyColor = Helper::convertHSVtoRGB(hsvColor.r, hsvColor.g, selectedBodyColorValueHSV);
+                    selectedBodyColor = Helper::convertHSVtoRGB(hsvColor.r, hsvColor.g, selectedBodyColorValueHSV / 100.0f);
                 }
 
                 if (guiContext.createSlider(scaledPanelPaddingX + panelWidth / 2 * intScale, elementYPos, panelWidth * intScale / 2, 75 * intScale,
-                    0.0f, 1.0f, &selectedSkinColorValueHSV, 20 * intScale, "", panelWidth / 8 * intScale, panelWidth / 8 * intScale, 40 * intScale).isHeld())
+                    0.0f, 100.0f, &selectedSkinColorValueHSV, 20 * intScale, "", panelWidth / 8 * intScale, panelWidth / 8 * intScale, 40 * intScale,
+                    whiteBlackGradientSliderStyle).isHeld())
                 {
                     pl::Color hsvColor = Helper::convertRGBtoHSV(selectedSkinColor);
-                    selectedSkinColor = Helper::convertHSVtoRGB(hsvColor.r, hsvColor.g, selectedSkinColorValueHSV);
+                    selectedSkinColor = Helper::convertHSVtoRGB(hsvColor.r, hsvColor.g, selectedSkinColorValueHSV / 100.0f);
                 }
                 
                 elementYPos += 100 * intScale;

@@ -16,4 +16,4 @@ float DebugOptions::gameTimeMult = 1.0f;
 
 float DebugOptions::lightPropMult = 0.90f;
 
-int DebugOptions::colorWheelDivisions = 20;
+int DebugOptions::colorWheelDivisions = 25;

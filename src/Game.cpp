@@ -6,8 +6,6 @@
 
 // FIX: Glacial brute pathfinding at world edges???
 
-// FIX: Rocket in the ocean
-
 // FIX: Land placement multiplayer crash???
 
 // FIX: VSync disable not working in initial fullscreen

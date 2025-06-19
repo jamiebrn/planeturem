@@ -118,10 +118,10 @@ const Checkbox& GUIContext::createCheckbox(int x, int y, int width, int height, 
 }
 
 const Slider& GUIContext::createSlider(int x, int y, int width, int height, float minValue, float maxValue, float* value, int textSize, std::optional<std::string> label,
-    int paddingLeft, int paddingRight, int paddingY)
+    int paddingLeft, int paddingRight, int paddingY, std::optional<SliderStyle> style)
 {
     std::unique_ptr<Slider> slider = std::make_unique<Slider>(inputState, elements.size(), x, y, width, height, minValue, maxValue, value, textSize, label,
-                                                              paddingLeft, paddingRight, paddingY);
+                                                              paddingLeft, paddingRight, paddingY, style);
 
     bool held = slider->isHeld();
 
@@ -159,7 +159,7 @@ const TextEnter& GUIContext::createTextEnter(int x, int y, int width, int height
     return *static_cast<TextEnter*>(elements.back().get());
 }
 
-const ColorWheel& GUIContext::createColorWheel(int x, int y, int size, float& value, pl::Color& currentColor)
+const ColorWheel& GUIContext::createColorWheel(int x, int y, int size, float value, pl::Color& currentColor)
 {
     std::unique_ptr<ColorWheel> colorWheel = std::make_unique<ColorWheel>(inputState, elements.size(), x, y, size, value, currentColor);
 

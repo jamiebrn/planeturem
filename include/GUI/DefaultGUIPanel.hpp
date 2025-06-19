@@ -47,6 +47,8 @@ protected:
 
     static const ButtonStyle buttonStyle;
 
+    static const SliderStyle whiteBlackGradientSliderStyle;
+
     GUIContext guiContext;
 
     ElementID selectedElementId = std::numeric_limits<uint64_t>::max();

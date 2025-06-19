@@ -44,12 +44,12 @@ public:
         int paddingLeft = 0, int paddingRight = 0, int paddingY = 0);
 
     const Slider& createSlider(int x, int y, int width, int height, float minValue, float maxValue, float* value, int textSize, std::optional<std::string> label = std::nullopt,
-        int paddingLeft = 0, int paddingRight = 0, int paddingY = 0);
+        int paddingLeft = 0, int paddingRight = 0, int paddingY = 0, std::optional<SliderStyle> style = std::nullopt);
 
     const TextEnter& createTextEnter(int x, int y, int width, int height, int textSize, const std::string& text, std::string* textPtr,
         int paddingX = 0, int paddingY = 0, int maxLength = 9999);
     
-    const ColorWheel& createColorWheel(int x, int y, int size, float& value, pl::Color& currentColor);
+    const ColorWheel& createColorWheel(int x, int y, int size, float value, pl::Color& currentColor);
 
     void draw(pl::RenderTarget& window);
 

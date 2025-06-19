@@ -1,7 +1,7 @@
 #include "GUI/Base/Slider.hpp"
 
 Slider::Slider(const GUIInputState& inputState, ElementID id, int x, int y, int width, int height, float minValue, float maxValue,
-    float* value, int textSize, std::optional<std::string> label, int paddingLeft, int paddingRight, int paddingY)
+    float* value, int textSize, std::optional<std::string> label, int paddingLeft, int paddingRight, int paddingY, std::optional<SliderStyle> style)
     : GUIElement(id, textSize)
 {
     this->x = x + paddingLeft;
@@ -15,6 +15,11 @@ Slider::Slider(const GUIInputState& inputState, ElementID id, int x, int y, int 
     this->maxValue = maxValue;
     this->value = *value;
     this->label = label;
+
+    if (style.has_value())
+    {
+        this->style = style.value();
+    }
 
     held = false;
     hovered = false;
@@ -73,18 +78,26 @@ void Slider::draw(pl::RenderTarget& window)
 {
     pl::VertexArray rect;
 
-    pl::Color sliderRectColor(54, 83, 179);
+    pl::Color sliderRectColorLeft = style.sliderColorLeft;
+    pl::Color sliderRectColorRight = style.sliderColorRight;
     if (hovered || held)
     {
-        sliderRectColor = pl::Color(71, 96, 179);
+        sliderRectColorLeft = style.sliderColorLeftHovered;
+        sliderRectColorRight = style.sliderColorRightHovered;
     }
 
-    rect.addQuad(pl::Rect<float>(x, y, width, height), sliderRectColor, pl::Rect<float>());
+    // Add slider quad with potential gradient
+    rect.addVertex(pl::Vertex(pl::Vector2f(x, y), sliderRectColorLeft, pl::Vector2f(0, 0)));
+    rect.addVertex(pl::Vertex(pl::Vector2f(x, y) + pl::Vector2f(width, 0), sliderRectColorRight, pl::Vector2f(0, 0)));
+    rect.addVertex(pl::Vertex(pl::Vector2f(x, y) + pl::Vector2f(0, height), sliderRectColorLeft, pl::Vector2f(0, 0)));
+    rect.addVertex(pl::Vertex(pl::Vector2f(x, y) + pl::Vector2f(width, 0), sliderRectColorRight, pl::Vector2f(0, 0)));
+    rect.addVertex(pl::Vertex(pl::Vector2f(x, y) + pl::Vector2f(width, height), sliderRectColorRight, pl::Vector2f(0, 0)));
+    rect.addVertex(pl::Vertex(pl::Vector2f(x, y) + pl::Vector2f(0, height), sliderRectColorLeft, pl::Vector2f(0, 0)));
 
-    pl::Color valueRectColor(110, 183, 219);
+    pl::Color valueRectColor = style.valueRectColor;
     if (held)
     {
-        valueRectColor = pl::Color(128, 226, 237);
+        valueRectColor = style.valueRectColorHeld;
     }
 
     int sliderXPos = ((value - minValue) / (maxValue - minValue)) * (width - height) + x + height / 2;

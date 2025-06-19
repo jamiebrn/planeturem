@@ -118,9 +118,9 @@ private:
     int newGamePage;
 
     pl::Color selectedBodyColor;
-    float selectedBodyColorValueHSV = 1.0f;
+    float selectedBodyColorValueHSV = 100.0f;
     pl::Color selectedSkinColor;
-    float selectedSkinColorValueHSV = 1.0f;
+    float selectedSkinColorValueHSV = 100.0f;
 
     static constexpr float DELETE_SAVE_MAX_HOLD_TIME = 3.0f;
     float deleteSaveHoldTime;

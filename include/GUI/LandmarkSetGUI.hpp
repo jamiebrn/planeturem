@@ -45,9 +45,9 @@ public:
 
 private:
     pl::Color aColor;
-    float aColorValueHSV = 1.0f;
+    float aColorValueHSV = 100.0f;
     pl::Color bColor;
-    float bColorValueHSV = 1.0f;
+    float bColorValueHSV = 100.0f;
 
     ObjectReference landmarkSettingObjectReference;
 

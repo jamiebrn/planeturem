@@ -56,7 +56,7 @@ LandmarkSetGUIEvent LandmarkSetGUI::createAndDraw(pl::RenderTarget& window, floa
 
     yPos += 100;
 
-    if (guiContext.createColorWheel(scaledPanelPaddingX + panelWidth * intScale / 2, yPos * intScale, 50, aColorValueHSV, aColor).isActive())
+    if (guiContext.createColorWheel(scaledPanelPaddingX + panelWidth * intScale / 2, yPos * intScale, 50, aColorValueHSV / 100.0f, aColor).isActive())
     {
         setGUIEvent.modified = true;
     }
@@ -64,10 +64,10 @@ LandmarkSetGUIEvent LandmarkSetGUI::createAndDraw(pl::RenderTarget& window, floa
     yPos += 80;
 
     if (guiContext.createSlider(scaledPanelPaddingX + panelWidth / 4 * intScale, yPos * intScale, panelWidth * intScale / 2, 75 * intScale,
-        0.0f, 1.0f, &aColorValueHSV, 20 * intScale, "", panelWidth / 8 * intScale, panelWidth / 8 * intScale, 40 * intScale).isHeld())
+        0.0f, 100.0f, &aColorValueHSV, 20 * intScale, "", panelWidth / 8 * intScale, panelWidth / 8 * intScale, 40 * intScale, whiteBlackGradientSliderStyle).isHeld())
     {
         pl::Color hsvColor = Helper::convertRGBtoHSV(aColor);
-        aColor = Helper::convertHSVtoRGB(hsvColor.r, hsvColor.g, aColorValueHSV);
+        aColor = Helper::convertHSVtoRGB(hsvColor.r, hsvColor.g, aColorValueHSV / 100.0f);
         setGUIEvent.modified = true;
     }
 
@@ -87,7 +87,7 @@ LandmarkSetGUIEvent LandmarkSetGUI::createAndDraw(pl::RenderTarget& window, floa
 
     yPos += 100;
 
-    if (guiContext.createColorWheel(scaledPanelPaddingX + panelWidth * intScale / 2, yPos * intScale, 50, bColorValueHSV, bColor).isActive())
+    if (guiContext.createColorWheel(scaledPanelPaddingX + panelWidth * intScale / 2, yPos * intScale, 50, bColorValueHSV / 100.0f, bColor).isActive())
     {
         setGUIEvent.modified = true;
     }
@@ -95,10 +95,10 @@ LandmarkSetGUIEvent LandmarkSetGUI::createAndDraw(pl::RenderTarget& window, floa
     yPos += 80;
 
     if (guiContext.createSlider(scaledPanelPaddingX + panelWidth / 4 * intScale, yPos * intScale, panelWidth * intScale / 2, 75 * intScale,
-        0.0f, 1.0f, &bColorValueHSV, 20 * intScale, "", panelWidth / 8 * intScale, panelWidth / 8 * intScale, 40 * intScale).isHeld())
+        0.0f, 100.0f, &bColorValueHSV, 20 * intScale, "", panelWidth / 8 * intScale, panelWidth / 8 * intScale, 40 * intScale, whiteBlackGradientSliderStyle).isHeld())
     {
         pl::Color hsvColor = Helper::convertRGBtoHSV(bColor);
-        bColor = Helper::convertHSVtoRGB(hsvColor.r, hsvColor.g, bColorValueHSV);
+        bColor = Helper::convertHSVtoRGB(hsvColor.r, hsvColor.g, bColorValueHSV / 100.0f);
         setGUIEvent.modified = true;
     }
 

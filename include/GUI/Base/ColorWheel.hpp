@@ -29,7 +29,7 @@
 class ColorWheel : public GUIElement
 {
 public:
-    ColorWheel(const GUIInputState& inputState, ElementID id, int x, int y, int size, float& value, pl::Color& currentColor);
+    ColorWheel(const GUIInputState& inputState, ElementID id, int x, int y, int size, float value, pl::Color& currentColor);
 
     bool isActive() const;
     bool hasClickedAway() const;
