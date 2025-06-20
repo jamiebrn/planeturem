@@ -260,6 +260,7 @@ private:
 
     // Used when host
     void updateActivePlanets(float dt);
+    void updateActiveRoomDests(float dt);
 
     void drawLighting(float dt, std::vector<WorldObject*>& worldObjects);
     void drawLandmarks();

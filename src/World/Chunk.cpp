@@ -928,7 +928,8 @@ void Chunk::setObject(pl::Vector2<int> position, ObjectType objectType, Game& ga
     // Object present - destroy and drop items
     if (BuildableObject* currentObject = chunkManager.getChunkObject(chunkPosition, position))
     {
-        chunkManager.deleteObject(currentObject->getChunkInside(chunkManager.getWorldSize()), currentObject->getChunkTileInside(chunkManager.getWorldSize()), game, true);
+        chunkManager.deleteObject(currentObject->getChunkInside(chunkManager.getWorldSize()), currentObject->getChunkTileInside(chunkManager.getWorldSize()), game,
+            game.getNetworkHandler().isLobbyHostOrSolo());
     }
 
     // Set object in chunk
@@ -957,7 +958,7 @@ void Chunk::setObject(pl::Vector2<int> position, ObjectType objectType, Game& ga
                 if (BuildableObject* currentObject = chunkManager.getChunkObject(chunkTile.first, chunkTile.second))
                 {
                     chunkManager.deleteObject(currentObject->getChunkInside(chunkManager.getWorldSize()),
-                        currentObject->getChunkTileInside(chunkManager.getWorldSize()), game, true);
+                        currentObject->getChunkTileInside(chunkManager.getWorldSize()), game, game.getNetworkHandler().isLobbyHostOrSolo());
                 }
 
                 chunkManager.setObjectReference(chunkTile.first, objectReference, chunkTile.second);

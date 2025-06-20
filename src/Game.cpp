@@ -2,6 +2,8 @@
 
 // CONSIDER: Custom death chat messages depending on source of death
 
+// FIX: Rocket entered reference not setting correctly on travel in some cases (room to planet???)
+
 // FIX: Space station use rocket while other player use glitch
 
 // FIX: Glacial brute pathfinding at world edges???
@@ -740,6 +742,7 @@ void Game::runInGame(float dt)
         if (networkHandler.getIsLobbyHost())
         {
             updateActivePlanets(dt);
+            updateActiveRoomDests(dt);
         }
 
         Cursor::setCursorHidden(!player.canReachPosition(camera.screenToWorldTransform(mouseScreenPos, 0)));
@@ -1198,6 +1201,16 @@ void Game::updateActivePlanets(float dt)
     
         // Update projectiles
         getProjectileManager(planetType).update(dt, chunkManager.getWorldSize());
+    }
+}
+
+void Game::updateActiveRoomDests(float dt)
+{
+    std::unordered_set<RoomType> roomDestSet = networkHandler.getPlayersRoomDestTypeSet(locationState.getRoomDestType());
+
+    for (RoomType roomDest : roomDestSet)
+    {
+        getRoomDestination(roomDest).updateObjects(*this, locationState, dt);
     }
 }
 
@@ -1876,7 +1889,12 @@ void Game::updateInRoom(float dt, Room& room, bool inStructure)
     }
 
     // Update room objects
-    room.updateObjects(*this, locationState, dt);
+    // If in structure, update regardless
+    // If not and we are host, room will be updated in updateActiveRoomDests
+    if (inStructure || !networkHandler.getIsLobbyHost())
+    {
+        room.updateObjects(*this, locationState, dt);
+    }
 
     if (inStructure)
     {
@@ -3018,17 +3036,13 @@ void Game::travelToDestination()
         else
         {
             printf("ERROR: Could not find valid rocket object during travel from planet\n");
+            return;
         }
-        
-        // Update network with new data
-        networkHandler.sendPlayerData();
     }
 
     // If client, request travel from host
     if (networkHandler.isClient())
     {
-        travelTrigger = false;
-
         Packet packet;
         if (destinationLocationState.isOnPlanet())
         {
@@ -3046,6 +3060,14 @@ void Game::travelToDestination()
         }
 
         networkHandler.sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
+        
+        travelTrigger = false;
+        
+        particleSystem.clear();
+        nearbyCraftingStationLevels.clear();
+
+        destinationLocationState.setToNull();
+        
         return;
     }
 
@@ -3085,6 +3107,9 @@ void Game::travelToDestination()
     nearbyCraftingStationLevels.clear();
 
     destinationLocationState.setToNull();
+
+    // Update network with new data
+    networkHandler.sendPlayerData();
 }
 
 void Game::deleteObjectSynced(ObjectReference objectReference, PlanetType planetType, bool createItemDrops)
@@ -3229,7 +3254,7 @@ bool Game::travelToRoomDestinationForClient(RoomType roomDest, const LocationSta
     loadRoomDest(roomDest);
 
     // Check can use rocket
-    if (getRoomDestination().getFirstRocketObjectReference(rocketEnteredReference))
+    if (getRoomDestination(roomDest).getFirstRocketObjectReference(rocketEnteredReference))
     {
         RocketObject* rocketObject = getObjectFromLocation<RocketObject>(rocketEnteredReference, LocationState::createFromRoomDestType(roomDest));
 
@@ -3384,9 +3409,11 @@ bool Game::travelToRoomDestination(RoomType destinationRoomType)
     // Initialise / load if required
     loadRoomDest(destinationRoomType);
 
-    if (getRoomDestination(destinationRoomType).getFirstRocketObjectReference(rocketEnteredReference))
+    ObjectReference roomRocketReference;
+
+    if (getRoomDestination(destinationRoomType).getFirstRocketObjectReference(roomRocketReference))
     {
-        RocketObject* rocketObject = getObjectFromLocation<RocketObject>(rocketEnteredReference, LocationState::createFromRoomDestType(destinationRoomType));
+        RocketObject* rocketObject = getObjectFromLocation<RocketObject>(roomRocketReference, LocationState::createFromRoomDestType(destinationRoomType));
 
         if (!rocketObject || rocketObject->isFlying())
         {
@@ -3404,6 +3431,8 @@ bool Game::travelToRoomDestination(RoomType destinationRoomType)
     player.exitRocket(0);
 
     locationState.setRoomDestType(destinationRoomType);
+
+    rocketEnteredReference = roomRocketReference;
 
     RocketObject* rocketObject = getObjectFromLocation<RocketObject>(rocketEnteredReference, locationState);
 
