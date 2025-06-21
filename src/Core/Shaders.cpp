@@ -9,7 +9,7 @@ const std::unordered_map<ShaderType, ShaderFilePath> Shaders::shaderFilePaths = 
     {ShaderType::Lighting, {"Data/Shaders/default.vert", "Data/Shaders/lighting.frag"}},
     {ShaderType::Progress, {"Data/Shaders/default.vert", "Data/Shaders/progress.frag"}},
     {ShaderType::ProgressCircle, {"Data/Shaders/default.vert", "Data/Shaders/progress_circle.frag"}},
-    // {ShaderType::Blur, {"", "Data/Shaders/blur.frag"}},
+    {ShaderType::MiniMap, {"Data/Shaders/default.vert", "Data/Shaders/minimap.frag"}},
     {ShaderType::ReplaceColour, {"Data/Shaders/default.vert", "Data/Shaders/replace_colour.frag"}}
 };
 std::unordered_map<ShaderType, std::unique_ptr<pl::Shader>> Shaders::loadedShaders;

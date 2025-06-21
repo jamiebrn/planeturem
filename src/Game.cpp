@@ -1015,18 +1015,12 @@ void Game::runInGame(float dt)
         chatGUI.draw(window, networkHandler, player.getTileInside());
     }
 
+    spriteBatch.endDrawing(window);
+
     if (gameState == GameState::OnPlanet)
     {
-        const pl::Texture* mapTexture = &getChunkManager().getWorldMap().getTexture();
-
-        pl::VertexArray lightRect;
-        lightRect.addQuad(pl::Rect<float>(0, 0, mapTexture->getWidth(), mapTexture->getHeight()), pl::Color(),
-            pl::Rect<float>(0, 0, mapTexture->getWidth(), mapTexture->getHeight()));
-
-        window.draw(lightRect, *Shaders::getShader(ShaderType::Default), mapTexture, pl::BlendMode::Alpha);
+        worldMapGUI.drawMiniMap(window, getChunkManager().getWorldMap(), player.getPosition());
     }
-
-    spriteBatch.endDrawing(window);
 }
 
 
@@ -4912,7 +4906,7 @@ void Game::drawDebugMenu(float dt)
     player.setSkinColor(playerSkinColor);
 
     ImGui::InputInt("Color wheel divisions", &DebugOptions::colorWheelDivisions);
-
+    
     ImGui::End();
 
     ImGui::Render();

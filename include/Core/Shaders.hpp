@@ -16,7 +16,7 @@ enum class ShaderType
     Lighting,
     Progress,
     ProgressCircle,
-    // Blur,
+    MiniMap,
     ReplaceColour
 };
 

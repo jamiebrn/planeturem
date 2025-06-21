@@ -98,6 +98,7 @@
 
 #include "GUI/MainMenuGUI.hpp"
 #include "GUI/InventoryGUI.hpp"
+#include "GUI/WorldMapGUI.hpp"
 #include "GUI/ChatGUI.hpp"
 #include "GUI/HealthGUI.hpp"
 #include "GUI/TravelSelectGUI.hpp"
@@ -396,6 +397,7 @@ private:
 
     // GUI
     MainMenuGUI mainMenuGUI;
+    WorldMapGUI worldMapGUI;
     NPCInteractionGUI npcInteractionGUI;
     TravelSelectGUI travelSelectGUI;
     LandmarkSetGUI landmarkSetGUI;
