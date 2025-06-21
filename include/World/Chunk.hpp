@@ -54,6 +54,7 @@
 #include "Network/PacketData/PacketDataWorld/PacketDataEntities.hpp"
 
 #include "World/ChunkPOD.hpp"
+#include "World/WorldMap.hpp"
 
 #include "GameConstants.hpp"
 #include "DebugOptions.hpp"
@@ -215,6 +216,10 @@ public:
     bool isPlayerInStructureEntrance(pl::Vector2f playerPos);
 
     StructureObject* getStructureObject();
+
+
+    // -- World Map -- //
+    ChunkWorldMapSection createChunkWorldMapSection(ChunkManager& chunkManager) const;
 
 
     // Save / load

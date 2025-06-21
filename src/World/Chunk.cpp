@@ -389,11 +389,11 @@ const TileGenData* Chunk::getTileGenAtWorldTile(pl::Vector2<int> worldTile, int 
 
     const TileGenData* tileGenDataPtr = nullptr;
     
-    for (const TileGenData& tileGenData : biomeGenData->tileGenDatas)
+    for (const auto& tileGenDataPair : biomeGenData->tileGenDatas)
     {
-        if (tileGenData.noiseRangeMin <= heightNoiseValue && tileGenData.noiseRangeMax >= heightNoiseValue)
+        if (tileGenDataPair.second.noiseRangeMin <= heightNoiseValue && tileGenDataPair.second.noiseRangeMax >= heightNoiseValue)
         {
-            tileGenDataPtr = &tileGenData;
+            tileGenDataPtr = &tileGenDataPair.second;
         }
     }
 
@@ -417,7 +417,7 @@ const TileGenData* Chunk::getTileGenAtWorldTile(pl::Vector2<int> worldTile, int 
             if (noiseValue >= planetGenData.riverNoiseRangeMin && noiseValue <= planetGenData.riverNoiseRangeMax)
             {
                 // Surrounding is river, tile is river edge - return lowest biome tile
-                return &biomeGenData->tileGenDatas[0];
+                return &biomeGenData->tileGenDatas.begin()->second;
             }
         }
     }
@@ -1442,7 +1442,7 @@ void Chunk::placeLand(pl::Vector2<int> tile, int worldSize, const FastNoise& hei
     if (biomeGenData->tileGenDatas.size() <= 0)
         return;
     
-    const TileGenData& tileGenData = biomeGenData->tileGenDatas[0];
+    const TileGenData& tileGenData = biomeGenData->tileGenDatas.begin()->second;
 
     groundTileGrid[tile.y][tile.x] = tileGenData.tileID;
 
@@ -1484,6 +1484,62 @@ StructureObject* Chunk::getStructureObject()
         return nullptr;
     }
     return &structureObject.value();
+}
+
+ChunkWorldMapSection Chunk::createChunkWorldMapSection(ChunkManager& chunkManager) const
+{
+    static constexpr int CHUNK_MAP_TILE_AREA_SIZE = static_cast<int>(CHUNK_TILE_SIZE) / CHUNK_MAP_TILE_SIZE;
+
+    ChunkWorldMapSection chunkMapSection;
+    chunkMapSection.chunkPosition = chunkPosition;
+
+    for (int y = 0; y < CHUNK_TILE_SIZE; y += CHUNK_MAP_TILE_AREA_SIZE)
+    {
+        for (int x = 0; x < CHUNK_TILE_SIZE; x += CHUNK_MAP_TILE_AREA_SIZE)
+        {
+            int tileCounter = 0;
+            int objectCounter = 0;
+
+            for (int ySub = 0; ySub < CHUNK_MAP_TILE_AREA_SIZE; ySub++)
+            {
+                for (int xSub = 0; xSub < CHUNK_MAP_TILE_AREA_SIZE; xSub++)
+                {
+                    if (objectGrid[y + ySub][x + xSub])
+                    {
+                        objectCounter++;
+                        continue;
+                    }
+
+                    if (groundTileGrid[y + ySub][x + xSub] != 0)
+                    {
+                        tileCounter++;
+                    }
+                }
+            }
+
+            if (tileCounter >= 2)
+            {
+                const TileGenData* tileGenData = getTileGenAtWorldTile(pl::Vector2<int>(chunkPosition.x * CHUNK_TILE_SIZE + x, chunkPosition.y * CHUNK_TILE_SIZE + y),
+                    chunkManager.getWorldSize(), chunkManager.getHeightNoise(), chunkManager.getBiomeNoise(), chunkManager.getRiverNoise(), chunkManager.getPlanetType());
+                
+                if (tileGenData)
+                {
+                    chunkMapSection.colorGrid[y / CHUNK_MAP_TILE_AREA_SIZE][x / CHUNK_MAP_TILE_AREA_SIZE] = tileGenData->tileMap.mapColor;
+                    continue;
+                }
+            }
+
+            const BiomeGenData* biomeGenData = getBiomeGenAtWorldTile(pl::Vector2<int>(chunkPosition.x * CHUNK_TILE_SIZE + x, chunkPosition.y * CHUNK_TILE_SIZE + y),
+                chunkManager.getWorldSize(), chunkManager.getBiomeNoise(), chunkManager.getPlanetType());
+            
+            if (biomeGenData)
+            {
+                chunkMapSection.colorGrid[y / CHUNK_MAP_TILE_AREA_SIZE][x / CHUNK_MAP_TILE_AREA_SIZE] = biomeGenData->waterColor;
+            }
+        }
+    }
+
+    return chunkMapSection;
 }
 
 ChunkPOD Chunk::getChunkPOD(bool includeEntities)

@@ -4,6 +4,7 @@
 #include <map>
 #include <vector>
 #include <unordered_set>
+#include <map>
 
 #include <Graphics/Color.hpp>
 #include <Vector.hpp>
@@ -14,6 +15,7 @@ struct TilemapData
 {
     pl::Vector2<int> textureOffset;
     int variation;
+    pl::Color mapColor;
 };
 
 struct TileGenData
@@ -54,7 +56,7 @@ struct BiomeGenData
 {
     std::string name;
 
-    std::vector<TileGenData> tileGenDatas;
+    std::map<uint16_t, TileGenData> tileGenDatas;
     //int tilemapStartID;
 
     std::vector<ObjectGenData> objectGenDatas;

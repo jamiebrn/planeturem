@@ -1015,6 +1015,17 @@ void Game::runInGame(float dt)
         chatGUI.draw(window, networkHandler, player.getTileInside());
     }
 
+    if (gameState == GameState::OnPlanet)
+    {
+        const pl::Texture* mapTexture = &getChunkManager().getWorldMap().getTexture();
+
+        pl::VertexArray lightRect;
+        lightRect.addQuad(pl::Rect<float>(0, 0, mapTexture->getWidth(), mapTexture->getHeight()), pl::Color(),
+            pl::Rect<float>(0, 0, mapTexture->getWidth(), mapTexture->getHeight()));
+
+        window.draw(lightRect, *Shaders::getShader(ShaderType::Default), mapTexture, pl::BlendMode::Alpha);
+    }
+
     spriteBatch.endDrawing(window);
 }
 
@@ -2662,7 +2673,7 @@ void Game::drawGhostPlaceLandAtCursor()
         return;
     
     // Get texture offset for tilemap
-    pl::Vector2<int> tileMapTextureOffset = biomeGenData->tileGenDatas[0].tileMap.textureOffset;
+    pl::Vector2<int> tileMapTextureOffset = biomeGenData->tileGenDatas.begin()->second.tileMap.textureOffset;
 
     // Create texture rect of centre tile from tilemap
     pl::Rect<int> textureRect(tileMapTextureOffset.x + 16, tileMapTextureOffset.y + 16, 16, 16);
@@ -4021,6 +4032,7 @@ void Game::loadInputBindings()
     InputManager::bindKey(InputAction::UI_SHIFT, SDL_Scancode::SDL_SCANCODE_LSHIFT, false);
     InputManager::bindKey(InputAction::UI_CTRL, SDL_Scancode::SDL_SCANCODE_LCTRL, false);
     InputManager::bindKey(InputAction::OPEN_CHAT, SDL_Scancode::SDL_SCANCODE_RETURN, false);
+    InputManager::bindKey(InputAction::OPEN_MAP, SDL_Scancode::SDL_SCANCODE_M, false);
     InputManager::bindKey(InputAction::PAUSE_GAME, SDL_Scancode::SDL_SCANCODE_ESCAPE, false);
     InputManager::bindKey(InputAction::HOTBAR_0, SDL_Scancode::SDL_SCANCODE_1, false);
     InputManager::bindKey(InputAction::HOTBAR_1, SDL_Scancode::SDL_SCANCODE_2, false);

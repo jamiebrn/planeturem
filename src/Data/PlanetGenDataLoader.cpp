@@ -141,6 +141,7 @@ bool PlanetGenDataLoader::loadPlanet(nlohmann::ordered_json::iterator& planetDat
                 tileGenData.tileMap.textureOffset.x = tileMaps.at(tileMapName)[0];
                 tileGenData.tileMap.textureOffset.y = tileMaps.at(tileMapName)[1];
                 tileGenData.tileMap.variation = tileMaps.at(tileMapName)[2];
+                tileGenData.tileMap.mapColor = tileMaps.at(tileMapName)[3];
             }
             else
             {
@@ -165,7 +166,7 @@ bool PlanetGenDataLoader::loadPlanet(nlohmann::ordered_json::iterator& planetDat
                 #endif
             }
 
-            biomeGenData.tileGenDatas.push_back(tileGenData);
+            biomeGenData.tileGenDatas[tileGenData.tileID] = tileGenData;
         }
 
         // Load biome objects

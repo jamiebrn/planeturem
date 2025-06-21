@@ -52,6 +52,7 @@ enum class InputAction
     ZOOM_OUT,
 
     OPEN_CHAT,
+    OPEN_MAP,
 
     PAUSE_GAME,
 

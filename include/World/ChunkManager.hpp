@@ -19,7 +19,6 @@
 #include "Core/Camera.hpp"
 #include "Core/CollisionRect.hpp"
 #include "Core/Shaders.hpp"
-// #include "Core/SpriteBatch.hpp"
 #include "World/Chunk.hpp"
 #include "World/ChunkPosition.hpp"
 #include "World/TileMap.hpp"
@@ -29,10 +28,10 @@
 #include "Player/InventoryData.hpp"
 #include "Player/ItemPickup.hpp"
 
-#include "World/Chunk.hpp"
 #include "World/ChunkPOD.hpp"
 #include "World/ChunkViewRange.hpp"
 #include "World/PathfindingEngine.hpp"
+#include "World/WorldMap.hpp"
 
 #include "Data/typedefs.hpp"
 #include "Data/PlanetGenData.hpp"
@@ -236,6 +235,10 @@ public:
     std::optional<ChunkPosition> isPlayerInStructureEntrance(pl::Vector2f playerPos);
 
 
+    // -- World Map -- //
+    const WorldMap& getWorldMap() const;
+
+
     // Save / load
     std::vector<ChunkPOD> getChunkPODs();
     void loadFromChunkPODs(const std::vector<ChunkPOD>& pods, Game& game);
@@ -314,6 +317,8 @@ private:
     int seed = 0;
 
     PathfindingEngine pathfindingEngine;
+
+    WorldMap worldMap;
 
 };
 

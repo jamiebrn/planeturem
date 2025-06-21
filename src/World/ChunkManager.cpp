@@ -43,6 +43,7 @@ void ChunkManager::setPlanetType(PlanetType planetType)
 
     // Set planet size
     worldSize = planetGenData.worldSize;
+    worldMap.setSize(worldSize);
 
     // Reset pathfinding engine
     int worldTileSize = worldSize * static_cast<int>(CHUNK_TILE_SIZE);
@@ -108,6 +109,8 @@ bool ChunkManager::updateChunks(Game& game, float gameTime, const std::vector<Ch
                     resetChunkEntitySpawnCooldown(chunkPos);
                 }
             }
+
+            worldMap.setChunkMapSection(chunk->createChunkWorldMapSection(*this));
     
             continue;
         }
@@ -123,6 +126,8 @@ bool ChunkManager::updateChunks(Game& game, float gameTime, const std::vector<Ch
     
         // Generate new chunk if does not exist (only if host / solo)
         generateChunk(chunkPos, game, gameTime, true);
+
+        worldMap.setChunkMapSection(getChunk(chunkPos)->createChunkWorldMapSection(*this));
     }
 
     return hasModifiedChunks;
@@ -1152,6 +1157,11 @@ std::optional<ChunkPosition> ChunkManager::isPlayerInStructureEntrance(pl::Vecto
     }
 
     return std::nullopt;
+}
+
+const WorldMap& ChunkManager::getWorldMap() const
+{
+    return worldMap;
 }
 
 std::vector<ChunkPOD> ChunkManager::getChunkPODs()
