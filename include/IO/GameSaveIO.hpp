@@ -24,6 +24,8 @@
 #include "World/ChunkPOD.hpp"
 #include "World/ChestDataPool.hpp"
 #include "World/RoomPool.hpp"
+#include "World/WorldMap.hpp"
+
 #include "Player/InventoryData.hpp"
 
 #include "Object/ObjectReference.hpp"
@@ -38,6 +40,8 @@
 #include "Data/PlanetGenDataLoader.hpp"
 
 #include "Player/PlayerData.hpp"
+
+#include "IO/CompressedData.hpp"
 
 struct PlayerGameSave
 {
@@ -103,12 +107,19 @@ struct PlanetGameSave
 
     GameDataVersionState versionState;
 
+    WorldMap worldMap;
+
     template <class Archive>
     void save(Archive& ar, const std::uint32_t version) const
     {
         if (version >= 4)
         {
             ar(versionState, chunks, chestDataPool, structureRoomPool);
+        }
+
+        if (version >= 5)
+        {
+            ar(worldMap);
         }
     }
 
@@ -118,6 +129,11 @@ struct PlanetGameSave
         if (version >= 4)
         {
             ar(versionState, chunks, chestDataPool, structureRoomPool);
+        }
+
+        if (version >= 5)
+        {
+            ar(worldMap);
         }
 
         GameDataVersionMapping versionMapping(versionState);
@@ -170,7 +186,7 @@ struct RoomDestinationGameSave
     }
 };
 
-CEREAL_CLASS_VERSION(PlanetGameSave, 4);
+CEREAL_CLASS_VERSION(PlanetGameSave, 5);
 CEREAL_CLASS_VERSION(RoomDestinationGameSave, 3);
 
 struct SaveFileSummary
@@ -190,22 +206,6 @@ struct OptionsSave
     bool screenShakeEnabled = true;
     int controllerGlyphType = 0;
     bool vSync = true;
-};
-
-struct CompressedData
-{
-    CompressedData() = default;
-    CompressedData(const std::vector<char> uncompressedData);
-    std::vector<char> decompress();
-
-    std::vector<char> data;
-    uint32_t uncompressedSize;
-
-    template <class Archive>
-    void serialize(Archive& ar, const std::uint32_t version)
-    {
-        ar(data, uncompressedSize);
-    }
 };
 
 CEREAL_CLASS_VERSION(CompressedData, 1);

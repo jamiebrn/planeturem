@@ -2,6 +2,8 @@
 
 uniform sampler2D textureSampler;
 
+uniform int circleResolution;
+
 out vec4 FragColor;
 
 in vec4 fragColor;
@@ -10,7 +12,7 @@ in vec2 fragUV;
 void main()
 {
     // Circle edge cutout
-    float centreRadius = sqrt(pow(fragUV.x - 0.5, 2) + pow(fragUV.y - 0.5, 2));
+    float centreRadius = sqrt(pow(floor(fragUV.x * circleResolution) / circleResolution - 0.5, 2) + pow(floor(fragUV.y * circleResolution) / circleResolution - 0.5, 2));
 
     if (centreRadius > 0.5)
     {

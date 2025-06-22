@@ -13,6 +13,8 @@
 
 #include "GameConstants.hpp"
 
+#include "IO/CompressedData.hpp"
+
 struct ChunkWorldMapSection
 {
     ChunkPosition chunkPosition;
@@ -30,12 +32,40 @@ public:
 
     const pl::Texture& getTexture() const;
 
+    inline int getWorldSize() const {return worldSize;}
+
+    void setMapTextureData(const std::vector<uint8_t>& mapTextureData);
+    const std::vector<uint8_t>& getMapTextureData() const;
+
+    template <class Archive>
+    void save(Archive& ar, const std::uint32_t version) const
+    {
+        CompressedData compressedMapData(std::vector<char>(mapTextureData.begin(), mapTextureData.end()));
+
+        printf("Saving world map of size %d bytes, uncompressed size %d bytes\n", compressedMapData.data.size(), mapTextureData.size());
+
+        ar(compressedMapData);
+    }
+
+    template <class Archive>
+    void load(Archive& ar, const std::uint32_t version)
+    {
+        CompressedData compressedMapData;
+
+        ar(compressedMapData);
+
+        std::vector<char> mapData = compressedMapData.decompress();
+        mapTextureData = std::vector<uint8_t>(mapData.begin(), mapData.end());
+    }
+
 private:
     void initTexture();
 
-    std::vector<float> mapTextureData;
+    std::vector<uint8_t> mapTextureData;
     pl::Texture mapTexture;
 
     int worldSize;
 
 };
+
+CEREAL_CLASS_VERSION(WorldMap, 1);

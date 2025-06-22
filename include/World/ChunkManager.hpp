@@ -236,7 +236,7 @@ public:
 
 
     // -- World Map -- //
-    const WorldMap& getWorldMap() const;
+    WorldMap& getWorldMap();
 
 
     // Save / load

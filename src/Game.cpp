@@ -3673,6 +3673,7 @@ bool Game::saveGame()
     {
         PlanetGameSave planetGameSave;
         planetGameSave.chunks = iter->second.chunkManager.getChunkPODs();
+        planetGameSave.worldMap.setMapTextureData(iter->second.chunkManager.getWorldMap().getMapTextureData());
         planetGameSave.chestDataPool = iter->second.chestDataPool;
         planetGameSave.structureRoomPool = iter->second.structureRoomPool;
         io.writePlanetSave(iter->first, planetGameSave);
@@ -3770,27 +3771,13 @@ bool Game::loadGame(const SaveFileSummary& saveFileSummary)
         networkHandler.setSavedNetworkPlayerData(iter->first, iter->second);
     }
 
+    currentSaveFileSummary = saveFileSummary;
+    currentSaveFileSummary.playerName = playerGameSave.playerData.name;
+
     // Load planet
     if (playerGameSave.playerData.locationState.isOnPlanet())
     {
-        PlanetGameSave planetGameSave;
-
-        if (!io.loadPlanetSave(playerGameSave.playerData.locationState.getPlanetType(), planetGameSave))
-        {
-            const std::string& planetName = PlanetGenDataLoader::getPlanetGenData(playerGameSave.playerData.locationState.getPlanetType()).name;
-            std::cout << "Failed to load planet \"" + planetName + "\" for save " + saveFileSummary.name + "\n";
-            return false;
-        }
-
-        initialiseWorldData(locationState.getPlanetType());
-        getChunkManager().loadFromChunkPODs(planetGameSave.chunks, *this);
-        getChestDataPool() = planetGameSave.chestDataPool;
-        getStructureRoomPool() = planetGameSave.structureRoomPool;
-
-        // chunkManager.setPlanetType(playerGameSave.planetType);
-        // chunkManager.loadFromChunkPODs(planetGameSave.chunks, *this);
-        // chestDataPool = planetGameSave.chestDataPool;
-        // structureRoomPool = planetGameSave.structureRoomPool;
+        loadPlanet(playerGameSave.playerData.locationState.getPlanetType());
 
         nextGameState = GameState::OnPlanet;
 
@@ -3816,18 +3803,7 @@ bool Game::loadGame(const SaveFileSummary& saveFileSummary)
     else if (playerGameSave.playerData.locationState.isInRoomDest())
     {
         // Load room destination
-        RoomDestinationGameSave roomDestinationGameSave;
-
-        if (!io.loadRoomDestinationSave(playerGameSave.playerData.locationState.getRoomDestType(), roomDestinationGameSave))
-        {
-            const std::string& roomDestinationName = StructureDataLoader::getRoomData(playerGameSave.playerData.locationState.getRoomDestType()).name;
-            std::cout << "Failed to load room \"" + roomDestinationName + "\" for save " + saveFileSummary.name + "\n";
-            return false;
-        }
-
-        roomDestDatas[locationState.getRoomDestType()] = RoomDestinationData();
-        getRoomDestination() = roomDestinationGameSave.roomDestination;
-        getChestDataPool() = roomDestinationGameSave.chestDataPool;
+        loadRoomDest(playerGameSave.playerData.locationState.getRoomDestType());
 
         // player.setPosition(roomDestinationGameSave.playerLastPos);
 
@@ -3841,9 +3817,7 @@ bool Game::loadGame(const SaveFileSummary& saveFileSummary)
 
     camera.instantUpdate(player.getPosition());
 
-    // Load successful, set save name as current save and start state transition
-    currentSaveFileSummary = saveFileSummary;
-    currentSaveFileSummary.playerName = playerGameSave.playerData.name;
+    // Load successful, start state transition
     startChangeStateTransition(nextGameState);
 
     saveDeferred = false;
@@ -3878,6 +3852,10 @@ bool Game::loadPlanet(PlanetType planetType)
     initialiseWorldData(planetType);
 
     getChunkManager(planetType).loadFromChunkPODs(planetGameSave.chunks, *this);
+    if (planetGameSave.worldMap.getMapTextureData().size() == getChunkManager(planetType).getWorldMap().getMapTextureData().size())
+    {
+        getChunkManager(planetType).getWorldMap().setMapTextureData(planetGameSave.worldMap.getMapTextureData());
+    }
     getChestDataPool(LocationState::createFromPlanetType(planetType)) = planetGameSave.chestDataPool;
     getStructureRoomPool(planetType) = planetGameSave.structureRoomPool;
 
@@ -4906,7 +4884,7 @@ void Game::drawDebugMenu(float dt)
     player.setSkinColor(playerSkinColor);
 
     ImGui::InputInt("Color wheel divisions", &DebugOptions::colorWheelDivisions);
-    
+
     ImGui::End();
 
     ImGui::Render();

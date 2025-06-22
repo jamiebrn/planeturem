@@ -1159,7 +1159,7 @@ std::optional<ChunkPosition> ChunkManager::isPlayerInStructureEntrance(pl::Vecto
     return std::nullopt;
 }
 
-const WorldMap& ChunkManager::getWorldMap() const
+WorldMap& ChunkManager::getWorldMap()
 {
     return worldMap;
 }
