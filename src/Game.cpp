@@ -1019,7 +1019,7 @@ void Game::runInGame(float dt)
 
     if (gameState == GameState::OnPlanet)
     {
-        worldMapGUI.drawMiniMap(window, getChunkManager().getWorldMap(), player.getPosition());
+        worldMapGUI.drawMiniMap(window, getChunkManager().getWorldMap(), player.getPosition(), getSpawnLocation());
     }
 }
 

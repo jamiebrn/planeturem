@@ -1,6 +1,6 @@
 #include "GUI/WorldMapGUI.hpp"
 
-void WorldMapGUI::drawMiniMap(pl::RenderTarget& window, const WorldMap& worldMap, pl::Vector2f playerPosition)
+void WorldMapGUI::drawMiniMap(pl::RenderTarget& window, const WorldMap& worldMap, pl::Vector2f playerPosition, ObjectReference spawnLocation)
 {
     float intScale = ResolutionHandler::getResolutionIntegerScale();
 
@@ -23,6 +23,16 @@ void WorldMapGUI::drawMiniMap(pl::RenderTarget& window, const WorldMap& worldMap
         worldMap.getTexture().getWidth() * MINI_MAP_SCALE * 3, worldMap.getTexture().getHeight() * MINI_MAP_SCALE * 3),
         pl::Color(), pl::Rect<float>(0, 0, worldMap.getTexture().getWidth() * 3, worldMap.getTexture().getHeight() * 3));
 
+    miniMapFrameBuffer.draw(miniMapRect, *Shaders::getShader(ShaderType::Default), &worldMap.getTexture(), pl::BlendMode::Alpha);
+
+    // Draw spawn location
+    const pl::Rect<int> spawnLocationIconTextureRect(160, 64, 6, 6);
+    pl::Vector2f spawnLocationMap = static_cast<pl::Vector2f>(spawnLocation.getWorldTile()) / (CHUNK_TILE_SIZE / CHUNK_MAP_TILE_SIZE);
+    miniMapRect.clear();
+    miniMapRect.addQuad(pl::Rect<float>(pl::Vector2f(-playerPositionMap.x * MINI_MAP_SCALE + MINI_MAP_WIDTH / 2 + spawnLocationMap.x * MINI_MAP_SCALE,
+        -playerPositionMap.y * MINI_MAP_SCALE + MINI_MAP_HEIGHT / 2 + spawnLocationMap.y * MINI_MAP_SCALE) - spawnLocationIconTextureRect.getSize() / 2,
+        spawnLocationIconTextureRect.getSize() * MINI_MAP_SCALE), pl::Color(), static_cast<pl::Rect<float>>(spawnLocationIconTextureRect));
+    
     miniMapFrameBuffer.draw(miniMapRect, *Shaders::getShader(ShaderType::Default), &worldMap.getTexture(), pl::BlendMode::Alpha);
 
     // pl::Framebuffer miniMapCutoutFramebuffer;

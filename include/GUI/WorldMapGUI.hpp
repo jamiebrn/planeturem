@@ -16,13 +16,14 @@
 #include "Core/Shaders.hpp"
 
 #include "World/WorldMap.hpp"
+#include "Object/ObjectReference.hpp"
 
 class WorldMapGUI
 {
 public:
     WorldMapGUI() = default;
 
-    void drawMiniMap(pl::RenderTarget& window, const WorldMap& worldMap, pl::Vector2f playerPosition);
+    void drawMiniMap(pl::RenderTarget& window, const WorldMap& worldMap, pl::Vector2f playerPosition, ObjectReference spawnLocation);
 
     void drawMap(pl::RenderTarget& window, const WorldMap& worldMap, pl::Vector2f playerPosition);
 
