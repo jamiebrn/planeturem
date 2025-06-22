@@ -14,6 +14,8 @@
 
 #include "Core/ResolutionHandler.hpp"
 #include "Core/Shaders.hpp"
+#include "Core/TextureManager.hpp"
+#include "Core/Camera.hpp"
 
 #include "World/WorldMap.hpp"
 #include "Object/ObjectReference.hpp"
