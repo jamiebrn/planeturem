@@ -50,7 +50,8 @@ std::vector<LandmarkSummaryData> LandmarkManager::getLandmarkSummaryDatas(const 
         landmarkSummary.colorA = landmarkObjectPtr->getColorA();
         landmarkSummary.colorB = landmarkObjectPtr->getColorB();
 
-        landmarkSummary.screenPos = camera.worldToScreenTransform(landmarkObjectPtr->getPosition(), chunkManager.getWorldSize());
+        // landmarkSummary.screenPos = camera.worldToScreenTransform(landmarkObjectPtr->getPosition(), chunkManager.getWorldSize());
+        landmarkSummary.worldPos = landmarkObjectPtr->getPosition();
 
         landmarkSummaryDatas.push_back(landmarkSummary);
 

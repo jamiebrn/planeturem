@@ -21,7 +21,7 @@ class NetworkHandler;
 
 struct LandmarkSummaryData
 {
-    pl::Vector2f screenPos;
+    pl::Vector2f worldPos;
     pl::Color colorA, colorB;
 };
 

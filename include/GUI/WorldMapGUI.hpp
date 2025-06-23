@@ -20,12 +20,15 @@
 #include "World/WorldMap.hpp"
 #include "Object/ObjectReference.hpp"
 
+#include "World/LandmarkManager.hpp"
+
 class WorldMapGUI
 {
 public:
     WorldMapGUI() = default;
 
-    void drawMiniMap(pl::RenderTarget& window, const WorldMap& worldMap, pl::Vector2f playerPosition, ObjectReference spawnLocation);
+    void drawMiniMap(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, float gameTime, const WorldMap& worldMap,
+        pl::Vector2f playerPosition, ObjectReference spawnLocation, const std::vector<LandmarkSummaryData>& landmarkSummaryData);
 
     void drawMap(pl::RenderTarget& window, const WorldMap& worldMap, pl::Vector2f playerPosition);
 

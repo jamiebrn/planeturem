@@ -1015,12 +1015,13 @@ void Game::runInGame(float dt)
         chatGUI.draw(window, networkHandler, player.getTileInside());
     }
 
-    spriteBatch.endDrawing(window);
-
     if (gameState == GameState::OnPlanet)
     {
-        worldMapGUI.drawMiniMap(window, getChunkManager().getWorldMap(), player.getPosition(), getSpawnLocation());
+        worldMapGUI.drawMiniMap(window, spriteBatch, gameTime, getChunkManager().getWorldMap(), player.getPosition(),
+            getSpawnLocation(), getLandmarkManager().getLandmarkSummaryDatas(camera, getChunkManager(), networkHandler));
     }
+    
+    spriteBatch.endDrawing(window);
 }
 
 
@@ -1270,8 +1271,6 @@ void Game::drawOnPlanet(float dt)
 
     HitMarkers::draw(window, camera, getChunkManager().getWorldSize());
 
-    drawLandmarks();
-
     getBossManager().drawStatsAtCursor(window, camera, mouseScreenPos, getChunkManager().getWorldSize());
 }
 
@@ -1379,58 +1378,6 @@ void Game::drawLighting(float dt, std::vector<WorldObject*>& worldObjects)
     if (awaitingRespawn)
     {
         drawScreenFade(screenFadeProgress);
-    }
-}
-
-void Game::drawLandmarks()
-{
-    AnimatedTexture landmarkUIAnimation(6, 16, 16, 96, 112, 0.1);
-
-    landmarkUIAnimation.setFrame(static_cast<int>(gameTime / 0.1) % 6);
-
-    static const int PADDING = 0;
-    float intScale = ResolutionHandler::getResolutionIntegerScale();
-    pl::Vector2<uint32_t> resolution = ResolutionHandler::getResolution();
-
-    pl::DrawData drawData;
-    drawData.texture = TextureManager::getTexture(TextureType::UI);
-    drawData.shader = Shaders::getShader(ShaderType::ReplaceColour);
-    drawData.scale = pl::Vector2f(3, 3) * intScale;
-    drawData.centerRatio = pl::Vector2f(0.5f, 0.5f);
-    drawData.color = pl::Color(255, 255, 255, 150);
-    
-    std::vector<float> replaceKeys = {1, 1, 1, 1, 0, 0, 0, 1};
-    drawData.shader->setUniform1i("replaceKeyCount", replaceKeys.size() / 4);
-    drawData.shader->setUniform4fv("replaceKeys", replaceKeys);
-
-    int worldSize = getChunkManager().getWorldSize();
-    
-    for (const LandmarkSummaryData& landmarkSummary : getLandmarkManager().getLandmarkSummaryDatas(camera, getChunkManager(), networkHandler))
-    {
-        if (landmarkSummary.screenPos.x >= 0 && landmarkSummary.screenPos.x < resolution.x &&
-            landmarkSummary.screenPos.y >= 0 && landmarkSummary.screenPos.y < resolution.y)
-        {
-            continue;
-        }
-
-        pl::Vector2f screenPos = landmarkSummary.screenPos;
-        screenPos.x = std::clamp(screenPos.x, PADDING * intScale, resolution.x - PADDING * intScale);
-        screenPos.y = std::clamp(screenPos.y, PADDING * intScale, resolution.y - PADDING * intScale);
-        
-        pl::Color colorANormalised = landmarkSummary.colorA.normalise();
-        pl::Color colorBNormalised = landmarkSummary.colorB.normalise();
-        
-        std::vector<float> replaceValues = {
-            colorANormalised.r, colorANormalised.g, colorANormalised.b, colorANormalised.a,
-            colorBNormalised.r, colorBNormalised.g, colorBNormalised.b, colorBNormalised.a
-        };
-        
-        drawData.position = screenPos;
-        drawData.shader->setUniform4fv("replaceValues", replaceValues);
-        drawData.textureRect = landmarkUIAnimation.getTextureRect();
-
-        spriteBatch.draw(window, drawData);
-        spriteBatch.endDrawing(window);
     }
 }
 
