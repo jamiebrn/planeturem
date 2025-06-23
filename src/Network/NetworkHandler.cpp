@@ -993,12 +993,14 @@ void NetworkHandler::processMessageAsHost(const SteamNetworkingMessage_t& messag
                 packetData.currentPlayerDatas[iter->first] = iter->second.getPlayerData();
             }
             
-            // Send landmark data if required
+            // Send landmark and worldmap data if required
             if (packetData.playerData.locationState.isOnPlanet())
             {
                 packetData.landmarks = PacketDataLandmarks();
                 packetData.landmarks->planetType = packetData.playerData.locationState.getPlanetType();
                 packetData.landmarks->landmarkManager = game->getLandmarkManager(packetData.landmarks->planetType);
+
+                packetData.worldMap.setMapTextureData(game->getChunkManager(packetData.playerData.locationState.getPlanetType()).getWorldMap().getMapTextureData());
             }
 
             registerNetworkPlayer(message.m_identityPeer.GetSteamID64(), packetDataJoinReply.playerName, packetDataJoinReply.pingLocation, &chatGUI);

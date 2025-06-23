@@ -3161,6 +3161,7 @@ std::optional<ObjectReference> Game::setupPlanetTravel(PlanetType planetType, co
         PacketDataPlanetTravelReply packetData;
         packetData.chunkDatas.planetType = planetType;
         packetData.landmarks.landmarkManager = getLandmarkManager(planetType);
+        packetData.worldMap.setMapTextureData(getChunkManager(planetType).getWorldMap().getMapTextureData());
         packetData.rocketObjectReference = newRocketObjectReference;
 
         for (auto iter = playerChunkViewRange.begin(); iter != playerChunkViewRange.end(); iter++)

@@ -78,6 +78,12 @@ void Chunk::generateChunk(const FastNoise& heightNoise, const FastNoise& biomeNo
     {
         nextResourceRegenerationTime = gameTimeCreated + Helper::randFloat(biomeGenData->resourceRegenerationTimeMin, biomeGenData->resourceRegenerationTimeMax);
     }
+
+    // If altering generation, set modified to prevent loss of change
+    if (forceStructureType || !allowStructureGen)
+    {
+        modified = true;
+    }
 }
 
 RandInt Chunk::generateTilesAndStructure(const FastNoise& heightNoise, const FastNoise& biomeNoise, const FastNoise& riverNoise, PlanetType planetType,
