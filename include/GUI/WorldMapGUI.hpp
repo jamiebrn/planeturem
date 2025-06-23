@@ -22,13 +22,16 @@
 
 #include "World/LandmarkManager.hpp"
 
+#include "Player/NetworkPlayer.hpp"
+
 class WorldMapGUI
 {
 public:
     WorldMapGUI() = default;
 
     void drawMiniMap(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, float gameTime, const WorldMap& worldMap,
-        pl::Vector2f playerPosition, ObjectReference spawnLocation, const std::vector<LandmarkSummaryData>& landmarkSummaryData);
+        pl::Vector2f playerPosition, ObjectReference spawnLocation, const std::vector<LandmarkSummaryData>& landmarkSummaryData,
+        const std::unordered_map<uint64_t, NetworkPlayer*>& networkPlayersAtLocation);
 
     void drawMap(pl::RenderTarget& window, const WorldMap& worldMap, pl::Vector2f playerPosition);
 

@@ -57,7 +57,6 @@ struct BiomeGenData
     std::string name;
 
     std::map<uint16_t, TileGenData> tileGenDatas;
-    //int tilemapStartID;
 
     std::vector<ObjectGenData> objectGenDatas;
     std::vector<EntityGenData> entityGenDatas;

@@ -1144,6 +1144,8 @@ void ChunkManager::placeLand(ChunkPosition chunk, pl::Vector2<int> tile, Network
             loadedChunks[ChunkPosition(wrappedX, wrappedY)]->generateVisualEffectTiles(*this);
         }
     }
+
+    worldMap.setChunkMapSection(chunkPtr->createChunkWorldMapSection(*this));
 }
 
 std::optional<ChunkPosition> ChunkManager::isPlayerInStructureEntrance(pl::Vector2f playerPos)

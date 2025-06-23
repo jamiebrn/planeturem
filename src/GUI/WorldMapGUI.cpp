@@ -1,7 +1,8 @@
 #include "GUI/WorldMapGUI.hpp"
 
 void WorldMapGUI::drawMiniMap(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, float gameTime, const WorldMap& worldMap,
-    pl::Vector2f playerPosition, ObjectReference spawnLocation, const std::vector<LandmarkSummaryData>& landmarkSummaryData)
+    pl::Vector2f playerPosition, ObjectReference spawnLocation, const std::vector<LandmarkSummaryData>& landmarkSummaryData,
+    const std::unordered_map<uint64_t, NetworkPlayer*>& networkPlayersAtLocation)
 {
     float intScale = ResolutionHandler::getResolutionIntegerScale();
 
@@ -93,6 +94,35 @@ void WorldMapGUI::drawMiniMap(pl::RenderTarget& window, pl::SpriteBatch& spriteB
         drawData.textureRect = landmarkUIAnimation.getTextureRect();
     
         spriteBatch.draw(window, drawData);
+        spriteBatch.endDrawing(window);
+    }
+
+    // Draw network players
+    drawData.textureRect = pl::Rect<int>(163, 75, 5, 5);
+    replaceKeys = {1, 1, 1, 1, 0, 0, 0, 1};
+    drawData.shader->setUniform1i("replaceKeyCount", replaceKeys.size() / 4);
+    drawData.shader->setUniform4fv("replaceKeys", replaceKeys);
+
+    for (const auto& networkPlayerPair : networkPlayersAtLocation)
+    {
+        pl::Color bodyColorNormalised = networkPlayerPair.second->getPlayerData().bodyColor.normalise();
+
+        std::vector<float> replaceValues = {
+            bodyColorNormalised.r, bodyColorNormalised.g, bodyColorNormalised.b, 1.0f
+        };
+
+        drawData.shader->setUniform4fv("replaceValues", replaceValues);
+
+        pl::Vector2f worldPos = Camera::translateWorldPos(networkPlayerPair.second->getPosition(), playerPosition, worldMap.getWorldSize());
+
+        pl::Vector2f relativePos = (worldPos - playerPosition).normalise() *
+            std::min((worldPos - playerPosition).getLength() / TILE_SIZE_PIXELS_UNSCALED / (CHUNK_TILE_SIZE / CHUNK_MAP_TILE_SIZE) * MINI_MAP_SCALE * intScale,
+            MINI_MAP_WIDTH * intScale / 2);
+        drawData.position = relativePos + pl::Vector2f(window.getWidth() - (MINI_MAP_WIDTH / 2 + MINI_MAP_PADDING) * intScale,
+            window.getHeight() - (MINI_MAP_HEIGHT / 2 + MINI_MAP_PADDING) * intScale);
+        
+        spriteBatch.draw(window, drawData);
+        spriteBatch.endDrawing(window);
     }
 }
 

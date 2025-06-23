@@ -42,8 +42,6 @@ public:
     {
         CompressedData compressedMapData(std::vector<char>(mapTextureData.begin(), mapTextureData.end()));
 
-        printf("Saving world map of size %d bytes, uncompressed size %d bytes\n", compressedMapData.data.size(), mapTextureData.size());
-
         ar(compressedMapData);
     }
 

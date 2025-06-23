@@ -234,22 +234,6 @@ void Game::run()
             drawScreenFade(1.0f - transitionGameStateTimer / TRANSITION_STATE_FADE_TIME);
         }
 
-        pl::TextDrawData textDrawData;
-        textDrawData.size = 24;
-        textDrawData.containOnScreenX = true;
-        textDrawData.containPaddingRight = 10;
-        textDrawData.position = pl::Vector2f(window.getWidth(), window.getHeight() - 40);
-        textDrawData.text = Helper::floatToString(networkHandler.getTotalBytesReceived() / 1000.0f, 1) + "kb received (" +
-            Helper::floatToString(networkHandler.getByteReceiveRate(dt) / 1000.0f, 1) + "KB/s)";
-        
-        TextDraw::drawText(window, textDrawData);
-        
-        textDrawData.position = pl::Vector2f(window.getWidth(), window.getHeight() - 65);
-        textDrawData.text = Helper::floatToString(networkHandler.getTotalBytesSent() / 1000.0f, 1) + "kb sent (" +
-            Helper::floatToString(networkHandler.getByteSendRate(dt) / 1000.0f, 1) + "KB/s)";
-
-        TextDraw::drawText(window, textDrawData);
-
         #if (!RELEASE_BUILD)
         drawDebugMenu(dt);
         ImGui::SetMouseCursor(ImGuiMouseCursor_None);
@@ -1018,7 +1002,8 @@ void Game::runInGame(float dt)
     if (gameState == GameState::OnPlanet)
     {
         worldMapGUI.drawMiniMap(window, spriteBatch, gameTime, getChunkManager().getWorldMap(), player.getPosition(),
-            getSpawnLocation(), getLandmarkManager().getLandmarkSummaryDatas(camera, getChunkManager(), networkHandler));
+            getSpawnLocation(), getLandmarkManager().getLandmarkSummaryDatas(camera, getChunkManager(), networkHandler),
+            networkHandler.getNetworkPlayersAtLocation(locationState));
     }
     
     spriteBatch.endDrawing(window);
@@ -3336,7 +3321,8 @@ void Game::travelToPlanetFromHost(const PacketDataPlanetTravelReply& planetTrave
 
     travelToPlanet(planetTravelReplyPacket.chunkDatas.planetType, planetTravelReplyPacket.rocketObjectReference);
 
-    worldDatas[locationState.getPlanetType()].landmarkManager = planetTravelReplyPacket.landmarks.landmarkManager;
+    getLandmarkManager() = planetTravelReplyPacket.landmarks.landmarkManager;
+    getChunkManager().getWorldMap().setMapTextureData(planetTravelReplyPacket.worldMap.getMapTextureData());
 }
 
 void Game::travelToRoomDestinationFromHost(const PacketDataRoomTravelReply& roomTravelReplyPacket)
@@ -4082,7 +4068,8 @@ void Game::joinWorld(const PacketDataJoinInfo& joinInfo)
             getStructureRoomPool().overwriteRoomData(locationState.getInStructureID(), Room(joinInfo.inStructureRoomType.value(), nullptr));
         }
 
-        worldDatas[locationState.getPlanetType()].landmarkManager = joinInfo.landmarks->landmarkManager;
+        getLandmarkManager() = joinInfo.landmarks->landmarkManager;
+        getChunkManager().getWorldMap().setMapTextureData(joinInfo.worldMap.getMapTextureData());
 
         weatherSystem = WeatherSystem(gameTime, planetSeed + locationState.getPlanetType());
         weatherSystem.presimulateWeather(gameTime, camera, getChunkManager());
@@ -4717,7 +4704,11 @@ void Game::drawDebugMenu(float dt)
         std::to_string(worldDatas.size()) + " world datas active",
         std::to_string(roomDestDatas.size()) + " roomdest datas active",
         "Seed: " + std::to_string(planetSeed),
-        "Player pos: " + std::to_string(static_cast<int>(player.getPosition().x)) + ", " + std::to_string(static_cast<int>(player.getPosition().y))
+        "Player pos: " + std::to_string(static_cast<int>(player.getPosition().x)) + ", " + std::to_string(static_cast<int>(player.getPosition().y)),
+        Helper::floatToString(networkHandler.getTotalBytesReceived() / 1000.0f, 1) + "kb received (" +
+            Helper::floatToString(networkHandler.getByteReceiveRate(dt) / 1000.0f, 1) + "KB/s)",
+        Helper::floatToString(networkHandler.getTotalBytesSent() / 1000.0f, 1) + "kb sent (" +
+            Helper::floatToString(networkHandler.getByteSendRate(dt) / 1000.0f, 1) + "KB/s)"
     };
 
     for (const std::string& string : debugStrings)
