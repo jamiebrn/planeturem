@@ -69,14 +69,13 @@ bool ChunkManager::updateChunks(Game& game, float gameTime, const std::vector<Ch
     // Check any chunks needed to load
     for (ChunkPosition chunkPos : ChunkViewRange::getCombinedChunkSet(chunkViewRanges, worldSize))
     {
-        // Chunk not loaded
-        hasModifiedChunks = true;
-
         // Chunk already loaded
         if (loadedChunks.count(chunkPos))
         {
             continue;
         }
+
+        hasModifiedChunks = true;
     
         // Check if chunk is in memory, and load if so
         if (storedChunks.count(chunkPos))
@@ -1207,7 +1206,7 @@ PacketDataChunkDatas::ChunkData ChunkManager::getChunkDataAndGenerate(ChunkPosit
     // Not generated - generate before getting chunk data
     if (!chunkPtr)
     {
-        chunkPtr = generateChunk(chunk, game, false);
+        chunkPtr = generateChunk(chunk, game, 0.0f, false);
     }
 
     ChunkPOD chunkPODNoEntities = chunkPtr->getChunkPOD(false);

@@ -246,9 +246,14 @@ public:
 
     static const TileGenData* getTileGenAtWorldTile(pl::Vector2<int> worldTile, int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise, const FastNoise& riverNoise,
         PlanetType planetType);
-
-    static ObjectType getRandomObjectToSpawnAtWorldTile(pl::Vector2<int> worldTile, int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise,
-        const FastNoise& riverNoise, RandInt& randGen, PlanetType planetType, float probabilityMult = 1.0f);
+    
+    static ObjectType getRandomObjectToSpawnAtWorldTile(pl::Vector2<int> worldTile, int tileType, int worldSize, const FastNoise& heightNoise,
+        const FastNoise& biomeNoise, const FastNoise& riverNoise, RandInt& randGen, PlanetType planetType, float probabilityMult = 1.0f);
+        
+    // // Allows random generation of objects on solid world tiles placed by players
+    // // Assumes tile is solid at position
+    // static ObjectType getRandomObjectToSpawnFromBiomeAtWorldTile(pl::Vector2<int> worldTile, int worldSize, const FastNoise& biomeNoise,
+    //     RandInt& randGen, PlanetType planetType, float probabilityMult = 1.0f);
 
     static EntityType getRandomEntityToSpawnAtWorldTile(pl::Vector2<int> worldTile, int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise,
         const FastNoise& riverNoise, PlanetType planetType);
@@ -256,7 +261,7 @@ public:
 private:
     void generateRandomStructure(int worldSize, const FastNoise& biomeNoise, RandInt& randGen, PlanetType planetType, bool allowStructureGen,
         std::optional<StructureType> forceStructureType);
-
+    
 private:
     // 0 reserved for water / no tile
     std::array<std::array<uint16_t, 8>, 8> groundTileGrid;

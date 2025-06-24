@@ -158,7 +158,7 @@ bool Chunk::generateObjects(const FastNoise& heightNoise, const FastNoise& biome
                 continue;
 
             // Create random object
-            ObjectType objectSpawnType = getRandomObjectToSpawnAtWorldTile(pl::Vector2<int>(worldNoisePosition.x + x, worldNoisePosition.y + y),
+            ObjectType objectSpawnType = getRandomObjectToSpawnAtWorldTile(pl::Vector2<int>(worldNoisePosition.x + x, worldNoisePosition.y + y), tileType,
                 chunkManager.getWorldSize(), heightNoise, biomeNoise, riverNoise, randGen, planetType, probabilityMult);
 
             if (objectSpawnType >= 0)
@@ -431,15 +431,19 @@ const TileGenData* Chunk::getTileGenAtWorldTile(pl::Vector2<int> worldTile, int 
     return tileGenDataPtr;
 }
 
-ObjectType Chunk::getRandomObjectToSpawnAtWorldTile(pl::Vector2<int> worldTile, int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise,
+ObjectType Chunk::getRandomObjectToSpawnAtWorldTile(pl::Vector2<int> worldTile, int tileType, int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise,
     const FastNoise& riverNoise, RandInt& randGen, PlanetType planetType, float probabilityMult)
-{
-    const TileGenData* tileGenData = getTileGenAtWorldTile(worldTile, worldSize, heightNoise, biomeNoise, riverNoise, planetType);
-
-    if (!tileGenData->objectsCanSpawn)
-        return -1;
-
+{   
     const BiomeGenData* biomeGenData = getBiomeGenAtWorldTile(worldTile, worldSize, biomeNoise, planetType);
+
+    assert(biomeGenData->tileGenDatas.contains(tileType));
+
+    const TileGenData& tileGenData = biomeGenData->tileGenDatas.at(tileType);
+
+    if (!tileGenData.objectsCanSpawn)
+    {
+        return -1;
+    }
 
     float cumulativeChance = 0;
     float randomSpawn = static_cast<float>(randGen.generate(0, 10000)) / 10000.0f;
