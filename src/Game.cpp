@@ -1043,7 +1043,7 @@ void Game::updateOnPlanet(float dt)
     {
         std::vector<ChunkPosition> chunksToRequestFromHost;
         
-        bool hasLoadedChunks = getChunkManager().updateChunks(*this, gameTime, {camera.getChunkViewRange()}, networkHandler.isClient(), &chunksToRequestFromHost);
+        bool hasLoadedChunks = getChunkManager().updateChunks(*this, gameTime, {camera.getChunkViewRange()}, &networkHandler, &chunksToRequestFromHost);
         bool hasUnloadedChunks = getChunkManager().unloadChunksOutOfView({camera.getChunkViewRange()});
     
         if (networkHandler.isClient() && chunksToRequestFromHost.size() > 0)
@@ -1153,7 +1153,7 @@ void Game::updateActivePlanets(float dt)
 
         ChunkManager& chunkManager = getChunkManager(planetType);
 
-        bool hasLoadedChunks = chunkManager.updateChunks(*this, gameTime, chunkViewRanges);
+        bool hasLoadedChunks = chunkManager.updateChunks(*this, gameTime, chunkViewRanges, &networkHandler);
         bool hasUnloadedChunks = chunkManager.unloadChunksOutOfView(chunkViewRanges);
     
         std::vector<ChunkPosition> chunksModified = chunkManager.updateChunksObjects(*this, dt, gameTime);
@@ -1749,7 +1749,7 @@ void Game::onRespawn()
 
     // Update / request chunks for complete pathfinding information
     std::vector<ChunkPosition> chunksToRequest;
-    getChunkManager().updateChunks(*this, gameTime, {cameraCopy.getChunkViewRange()}, networkHandler.isClient(), &chunksToRequest);
+    getChunkManager().updateChunks(*this, gameTime, {cameraCopy.getChunkViewRange()}, &networkHandler, &chunksToRequest);
     if (networkHandler.isClient())
     {
         networkHandler.requestChunksFromHost(locationState.getPlanetType(), chunksToRequest, true);
@@ -3149,7 +3149,7 @@ std::optional<ObjectReference> Game::setupPlanetTravel(PlanetType planetType, co
     playerChunkViewRange = playerChunkViewRange.copyAndCentre(newRocketObjectReference.chunk);
     
     // Update chunks at rocket position
-    getChunkManager(planetType).updateChunks(*this, gameTime, {playerChunkViewRange});
+    getChunkManager(planetType).updateChunks(*this, gameTime, {playerChunkViewRange}, &networkHandler);
     
     // Place rocket
     buildObject(newRocketObjectReference.chunk, newRocketObjectReference.tile, rocketObjectType, planetType, false, false);
@@ -3255,7 +3255,7 @@ void Game::travelToPlanet(PlanetType planetType, ObjectReference newRocketObject
 
     camera.instantUpdate(player.getPosition());
 
-    getChunkManager().updateChunks(*this, gameTime, {camera.getChunkViewRange()}, networkHandler.isClient());
+    getChunkManager().updateChunks(*this, gameTime, {camera.getChunkViewRange()}, &networkHandler);
     
     lightingTickTime = LIGHTING_TICK_TIME;
 
@@ -3560,7 +3560,7 @@ void Game::startNewGame(int seed)
 
     camera.instantUpdate(player.getPosition());
 
-    getChunkManager().updateChunks(*this, gameTime, {camera.getChunkViewRange()});
+    getChunkManager().updateChunks(*this, gameTime, {camera.getChunkViewRange()}, &networkHandler);
     lightingTickTime = LIGHTING_TICK_TIME;
 
     worldMenuState = WorldMenuState::Main;
@@ -3730,7 +3730,7 @@ bool Game::loadGame(const SaveFileSummary& saveFileSummary)
         weatherSystem = WeatherSystem(gameTime, planetSeed + locationState.getPlanetType());
         weatherSystem.presimulateWeather(gameTime, camera, getChunkManager());
         
-        getChunkManager().updateChunks(*this, gameTime, {camera.getChunkViewRange()});
+        getChunkManager().updateChunks(*this, gameTime, {camera.getChunkViewRange()}, &networkHandler);
 
         lightingTickTime = LIGHTING_TICK_TIME;
     }

@@ -53,6 +53,8 @@ enum class PacketType : uint8_t
     Landmarks,
     LandmarkModified,
 
+    MapChunkDiscovered,
+    
     RocketEnterRequest,
     RocketEnterReply,
     RocketInteraction,

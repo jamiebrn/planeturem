@@ -32,6 +32,8 @@ void WorldMap::setChunkMapSection(const ChunkWorldMapSection& chunkMapSection)
             chunkMapSection.chunkPosition.y * CHUNK_MAP_TILE_SIZE + y, CHUNK_MAP_TILE_SIZE, 1,
             GL_RGB, GL_UNSIGNED_BYTE, &mapTextureData[startIdx + yIdxOffset]);
     }
+
+    chunksDiscovered.insert(chunkMapSection.chunkPosition);
 }
 
 const pl::Texture& WorldMap::getTexture() const
@@ -67,4 +69,9 @@ void WorldMap::initTexture()
     }
 
     mapTexture.overwriteData(CHUNK_MAP_TILE_SIZE * worldSize, CHUNK_MAP_TILE_SIZE * worldSize, mapTextureData.data(), GL_RGB, GL_UNSIGNED_BYTE);
+}
+
+bool WorldMap::isChunkDiscovered(ChunkPosition chunkPosition) const
+{
+    return chunksDiscovered.contains(chunkPosition);
 }

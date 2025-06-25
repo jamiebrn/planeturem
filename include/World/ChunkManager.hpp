@@ -65,7 +65,7 @@ public:
     // Load chunks every frame
     // Returns true if any chunks loaded
     bool updateChunks(Game& game, float gameTime, const std::vector<ChunkViewRange>& chunkViewRanges,
-            bool isClient = false, std::vector<ChunkPosition>* chunksToRequestFromHost = nullptr);
+            NetworkHandler* networkHandler, std::vector<ChunkPosition>* chunksToRequestFromHost = nullptr);
     
     bool unloadChunksOutOfView(const std::vector<ChunkViewRange>& chunkViewRanges);
 

@@ -32,6 +32,7 @@
 #include "Network/PacketData/PacketDataWorld/PacketDataBossSpawnCheck.hpp"
 #include "Network/PacketData/PacketDataWorld/PacketDataBossSpawnCheckReply.hpp"
 #include "Network/PacketData/PacketDataWorld/PacketDataBossSpawnRequest.hpp"
+#include "Network/PacketData/PacketDataWorld/PacketDataMapChunkDiscovered.hpp"
 #include "Network/PacketData/PacketDataWorld/PacketDataLandmarks.hpp"
 #include "Network/PacketData/PacketDataWorld/PacketDataLandmarkModified.hpp"
 #include "Network/PacketData/PacketDataWorld/PacketDataRocketEnterRequest.hpp"

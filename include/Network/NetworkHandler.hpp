@@ -45,7 +45,9 @@ public:
     void sendGameUpdatesToHost(const Camera& camera, float dt);
 
     void leaveLobby();
-    
+
+    EResult sendPacketToClientsAtLocation(const Packet& packet, int nSendFlags, int nRemoteChannel, const LocationState& locationState);
+
     EResult sendPacketToClients(const Packet& packet, int nSendFlags, int nRemoteChannel, std::unordered_set<uint64_t> exceptions = {});
     EResult sendPacketToClient(uint64_t steamID, const Packet& packet, int nSendFlags, int nRemoteChannel);
     EResult sendPacketToHost(const Packet& packet, int nSendFlags, int nRemoteChannel);

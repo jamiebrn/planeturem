@@ -1381,6 +1381,24 @@ void NetworkHandler::processMessageAsClient(const SteamNetworkingMessage_t& mess
             game->getParticleSystem().addParticle(packetData.particle, LocationState::createFromPlanetType(packetData.planetType), nullptr);
             break;
         }
+        case PacketType::MapChunkDiscovered:
+        {
+            PacketDataMapChunkDiscovered packetData;
+            packetData.deserialise(packet.data);
+
+            if (game->getLocationState() != LocationState::createFromPlanetType(packetData.planetType))
+            {
+                break;
+            }
+
+            if (game->getChunkManager(packetData.planetType).getWorldMap().isChunkDiscovered(packetData.worldMapSection.chunkPosition))
+            {
+                break;
+            }
+
+            game->getChunkManager(packetData.planetType).getWorldMap().setChunkMapSection(packetData.worldMapSection);
+            break;
+        }
         case PacketType::PlanetTravelReply:
         {
             PacketDataPlanetTravelReply packetData;
@@ -1586,6 +1604,28 @@ void NetworkHandler::sendGameUpdatesToHost(const Camera& camera, float dt)
     packet.set(playerInfoPacketData);
 
     sendPacketToHost(packet, k_nSteamNetworkingSend_Unreliable, 0);
+}
+
+EResult NetworkHandler::sendPacketToClientsAtLocation(const Packet& packet, int nSendFlags, int nRemoteChannel, const LocationState& locationState)
+{
+    if (!isLobbyHost)
+    {
+        return EResult::k_EResultAccessDenied;
+    }
+
+    EResult result = EResult::k_EResultOK;
+
+    for (const auto& networkPlayerPair : getNetworkPlayersAtLocation(locationState))
+    {
+        EResult sendResult = sendPacketToClient(networkPlayerPair.first, packet, nSendFlags, nRemoteChannel);
+
+        if (sendResult != EResult::k_EResultOK)
+        {
+            result = sendResult;
+        }
+    }
+
+    return result;
 }
 
 EResult NetworkHandler::sendPacketToClients(const Packet& packet, int nSendFlags, int nRemoteChannel, std::unordered_set<uint64_t> exceptions)

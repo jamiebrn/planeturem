@@ -60,7 +60,7 @@ void ChunkManager::deleteAllChunks()
 }
 
 bool ChunkManager::updateChunks(Game& game, float gameTime, const std::vector<ChunkViewRange>& chunkViewRanges,
-    bool isClient, std::vector<ChunkPosition>* chunksToRequestFromHost)
+    NetworkHandler* networkHandler, std::vector<ChunkPosition>* chunksToRequestFromHost)
 {
     // Chunk load/unload
 
@@ -109,12 +109,22 @@ bool ChunkManager::updateChunks(Game& game, float gameTime, const std::vector<Ch
                 }
             }
 
-            worldMap.setChunkMapSection(chunk->createChunkWorldMapSection(*this));
+            ChunkWorldMapSection worldMapSection = chunk->createChunkWorldMapSection(*this);
+            
+            worldMap.setChunkMapSection(worldMapSection);
+            
+            if (networkHandler && networkHandler->getIsLobbyHost())
+            {
+                PacketDataMapChunkDiscovered packetData;
+                packetData.planetType = planetType;
+                packetData.worldMapSection = worldMapSection;
+                networkHandler->sendPacketToClientsAtLocation(Packet(packetData), k_nSteamNetworkingSend_Reliable, 0, LocationState::createFromPlanetType(planetType));
+            }
     
             continue;
         }
 
-        if (isClient)
+        if (networkHandler && networkHandler->isClient())
         {
             if (chunksToRequestFromHost)
             {
@@ -125,8 +135,18 @@ bool ChunkManager::updateChunks(Game& game, float gameTime, const std::vector<Ch
     
         // Generate new chunk if does not exist (only if host / solo)
         generateChunk(chunkPos, game, gameTime, true);
+        
+        ChunkWorldMapSection worldMapSection = getChunk(chunkPos)->createChunkWorldMapSection(*this);
 
-        worldMap.setChunkMapSection(getChunk(chunkPos)->createChunkWorldMapSection(*this));
+        worldMap.setChunkMapSection(worldMapSection);
+        
+        if (networkHandler && networkHandler->getIsLobbyHost())
+        {
+            PacketDataMapChunkDiscovered packetData;
+            packetData.planetType = planetType;
+            packetData.worldMapSection = worldMapSection;
+            networkHandler->sendPacketToClientsAtLocation(Packet(packetData), k_nSteamNetworkingSend_Reliable, 0, LocationState::createFromPlanetType(planetType));
+        }
     }
 
     return hasModifiedChunks;
