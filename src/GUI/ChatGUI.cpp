@@ -26,12 +26,13 @@ void ChatGUI::activate(const pl::RenderTarget& window)
     {
         float intScale = ResolutionHandler::getResolutionIntegerScale();
 
-        const int width = 600 * intScale;
-        const int height = 335 * intScale;
-        const int padding = 30 * intScale;
+        const int width = MENU_WIDTH * intScale;
+        int height = MENU_HEIGHT * intScale;
+        const int paddingY = MENU_Y_PADDING * intScale;
+        const int paddingX = MENU_X_PADDING * intScale;
 
         SteamUtils()->ShowFloatingGamepadTextInput(EFloatingGamepadTextInputMode::k_EFloatingGamepadTextInputModeModeSingleLine,
-            window.getWidth() - width - padding, window.getHeight() - height - padding, width, height);
+            window.getWidth() - width - paddingX, window.getHeight() - height - paddingY, width, height);
     }
 }
 
@@ -178,7 +179,7 @@ void ChatGUI::addChatMessage(NetworkHandler& networkHandler, const PacketDataCha
     }
 }
 
-void ChatGUI::draw(pl::RenderTarget& window, NetworkHandler& networkHandler, pl::Vector2<uint32_t> playerTile)
+void ChatGUI::draw(pl::RenderTarget& window, NetworkHandler& networkHandler, pl::Vector2<uint32_t> playerTile, bool isOnPlanet)
 {
     if (menuAlpha <= 0.0f)
     {
@@ -187,9 +188,14 @@ void ChatGUI::draw(pl::RenderTarget& window, NetworkHandler& networkHandler, pl:
 
     float intScale = ResolutionHandler::getResolutionIntegerScale();
 
-    const int width = 600 * intScale;
-    int height = 335 * intScale;
-    const int padding = 30 * intScale;
+    const int width = MENU_WIDTH * intScale;
+    int height = MENU_HEIGHT * intScale;
+    const int paddingY = MENU_Y_PADDING * intScale;
+    int paddingX = MENU_Y_PADDING * intScale;
+    if (isOnPlanet)
+    {
+        paddingX = MENU_X_PADDING * intScale;
+    }
 
     const int playerTileTextYSeparation = 15 * intScale;
     const int playerTileTextPadding = 6 * intScale;
@@ -206,21 +212,21 @@ void ChatGUI::draw(pl::RenderTarget& window, NetworkHandler& networkHandler, pl:
     pl::TextDrawData playerTileTextDrawData;
     playerTileTextDrawData.text = "X: " + std::to_string(playerTile.x) + " Y: " + std::to_string(playerTile.y);
     playerTileTextDrawData.size = 24 * intScale;
-    playerTileTextDrawData.containPaddingRight = padding;
+    playerTileTextDrawData.containPaddingRight = paddingX;
     playerTileTextDrawData.containOnScreenX = true;
 
     pl::Rect<float> textSize = TextDraw::getTextSize(playerTileTextDrawData);
-    playerTileTextDrawData.position.x = window.getWidth() - padding - playerTileTextPadding - textSize.width;
-    playerTileTextDrawData.position.y = window.getHeight() - height - padding - playerTileTextYSeparation - playerTileTextPadding - textSize.height + playerTileTextYOffset;
+    playerTileTextDrawData.position.x = window.getWidth() - paddingX - playerTileTextPadding - textSize.width;
+    playerTileTextDrawData.position.y = window.getHeight() - height - paddingY - playerTileTextYSeparation - playerTileTextPadding - textSize.height + playerTileTextYOffset;
     playerTileTextDrawData.color.a = menuAlpha * 255.0f;
 
     pl::VertexArray background;
-    background.addQuad(pl::Rect<float>(window.getWidth() - width - padding, window.getHeight() - height - padding, width, height),
+    background.addQuad(pl::Rect<float>(window.getWidth() - width - paddingX, window.getHeight() - height - paddingY, width, height),
         pl::Color(30, 30, 30, 180 * menuAlpha), pl::Rect<float>());
     
     // Player tile display
-    background.addQuad(pl::Rect<float>(window.getWidth() - padding - textSize.width - playerTileTextPadding * 2,
-        window.getHeight() - height - padding - playerTileTextYSeparation - textSize.height - playerTileTextPadding * 2,
+    background.addQuad(pl::Rect<float>(window.getWidth() - paddingX - textSize.width - playerTileTextPadding * 2,
+        window.getHeight() - height - paddingY - playerTileTextYSeparation - textSize.height - playerTileTextPadding * 2,
         textSize.width + playerTileTextPadding * 2, textSize.height + playerTileTextPadding * 2),
         pl::Color(30, 30, 30, 180 * menuAlpha), pl::Rect<float>());
 
@@ -234,7 +240,7 @@ void ChatGUI::draw(pl::RenderTarget& window, NetworkHandler& networkHandler, pl:
     
     if (networkHandler.isMultiplayerGame())
     {
-        drawData.position = pl::Vector2f(window.getWidth() - padding - width + 10 * intScale, window.getHeight() - padding - 30 * intScale);
+        drawData.position = pl::Vector2f(window.getWidth() - paddingX - width + 10 * intScale, window.getHeight() - paddingY - 30 * intScale);
         drawData.color = pl::Color(200, 200, 200, 255 * menuAlpha);
         drawData.text = messageBuffer.empty() ? "Enter a message" : messageBuffer;
         
@@ -242,7 +248,7 @@ void ChatGUI::draw(pl::RenderTarget& window, NetworkHandler& networkHandler, pl:
     }
     else
     {
-        drawData.position = pl::Vector2f(window.getWidth() - padding - width + 10 * intScale, window.getHeight() - padding);
+        drawData.position = pl::Vector2f(window.getWidth() - paddingX - width + 10 * intScale, window.getHeight() - paddingY);
     }
 
     for (int i = static_cast<int>(chatLog.size()) - 1; i >= std::max(static_cast<int>(chatLog.size()) - messageCount, 0); i--)

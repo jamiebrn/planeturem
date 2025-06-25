@@ -50,7 +50,7 @@ public:
 
     void update(const pl::RenderTarget& window, float dt);
 
-    void draw(pl::RenderTarget& window, NetworkHandler& networkHandler, pl::Vector2<uint32_t> playerTile);
+    void draw(pl::RenderTarget& window, NetworkHandler& networkHandler, pl::Vector2<uint32_t> playerTile, bool isOnPlanet);
 
     void addChatMessage(NetworkHandler& networkHandler, const PacketDataChatMessage& chatMessagePacket, bool notify = true);
 
@@ -71,5 +71,10 @@ private:
     static constexpr float MENU_ALPHA_LERP_WEIGHT = 11.0f;
     static constexpr float MENU_ALPHA_SHOWING = 0.5f;
     float menuAlpha;
+
+    static constexpr float MENU_WIDTH = 600.0f;
+    static constexpr float MENU_HEIGHT = 335.0f;
+    static constexpr float MENU_X_PADDING = 340.0f;
+    static constexpr float MENU_Y_PADDING = 30.0f;
 
 };

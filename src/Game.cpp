@@ -996,7 +996,7 @@ void Game::runInGame(float dt)
     }
     else
     {
-        chatGUI.draw(window, networkHandler, player.getTileInside());
+        chatGUI.draw(window, networkHandler, player.getTileInside(), gameState == GameState::OnPlanet);
     }
 
     if (gameState == GameState::OnPlanet)
@@ -4634,6 +4634,7 @@ void Game::drawControllerGlyphs(const std::vector<std::pair<InputAction, std::st
 
     static constexpr int GLYPH_SPACING = 50;
     static constexpr int GLYPH_X_PADDING = 70;
+    static constexpr int GLYPH_Y_PADDING = 310;
 
     for (int i = 0; i < actionStrings.size(); i++)
     {
@@ -4654,7 +4655,7 @@ void Game::drawControllerGlyphs(const std::vector<std::pair<InputAction, std::st
         pl::DrawData glyphDrawData;
         glyphDrawData.texture = TextureManager::getTexture(TextureType::UI);
         glyphDrawData.shader = Shaders::getShader(ShaderType::Default);
-        glyphDrawData.position = pl::Vector2f(resolution.x - GLYPH_X_PADDING / 2.0f * intScale, resolution.y - (i + 1) * GLYPH_SPACING * intScale);
+        glyphDrawData.position = pl::Vector2f(resolution.x - GLYPH_X_PADDING / 2.0f * intScale, resolution.y - ((i + 1) * GLYPH_SPACING + GLYPH_Y_PADDING) * intScale);
         glyphDrawData.centerRatio = pl::Vector2f(0.5f, 0.5f);
         glyphDrawData.scale = pl::Vector2f(3, 3) * intScale;
         glyphDrawData.textureRect = glyphTextureRect;
@@ -4664,7 +4665,7 @@ void Game::drawControllerGlyphs(const std::vector<std::pair<InputAction, std::st
         // Draw action text
         pl::TextDrawData textDrawData;
         textDrawData.text = actionString.second;
-        textDrawData.position = pl::Vector2f(resolution.x, resolution.y - (i + 1) * GLYPH_SPACING * intScale);
+        textDrawData.position = pl::Vector2f(resolution.x, resolution.y - ((i + 1) * GLYPH_SPACING + GLYPH_Y_PADDING) * intScale);
         textDrawData.size = 24 * intScale;
         textDrawData.color = pl::Color(255, 255, 255);
         textDrawData.outlineColor = pl::Color(46, 34, 47);

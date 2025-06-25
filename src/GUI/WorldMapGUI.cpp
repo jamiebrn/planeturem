@@ -6,7 +6,8 @@ void WorldMapGUI::drawMiniMap(pl::RenderTarget& window, pl::SpriteBatch& spriteB
 {
     float intScale = ResolutionHandler::getResolutionIntegerScale();
 
-    static constexpr int MINI_MAP_PADDING = 30;
+    static constexpr int MINI_MAP_PADDING_X = 20;
+    static constexpr int MINI_MAP_PADDING_Y = 30;
     static constexpr int MINI_MAP_WIDTH = 300;
     static constexpr int MINI_MAP_HEIGHT = 300;
     static constexpr int MINI_MAP_SCALE = 3;
@@ -50,8 +51,8 @@ void WorldMapGUI::drawMiniMap(pl::RenderTarget& window, pl::SpriteBatch& spriteB
     Shaders::getShader(ShaderType::MiniMap)->setUniform1i("circleResolution", MINI_MAP_WIDTH / 4);
 
     miniMapRect.clear();
-    miniMapRect.addQuad(pl::Rect<float>(window.getWidth() - (MINI_MAP_WIDTH + MINI_MAP_PADDING) * intScale,
-        window.getHeight() - (MINI_MAP_HEIGHT + MINI_MAP_PADDING) * intScale, MINI_MAP_WIDTH * intScale, MINI_MAP_HEIGHT * intScale), pl::Color(),
+    miniMapRect.addQuad(pl::Rect<float>(window.getWidth() - (MINI_MAP_WIDTH + MINI_MAP_PADDING_X) * intScale,
+        window.getHeight() - (MINI_MAP_HEIGHT + MINI_MAP_PADDING_Y) * intScale, MINI_MAP_WIDTH * intScale, MINI_MAP_HEIGHT * intScale), pl::Color(),
         pl::Rect<float>(0, miniMapFrameBuffer.getHeight(), miniMapFrameBuffer.getWidth(), -miniMapFrameBuffer.getHeight()));
 
     window.draw(miniMapRect, *Shaders::getShader(ShaderType::MiniMap), &miniMapFrameBuffer.getTexture(), pl::BlendMode::Alpha);
@@ -88,8 +89,8 @@ void WorldMapGUI::drawMiniMap(pl::RenderTarget& window, pl::SpriteBatch& spriteB
             std::min((worldPos - playerPosition).getLength() / TILE_SIZE_PIXELS_UNSCALED / (CHUNK_TILE_SIZE / CHUNK_MAP_TILE_SIZE) * MINI_MAP_SCALE * intScale,
             MINI_MAP_WIDTH * intScale / 2);
 
-        drawData.position = relativePos + pl::Vector2f(window.getWidth() - (MINI_MAP_WIDTH / 2 + MINI_MAP_PADDING) * intScale,
-            window.getHeight() - (MINI_MAP_HEIGHT / 2 + MINI_MAP_PADDING) * intScale);
+        drawData.position = relativePos + pl::Vector2f(window.getWidth() - (MINI_MAP_WIDTH / 2 + MINI_MAP_PADDING_X) * intScale,
+            window.getHeight() - (MINI_MAP_HEIGHT / 2 + MINI_MAP_PADDING_Y) * intScale);
         drawData.shader->setUniform4fv("replaceValues", replaceValues);
         drawData.textureRect = landmarkUIAnimation.getTextureRect();
     
@@ -118,8 +119,8 @@ void WorldMapGUI::drawMiniMap(pl::RenderTarget& window, pl::SpriteBatch& spriteB
         pl::Vector2f relativePos = (worldPos - playerPosition).normalise() *
             std::min((worldPos - playerPosition).getLength() / TILE_SIZE_PIXELS_UNSCALED / (CHUNK_TILE_SIZE / CHUNK_MAP_TILE_SIZE) * MINI_MAP_SCALE * intScale,
             MINI_MAP_WIDTH * intScale / 2);
-        drawData.position = relativePos + pl::Vector2f(window.getWidth() - (MINI_MAP_WIDTH / 2 + MINI_MAP_PADDING) * intScale,
-            window.getHeight() - (MINI_MAP_HEIGHT / 2 + MINI_MAP_PADDING) * intScale);
+        drawData.position = relativePos + pl::Vector2f(window.getWidth() - (MINI_MAP_WIDTH / 2 + MINI_MAP_PADDING_X) * intScale,
+            window.getHeight() - (MINI_MAP_HEIGHT / 2 + MINI_MAP_PADDING_Y) * intScale);
         
         spriteBatch.draw(window, drawData);
         spriteBatch.endDrawing(window);
