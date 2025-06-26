@@ -2,6 +2,10 @@
 
 // CONSIDER: Custom death chat messages depending on source of death
 
+// TODO: Drop items with controller
+// TODO: Open chat menu with controller
+// TODO: Controller "relative" aim mode
+
 // FIX: Rocket entered reference not setting correctly on travel in some cases (room to planet???)
 
 // FIX: Space station use rocket while other player use glitch
@@ -665,11 +669,6 @@ void Game::runInGame(float dt)
         networkHandler.updateNetworkPlayers(dt, locationState);
         networkHandler.sendGameUpdates(dt, camera);
     }
-
-    if (canInput)
-    {
-        chatGUI.update(window, dt);
-    }
     
     
     //
@@ -812,6 +811,11 @@ void Game::runInGame(float dt)
                         {InputAction::OPEN_INVENTORY, "Inventory"} 
                     };
 
+                    if (networkHandler.isMultiplayerGame())
+                    {
+                        actionStrings.push_back({InputAction::OPEN_CHAT, "Open chat"});
+                    }
+
                     drawControllerGlyphs(actionStrings);
                 }
 
@@ -854,6 +858,11 @@ void Game::runInGame(float dt)
                         {InputAction::UI_CONFIRM_OTHER, "Select 1"},  
                         {InputAction::UI_CONFIRM, "Select All"},
                     };
+
+                    if (InventoryGUI::getIsItemPickedUp() && locationState.isOnPlanet())
+                    {
+                        actionStrings.push_back({InputAction::DROP_ITEM, "Drop item"});
+                    }
 
                     drawControllerGlyphs(actionStrings);
                 }
@@ -994,10 +1003,6 @@ void Game::runInGame(float dt)
             }
         }
     }
-    else
-    {
-        chatGUI.draw(window, networkHandler, player.getTileInside(), gameState == GameState::OnPlanet);
-    }
 
     if (gameState == GameState::OnPlanet)
     {
@@ -1005,8 +1010,19 @@ void Game::runInGame(float dt)
             getSpawnLocation(), getLandmarkManager().getLandmarkSummaryDatas(camera, getChunkManager(), networkHandler),
             networkHandler.getNetworkPlayersAtLocation(locationState));
     }
-    
+
     spriteBatch.endDrawing(window);
+    
+    // Check chat open input after inventory handling drop item keybind (same by default, give priority to drop item)
+    if (canInput)
+    {
+        chatGUI.update(window, dt);
+    }
+
+    if (worldMenuState != WorldMenuState::PauseMenu)
+    {
+        chatGUI.draw(window, networkHandler, player.getTileInside(), gameState == GameState::OnPlanet);
+    }
 }
 
 
@@ -3973,13 +3989,14 @@ void Game::loadInputBindings()
         JoystickAxisWithDirection{SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_RIGHTX, JoystickAxisDirection::POSITIVE}, false);
 
     InputManager::bindControllerButton(InputAction::OPEN_INVENTORY, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_B, false);
+    InputManager::bindControllerButton(InputAction::DROP_ITEM, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_Y, false);
     InputManager::bindControllerButton(InputAction::UI_CONFIRM, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_A, false);
     InputManager::bindControllerButton(InputAction::UI_CONFIRM_OTHER, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_X, false);
     InputManager::bindControllerButton(InputAction::UI_BACK, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_B, false);
     InputManager::bindControllerButton(InputAction::UI_SHIFT, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_LEFTSTICK, false);
     // InputManager::bindControllerButton(InputAction::UI_CTRL, SDL_GameControllerButton::, false);
     InputManager::bindControllerButton(InputAction::RECENTRE_CONTROLLER_CURSOR, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_RIGHTSTICK, false);
-    InputManager::bindControllerButton(InputAction::OPEN_CHAT, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_GUIDE, false);
+    InputManager::bindControllerButton(InputAction::OPEN_CHAT, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_Y, false);
     InputManager::bindControllerButton(InputAction::PAUSE_GAME, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_START, false);
     InputManager::bindControllerAxis(InputAction::USE_TOOL,
         JoystickAxisWithDirection{SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_TRIGGERRIGHT, JoystickAxisDirection::POSITIVE}, false);
@@ -4634,7 +4651,11 @@ void Game::drawControllerGlyphs(const std::vector<std::pair<InputAction, std::st
 
     static constexpr int GLYPH_SPACING = 50;
     static constexpr int GLYPH_X_PADDING = 70;
-    static constexpr int GLYPH_Y_PADDING = 310;
+    int ACTION_X_PADDING = 0;
+    if (gameState == GameState::OnPlanet)
+    {
+        ACTION_X_PADDING = 320;
+    }
 
     for (int i = 0; i < actionStrings.size(); i++)
     {
@@ -4655,7 +4676,7 @@ void Game::drawControllerGlyphs(const std::vector<std::pair<InputAction, std::st
         pl::DrawData glyphDrawData;
         glyphDrawData.texture = TextureManager::getTexture(TextureType::UI);
         glyphDrawData.shader = Shaders::getShader(ShaderType::Default);
-        glyphDrawData.position = pl::Vector2f(resolution.x - GLYPH_X_PADDING / 2.0f * intScale, resolution.y - ((i + 1) * GLYPH_SPACING + GLYPH_Y_PADDING) * intScale);
+        glyphDrawData.position = pl::Vector2f(resolution.x - (GLYPH_X_PADDING / 2.0f + ACTION_X_PADDING) * intScale, resolution.y - (i + 1) * GLYPH_SPACING * intScale);
         glyphDrawData.centerRatio = pl::Vector2f(0.5f, 0.5f);
         glyphDrawData.scale = pl::Vector2f(3, 3) * intScale;
         glyphDrawData.textureRect = glyphTextureRect;
@@ -4665,13 +4686,13 @@ void Game::drawControllerGlyphs(const std::vector<std::pair<InputAction, std::st
         // Draw action text
         pl::TextDrawData textDrawData;
         textDrawData.text = actionString.second;
-        textDrawData.position = pl::Vector2f(resolution.x, resolution.y - ((i + 1) * GLYPH_SPACING + GLYPH_Y_PADDING) * intScale);
+        textDrawData.position = pl::Vector2f(resolution.x, resolution.y - (i + 1) * GLYPH_SPACING * intScale);
         textDrawData.size = 24 * intScale;
         textDrawData.color = pl::Color(255, 255, 255);
         textDrawData.outlineColor = pl::Color(46, 34, 47);
         textDrawData.outlineThickness = 2 * intScale;
         textDrawData.containOnScreenX = true;
-        textDrawData.containPaddingRight = GLYPH_X_PADDING * intScale;
+        textDrawData.containPaddingRight = (GLYPH_X_PADDING + ACTION_X_PADDING) * intScale;
         textDrawData.centeredY = true;
 
         TextDraw::drawText(window, textDrawData);

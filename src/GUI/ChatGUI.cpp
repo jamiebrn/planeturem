@@ -18,6 +18,11 @@ void ChatGUI::setShowing(bool enabled)
 
 void ChatGUI::activate(const pl::RenderTarget& window)
 {
+    if (active)
+    {
+        return;
+    }
+    
     showing = true;
     active = true;
     notifyTime = 0.0f;

@@ -135,6 +135,8 @@ public:
 
     static bool heldItemPlacesLand(InventoryData& inventory, bool isInInventory);
 
+    static bool getIsItemPickedUp();
+
     static void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, float gameTime, pl::Vector2f mouseScreenPos,
         InventoryData& inventory, InventoryData& armourInventory, InventoryData* chestData = nullptr);
 
@@ -230,6 +232,8 @@ private:
     // -- Shop --
     static bool attemptPurchaseItem(InventoryData& inventory, int shopIndex);
     static bool attemptSellItemHeld(InventoryData& inventory);
+
+    static void dropItemPickedUp(Game& game, ChunkManager& chunkManager, NetworkHandler& networkHandler);
 
 private:
     // static pl::Vector2f screenPos;

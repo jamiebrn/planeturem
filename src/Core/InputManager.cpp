@@ -271,7 +271,7 @@ void InputManager::consumeInputAction(InputAction action)
     consumeInput<SDL_GameControllerButton>(action, controllerButtonBindings);
 }
 
-template<typename InputType>
+template <typename InputType>
 void InputManager::consumeInput(InputAction action, std::unordered_map<InputAction, InputType>& bindMap)
 {
     std::vector<InputAction> actionsToConsume;

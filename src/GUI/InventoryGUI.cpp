@@ -359,22 +359,25 @@ bool InventoryGUI::handleRightClick(Game& game, pl::Vector2f mouseScreenPos, boo
 
     if (!isMouseOverUI(mouseScreenPos) && chunkManager && isItemPickedUp)
     {
-        // Drop held item
-        ItemPickup itemPickup(game.getPlayer().getPosition() + pl::Vector2f(Helper::randFloat(-2, 2), Helper::randFloat(-2, 2)),
-            pickedUpItem, game.getGameTime(), pickedUpItemCount);
-        
-        chunkManager->addItemPickup(itemPickup, &networkHandler);
-
-        isItemPickedUp = false;
-        pickedUpItem = -1;
-        pickedUpItemCount = 0;
-
+        dropItemPickedUp(game, *chunkManager, networkHandler);
         interacted = true;
     }
 
     networkHandler.queueSendPlayerData();
 
     return interacted;
+}
+
+void InventoryGUI::dropItemPickedUp(Game& game, ChunkManager& chunkManager, NetworkHandler& networkHandler)
+{
+    ItemPickup itemPickup(game.getPlayer().getPosition() + pl::Vector2f(Helper::randFloat(-2, 2), Helper::randFloat(-2, 2)),
+        pickedUpItem, game.getGameTime(), pickedUpItemCount);
+    
+    chunkManager.addItemPickup(itemPickup, &networkHandler);
+
+    isItemPickedUp = false;
+    pickedUpItem = -1;
+    pickedUpItemCount = 0;
 }
 
 bool InventoryGUI::handleScroll(pl::Vector2f mouseScreenPos, int direction, InventoryData& inventory)
@@ -955,6 +958,11 @@ bool InventoryGUI::heldItemPlacesLand(InventoryData& inventory, bool isInInvento
     }
 
     return false;
+}
+
+bool InventoryGUI::getIsItemPickedUp()
+{
+    return isItemPickedUp;
 }
 
 void InventoryGUI::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, float gameTime, pl::Vector2f mouseScreenPos,
@@ -2157,29 +2165,29 @@ void InventoryGUI::pushItemPopup(const ItemCount& itemCount, bool notEnoughSpace
     if (!textOverride.has_value())
     {
         // Add to item popup if same item is already in popups
-        for (auto iter = itemPopups.begin(); iter != itemPopups.end();)
+        for (auto iter = itemPopups.begin(); iter != itemPopups.end(); iter++)
         {
-            if (iter->notEnoughSpace == notEnoughSpace)
+            // Only add to popup if "not enough space" labels are the same
+            if (iter->notEnoughSpace != notEnoughSpace)
             {
-                // Only add to popup if "not enough space" labels are the same
-
-                if (itemCount.first == iter->itemCount.first)
-                {
-                    // Popup of same item type found
-                    ItemPopup popupToAddTo = *iter;
-                    popupToAddTo.itemCount.second += itemCount.second;
-                    popupToAddTo.timeAlive = 0.0f;
-
-                    iter = itemPopups.erase(iter);
-                    itemPopups.push_back(popupToAddTo);
-
-                    addedToExisting = true;
-
-                    break;
-                }
+                continue;
             }
 
-            iter++;
+            if (itemCount.first != iter->itemCount.first)
+            {
+                continue;
+            }
+
+            // Popup of same item type found
+            ItemPopup popupToAddTo = *iter;
+            popupToAddTo.itemCount.second += itemCount.second;
+            popupToAddTo.timeAlive = 0.0f;
+
+            iter = itemPopups.erase(iter);
+            itemPopups.push_back(popupToAddTo);
+
+            addedToExisting = true;
+            break;
         }
     }
 
@@ -2440,6 +2448,12 @@ bool InventoryGUI::handleControllerInput(Game& game, NetworkHandler& networkHand
     {
         handleRightClick(game, pl::Vector2f(0, 0), InputManager::isActionActive(InputAction::UI_SHIFT), networkHandler, chunkManager, inventory, armourInventory, chestData);
         return true;
+    }
+
+    if (InputManager::isActionJustActivated(InputAction::DROP_ITEM) && isItemPickedUp && chunkManager)
+    {
+        dropItemPickedUp(game, *chunkManager, networkHandler);
+        InputManager::consumeInputAction(InputAction::DROP_ITEM);
     }
 
     return false;

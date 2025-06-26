@@ -47,6 +47,7 @@ enum class InputAction
 
     INTERACT,
     OPEN_INVENTORY,
+    DROP_ITEM,
 
     ZOOM_IN,
     ZOOM_OUT,
