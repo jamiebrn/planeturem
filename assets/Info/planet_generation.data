@@ -55,6 +55,7 @@
                         ["Carp", 1, 1],
                         ["Bream", 1, 1],
                         ["Dace", 1, 1],
+                        ["Freshwater Eel", 1, 1],
                         ["Coal", 1, 1],
                         ["Wood", 2, 1]
                     ],
@@ -108,7 +109,9 @@
                         ["Large Icicle Left", 0.01],
                         ["Large Icicle Right", 0.01]
                     ],
-                    "fish-catches": [],
+                    "fish-catches": [
+                        ["Crocodile Icefish", 1, 1]
+                    ],
                     "water-colour": [77, 155, 230],
                     "noise-range": [0, 0.5],
                     "resource-regeneration-time": [170, 240],
@@ -128,8 +131,11 @@
                     "structures": [
                         ["Igloo", 0.02]
                     ],
-                    "fish-catches": [],
-                    "water-colour": [77, 155, 230],
+                    "fish-catches": [
+                        ["Crocodile Icefish", 1, 1],
+                        ["Koi", 1, 1]
+                    ],
+                    "water-colour": [138, 185, 230],
                     "noise-range": [0.5, 1],
                     "resource-regeneration-time": [250, 420],
                     "resource-regeneration-density": 0.3

@@ -1443,6 +1443,7 @@ pl::Vector2f InventoryGUI::drawItemInfoBox(pl::RenderTarget& window, float gameT
         if (itemData.consumableData->healthIncrease > 0)
         {
             infoStrings.push_back({"+" + std::to_string(itemData.consumableData->healthIncrease) + " health", 20});
+            infoStrings.push_back({std::to_string(itemData.consumableData->cooldownTime) + " second cooldown", 20});
         }
         if (itemData.consumableData->permanentHealthIncrease > 0)
         {

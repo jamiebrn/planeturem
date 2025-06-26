@@ -118,6 +118,15 @@
         "sell-value": 2
     },
     {
+        "name": "Freshwater Eel",
+        "texture": [48, 128, 16, 16],
+        "consumable-data": {
+            "cooldown-time": 35,
+            "health-increase": 60
+        },
+        "sell-value": 2
+    },
+    {
         "name": "Sandfish",
         "texture": [16, 112, 16, 16],
         "consumable-data": {
@@ -125,6 +134,20 @@
             "health-increase": 10
         },
         "sell-value": 1
+    },
+    {
+        "name": "Koi",
+        "texture": [16, 144, 16, 16],
+        "consumable-data": {
+            "cooldown-time": 10,
+            "health-increase": 8
+        },
+        "sell-value": 1
+    },
+    {
+        "name": "Crocodile Icefish",
+        "texture": [32, 144, 16, 16],
+        "sell-value": 2
     },
     {
         "name": "Moonrock",

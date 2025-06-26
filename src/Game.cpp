@@ -2,8 +2,6 @@
 
 // CONSIDER: Custom death chat messages depending on source of death
 
-// TODO: Drop items with controller
-// TODO: Open chat menu with controller
 // TODO: Controller "relative" aim mode
 
 // FIX: Rocket entered reference not setting correctly on travel in some cases (room to planet???)
