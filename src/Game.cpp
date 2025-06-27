@@ -2,8 +2,6 @@
 
 // CONSIDER: Custom death chat messages depending on source of death
 
-// TODO: Controller "relative" aim mode
-
 // FIX: Rocket entered reference not setting correctly on travel in some cases (room to planet???)
 
 // FIX: Space station use rocket while other player use glitch
@@ -208,8 +206,9 @@ void Game::run()
 
         Sounds::update(dt);
         
-        InputManager::update();
-        mouseScreenPos = InputManager::getMousePosition(window.getSDLWindow(), dt);
+        InputManager::update(window.getSDLWindow(), dt, camera.worldToScreenTransform(player.getPosition(),
+            locationState.isOnPlanet() ? getChunkManager().getWorldSize() : 0));
+        mouseScreenPos = InputManager::getMousePosition(window.getSDLWindow());
 
         if (networkHandler.isMultiplayerGame())
         {
@@ -650,9 +649,9 @@ void Game::runInGame(float dt)
             }
         }
 
-        if (InputManager::isActionJustActivated(InputAction::RECENTRE_CONTROLLER_CURSOR))
+        if (InputManager::isActionJustActivated(InputAction::TOGGLE_CONTROLLER_AIM_MODE))
         {
-            InputManager::recentreControllerCursor(window.getSDLWindow());
+            InputManager::setControllerRelativeAimMode(window.getSDLWindow(), !InputManager::getControllerRelativeAimMode());
         }
     }
 
@@ -805,7 +804,7 @@ void Game::runInGame(float dt)
                 if (InputManager::isControllerActive())
                 {
                     std::vector<std::pair<InputAction, std::string>> actionStrings = {
-                        {InputAction::RECENTRE_CONTROLLER_CURSOR, "Recentre Cursor"},
+                        {InputAction::TOGGLE_CONTROLLER_AIM_MODE, InputManager::getControllerRelativeAimMode() ? "Manual Cursor" : "Relative Cursor"},
                         {InputAction::OPEN_INVENTORY, "Inventory"} 
                     };
 
@@ -828,10 +827,7 @@ void Game::runInGame(float dt)
                 if (InventoryGUI::handleControllerInput(*this, networkHandler, chunkManagerPtr,
                     inventory, armourInventory, getChestDataPool().getChestDataPtr(openedChestID)))
                 {
-                    if (itemHeldBefore != InventoryGUI::getHeldItemType(inventory))
-                    {
-                        changePlayerTool();
-                    }
+                    changePlayerTool();
                 }
                 HealthGUI::drawHealth(window, spriteBatch, player, gameTime, extraInfoStrings);
                 spriteBatch.endDrawing(window);
@@ -3577,6 +3573,8 @@ void Game::startNewGame(int seed)
     getChunkManager().updateChunks(*this, gameTime, {camera.getChunkViewRange()}, &networkHandler);
     lightingTickTime = LIGHTING_TICK_TIME;
 
+    InputManager::setControllerRelativeAimMode(window.getSDLWindow(), false);
+
     worldMenuState = WorldMenuState::Main;
     musicGap = MUSIC_GAP_MIN;
     startChangeStateTransition(GameState::OnPlanet);
@@ -3762,6 +3760,8 @@ bool Game::loadGame(const SaveFileSummary& saveFileSummary)
     // projectileManager.clear();
     // enemyProjectileManager.clear();
     // particleSystem.clear();
+
+    InputManager::setControllerRelativeAimMode(window.getSDLWindow(), false);
 
     camera.instantUpdate(player.getPosition());
 
@@ -3993,7 +3993,7 @@ void Game::loadInputBindings()
     InputManager::bindControllerButton(InputAction::UI_BACK, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_B, false);
     InputManager::bindControllerButton(InputAction::UI_SHIFT, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_LEFTSTICK, false);
     // InputManager::bindControllerButton(InputAction::UI_CTRL, SDL_GameControllerButton::, false);
-    InputManager::bindControllerButton(InputAction::RECENTRE_CONTROLLER_CURSOR, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_RIGHTSTICK, false);
+    InputManager::bindControllerButton(InputAction::TOGGLE_CONTROLLER_AIM_MODE, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_RIGHTSTICK, false);
     InputManager::bindControllerButton(InputAction::OPEN_CHAT, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_Y, false);
     InputManager::bindControllerButton(InputAction::PAUSE_GAME, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_START, false);
     InputManager::bindControllerAxis(InputAction::USE_TOOL,
@@ -4111,6 +4111,8 @@ void Game::joinWorld(const PacketDataJoinInfo& joinInfo)
     gameTime = joinInfo.gameTime;
     screenFadeProgress = 0.0f;
     awaitingRespawn = false;
+
+    InputManager::setControllerRelativeAimMode(window.getSDLWindow(), false);
 
     lightingTickTime = LIGHTING_TICK_TIME;
 
@@ -4554,6 +4556,8 @@ void Game::drawMouseCursor()
     bool shiftMode = InputManager::isActionActive(InputAction::UI_SHIFT);
     bool ctrlMode = InputManager::isActionActive(InputAction::UI_CTRL);
 
+    float alpha = 1.0f;
+
     bool canQuickTransfer = false;
     bool canQuickBin = false;
     if (!locationState.isNull())
@@ -4592,6 +4596,11 @@ void Game::drawMouseCursor()
                 textureRect = pl::Rect<int>(80, 48, 10, 10);
                 textureCentreRatio = pl::Vector2f(0.5f, 0.5f);
             }
+
+            if (InputManager::getControllerRelativeAimMode())
+            {
+                alpha = InputManager::getControllerRelativeCursorAlpha();
+            }
         }
         else
         {
@@ -4623,6 +4632,7 @@ void Game::drawMouseCursor()
     cursorDrawData.scale = pl::Vector2f(3, 3) * intScale;
     cursorDrawData.centerRatio = textureCentreRatio;
     cursorDrawData.textureRect = textureRect;
+    cursorDrawData.color.a *= alpha;
     
     TextureManager::drawSubTexture(window, cursorDrawData);
 }

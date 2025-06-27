@@ -5,10 +5,11 @@ std::vector<SDL_GameController*> InputManager::sdlGameControllers;
 
 float InputManager::controllerAxisDeadzone = 0.0f;
 float InputManager::controllerMouseSens = 600.0f;
-bool InputManager::controllerMovedMouseThisFrame = false;
+// bool InputManager::controllerMovedMouseThisFrame = false;
 int InputManager::controllerMousePosX = 0;
 int InputManager::controllerMousePosY = 0;
 bool InputManager::controllerIsActive = false;
+bool InputManager::controllerRelativeAimMode = false;
 
 int InputManager::controllerGlyphType = 0;
 
@@ -101,7 +102,7 @@ void InputManager::setControllerAxisDeadzone(float deadzone)
     controllerAxisDeadzone = deadzone;
 }
 
-void InputManager::update()
+void InputManager::update(SDL_Window* window, float dt, pl::Vector2f playerScreenPos)
 {
     inputActivationLastFrame = inputActivation;
 
@@ -134,8 +135,6 @@ void InputManager::update()
 
         inputActivation[iter->first] = std::max(inputActivation[iter->first], activation);
     }
-
-    controllerMovedMouseThisFrame = false;
 
     // Check input from all controllers
     for (SDL_GameController* controller : sdlGameControllers)
@@ -183,6 +182,36 @@ void InputManager::update()
         }
     }
 
+    // Move controller virtual mouse
+    if (controllerIsActive)
+    {
+        int windowWidth = 0;
+        int windowHeight = 0;
+        SDL_GetWindowSize(window, &windowWidth, &windowHeight);
+        
+        pl::Vector2f controllerDirection;
+        controllerDirection.x = getActionAxisActivation(InputAction::DIRECT_LEFT, InputAction::DIRECT_RIGHT);
+        controllerDirection.y = getActionAxisActivation(InputAction::DIRECT_UP, InputAction::DIRECT_DOWN);
+
+        // Relative mode lerp controller cursor
+        if (controllerRelativeAimMode)
+        {
+            pl::Vector2f targetMousePosition;
+            targetMousePosition.x = ResolutionHandler::getScale() * controllerDirection.x * TILE_SIZE_PIXELS_UNSCALED + playerScreenPos.x;
+            targetMousePosition.y = ResolutionHandler::getScale() * controllerDirection.y * TILE_SIZE_PIXELS_UNSCALED + playerScreenPos.y;
+
+            controllerMousePosX = Helper::lerp(controllerMousePosX, targetMousePosition.x, CONTROLLER_RELATIVE_AIM_MODE_LERP_WEIGHT * dt);
+            controllerMousePosY = Helper::lerp(controllerMousePosY, targetMousePosition.y, CONTROLLER_RELATIVE_AIM_MODE_LERP_WEIGHT * dt);
+        }
+        else
+        {
+            controllerMousePosX += controllerDirection.x * controllerMouseSens * dt;
+            controllerMousePosY += controllerDirection.y * controllerMouseSens * dt;
+        }
+        
+        controllerMousePosX = std::clamp(controllerMousePosX, 0, windowWidth);
+        controllerMousePosY = std::clamp(controllerMousePosY, 0, windowHeight);
+    }
 }
 
 void InputManager::processEvent(const SDL_Event& event)
@@ -257,11 +286,6 @@ bool InputManager::isControllerActive()
     return controllerIsActive;
 }
 
-bool InputManager::isControllerMovingMouse()
-{
-    return controllerMovedMouseThisFrame;
-}
-
 void InputManager::consumeInputAction(InputAction action)
 {
     consumeInput<SDL_Scancode>(action, keyBindings);
@@ -297,37 +321,17 @@ void InputManager::consumeInput(InputAction action, std::unordered_map<InputActi
     }
 }
 
-pl::Vector2f InputManager::getMousePosition(SDL_Window* window, float dt)
+pl::Vector2f InputManager::getMousePosition(SDL_Window* window)
 {
+    if (InputManager::isControllerActive())
+    {
+        return pl::Vector2f(controllerMousePosX, controllerMousePosY);
+    }
+
     int mouseX = 0;
     int mouseY = 0;
 
     SDL_GetMouseState(&mouseX, &mouseY);
-
-    if (InputManager::isControllerActive())
-    {
-        if (!controllerMovedMouseThisFrame)
-        {
-            controllerMovedMouseThisFrame = true;
-
-            pl::Vector2f controllerMouseMovement;
-            controllerMouseMovement.x = getActionAxisActivation(InputAction::DIRECT_LEFT, InputAction::DIRECT_RIGHT);
-            controllerMouseMovement.y = getActionAxisActivation(InputAction::DIRECT_UP, InputAction::DIRECT_DOWN);
-            controllerMouseMovement = controllerMouseMovement * controllerMouseSens * dt;
-
-            controllerMousePosX += controllerMouseMovement.x;
-            controllerMousePosY += controllerMouseMovement.y;
-
-            int windowWidth = 0;
-            int windowHeight = 0;
-            SDL_GetWindowSize(window, &windowWidth, &windowHeight);
-            
-            controllerMousePosX = std::clamp(controllerMousePosX, 0, windowWidth);
-            controllerMousePosY = std::clamp(controllerMousePosY, 0, windowHeight);
-        }
-
-        return pl::Vector2f(controllerMousePosX, controllerMousePosY);
-    }
 
     return pl::Vector2f(mouseX, mouseY);
 }
@@ -420,4 +424,24 @@ InputBindingsSave InputManager::createInputBindingsSave()
     bindingsSave.controllerAxisDeadzone = controllerAxisDeadzone;
 
     return bindingsSave;
+}
+
+void InputManager::setControllerRelativeAimMode(SDL_Window* window, bool relativeMode)
+{
+    controllerRelativeAimMode = relativeMode;
+
+    recentreControllerCursor(window);
+}
+
+bool InputManager::getControllerRelativeAimMode()
+{
+    return controllerRelativeAimMode;
+}
+
+float InputManager::getControllerRelativeCursorAlpha()
+{
+    pl::Vector2f controllerDirection;
+    controllerDirection.x = getActionAxisActivation(InputAction::DIRECT_LEFT, InputAction::DIRECT_RIGHT);
+    controllerDirection.y = getActionAxisActivation(InputAction::DIRECT_UP, InputAction::DIRECT_DOWN);
+    return controllerDirection.getLength();
 }

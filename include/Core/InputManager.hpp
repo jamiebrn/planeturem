@@ -15,6 +15,9 @@
 #define MAGIC_ENUM_RANGE_MAX SDL_NUM_SCANCODES
 #include <extlib/magic_enum.hpp>
 
+#include "Core/Helper.hpp"
+#include "Core/ResolutionHandler.hpp"
+
 enum class InputAction
 {
     UI_UP,
@@ -62,7 +65,7 @@ enum class InputAction
     DIRECT_LEFT,
     DIRECT_RIGHT,
 
-    RECENTRE_CONTROLLER_CURSOR
+    TOGGLE_CONTROLLER_AIM_MODE
 };
 
 enum class ControllerGlyph
@@ -227,7 +230,7 @@ public:
 
     static void setControllerAxisDeadzone(float deadzone);
 
-    static void update();
+    static void update(SDL_Window* window, float dt, pl::Vector2f playerScreenPos);
 
     static void processEvent(const SDL_Event& event);
 
@@ -247,7 +250,7 @@ public:
     // Disables other actions with same key bindings
     static void consumeInputAction(InputAction action);
 
-    static pl::Vector2f getMousePosition(SDL_Window* window, float dt);
+    static pl::Vector2f getMousePosition(SDL_Window* window);
 
     static void recentreControllerCursor(SDL_Window* window);
 
@@ -260,6 +263,10 @@ public:
 
     static void loadInputBindingsSave(const InputBindingsSave& bindingsSave);
     static InputBindingsSave createInputBindingsSave();
+
+    static void setControllerRelativeAimMode(SDL_Window* window, bool relativeMode);
+    static bool getControllerRelativeAimMode();
+    static float getControllerRelativeCursorAlpha();
 
 private:
     template <typename InputType>
@@ -276,10 +283,13 @@ private:
 
     static float controllerAxisDeadzone;
     static float controllerMouseSens;
-    static bool controllerMovedMouseThisFrame;
+    // static bool controllerMovedMouseThisFrame;
     static int controllerMousePosX;
     static int controllerMousePosY;
     static bool controllerIsActive;
+
+    static bool controllerRelativeAimMode;
+    static constexpr float CONTROLLER_RELATIVE_AIM_MODE_LERP_WEIGHT = 7.0f;
 
     static constexpr int CONTROLLER_MAX_GLYPH_TYPE_COUNT = 4;
     static int controllerGlyphType;
