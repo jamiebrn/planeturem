@@ -55,11 +55,17 @@ void Entity::update(float dt, ProjectileManager& projectileManager, ChunkManager
     {
         // Test collision after x movement
         collisionRect.x += velocity.x * dt;
-        chunkManager.collisionRectChunkStaticCollisionX(collisionRect, velocity.x);
+        if (chunkManager.collisionRectChunkStaticCollisionX(collisionRect, velocity.x))
+        {
+            velocity.x = 0;
+        }
 
         // Test collision after y movement
         collisionRect.y += velocity.y * dt;
-        chunkManager.collisionRectChunkStaticCollisionY(collisionRect, velocity.y);
+        if (chunkManager.collisionRectChunkStaticCollisionY(collisionRect, velocity.y))
+        {
+            velocity.y = 0;
+        }
     }
 
     // Update position using collision rect after collision has been handled
