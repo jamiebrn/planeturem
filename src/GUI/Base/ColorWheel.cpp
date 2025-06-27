@@ -13,6 +13,25 @@ ColorWheel::ColorWheel(const GUIInputState& inputState, ElementID id, int x, int
     if (inputState.activeElement == id)
     {
         active = true;
+
+        if (InputManager::isControllerActive())
+        {
+            static constexpr float CONTROLLER_STEP = 0.02f;
+
+            pl::Color hsvColor = Helper::convertRGBtoHSV(currentColor);
+
+            pl::Vector2f currentSelectedPosition;
+            currentSelectedPosition.x = std::cos(hsvColor.r / 180.0f * M_PI) * hsvColor.g;
+            currentSelectedPosition.y = std::sin(hsvColor.r / 180.0f * M_PI) * hsvColor.g;
+
+            currentSelectedPosition.x += InputManager::getActionAxisActivation(InputAction::WALK_LEFT, InputAction::WALK_RIGHT) * CONTROLLER_STEP;
+            currentSelectedPosition.y += InputManager::getActionAxisActivation(InputAction::WALK_UP, InputAction::WALK_DOWN) * CONTROLLER_STEP;
+            
+            float angle = std::atan2(currentSelectedPosition.y, -currentSelectedPosition.x) + M_PI;
+            angle = fmod(360.0f - angle / M_PI * 180.0f, 360.0f);
+            printf("%f\n", angle);
+            currentColor = Helper::convertHSVtoRGB(angle, std::min(currentSelectedPosition.getLength(), 1.0f), value);
+        }
     }
 
     CollisionCircle circle(x, y, size);
@@ -29,51 +48,6 @@ ColorWheel::ColorWheel(const GUIInputState& inputState, ElementID id, int x, int
 
     this->currentColor = currentColor;
     this->value = value;
-
-    // CollisionRect rect(this->x, this->y, this->width, this->height);
-    // if (rect.isPointInRect(inputState.mouseX, inputState.mouseY))
-    // {
-    //     hovered = true;
-    // }
-
-    // if (inputState.leftMouseJustDown)
-    // {
-    //     if (hovered || (InputManager::isControllerActive() && active))
-    //     {
-    //         active = true;
-
-    //         // Just activated, open keyboard if required
-    //         if (InputManager::isControllerActive())
-    //         {
-    //             SteamUtils()->ShowFloatingGamepadTextInput(EFloatingGamepadTextInputMode::k_EFloatingGamepadTextInputModeModeSingleLine, x, y, width, height);
-    //         }
-    //     }
-    //     else if (active)
-    //     {
-    //         clickedAway = true;
-    //     }
-    // }
-
-    // if (active)
-    // {
-    //     if (inputState.backspaceJustPressed && textPtr->size() > 0)
-    //     {
-    //         textPtr->pop_back(); 
-    //         while (!textPtr->empty() && textPtr->back() == '\0')
-    //         {
-    //             textPtr->pop_back();
-    //         }
-    //     }
-        
-    //     for (unsigned int character : inputState.charEnterBuffer)
-    //     {
-    //         if (textPtr->size() >= maxLength)
-    //         {
-    //             break;
-    //         }
-    //         *textPtr += character;
-    //     }
-    // }
 }
 
 bool ColorWheel::isActive() const
@@ -104,17 +78,7 @@ void ColorWheel::draw(pl::RenderTarget& window)
         wheel.addVertex(pl::Vertex(pl::Vector2f(x, y), pl::Color(255 * value, 255 * value, 255 * value)), false);
     }
 
-    // pl::Framebuffer wheelTexture;
-    // wheelTexture.create(std::ceil((size / intScale) * 2 / 3.0f), std::ceil((size / intScale) * 2 / 3.0f));
-    // wheelTexture.clear(pl::Color(0, 0, 0, 0));
-
     window.draw(wheel, *Shaders::getShader(ShaderType::DefaultNoTexture), nullptr, pl::BlendMode::Alpha);
-
-    // wheel.clear();
-    // wheel.addQuad(pl::Rect<float>(x - size, y - size, size * 2, size * 2), pl::Color(),
-    //     pl::Rect<float>(0, wheelTexture.getHeight(), wheelTexture.getWidth(), -wheelTexture.getHeight()));
-    
-    // window.draw(wheel, *Shaders::getShader(ShaderType::Default), &wheelTexture.getTexture(), pl::BlendMode::Alpha);
 
     wheel.clear();
 
