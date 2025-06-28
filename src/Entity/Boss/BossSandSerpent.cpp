@@ -94,6 +94,12 @@ void BossSandSerpent::update(Game& game, ChunkManager& chunkManager, ProjectileM
     {
         case BossSandSerpentState::IdleStage1:
         {
+            if (!playerAlive)
+            {
+                behaviourState = BossSandSerpentState::Leaving;
+                break;
+            }
+
             velocity = pl::Vector2f(0, 0);
 
             // Update shooting
@@ -132,6 +138,12 @@ void BossSandSerpent::update(Game& game, ChunkManager& chunkManager, ProjectileM
         }
         case BossSandSerpentState::ShootingStage1:
         {
+            if (!playerAlive)
+            {
+                behaviourState = BossSandSerpentState::Leaving;
+                break;
+            }
+            
             velocity = pl::Vector2f(0, 0);
 
             shootCooldownTime += dt;

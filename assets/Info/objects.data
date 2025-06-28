@@ -364,7 +364,7 @@
             "texture": [32, 343, 16, 41],
             "texture-origin": [0.5, 1],
             "launch-position": [16, 14],
-            "available-destinations": ["Earthlike", "Frozen"],
+            "available-destinations": ["Earthlike", "Frozen", "Molten"],
             "available-room-destinations": ["SpaceStation"]
         },
         "item-drops": {
@@ -621,5 +621,18 @@
             "Crate": [1, 1, 1]
         },
         "sell-value": 1
+    },
+    {
+        "name": "Obsidian Spike",
+        "health": 15,
+        "minimum-damage": 3,
+        "textures": [[192, 267]],
+        "texture-width": 16,
+        "texture-height": 21,
+        "texture-x-origin": 0.5,
+        "texture-y-origin": 0.9524,
+        "item-drops": {
+            "Coal": [1, 4, 0.8]
+        }
     }
 ]

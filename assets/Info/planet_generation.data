@@ -5,7 +5,9 @@
         "Sand": [32, 64, 2, [252, 199, 93]],
         "Rock": [32, 272, 1, [75, 80, 82]],
         "Ice": [256, 336, 2, [129, 205, 252]],
-        "Snow": [256, 400, 2, [217, 247, 255]]
+        "Snow": [256, 400, 2, [217, 247, 255]],
+        "MoltenRock": [0, 496, 1, [46, 31, 31]],
+        "CharredRock": [0, 560, 1, [56, 31, 29]]
     },
     "planets": {
         "Earthlike": {
@@ -145,6 +147,28 @@
             "cliff-texture-offset": [192, 0],
             "size": 100,
             "bosses-spawn-allowed": ["The Glacial Brute"]
+        },
+        "Molten": {
+            "biomes": [
+                {
+                    "name": "MoltenRock",
+                    "tiles": [
+                        ["MoltenRock", 7, 0.4, 0.5],
+                        ["CharredRock", 8, 0.5, 1.0]
+                    ],
+                    "objects": [
+                        ["Obsidian Spike", 0.08]
+                    ],
+                    "fish-catches": [],
+                    "water-colour": [110, 39, 39],
+                    "noise-range": [0, 1.0],
+                    "resource-regeneration-time": [170, 240],
+                    "resource-regeneration-density": 0.2
+                }
+            ],
+            "water-texture-offset": [32, 0],
+            "cliff-texture-offset": [256, 0],
+            "size": 70
         }
     }
 }
