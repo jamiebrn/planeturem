@@ -13,15 +13,7 @@
 // FIX: VSync disable not working in initial fullscreen
 // FIX: Viewport not resizing on window disable fullscreen
 
-// FIX: Fishing rod missing sample points on some upward casts
-
-// TODO: Optimise entity networking
-
 // PRIORITY: MEDIUM (MULTIPLAYER)
-// TODO: Player customisation (colours, maybe hair, eyes)
-
-// TODO: Improve entity movement over network
-
 // TODO: Night and menu music
 
 // PRIORITY: LOW

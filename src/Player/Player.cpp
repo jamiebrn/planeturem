@@ -682,10 +682,10 @@ std::vector<WorldObject*> Player::getDrawWorldObjects(const Camera& camera, int 
         int maxX = std::max(xDiff, 1);
 
         // If drawn from bob, add one less point to instead add point at end of rod
-        if (drawnFromBob)
-        {
-            maxX -= lineXStep;
-        }
+        //if (drawnFromBob)
+        //{
+            //maxX -= lineXStep;
+        //}
 
         int samplePointCount;
         if (lineXStep == 0.0f)
