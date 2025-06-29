@@ -31,5 +31,22 @@
             "Hide": [1, 3, 0.6]
         },
         "behaviour": "wander"
+    },
+    {
+        "name": "Rabbit",
+        "texture-idle": [[0, 48], [16, 48], [32, 48], [48, 48], [64, 48]],
+        "texture-idle-speed": 0.12,
+        "texture-walk": [[0, 64], [16, 64], [32, 64], [48, 64]],
+        "texture-walk-speed": 0.12,
+        "texture-origin": [0.5, 1],
+        "texture-size": [16, 16],
+        "health": 5,
+        "size": [0.8, 0.7],
+        "hit-collision": [-6, -10, 12, 10],
+        "item-drops": {
+            "Meat": [1, 2, 0.8],
+            "Hide": [1, 3, 0.6]
+        },
+        "behaviour": "rabbit"
     }
 ]

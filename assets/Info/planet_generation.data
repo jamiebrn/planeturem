@@ -47,7 +47,8 @@
                     ],
                     "entities": [
                         ["Horse", 0.004],
-                        ["Pig", 0.002]
+                        ["Pig", 0.002],
+                        ["Rabbit", 0.002]
                     ],
                     "structures": [
                         ["Stone Dungeon", 0.02]

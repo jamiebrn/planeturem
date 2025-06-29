@@ -4,6 +4,7 @@
 
 #include "Entity/EntityBehaviour/EntityWanderBehaviour.hpp"
 #include "Entity/EntityBehaviour/EntityFollowAttackBehaviour.hpp"
+#include "Entity/EntityBehaviour/EntityRabbitBehaviour.hpp"
 
 Entity::Entity(pl::Vector2f position, EntityType entityType)
     : WorldObject(position)
@@ -25,6 +26,8 @@ Entity::Entity(pl::Vector2f position, EntityType entityType)
     drawLayer = 0;
 
     flashAmount = 0.0f;
+
+    animationSpeed = 1.0f;
     
     idleAnim.setFrame(rand() % entityData.idleTextureRects.size());
     walkAnim.setFrame(rand() % entityData.walkTextureRects.size());
@@ -39,6 +42,10 @@ void Entity::initialiseBehaviour(const std::string& behaviour)
     else if (behaviour == "followattack")
     {
         this->behaviour = std::make_unique<EntityFollowAttackBehaviour>(*this);
+    }
+    else if (behaviour == "rabbit")
+    {
+        this->behaviour = std::make_unique<EntityRabbitBehaviour>(*this);
     }
 }
 
