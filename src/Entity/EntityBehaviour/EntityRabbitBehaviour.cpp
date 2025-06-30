@@ -33,7 +33,7 @@ void EntityRabbitBehaviour::update(Entity& entity, ChunkManager& chunkManager, G
         if (idleWaitTimeWasAboveZero)
         {
             targetPosition = entity.getPosition() + pl::Vector2f(Helper::randFloat(MIN_TARGET_RANGE, MAX_TARGET_RANGE), 0).rotate(Helper::randFloat(0, 2 * M_PI));
-            entity.setVelocity((entity.getPosition() - Camera::translateWorldPos(targetPosition, entity.getPosition(), chunkManager.getWorldSize())).normalise() * 10);
+            entity.setVelocity((Camera::translateWorldPos(targetPosition, entity.getPosition(), chunkManager.getWorldSize()) - entity.getPosition()).normalise() * 10);
         }
     }
 
@@ -65,7 +65,7 @@ void EntityRabbitBehaviour::update(Entity& entity, ChunkManager& chunkManager, G
     if (stopWalking)
     {
         velocity = pl::Vector2f(0, 0);
-        idleWaitTime = Helper::randFloat(0.05f, MAX_IDLE_WAIT_TIME);
+        idleWaitTime = Helper::randFloat(MIN_IDLE_WAIT_TIME, MAX_IDLE_WAIT_TIME);
     }
     
     velocityMult = Helper::lerp(velocityMult, 1.0f, VELOCITY_MULT_LERP_WEIGHT * dt);

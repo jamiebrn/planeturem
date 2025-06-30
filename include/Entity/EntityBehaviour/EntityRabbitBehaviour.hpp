@@ -20,11 +20,12 @@ private:
     static constexpr float VELOCITY_MULT_LERP_WEIGHT = 1.9f;
     float velocityMult;
 
-    static constexpr float MAX_IDLE_WAIT_TIME = 0.5f;
+    static constexpr float MIN_IDLE_WAIT_TIME = 0.4f;
+    static constexpr float MAX_IDLE_WAIT_TIME = 1.5f;
     float idleWaitTime;
 
-    static constexpr float MIN_TARGET_RANGE = 32.0f;
-    static constexpr float MAX_TARGET_RANGE = 128.0f;
+    static constexpr float MIN_TARGET_RANGE = 20.0f;
+    static constexpr float MAX_TARGET_RANGE = 64.0f;
     static constexpr float TARGET_RANGE_REACH_THRESHOLD = 4.0f;
     pl::Vector2f targetPosition;
 
