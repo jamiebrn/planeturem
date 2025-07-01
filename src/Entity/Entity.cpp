@@ -321,6 +321,16 @@ void Entity::setAnimationSpeed(float speed)
     animationSpeed = speed;
 }
 
+void Entity::setIdleAnimationFrame(int frame)
+{
+    idleAnim.setFrame(frame);
+}
+
+void Entity::setWalkAnimationFrame(int frame)
+{
+    walkAnim.setFrame(frame);
+}
+
 EntityPOD Entity::getPOD(pl::Vector2f chunkPosition)
 {
     EntityPOD pod;

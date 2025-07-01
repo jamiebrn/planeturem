@@ -20,6 +20,8 @@ private:
     static constexpr float VELOCITY_MULT_LERP_WEIGHT = 1.9f;
     float velocityMult;
 
+    float walkSpeed = 0.0f;
+
     static constexpr float MIN_IDLE_WAIT_TIME = 0.4f;
     static constexpr float MAX_IDLE_WAIT_TIME = 1.5f;
     float idleWaitTime;

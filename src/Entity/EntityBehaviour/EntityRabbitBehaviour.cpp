@@ -14,6 +14,13 @@ EntityRabbitBehaviour::EntityRabbitBehaviour(Entity& entity)
     entity.setVelocity(velocity);
 
     idleWaitTime = Helper::randFloat(0.05f, MAX_IDLE_WAIT_TIME);
+
+    const EntityData& entityData = EntityDataLoader::getEntityData(entity.getEntityType());
+
+    if (entityData.behaviourParameters.contains("walk-speed"))
+    {
+        walkSpeed = entityData.behaviourParameters.at("walk-speed");
+    }
 }
 
 void EntityRabbitBehaviour::update(Entity& entity, ChunkManager& chunkManager, Game& game, float dt)
@@ -33,7 +40,9 @@ void EntityRabbitBehaviour::update(Entity& entity, ChunkManager& chunkManager, G
         if (idleWaitTimeWasAboveZero)
         {
             targetPosition = entity.getPosition() + pl::Vector2f(Helper::randFloat(MIN_TARGET_RANGE, MAX_TARGET_RANGE), 0).rotate(Helper::randFloat(0, 2 * M_PI));
-            entity.setVelocity((Camera::translateWorldPos(targetPosition, entity.getPosition(), chunkManager.getWorldSize()) - entity.getPosition()).normalise() * 10);
+            entity.setVelocity((Camera::translateWorldPos(targetPosition, entity.getPosition(), chunkManager.getWorldSize()) - entity.getPosition()).normalise() * walkSpeed);
+            entity.setIdleAnimationFrame(0);
+            entity.setWalkAnimationFrame(0);
         }
     }
 

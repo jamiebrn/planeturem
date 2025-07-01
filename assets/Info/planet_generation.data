@@ -78,6 +78,9 @@
                         ["Gold Rock", 0.008],
                         ["Coal Rock", 0.015]
                     ],
+                    "entities": [
+                        ["Slimey", 0.003]
+                    ],
                     "structures": [
                         ["Stone Dungeon", 0.02]
                     ],

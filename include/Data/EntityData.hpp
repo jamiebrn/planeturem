@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -17,7 +16,6 @@ struct EntityData
     std::string name;
     int health;
 
-    // sf::IntRect textureRect;
     std::vector<pl::Rect<int>> idleTextureRects;
     std::vector<pl::Rect<int>> walkTextureRects;
     float idleAnimSpeed;
@@ -33,4 +31,5 @@ struct EntityData
     CollisionRect hitCollision;
 
     std::string behaviour;
+    std::unordered_map<std::string, float> behaviourParameters;
 };

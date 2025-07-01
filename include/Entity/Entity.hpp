@@ -66,6 +66,8 @@ public:
     void setVelocity(pl::Vector2f velocity);
 
     void setAnimationSpeed(float speed);
+    void setIdleAnimationFrame(int frame);
+    void setWalkAnimationFrame(int frame);
 
     inline bool isAlive() {return health > 0;}
 
