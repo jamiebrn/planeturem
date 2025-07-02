@@ -13,14 +13,24 @@ EntityRabbitBehaviour::EntityRabbitBehaviour(Entity& entity)
 
     entity.setVelocity(velocity);
 
-    idleWaitTime = Helper::randFloat(0.05f, MAX_IDLE_WAIT_TIME);
-
     const EntityData& entityData = EntityDataLoader::getEntityData(entity.getEntityType());
 
     if (entityData.behaviourParameters.contains("walk-speed"))
     {
         walkSpeed = entityData.behaviourParameters.at("walk-speed");
     }
+
+    if (entityData.behaviourParameters.contains("min-idle-wait-time"))
+    {
+        minIdleWaitTime = entityData.behaviourParameters.at("min-idle-wait-time");
+    }
+
+    if (entityData.behaviourParameters.contains("max-idle-wait-time"))
+    {
+        maxIdleWaitTime = entityData.behaviourParameters.at("max-idle-wait-time");
+    }
+
+    idleWaitTime = Helper::randFloat(0.05f, maxIdleWaitTime);
 }
 
 void EntityRabbitBehaviour::update(Entity& entity, ChunkManager& chunkManager, Game& game, float dt)
@@ -74,7 +84,7 @@ void EntityRabbitBehaviour::update(Entity& entity, ChunkManager& chunkManager, G
     if (stopWalking)
     {
         velocity = pl::Vector2f(0, 0);
-        idleWaitTime = Helper::randFloat(MIN_IDLE_WAIT_TIME, MAX_IDLE_WAIT_TIME);
+        idleWaitTime = Helper::randFloat(minIdleWaitTime, maxIdleWaitTime);
     }
     
     velocityMult = Helper::lerp(velocityMult, 1.0f, VELOCITY_MULT_LERP_WEIGHT * dt);

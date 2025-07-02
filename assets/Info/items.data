@@ -288,5 +288,13 @@
         "consumable-data": {
             "health-increase": 20
         }
+    },
+    {
+        "name": "Gelatin",
+        "texture": [144, 96, 16, 16]
+    },
+    {
+        "name": "Chilled Gelatin",
+        "texture": [160, 96, 16, 16]
     }
 ]

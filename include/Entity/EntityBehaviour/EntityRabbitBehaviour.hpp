@@ -22,8 +22,8 @@ private:
 
     float walkSpeed = 0.0f;
 
-    static constexpr float MIN_IDLE_WAIT_TIME = 0.4f;
-    static constexpr float MAX_IDLE_WAIT_TIME = 1.5f;
+    float minIdleWaitTime = 0.0f;
+    float maxIdleWaitTime = 0.0f;
     float idleWaitTime;
 
     static constexpr float MIN_TARGET_RANGE = 20.0f;

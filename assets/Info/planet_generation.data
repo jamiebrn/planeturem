@@ -79,7 +79,7 @@
                         ["Coal Rock", 0.015]
                     ],
                     "entities": [
-                        ["Slimey", 0.003]
+                        ["Slime", 0.003]
                     ],
                     "structures": [
                         ["Stone Dungeon", 0.02]
@@ -114,6 +114,9 @@
                         ["Large Icicle", 0.02],
                         ["Large Icicle Left", 0.01],
                         ["Large Icicle Right", 0.01]
+                    ],
+                    "entities": [
+                        ["Ice Slime", 0.003]
                     ],
                     "fish-catches": [
                         ["Crocodile Icefish", 1, 1]
