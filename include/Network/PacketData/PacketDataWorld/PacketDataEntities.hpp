@@ -30,8 +30,7 @@ struct PacketDataEntities : public IPacketData, public IPacketTimeDependent
         CompactFloat<int16_t> velocityY;
 
         ChunkPosition chunkPosition;
-
-        // TODO: On water
+        
         uint8_t health;
         CompactFloat<uint8_t> flashAmount;
         uint8_t idleAnimFrame;

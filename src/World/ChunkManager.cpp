@@ -765,8 +765,10 @@ void ChunkManager::moveEntityToChunkFromChunk(std::unique_ptr<Entity> entity, Ch
     loadedChunks[newChunk]->moveEntityToChunk(std::move(entity));
 }
 
-Entity* ChunkManager::getSelectedEntity(ChunkPosition chunk, pl::Vector2f cursorPos)
+Entity* ChunkManager::getSelectedEntity(pl::Vector2f cursorPos)
 {
+    ChunkPosition chunk = WorldObject::getChunkInside(cursorPos, worldSize);
+
     // Check entities in chunks around cursor in 3x3 area
     // i.e. chunk.x - 1 to chunk.x + 1 and chunk.y - 1 to chunk.y + 1
     for (int x = chunk.x - 1; x <= chunk.x + 1; x++)

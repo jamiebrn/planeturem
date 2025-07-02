@@ -36,7 +36,7 @@ void EntityWanderBehaviour::update(Entity& entity, ChunkManager& chunkManager, G
     entity.setAnimationSpeed(1.0f + (velocityMult - 1.0f) * 0.4f);
 }
 
-void EntityWanderBehaviour::onHit(Entity& entity, Game& game, pl::Vector2f hitSource)
+void EntityWanderBehaviour::onHit(Entity& entity, Game& game, const LocationState& locationState, pl::Vector2f hitSource)
 {
     pl::Vector2f relativePos = hitSource - entity.getPosition();
 

@@ -40,7 +40,7 @@ class Entity : public WorldObject
 {
 public:
     Entity(pl::Vector2f position, EntityType entityType);
-    Entity();
+    Entity() = default;
 
     void update(float dt, ProjectileManager& projectileManager, ChunkManager& chunkManager, Game& game, bool onWater, float gameTime, bool networkUpdateOnly);
 
@@ -68,6 +68,8 @@ public:
     void setAnimationSpeed(float speed);
     void setIdleAnimationFrame(int frame);
     void setWalkAnimationFrame(int frame);
+    
+    std::string getHoverStats() const;
 
     inline bool isAlive() {return health > 0;}
 

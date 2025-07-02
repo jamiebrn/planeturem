@@ -56,7 +56,7 @@ public:
 
     void draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch);
 
-    void drawStatsAtCursor(pl::RenderTarget& window, const Camera& camera, pl::Vector2f mouseScreenPos, int worldSize);
+    std::vector<std::string> getHoverStats(pl::Vector2f mouseWorldPos);
 
     void getBossWorldObjects(std::vector<WorldObject*>& worldObjects);
 
@@ -73,11 +73,5 @@ public:
 private:
     std::vector<std::unique_ptr<BossEntity>> bosses;
     std::unordered_set<std::string> bossAliveNames;
-
-    static constexpr float STATS_DRAW_OFFSET_X = 24;
-    static constexpr float STATS_DRAW_OFFSET_Y = 24;
-    static constexpr int STATS_DRAW_SIZE = 24;
-    static constexpr int STATS_DRAW_PADDING = 3;
-    static constexpr int STATS_DRAW_OUTLINE_THICKNESS = 2;
-
+    
 };

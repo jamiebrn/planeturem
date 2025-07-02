@@ -1256,7 +1256,42 @@ void Game::drawOnPlanet(float dt)
 
     HitMarkers::draw(window, camera, getChunkManager().getWorldSize());
 
-    getBossManager().drawStatsAtCursor(window, camera, mouseScreenPos, getChunkManager().getWorldSize());
+    // Draw entity / boss hover stats
+    pl::Vector2f mouseWorldPos = camera.screenToWorldTransform(mouseScreenPos, getChunkManager().getWorldSize());
+    
+    std::vector<std::string> hoverStats = getBossManager().getHoverStats(mouseWorldPos);
+    
+    if (Entity* entityPtr = getChunkManager().getSelectedEntity(mouseWorldPos))
+    {
+        hoverStats.push_back(entityPtr->getHoverStats());
+    }
+
+    float intScale = ResolutionHandler::getResolutionIntegerScale();
+
+    static constexpr float STATS_DRAW_OFFSET_X = 24;
+    static constexpr float STATS_DRAW_OFFSET_Y = 24;
+    static constexpr int STATS_DRAW_SIZE = 24;
+    static constexpr int STATS_DRAW_PADDING = 3;
+    static constexpr int STATS_DRAW_OUTLINE_THICKNESS = 2;
+
+    pl::Vector2f statPos = mouseScreenPos + pl::Vector2f(STATS_DRAW_OFFSET_X, STATS_DRAW_OFFSET_Y) * intScale;
+
+    for (const std::string& bossStat : hoverStats)
+    {
+        pl::TextDrawData textDrawData;
+        textDrawData.text = bossStat;
+        textDrawData.position = statPos;
+        textDrawData.color = pl::Color(255, 255, 255, 255);
+        textDrawData.size = STATS_DRAW_SIZE * intScale;
+        textDrawData.outlineColor = pl::Color(46, 34, 47);
+        textDrawData.outlineThickness = STATS_DRAW_OUTLINE_THICKNESS * intScale;
+        textDrawData.containOnScreenX = true;
+        textDrawData.containOnScreenY = true;
+
+        TextDraw::drawText(window, textDrawData);
+
+        statPos.y += (STATS_DRAW_SIZE + STATS_DRAW_OUTLINE_THICKNESS * 2 + STATS_DRAW_PADDING) * intScale;
+    }
 }
 
 void Game::drawWorld(pl::Framebuffer& renderTexture, float dt, std::vector<WorldObject*>& worldObjects, WorldData& worldData, const Camera& cameraArg)

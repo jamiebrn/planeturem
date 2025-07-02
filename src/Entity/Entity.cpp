@@ -95,7 +95,7 @@ void Entity::update(float dt, ProjectileManager& projectileManager, ChunkManager
             // Only apply behaviour if host / solo
             if (behaviour && !networkUpdateOnly)
             {
-                behaviour->onHit(*this, game, projectile.getPosition());
+                behaviour->onHit(*this, game, LocationState::createFromPlanetType(chunkManager.getPlanetType()), projectile.getPosition());
             }
         }
     }
@@ -210,7 +210,7 @@ void Entity::testHitCollision(const std::vector<HitRect>& hitRects, pl::Vector2f
         if (hitRect.isColliding(collisionRect, worldSize))
         {
             damage(hitRect.damage, game, locationState, gameTime);
-            behaviour->onHit(*this, game, hitOrigin);
+            behaviour->onHit(*this, game, locationState, hitOrigin);
             return;
         }
     }
@@ -331,6 +331,12 @@ void Entity::setWalkAnimationFrame(int frame)
     walkAnim.setFrame(frame);
 }
 
+std::string Entity::getHoverStats() const
+{
+    const EntityData& entityData = EntityDataLoader::getEntityData(entityType);
+    return (entityData.name + " - (" + std::to_string(health) + " / " + std::to_string(entityData.health) + ")");
+}
+
 EntityPOD Entity::getPOD(pl::Vector2f chunkPosition)
 {
     EntityPOD pod;
@@ -347,6 +353,9 @@ void Entity::loadFromPOD(const EntityPOD& pod, pl::Vector2f chunkPosition)
     collisionRect.x = position.x - collisionRect.width / 2.0f;
     collisionRect.y = position.y - collisionRect.height / 2.0f;
     velocity = pod.velocity;
+
+    const EntityData& entityData = EntityDataLoader::getEntityData(entityType);
+    health = entityData.health;
 }
 
 PacketDataEntities::EntityPacketData Entity::getPacketData(pl::Vector2f chunkPosition)

@@ -94,15 +94,16 @@ void EntityRabbitBehaviour::update(Entity& entity, ChunkManager& chunkManager, G
     entity.setAnimationSpeed(1.0f + (velocityMult - 1.0f) * 0.4f);
 }
 
-void EntityRabbitBehaviour::onHit(Entity& entity, Game& game, pl::Vector2f hitSource)
+void EntityRabbitBehaviour::onHit(Entity& entity, Game& game, const LocationState& locationState, pl::Vector2f hitSource)
 {
-    pl::Vector2f relativePos = hitSource - entity.getPosition();
+    // Start walking to new location
+    idleWaitTime = 0.0f;
 
-    pl::Vector2f oldVelocity = entity.getVelocity();
-
-    pl::Vector2f velocity = -Helper::normaliseVector(relativePos) * Helper::getVectorLength(oldVelocity);
+    targetPosition = entity.getPosition() + pl::Vector2f(Helper::randFloat(MIN_TARGET_RANGE, MAX_TARGET_RANGE), 0).rotate(Helper::randFloat(0, 2 * M_PI));
+    entity.setVelocity((Camera::translateWorldPos(targetPosition, entity.getPosition(),
+        game.getChunkManager(locationState.getPlanetType()).getWorldSize()) - entity.getPosition()).normalise() * walkSpeed);
+    entity.setIdleAnimationFrame(0);
+    entity.setWalkAnimationFrame(0);
 
     velocityMult = 2.2f;
-    
-    entity.setVelocity(velocity);
 }

@@ -165,37 +165,16 @@ void BossManager::clearBosses()
 //     }
 // }
 
-void BossManager::drawStatsAtCursor(pl::RenderTarget& window, const Camera& camera, pl::Vector2f mouseScreenPos, int worldSize)
+std::vector<std::string> BossManager::getHoverStats(pl::Vector2f mouseWorldPos)
 {
     std::vector<std::string> hoverStats;
-
-    pl::Vector2f mouseWorldPos = camera.screenToWorldTransform(mouseScreenPos, worldSize);
 
     for (auto& boss : bosses)
     {
         boss->getHoverStats(mouseWorldPos, hoverStats);
     }
 
-    float intScale = ResolutionHandler::getResolutionIntegerScale();
-
-    pl::Vector2f statPos = mouseScreenPos + pl::Vector2f(STATS_DRAW_OFFSET_X, STATS_DRAW_OFFSET_Y) * intScale;
-
-    for (const std::string& bossStat : hoverStats)
-    {
-        pl::TextDrawData textDrawData;
-        textDrawData.text = bossStat;
-        textDrawData.position = statPos;
-        textDrawData.color = pl::Color(255, 255, 255, 255);
-        textDrawData.size = STATS_DRAW_SIZE * intScale;
-        textDrawData.outlineColor = pl::Color(46, 34, 47);
-        textDrawData.outlineThickness = STATS_DRAW_OUTLINE_THICKNESS * intScale;
-        textDrawData.containOnScreenX = true;
-        textDrawData.containOnScreenY = true;
-
-        TextDraw::drawText(window, textDrawData);
-
-        statPos.y += (STATS_DRAW_SIZE + STATS_DRAW_OUTLINE_THICKNESS * 2 + STATS_DRAW_PADDING) * intScale;
-    }
+    return hoverStats;
 }
 
 void BossManager::getBossWorldObjects(std::vector<WorldObject*>& worldObjects)

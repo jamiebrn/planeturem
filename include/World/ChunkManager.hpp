@@ -177,7 +177,7 @@ public:
     void moveEntityToChunkFromChunk(std::unique_ptr<Entity> entity, ChunkPosition newChunk);
 
     // Get entity selected at cursor position (IN WORLD SPACE), if any
-    Entity* getSelectedEntity(ChunkPosition chunk, pl::Vector2f cursorPos);
+    Entity* getSelectedEntity(pl::Vector2f cursorPos);
 
     // Get all entities in loaded chunks (used for drawing)
     std::vector<WorldObject*> getChunkEntities(ChunkViewRange chunkViewRange);
