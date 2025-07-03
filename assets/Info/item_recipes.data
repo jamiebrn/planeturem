@@ -76,6 +76,16 @@
         "crafting-station-level": 1
     },
     {
+        "product": "Titanium Chest",
+        "key-items": ["Titanium Bar"],
+        "item-requirements": {
+            "Titanium Bar": 5,
+            "Iron Bar": 2
+        },
+        "crafting-station": "bench",
+        "crafting-station-level": 2
+    },
+    {
         "product": "Wood Wall",
         "item-requirements": {
             "Wood": 4
@@ -134,6 +144,20 @@
         "key-items": ["Bone"],
         "crafting-station": "anvil",
         "crafting-station-level": 1
+    },
+    {
+        "product": "Frostwood Pickaxe",
+        "item-requirements": {
+            "Frostwood": 25
+        },
+        "crafting-station": "bench",
+        "crafting-station-level": 2
+    },
+    {
+        "product": "Frostwood Bench",
+        "item-requirements": {
+            "Frostwood": 15
+        }
     },
     {
         "product": "Titanium Pickaxe",
@@ -336,7 +360,7 @@
         },
         "key-items": ["Titanium Scraps"],
         "crafting-station": "bench",
-        "crafting-station-level": 1
+        "crafting-station-level": 2
     },
     {
         "product": "Titanium Anvil",
@@ -346,7 +370,7 @@
         },
         "key-items": ["Titanium Bar"],
         "crafting-station": "bench",
-        "crafting-station-level": 1
+        "crafting-station-level": 2
     },
     {
         "product": "Titanium Bar",

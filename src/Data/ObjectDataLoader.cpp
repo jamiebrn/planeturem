@@ -250,7 +250,7 @@ bool ObjectDataLoader::loadData(std::string objectDataPath)
 
         if (jsonObjectData.contains("set-spawn-point"))
         {
-            objectData.setSpawnSpawn = jsonObjectData.at("set-spawn-point");
+            objectData.setSpawnPoint = jsonObjectData.at("set-spawn-point");
         }
 
         loaded_objectData.push_back(objectData);

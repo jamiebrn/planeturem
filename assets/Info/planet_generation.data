@@ -135,7 +135,11 @@
                     "objects": [
                         ["Icicle", 0.02],
                         ["Snowy Rock", 0.01],
-                        ["Titanium Rock", 0.01]
+                        ["Titanium Rock", 0.01],
+                        ["Frostwood Tree 1", 0.005],
+                        ["Frostwood Tree 2", 0.005],
+                        ["Frostwood Tree 3", 0.005],
+                        ["Frostwood Tree 4", 0.005]
                     ],
                     "structures": [
                         ["Igloo", 0.02]

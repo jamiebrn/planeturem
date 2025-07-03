@@ -212,6 +212,22 @@
         "sell-value": 3
     },
     {
+        "name": "Titanium Chest",
+        "health": 20,
+        "textures": [[206, 14], [224, 14], [240, 14], [256, 14]],
+        "texture-frame-delay": 0.05,
+        "texture-width": 16,
+        "texture-height": 18,
+        "texture-x-origin": 0.5,
+        "texture-y-origin": 0.5,
+        "chest-capacity": 22,
+        "has-collision": true,
+        "item-drops": {
+            "Titanium Chest": [1, 1, 1]
+        },
+        "sell-value": 6
+    },
+    {
         "name": "Iron Rock",
         "health": 7,
         "textures": [[64, 48]],
@@ -473,7 +489,7 @@
     {
         "name": "Titanium Rock",
         "health": 24,
-        "minimum-damage": 2,
+        "minimum-damage": 3,
         "textures": [[416, 208]],
         "texture-width": 16,
         "texture-height": 16,
@@ -485,9 +501,79 @@
         }
     },
     {
+        "name": "Frostwood Tree 1",
+        "health": 32,
+        "minimum-damage": 2,
+        "textures": [[80, 288]],
+        "texture-width": 48,
+        "texture-height": 48,
+        "texture-x-origin": 0.5,
+        "texture-y-origin": 0.9167,
+        "item-drops": {
+            "Frostwood": [2, 5, 1.0]
+        }
+    },
+    {
+        "name": "Frostwood Tree 2",
+        "health": 32,
+        "minimum-damage": 2,
+        "textures": [[128, 288]],
+        "texture-width": 32,
+        "texture-height": 48,
+        "texture-x-origin": 0.5,
+        "texture-y-origin": 0.9167,
+        "item-drops": {
+            "Frostwood": [2, 3, 1.0]
+        }
+    },
+    {
+        "name": "Frostwood Tree 3",
+        "health": 32,
+        "minimum-damage": 2,
+        "textures": [[160, 288]],
+        "texture-width": 32,
+        "texture-height": 48,
+        "texture-x-origin": 0.5,
+        "texture-y-origin": 0.9167,
+        "item-drops": {
+            "Frostwood": [3, 4, 1.0]
+        }
+    },
+    {
+        "name": "Frostwood Tree 4",
+        "health": 28,
+        "minimum-damage": 2,
+        "textures": [[192, 288]],
+        "texture-width": 32,
+        "texture-height": 48,
+        "texture-x-origin": 0.5,
+        "texture-y-origin": 0.9167,
+        "item-drops": {
+            "Frostwood": [1, 2, 1.0]
+        }
+    },
+    {
+        "name": "Frostwood Bench",
+        "health": 15,
+        "minimum-damage": 2,
+        "size-x": 2,
+        "textures": [[96, 272]],
+        "texture-width": 32,
+        "texture-height": 16,
+        "texture-x-origin": 0.25,
+        "texture-y-origin": 0.75,
+        "has-collision": true,
+        "crafting-station": "bench",
+        "crafting-station-level": 2,
+        "item-drops": {
+            "Frostwood Bench": [1, 1, 1]
+        },
+        "sell-value": 1
+    },
+    {
         "name": "Titanium Furnace",
         "health": 25,
-        "minimum-damage": 2,
+        "minimum-damage": 3,
         "textures": [[304, 256], [336, 256], [368, 256], [400, 256]],
         "texture-frame-delay": 0.1,
         "texture-width": 32,
@@ -508,6 +594,7 @@
     {
         "name": "Titanium Anvil",
         "health": 25,
+        "minimum-damage": 3,
         "textures": [[416, 240]],
         "texture-width": 32,
         "texture-height": 16,

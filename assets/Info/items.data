@@ -296,5 +296,10 @@
     {
         "name": "Chilled Gelatin",
         "texture": [160, 96, 16, 16]
+    },
+    {
+        "name": "Frostwood",
+        "texture": [160, 64, 16, 16],
+        "sell-value": 0.5
     }
 ]

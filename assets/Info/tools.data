@@ -244,6 +244,18 @@
             "hold-offset": [-2, -3],
             "damage": 3,
             "sell-value": 2
+        },
+        {
+            "name": "Frostwood Pickaxe",
+            "behaviour-type": "Pickaxe",
+            "textures": [[0, 32]],
+            "texture-width": 16,
+            "texture-height": 16,
+            "pivot-x": 0.625,
+            "pivot-y": 0.625,
+            "hold-offset": [-3, -4],
+            "damage": 3,
+            "sell-value": 2
         }
     ]
 }

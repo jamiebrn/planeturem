@@ -2909,7 +2909,8 @@ void Game::checkChestOpenInRange()
         return;
     }
 
-    if (!player.canReachPosition(Camera::translateWorldPos(chestObject->getPosition(), player.getPosition(), 0)))
+    if (!player.canReachPosition(Camera::translateWorldPos(chestObject->getPosition(), player.getPosition(),
+            (gameState == GameState::OnPlanet) ? getChunkManager().getWorldSize() : 0)))
     {
         closeChest();
     }
