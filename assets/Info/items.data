@@ -85,7 +85,8 @@
         "name": "Golden Carp",
         "texture": [0, 144, 16, 16],
         "description": "Shiny!",
-        "sell-value": 20
+        "sell-value": 20,
+        "achievement-unlock-on-obtain": "OBTAINED_GOLDEN_CARP"
     },
     {
         "name": "Bream",
@@ -201,7 +202,8 @@
     {
         "name": "Titanium Bar",
         "texture": [144, 80, 16, 16],
-        "sell-value": 4
+        "sell-value": 4,
+        "achievement-unlock-on-obtain": "OBTAINED_TITANIUM_BAR"
     },
     {
         "name": "Slush Ice",
@@ -238,7 +240,8 @@
             "use-at-night": true
         },
         "description": "\"He watches when sun falls for his prey\"",
-        "sell-value": 3
+        "sell-value": 3,
+        "achievement-unlock-on-obtain": "OBTAINED_SEVERED_WORM"
     },
     {
         "name": "Sandscale",
@@ -255,7 +258,6 @@
         "texture": [64, 112, 16, 16],
         "sell-value": 5
     },
-
     {
         "name": "Land",
         "texture": [112, 112, 16, 16],
@@ -279,7 +281,8 @@
         "sell-value": 20,
         "consumable-data": {
             "permanent-health-increase": 25
-        }
+        },
+        "achievement-unlock-on-obtain": "OBTAINED_GOLDEN_BANANA"
     },
     {
         "name": "Banana",

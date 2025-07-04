@@ -50,6 +50,9 @@ struct ItemData
     // 0, 0, 0 reserved for rainbow effect
     pl::Color nameColor = pl::Color(255, 255, 255);
 
+    // Achievement unlocks
+    std::string achievementUnlockOnObtain;
+
     inline const std::string& getDisplayName() const
     {
         if (displayName.has_value())

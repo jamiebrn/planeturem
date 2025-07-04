@@ -28,14 +28,18 @@ public:
 
     static ItemType getItemTypeFromName(const std::string& itemName);
 
-    static void createItemFromObject(ObjectType objectType, const ObjectData& objectData, float sellValue, std::optional<std::string> displayName);
+    static void createItemFromObject(ObjectType objectType, const ObjectData& objectData, float sellValue, std::optional<std::string> displayName,
+        std::string achievementUnlockOnObtain);
 
-    static void createItemFromTool(const std::string& toolName, ToolType toolType, float sellValue);
+    static void createItemFromTool(const std::string& toolName, ToolType toolType, float sellValue,
+        std::string achievementUnlockOnObtain);
 
-    static void createItemFromArmour(ArmourType armourType, const ArmourData& armourData, float sellValue);
+    static void createItemFromArmour(ArmourType armourType, const ArmourData& armourData, float sellValue,
+        std::string achievementUnlockOnObtain);
 
     // Returns the item type corresponding to the added projectile
-    static ItemType createItemFromProjectile(ProjectileType projectileType, const ProjectileData& projectileData, float sellValue);
+    static ItemType createItemFromProjectile(ProjectileType projectileType, const ProjectileData& projectileData, float sellValue,
+        std::string achievementUnlockOnObtain);
 
     static void setItemIsMaterial(ItemType item, bool isMaterial = true);
 

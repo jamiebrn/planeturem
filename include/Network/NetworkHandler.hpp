@@ -19,6 +19,7 @@
 #include "World/ChunkViewRange.hpp"
 #include "Player/PlayerData.hpp"
 #include "Player/NetworkPlayer.hpp"
+#include "Player/Achievements.hpp"
 
 class Game;
 class ChatGUI;

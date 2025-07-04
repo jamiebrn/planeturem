@@ -127,8 +127,8 @@ bool Game::initialise()
     musicGap = 0.0f;
 
     player = Player(pl::Vector2f(0, 0), this);
-    inventory = InventoryData(32);
-    armourInventory = InventoryData(3);
+    inventory = InventoryData(32, true);
+    armourInventory = InventoryData(3, true);
 
     // Initialise day/night cycle
     // dayNightToggleTimer = 0.0f;
@@ -3330,6 +3330,13 @@ void Game::travelToPlanet(PlanetType planetType, ObjectReference newRocketObject
     const PlanetGenData& planetData = PlanetGenDataLoader::getPlanetGenData(locationState.getPlanetType());
     chatMessage.message = currentSaveFileSummary.playerName + " has travelled to planet " + planetData.displayName;
     chatGUI.sendMessageData(networkHandler, chatMessage);
+
+    // Achievement unlock
+    const PlanetGenData& planetGenData = PlanetGenDataLoader::getPlanetGenData(planetType);
+    if (!planetGenData.achievementUnlockOnTravel.empty())
+    {
+        Achievements::attemptAchievementUnlock(planetGenData.achievementUnlockOnTravel);
+    }
 }
 
 void Game::travelToPlanetFromHost(const PacketDataPlanetTravelReply& planetTravelReplyPacket)
@@ -3424,6 +3431,12 @@ bool Game::travelToRoomDestination(RoomType destinationRoomType)
     const RoomData& roomData = StructureDataLoader::getRoomData(locationState.getRoomDestType());
     chatMessage.message = currentSaveFileSummary.playerName + " has travelled to " + roomData.displayName;
     chatGUI.sendMessageData(networkHandler, chatMessage);
+
+    // Achievement unlock
+    if (!roomData.achievementUnlockOnTravel.empty())
+    {
+        Achievements::attemptAchievementUnlock(roomData.achievementUnlockOnTravel);
+    }
 
     return true;
 }
@@ -3557,9 +3570,9 @@ void Game::startNewGame(int seed)
     player.setBodyColor(currentSaveFileSummary.playerData.bodyColor);
     player.setSkinColor(currentSaveFileSummary.playerData.skinColor);
 
-    inventory = InventoryData(32);
+    inventory = InventoryData(32, true);
     inventory.giveStartingItems();
-    armourInventory = InventoryData(3);
+    armourInventory = InventoryData(3, true);
     InventoryGUI::reset();
     changePlayerTool();
 
@@ -3704,7 +3717,9 @@ bool Game::loadGame(const SaveFileSummary& saveFileSummary)
 
     inventory = playerGameSave.playerData.inventory;
     armourInventory = playerGameSave.playerData.armourInventory;
-    
+    inventory.enableAchievementUnlocks();
+    armourInventory.enableAchievementUnlocks();
+
     InventoryGUI::reset();
     InventoryGUI::setSeenRecipes(playerGameSave.playerData.recipesSeen);
 
@@ -4071,6 +4086,8 @@ void Game::joinWorld(const PacketDataJoinInfo& joinInfo)
     player = Player(joinInfo.playerData.position, this, joinInfo.playerData.maxHealth, joinInfo.playerData.bodyColor, joinInfo.playerData.skinColor);
     inventory = joinInfo.playerData.inventory;
     armourInventory = joinInfo.playerData.armourInventory;
+    inventory.enableAchievementUnlocks();
+    armourInventory.enableAchievementUnlocks();
 
     currentSaveFileSummary.playerName = joinInfo.playerData.name;
 

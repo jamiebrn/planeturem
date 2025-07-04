@@ -66,7 +66,6 @@ bool PlanetGenDataLoader::loadPlanet(nlohmann::ordered_json::iterator& planetDat
         planetGenData.riverNoiseRangeMax = planetData->at("river-noise-range")[1];
     }
 
-
     if (!planetData->contains("size"))
         return false;
     
@@ -82,6 +81,11 @@ bool PlanetGenDataLoader::loadPlanet(nlohmann::ordered_json::iterator& planetDat
     
     if (!allPlanetGenData.contains("tilemaps"))
         return false;
+    
+    if (planetData->contains("achievement-unlock-on-travel"))
+    {
+        planetGenData.achievementUnlockOnTravel = planetData->at("achievement-unlock-on-travel");
+    }
     
     // Load biomes
     auto biomes = planetData->at("biomes");

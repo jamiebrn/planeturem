@@ -50,8 +50,11 @@ bool ArmourDataLoader::loadData(std::string armourDataPath)
 
         armourNameToTypeMap[armourData.name] = loaded_armourData.size();
 
+        std::string achievementUnlockOnObtain;
+        if (jsonArmourData.contains("achievement-unlock-on-obtain")) achievementUnlockOnObtain = jsonArmourData.at("achievement-unlock-on-obtain");
+
         // Create item representing armour
-        ItemDataLoader::createItemFromArmour(loaded_armourData.size(), armourData, sellValue);
+        ItemDataLoader::createItemFromArmour(loaded_armourData.size(), armourData, sellValue, achievementUnlockOnObtain);
 
         loaded_armourData.push_back(armourData);
     }

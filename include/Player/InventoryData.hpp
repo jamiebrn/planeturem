@@ -15,11 +15,13 @@
 
 #include "Data/typedefs.hpp"
 
+#include "Player/Achievements.hpp"
+
 class InventoryData
 {
 public:
     InventoryData() = default;
-    InventoryData(int size);
+    InventoryData(int size, bool achievementUnlocks = false);
 
     // Use modify inventory = false to test whether item can fit in inventory
     int addItem(ItemType item, int amount, bool createPopup = false, bool createPopupIfNotEnoughSpace = false, bool modifyInventory = true);
@@ -44,6 +46,8 @@ public:
     void takeCurrencyValueItems(int currencyValue);
 
     void giveStartingItems();
+
+    void enableAchievementUnlocks();
 
     inline int getSize() const {return inventoryData.size();}
 
@@ -73,6 +77,9 @@ public:
 
 protected:
     std::vector<std::optional<ItemCount>> inventoryData;
+
+private:
+    bool achievementUnlocks;
 
 };
 

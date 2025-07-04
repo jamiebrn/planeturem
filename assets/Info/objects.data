@@ -177,7 +177,8 @@
         "item-drops": {
             "Wooden Bench": [1, 1, 1]
         },
-        "sell-value": 1
+        "sell-value": 1,
+        "achievement-unlock-on-obtain": "OBTAINED_WOODEN_BENCH"
     },
     {
         "name": "Bed",
@@ -209,12 +210,13 @@
         "item-drops": {
             "Chest": [1, 1, 1]
         },
-        "sell-value": 3
+        "sell-value": 3,
+        "achievement-unlock-on-obtain": "OBTAINED_CHEST"
     },
     {
         "name": "Titanium Chest",
         "health": 20,
-        "textures": [[206, 14], [224, 14], [240, 14], [256, 14]],
+        "textures": [[208, 14], [224, 14], [240, 14], [256, 14]],
         "texture-frame-delay": 0.05,
         "texture-width": 16,
         "texture-height": 18,
@@ -362,7 +364,8 @@
         "item-drops": {
             "Rocket Launch Pad": [1, 1, 1.0]
         },
-        "sell-value": 10
+        "sell-value": 10,
+        "achievement-unlock-on-obtain": "OBTAINED_MAKESHIFT_ROCKET"
     },
     {
         "name": "Metal Rocket",

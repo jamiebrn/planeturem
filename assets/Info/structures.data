@@ -26,7 +26,8 @@
                 ["Chest", 2],
                 ["AlienHostage", 3],
                 ["BusinessAlien", 4]
-            ]
+            ],
+            "achievement-unlock-on-travel": "TRAVELLED_TO_SPACE_STATION"
         },
         "Igloo": {
             "texture": [384, 16],

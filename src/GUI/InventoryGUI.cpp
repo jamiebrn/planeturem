@@ -502,6 +502,13 @@ bool InventoryGUI::pickUpItem(Game& game, pl::Vector2f mouseScreenPos, unsigned 
         game.openedChestDataModified();
     }
 
+    // Unlock achievement if required
+    const ItemData& pickedUpItemData = ItemDataLoader::getItemData(pickedUpItem);
+    if (!pickedUpItemData.achievementUnlockOnObtain.empty())
+    {
+        Achievements::attemptAchievementUnlock(pickedUpItemData.achievementUnlockOnObtain);
+    }
+
     return true;
 }
 
@@ -715,6 +722,13 @@ void InventoryGUI::craftRecipe(InventoryData& inventory, int selectedRecipe)
     // Inventory changed, so update available recipes
     // Use previous crafting station levels stored as only updating for item change
     updateAvailableRecipes(inventory, previous_nearbyCraftingStationLevels);
+
+    // Unlock achievement if required
+    const ItemData& pickedUpItemData = ItemDataLoader::getItemData(pickedUpItem);
+    if (!pickedUpItemData.achievementUnlockOnObtain.empty())
+    {
+        Achievements::attemptAchievementUnlock(pickedUpItemData.achievementUnlockOnObtain);
+    }
 }
 
 void InventoryGUI::handleClose(InventoryData& inventory, InventoryData* chestData)

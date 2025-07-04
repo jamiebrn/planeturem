@@ -65,6 +65,8 @@ bool ItemDataLoader::loadData(std::string itemDataPath)
 
         if (jsonItemData.contains("name-colour")) itemData.nameColor = jsonItemData.at("name-colour");
 
+        if (jsonItemData.contains("achievement-unlock-on-obtain")) itemData.achievementUnlockOnObtain = jsonItemData.at("achievement-unlock-on-obtain");
+
         // Add to item name to type map
         itemNameToTypeMap[itemData.name] = itemIndex;
         itemIndex++;
@@ -113,7 +115,8 @@ ItemType ItemDataLoader::getItemTypeFromName(const std::string& itemName)
     return itemNameToTypeMap[itemName];
 }
 
-void ItemDataLoader::createItemFromObject(ObjectType objectType, const ObjectData& objectData, float sellValue, std::optional<std::string> displayName)
+void ItemDataLoader::createItemFromObject(ObjectType objectType, const ObjectData& objectData, float sellValue, std::optional<std::string> displayName,
+    std::string achievementUnlockOnObtain)
 {
     ItemData objectItemData;
     objectItemData.name = objectData.name;
@@ -121,6 +124,7 @@ void ItemDataLoader::createItemFromObject(ObjectType objectType, const ObjectDat
     objectItemData.placesObjectType = objectType;
     objectItemData.maxStackSize = 50;
     objectItemData.sellValue = sellValue;
+    objectItemData.achievementUnlockOnObtain = achievementUnlockOnObtain;
 
     if (objectData.mythicalItem)
     {
@@ -140,13 +144,15 @@ void ItemDataLoader::createItemFromObject(ObjectType objectType, const ObjectDat
     itemNameToTypeMap[objectItemData.name] = itemIndex;
 }
 
-void ItemDataLoader::createItemFromTool(const std::string& toolName, ToolType toolType, float sellValue)
+void ItemDataLoader::createItemFromTool(const std::string& toolName, ToolType toolType, float sellValue,
+    std::string achievementUnlockOnObtain)
 {
     ItemData toolItemData;
     toolItemData.name = toolName;
     toolItemData.toolType = toolType;
     toolItemData.maxStackSize = 1;
     toolItemData.sellValue = sellValue;
+    toolItemData.achievementUnlockOnObtain = achievementUnlockOnObtain;
 
     int itemIndex = loaded_itemData.size();
 
@@ -155,13 +161,15 @@ void ItemDataLoader::createItemFromTool(const std::string& toolName, ToolType to
     itemNameToTypeMap[toolItemData.name] = itemIndex;
 }
 
-void ItemDataLoader::createItemFromArmour(ArmourType armourType, const ArmourData& armourData, float sellValue)
+void ItemDataLoader::createItemFromArmour(ArmourType armourType, const ArmourData& armourData, float sellValue,
+    std::string achievementUnlockOnObtain)
 {
     ItemData armourItemData;
     armourItemData.name = armourData.name;
     armourItemData.armourType = armourType;
     armourItemData.maxStackSize = 1;
     armourItemData.sellValue = sellValue;
+    armourItemData.achievementUnlockOnObtain = achievementUnlockOnObtain;
 
     int itemIndex = loaded_itemData.size();
 
@@ -170,13 +178,15 @@ void ItemDataLoader::createItemFromArmour(ArmourType armourType, const ArmourDat
     itemNameToTypeMap[armourItemData.name] = itemIndex;
 }
 
-ItemType ItemDataLoader::createItemFromProjectile(ProjectileType projectileType, const ProjectileData& projectileData, float sellValue)
+ItemType ItemDataLoader::createItemFromProjectile(ProjectileType projectileType, const ProjectileData& projectileData, float sellValue,
+    std::string achievementUnlockOnObtain)
 {
     ItemData projectileItemData;
     projectileItemData.name = projectileData.name;
     projectileItemData.projectileType = projectileType;
     projectileItemData.maxStackSize = 99;
     projectileItemData.sellValue = sellValue;
+    projectileItemData.achievementUnlockOnObtain = achievementUnlockOnObtain;
 
     int itemIndex = loaded_itemData.size();
 

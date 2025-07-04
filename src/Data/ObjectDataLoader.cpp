@@ -31,7 +31,10 @@ bool ObjectDataLoader::loadData(std::string objectDataPath)
         if (iter.value().contains("crafting-station")) minimalObjectData.craftingStation = iter.value().at("crafting-station");
         if (iter.value().contains("crafting-station-level")) minimalObjectData.craftingStationLevel = iter.value().at("crafting-station-level");
 
-        ItemDataLoader::createItemFromObject(objectIdx, minimalObjectData, sellValue, displayName);
+        std::string achievementUnlockOnObtain;
+        if (iter.value().contains("achievement-unlock-on-obtain")) achievementUnlockOnObtain = iter.value().at("achievement-unlock-on-obtain");
+
+        ItemDataLoader::createItemFromObject(objectIdx, minimalObjectData, sellValue, displayName, achievementUnlockOnObtain);
 
         objectIdx++;
     }

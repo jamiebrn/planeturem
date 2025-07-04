@@ -71,6 +71,11 @@ bool StructureDataLoader::loadData(std::string structureDataPath)
             roomTypeTravelLocationsMap[iter.key()] = loaded_roomData.size();
         }
 
+        if (iter->contains("achievement-unlock-on-travel"))
+        {
+            roomData.achievementUnlockOnTravel = iter->at("achievement-unlock-on-travel");
+        }
+
         loaded_roomData.push_back(roomData);
     }
 

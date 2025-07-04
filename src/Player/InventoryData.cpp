@@ -5,9 +5,11 @@
 #include "Data/ToolDataLoader.hpp"
 #include "GUI/InventoryGUI.hpp"
 
-InventoryData::InventoryData(int size)
+InventoryData::InventoryData(int size, bool achievementUnlocks)
 {
     inventoryData = std::vector<std::optional<ItemCount>>(size, std::nullopt);
+
+    this->achievementUnlocks = achievementUnlocks;
 }
 
 int InventoryData::addItem(ItemType item, int amount, bool createPopup, bool createPopupIfNotEnoughSpace, bool modifyInventory)
@@ -48,6 +50,8 @@ int InventoryData::addItem(ItemType item, int amount, bool createPopup, bool cre
             break;
     }
 
+    const ItemData& itemData = ItemDataLoader::getItemData(item);
+
     // Attempt to put remaining items in empty slot
     if (amountToAdd > 0)
     {
@@ -55,8 +59,6 @@ int InventoryData::addItem(ItemType item, int amount, bool createPopup, bool cre
         {
             if (itemSlot.has_value())
                 continue;
-            
-            const ItemData& itemData = ItemDataLoader::getItemData(item);
             
             int amountPutInSlot = std::min(amountToAdd, static_cast<int>(itemData.maxStackSize));
 
@@ -84,11 +86,14 @@ int InventoryData::addItem(ItemType item, int amount, bool createPopup, bool cre
         }
     }
 
+    // Unlock achievement for obtaining item if required, if this inventory is set to unlock achievements
+    if (achievementUnlocks && !itemData.achievementUnlockOnObtain.empty())
+    {
+        Achievements::attemptAchievementUnlock(itemData.achievementUnlockOnObtain);
+    }
+
     // Return total items added
     return amountAdded;
-
-    // Doesn't exist so add as new item
-    // inventoryData.push_back({item, amount});
 }
 
 int InventoryData::takeItem(ItemType item, int amount)
@@ -138,26 +143,31 @@ void InventoryData::addItemAtIndex(int index, ItemType item, int amount)
 {
     if (index >= inventoryData.size())
         return;
-    
+        
     std::optional<ItemCount>& itemSlot = inventoryData[index];
+
+    const ItemData& itemData = ItemDataLoader::getItemData(item);
+
+    if (achievementUnlocks && !itemData.achievementUnlockOnObtain.empty())
+    {
+        Achievements::attemptAchievementUnlock(itemData.achievementUnlockOnObtain);
+    }
 
     // Attempt to add to stack
     if (itemSlot.has_value())
     {
         ItemCount& itemCount = itemSlot.value();
 
-        const ItemData& itemData = ItemDataLoader::getItemData(itemCount.first);
+        const ItemData& itemCountData = ItemDataLoader::getItemData(itemCount.first);
 
         // Item to add is same as item at index, so add
         if (item == itemCount.first)
         {
-            itemCount.second = std::min(itemCount.second + amount, itemData.maxStackSize);
+            itemCount.second = std::min(itemCount.second + amount, itemCountData.maxStackSize);
         }
 
         return;
     }
-
-    const ItemData& itemData = ItemDataLoader::getItemData(item);
 
     // Create new stack
     ItemCount itemCount;
@@ -379,6 +389,11 @@ void InventoryData::takeCurrencyValueItems(int currencyValue)
 void InventoryData::giveStartingItems()
 {
     addItem(ItemDataLoader::getItemTypeFromName("Wooden Pickaxe"), 1);
+}
+
+void InventoryData::enableAchievementUnlocks()
+{
+    achievementUnlocks = true;
 }
 
 // Save / load

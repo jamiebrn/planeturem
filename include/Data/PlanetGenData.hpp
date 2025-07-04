@@ -97,4 +97,6 @@ struct PlanetGenData
     float riverNoiseRangeMax = 0.0f;
 
     std::unordered_set<std::string> bossesSpawnAllowedNames;
+
+    std::string achievementUnlockOnTravel;
 };

@@ -46,8 +46,11 @@ bool ToolDataLoader::loadData(std::string toolDataPath)
         if (jsonProjectileData.contains("collision-radius")) projectileData.collisionRadius = jsonProjectileData.at("collision-radius");
         if (jsonProjectileData.contains("collision-offset")) projectileData.collisionOffset = jsonProjectileData.at("collision-offset");
 
+        std::string achievementUnlockOnObtain;
+        if (jsonProjectileData.contains("achievement-unlock-on-obtain")) achievementUnlockOnObtain = jsonProjectileData.at("achievement-unlock-on-obtain");
+
         // Link with item data
-        projectileData.itemType = ItemDataLoader::createItemFromProjectile(projectileIdx, projectileData, sellValue);
+        projectileData.itemType = ItemDataLoader::createItemFromProjectile(projectileIdx, projectileData, sellValue, achievementUnlockOnObtain);
 
         loaded_projectileData.push_back(projectileData);
 
@@ -130,8 +133,11 @@ bool ToolDataLoader::loadData(std::string toolDataPath)
 
         toolNameToTypeMap[toolData.name] = toolIdx;
 
+        std::string achievementUnlockOnObtain;
+        if (jsonToolData.contains("achievement-unlock-on-obtain")) achievementUnlockOnObtain = jsonToolData.at("achievement-unlock-on-obtain");
+
         // Create item representing tool
-        ItemDataLoader::createItemFromTool(toolData.name, toolIdx, sellValue);
+        ItemDataLoader::createItemFromTool(toolData.name, toolIdx, sellValue, achievementUnlockOnObtain);
 
         toolIdx++;
     }
