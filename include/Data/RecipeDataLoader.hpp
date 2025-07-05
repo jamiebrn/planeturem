@@ -27,9 +27,13 @@ public:
     static const std::unordered_map<uint64_t, RecipeData>& getRecipeDataMap();
 
     static uint64_t getRecipeCount();
+    
+    static inline const std::string& getDataHash() {return dataHash;}
 
 private:
     // static std::vector<RecipeData> loaded_recipeData;
     static std::unordered_map<uint64_t, RecipeData> loaded_recipeData;
+
+    static std::string dataHash;
 
 };

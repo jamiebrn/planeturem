@@ -1,9 +1,12 @@
 #include "Data/ToolDataLoader.hpp"
+#include <extlib/hashpp.h>
 
 std::vector<ToolData> ToolDataLoader::loaded_toolData;
 std::unordered_map<std::string, ToolType> ToolDataLoader::toolNameToTypeMap;
 std::vector<ProjectileData> ToolDataLoader::loaded_projectileData;
 std::unordered_map<std::string, ProjectileType> ToolDataLoader::projectileNameToTypeMap;
+
+std::string ToolDataLoader::dataHash;
 
 bool ToolDataLoader::loadData(std::string toolDataPath)
 {
@@ -56,7 +59,6 @@ bool ToolDataLoader::loadData(std::string toolDataPath)
 
         projectileIdx++;
     }
-
 
     // Load tool data
     auto tools = data.at("tools");
@@ -141,6 +143,8 @@ bool ToolDataLoader::loadData(std::string toolDataPath)
 
         toolIdx++;
     }
+
+    dataHash = hashpp::get::getFileHash(hashpp::ALGORITHMS::MD5, toolDataPath);
 
     return true;
 }

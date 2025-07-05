@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include <fstream>
 #include <string>
 #include <unordered_map>
@@ -29,6 +28,8 @@ public:
     static ProjectileType getProjectileTypeFromName(const std::string& projectileName);
 
     static const ProjectileData& getProjectileData(ProjectileType projectile);
+    
+    static inline const std::string& getDataHash() {return dataHash;}
 
 private:
     static ToolBehaviourType getToolBehaviourTypeFromStr(const std::string& toolBehaviourStr);
@@ -41,5 +42,7 @@ private:
     static std::vector<ProjectileData> loaded_projectileData;
 
     static std::unordered_map<std::string, ProjectileType> projectileNameToTypeMap;
+
+    static std::string dataHash;
 
 };

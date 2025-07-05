@@ -1,13 +1,11 @@
 #include "Core/TextureManager.hpp"
+#include <extlib/hashpp.h>
 
 // Initialise member variables, as is static class
 bool TextureManager::loadedTextures = false;
 
 // Stores loaded textures
 std::unordered_map<TextureType, std::unique_ptr<pl::Texture>> TextureManager::textureMap;
-
-// Stores sprites
-// std::unordered_map<TextureType, pl::Sprite> TextureManager::spriteMap;
 
 std::unordered_map<BitmaskType, std::unique_ptr<pl::Image>> TextureManager::bitmasks;
 
@@ -32,12 +30,16 @@ const std::unordered_map<BitmaskType, std::string> TextureManager::bitmaskPaths 
     {BitmaskType::Structures, "Data/Textures/collision_bitmasks.png"}
 };
 
+std::string TextureManager::textureHash;
+
 // Loads all textures from paths specified into texture map
 bool TextureManager::loadTextures()
 {
     // If textures already loaded, return true by default
     if (loadedTextures)
         return true;
+    
+    textureHash = "";
     
     // Set loaded textures to true by default
     loadedTextures = true;
@@ -71,6 +73,9 @@ bool TextureManager::loadTextures()
         // Store texture object in texture map
         textureMap[textureType] = std::move(texture);
 
+        // Calculate hash and add to texture hashes
+        textureHash += hashpp::get::getFileHash(hashpp::ALGORITHMS::MD5, texturePath);
+
         // Increment texture loaded count
         texturesLoaded++;
     }
@@ -89,6 +94,9 @@ bool TextureManager::loadTextures()
         }
 
         bitmasks[bitmaskPair.first] = std::move(bitmaskImage);
+        
+        // Calculate hash and add to texture hashes
+        textureHash += hashpp::get::getFileHash(hashpp::ALGORITHMS::MD5, bitmaskPair.second);
 
         // Increment texture loaded count
         texturesLoaded++;

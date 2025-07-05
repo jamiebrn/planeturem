@@ -29,11 +29,15 @@ public:
 
     static ObjectType getObjectTypeFromName(const std::string& objectName);
 
-    inline static const std::unordered_map<std::string, ObjectType>& getObjectNameToTypeMap() {return objectNameToTypeMap;}
+    static inline const std::unordered_map<std::string, ObjectType>& getObjectNameToTypeMap() {return objectNameToTypeMap;}
+    
+    static inline const std::string& getDataHash() {return dataHash;}
 
 private:
     static std::vector<ObjectData> loaded_objectData;
 
     static std::unordered_map<std::string, ObjectType> objectNameToTypeMap;
+
+    static std::string dataHash;
 
 };

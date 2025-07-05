@@ -22,10 +22,14 @@ public:
     static const EntityData& getEntityData(EntityType entity);
 
     static EntityType getEntityTypeFromName(const std::string& entityName);
+    
+    static inline const std::string& getDataHash() {return dataHash;}
 
 private:
     static std::vector<EntityData> loaded_entityData;
 
     static std::unordered_map<std::string, EntityType> entityNameToTypeMap;
+
+    static std::string dataHash;
 
 };

@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include <fstream>
 #include <vector>
 #include <unordered_map>
@@ -35,6 +34,8 @@ public:
 
     static inline const std::unordered_map<std::string, RoomType>& getRoomTravelLocationNameToTypeMap() {return roomTypeTravelLocationsMap;}
 
+    static inline const std::string& getDataHash() {return dataHash;}
+
 private:
     static void loadChestContents(RoomObjectData& roomObjectData, nlohmann::ordered_json::iterator objectIter);
 
@@ -44,5 +45,7 @@ private:
     static std::unordered_map<std::string, StructureType> structureNameToTypeMap;
 
     static std::unordered_map<std::string, RoomType> roomTypeTravelLocationsMap;
+
+    static std::string dataHash;
 
 };

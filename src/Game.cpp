@@ -4750,6 +4750,13 @@ void Game::drawControllerGlyphs(const std::vector<std::pair<InputAction, std::st
     }
 }
 
+std::string Game::getGameDataHash() const
+{
+    return (TextureManager::getTextureHash() + ItemDataLoader::getDataHash() + ToolDataLoader::getDataHash() +
+        ArmourDataLoader::getDataHash() + EntityDataLoader::getDataHash() + ObjectDataLoader::getDataHash() +
+        RecipeDataLoader::getDataHash() + StructureDataLoader::getDataHash() + PlanetGenDataLoader::getDataHash());
+}
+
 #if (!RELEASE_BUILD)
 void Game::drawDebugMenu(float dt)
 {

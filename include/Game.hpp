@@ -241,6 +241,8 @@ public:
     inline void setGameTime(float gameTime) {this->gameTime = gameTime;}
 
     inline int getPlanetSeed() {return planetSeed;}
+
+    std::string getGameDataHash() const;
     
 private:
 

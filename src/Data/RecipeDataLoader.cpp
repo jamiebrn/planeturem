@@ -1,6 +1,9 @@
 #include "Data/RecipeDataLoader.hpp"
+#include <extlib/hashpp.h>
 
 std::unordered_map<uint64_t, RecipeData> RecipeDataLoader::loaded_recipeData;
+
+std::string RecipeDataLoader::dataHash;
 
 bool RecipeDataLoader::loadData(std::string recipeDataPath)
 {
@@ -46,6 +49,8 @@ bool RecipeDataLoader::loadData(std::string recipeDataPath)
 
         loaded_recipeData[recipeData.getHash()] = recipeData;
     }
+    
+    dataHash = hashpp::get::getFileHash(hashpp::ALGORITHMS::MD5, recipeDataPath);
 
     return true;
 }

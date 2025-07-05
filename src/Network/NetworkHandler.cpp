@@ -459,6 +459,7 @@ void NetworkHandler::callbackLobbyUpdated(LobbyChatUpdate_t* pCallback)
         {
             PacketDataJoinQuery packetData;
             packetData.requiresNameInput = !networkPlayerDatasSaved.contains(userIdentity.GetSteamID64());
+            packetData.gameDataHash = game->getGameDataHash();
 
             Packet packet;
             packet.set(packetData);
@@ -973,7 +974,7 @@ void NetworkHandler::processMessageAsHost(const SteamNetworkingMessage_t& messag
                 if (playerData.locationState.isInStructure())
                 {
                     packetData.inStructureRoomType = game->
-                    getStructureRoomPool(playerData.locationState.getPlanetType()).getRoom(playerData.locationState.getInStructureID()).getRoomType();
+                        getStructureRoomPool(playerData.locationState.getPlanetType()).getRoom(playerData.locationState.getInStructureID()).getRoomType();
                 }
             }
             else if (playerData.locationState.isInRoomDest())
@@ -1206,6 +1207,12 @@ void NetworkHandler::processMessageAsClient(const SteamNetworkingMessage_t& mess
         {
             PacketDataJoinQuery packetData;
             packetData.deserialise(packet.data);
+
+            if (packetData.gameDataHash != game->getGameDataHash())
+            {
+                leaveLobby();
+                break;
+            }
             
             lobbyHost = message.m_identityPeer.GetSteamID64();
             isLobbyHost = false;

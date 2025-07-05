@@ -1,9 +1,12 @@
 #include "Data/ItemDataLoader.hpp"
+#include <extlib/hashpp.h>
 
 std::vector<ItemData> ItemDataLoader::loaded_itemData;
 std::unordered_map<std::string, ItemType> ItemDataLoader::itemNameToTypeMap;
 std::vector<ItemType> ItemDataLoader::currencyItemOrder;
 std::unordered_map<std::string, std::unordered_map<int, std::vector<ItemType>>> ItemDataLoader::craftingStationItemMap;
+
+std::string ItemDataLoader::dataHash;
 
 bool ItemDataLoader::loadData(std::string itemDataPath)
 {
@@ -75,6 +78,8 @@ bool ItemDataLoader::loadData(std::string itemDataPath)
     }
 
     createCurrencyItemOrderVector();
+
+    dataHash = hashpp::get::getFileHash(hashpp::ALGORITHMS::MD5, itemDataPath);
 
     return true;
 }

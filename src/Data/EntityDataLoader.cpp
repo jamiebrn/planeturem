@@ -1,7 +1,10 @@
 #include "Data/EntityDataLoader.hpp"
+#include <extlib/hashpp.h>
 
 std::vector<EntityData> EntityDataLoader::loaded_entityData;
 std::unordered_map<std::string, EntityType> EntityDataLoader::entityNameToTypeMap;
+
+std::string EntityDataLoader::dataHash;
 
 bool EntityDataLoader::loadData(std::string objectDataPath)
 {
@@ -88,6 +91,8 @@ bool EntityDataLoader::loadData(std::string objectDataPath)
 
         entityIdx++;
     }
+
+    dataHash = hashpp::get::getFileHash(hashpp::ALGORITHMS::MD5, objectDataPath);
 
     return true;
 }

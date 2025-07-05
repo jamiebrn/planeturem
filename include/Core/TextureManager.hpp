@@ -19,37 +19,12 @@
 
 #include "Types/TextureType.hpp"
 
-// Struct containing data required to draw texture
-// struct TextureDrawData
-// {
-//     // Type of texture
-//     TextureType type;
-//     // Draw position on screen
-//     pl::Vector2f position;
-//     // Rotation
-//     float rotation = 0.0f;
-//     // Scale
-//     pl::Vector2f scale;
-//     // Whether texture should be drawn centred about its position
-//     pl::Vector2f centerRatio = pl::Vector2f(0, 0);
-//     // The base colour the texture should be drawn in (white in most cases)
-//     pl::Color colour = pl::Color(255, 255, 255);
-    
-//     bool useCentreAbsolute = false;
-// };
-
-// Declaration of TextureManager class
 class TextureManager
 {
-
-// Private TextureManager constructor, so class cannot be instantiated
-// Creates static class behaviour
 private:
     TextureManager() = delete;
 
-// Public functions
 public:
-    // Load all textures into memory
     static bool loadTextures();
 
     static void unloadTextures();
@@ -66,28 +41,20 @@ public:
     inline static pl::Texture* getTexture(TextureType type) {return textureMap[type].get();}
 
     inline static const pl::Image& getBitmask(BitmaskType type) {return *bitmasks[type].get();}
+    
+    static inline const std::string& getTextureHash() {return textureHash;}
 
-// Private functions
 private:
-    // Apply draw data before drawing a texture
-    // static void applyTextureData(TextureDrawData drawData);
-
-// Private member variables
-private:
-    // Stores whether textures have been loaded
     static bool loadedTextures;
 
-    // Stores loaded textures
     static std::unordered_map<TextureType, std::unique_ptr<pl::Texture>> textureMap;
 
-    // Stores sprites, which provide an interface over the textures
-    // static std::unordered_map<TextureType, sf::Sprite> spriteMap;
-
-    // Stores file path to each texture, so each texture can be loaded
     static const std::unordered_map<TextureType, std::string> texturePaths;
 
     static std::unordered_map<BitmaskType, std::unique_ptr<pl::Image>> bitmasks;
 
     static const std::unordered_map<BitmaskType, std::string> bitmaskPaths;
+
+    static std::string textureHash;
 
 };

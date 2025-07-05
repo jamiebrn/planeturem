@@ -49,6 +49,8 @@ public:
 
     // Highest value is at lowest index
     inline static const std::vector<ItemType>& getCurrencyItemOrderVector() {return currencyItemOrder;}
+    
+    static inline const std::string& getDataHash() {return dataHash;}
 
 private:
     static void createCurrencyItemOrderVector();
@@ -61,5 +63,7 @@ private:
     static std::vector<ItemType> currencyItemOrder;
 
     static std::unordered_map<std::string, std::unordered_map<int, std::vector<ItemType>>> craftingStationItemMap;
+
+    static std::string dataHash;
 
 };

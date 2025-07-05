@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include <fstream>
 #include <string>
 #include <unordered_map>
@@ -25,6 +24,8 @@ public:
     static const ArmourData& getArmourData(ArmourType armourType);
 
     static ArmourType getArmourTypeFromName(const std::string& armourName);
+    
+    static inline const std::string& getDataHash() {return dataHash;}
 
 private:
     static ArmourWearType getArmourWearTypeFromStr(const std::string& armourWearStr);
@@ -33,5 +34,7 @@ private:
     static std::vector<ArmourData> loaded_armourData;
 
     static std::unordered_map<std::string, ArmourType> armourNameToTypeMap;
+
+    static std::string dataHash;
 
 };

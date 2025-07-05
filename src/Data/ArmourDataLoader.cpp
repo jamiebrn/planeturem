@@ -1,7 +1,10 @@
 #include "Data/ArmourDataLoader.hpp"
+#include <extlib/hashpp.h>
 
 std::vector<ArmourData> ArmourDataLoader::loaded_armourData;
 std::unordered_map<std::string, ToolType> ArmourDataLoader::armourNameToTypeMap;
+
+std::string ArmourDataLoader::dataHash;
 
 bool ArmourDataLoader::loadData(std::string armourDataPath)
 {
@@ -58,6 +61,8 @@ bool ArmourDataLoader::loadData(std::string armourDataPath)
 
         loaded_armourData.push_back(armourData);
     }
+
+    dataHash = hashpp::get::getFileHash(hashpp::ALGORITHMS::MD5, armourDataPath);
 
     return true;
 }

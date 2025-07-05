@@ -1,10 +1,13 @@
 #include "Data/StructureDataLoader.hpp"
+#include <extlib/hashpp.h>
 
 std::vector<StructureData> StructureDataLoader::loaded_structureData;
 std::vector<RoomData> StructureDataLoader::loaded_roomData;
 
 std::unordered_map<std::string, StructureType> StructureDataLoader::structureNameToTypeMap;
 std::unordered_map<std::string, RoomType> StructureDataLoader::roomTypeTravelLocationsMap;
+
+std::string StructureDataLoader::dataHash;
 
 bool StructureDataLoader::loadData(std::string structureDataPath)
 {
@@ -115,6 +118,8 @@ bool StructureDataLoader::loadData(std::string structureDataPath)
         structureIdx++;
     }
 
+    dataHash = hashpp::get::getFileHash(hashpp::ALGORITHMS::MD5, structureDataPath);
+    
     return true;
 }
 

@@ -1,8 +1,11 @@
 #include "Data/ObjectDataLoader.hpp"
 #include "Player/ShopInventoryData.hpp"
+#include <extlib/hashpp.h>
 
 std::vector<ObjectData> ObjectDataLoader::loaded_objectData;
 std::unordered_map<std::string, ObjectType> ObjectDataLoader::objectNameToTypeMap;
+
+std::string ObjectDataLoader::dataHash;
 
 bool ObjectDataLoader::loadData(std::string objectDataPath)
 {
@@ -258,6 +261,8 @@ bool ObjectDataLoader::loadData(std::string objectDataPath)
 
         loaded_objectData.push_back(objectData);
     }
+
+    dataHash = hashpp::get::getFileHash(hashpp::ALGORITHMS::MD5, objectDataPath);
 
     return true;
 }

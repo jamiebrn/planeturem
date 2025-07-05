@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include <vector>
 #include <fstream>
 #include <string>
@@ -35,6 +34,8 @@ public:
 
     static inline const std::unordered_map<std::string, PlanetType>& getPlanetStringToTypeMap() {return planetStringToTypeMap;}
 
+    static inline const std::string& getDataHash() {return dataHash;}
+
 private:
     static bool loadPlanet(nlohmann::ordered_json::iterator& planetData, const nlohmann::ordered_json& allPlanetGenData);
 
@@ -44,5 +45,7 @@ private:
     static std::unordered_map<std::string, PlanetType> planetStringToTypeMap;
 
     static std::unordered_map<int, TileMap> tileIdToTileMap;
+
+    static std::string dataHash;
 
 };

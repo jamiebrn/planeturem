@@ -1,10 +1,13 @@
 #include "Data/PlanetGenDataLoader.hpp"
+#include <extlib/hashpp.h>
 
 std::vector<PlanetGenData> PlanetGenDataLoader::loaded_planetGenData;
 
 std::unordered_map<std::string, PlanetType> PlanetGenDataLoader::planetStringToTypeMap;
 
 std::unordered_map<int, TileMap> PlanetGenDataLoader::tileIdToTileMap;
+
+std::string PlanetGenDataLoader::dataHash;
 
 bool PlanetGenDataLoader::loadData(std::string planetGenDataPath)
 {
@@ -21,8 +24,7 @@ bool PlanetGenDataLoader::loadData(std::string planetGenDataPath)
             return false;
     }
 
-    // Load rocket object destinations, as planets have now loaded
-    // ObjectDataLoader::loadRocketPlanetDestinations(planetStringToTypeMap);
+    dataHash = hashpp::get::getFileHash(hashpp::ALGORITHMS::MD5, planetGenDataPath);
 
     return true;
 }
