@@ -93,6 +93,8 @@ public:
 
     void setCanInteract(bool value);
 
+    void setErrorMessage(const std::string& errorMessage);
+
 private:
     int getWorldSeedFromString(std::string string);
 
@@ -134,6 +136,11 @@ private:
     WorldData menuWorldData;
     pl::Vector2f worldViewPosition;
     Camera menuCamera;
+
+    // Error message
+    static constexpr float MAX_ERROR_MESSAGE_TIME = 5.0f;
+    float errorMessageTime = 0.0f;
+    std::string errorMessage;
 
     // Demo stuff
     // bool showPauseMenuWishlist;

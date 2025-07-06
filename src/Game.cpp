@@ -202,7 +202,7 @@ void Game::run()
 
         if (networkHandler.isMultiplayerGame())
         {
-            networkHandler.receiveMessages(chatGUI);
+            networkHandler.receiveMessages(chatGUI, mainMenuGUI);
         }
 
         // runFeatureTest();
@@ -4752,9 +4752,10 @@ void Game::drawControllerGlyphs(const std::vector<std::pair<InputAction, std::st
 
 std::string Game::getGameDataHash() const
 {
-    return (TextureManager::getTextureHash() + ItemDataLoader::getDataHash() + ToolDataLoader::getDataHash() +
-        ArmourDataLoader::getDataHash() + EntityDataLoader::getDataHash() + ObjectDataLoader::getDataHash() +
-        RecipeDataLoader::getDataHash() + StructureDataLoader::getDataHash() + PlanetGenDataLoader::getDataHash());
+    return (hashpp::get::getHash(hashpp::ALGORITHMS::MD5, GAME_VERSION).getString() + TextureManager::getTextureHash() +
+        ItemDataLoader::getDataHash() + ToolDataLoader::getDataHash() + ArmourDataLoader::getDataHash() +
+        EntityDataLoader::getDataHash() + ObjectDataLoader::getDataHash() + RecipeDataLoader::getDataHash() +
+        StructureDataLoader::getDataHash() + PlanetGenDataLoader::getDataHash());
 }
 
 #if (!RELEASE_BUILD)

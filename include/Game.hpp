@@ -13,6 +13,8 @@
 #include <backends/imgui_impl_opengl3.h>
 #endif
 
+#include <extlib/hashpp.h>
+
 #include <World/FastNoise.h>
 #include <Core/json.hpp>
 #define _USE_MATH_DEFINES

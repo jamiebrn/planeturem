@@ -23,6 +23,7 @@
 
 class Game;
 class ChatGUI;
+class MainMenuGUI;
 
 class NetworkHandler
 {
@@ -35,7 +36,7 @@ public:
     
     void sendWorldJoinReply(std::string playerName, pl::Color bodyColor, pl::Color skinColor);
 
-    void receiveMessages(ChatGUI& chatGUI);
+    void receiveMessages(ChatGUI& chatGUI, MainMenuGUI& mainMenuGUI);
 
     void update(float dt);
 
@@ -98,9 +99,9 @@ public:
     float getByteReceiveRate(float dt) const;
 
 private:
-    void processMessage(const SteamNetworkingMessage_t& message, const Packet& packet, ChatGUI& chatGUI);
+    void processMessage(const SteamNetworkingMessage_t& message, const Packet& packet, ChatGUI& chatGUI, MainMenuGUI& mainMenuGUI);
     void processMessageAsHost(const SteamNetworkingMessage_t& message, const Packet& packet, ChatGUI& chatGUI);
-    void processMessageAsClient(const SteamNetworkingMessage_t& message, const Packet& packet, ChatGUI& chatGUI);
+    void processMessageAsClient(const SteamNetworkingMessage_t& message, const Packet& packet, ChatGUI& chatGUI, MainMenuGUI& mainMenuGUI);
     
     void callbackLobbyCreated(LobbyCreated_t* pCallback, bool bIOFailure);
     

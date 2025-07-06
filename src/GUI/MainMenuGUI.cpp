@@ -21,6 +21,9 @@ void MainMenuGUI::initialise()
     worldViewPosition.y = worldViewChunk.y * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
 
     menuCamera.instantUpdate(worldViewPosition);
+
+    errorMessageTime = 0.0f;
+    errorMessage = "";
 }
 
 void MainMenuGUI::initialisePauseMenu()
@@ -510,6 +513,25 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(pl::RenderTarget& window
 
     guiContext.endGUI();
 
+    // Error message text
+    if (errorMessageTime > 0.0f)
+    {
+        float alpha = std::min(errorMessageTime, 0.5f) * 255.0f;
+
+        static constexpr float ERROR_Y_POS = 300.0f;
+
+        pl::TextDrawData errorTextDrawData;
+        errorTextDrawData.text = errorMessage;
+        errorTextDrawData.color = pl::Color(232, 59, 59, alpha);
+        errorTextDrawData.outlineColor = pl::Color(46, 34, 47, alpha);
+        errorTextDrawData.size = 32 * intScale;
+        errorTextDrawData.outlineThickness = 4 * intScale;
+        errorTextDrawData.position = pl::Vector2f(window.getWidth() / 2, window.getHeight() + ERROR_Y_POS * intScale);
+        errorTextDrawData.centeredX = true;
+
+        TextDraw::drawText(window, errorTextDrawData);
+    }
+
     // Version number text
     pl::TextDrawData versionTextDrawData;
     versionTextDrawData.text = GAME_VERSION;
@@ -779,4 +801,10 @@ void MainMenuGUI::changeUIState(StateType newState, StateType& currentState)
 void MainMenuGUI::setCanInteract(bool value)
 {
     canInteract = value;
+}
+
+void MainMenuGUI::setErrorMessage(const std::string& errorMessage)
+{
+    this->errorMessage = errorMessage;
+    errorMessageTime = MAX_ERROR_MESSAGE_TIME;
 }

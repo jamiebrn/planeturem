@@ -1,6 +1,7 @@
 #include "Network/NetworkHandler.hpp"
 #include "Game.hpp"
 #include "GUI/ChatGUI.hpp"
+#include "GUI/MainMenuGUI.hpp"
 
 NetworkHandler::NetworkHandler(Game* game)
 {
@@ -44,7 +45,7 @@ void NetworkHandler::startHostServer()
     if (multiplayerGame)
     {
         return;
-    }   
+    }
 
     networkPlayers.clear();
     SteamAPICall_t steamAPICall = SteamMatchmaking()->CreateLobby(ELobbyType::k_ELobbyTypeFriendsOnly, MAX_LOBBY_PLAYER_COUNT);
@@ -543,7 +544,7 @@ void NetworkHandler::updateNetworkPlayers(float dt, const LocationState& locatio
     }
 }
 
-void NetworkHandler::receiveMessages(ChatGUI& chatGUI)
+void NetworkHandler::receiveMessages(ChatGUI& chatGUI, MainMenuGUI& mainMenuGUI)
 {
     static constexpr int MAX_MESSAGES = 10;
 
@@ -563,7 +564,7 @@ void NetworkHandler::receiveMessages(ChatGUI& chatGUI)
             Packet packet;
             packet.deserialise((char*)messages[i]->GetData(), messages[i]->GetSize());
     
-            processMessage(*messages[i], packet, chatGUI);
+            processMessage(*messages[i], packet, chatGUI, mainMenuGUI);
 
             totalBytesReceived += messages[i]->GetSize();
             // printf("___DEBUG___: Received packet of size %d bytes, type %d\n", messages[i]->GetSize(), packet.type);
@@ -573,7 +574,7 @@ void NetworkHandler::receiveMessages(ChatGUI& chatGUI)
     }
 }
 
-void NetworkHandler::processMessage(const SteamNetworkingMessage_t& message, const Packet& packet, ChatGUI& chatGUI)
+void NetworkHandler::processMessage(const SteamNetworkingMessage_t& message, const Packet& packet, ChatGUI& chatGUI, MainMenuGUI& mainMenuGUI)
 {
     // Process packet
     if (isLobbyHost)
@@ -582,7 +583,7 @@ void NetworkHandler::processMessage(const SteamNetworkingMessage_t& message, con
     }
     else
     {
-        processMessageAsClient(message, packet, chatGUI);
+        processMessageAsClient(message, packet, chatGUI, mainMenuGUI);
     }
     
     switch (packet.type)
@@ -1199,7 +1200,7 @@ void NetworkHandler::processMessageAsHost(const SteamNetworkingMessage_t& messag
     }
 }
 
-void NetworkHandler::processMessageAsClient(const SteamNetworkingMessage_t& message, const Packet& packet, ChatGUI& chatGUI)
+void NetworkHandler::processMessageAsClient(const SteamNetworkingMessage_t& message, const Packet& packet, ChatGUI& chatGUI, MainMenuGUI& mainMenuGUI)
 {
     switch (packet.type)
     {
@@ -1211,6 +1212,7 @@ void NetworkHandler::processMessageAsClient(const SteamNetworkingMessage_t& mess
             if (packetData.gameDataHash != game->getGameDataHash())
             {
                 leaveLobby();
+                mainMenuGUI.setErrorMessage("Failed to join game (game data mismatch)");
                 break;
             }
             
