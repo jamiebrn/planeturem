@@ -516,20 +516,24 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(pl::RenderTarget& window
     // Error message text
     if (errorMessageTime > 0.0f)
     {
-        float alpha = std::min(errorMessageTime, 0.5f) * 255.0f;
+        static constexpr float ERROR_FADE_TIME = 0.6f;
 
-        static constexpr float ERROR_Y_POS = 300.0f;
+        float alpha = std::clamp(errorMessageTime, ERROR_FADE_TIME, 0.0f) / ERROR_FADE_TIME * 255.0f;
+        
+        static constexpr float ERROR_Y_POS = 100.0f;
 
         pl::TextDrawData errorTextDrawData;
         errorTextDrawData.text = errorMessage;
         errorTextDrawData.color = pl::Color(232, 59, 59, alpha);
         errorTextDrawData.outlineColor = pl::Color(46, 34, 47, alpha);
-        errorTextDrawData.size = 32 * intScale;
-        errorTextDrawData.outlineThickness = 4 * intScale;
-        errorTextDrawData.position = pl::Vector2f(window.getWidth() / 2, window.getHeight() + ERROR_Y_POS * intScale);
+        errorTextDrawData.size = 26 * intScale;
+        errorTextDrawData.outlineThickness = 2 * intScale;
+        errorTextDrawData.position = pl::Vector2f(window.getWidth() / 2, ERROR_Y_POS * intScale);
         errorTextDrawData.centeredX = true;
 
         TextDraw::drawText(window, errorTextDrawData);
+
+        errorMessageTime -= dt;
     }
 
     // Version number text

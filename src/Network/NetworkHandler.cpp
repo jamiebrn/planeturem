@@ -934,6 +934,8 @@ void NetworkHandler::processMessageAsHost(const SteamNetworkingMessage_t& messag
     
             // packetData.chestDataPool = game->getChestDataPool();
 
+            bool newPlayer = false;
+
             // Initialise new player data
             if (!networkPlayerDatasSaved.contains(message.m_identityPeer.GetSteamID64()))
             {
@@ -955,10 +957,7 @@ void NetworkHandler::processMessageAsHost(const SteamNetworkingMessage_t& messag
                 playerData.inventory.giveStartingItems();
                 playerData.armourInventory = InventoryData(3);
 
-                // Find spawn for player
-                ChunkPosition playerSpawnChunk = game->getChunkManager(playerData.locationState.getPlanetType()).findValidSpawnChunk(2);
-                playerData.position.x = playerSpawnChunk.x * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED + 0.5f * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
-                playerData.position.y = playerSpawnChunk.y * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED + 0.5f * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
+                newPlayer = true;
             }
             else
             {
@@ -967,7 +966,7 @@ void NetworkHandler::processMessageAsHost(const SteamNetworkingMessage_t& messag
             }
 
             // Load planet if required
-            const PlayerData& playerData = networkPlayerDatasSaved.at(message.m_identityPeer.GetSteamID64());;
+            PlayerData& playerData = networkPlayerDatasSaved[message.m_identityPeer.GetSteamID64()];
             if (playerData.locationState.isOnPlanet())
             {    
                 game->loadPlanet(playerData.locationState.getPlanetType());
@@ -976,6 +975,13 @@ void NetworkHandler::processMessageAsHost(const SteamNetworkingMessage_t& messag
                 {
                     packetData.inStructureRoomType = game->
                         getStructureRoomPool(playerData.locationState.getPlanetType()).getRoom(playerData.locationState.getInStructureID()).getRoomType();
+                }
+                else if (newPlayer)
+                {
+                    // Find spawn for player
+                    ChunkPosition playerSpawnChunk = game->getChunkManager(playerData.locationState.getPlanetType()).findValidSpawnChunk(2);
+                    playerData.position.x = playerSpawnChunk.x * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED + 0.5f * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
+                    playerData.position.y = playerSpawnChunk.y * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED + 0.5f * CHUNK_TILE_SIZE * TILE_SIZE_PIXELS_UNSCALED;
                 }
             }
             else if (playerData.locationState.isInRoomDest())
