@@ -2,6 +2,8 @@
 
 // CONSIDER: Custom death chat messages depending on source of death
 
+// FIX: Lighting breaking sometimes (chunk loading maybe)
+
 // FIX: Rocket entered reference not setting correctly on travel in some cases (room to planet???)
 
 // FIX: Space station use rocket while other player use glitch

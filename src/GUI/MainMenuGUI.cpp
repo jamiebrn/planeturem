@@ -518,7 +518,7 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(pl::RenderTarget& window
     {
         static constexpr float ERROR_FADE_TIME = 0.6f;
 
-        float alpha = std::clamp(errorMessageTime, ERROR_FADE_TIME, 0.0f) / ERROR_FADE_TIME * 255.0f;
+        float alpha = std::clamp(errorMessageTime, 0.0f, ERROR_FADE_TIME) / ERROR_FADE_TIME * 255.0f;
         
         static constexpr float ERROR_Y_POS = 100.0f;
 
