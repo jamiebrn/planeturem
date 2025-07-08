@@ -26,23 +26,23 @@ After working with Godot for a couple of days and putting together a very simple
 
 I decided to not use Godot for this project after completing this prototype, which is probably more of a testament to my lack of patience with drifiting from a code-first approach rather than Godot itself.
 
-I had just finished my [A-Level CS NEA project](https://github.com/jamiebrn/CS-NEA-orbital-prospector) a few months prior, which I wrote in C++ using SFML for rendering, input etc. I knew I wanted to use C++ for Planeturem ("spacebuild" at this point), so decided to use SFML as I was familiar with it, and allowed me to put a prototype together quickly. After a day or 2 of work I got this simple prototype together.
+I had just finished my [A-Level CS NEA project](https://github.com/jamiebrn/CS-NEA-orbital-prospector) a few months prior, which I wrote in C++ using SFML for rendering, input etc. I knew I wanted to use C++ for Planeturem ("spacebuild" at this point), so decided to use SFML as I was already familiar with it so allowed me to put a prototype together quickly. After a day or 2 of work I got this simple prototype together.
 
 ![](art-designs/spacebuild-prototype.png)
 
 While the essence of the game can be seen here, I would be confident in saying that none of the code from this prototype has survived architectural changes.
 
-From here I kept adding features, fixing bugs, normal software development stuff that will be covered in more detail later.
+From here I kept adding features, fixing bugs, normal software development stuff that will be covered in more detail in other sections.
 
 However something that should be known is that in April 2025 I decided to switch to SDL2 with OpenGL from SFML. This was due to SFML using a legacy version of OpenGL (1.3) which restriced use of modern graphics debugging tools such as RenderDoc, alongside the fact I already had SDL implemented in the codebase (since January 2025) for input management, as SFML's controller support was severely lacking compared to SDL's.
 
 For this switch I wrote a [creatively named small generic 2D framework](https://github.com/jamiebrn/planeturem-framework) over SDL2 and OpenGL that had a very similar API to SFML, while allowing use of modern OpenGL versions and raw OpenGL calls if required. The similarity to SFML was an intentional design choice in order to make the switch as painless as possible (which was still rather painful), as the codebase was obviously at this point heavily coupled with the SFML API.
 
+<br/>
 
-
-
-
-
+## Systems
+This section contains writeups of major systems in the game's codebase.
+ - [Chunk/ChunkManager](docs/chunk.md)
 
 
 
