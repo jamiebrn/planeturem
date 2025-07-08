@@ -5,7 +5,7 @@ The ChunkManager system manages chunks in the game world, loading and unloading 
 This system isn't particularly interesting, as it essentially just calls respective functions on the correct chunk, and manages chunk lifetimes. I will mention a few systems that I feel are more interesting.
 
 ### Chunk loading
-Chunk loading is carried out in the `updateChunks()` function. This uses the [ChunkViewRange](###ChunkViewRange) struct for each client in order to load any chunks in the player view area that have not been loaded.
+Chunk loading is carried out in the `updateChunks()` function. This uses the [ChunkViewRange](##ChunkViewRange) struct for each client in order to load any chunks in the player view area that have not been loaded.
 
 There is a logical division between chunks - loaded chunks are currently being updated and in the player's view, while stored chunks are chunks that have been previously generated/loaded from a save file and are currently not active.
 
@@ -85,3 +85,6 @@ ChunkPosition findValidSpawnChunk(int waterlessAreaSize)
 ```
 
 ## ChunkViewRange
+The `ChunkViewRange` class represents a rectangular chunk area, used to represent an area of the world visible to a player. It allows creation of a hashset of key type `ChunkPosition` containing all chunks in the visible area, as well as creating a hashset from a vector of `ChunkViewRange`. This is particularly useful in multiplayer where all chunks visible to players need to be updated, but chunks in the intersection of multiple player's view areas should not be updated multiple times obviously. A hashset of all visible chunks ensures each `ChunkPosition` visible occurs only once.
+
+The functionality of this class was previously built directly into the `ChunkManager` class functions. However, during the addition of multiplayer I felt the need to have a clean abstraction over a visible chunk area, as well as handling iteration over this range and handling of world wrapping at planet edges. This was because each player would have their own visible area in the world, which would be processed on the host system in multiplayer, so encapsulating this system only made sense.
