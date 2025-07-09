@@ -92,34 +92,86 @@ With `CHUNK_TILE_SIZE` being the width and height of a square chunk in tiles, th
 ```cpp
 pair<ChunkPosition, Vector2i> getChunkTileFromOffset(ChunkPosition chunk, Vector2i tile, int xOffset, int yOffset, int worldSize)
 {
-	// Add offset to tile
-	tile.x += xOffset;
-	tile.y += yOffset;
+    // Add offset to tile
+    tile.x += xOffset;
+    tile.y += yOffset;
 
-	// Perform wrapping of tile and offset chunk value if not in chunk range
-	if (tile.x < 0 || tile.x >= CHUNK_TILE_SIZE || tile.y < 0 || tile.y >= CHUNK_TILE_SIZE)
-	{
-		// Modify chunk values depending on tile value after being offset
-		if (tile.x < 0)
-			chunk.x -= ceil(abs(tile.x) / CHUNK_TILE_SIZE);
-		else if (tile.x >= CHUNK_TILE_SIZE)
-			chunk.x += ceil(1 + tile.x) / CHUNK_TILE_SIZE - 1;
+    // Perform wrapping of tile and offset chunk value if not in chunk range
+    if (tile.x < 0 || tile.x >= CHUNK_TILE_SIZE || tile.y < 0 || tile.y >= CHUNK_TILE_SIZE)
+    {
+        // Modify chunk values depending on tile value after being offset
+        if (tile.x < 0)
+            chunk.x -= ceil(abs(tile.x) / CHUNK_TILE_SIZE);
+        else if (tile.x >= CHUNK_TILE_SIZE)
+            chunk.x += ceil(1 + tile.x) / CHUNK_TILE_SIZE - 1;
 
-		if (tile.y < 0)
-			chunk.y -= ceil(abs(tile.y) / CHUNK_TILE_SIZE);
-		else if (tile.y >= CHUNK_TILE_SIZE)
-			chunk.y += ceil(1 + tile.y) / CHUNK_TILE_SIZE - 1;
+        if (tile.y < 0)
+            chunk.y -= ceil(abs(tile.y) / CHUNK_TILE_SIZE);
+        else if (tile.y >= CHUNK_TILE_SIZE)
+            chunk.y += ceil(1 + tile.y) / CHUNK_TILE_SIZE - 1;
 
-		// Wrap tile to chunk range after shifting chunk position
-		tile.x = (tile.x % CHUNK_TILE_SIZE + CHUNK_TILE_SIZE) % CHUNK_TILE_SIZE;
-		tile.y = (tile.y % CHUNK_TILE_SIZE + CHUNK_TILE_SIZE) % CHUNK_TILE_SIZE;
+        // Wrap tile to chunk range after shifting chunk position
+        tile.x = (tile.x % CHUNK_TILE_SIZE + CHUNK_TILE_SIZE) % CHUNK_TILE_SIZE;
+        tile.y = (tile.y % CHUNK_TILE_SIZE + CHUNK_TILE_SIZE) % CHUNK_TILE_SIZE;
 
-		// Wrap chunk tile (may be out of world bounds)
+        // Wrap chunk tile (may be out of world bounds)
         chunk.x = (chunk.x % worldSize + worldSize) % worldSize;
         chunk.y = (chunk.y % worldSize + worldSize) % worldSize;
-	}
+    }
 
     return {chunk, tile};
+}
+```
+
+### Nearby Crafting Stations
+As this is a crafting game, and I wanted to limit player recipes/progression through crafting stations, I needed a function that would return the crafting stations that the player was in range of. Crafting stations types are represented as strings for the base type and an integer for the level. This allows higher levels to craft lower level recipes. For example, a "bench" level 1 can craft bench level 1 recipes, and a "bench" level 2 can craft bench level 1 and level 2 recipes. Crafting station types are represented as strings as they are loaded in at runtime; it is data-driven - meaning the game cannot predict what crafting stations may appear. This allows for easy addition of content without recompilation, which is great for iterative development and allows for player-created content.
+
+To search which crafting stations the player is in range of, I wrote this function:
+```cpp
+unordered_map<string, int> getNearbyCraftingStationLevels(ChunkPosition playerChunk, Vector2i playerTile, int searchArea)
+{
+    unordered_map<string, int> craftingStationLevels;
+
+    for offset in searchArea range
+    {
+        // Get chunk and tile from offset
+        pair<ChunkPosition, Vector2i> chunkTile = getChunkTileFromOffset(playerChunk, playerTile, offset.x, offset.y, worldSize);
+
+        // If chunk not loaded, do not get object
+        if chunkTile.first not in loadedChunks
+            continue;
+        
+        BuildableObject* object = getChunkObject(chunkTile.first, chunkTile.second);
+
+        // If no object, do not get data
+        if (!object)
+            continue;
+
+        // Get object type
+        ObjectType objectType = object->getObjectType();
+        if (objectType < 0)
+            continue;
+
+        // Get object data
+        const ObjectData& objectData = ObjectDataLoader::getObjectData(objectType);
+
+        // If not a crafting station, do not add to hashmap
+        if (objectData.craftingStation.empty())
+            continue;
+
+        // Add crafting station to map
+        if (craftingStationLevels.count(objectData.craftingStation) > 0)
+        {
+            // Crafting station level exists, set level to highest level present
+            craftingStationLevels[objectData.craftingStation] = max(objectData.craftingStationLevel, craftingStationLevels[objectData.craftingStation]);
+        }
+        else
+        {
+            craftingStationLevels[objectData.craftingStation] = objectData.craftingStationLevel;
+        }
+    }
+
+    return craftingStationLevels;
 }
 ```
 
