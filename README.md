@@ -24,7 +24,7 @@ When I first started working on Planeturem in July 2024, I initially chose to us
 
 After working with Godot for a couple of days and putting together a very simple prototype, despite being able to work on features fast, I was not a massive fan of searching through the plethora of options in the GUI to get what I needed, and even moreso disliked working with GDScript (Godot's scripting language). This is mainly due to the dynamic typing; optional static typing is supported, but as of July 2024, some types could not be expressed such as typed dictionaries, which was frustrating and felt incomplete.
 
-I decided to not use Godot for this project after completing this prototype, which is probably more of a testament to my lack of patience with drifiting from a code-first approach rather than Godot itself.
+I decided to not use Godot for this project after completing this prototype, which is probably more of a testament to my lack of patience with drifting from a code-first approach rather than Godot itself.
 
 I had just finished my [A-Level CS NEA project](https://github.com/jamiebrn/CS-NEA-orbital-prospector) a few months prior, which I wrote in C++ using SFML for rendering, input etc. I knew I wanted to use C++ for Planeturem ("spacebuild" at this point), so decided to use SFML as I was already familiar with it so allowed me to put a prototype together quickly. After a day or 2 of work I got this simple prototype together.
 
