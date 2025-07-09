@@ -9,9 +9,9 @@ Chunk loading is carried out in the `updateChunks()` function. This uses the [Ch
 
 There is a logical division between chunks - loaded chunks are currently being updated and in the player's view, while stored chunks are chunks that have been previously generated/loaded from a save file and are currently not active.
 
-```loadedChunks``` and `storedChunks` are both hashmaps using a `ChunkPosition` as the key, which is a struct containing an X and Y position corresponding to the chunk's world position. This struct contains a hashing implementation which enables it's use in hashmaps. The value corresponding to a key is a pointer to a chunk, or to be exact is of type `std::unique_ptr<Chunk>`.
+`loadedChunks` and `storedChunks` are both hashmaps using a `ChunkPosition` as the key, which is a struct containing an X and Y position corresponding to the chunk's world position. This struct contains a hashing implementation which enables it's use in hashmaps. The value corresponding to a key is a pointer to a chunk, or to be exact is of type `std::unique_ptr<Chunk>`.
 
-The ```updateChunks()``` function essentially carries out these instructions:
+The `updateChunks()` function essentially carries out these instructions:
 ```cpp
 
 bool updateChunks()
@@ -81,6 +81,45 @@ ChunkPosition findValidSpawnChunk(int waterlessAreaSize)
 
     // Default fail case
     return ChunkPosition(0, 0);
+}
+```
+
+### Chunk and Tile from Offset
+I often found the need to find a Chunk/Tile pair in the world from an offset from another Chunk/Tile pair. This allowed for "relative" searching throughout the world. While it may seem simple I found myself spending a bit too long on this function, so thought I would include it here.
+
+With `CHUNK_TILE_SIZE` being the width and height of a square chunk in tiles, the function works as follows:
+
+```cpp
+pair<ChunkPosition, Vector2i> getChunkTileFromOffset(ChunkPosition chunk, Vector2i tile, int xOffset, int yOffset, int worldSize)
+{
+	// Add offset to tile
+	tile.x += xOffset;
+	tile.y += yOffset;
+
+	// Perform wrapping of tile and offset chunk value if not in chunk range
+	if (tile.x < 0 || tile.x >= CHUNK_TILE_SIZE || tile.y < 0 || tile.y >= CHUNK_TILE_SIZE)
+	{
+		// Modify chunk values depending on tile value after being offset
+		if (tile.x < 0)
+			chunk.x -= ceil(abs(tile.x) / CHUNK_TILE_SIZE);
+		else if (tile.x >= CHUNK_TILE_SIZE)
+			chunk.x += ceil(1 + tile.x) / CHUNK_TILE_SIZE - 1;
+
+		if (tile.y < 0)
+			chunk.y -= ceil(abs(tile.y) / CHUNK_TILE_SIZE);
+		else if (tile.y >= CHUNK_TILE_SIZE)
+			chunk.y += ceil(1 + tile.y) / CHUNK_TILE_SIZE - 1;
+
+		// Wrap tile to chunk range after shifting chunk position
+		tile.x = (tile.x % CHUNK_TILE_SIZE + CHUNK_TILE_SIZE) % CHUNK_TILE_SIZE;
+		tile.y = (tile.y % CHUNK_TILE_SIZE + CHUNK_TILE_SIZE) % CHUNK_TILE_SIZE;
+
+		// Wrap chunk tile (may be out of world bounds)
+        chunk.x = (chunk.x % worldSize + worldSize) % worldSize;
+        chunk.y = (chunk.y % worldSize + worldSize) % worldSize;
+	}
+
+    return {chunk, tile};
 }
 ```
 
