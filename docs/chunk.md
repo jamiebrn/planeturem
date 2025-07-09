@@ -42,7 +42,24 @@ Each byte has the following layout, with bit 7 being the most significant:
 
 Using the adjacent value bits 0-3, we have 2^4 (16) combinations, each corresponding to a different tile in the tilemap, representing different connecting tiles.
 
-![](art-designs/tilemap-index.png)
+![](../art-designs/tilemap-index.png)
+
+These values can each be used when building the vertices of the tilemap to send to the GPU.
+
+Caching adjacent tile values like this means we only need to modify the tile we are actually modifying and the 4 adjacent tiles, rather than recomputing each tile's adjacent tiles every time the tilemap is updated.
+
+#### TileMap placement
+When tiles are placed in the world, the respective TileMap is updated for that particular chunk, as well as the adjacent chunks' TileMap with the same type being recalculated. This allows for seamless TileMaps across chunks, taking into consideration adjacent TileMaps.
+
+Tiles take draw order depending on their ID/TileMap type - lower IDs are drawn before i.e. below tiles with higher IDs. This is important as in many cases TileMaps need to sit on top of each other.
+
+For example, in this image, the stone tiles are also set underneath the grass tiles, and drawn underneath.
+
+![](../art-designs/tile-precedence.png)
+
+The `Chunk` class handles this automatically - when placing a tile, if any adjacent tiles have a higher ID, the current tile is also placed in that adjacent tile's location. This places it "underneath" as the tile being placed has a lower ID, so will be drawn underneath. This checking and placing of adjacent tiles of course means that a tile being placed on the edge of a chunk may cause new tiles to be placed in the adjacent chunk. This in turn means that chunks adjacent to that adjacent chunk need to have their TileMaps updated for that tile ID, as the new tile may affect these chunk's adjacent tile values.
+
+When generating chunks, TileMap vertex data calculation is also deferred until the chunk has finished generating. This is to avoid redundant TileMap vertex recalculations while placing the generated tiles in the chunk. TileMap variations (i.e. bits 4-6) are entirely random and non-deterministic, as they are only visual and have no effect on gameplay.
 
 ## ChunkManager
 
