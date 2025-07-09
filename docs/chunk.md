@@ -2,7 +2,9 @@
 
 The Chunk class represents an 8x8 tile square chunk of world data. This consitutes of tiles, objects, structures, and entities. Each chunk is managed by the [ChunkManager](##ChunkManager) class; chunks are never created outside of the ChunkManager and all interaction should be done through the ChunkManager to ensure world consistency.
 
-The world is generated using a combination of noise and seeded PRNGs. I will somewhat briefly go over how each part of the world is generated.
+The world is generated using a combination of noise and seeded PRNGs. The noise generated is 2D and seamless, meaning it can be used to create a "planet" effect, i.e. the player can walk in one direction and end up in the same location.
+
+I will somewhat briefly go over how each part of the world is generated.
 
 ### Tile Generation
 
@@ -60,6 +62,13 @@ For example, in this image, the stone tiles are also set underneath the grass ti
 The `Chunk` class handles this automatically - when placing a tile, if any adjacent tiles have a higher ID, the current tile is also placed in that adjacent tile's location. This places it "underneath" as the tile being placed has a lower ID, so will be drawn underneath. This checking and placing of adjacent tiles of course means that a tile being placed on the edge of a chunk may cause new tiles to be placed in the adjacent chunk. This in turn means that chunks adjacent to that adjacent chunk need to have their TileMaps updated for that tile ID, as the new tile may affect these chunk's adjacent tile values.
 
 When generating chunks, TileMap vertex data calculation is also deferred until the chunk has finished generating. This is to avoid redundant TileMap vertex recalculations while placing the generated tiles in the chunk. TileMap variations (i.e. bits 4-6) are entirely random and non-deterministic, as they are only visual and have no effect on gameplay.
+
+#### Cliffs
+Cliffs are a visual feature that prevents the world from looking like a floating block of land above water. Each chunk can contain a cliff at each tile position of 4 different types (straight, left curve, right curve, left and right curve).
+
+When any tiles are updated, the cliffs for the modified chunk and adjacent chunks are recalculated. Adjacent chunk cliffs need to be recalculated as a tile on a chunk boundary can affect the cliff tiles for adjacent chunks, e.g. if a tile is placed at the bottom of a chunk, then a cliff will need to be created at the top of the chunk underneath.
+
+![](../art-designs/cliff-demo.png)
 
 ## ChunkManager
 
