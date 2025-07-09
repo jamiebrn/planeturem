@@ -1,3 +1,37 @@
+## Chunk
+
+The Chunk class represents an 8x8 tile square chunk of world data. This consitutes of tiles, objects, structures, and entities. Each chunk is managed by the [ChunkManager](##ChunkManager) class; chunks are never created outside of the ChunkManager and all interaction should be done through the ChunkManager to ensure world consistency.
+
+The world is generated using a combination of noise and seeded PRNGs. I will somewhat briefly go over how each part of the world is generated.
+
+### Tile Generation
+
+Tiles are the ground of the world. They consist of different biomes and tilesets. Three noise values are layered in order to determine whether a tile exists in a certain position. These three noise values are the height noise, biome noise, and river noise. Biome noise determines what biome the tile is in, with the height noise determining which tile is present depending on the biome, if any at all. The river noise overrides all of this, and essentially cuts out "rivers" into the tiles.
+
+The pseudocode algorithm might look something like this:
+```cpp
+riverNoiseValue = sampleRiverNoise(x, y);
+
+// "Cut out" of world tiles
+if riverNoiseValue >= riverNoiseMin and riverNoiseValue <= riverNoiseMax
+    return null
+
+biomeNoiseValue = sampleBiomeNoise(x, y);
+biomeGenData = getBiomeGenerationData(biomeNoiseValue);
+
+heightNoiseValue = sampleHeightNoise(x, y);
+
+// Get tile data for height noise value using biome data
+tileData = getTileData(biomeGenData, heightNoiseValue);
+
+return tileData
+```
+
+#### TileMaps
+The tile generation would have no visual output without the TileMap system. It allows for autotiling of tilemaps in the world and drawing of computed tilemaps.
+
+Each tile in the TileMap is represented by a byte, with these bytes being stored in an array of size chunk size * chunk size.
+
 ## ChunkManager
 
 The ChunkManager system manages chunks in the game world, loading and unloading them as required. It provides an API to interact with the game world, such as placing and destroying objects, getting objects or entities at specified positions, testing collisions, etc.
