@@ -2,7 +2,7 @@
 
 <br/>
 
-**Planeturem is a game I wrote in C++ during a gap year. It is a building/crafting game that allows the player to travel between planets, as well as non-planet locations, such as a space station. It is on [Steam](https://store.steampowered.com/app/3323260/Planeturem/), featuring full online multiplayer with Steam integration.**
+**Planeturem is a procedurally generated building/crafting game I wrote in C++ from scratch on top of SDL2 and OpenGL during a gap year, allowing the player to travel between planets and non-planet locations, alone or with friends online. It is on [Steam](https://store.steampowered.com/app/3323260/Planeturem/), featuring full online multiplayer with Steam integration.**
 
 <br/>
 
@@ -41,7 +41,7 @@ For this switch I wrote a [creatively named small generic 2D framework](https://
 <br/>
 
 ## Systems
-This section contains writeups of major systems in the game's codebase.
+This section contains writeups of major systems in the game's codebase. These are not entirely comprehensive, but rather just give a brief overview of the workings of each system at a high level.
  - [Chunk/ChunkManager](docs/chunk.md)
 
 
