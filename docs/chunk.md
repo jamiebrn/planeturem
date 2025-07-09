@@ -30,7 +30,19 @@ return tileData
 #### TileMaps
 The tile generation would have no visual output without the TileMap system. It allows for autotiling of tilemaps in the world and drawing of computed tilemaps.
 
-Each tile in the TileMap is represented by a byte, with these bytes being stored in an array of size chunk size * chunk size.
+Each tile in the TileMap is represented by a byte, with these bytes being stored in an array of size chunk size * chunk size (one byte per tile).
+
+Each byte has the following layout, with bit 7 being the most significant:
+ - bit 7: whether tile is present
+ - bit 4-6: tilemap variation (3 bits, allows for each tilemap to have 2^3 (8) variations)
+ - bit 3: whether adjacent tile upward is present
+ - bit 2: whether adjacent tile to the left is present
+ - bit 1: whether adjacent tile to the right is present
+ - bit 0: whether adjacent tile downward is present
+
+Using the adjacent value bits 0-3, we have 2^4 (16) combinations, each corresponding to a different tile in the tilemap, representing different connecting tiles.
+
+![](art-designs/tilemap-index.png)
 
 ## ChunkManager
 
