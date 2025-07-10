@@ -70,6 +70,75 @@ When any tiles are updated, the cliffs for the modified chunk and adjacent chunk
 
 ![](../art-designs/cliff-demo.png)
 
+### Object Generation
+Objects spawn naturally in the world and can be interacted with by the player, e.g. destroyed for resources. They can also be placed from the player's inventory.
+
+Object spawning in chunks is controlled via the use of a seeded PRNG. The initial seed is computed as follows:
+```cpp
+unsigned int seed = (chunkManager.getSeed() + planetType) ^ chunkPosition.hash();
+```
+Where the `ChunkPosition` hash is a unique hash of the chunk position's X and Y coordinate, which ensures each chunk has a unique set of object spawns.
+
+Each tile in the chunk is then iterated over, using the PRNG to generate a float in the range 0-1. Biome generation data is retrieved for each tile, which contains a list of objects with spawn probabilities. The code looks something like this:
+```cpp
+ObjectType getRandomObjectToSpawnAtWorldTile(int x, int y, RandInt& randGen)
+{
+    biomeGenData = getBiomeGenerationData(x, y, biomeNoise);
+
+    if not getObjectsCanSpawnAtTile(x, y)
+        return -1;
+
+    cumulativeChance = 0;
+    randomSpawn = randGen.generate(0, 1);
+
+    // Iterate over all potential object spawns and get object data using probability generated
+    for objectGenData in biomeGenData
+    {
+        cumulativeChance += objectGenData.spawnChance;
+
+        if (randomSpawn <= cumulativeChance)
+            return objectGenData.object;
+    }
+
+    return -1;
+}
+```
+This system, while simple, ensures object spawns are the same at a specific tile with a given world seed.
+
+Resources can also regenerate after a set amount of time, determined by the resource regeneration time range for the chunk's respective biome data. This regeneration is non-deterministic, meaning after the initial resources have generated in the world, any future regenerations will not depend on the world seed.
+
+### Structure Generation
+Structures are naturally generated monuments in the world, enterable by players.
+
+![](../art-designs/tile-precedence.png)
+
+Structure generation uses the PRNG used for object generation, to ensure structure generation is also deterministic. The pseudocode algorithm would look like this:
+```cpp
+if chunk contains water
+    return;
+
+structureType = getStructureGenerationType(chunk, randGen);
+
+// No structure (chunk can have no structure)
+if not structureType
+    return;
+
+// Generate structure spawn tile, ensuring the structure stays within chunk bounds
+structureTileX = randGen.generate(0, CHUNK_TILE_SIZE - structureSizeX);
+structureTileY = randGen.generate(0, CHUNK_TILE_SIZE - structureSizeY);
+
+// Create dummy/blank objects in spaces where structure occupies, for collision etc.
+// Tiles are selected to have collision etc based on a bitmask loaded from the structure data (loaded from game data at runtime)
+setChunkStructureObjects(chunk);
+```
+
+### Entity Generation
+Entities represent living parts of the world, such as animals. They have set AI behaviours, with data such as textures, AI type and AI parameters being selected by game data loaded at runtime. AI behaviour types are written into the executable.
+
+Entity generation is non-deterministic, as I did not feel this was something I wanted to remain across seeds. Entities also regenerate after a set period of time, so deterministic spawning would mean that each respawn of entities would be the same, which is not ideal. A "respawn counter" could be kept to increment when a respawn occurs to offset the PRNG seed to keep determinism, but then this would need to be stored for each chunk in the game's save file as it would need to remain across sessions. While this would probably just be a byte or 2 per chunk, I still see it as a waste of resources when I do not deem deterministic entity generation to improve the game at all, and probably would not be noticed. Whereas deterministic object and tile generation is more important as they actually build the world around the player so should be consistent across seeds, entities are moving and are not part of "the world" per se.
+
+Entity type spawn selection for each tile is performed in the exact same way as [object generation](#L97).
+
 ## ChunkManager
 
 The ChunkManager system manages chunks in the game world, loading and unloading them as required. It provides an API to interact with the game world, such as placing and destroying objects, getting objects or entities at specified positions, testing collisions, etc.
