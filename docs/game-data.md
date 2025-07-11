@@ -85,6 +85,7 @@ std::unique_ptr<BuildableObject> createObject(ObjectType objectType)
 ```
 I am not a massive fan of this pattern as it requires me to "register" each type to this function, but it allows for creating derived types based on criteria through a succinct interface, which is what I needed for implementing different behaviours.
 
+### Component system
 I did consider creating some sort of component system where each object could store a component for behaviour implementation, but decided basic inheritance would be simpler, and would allow simple downcasting via dynamic cast if I really required it. Whereas casting in a component system would require the base object to expose the component pointer, which could then be casted. But this then doesn't have access to the rest of the object unless the component stores a pointer to the object, which would be fragile due to potential moving/reallocation of the object. The inheritance system allows for derived classes to have access to the rest of the object as it is of the parent type, but just has extra functionality/data.
 
 ## Tool/Armour Data
@@ -104,3 +105,29 @@ Behaviour types are classes written in the source code, which are selected at en
 Behaviour customisation can be done however through the use of behaviour parameters. These are loaded into a hashmap at runtime, using a string for the key to represent parameter name and a float for the value. This allows the chosen entity behaviour to query parameters to customise the AI. Of course these parameters still have to be hardcoded into the executable in the behaviour classes, but I think it is a good enough tradeoff for customisation without implementing an external scripting system.
 
 While most systems in the game convert string values into respective type IDs when data is loaded to increase performance, behaviour parameters remain as strings at runtime as otherwise each behaviour parameter would require an enum value/type ID tb be assigned. This would reduce design iteration ability and ergonomics. This does therefore mean more compute is required when spawning entities as string hashes need to be calculated to look up values, however this will not be a noticable performance hit, especially when this only needs to be done on entity initialisation. On client systems in multiplayer this is a larger hit as entities are reinitialised every 2 server ticks (22Hz), but is still completely inconsequential due to cache locality of strings.
+
+## Recipe Data
+Recipes loaded after all items, objects etc have been loaded, to ensure all items are present. Recipes specify an item to be created amount amount, all required items and amounts, items required for the player to see the recipe (`keyItems`), and required crafting station name and level in order to see the recipe.
+
+With no `keyItems`, the recipe will be visible to the player if they have one of the required items, given they are in range of the required crafting station with sufficient level.
+
+This is the data layout of a loaded `RecipeData`:
+
+```cpp
+struct RecipeData
+{
+    ItemType product;
+    unsigned int productAmount = 1;
+
+    std::map<ItemType, unsigned int> itemRequirements;
+
+    std::optional<std::vector<ItemType>> keyItems;
+    
+    std::string craftingStationRequired = "";
+    int craftingStationLevelRequired;
+}
+```
+
+The inventory GUI then iterates over each recipe when the player's inventory or the nearby crafting stations are modified, and stores the IDs of recipes that are craftable or visible. These are then displayed when the player is in the inventory GUI.
+
+## Structures/Rooms
