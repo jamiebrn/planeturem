@@ -2,7 +2,9 @@
 
 The Chunk class represents an 8x8 tile square chunk of world data. This consitutes of tiles, objects, structures, and entities. Each chunk is managed by the [ChunkManager](##ChunkManager) class; chunks are never created outside of the ChunkManager and all interaction should be done through the ChunkManager to ensure world consistency.
 
-The world is generated using a combination of noise and seeded PRNGs. I will somewhat briefly go over how each part of the world is generated.
+The world is generated using a combination of noise and seeded PRNGs. The noise generated is 2D and seamless, meaning it can be used to create a "planet" effect, i.e. the player can walk in one direction and end up in the same location.
+
+I will somewhat briefly go over how each part of the world is generated.
 
 ### Tile Generation
 
@@ -60,6 +62,82 @@ For example, in this image, the stone tiles are also set underneath the grass ti
 The `Chunk` class handles this automatically - when placing a tile, if any adjacent tiles have a higher ID, the current tile is also placed in that adjacent tile's location. This places it "underneath" as the tile being placed has a lower ID, so will be drawn underneath. This checking and placing of adjacent tiles of course means that a tile being placed on the edge of a chunk may cause new tiles to be placed in the adjacent chunk. This in turn means that chunks adjacent to that adjacent chunk need to have their TileMaps updated for that tile ID, as the new tile may affect these chunk's adjacent tile values.
 
 When generating chunks, TileMap vertex data calculation is also deferred until the chunk has finished generating. This is to avoid redundant TileMap vertex recalculations while placing the generated tiles in the chunk. TileMap variations (i.e. bits 4-6) are entirely random and non-deterministic, as they are only visual and have no effect on gameplay.
+
+#### Cliffs
+Cliffs are a visual feature that prevents the world from looking like a floating block of land above water. Each chunk can contain a cliff at each tile position of 4 different types (straight, left curve, right curve, left and right curve).
+
+When any tiles are updated, the cliffs for the modified chunk and adjacent chunks are recalculated. Adjacent chunk cliffs need to be recalculated as a tile on a chunk boundary can affect the cliff tiles for adjacent chunks, e.g. if a tile is placed at the bottom of a chunk, then a cliff will need to be created at the top of the chunk underneath.
+
+![](../art-designs/cliff-demo.png)
+
+### Object Generation
+Objects spawn naturally in the world and can be interacted with by the player, e.g. destroyed for resources. They can also be placed from the player's inventory.
+
+Object spawning in chunks is controlled via the use of a seeded PRNG. The initial seed is computed as follows:
+```cpp
+unsigned int seed = (chunkManager.getSeed() + planetType) ^ chunkPosition.hash();
+```
+Where the `ChunkPosition` hash is a unique hash of the chunk position's X and Y coordinate, which ensures each chunk has a unique set of object spawns.
+
+Each tile in the chunk is then iterated over, using the PRNG to generate a float in the range 0-1. Biome generation data is retrieved for each tile, which contains a list of objects with spawn probabilities. The code looks something like this:
+```cpp
+ObjectType getRandomObjectToSpawnAtWorldTile(int x, int y, RandInt& randGen)
+{
+    biomeGenData = getBiomeGenerationData(x, y, biomeNoise);
+
+    if not getObjectsCanSpawnAtTile(x, y)
+        return -1;
+
+    cumulativeChance = 0;
+    randomSpawn = randGen.generate(0, 1);
+
+    // Iterate over all potential object spawns and get object data using probability generated
+    for objectGenData in biomeGenData
+    {
+        cumulativeChance += objectGenData.spawnChance;
+
+        if (randomSpawn <= cumulativeChance)
+            return objectGenData.object;
+    }
+
+    return -1;
+}
+```
+This system, while simple, ensures object spawns are the same at a specific tile with a given world seed.
+
+Resources can also regenerate after a set amount of time, determined by the resource regeneration time range for the chunk's respective biome data. This regeneration is non-deterministic, meaning after the initial resources have generated in the world, any future regenerations will not depend on the world seed.
+
+### Structure Generation
+Structures are naturally generated monuments in the world, enterable by players.
+
+![](../art-designs/tile-precedence.png)
+
+Structure generation uses the PRNG used for object generation, to ensure structure generation is also deterministic. The pseudocode algorithm would look like this:
+```cpp
+if chunk contains water
+    return;
+
+structureType = getStructureGenerationType(chunk, randGen);
+
+// No structure (chunk can have no structure)
+if not structureType
+    return;
+
+// Generate structure spawn tile, ensuring the structure stays within chunk bounds
+structureTileX = randGen.generate(0, CHUNK_TILE_SIZE - structureSizeX);
+structureTileY = randGen.generate(0, CHUNK_TILE_SIZE - structureSizeY);
+
+// Create dummy/blank objects in spaces where structure occupies, for collision etc.
+// Tiles are selected to have collision etc based on a bitmask loaded from the structure data (loaded from game data at runtime)
+setChunkStructureObjects(chunk);
+```
+
+### Entity Generation
+Entities represent living parts of the world, such as animals. They have set AI behaviours, with data such as textures, AI type and AI parameters being selected by game data loaded at runtime. AI behaviour types are written into the executable.
+
+Entity generation is non-deterministic, as I did not feel this was something I wanted to remain across seeds. Entities also regenerate after a set period of time, so deterministic spawning would mean that each respawn of entities would be the same, which is not ideal. A "respawn counter" could be kept to increment when a respawn occurs to offset the PRNG seed to keep determinism, but then this would need to be stored for each chunk in the game's save file as it would need to remain across sessions. While this would probably just be a byte or 2 per chunk, I still see it as a waste of resources when I do not deem deterministic entity generation to improve the game at all, and probably would not be noticed. Whereas deterministic object and tile generation is more important as they actually build the world around the player so should be consistent across seeds, entities are moving and are not part of "the world" per se.
+
+Entity type spawn selection for each tile is performed in the exact same way as [object generation](#L97).
 
 ## ChunkManager
 
