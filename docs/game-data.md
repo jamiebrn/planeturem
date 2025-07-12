@@ -131,3 +131,34 @@ struct RecipeData
 The inventory GUI then iterates over each recipe when the player's inventory or the nearby crafting stations are modified, and stores the IDs of recipes that are craftable or visible. These are then displayed when the player is in the inventory GUI.
 
 ## Structures/Rooms
+Rooms are locations that the player can travel to outside of planets, or in structures on planets. They have a name, a texture offset for the background/floor, size in tiles, collision bitmask texture offset, and an object map. This maps the blue channel values of the collision bitmask to objects that will be placed in the room. Rooms also have a "travel location" flag which allows the room to be travelled to via rocket (assuming the rocket has the room in its room destinations).
+
+Structures each have a name, tile size, texture, collision bitmask texture offset, light bitmask texture offset, and a named room.
+
+## Planet Generation
+Planet generation data defines all procedural generation parameters for each planet.
+
+For each planet, the following data can be specified for the entire planet:
+ - Name
+ - Water texture offset
+ - Water colour
+ - Cliff texture offset
+ - River noise parameters
+ - World size
+ - Boss spawns
+
+Biomes are then specified with the following data:
+ - Name
+ - Tiles with noise ranges
+ - Object spawn chances per tile
+ - Fish catches and probability
+ - Water colour
+ - Biome noise range
+ - Resource regeneration time
+
+### Tilemaps
+Tilemaps are also specified in the `planet_generation.data` file. These are just keys representing the names of the tilemaps (which are referenced in the biome data for each planet), with data to represent the tilemap. This is the data structure for the grass tilemap for example:
+```json
+"Grass": [256, 192, 4, [30, 188, 115]]
+```
+With `256, 192` representing the texture offset, `4` representing the tilemap variation count (these are placed to the right of the tilemap texture offset in a row), and `[30, 188, 115]` representing the RGB colour value of this tilemap when shown on the game minimap.
