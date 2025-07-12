@@ -75,13 +75,13 @@ void LightingEngine::calculateLighting()
     std::vector<LightPropagationNode> lightQueue;
     for (int i = 0; i < lightSources.size(); i++)
     {
-        const float& intensity = std::max(lightSources[i], movingLightSources[i]);
+        float intensity = std::max(lightSources[i], movingLightSources[i]);
         if (intensity <= 0)
         {
             continue;
         }
 
-        const float& lightAbsorption = obstacles[i];
+        float lightAbsorption = obstacles[i];
         if (lightAbsorption >= 1)
         {
             continue;

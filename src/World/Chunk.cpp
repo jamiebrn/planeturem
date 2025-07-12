@@ -433,7 +433,7 @@ const TileGenData* Chunk::getTileGenAtWorldTile(pl::Vector2<int> worldTile, int 
 
 ObjectType Chunk::getRandomObjectToSpawnAtWorldTile(pl::Vector2<int> worldTile, int tileType, int worldSize, const FastNoise& heightNoise, const FastNoise& biomeNoise,
     const FastNoise& riverNoise, RandInt& randGen, PlanetType planetType, float probabilityMult)
-{   
+{
     const BiomeGenData* biomeGenData = getBiomeGenAtWorldTile(worldTile, worldSize, biomeNoise, planetType);
 
     assert(biomeGenData->tileGenDatas.contains(tileType));
