@@ -139,6 +139,15 @@ Entity generation is non-deterministic, as I did not feel this was something I w
 
 Entity type spawn selection for each tile is performed in the exact same way as [object generation](#L97).
 
+## Object Size Handling
+Objects are stored in an 8x8 (chunk size * chunk size) array in each chunk.
+
+Objects with a size of 1x1 in tiles are simple to handle - the object will just occupy its respective place in the array. But for objects larger than this, e.g. 2x2, 2x1, etc, "dummy" objects need to be created that point to the actual object.
+
+These dummy objects created store an `ObjectReference` which points the to actual object's Chunk and Tile in the world. The "actual object" is stored in the top left of the "object". This system allows objects with sizes larger than 1x1 to span across chunks.
+
+When `getObject()` is called on the chunk manager, object references are automatically "dereferenced", the a pointer to tha actual object being returned.
+
 ## ChunkManager
 
 The ChunkManager system manages chunks in the game world, loading and unloading them as required. It provides an API to interact with the game world, such as placing and destroying objects, getting objects or entities at specified positions, testing collisions, etc.
