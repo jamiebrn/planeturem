@@ -47,7 +47,7 @@ The calculated `lighting` float vector is uploaded to the GPU directly as a text
 | ---------------- | --------------------------------- |
 | ![](../art-designs/light-texture-red.png) | ![](../art-designs/light-texture-applied.jpg) |
 
-This red texture is first drawn to a blank texture using additive blending, with the lighting colour being set. This lighting texture is then drawn over the game world using multiplicative blending.
+This red texture is first drawn to a blank texture using additive blending, with the lighting colour being set. This lighting texture is then drawn over the game world using multiplicative blending. A linear filter is also applied to remove the blocky appearance of the lighting texture due to its low resolution.
 
 ### Recalculations
 Lighting is recalculated every 100ms, and when chunk updates occur. Lighting needs to be recalculated when the chunk area changes as lighting is calculated in local space - if the world changes, the lighting will be misaligned with the world without recalculation.
