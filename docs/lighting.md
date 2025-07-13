@@ -10,7 +10,7 @@ The light propagation uses a simple breadth-first search across the world. The l
 
 The world tiles are divided each into a 2x2 grid. Each active chunk is iterated over each lighting recalculation, with each object with light emission being added to the lighting engine's `lightSources` float vector. Objects with the light absorption property are put into the `obstacles` float vector.
 
-Calculation is then done by iterating over the `lightSources` vector, adding any indexes with light sources to a queue. This queue is then iterated over, propagating the current light to the 4 adjacent tiles with a decreased lighting value. If there is an obstacle at any of these positions, that lighting value will be dampened to simulate absorption of light. If the current lighting value is equal or larger, then the light is not propagated (this avoids infinite processing loops i.e. light propagating back into its own source). Propagated tiles are then added to the end of the queue to be processed later.
+Calculation is then done by iterating over the `lightSources` vector, adding any indexes with light sources to a queue. This queue is then iterated over, propagating the current light to the 4 adjacent tiles with a lighting value decreased by a linear constant. If there is an obstacle at any of these positions, that lighting value will be dampened to simulate absorption of light. If the current lighting value is equal or larger, then the light is not propagated (this avoids infinite processing loops i.e. light propagating back into its own source). Propagated tiles are then added to the end of the queue to be processed later.
 
 The code looks something like this:
 ```cpp
@@ -42,3 +42,12 @@ void calculateLighting()
 
 ### Rendering
 The calculated `lighting` float vector is uploaded to the GPU directly as a texture, with each float value being interpreted as the red channel.
+
+| Lighting texture | Lighting texture applied to world |
+| ---------------- | --------------------------------- |
+| ![](../art-designs/light-texture-red.png) | ![](../art-designs/light-texture-applied.jpg) |
+
+This red texture is first drawn to a blank texture using additive blending, with the lighting colour being set. This lighting texture is then drawn over the game world using multiplicative blending.
+
+### Recalculations
+Lighting is recalculated every 100ms, and when chunk updates occur. Lighting needs to be recalculated when the chunk area changes as lighting is calculated in local space - if the world changes, the lighting will be misaligned with the world without recalculation.
