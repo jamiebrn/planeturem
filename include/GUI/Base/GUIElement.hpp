@@ -14,7 +14,7 @@ public:
 
     virtual pl::Rect<int> getBoundingBox() const = 0;
 
-    bool isHovered() const {return hovered;} 
+    inline bool isHovered() const {return hovered;} 
 
     inline ElementID getElementID() const {return id;}
 
