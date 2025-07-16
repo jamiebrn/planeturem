@@ -22,7 +22,7 @@
 ## Brief history
 When I first started working on Planeturem in July 2024, I initially chose to use Godot, as I knew it would help me accomplish realising my ideas faster.
 
-After working with Godot for a couple of days and putting together a very simple prototype, despite being able to work on features fast, I was not a massive fan of searching through the plethora of options in the GUI to get what I needed, and even moreso disliked working with GDScript (Godot's scripting language). This is mainly due to the dynamic typing; optional static typing is supported, but as of July 2024, some types could not be expressed such as typed dictionaries, which was frustrating and felt incomplete.
+After working with Godot for a couple of days and putting together a very simple prototype, despite being able to work on features fast, I was not a massive fan of searching through the plethora of options in the GUI to get what I needed, and even more so disliked working with GDScript (Godot's scripting language). This is mainly due to the dynamic typing; optional static typing is supported, but as of July 2024, some types could not be expressed such as typed dictionaries, which was frustrating and felt incomplete.
 
 I decided to not use Godot for this project after completing this prototype, which is probably more of a testament to my lack of patience with drifting from a code-first approach rather than Godot itself.
 
@@ -41,9 +41,11 @@ For this switch I wrote a [creatively named small generic 2D framework](https://
 <br/>
 
 ## Systems
-This section contains writeups of major systems in the game's codebase. These are not entirely comprehensive, but rather just give a brief overview of the workings of each system at a high level.
+This section contains writeups of some major systems in the game's codebase. These are not entirely comprehensive, but rather just give a brief overview of the workings of each system at a high level.
  - [Chunk/ChunkManager](docs/chunk.md)
-
-
+ - [Game Data](docs/game-data.md)
+ - [Lighting](docs/lighting.md)
+ - [Networking/Multiplayer](docs/networking.md)
+ - [Immediate Mode GUI](docs/immediate-gui.md)
 
 
