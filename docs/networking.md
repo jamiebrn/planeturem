@@ -58,7 +58,7 @@ struct Packet
     }
 ```
 
-You may have noticed the `IPacketData` type - I created this next. This is an abstract class which acts as an interface into derived PacketData types, which each specify different types of packets, e.g. `PacketDataCharacterInfo` or `PacketDataChunks`.
+You may have noticed the `IPacketData` type - I created this next. This is an abstract class which acts as an interface into derived PacketData types, which each specify different types of packets, e.g. `PacketDataCharacterInfo` or `PacketDataChunkDatas`.
 
 The `IPacketData` struct is defined as follows:
 ```cpp
@@ -101,3 +101,89 @@ This is due to how cereal handles serialisation of types - templated functions a
 This wil not serialise the correct type, despite the actual underlying type of a pointer to `IPacketData`. As we need to call `cereal_serialize` for the correct type (which is determined at compile time), we must put the `serialise` and `deserialise` functions in every `IPacketData` derived struct.
 
 To simplify this I just wrote a macro called `PACKET_SERIALISATION()` which could be written in every derived type, which would define the functions for that type. With `IPacketData` having virtual `serialise` and `deserialise` functions, the correct function corresponding to that type will be dispatched to at runtime, ultimately calling the respective type's `cereal_serialize` function.
+
+### Sending packets
+Now that we have an extensible packet system, we need to be able to send packets to other computers. This is straightforward as we simply need to construct a `SteamNetworkingIdentity` using a valid SteamID and pass it into the packet `sendToUser(...)` function.
+
+But how is this integrated with Steam matchmaking using invites etc? This is done through Steam's callback system, which allows easily binding functions to internal Steam events. For example:
+```cpp
+STEAM_CALLBACK(NetworkHandler, callbackLobbyUpdated, LobbyChatUpdate_t);
+```
+This will bind Steam's `LobbyChatUpdate_t` event to the `callbackLobbyUpdated(...)` function in the `NetworkHandler` class, which will be triggered whenever a player joins or leaves the Steam lobby.
+
+This can then be used to register/store any new player's SteamIDs, and then begin sending them game data using the packet `sendToUser(...`) function.
+
+Here is an example of how a packet containing `PacketDataJoinQuery` may be sent to a user with the "clientID" `SteamNetworkingIdentity`:
+```cpp
+PacketDataJoinQuery packetData;
+// If client has not joined before, require them to enter a username
+packetData.requiresNameInput = isNewUser(clientID);
+// Send hash of game data (assets etc) to ensure data integrity
+packetData.gameDataHash = getGameDataHash();
+
+Packet packet;
+// Pass "PacketDataJoinQuery" into packet set function, which will be serialised through "IPacketData" interface
+packet.set(packetData);
+
+// Send packet reliably on channel 0
+packet.sendToUser(clientID, k_nSteamNetworkingSend_Reliable, 0);
+```
+
+### Receiving packets
+The `sendToUser(...)` function serialises the packet and sends the bytes over the Steam network. In order to receive the correct message, we must receive these bytes and deserialise them.
+
+In order to receive these bytes, the `SteamNetworkingMessages()->ReceiveMessageOnChannel(...)` function. This can be ran every frame until there are no more messages to be received.
+
+These bytes can then be deserialised into a `Packet` by using the `deserialise(const char* data, int size)` function. This can then be deserialised into the correct `IPacketData` derived struct depending on the packet's `PacketType` data.
+
+The process looks something like this:
+```cpp
+void receiveMessages()
+{
+    static constexpr int MAX_MESSAGES = 10;
+
+    // Allocate memory for potential messages
+    SteamNetworkingMessage_t* messages[MAX_MESSAGES];
+
+    // Continue to receive messages until there are none remain
+    while (true)
+    {
+        int messageCount = SteamNetworkingMessages()->ReceiveMessagesOnChannel(0, messages, MAX_MESSAGES);
+
+        // No messages received - finish receiving
+        if (messageCount <= 0)
+            break;
+
+        // Iterate over received messages and deserialise
+        for (int i = 0; i < messageCount; i++)
+        {
+            // Deserialise bytes into packet
+            Packet packet;
+            packet.deserialise((char*)messages[i]->GetData(), messages[i]->GetSize());
+
+            // Deserialise into correct IPacketData type depending on PacketType
+            // This section is split into multiple functions in the actual code, but is simplified here
+            switch (packet.type)
+            {
+                case PacketType::PacketDataJoinQuery:
+                    // Deserialise into correct packet type
+                    PacketDataJoinQuery packetData;
+                    packetData.deserialise(packet.data);
+
+                    // ... do stuff with data
+
+                    break;
+
+                // ... handle other packet types
+            }
+
+            // Free message memory
+            messages[i]->Release();
+        }
+    }
+}
+```
+We can now successfully transfer any `IPacketData` derived type over the network to other Steam users. This allows us to send any data defined inside of these structs, which allows us to implement the entirety of multiplayer essentially (with a lot of work in data coordination).
+
+#### PacketType enum and PacketData structs
+You may have noticed that every `IPacketData` type requires a corresponding `PacketType` in order to deserialise a received packet into the correct type. While this is feels slightly messy and duplicative, a method of storing data type is required when sending arbitrary bytes over the network. Unfortunately C++ does not have type reflection, so this needs to be done manually.
