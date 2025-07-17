@@ -5,10 +5,14 @@ Regardless, I thought it would be an interesting challenge and improve the game 
 
 I decided to start working on this in February 2025. After many architectural changes to allow for multiple player simulation/management and actually implementing the networking, I had full multiplayer completed in June 2025 (4 months of development).
 
-## Technical Overview
-The game was going to be listed on Steam, so I wanted Steam integration, e.g. invites etc. For this reason I chose to use the [SteamNetworkingMessages](https://partner.steamgames.com/doc/api/ISteamnetworkingMessages) API from the Steamworks SDK. This allows the sending of arbitrary data to other Steam users using their SteamID.
+NOTE: To explain the whole multiplayer architecture would be very complex and probably akin to simply writing the code out again with explanations. This document is designed to give an overview of the foundations on which the multiplayer is built.
 
-Now that I had a method of sending data, I needed a standard way to serialise the data. I was already using [cereal](https://uscilab.github.io/cereal/) for save game binary serialisation, so would be convenient to also use here.
+## Technical Overview
+Planeturem's multiplayer architecture is based around a peer-to-peer client-host model, with one player being the host. The world is simulated on the host system and is synced on client systems. Each client sends data about their player and any actions they take, e.g. moving items into chests etc. The host redistributes each client's position to every other client.
+
+The game was going to be listed on Steam, so I wanted Steam integration, e.g. invites etc. For this reason I chose to use the [SteamNetworkingMessages](https://partner.steamgames.com/doc/api/ISteamnetworkingMessages) API from the Steamworks SDK. This allows the sending of arbitrary data to other Steam users using their SteamID. It is built on top of UDP and allows reliable and unreliable transmission of data across numbered channels.
+
+Now that I had a method of sending data, I needed a standard serialisation format. I was already using [cereal](https://uscilab.github.io/cereal/) for save game binary serialisation, so would be convenient to also use here.
 
 I did not implement this until a few weeks into development, but I needed compression of data to save bandwidth. For this, I decided to use [lzav](https://github.com/avaneev/lzav) due to its straightfoward API and promising benchmarks.
 
@@ -70,7 +74,7 @@ struct IPacketData
     virtual PacketType getType() const = 0;
 };
 ```
-Nothing interesting, just an interface for the `Packet` struct to access. Each `IPacketData` derived type can then implement the `serialize` cereal function (not `serialise`), or `save` and `load` if different instructions are required for each process.
+Each `IPacketData` derived type can then implement the `serialize` cereal function (not `serialise`), or `save` and `load` if different instructions are required for each process.
 
 For ease of reading I will refer to cereal's `serialize` function as `cereal_serialize`.
 
@@ -96,9 +100,7 @@ void deserialise(const std::vector<char>& data)
 ```
 Which comes with the question - why are these virtual abstract functions in `IPacketData`, and not simply defined there?
 
-This is due to how cereal handles serialisation of types - templated functions are used for serialisation, meaning when `archive(*this)` is called in `IPacketData`, we are essentially calling `IPacketData::cereal_serialize` as there is no virtual dispatch at compile time.
-
-This wil not serialise the correct type, despite the actual underlying type of a pointer to `IPacketData`. As we need to call `cereal_serialize` for the correct type (which is determined at compile time), we must put the `serialise` and `deserialise` functions in every `IPacketData` derived struct.
+This is due to how cereal handles serialisation of types - templated functions are used for serialisation, meaning when `archive(*this)` is called in `IPacketData`, we are essentially calling `IPacketData::cereal_serialize` as there is no virtual dispatch at compile time. This means each `IPacketData` derived struct must contain its own `serialise` and `deserialise` implementation.
 
 To simplify this I just wrote a macro called `PACKET_SERIALISATION()` which could be written in every derived type, which would define the functions for that type. With `IPacketData` having virtual `serialise` and `deserialise` functions, the correct function corresponding to that type will be dispatched to at runtime, ultimately calling the respective type's `cereal_serialize` function.
 
@@ -132,7 +134,7 @@ packet.sendToUser(clientID, k_nSteamNetworkingSend_Reliable, 0);
 ### Receiving packets
 The `sendToUser(...)` function serialises the packet and sends the bytes over the Steam network. In order to receive the correct message, we must receive these bytes and deserialise them.
 
-In order to receive these bytes, the `SteamNetworkingMessages()->ReceiveMessageOnChannel(...)` function. This can be ran every frame until there are no more messages to be received.
+In order to receive these bytes, the `SteamNetworkingMessages()->ReceiveMessageOnChannel(...)` function. This can be run every frame until there are no more messages to be received.
 
 These bytes can then be deserialised into a `Packet` by using the `deserialise(const char* data, int size)` function. This can then be deserialised into the correct `IPacketData` derived struct depending on the packet's `PacketType` data.
 
@@ -186,4 +188,4 @@ void receiveMessages()
 We can now successfully transfer any `IPacketData` derived type over the network to other Steam users. This allows us to send any data defined inside of these structs, which allows us to implement the entirety of multiplayer essentially (with a lot of work in data coordination).
 
 #### PacketType enum and PacketData structs
-You may have noticed that every `IPacketData` type requires a corresponding `PacketType` in order to deserialise a received packet into the correct type. While this is feels slightly messy and duplicative, a method of storing data type is required when sending arbitrary bytes over the network. Unfortunately C++ does not have type reflection, so this needs to be done manually.
+You may have noticed that every `IPacketData` type requires a corresponding `PacketType` in order to deserialise a received packet into the correct type. While this feels slightly messy and duplicative, a method of storing data type is required when sending arbitrary bytes over the network. Unfortunately C++ does not have type reflection, so this needs to be done manually.
