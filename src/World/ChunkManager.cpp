@@ -1457,28 +1457,15 @@ std::pair<ChunkPosition, pl::Vector2<int>> ChunkManager::getChunkTileFromOffset(
 
 pl::Vector2<int> ChunkManager::getChunksSizeInView(const Camera& camera)
 {
-    pl::Vector2f screenTopLeft = camera.screenToWorldTransform({0, 0}, 0);
-    pl::Vector2f screenBottomRight = camera.screenToWorldTransform(static_cast<pl::Vector2f>(ResolutionHandler::getResolution()), 0);
-
-    // Convert screen bounds to chunk units
-    pl::Vector2<int> screenTopLeftGrid;
-    pl::Vector2<int> screenBottomRightGrid;
-
-    screenTopLeftGrid.y = std::floor(screenTopLeft.y / (TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE));
-    screenTopLeftGrid.x = std::floor(screenTopLeft.x / (TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE));
-    screenBottomRightGrid.x = std::ceil(screenBottomRight.x / (TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE));
-    screenBottomRightGrid.y = std::ceil(screenBottomRight.y / (TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE));
-
-    pl::Vector2<int> chunkSizeInView;
-    chunkSizeInView.x = screenBottomRightGrid.x + CHUNK_VIEW_LOAD_BORDER - (screenTopLeftGrid.x - CHUNK_VIEW_LOAD_BORDER);
-    chunkSizeInView.y = screenBottomRightGrid.y + CHUNK_VIEW_LOAD_BORDER - (screenTopLeftGrid.y - CHUNK_VIEW_LOAD_BORDER);
-    return chunkSizeInView;
+    ChunkViewRange chunkViewRange = camera.getChunkViewRange();
+    return {chunkViewRange.bottomRight.x - chunkViewRange.topLeft.x + 1, chunkViewRange.bottomRight.y - chunkViewRange.topLeft.y + 1};
 }
 
 pl::Vector2f ChunkManager::topLeftChunkPosInView(const Camera& camera)
 {
-    pl::Vector2f screenTopLeft = camera.screenToWorldTransform({0, 0}, 0);
-    screenTopLeft.y = (std::floor(screenTopLeft.y / (TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE)) - CHUNK_VIEW_LOAD_BORDER) * TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE;
-    screenTopLeft.x = (std::floor(screenTopLeft.x / (TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE)) - CHUNK_VIEW_LOAD_BORDER) * TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE;
-    return screenTopLeft;
+    ChunkViewRange chunkViewRange = camera.getChunkViewRange();
+    pl::Vector2f topLeftChunkPos;
+    topLeftChunkPos.x = chunkViewRange.topLeft.x * TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE;
+    topLeftChunkPos.y = chunkViewRange.topLeft.y * TILE_SIZE_PIXELS_UNSCALED * CHUNK_TILE_SIZE;
+    return topLeftChunkPos;
 }

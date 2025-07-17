@@ -63,6 +63,11 @@ struct ChunkViewRange
     ChunkPosition topLeft;
     ChunkPosition bottomRight;
 
+    inline bool operator==(const ChunkViewRange& other) const
+    {
+        return (topLeft == other.topLeft) && (bottomRight == other.bottomRight);
+    }
+
     inline int getSize() const
     {
         return (bottomRight.x - topLeft.x + 1) * (bottomRight.y - topLeft.y + 1);

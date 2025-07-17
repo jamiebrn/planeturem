@@ -2,7 +2,7 @@
 
 // CONSIDER: Custom death chat messages depending on source of death
 
-// FIX: Lighting breaking sometimes (chunk loading maybe)
+// FIX: Rocket not being placed in multiplayer in some instances
 
 // FIX: Rocket entered reference not setting correctly on travel in some cases (room to planet???)
 
@@ -677,6 +677,9 @@ void Game::runInGame(float dt)
         particleSystem.update(dt);
 
         HitMarkers::update(dt);
+        
+        // Store last chunk view range for testing whether player view has changed
+        ChunkViewRange lastChunkViewRange = camera.getChunkViewRange();
 
         camera.update(player.getPosition(), mouseScreenPos, dt);
 
@@ -715,6 +718,12 @@ void Game::runInGame(float dt)
         {
             updateActivePlanets(dt);
             updateActiveRoomDests(dt);
+        }
+
+        // If chunk view range has changed, force lighting recalculation
+        if (lastChunkViewRange != camera.getChunkViewRange())
+        {
+            lightingTickTime = LIGHTING_TICK_TIME;
         }
 
         Cursor::setCursorHidden(!player.canReachPosition(camera.screenToWorldTransform(mouseScreenPos, 0)));
@@ -1045,8 +1054,8 @@ void Game::updateOnPlanet(float dt)
     {
         std::vector<ChunkPosition> chunksToRequestFromHost;
         
-        bool hasLoadedChunks = getChunkManager().updateChunks(*this, gameTime, {camera.getChunkViewRange()}, &networkHandler, &chunksToRequestFromHost);
-        bool hasUnloadedChunks = getChunkManager().unloadChunksOutOfView({camera.getChunkViewRange()});
+        getChunkManager().updateChunks(*this, gameTime, {camera.getChunkViewRange()}, &networkHandler, &chunksToRequestFromHost);
+        getChunkManager().unloadChunksOutOfView({camera.getChunkViewRange()});
     
         if (networkHandler.isClient() && chunksToRequestFromHost.size() > 0)
         {
@@ -1057,10 +1066,10 @@ void Game::updateOnPlanet(float dt)
         getChunkManager().updateChunksEntities(dt, getProjectileManager(), *this, networkHandler.isClient());
     
         // If modified chunks, force a lighting recalculation
-        if (hasLoadedChunks || hasUnloadedChunks)
-        {
-            lightingTickTime = LIGHTING_TICK_TIME;
-        }
+        // if (hasLoadedChunks || hasUnloadedChunks)
+        // {
+        //     lightingTickTime = LIGHTING_TICK_TIME;
+        // }
         
         // Update bosses
         std::vector<Player*> players = {&player};
@@ -1155,8 +1164,8 @@ void Game::updateActivePlanets(float dt)
 
         ChunkManager& chunkManager = getChunkManager(planetType);
 
-        bool hasLoadedChunks = chunkManager.updateChunks(*this, gameTime, chunkViewRanges, &networkHandler);
-        bool hasUnloadedChunks = chunkManager.unloadChunksOutOfView(chunkViewRanges);
+        chunkManager.updateChunks(*this, gameTime, chunkViewRanges, &networkHandler);
+        chunkManager.unloadChunksOutOfView(chunkViewRanges);
     
         std::vector<ChunkPosition> chunksModified = chunkManager.updateChunksObjects(*this, dt, gameTime);
 
@@ -1180,10 +1189,10 @@ void Game::updateActivePlanets(float dt)
         chunkManager.updateChunksEntities(dt, getProjectileManager(planetType), *this, false);
 
         // If chunks loaded / unloaded (and this player (host) is on this planet), force a lighting recalculation
-        if (locationState.getPlanetType() == planetType && (hasLoadedChunks || hasUnloadedChunks))
-        {
-            lightingTickTime = LIGHTING_TICK_TIME;
-        }
+        // if (locationState.getPlanetType() == planetType && (hasLoadedChunks || hasUnloadedChunks))
+        // {
+        //     lightingTickTime = LIGHTING_TICK_TIME;
+        // }
 
         // Get players on planet, including us if in same location
         Player* thisPlayer = (locationState == LocationState::createFromPlanetType(planetType)) ? &player : nullptr;
@@ -1383,7 +1392,7 @@ void Game::drawLighting(float dt, std::vector<WorldObject*>& worldObjects)
     lightTexture.setLinearFilter(smoothLighting);
 
     pl::VertexArray lightRect;
-    lightRect.addQuad(pl::Rect<float>(camera.worldToScreenTransform(topLeftChunkPos, getChunkManager().getWorldSize()),
+    lightRect.addQuad(pl::Rect<float>(camera.worldToScreenTransform(topLeftChunkPos, 0),
         pl::Vector2f(lightTexture.getWidth(), lightTexture.getHeight()) *
         ResolutionHandler::getScale() * TILE_SIZE_PIXELS_UNSCALED / static_cast<float>(TILE_LIGHTING_RESOLUTION)), pl::Color(),
         pl::Rect<float>(0, lightTexture.getHeight(), lightTexture.getWidth(), -lightTexture.getHeight()));
