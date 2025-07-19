@@ -10,7 +10,7 @@ Game data in Planeturem is loaded in through json files at runtime. This include
 Deserialisation of these files uses the [nlohmann json](https://github.com/nlohmann/json) library, each item data type having its own DataLoader class, e.g. `ItemData` has a static `ItemDataLoader` class which controls deserialisation of the `items.data` file into game data.
 
 ## Item Data
-Items are just "basic items" with no unique behavious in the game, e.g. materials used in recipes. They are loaded in order and assigned IDs based on that order, starting from 0.
+Items are just "basic items" with no unique behaviours in the game, e.g. materials used in recipes. They are loaded in order and assigned IDs based on that order, starting from 0.
 
 Each of these items have unique data such as the name, description, texture UVs etc.
 
@@ -64,7 +64,7 @@ struct ConsumableData
 ## Object Data
 Objects spawn naturally in the world and can be placed by players. They have many fields, such as name, health, texture UV, tile size, light emission and absorption, collision, crafting station name/level, item drops, chest capacity etc. They also all have IDs starting from 0, which are used when corresponding items are created.
 
-Each of these objects have items created automatically, meaning the player can have any object in their inventory. NPCs are also just objects with unique interaction behaviour, i.e. dialogue, meaning the player can have an NPC in their inventory. However in a legitmate playthrough the player will never be able to obtain this, as they can only get items from item drops from other objects, crafting, and chest spawns in structures.
+Each of these objects have items created automatically, meaning the player can have any object in their inventory. NPCs are also just objects with unique interaction behaviour, i.e. dialogue, meaning the player can have an NPC in their inventory. However in a legitimate playthrough the player will never be able to obtain this, as they can only get items from item drops from other objects, crafting, and chest spawns in structures.
 
 ### Solving circular dependencies
 In order for objects to be able to drop other objects and themselves, I create the item corresponding to each object before loading object data such as item drops. Without this, when an object would be loaded, the item for that object would not be created, so it would not be able to drop itself, and would also not be able to drop objects that haven't been loaded yet, i.e. objects further into the `objects.data` file. This obviously isn't ideal, as for example a wooden bench object should drop a wooden bench, and objects dropping other objects would have to be placed further into the object data file.
@@ -99,15 +99,15 @@ Armour data is very similar - each armour piece can be of type `Head`, `Chest`, 
 Entity data contains entity names, textures for idle and walking animations, size, health, collision, item drops, behaviour type and behaviour parameters.
 
 ### Behaviour types
-Behaviour types are classes written in the source code, which are selected at entity instantiation depending on the behaviour type string. I was debating on implementing some sort of scripting system for entity AI, such as using Lua. But I felt this was overkill and would have probably taken much more work than just writing different classes in C++. While this would have improved modding support, I would not have preffered to use Lua over C++, so just stuck with C++.
+Behaviour types are classes written in the source code, which are selected at entity instantiation depending on the behaviour type string. I was debating on implementing some sort of scripting system for entity AI, such as using Lua. But I felt this was overkill and would have probably taken much more work than just writing different classes in C++. While this would have improved modding support, I would not have preferred to use Lua over C++, so just stuck with C++.
 
 ### Behaviour parameters
 Behaviour customisation can be done however through the use of behaviour parameters. These are loaded into a hashmap at runtime, using a string for the key to represent parameter name and a float for the value. This allows the chosen entity behaviour to query parameters to customise the AI. Of course these parameters still have to be hardcoded into the executable in the behaviour classes, but I think it is a good enough tradeoff for customisation without implementing an external scripting system.
 
-While most systems in the game convert string values into respective type IDs when data is loaded to increase performance, behaviour parameters remain as strings at runtime as otherwise each behaviour parameter would require an enum value/type ID tb be assigned. This would reduce design iteration ability and ergonomics. This does therefore mean more compute is required when spawning entities as string hashes need to be calculated to look up values, however this will not be a noticable performance hit, especially when this only needs to be done on entity initialisation. On client systems in multiplayer this is a larger hit as entities are reinitialised every 2 server ticks (22Hz), but is still completely inconsequential due to cache locality of strings.
+While most systems in the game convert string values into respective type IDs when data is loaded to increase performance, behaviour parameters remain as strings at runtime as otherwise each behaviour parameter would require an enum value/type ID to be assigned. This would reduce design iteration ability and ergonomics. This does therefore mean more compute is required when spawning entities as string hashes need to be calculated to look up values, however this will not be a noticeable performance hit, especially when this only needs to be done on entity initialisation. On client systems in multiplayer this is a larger hit as entities are reinitialised every 2 server ticks (22Hz), but is still completely inconsequential due to cache locality of strings.
 
 ## Recipe Data
-Recipes loaded after all items, objects etc have been loaded, to ensure all items are present. Recipes specify an item to be created amount amount, all required items and amounts, items required for the player to see the recipe (`keyItems`), and required crafting station name and level in order to see the recipe.
+Recipes loaded after all items, objects etc have been loaded, to ensure all items are present. Recipes specify an item to be created and amount, all required items and amounts, items required for the player to see the recipe (`keyItems`), and required crafting station name and level in order to see the recipe.
 
 With no `keyItems`, the recipe will be visible to the player if they have one of the required items, given they are in range of the required crafting station with sufficient level.
 
