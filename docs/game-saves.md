@@ -43,4 +43,4 @@ This stores data for all players in the game, each with the following data:
  - Last used rocket type (ensures players always get rocket of same type placed when travelling to new planet, e.g. when travelled to a room destination from a planet, when travelling to another planet after, must use same rocket type)
  - Spawn point for each planet
 
-This data is serialised in a readable json format, deserialised using the [nlohmann json](https://github.com/nlohmann/json) library. This allows the player to modify it if they wish, alongside the fact that this is data is small in comparison to the planet data, so binary serialisation would not provide much storage benefit.
+This data is serialised in a readable json format, deserialised using the [nlohmann json](https://github.com/nlohmann/json) library. This allows the player to modify it if they wish, alongside the fact that this data is small in comparison to the planet data, so binary serialisation would not provide much storage benefit.
