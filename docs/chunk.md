@@ -1,6 +1,6 @@
 ## Chunk
 
-The Chunk class represents an 8x8 tile square chunk of world data. This consitutes of tiles, objects, structures, and entities. Each chunk is managed by the [ChunkManager](##ChunkManager) class; chunks are never created outside of the ChunkManager and all interaction should be done through the ChunkManager to ensure world consistency.
+The Chunk class represents an 8x8 tile square chunk of world data. This consists of tiles, objects, structures, and entities. Each chunk is managed by the [ChunkManager](##ChunkManager) class; chunks are never created outside of the ChunkManager and all interaction should be done through the ChunkManager to ensure world consistency.
 
 The world is generated using a combination of noise and seeded PRNGs. The noise generated is 2D and seamless, meaning it can be used to create a "planet" effect, i.e. the player can walk in one direction and end up in the same location.
 
@@ -105,7 +105,7 @@ ObjectType getRandomObjectToSpawnAtWorldTile(int x, int y, RandInt& randGen)
 ```
 This system, while simple, ensures object spawns are the same at a specific tile with a given world seed.
 
-Resources can also regenerate after a set amount of time, determined by the resource regeneration time range for the chunk's respective biome data. This regeneration is non-deterministic, meaning after the initial resources have generated in the world, any future regenerations will not depend on the world seed.
+Resources can also regenerate after a set amount of time, determined by the resource regeneration time range for the chunk's respective biome data. This regeneration is non-deterministic, meaning after the initial resources have been generated in the world, any future regenerations will not depend on the world seed.
 
 ### Structure Generation
 Structures are naturally generated monuments in the world, enterable by players.
@@ -144,9 +144,9 @@ Objects are stored in an 8x8 (chunk size * chunk size) array in each chunk.
 
 Objects with a size of 1x1 in tiles are simple to handle - the object will just occupy its respective place in the array. But for objects larger than this, e.g. 2x2, 2x1, etc, "dummy" objects need to be created that point to the actual object.
 
-These dummy objects created store an `ObjectReference` which points the to actual object's Chunk and Tile in the world. The "actual object" is stored in the top left of the "object". This system allows objects with sizes larger than 1x1 to span across chunks.
+These dummy objects created store an `ObjectReference` which points to the actual object's Chunk and Tile in the world. The "actual object" is stored in the top left of the "object". This system allows objects with sizes larger than 1x1 to span across chunks.
 
-When `getObject()` is called on the chunk manager, object references are automatically "dereferenced", the a pointer to tha actual object being returned.
+When `getObject()` is called on the chunk manager, object references are automatically "dereferenced", then a pointer to that actual object being returned.
 
 ## ChunkManager
 
