@@ -1,6 +1,5 @@
 #pragma once
 
-#define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
 #include <extlib/steam/steam_api.h>
 #include <chrono>
@@ -116,6 +115,7 @@
 #include "Network/NetworkHandler.hpp"
 
 #include "IO/GameSaveIO.hpp"
+#include "IO/Log.hpp"
 
 #include "DebugOptions.hpp"
 

@@ -1,4 +1,5 @@
 #include "World/Room.hpp"
+#include "IO/Log.hpp"
 
 Room::Room()
 {
@@ -415,7 +416,7 @@ void Room::loadObjectPODs()
 
     if (loadingObjectPodsTemp == nullptr)
     {
-        std::cout << "Error: Room has no object POD loaded\n";
+        Log::push("ERROR: Room has no object POD loaded\n");
         return;
     }
 

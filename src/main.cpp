@@ -1,6 +1,6 @@
 #include "Game.hpp"
 
-int main(int argv, char** args)
+int main(int argc, char* argv[])
 {
     Game game;
     if (!game.initialise())

@@ -93,6 +93,9 @@ bool Game::initialise()
     // Initialise network handler
     networkHandler.reset(this);
 
+    // Initialise logging
+    Log::init();
+
     // Randomise
     srand(time(NULL));
 
@@ -1418,21 +1421,21 @@ std::optional<uint32_t> Game::initialiseStructureOrGet(PlanetType planetType, Ch
 
     if (!worldDatas.contains(planetType))
     {
-        printf(("ERROR: Attempted to access null planet type " + std::to_string(planetType) + " while initialising structure" + "\n").c_str());
+        Log::push("ERROR: Attempted to access null planet type " + std::to_string(planetType) + " while initialising structure" + "\n");
         return std::nullopt;
     }
 
     Chunk* chunkPtr = getChunkManager(planetType).getChunk(chunk);
     if (!chunkPtr)
     {
-        printf(("ERROR: Attempted to access null chunk " + chunk.toString() + " while initialising structure" + "\n").c_str());
+        Log::push("ERROR: Attempted to access null chunk " + chunk.toString() + " while initialising structure" + "\n");
         return std::nullopt;
     }
 
     StructureObject* enteredStructure = chunkPtr->getStructureObject();
     if (!enteredStructure)
     {
-        printf(("ERROR: Attempted to initialise null structure in chunk " + chunk.toString() + "\n").c_str());
+        Log::push("ERROR: Attempted to initialise null structure in chunk " + chunk.toString() + "\n");
         return std::nullopt;
     }
 
@@ -1506,25 +1509,25 @@ void Game::enterStructureFromHost(PlanetType planetType, ChunkPosition chunk, ui
 {
     if (locationState.getPlanetType() != planetType)
     {
-        printf(("ERROR: Received enter structure reply for incorrect planet type " + std::to_string(planetType) + "\n").c_str());
+        Log::push("ERROR: Received enter structure reply for incorrect planet type " + std::to_string(planetType) + "\n");
         return;
     }
 
     Chunk* chunkPtr = getChunkManager(planetType).getChunk(chunk);
     if (!chunkPtr)
     {
-        printf(("ERROR: Received enter structure reply for null chunk " + chunk.toString() + "\n").c_str());
+        Log::push("ERROR: Received enter structure reply for null chunk " + chunk.toString() + "\n");
         return;
     }
 
     StructureObject* structureObject = chunkPtr->getStructureObject();
     if (!structureObject)
     {
-        printf("ERROR: Received enter structure reply for null structure\n");
+        Log::push("ERROR: Received enter structure reply for null structure\n");
         return;
     }
 
-    printf("NETWORK: Entering structure from host\n");
+    Log::push("NETWORK: Entering structure from host\n");
 
     closeChest();
 
@@ -1555,7 +1558,7 @@ void Game::enterRocketFromReference(ObjectReference rocketObjectReference, bool 
 
     if (!rocketObject)
     {
-        printf("ERROR: Attempted to enter null rocket from reference at (%d, %d, %d, %d)\n",
+        Log::push("ERROR: Attempted to enter null rocket from reference at ({}, {}, {}, {})\n",
             rocketObjectReference.chunk.x, rocketObjectReference.chunk.y, rocketObjectReference.tile.x, rocketObjectReference.tile.y);
         return;
     }
@@ -1675,9 +1678,8 @@ void Game::exitRocket(const LocationState& locationState, RocketObject* rocket)
     }
     else
     {
-        std::cout << "Error: Attempted to exit null rocket object at ";
-        std::cout << rocketEnteredReference.chunk.x << ", " << rocketEnteredReference.chunk.y << ":";
-        std::cout << rocketEnteredReference.tile.x << ", " << rocketEnteredReference.tile.y << "\n";
+        Log::push("ERROR: Attempted to exit null rocket object at ({}, {}, {}, {})\n", rocketEnteredReference.chunk.x, rocketEnteredReference.chunk.y,
+            rocketEnteredReference.tile.x, rocketEnteredReference.tile.y);
     }
 
     int worldSize = 0;
@@ -1830,7 +1832,7 @@ void Game::landmarkPlaced(const LandmarkObject& landmark, PlanetType planetType,
 {
     if (!isLocationStateInitialised(LocationState::createFromPlanetType(planetType)))
     {
-        printf("ERROR: Landmark creation attempted at uninitialised planet type %d\n", planetType);
+        Log::push("ERROR: Landmark creation attempted at uninitialised planet type {}\n", planetType);
         return;
     }
 
@@ -2688,7 +2690,7 @@ T* Game::getObjectFromLocation(ObjectReference objectReference, const LocationSt
         {
             if (!worldDatas.contains(objectLocationState.getPlanetType()))
             {
-                printf(("ERROR: Attempted to access object from null planet type " + std::to_string(objectLocationState.getPlanetType()) + "\n").c_str());
+                Log::push("ERROR: Attempted to access object from null planet type " + std::to_string(objectLocationState.getPlanetType()) + "\n");
                 break;
             }
             return getChunkManager(objectLocationState.getPlanetType()).getChunkObject<T>(objectReference.chunk, objectReference.tile);
@@ -2697,12 +2699,12 @@ T* Game::getObjectFromLocation(ObjectReference objectReference, const LocationSt
         {
             if (!worldDatas.contains(objectLocationState.getPlanetType()))
             {
-                printf(("ERROR: Attempted to access object for structure from null planet type " + std::to_string(objectLocationState.getPlanetType()) + "\n").c_str());
+                Log::push("ERROR: Attempted to access object for structure from null planet type " + std::to_string(objectLocationState.getPlanetType()) + "\n");
                 break;
             }
             if (!getStructureRoomPool(objectLocationState.getPlanetType()).isIDValid(objectLocationState.getInStructureID()))
             {
-                printf(("ERROR: Attempted to access object from null structure ID " + std::to_string(objectLocationState.getInStructureID()) + "\n").c_str());
+                Log::push("ERROR: Attempted to access object from null structure ID " + std::to_string(objectLocationState.getInStructureID()) + "\n");
                 break;
             }
             Room& structureRoom = getStructureRoomPool(objectLocationState.getPlanetType()).getRoom(objectLocationState.getInStructureID());
@@ -2712,7 +2714,7 @@ T* Game::getObjectFromLocation(ObjectReference objectReference, const LocationSt
         {
             if (!roomDestDatas.contains(objectLocationState.getRoomDestType()))
             {
-                printf(("ERROR: Attempted to access object from null room dest type " + std::to_string(objectLocationState.getRoomDestType()) + "\n").c_str());
+                Log::push("ERROR: Attempted to access object from null room dest type " + std::to_string(objectLocationState.getRoomDestType()) + "\n");
                 break;
             }
             return getRoomDestination(objectLocationState.getRoomDestType()).getObject<T>(objectReference.tile);
@@ -2897,7 +2899,7 @@ void Game::openedChestDataModified()
     Packet packet;
     packet.set(packetData, true);
     
-    printf("Sending chest data to host\n");
+    Log::push("Sending chest data to host\n");
 
     networkHandler.sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
 }
@@ -2974,7 +2976,7 @@ void Game::closeChest(std::optional<ObjectReference> chestObjectRef, std::option
     }
     else
     {
-        printf("ERROR: Attempted to close null chest\n");
+        Log::push("ERROR: Attempted to close null chest\n");
     }
 
     // If sent from host or is user (this client triggered this close so UI already closed), do not close UI
@@ -3018,7 +3020,7 @@ void Game::travelToDestination()
         }
         else
         {
-            printf("ERROR: Could not find valid rocket object during travel from planet\n");
+            Log::push("ERROR: Could not find valid rocket object during travel from planet\n");
             return;
         }
     }
@@ -3104,7 +3106,7 @@ void Game::deleteObjectSynced(ObjectReference objectReference, PlanetType planet
 
     if (!worldDatas.contains(planetType))
     {
-        printf(("WARNING: Cannot delete object for null planet " + std::to_string(planetType) + "\n").c_str());
+        Log::push("WARNING: Cannot delete object for null planet " + std::to_string(planetType) + "\n");
         return;
     }
 
@@ -3216,7 +3218,7 @@ std::optional<ObjectReference> Game::setupPlanetTravel(PlanetType planetType, co
             packetData.chunkDatas.chunkDatas.push_back(getChunkManager(planetType).getChunkDataAndGenerate(chunkPos, *this));
         }
 
-        printf(("PLANET TRAVEL: Sending planet travel data to client for planet type " + std::to_string(planetType) + "\n").c_str());
+        Log::push("PLANET TRAVEL: Sending planet travel data to client for planet type " + std::to_string(planetType) + "\n");
 
         networkHandler.getNetworkPlayer(clientID.value())->getPlayerData().locationState.setPlanetType(planetType);
 
@@ -3244,7 +3246,7 @@ bool Game::travelToRoomDestinationForClient(RoomType roomDest, const LocationSta
 
         if (!rocketObject)
         {
-            printf("ERROR: Null rocket object when travelling to room dest for client\n");
+            Log::push("ERROR: Null rocket object when travelling to room dest for client\n");
             return false;
         }
 
@@ -3256,7 +3258,7 @@ bool Game::travelToRoomDestinationForClient(RoomType roomDest, const LocationSta
     }
     else
     {
-        printf("ERROR: Null rocket object when travelling to room dest for client\n");
+        Log::push("ERROR: Null rocket object when travelling to room dest for client\n");
         return false;
     }
 
@@ -3270,7 +3272,7 @@ bool Game::travelToRoomDestinationForClient(RoomType roomDest, const LocationSta
     PacketDataRoomTravelReply packetData;
     packetData.roomType = roomDest;
 
-    printf("ROOM TRAVEL: Sending room travel reply to client for room dest type %s\n", std::to_string(roomDest).c_str());
+    Log::push("ROOM TRAVEL: Sending room travel reply to client for room dest type {}\n", std::to_string(roomDest));
     
     networkHandler.getNetworkPlayer(clientID)->getPlayerData().locationState.setRoomDestType(roomDest);
 
@@ -3328,7 +3330,7 @@ void Game::travelToPlanet(PlanetType planetType, ObjectReference newRocketObject
     }
     else
     {
-        printf("ERROR: Cannot enter null rocket when travelling to planet\n");
+        Log::push("ERROR: Cannot enter null rocket when travelling to planet\n");
     }
     
     camera.instantUpdate(player.getPosition());
@@ -3414,7 +3416,7 @@ bool Game::travelToRoomDestination(RoomType destinationRoomType)
     }
     else
     {
-        printf("Error: could not find rocket object in room destination\n");
+        Log::push("ERROR: could not find rocket object in room destination\n");
         return false;
     }
 
@@ -3714,7 +3716,7 @@ bool Game::loadGame(const SaveFileSummary& saveFileSummary)
     
     if (!io.loadPlayerSave(playerGameSave))
     {
-        std::cout << "Failed to load player " + saveFileSummary.name + "\n";
+        Log::push("Failed to load player " + saveFileSummary.name + "\n");
         return false;
     }
 
@@ -3948,7 +3950,7 @@ void Game::initialiseWorldData(PlanetType planetType)
 {
     if (worldDatas.contains(planetType))
     {
-        printf(("WARNING: Initialising pre-existing world data for planet type " + std::to_string(planetType) + "\n").c_str());
+        Log::push("WARNING: Initialising pre-existing world data for planet type " + std::to_string(planetType) + "\n");
     }
 
     worldDatas[planetType] = WorldData();
@@ -4196,7 +4198,7 @@ void Game::handleChunkRequestsFromClient(const PacketDataChunkRequests& chunkReq
 
     if (!worldDatas.contains(chunkRequests.planetType))
     {
-        printf(("ERROR: Attempted to send chunks to client for uninitialised planet type " + std::to_string(chunkRequests.planetType) + "\n").c_str());
+        Log::push("ERROR: Attempted to send chunks to client for uninitialised planet type " + std::to_string(chunkRequests.planetType) + "\n");
         return;
     }
 
@@ -4216,9 +4218,9 @@ void Game::handleChunkRequestsFromClient(const PacketDataChunkRequests& chunkReq
     Packet packet;
     packet.set(packetChunkDatas, true);
     
-    printf(("NETWORK: (\"" + planetData.name + "\") Sending " + std::to_string(chunkRequests.chunkRequests.size()) + " chunks in range (" + std::to_string(minChunkX) +
+    Log::push("NETWORK: (\"" + planetData.name + "\") Sending " + std::to_string(chunkRequests.chunkRequests.size()) + " chunks in range (" + std::to_string(minChunkX) +
         ", " + std::to_string(minChunkY) + ") to (" + std::to_string(maxChunkX) + ", " + std::to_string(maxChunkY) + ") to " + steamName + " " + packet.getSizeStr() +
-        "\n").c_str());
+        "\n");
 
     networkHandler.sendPacketToClient(client.GetSteamID64(), packet, k_nSteamNetworkingSend_Reliable, 0);
 }
@@ -4227,15 +4229,15 @@ void Game::handleChunkDataFromHost(const PacketDataChunkDatas& chunkDataPacket)
 {
     if (chunkDataPacket.planetType != locationState.getPlanetType() || !locationState.isOnPlanet())
     {
-        printf(("ERROR: Received chunks from host for incorrect planet type " + std::to_string(chunkDataPacket.planetType) + "\n").c_str());
+        Log::push("ERROR: Received chunks from host for incorrect planet type " + std::to_string(chunkDataPacket.planetType) + "\n");
     }
 
     for (const auto& chunkData : chunkDataPacket.chunkDatas)
     {
         getChunkManager().setChunkData(chunkData, *this);
 
-        printf(("NETWORK: Received chunk (" + std::to_string(chunkData.chunkPosition.x) + ", " +
-            std::to_string(chunkData.chunkPosition.y) + ") data from host\n").c_str());
+        Log::push("NETWORK: Received chunk (" + std::to_string(chunkData.chunkPosition.x) + ", " +
+            std::to_string(chunkData.chunkPosition.y) + ") data from host\n");
     }
 
     // Chunk datas received - recalcute lighting

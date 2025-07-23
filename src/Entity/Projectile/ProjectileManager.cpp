@@ -1,6 +1,7 @@
 #include "Entity/Projectile/ProjectileManager.hpp"
 #include "Game.hpp"
 #include "Network/NetworkHandler.hpp"
+#include "IO/Log.hpp"
 
 void ProjectileManager::initialise(Game* game, PlanetType planetType)
 {
@@ -41,7 +42,7 @@ void ProjectileManager::addProjectile(const Projectile& projectile, ToolType wea
 {
     if (!game)
     {
-        printf("ERROR: Projectile manager of planet type %d uninitialised\n", planetType);
+        Log::push("ERROR: Projectile manager of planet type {} uninitialised\n", planetType);
         return;
     }
 
@@ -50,7 +51,7 @@ void ProjectileManager::addProjectile(const Projectile& projectile, ToolType wea
     {
         if (weaponType < 0)
         {
-            printf("ERROR: Attempted to create networked projectile from null weapon type %d\n", weaponType);
+            Log::push("ERROR: Attempted to create networked projectile from null weapon type {}\n", weaponType);
             return;
         }
         

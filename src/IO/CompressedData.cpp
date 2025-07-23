@@ -1,4 +1,5 @@
 #include "IO/CompressedData.hpp"
+#include "IO/Log.hpp"
 
 CompressedData::CompressedData(const std::vector<char> uncompressedData)
 {
@@ -20,7 +21,7 @@ std::vector<char> CompressedData::decompress()
 
     if (l < 0)
     {
-        printf("ERROR: Data decompression failed\n");
+        Log::push("ERROR: Data decompression failed\n");
     }
 
     return uncompressedData;

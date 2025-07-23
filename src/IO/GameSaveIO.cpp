@@ -1,4 +1,5 @@
 #include "IO/GameSaveIO.hpp"
+#include "IO/Log.hpp"
 
 GameSaveIO::GameSaveIO(std::string fileName)
 {
@@ -306,7 +307,7 @@ std::vector<SaveFileSummary> GameSaveIO::getSaveFiles()
         PlayerGameSave playerSave;
         if (!loadPlayerSaveFromName(saveFileSummary.name, playerSave))
         {
-            std::cout << "Error - could not load player save " + saveFileSummary.name << "\n";
+            Log::push("ERROR: Could not load player save " + saveFileSummary.name + "\n");
             continue;
         }
 

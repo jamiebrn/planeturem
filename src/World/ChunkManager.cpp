@@ -2,6 +2,7 @@
 #include "Network/NetworkHandler.hpp"
 #include "Game.hpp"
 #include "Player/Player.hpp"
+#include "IO/Log.hpp"
 
 void ChunkManager::setSeed(int seed)
 {
@@ -858,7 +859,7 @@ void ChunkManager::loadEntityPacketDatas(const PacketDataEntities& entityPacketD
 {
     if (entityPacketDatas.planetType != planetType)
     {
-        printf(("ERROR: Received entity packet for incorrect planet type " + std::to_string(entityPacketDatas.planetType) + "\n").c_str());
+        Log::push(("ERROR: Received entity packet for incorrect planet type " + std::to_string(entityPacketDatas.planetType) + "\n").c_str());
         return;
     }
 
@@ -928,15 +929,15 @@ std::optional<ItemPickupReference> ChunkManager::addItemPickup(const ItemPickup&
 
         if (!chunkPtr)
         {
-            std::cout << "ERROR: Attempted to send item pickup creation data for null chunk (" << itemPickupReference.chunk.x
-                << ", " << itemPickupReference.chunk.y << ")\n";
+            Log::push("ERROR: Attempted to send item pickup creation data for null chunk (" + std::to_string(itemPickupReference.chunk.x) +
+                ", " + std::to_string(itemPickupReference.chunk.y) + ")\n");
             return std::nullopt;
         }
 
         const ItemPickup* itemPickupPtr = chunkPtr->getItemPickup(itemPickupReference.id);
         if (!itemPickupPtr)
         {
-            std::cout << "ERROR: Attempted to send item pickup creation data for null pickup ID " << itemPickupReference.id << "\n";
+            Log::push("ERROR: Attempted to send item pickup creation data for null pickup ID " + std::to_string(itemPickupReference.id) + "\n");
             return std::nullopt;
         }
 

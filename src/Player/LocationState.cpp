@@ -1,4 +1,5 @@
 #include "Player/LocationState.hpp"
+#include "IO/Log.hpp"
 
 void LocationState::setToNull()
 {
@@ -121,7 +122,7 @@ void from_json(const nlohmann::json& json, LocationState& locationState)
     else
     {
         const std::string& defaultPlanetName = PlanetGenDataLoader::getPlanetGenData(0).name;
-        std::cout << "ERROR: Loaded LocationState has no previous location. Defaulting to planet \"" + defaultPlanetName + "\"\n";
+        Log::push("ERROR: Loaded LocationState has no previous location. Defaulting to planet \"" + defaultPlanetName + "\"\n");
         locationState.setPlanetType(0);
     }
 }

@@ -2,12 +2,13 @@
 #include "Game.hpp"
 #include "GUI/ChatGUI.hpp"
 #include "GUI/MainMenuGUI.hpp"
+#include "IO/Log.hpp"
 
 NetworkHandler::NetworkHandler(Game* game)
 {
     if (game == nullptr)
     {
-        printf("ERROR: NetworkHandler game ptr set to null\n");
+        Log::push("ERROR: NetworkHandler game ptr set to null\n");
     }
 
     reset(game);
@@ -56,11 +57,11 @@ void NetworkHandler::callbackLobbyCreated(LobbyCreated_t* pCallback, bool bIOFai
 {
     if (pCallback->m_ulSteamIDLobby == 0)
     {
-        std::cout << "ERROR: Lobby creation failed\n";
+        Log::push("ERROR: Lobby creation failed\n");
         return;
     }
 
-    std::cout << "NETWORK: Created lobby " << pCallback->m_ulSteamIDLobby << "\n";
+    Log::push("NETWORK: Created lobby " + std::to_string(pCallback->m_ulSteamIDLobby) + "\n");
     isLobbyHost = true;
     lobbyHost = SteamUser()->GetSteamID().ConvertToUint64();
     multiplayerGame = true;
@@ -103,7 +104,7 @@ void NetworkHandler::leaveLobby()
 
 void NetworkHandler::sendWorldJoinReply(std::string playerName, pl::Color bodyColor, pl::Color skinColor)
 {
-    std::cout << "NETWORK: Sending join reply to user " << SteamFriends()->GetFriendPersonaName(CSteamID(lobbyHost)) << "\n";
+    Log::push("NETWORK: Sending join reply to user " + std::string(SteamFriends()->GetFriendPersonaName(CSteamID(lobbyHost))) + "\n");
 
     PacketDataJoinReply packetData;
     packetData.playerName = playerName;
@@ -445,7 +446,7 @@ void NetworkHandler::callbackLobbyJoinRequested(GameLobbyJoinRequested_t* pCallb
 void NetworkHandler::callbackLobbyEnter(LobbyEnter_t* pCallback)
 {
     steamLobbyId = pCallback->m_ulSteamIDLobby;
-    std::cout << "NETWORK: Joined lobby " << steamLobbyId << "\n";
+    Log::push("NETWORK: Joined lobby " + std::to_string(steamLobbyId) + "\n");
     multiplayerGame = true;
 }
 
@@ -468,11 +469,11 @@ void NetworkHandler::callbackLobbyUpdated(LobbyChatUpdate_t* pCallback)
             EResult result = sendPacketToClient(userIdentity.GetSteamID64(), packet, k_nSteamNetworkingSend_Reliable, 0);
             if (result == EResult::k_EResultOK)
             {
-                std::cout << "NETWORK: Sent join query successfully\n";
+                Log::push("NETWORK: Sent join query successfully\n");
             }
             else if (result == EResult::k_EResultNoConnection)
             {
-                std::cout << "ERROR: Could not send join query\n";
+                Log::push("ERROR: Could not send join query\n");
             }
         }
         else
@@ -567,7 +568,7 @@ void NetworkHandler::receiveMessages(ChatGUI& chatGUI, MainMenuGUI& mainMenuGUI)
             processMessage(*messages[i], packet, chatGUI, mainMenuGUI);
 
             totalBytesReceived += messages[i]->GetSize();
-            // printf("___DEBUG___: Received packet of size %d bytes, type %d\n", messages[i]->GetSize(), packet.type);
+            // Log::push("___DEBUG___: Received packet of size {} bytes, type {}\n", messages[i]->GetSize(), packet.type);
     
             messages[i]->Release();
         }
@@ -595,7 +596,7 @@ void NetworkHandler::processMessage(const SteamNetworkingMessage_t& message, con
                 if (!networkPlayers.contains(message.m_identityPeer.GetSteamID64()))
                 {
                     // registerNetworkPlayer(message.m_identityPeer.GetSteamID64());
-                    printf(("ERROR: Received player character info for unregistered player ID " + std::to_string(message.m_identityPeer.GetSteamID64()) + "\n").c_str());
+                    Log::push(("ERROR: Received player character info for unregistered player ID " + std::to_string(message.m_identityPeer.GetSteamID64()) + "\n").c_str());
                 }
             }
     
@@ -627,12 +628,12 @@ void NetworkHandler::processMessage(const SteamNetworkingMessage_t& message, con
             if (networkPlayers.contains(packetData.userID))
             {
                 networkPlayers[packetData.userID].setPlayerData(packetData.playerData);
-                printf(("NETWORK: Received player data for network player " + std::to_string(packetData.userID) + " (" +
+                Log::push(("NETWORK: Received player data for network player " + std::to_string(packetData.userID) + " (" +
                 packetData.playerData.name + ")\n").c_str());
             }
             else
             {
-                printf(("WARNING: Received player data for unregistered network player " + std::to_string(packetData.userID) + " (" +
+                Log::push(("WARNING: Received player data for unregistered network player " + std::to_string(packetData.userID) + " (" +
                     packetData.playerData.name + ")\n").c_str());
             }
 
@@ -699,7 +700,7 @@ void NetworkHandler::processMessage(const SteamNetworkingMessage_t& message, con
             {
                 if (isLobbyHost)
                 {
-                    printf(("ERROR: Attempted to create item pickups from client on null planet type " +
+                    Log::push(("ERROR: Attempted to create item pickups from client on null planet type " +
                         std::to_string(packetData.locationState.getPlanetType()) + "\n").c_str());
                 }
                 break;
@@ -711,8 +712,8 @@ void NetworkHandler::processMessage(const SteamNetworkingMessage_t& message, con
                 Chunk* chunkPtr = game->getChunkManager(packetData.locationState.getPlanetType()).getChunk(itemPickupPair.first.chunk);
                 if (!chunkPtr)
                 {
-                    std::cout << "ERROR: Failed to create item pickup sent from host in null chunk (" << itemPickupPair.first.chunk.x <<
-                    ", " << itemPickupPair.first.chunk.y << ")\n";
+                    Log::push("ERROR: Failed to create item pickup sent from host in null chunk (" + std::to_string(itemPickupPair.first.chunk.x) +
+                        ", " + std::to_string(itemPickupPair.first.chunk.y) + ")\n");
                     continue;
                 }
     
@@ -741,7 +742,7 @@ void NetworkHandler::processMessage(const SteamNetworkingMessage_t& message, con
                 
                 if (!game->isLocationStateInitialised(packetData.locationState))
                 {
-                    printf(("ERROR: Attempted to delete item pickups from client on null planet type " +
+                    Log::push(("ERROR: Attempted to delete item pickups from client on null planet type " +
                         std::to_string(packetData.locationState.getPlanetType()) + "\n").c_str());
                     break;
                 }
@@ -821,7 +822,7 @@ void NetworkHandler::processMessage(const SteamNetworkingMessage_t& message, con
                 if (isLobbyHost)
                 {
                     // Should not be receiving uninitialised planet type landmark modified packets when host - all active planets should be loaded
-                    printf("ERROR: Received landmark modified packet of uninitialised planet type %d\n", packetData.planetType);
+                    Log::push("ERROR: Received landmark modified packet of uninitialised planet type {}\n", packetData.planetType);
                 }
                 break;
             }
@@ -832,7 +833,7 @@ void NetworkHandler::processMessage(const SteamNetworkingMessage_t& message, con
             {
                 if (isLobbyHost)
                 {
-                    printf("ERROR: Received landmark modified packet for null object (%d, %d, %d, %d)\n",
+                    Log::push("ERROR: Received landmark modified packet for null object ({}, {}, {}, {})\n",
                         packetData.landmarkObjectReference.chunk.x, packetData.landmarkObjectReference.chunk.y,
                         packetData.landmarkObjectReference.tile.x, packetData.landmarkObjectReference.tile.y);
                 }
@@ -865,7 +866,7 @@ void NetworkHandler::processMessage(const SteamNetworkingMessage_t& message, con
             {
                 if (isLobbyHost)
                 {
-                    printf("ERROR: Received rocket interaction for null location\n");
+                    Log::push("ERROR: Received rocket interaction for null location\n");
                 }
                 break;
             }
@@ -874,7 +875,7 @@ void NetworkHandler::processMessage(const SteamNetworkingMessage_t& message, con
 
             if (!rocketObject)
             {
-                printf("ERROR: Received rocket interaction for null rocket\n");
+                Log::push("ERROR: Received rocket interaction for null rocket\n");
                 break;
             }
 
@@ -919,7 +920,7 @@ void NetworkHandler::processMessageAsHost(const SteamNetworkingMessage_t& messag
         case PacketType::JoinReply:
         {
             const char* steamName = SteamFriends()->GetFriendPersonaName(message.m_identityPeer.GetSteamID());
-            std::cout << "NETWORK: Player joined: " << steamName << " (" << message.m_identityPeer.GetSteamID64() << ")\n";
+            Log::push("NETWORK: Player joined: " + std::string(steamName) + " (" + std::to_string(message.m_identityPeer.GetSteamID64()) + ")\n");
 
             PacketDataJoinReply packetDataJoinReply;
             packetDataJoinReply.deserialise(packet.data);
@@ -1032,8 +1033,8 @@ void NetworkHandler::processMessageAsHost(const SteamNetworkingMessage_t& messag
                 Chunk* chunkPtr = game->getChunkManager(pickupsCreatedPacketData.locationState.getPlanetType()).getChunk(request.chunk);
                 if (!chunkPtr)
                 {
-                    std::cout << "ERROR: Failed to create item pickup requested from client in null chunk (" << request.chunk.x <<
-                        ", " << request.chunk.y << ")\n";
+                    Log::push("ERROR: Failed to create item pickup requested from client in null chunk (" + std::to_string(request.chunk.x) +
+                        ", " + std::to_string(request.chunk.y) + ")\n");
                     continue;
                 }
 
@@ -1044,8 +1045,8 @@ void NetworkHandler::processMessageAsHost(const SteamNetworkingMessage_t& messag
                 ItemPickup* itemPickupPtr = chunkPtr->getItemPickup(itemPickupID);
                 if (!itemPickupPtr)
                 {
-                    std::cout << "ERROR: Failed to create null item pickup requested from client in chunk (" << request.chunk.x <<
-                    ", " << request.chunk.y << ")\n";
+                    Log::push("ERROR: Failed to create null item pickup requested from client in chunk (" + std::to_string(request.chunk.x) +
+                        ", " + std::to_string(request.chunk.y) + ")\n");
                     continue;
                 }
 
@@ -1082,7 +1083,7 @@ void NetworkHandler::processMessageAsHost(const SteamNetworkingMessage_t& messag
             PacketDataChestDataModified packetData;
             packetData.deserialise(packet.data);
             game->getChestDataPool(packetData.locationState).overwriteChestData(packetData.chestID, packetData.chestData);
-            printf(("NETWORK: Received chest data from " + std::string(SteamFriends()->GetFriendPersonaName(message.m_identityPeer.GetSteamID())) + "\n").c_str());
+            Log::push(("NETWORK: Received chest data from " + std::string(SteamFriends()->GetFriendPersonaName(message.m_identityPeer.GetSteamID())) + "\n").c_str());
             break;
         }
         case PacketType::ProjectileCreateRequest:
@@ -1105,7 +1106,7 @@ void NetworkHandler::processMessageAsHost(const SteamNetworkingMessage_t& messag
 
             if (!game->isLocationStateInitialised(LocationState::createFromPlanetType(packetData.planetType)))
             {
-                printf("ERROR: Received boss spawn check for uninitialised location\n");
+                Log::push("ERROR: Received boss spawn check for uninitialised location\n");
                 break;
             }
 
@@ -1130,7 +1131,7 @@ void NetworkHandler::processMessageAsHost(const SteamNetworkingMessage_t& messag
 
             if (!game->isLocationStateInitialised(LocationState::createFromPlanetType(packetData.planetType)))
             {
-                printf("ERROR: Received boss spawn REQUEST for uninitialised location\n");
+                Log::push("ERROR: Received boss spawn REQUEST for uninitialised location\n");
                 break;
             }
 
@@ -1144,14 +1145,14 @@ void NetworkHandler::processMessageAsHost(const SteamNetworkingMessage_t& messag
 
             if (!game->isLocationStateInitialised(packetData.locationState))
             {
-                printf("ERROR: Received rocket enter request for uninitialised location\n");
+                Log::push("ERROR: Received rocket enter request for uninitialised location\n");
                 break;
             }
 
             RocketObject* rocketObject = game->getObjectFromLocation<RocketObject>(packetData.rocketObjectReference, packetData.locationState);
             if (!rocketObject)
             {
-                printf("ERROR: Received rocket enter request for null rocket\n");
+                Log::push("ERROR: Received rocket enter request for null rocket\n");
             }
 
             // Accept enter request if rocket is not already entered
@@ -1191,7 +1192,7 @@ void NetworkHandler::processMessageAsHost(const SteamNetworkingMessage_t& messag
                 &packetDataReply.structureEntrancePos, &packetDataReply.roomType);
             if (structureID.has_value())
             {
-                printf(("NETWORK: Sending structure enter reply to " +
+                Log::push(("NETWORK: Sending structure enter reply to " +
                     std::string(SteamFriends()->GetFriendPersonaName(message.m_identityPeer.GetSteamID())) + "\n").c_str());
 
                 packetDataReply.structureID = structureID.value();
@@ -1245,7 +1246,7 @@ void NetworkHandler::processMessageAsClient(const SteamNetworkingMessage_t& mess
             for (const auto& networkPlayerDataPair : packetData.currentPlayerDatas)
             {
                 registerNetworkPlayer(networkPlayerDataPair.first, networkPlayerDataPair.second.name, networkPlayerDataPair.second.pingLocation, nullptr);
-                std::cout << "NETWORK: Registered existing player " << SteamFriends()->GetFriendPersonaName(CSteamID(networkPlayerDataPair.first)) << "\n";
+                Log::push("NETWORK: Registered existing player " + std::string(SteamFriends()->GetFriendPersonaName(CSteamID(networkPlayerDataPair.first))) + "\n");
                 networkPlayers[networkPlayerDataPair.first].setPlayerData(networkPlayerDataPair.second);
             }
 
@@ -1296,7 +1297,7 @@ void NetworkHandler::processMessageAsClient(const SteamNetworkingMessage_t& mess
             packetData.deserialise(packet.data);
             if (game->getLocationState().getPlanetType() != packetData.planetType)
             {
-                printf("ERROR: Received chunk data for incorrect planet type %d\n", packetData.planetType);
+                Log::push("ERROR: Received chunk data for incorrect planet type {}\n", packetData.planetType);
                 break;
             }
             handleChunkDatasFromHost(packetData);
@@ -1308,7 +1309,7 @@ void NetworkHandler::processMessageAsClient(const SteamNetworkingMessage_t& mess
             packetData.deserialise(packet.data);
             if (game->getLocationState().getPlanetType() != packetData.planetType)
             {
-                printf("ERROR: Received chunk modified alert for incorrect planet type %d\n", packetData.planetType);
+                Log::push("ERROR: Received chunk modified alert for incorrect planet type {}\n", packetData.planetType);
                 break;
             }
             handleChunkModifiedAlertsFromHost(packetData);
@@ -1321,7 +1322,7 @@ void NetworkHandler::processMessageAsClient(const SteamNetworkingMessage_t& mess
             packetData.applyPingEstimate(getPlayerPingLocation(message.m_identityPeer.GetSteamID64()));
             if (game->getLocationState().getPlanetType() != packetData.planetType)
             {
-                printf("ERROR: Received entity data for incorrect planet type %d\n", packetData.planetType);
+                Log::push("ERROR: Received entity data for incorrect planet type {}\n", packetData.planetType);
                 break;
             }
             game->getChunkManager().loadEntityPacketDatas(packetData);
@@ -1334,7 +1335,7 @@ void NetworkHandler::processMessageAsClient(const SteamNetworkingMessage_t& mess
             packetData.applyPingEstimate(getPlayerPingLocation(message.m_identityPeer.GetSteamID64()));
             if (game->getLocationState().getPlanetType() != packetData.planetType)
             {
-                printf("ERROR: Received projectile data for incorrect planet type %d\n", packetData.planetType);
+                Log::push("ERROR: Received projectile data for incorrect planet type {}\n", packetData.planetType);
                 break;
             }
             game->getProjectileManager(packetData.planetType).getProjectiles() = packetData.projectileManager.getProjectiles();
@@ -1347,7 +1348,7 @@ void NetworkHandler::processMessageAsClient(const SteamNetworkingMessage_t& mess
             packetData.applyPingEstimate(getPlayerPingLocation(message.m_identityPeer.GetSteamID64()));
             if (game->getLocationState().getPlanetType() != packetData.planetType)
             {
-                printf("ERROR: Received boss data for incorrect planet type %d\n", packetData.planetType);
+                Log::push("ERROR: Received boss data for incorrect planet type {}\n", packetData.planetType);
                 break;
             }
             game->getBossManager(packetData.planetType) = packetData.bossManager;
@@ -1376,7 +1377,7 @@ void NetworkHandler::processMessageAsClient(const SteamNetworkingMessage_t& mess
 
             if (!game->isLocationStateInitialised(packetData.locationState))
             {
-                printf("ERROR: Received rocket enter reply for uninitialised location\n");
+                Log::push("ERROR: Received rocket enter reply for uninitialised location\n");
                 break;
             }
 
@@ -1536,7 +1537,7 @@ void NetworkHandler::sendGameUpdatesToClients(float dt)
         Packet packet;
         packet.set(packetData, true);
         
-        // printf(("NETWORK: Sending entity data (of %d entities) to " + getPlayerName(iter->first) + " " + packet.getSizeStr() + "\n").c_str(), packetData.entities.size());
+        // Log::push(("NETWORK: Sending entity data (of {} entities) to " + getPlayerName(iter->first) + " " + packet.getSizeStr() + "\n").c_str(), packetData.entities.size());
         
         sendPacketToClient(iter->first, packet, k_nSteamNetworkingSend_Reliable, 0);
     }
@@ -1558,7 +1559,7 @@ void NetworkHandler::sendGameUpdatesToClients(float dt)
         Packet packet;
         packet.set(packetData, true);
 
-        // printf("NETWORK: Sending projectile data of size %s\n", packet.getSizeStr().c_str());
+        // Log::push("NETWORK: Sending projectile data of size {}\n", packet.getSizeStr().c_str());
 
         sendPacketToClient(iter->first, packet, k_nSteamNetworkingSend_Reliable, 0);
     }
@@ -1580,7 +1581,7 @@ void NetworkHandler::sendGameUpdatesToClients(float dt)
         Packet packet;
         packet.set(packetData, true);
 
-        // printf("NETWORK: Sending boss data of size %s\n", packet.getSizeStr().c_str());
+        // Log::push("NETWORK: Sending boss data of size {}\n", packet.getSizeStr().c_str());
 
         sendPacketToClient(iter->first, packet, k_nSteamNetworkingSend_Reliable, 0);
     }
@@ -1764,7 +1765,7 @@ void NetworkHandler::requestChunksFromHost(PlanetType planetType, std::vector<Ch
         return;
     }
     
-    printf(("NETWORK: Requesting " + std::to_string(chunks.size()) + " chunks from host for planet type " + std::to_string(planetType) + "\n").c_str());
+    Log::push(("NETWORK: Requesting " + std::to_string(chunks.size()) + " chunks from host for planet type " + std::to_string(planetType) + "\n").c_str());
 
     PacketDataChunkRequests packetData;
     packetData.planetType = planetType;
@@ -1799,7 +1800,7 @@ void NetworkHandler::sendPlayerDataToHost()
     Packet packet;
     packet.set(packetData, true);
 
-    printf(("NETWORK: Sending player data to host " + packet.getSizeStr() + "\n").c_str());
+    Log::push(("NETWORK: Sending player data to host " + packet.getSizeStr() + "\n").c_str());
 
     sendPacketToHost(packet, k_nSteamNetworkingSend_Reliable, 0);
 }
@@ -1867,7 +1868,7 @@ void NetworkHandler::sendPlayerDataToClients(const PacketDataPlayerData& playerD
     Packet packet;
     packet.set(playerDataPacket, true);
 
-    printf(("NETWORK: Sending player data to clients " + packet.getSizeStr() + "\n").c_str());
+    Log::push(("NETWORK: Sending player data to clients " + packet.getSizeStr() + "\n").c_str());
 
     // Relay to clients (except this playerdata's respective client)
     for (auto client = networkPlayers.begin(); client != networkPlayers.end(); client++)

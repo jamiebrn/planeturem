@@ -1,6 +1,7 @@
 #include "GUI/InventoryGUI.hpp"
 #include "Game.hpp"
 #include "Network/NetworkHandler.hpp"
+#include "IO/Log.hpp"
 
 int InventoryGUI::itemBoxSize = 75;
 int InventoryGUI::itemBoxSpacing = 10;
@@ -2095,7 +2096,7 @@ bool InventoryGUI::attemptPurchaseItem(InventoryData& inventory, int shopIndex)
     const std::optional<ItemCount>& shopItemSlot = openShopData->getItemSlotData(shopIndex);
     if (!shopItemSlot.has_value())
     {
-        std::cout << "Shop has no item in slot\n";
+        Log::push("ERROR: Shop has no item in slot\n");
         return false;
     }
 

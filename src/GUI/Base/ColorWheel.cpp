@@ -29,7 +29,6 @@ ColorWheel::ColorWheel(const GUIInputState& inputState, ElementID id, int x, int
             
             float angle = std::atan2(currentSelectedPosition.y, -currentSelectedPosition.x) + M_PI;
             angle = fmod(360.0f - angle / M_PI * 180.0f, 360.0f);
-            printf("%f\n", angle);
             currentColor = Helper::convertHSVtoRGB(angle, std::min(currentSelectedPosition.getLength(), 1.0f), value);
         }
     }

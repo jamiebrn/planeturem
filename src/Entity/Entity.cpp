@@ -1,6 +1,7 @@
 #include "Entity/Entity.hpp"
 #include "Game.hpp"
 #include "World/ChunkManager.hpp"
+#include "IO/Log.hpp"
 
 #include "Entity/EntityBehaviour/EntityWanderBehaviour.hpp"
 #include "Entity/EntityBehaviour/EntityFollowAttackBehaviour.hpp"
@@ -237,7 +238,7 @@ void Entity::damage(int amount, Game& game, const LocationState& locationState, 
         // Get chunk manager
         if (!game.isLocationStateInitialised(locationState))
         {
-            printf("ERROR: Attempted to create item pickups for entity in null location\n");
+            Log::push("ERROR: Attempted to create item pickups for entity in null location\n");
             return;
         }
 

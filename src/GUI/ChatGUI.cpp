@@ -1,5 +1,6 @@
 #include "GUI/ChatGUI.hpp"
 #include "Network/NetworkHandler.hpp"
+#include "IO/Log.hpp"
 
 void ChatGUI::initialise()
 {
@@ -177,6 +178,8 @@ void ChatGUI::addChatMessage(NetworkHandler& networkHandler, const PacketDataCha
     }
 
     chatLog.push_back(chatMessage);
+
+    Log::push("CHAT: " + chatMessage.message + "\n");
 
     if (notify)
     {
