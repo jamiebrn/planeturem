@@ -110,7 +110,7 @@ private:
     static constexpr float LIGHT_BIAS_TRANSITION_SPEED = 0.05f;
     float redLightBias, greenLightBias, blueLightBias;
 
-    static constexpr float PARTICLE_SPAWN_RATE = 0.005f;
+    static constexpr float PARTICLE_SPAWN_RATE = 0.01f;
     float particleSpawnTimer;
 
 };

@@ -159,28 +159,6 @@
             "size": 100,
             "bosses-spawn-allowed": ["The Glacial Brute"],
             "achievement-unlock-on-travel": "TRAVELLED_TO_FROZEN"
-        },
-        "Molten": {
-            "biomes": [
-                {
-                    "name": "MoltenRock",
-                    "tiles": [
-                        ["MoltenRock", 7, 0.4, 0.5],
-                        ["CharredRock", 8, 0.5, 1.0]
-                    ],
-                    "objects": [
-                        ["Obsidian Spike", 0.08]
-                    ],
-                    "fish-catches": [],
-                    "water-colour": [110, 39, 39],
-                    "noise-range": [0, 1.0],
-                    "resource-regeneration-time": [170, 240],
-                    "resource-regeneration-density": 0.2
-                }
-            ],
-            "water-texture-offset": [32, 0],
-            "cliff-texture-offset": [256, 0],
-            "size": 70
         }
     }
 }

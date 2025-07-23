@@ -207,7 +207,6 @@ void Game::run()
             networkHandler.receiveMessages(chatGUI, mainMenuGUI);
         }
 
-        // runFeatureTest();
         switch (gameState)
         {
             case GameState::MainMenu:

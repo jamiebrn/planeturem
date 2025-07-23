@@ -1,4 +1,5 @@
 #include "World/WeatherSystem.hpp"
+#include "World/ChunkManager.hpp"
 
 WeatherParticle::WeatherParticle(pl::Vector2f position, const WeatherTypeData& weatherTypeData)
     : WorldObject(position)
@@ -47,6 +48,8 @@ pl::Vector2f WeatherParticle::getPosition() const
 void WeatherParticle::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, const Camera& camera, float dt, float gameTime, int worldSize,
     const pl::Color& color) const
 {
+    static constexpr float START_FADE_TIME = 0.2f;
+
     float scale = ResolutionHandler::getScale();
 
     pl::DrawData drawData;
@@ -56,6 +59,9 @@ void WeatherParticle::draw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatc
     drawData.centerRatio = pl::Vector2f(0.5f, 1.0f);
     drawData.scale = pl::Vector2f(scale, scale);
     drawData.textureRect = animatedTexture.getTextureRect();
+
+    float alpha = std::min(fallTime, START_FADE_TIME) / START_FADE_TIME * 255.0f;
+    drawData.color.a = alpha;
 
     spriteBatch.draw(window, drawData);
 }
@@ -91,21 +97,27 @@ void WeatherSystem::update(float dt, float gameTime, const Camera& camera, Chunk
 
     particleSpawnTimer += dt * Helper::randFloat(1.0f, 2.0f);
 
-    float particleSpawnRateMult = resolution.x / 1920.0f;
+    static constexpr float SPAWN_PADDING_PERCENT = 0.3f;
+
+    float particleSpawnRateMult = resolution.x / 1920.0f * 3.0f / scale;
     
     while (particleSpawnTimer * particleSpawnRateMult >= PARTICLE_SPAWN_RATE)
     {
         particleSpawnTimer -= PARTICLE_SPAWN_RATE;
 
+        pl::Vector2f topLeftSpawn = camera.screenToWorldTransform(-static_cast<pl::Vector2f>(resolution) * SPAWN_PADDING_PERCENT, 0);
+        pl::Vector2f bottomRightSpawn = camera.screenToWorldTransform(static_cast<pl::Vector2f>(resolution) +
+            pl::Vector2f(resolution.x, resolution.y) * SPAWN_PADDING_PERCENT, 0);
+
         pl::Vector2f position;
-        position.x = Helper::randInt(-camera.getDrawOffset().x - resolution.x / 2, -camera.getDrawOffset().x + resolution.x / 3 + resolution.x / 2);
-        position.y = -camera.getDrawOffset().y;
+        position.x = Helper::randFloat(topLeftSpawn.x, bottomRightSpawn.x);
+        position.y = Helper::randFloat(topLeftSpawn.y, bottomRightSpawn.y);
 
         // Spawn some particles at bottom of screen to keep particle density if player moves downwards
-        if (Helper::randFloat(0.0f, 1.0f) <= 0.3f)
-        {
-            position.y += resolution.y / scale + 32;
-        }
+        // if (Helper::randFloat(0.0f, 1.0f) <= 0.3f)
+        // {
+        //     position.y += resolution.y / scale + 32;
+        // }
         
         // Make either current weather or destination weather particle more likely depending on transition progress
         if (Helper::randFloat(0.0f, 1.0f) >= getDestinationTransitionProgress())
