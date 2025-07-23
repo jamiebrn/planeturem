@@ -12,9 +12,9 @@ Planeturem's multiplayer architecture is based around a peer-to-peer client-host
 
 The game was going to be listed on Steam, so I wanted Steam integration, e.g. invites etc. For this reason I chose to use the [SteamNetworkingMessages](https://partner.steamgames.com/doc/api/ISteamnetworkingMessages) API from the Steamworks SDK. This allows the sending of arbitrary data to other Steam users using their SteamID. It is built on top of UDP and allows reliable and unreliable transmission of data across numbered channels.
 
-Now that I had a method of sending data, I needed a standard serialisation format. I was already using [cereal](https://uscilab.github.io/cereal/) for save game binary serialisation, so would be convenient to also use here.
+Now that I had a method of sending data, I needed a standard serialisation format. I was already using [cereal](https://uscilab.github.io/cereal/) for save game binary serialisation, so it would be convenient to also use here.
 
-I did not implement this until a few weeks into development, but I needed compression of data to save bandwidth. For this, I decided to use [lzav](https://github.com/avaneev/lzav) due to its straightfoward API and promising benchmarks.
+I did not implement this until a few weeks into development, but I needed compression of data to save bandwidth. For this, I decided to use [lzav](https://github.com/avaneev/lzav) due to its straightforward API and promising benchmarks.
 
 ## Packet Implementation
 I first created a generic `Packet` struct that would facilitate all data transfer. This would contain the payload `data` and type `PacketType`, as well as compression information (added later, but will list here for simplicity).
