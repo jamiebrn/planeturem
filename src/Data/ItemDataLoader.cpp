@@ -57,6 +57,11 @@ bool ItemDataLoader::loadData(std::string itemDataPath)
                 consumableData.permanentHealthIncrease = jsonConsumableData.at("permanent-health-increase");
             }
 
+            if (jsonConsumableData.contains("speed-increase-duration"))
+            {
+                consumableData.speedIncreaseDuration = jsonConsumableData.at("speed-increase-duration");
+            }
+
             itemData.consumableData = consumableData;
         }
 

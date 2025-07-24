@@ -152,6 +152,8 @@ public:
     inline float getHealth() const {return health;}
     inline float getHealthConsumableTimerMax() const {return healthConsumableTimerMax;}
     inline float getHealthConsumableTimer() const {return healthConsumableTimer;}
+    inline float getSpeedConsumableTimerMax() const {return speedConsumableTimerMax;}
+    inline float getSpeedConsumableTimer() const {return speedConsumableTimer;}
 
     // Multiplayer
     
@@ -191,6 +193,9 @@ protected:
 
     int tileReach = 4;
     float speed = 120.0f;
+    static constexpr float SPEED_CONSUMABLE_MULT_VALUE = 1.2f;
+    static constexpr float SPEED_CONSUMABLE_MULT_LERP_WEIGHT = 2.0f;
+    float speedConsumableMult = 1.0f;
 
     bool canMove;
 
@@ -241,6 +246,8 @@ protected:
     // Consumable
     float healthConsumableTimerMax;
     float healthConsumableTimer;
+    float speedConsumableTimerMax;
+    float speedConsumableTimer;
 
     // In rocket state
     bool inRocket;

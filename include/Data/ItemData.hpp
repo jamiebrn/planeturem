@@ -22,6 +22,7 @@ struct ConsumableData
     int cooldownTime;
     int healthIncrease = 0;
     int permanentHealthIncrease = 0;
+    int speedIncreaseDuration = 0;
 };
 
 struct ItemData

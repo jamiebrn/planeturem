@@ -126,7 +126,29 @@ void HealthGUI::drawHealth(pl::RenderTarget& window, pl::SpriteBatch& spriteBatc
         
         spriteBatch.draw(window, statDrawData);
 
+        spriteBatch.endDrawing(window);
+
         textDrawData.text = std::to_string(static_cast<int>(player.getHealthConsumableTimer()));
+        TextDraw::drawText(window, textDrawData);
+
+        statDrawData.position.y += statInfoSpacing * intScale;
+        textDrawData.position.y += statInfoSpacing * intScale;
+    }
+
+    if (player.getSpeedConsumableTimer() > 0)
+    {
+        static const pl::Rect<int> speedMultTextureRect(208, 48, 16, 16);
+            
+        statDrawData.textureRect = speedMultTextureRect;
+
+        float progress = 1.0f - (player.getSpeedConsumableTimer() / player.getSpeedConsumableTimerMax());
+        statDrawData.shader->setUniform1f("progress", progress);
+        statDrawData.shader->setUniform4f("textureRect", speedMultTextureRect.x, speedMultTextureRect.y,
+            speedMultTextureRect.width, speedMultTextureRect.height);
+        
+        spriteBatch.draw(window, statDrawData);
+
+        textDrawData.text = std::to_string(static_cast<int>(player.getSpeedConsumableTimer()));
         TextDraw::drawText(window, textDrawData);
 
         statDrawData.position.y += statInfoSpacing * intScale;

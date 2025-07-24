@@ -399,7 +399,7 @@
     {
         "product": "Landmark",
         "item-requirements": {
-            "Iron Bar": 10
+            "Iron Bar": 5
         },
         "crafting-station": "anvil",
         "crafting-station-level": 1
@@ -574,6 +574,14 @@
         "item-requirements": {
             "Wood": 10,
             "Hide": 20
+        },
+        "crafting-station": "bench",
+        "crafting-station-level": 1
+    },
+    {
+        "product": "Gelatin Gummy",
+        "item-requirements": {
+            "Gelatin": 10
         },
         "crafting-station": "bench",
         "crafting-station-level": 1

@@ -1464,6 +1464,10 @@ pl::Vector2f InventoryGUI::drawItemInfoBox(pl::RenderTarget& window, float gameT
         {
             infoStrings.push_back({"+" + std::to_string(itemData.consumableData->permanentHealthIncrease) + " permanent max health", 20});
         }
+        if (itemData.consumableData->speedIncreaseDuration > 0)
+        {
+            infoStrings.push_back({std::to_string(itemData.consumableData->speedIncreaseDuration) + " second speed increase", 20});
+        }
     }
 
     if (itemData.currencyValue > 0)

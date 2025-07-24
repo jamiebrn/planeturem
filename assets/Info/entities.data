@@ -83,7 +83,7 @@
         "texture-walk-speed": 0.09,
         "texture-origin": [0.5, 1],
         "texture-size": [16, 16],
-        "health": 10,
+        "health": 15,
         "size": [0.8, 0.7],
         "hit-collision": [-6, -10, 12, 10],
         "item-drops": {

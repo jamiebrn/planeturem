@@ -162,6 +162,11 @@ void Player::updateMovement(float dt, ChunkManager& chunkManager, bool isLocalPl
     }
     #endif
 
+    if (isLocalPlayer)
+    {
+        speedMult *= speedConsumableMult;
+    }
+
     // Test collision after x movement
     collisionRect.x += direction.x * speed * dt * speedMult;
     #if (!RELEASE_BUILD)
@@ -325,6 +330,10 @@ void Player::updateTimers(float dt, Game& game)
     damageCooldownTimer = std::max(damageCooldownTimer - dt, 0.0f);
 
     healthConsumableTimer = std::max(healthConsumableTimer - dt, 0.0f);
+
+    speedConsumableTimer = std::max(speedConsumableTimer - dt, 0.0f);
+
+    speedConsumableMult = Helper::lerp(speedConsumableMult, (speedConsumableTimer > 0) ? SPEED_CONSUMABLE_MULT_VALUE : 1.0f, SPEED_CONSUMABLE_MULT_LERP_WEIGHT * dt);
 
     useToolCooldown = std::max(useToolCooldown - dt, 0.0f);
 }
@@ -1170,6 +1179,13 @@ bool Player::useConsumable(const ConsumableData& consumable)
         maxHealth += consumable.permanentHealthIncrease;
         HitMarkers::addHitMarker(position, consumable.permanentHealthIncrease, pl::Color(35, 144, 99));
 
+        usedConsumable = true;
+    }
+
+    if (consumable.speedIncreaseDuration > 0 && speedConsumableTimer <= 0)
+    {
+        speedConsumableTimerMax = consumable.speedIncreaseDuration;
+        speedConsumableTimer = speedConsumableTimerMax;
         usedConsumable = true;
     }
 

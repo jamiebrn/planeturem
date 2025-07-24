@@ -297,6 +297,15 @@
         "texture": [144, 96, 16, 16]
     },
     {
+        "name": "Gelatin Gummy",
+        "texture": [144, 112, 16, 16],
+        "consumable-data": {
+            "health-increase": 5,
+            "speed-increase-duration": 15,
+            "cooldown-time": 10
+        }
+    },
+    {
         "name": "Chilled Gelatin",
         "texture": [160, 96, 16, 16]
     },
