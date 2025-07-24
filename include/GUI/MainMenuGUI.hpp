@@ -104,12 +104,18 @@ private:
     // Returns true if back is pressed
     bool createOptionsMenu(pl::RenderTarget& window, int startElementYPos);
 
+    void resetTitleYPosition();
+
 private:
     std::string menuErrorMessage;
 
     // Menu
     MainMenuState mainMenuState;
     PauseMenuState pauseMenuState;
+    
+    static constexpr float TITLE_Y_POSITION_DEFAULT = 140;
+    float titleYPosition;
+    float titleYPositionDest;
 
     std::vector<SaveFileSummary> saveFileSummaries;
     int saveFilePage;

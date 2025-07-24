@@ -6,6 +6,8 @@ void MainMenuGUI::initialise()
     canInteract = true;
     mainMenuState = MainMenuState::Main;
 
+    resetTitleYPosition();
+
     deleteSaveHoldTime = 0.0f;
     deletingSaveIndex = -1;
 
@@ -81,11 +83,14 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(pl::RenderTarget& window
     int scaledPanelPaddingX = getScaledPanelPaddingX();
 
     // Draw title
+    static constexpr float TITLE_Y_POSITION_LERP_WEIGHT = 5.0f;
+    titleYPosition = Helper::lerp(titleYPosition, titleYPositionDest, TITLE_Y_POSITION_LERP_WEIGHT * dt);
+
     pl::DrawData titleDrawData;
     titleDrawData.texture = TextureManager::getTexture(TextureType::UI);
     titleDrawData.shader = Shaders::getShader(ShaderType::Default);
     titleDrawData.scale = pl::Vector2f(3, 3) * intScale;
-    titleDrawData.position = pl::Vector2f(scaledPanelPaddingX + panelWidth / 2 * intScale, std::round((140 + std::sin(applicationTime) * 20) * intScale));
+    titleDrawData.position = pl::Vector2f(scaledPanelPaddingX + panelWidth / 2 * intScale, std::round((titleYPosition + std::sin(applicationTime) * 20) * intScale));
     titleDrawData.centerRatio = pl::Vector2f(0.5f, 0.5f);
     titleDrawData.textureRect = pl::Rect<int>(21, 160, 212, 32);
 
@@ -100,6 +105,8 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(pl::RenderTarget& window
 
     int buttonTextSize = 24 * intScale;
 
+    titleYPositionDest = TITLE_Y_POSITION_DEFAULT;
+
     // Buttons / UI
     switch (mainMenuState)
     {
@@ -110,6 +117,7 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(pl::RenderTarget& window
                 button.isClicked())
             {
                 saveNameInput = "";
+                playerNameInput = "";
                 worldSeedInput = "";
                 newGamePage = 0;
                 selectedBodyColor = pl::Color(158, 69, 57);
@@ -177,6 +185,13 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(pl::RenderTarget& window
             }
             else if (newGamePage == 1)
             {
+                if (resolution.y < 900)
+                {
+                    titleYPositionDest = TITLE_Y_POSITION_DEFAULT - 100;
+                }
+                
+                elementYPos -= 90 * intScale;
+
                 guiContext.createTextEnter(scaledPanelPaddingX, elementYPos,
                     panelWidth * intScale, 75 * intScale, 20 * intScale, "World Seed", &worldSeedInput, panelWidth / 5 * intScale, 30 * intScale, 30);
                 
@@ -232,9 +247,21 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(pl::RenderTarget& window
             }
 
             if (guiContext.createButton(scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale, buttonTextSize, "Start", buttonStyle)
-                .isClicked())
+                .isClicked() && canInteract)
             {
-                if (!saveNameInput.empty() && canInteract)
+                bool canStart = true;
+                if (saveNameInput.empty())
+                {
+                    canStart = false;
+                    setErrorMessage("Save must have a name!");
+                }
+                else if (playerNameInput.empty())
+                {
+                    canStart = false;
+                    setErrorMessage("Player must have a name!");
+                }
+
+                if (canStart)
                 {
                     // Check save name does not already exist
                     bool nameExists = false;
@@ -256,6 +283,10 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(pl::RenderTarget& window
                         menuEvent->saveFileSummary.playerData.skinColor = selectedSkinColor;
                         menuEvent->worldSeed = getWorldSeedFromString(worldSeedInput);
                     }
+                    else
+                    {
+                        setErrorMessage("Save name already exists!");
+                    }
                 }
             }
 
@@ -273,7 +304,11 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(pl::RenderTarget& window
         }
         case MainMenuState::SelectingLoad:
         {
-            static constexpr int saveFilesPerPage = 4;
+            int saveFilesPerPage = 4;
+            if (window.getHeight() < 900)
+            {
+                saveFilesPerPage = 3;
+            }
 
             ResolutionHandler::overrideZoom(0);
 
@@ -811,4 +846,10 @@ void MainMenuGUI::setErrorMessage(const std::string& errorMessage)
 {
     this->errorMessage = errorMessage;
     errorMessageTime = MAX_ERROR_MESSAGE_TIME;
+}
+
+void MainMenuGUI::resetTitleYPosition()
+{
+    titleYPosition = TITLE_Y_POSITION_DEFAULT;
+    titleYPositionDest = TITLE_Y_POSITION_DEFAULT;
 }
