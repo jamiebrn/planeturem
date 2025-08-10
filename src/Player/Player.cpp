@@ -15,6 +15,7 @@ Player::Player(pl::Vector2f position, Game* game, int maxHealth, pl::Color bodyC
     drawLayer = 0;
 
     flippedTexture = false;
+    flipTimeCooldown = 0.0f;
 
     idleAnimation.create(3, 16, 18, 0, 0, 0.3);
     runAnimation.create(5, 16, 18, 48, 0, 0.1);
@@ -58,6 +59,7 @@ Player::Player(pl::Vector2f position, Game* game, int maxHealth, pl::Color bodyC
 void Player::update(float dt, pl::Vector2f mouseWorldPos, ChunkManager& chunkManager, ProjectileManager& projectileManager, Game& game)
 {
     updateTimers(dt, game);
+    flipTimeCooldown = std::max(flipTimeCooldown - dt, 0.0f);
 
     if (inRocket || !isAlive())
     {
@@ -98,6 +100,7 @@ void Player::update(float dt, pl::Vector2f mouseWorldPos, ChunkManager& chunkMan
 void Player::updateInRoom(float dt, pl::Vector2f mouseWorldPos, const Room& room)
 {
     // updateTimers(dt);
+    flipTimeCooldown = std::max(flipTimeCooldown - dt, 0.0f);
     
     if (inRocket || !isAlive())
     {
@@ -126,10 +129,11 @@ void Player::updateDirection(pl::Vector2f mouseWorldPos)
         // Face towards bob
         flippedTexture = (position.x - fishingRodBobWorldPos.x) > 0;
     }
-    else
+    else if (flipTimeCooldown <= 0.0f)
     {
         // Face towards mouse cursor (overridden if moving)
         flippedTexture = (position.x - mouseWorldPos.x) > 0;
+        flipTimeCooldown = MAX_FLIP_TIME_COOLDOWN;
     }
 
     // Handle movement input

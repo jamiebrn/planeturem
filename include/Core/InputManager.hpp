@@ -289,7 +289,7 @@ private:
     static bool controllerIsActive;
 
     static bool controllerRelativeAimMode;
-    static constexpr float CONTROLLER_RELATIVE_AIM_MODE_LERP_WEIGHT = 7.0f;
+    static constexpr float CONTROLLER_RELATIVE_AIM_MODE_LERP_WEIGHT = 12.0f;
 
     static constexpr int CONTROLLER_MAX_GLYPH_TYPE_COUNT = 4;
     static int controllerGlyphType;

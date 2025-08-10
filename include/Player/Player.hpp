@@ -184,6 +184,8 @@ protected:
     CollisionRect collisionRect;
     pl::Vector2f direction;
     bool flippedTexture;
+    static constexpr float MAX_FLIP_TIME_COOLDOWN = 0.05f;
+    float flipTimeCooldown;
 
     AnimatedTexture idleAnimation;
     AnimatedTexture runAnimation;
