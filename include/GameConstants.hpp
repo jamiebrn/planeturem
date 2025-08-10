@@ -5,7 +5,11 @@
 #define RELEASE_BUILD 0
 
 static const std::string GAME_TITLE = "Planeturem";
-static const std::string GAME_VERSION = "Demo";
+static const std::string GAME_VERSION = "release-v1.0";
+
+static const std::string SOCIAL_YOUTUBE_URL = "https://www.youtube.com/@jamiebrn25";
+static const std::string SOCIAL_DISCORD_URL = "https://discord.gg/JWYcTG2QME";
+static const std::string SOCIAL_REDDIT_URL = "https://www.reddit.com/r/planeturem";
 
 static constexpr int STEAM_APP_ID = 3323260;
 

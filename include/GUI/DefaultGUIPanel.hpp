@@ -47,6 +47,7 @@ protected:
 
     static const ButtonStyle buttonStyle;
 
+    static const SliderStyle sliderStyle;
     static const SliderStyle whiteBlackGradientSliderStyle;
 
     GUIContext guiContext;

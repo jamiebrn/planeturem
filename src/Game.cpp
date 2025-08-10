@@ -265,7 +265,7 @@ void Game::runMainMenu(float dt)
 
     window.clear(pl::Color(0, 0, 0, 255));
 
-    std::optional<MainMenuEvent> menuEvent = mainMenuGUI.createAndDraw(window, spriteBatch, *this, dt, applicationTime);
+    std::optional<MainMenuEvent> menuEvent = mainMenuGUI.createAndDraw(window, spriteBatch, *this, dt, applicationTime, steamInitialised);
 
     spriteBatch.endDrawing(window);
 

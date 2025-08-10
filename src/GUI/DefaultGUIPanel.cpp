@@ -9,6 +9,16 @@ const ButtonStyle DefaultGUIPanel::buttonStyle = {
     .clickedTextColor = pl::Color(255, 255, 255)
 };
 
+
+const SliderStyle DefaultGUIPanel::sliderStyle = {
+    .sliderColorLeft = pl::Color(25, 25, 25),
+    .sliderColorRight = pl::Color(25, 25, 25),
+    .sliderColorLeftHovered = pl::Color(50, 50, 50),
+    .sliderColorRightHovered = pl::Color(50, 50, 50),
+    .valueRectColor = pl::Color(180, 180, 180),
+    .valueRectColorHeld = pl::Color(210, 210, 210)
+};
+
 const SliderStyle DefaultGUIPanel::whiteBlackGradientSliderStyle = {
     .sliderColorLeft = pl::Color(0, 0, 0),
     .sliderColorRight = pl::Color(255, 255, 255),

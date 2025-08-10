@@ -26,6 +26,10 @@ void MainMenuGUI::initialise()
 
     errorMessageTime = 0.0f;
     errorMessage = "";
+    
+    discordIconSize = 1.0f;
+    redditIconSize = 1.0f;
+    youtubeIconSize = 1.0f;
 }
 
 void MainMenuGUI::initialisePauseMenu()
@@ -59,7 +63,8 @@ void MainMenuGUI::update(float dt, pl::Vector2f mouseScreenPos, Game& game)
     menuWorldData.chunkManager.updateChunksEntities(dt, menuWorldData.projectileManager, game, false);
 }
 
-std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, float dt, float applicationTime)
+std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(pl::RenderTarget& window, pl::SpriteBatch& spriteBatch, Game& game, float dt,
+    float applicationTime,bool steamInitialised)
 {
     float intScale = ResolutionHandler::getResolutionIntegerScale();
     pl::Vector2f resolution = static_cast<pl::Vector2f>(ResolutionHandler::getResolution());
@@ -546,7 +551,82 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(pl::RenderTarget& window
 
     guiContext.draw(window);
 
+    pl::DrawData socialIconDrawData;
+    socialIconDrawData.shader = Shaders::getShader(ShaderType::Default);
+    socialIconDrawData.texture = TextureManager::getTexture(TextureType::UI);
+    socialIconDrawData.position = pl::Vector2f(resolution.x - 50 * intScale, resolution.y - 50 * intScale);
+    socialIconDrawData.centerRatio = pl::Vector2f(0.5f, 0.5f);
+    socialIconDrawData.vertexPixelClamp = false;
+
+    pl::Vector2f mouseScreenPos(guiContext.getInputState().mouseX, guiContext.getInputState().mouseY);
+
+    static constexpr float SOCIAL_ICON_LERP_DEST = 1.3f;
+    
+    // youtube icon
+    float lerpDest = 1.0f;
+    if (CollisionCircle(socialIconDrawData.position.x, socialIconDrawData.position.y, 16 * 3 * intScale).isPointColliding(mouseScreenPos.x, mouseScreenPos.y))
+    {
+        lerpDest = SOCIAL_ICON_LERP_DEST;
+        if (guiContext.getInputState().leftMouseJustDown && steamInitialised)
+        {
+            youtubeIconSize = 1.0f;
+            SteamFriends()->ActivateGameOverlayToWebPage(SOCIAL_YOUTUBE_URL.c_str(), EActivateGameOverlayToWebPageMode::k_EActivateGameOverlayToWebPageMode_Modal);
+        }
+    }
+    youtubeIconSize = Helper::lerp(youtubeIconSize, lerpDest, 16 * dt);
+
+    socialIconDrawData.textureRect = pl::Rect<int>(335, 112, 24, 24);
+    socialIconDrawData.scale = pl::Vector2f(3, 3) * intScale * youtubeIconSize;
+    spriteBatch.draw(window, socialIconDrawData);
+        
+    socialIconDrawData.position.x -= 90 * intScale;
+    
+    // discord icon
+    lerpDest = 1.0f;
+    if (CollisionCircle(socialIconDrawData.position.x, socialIconDrawData.position.y, 16 * 3 * intScale).isPointColliding(mouseScreenPos.x, mouseScreenPos.y))
+    {
+        lerpDest = SOCIAL_ICON_LERP_DEST;
+        if (guiContext.getInputState().leftMouseJustDown && steamInitialised)
+        {
+            discordIconSize = 1.0f;
+            SteamFriends()->ActivateGameOverlayToWebPage(SOCIAL_DISCORD_URL.c_str(), EActivateGameOverlayToWebPageMode::k_EActivateGameOverlayToWebPageMode_Modal);
+        }
+    }
+    discordIconSize = Helper::lerp(discordIconSize, lerpDest, 16 * dt);
+
+    socialIconDrawData.textureRect = pl::Rect<int>(288, 112, 24, 24);
+    socialIconDrawData.scale = pl::Vector2f(3, 3) * intScale * discordIconSize;
+    spriteBatch.draw(window, socialIconDrawData);
+    
+    socialIconDrawData.position.x -= 90 * intScale;
+    
+    // reddit icon
+    lerpDest = 1.0f;
+    if (CollisionCircle(socialIconDrawData.position.x, socialIconDrawData.position.y, 16 * 3 * intScale).isPointColliding(mouseScreenPos.x, mouseScreenPos.y))
+    {
+        lerpDest = SOCIAL_ICON_LERP_DEST;
+        if (guiContext.getInputState().leftMouseJustDown && steamInitialised)
+        {
+            redditIconSize = 1.0f;
+            SteamFriends()->ActivateGameOverlayToWebPage(SOCIAL_REDDIT_URL.c_str(), EActivateGameOverlayToWebPageMode::k_EActivateGameOverlayToWebPageMode_Modal);
+        }
+    }
+    redditIconSize = Helper::lerp(redditIconSize, lerpDest, 16 * dt);
+
+    socialIconDrawData.textureRect = pl::Rect<int>(312, 112, 23, 23);
+    socialIconDrawData.scale = pl::Vector2f(3, 3) * intScale * redditIconSize;
+    spriteBatch.draw(window, socialIconDrawData);
+
     guiContext.endGUI();
+
+    // Version number text
+    pl::TextDrawData versionTextDrawData;
+    versionTextDrawData.text = GAME_VERSION;
+    versionTextDrawData.color = pl::Color(255, 255, 255);
+    versionTextDrawData.size = 24 * intScale;
+    versionTextDrawData.position = pl::Vector2f(10 * intScale, resolution.y - (24 + 10) * intScale);
+
+    TextDraw::drawText(window, versionTextDrawData);
 
     // Error message text
     if (errorMessageTime > 0.0f)
@@ -571,14 +651,7 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(pl::RenderTarget& window
         errorMessageTime -= dt;
     }
 
-    // Version number text
-    pl::TextDrawData versionTextDrawData;
-    versionTextDrawData.text = GAME_VERSION;
-    versionTextDrawData.color = pl::Color(255, 255, 255);
-    versionTextDrawData.size = 24 * intScale;
-    versionTextDrawData.position = pl::Vector2f(10 * intScale, resolution.y - (24 + 10) * intScale);
-
-    TextDraw::drawText(window, versionTextDrawData);
+    guiContext.endGUI();
 
     return menuEvent;
 }
@@ -606,7 +679,7 @@ bool MainMenuGUI::createOptionsMenu(pl::RenderTarget& window, int startElementYP
     {
         float musicVolume = Sounds::getMusicVolume();
         if (guiContext.createSlider(scaledPanelPaddingX, startElementYPos, panelWidth * intScale, 75 * intScale,
-            0.0f, 100.0f, &musicVolume, 20 * intScale, "Music Volume", panelWidth / 2 * intScale, panelWidth / 10 * intScale, 40 * intScale)
+            0.0f, 100.0f, &musicVolume, 20 * intScale, "Music Volume", panelWidth / 2 * intScale, panelWidth / 10 * intScale, 40 * intScale, sliderStyle)
             .isHeld())
         {
             Sounds::setMusicVolume(musicVolume);
@@ -616,7 +689,7 @@ bool MainMenuGUI::createOptionsMenu(pl::RenderTarget& window, int startElementYP
     
         float soundVolume = Sounds::getSoundVolume();
         if (guiContext.createSlider(scaledPanelPaddingX, startElementYPos, panelWidth * intScale, 75 * intScale,
-            0.0f, 100.0f, &soundVolume, 20 * intScale, "Sound Volume", panelWidth / 2 * intScale, panelWidth / 10 * intScale, 40 * intScale)
+            0.0f, 100.0f, &soundVolume, 20 * intScale, "Sound Volume", panelWidth / 2 * intScale, panelWidth / 10 * intScale, 40 * intScale, sliderStyle)
             .isHeld())
         {
             Sounds::setSoundVolume(soundVolume);
