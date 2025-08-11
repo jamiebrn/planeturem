@@ -4,3 +4,7 @@ out
 .idea
 .vs
 .vscode
+include/extlib
+include/Core/json.hpp
+include/World/FastNoise.h
+src/World/FastNoise.cpp
