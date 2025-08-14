@@ -5,7 +5,6 @@ enum WorldMenuState
     PauseMenu,
     Main,
     Inventory,
-    Map,
     SettingLandmark,
     TravelSelect,
     DemoEnd,

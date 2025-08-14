@@ -3572,6 +3572,20 @@ void Game::overrideState(GameState newState)
 }
 
 
+void Game::callbackSteamOverlayActivated(GameOverlayActivated_t* pCallback)
+{
+    if (!pCallback->m_bActive) return;
+
+    if (gameState == GameState::MainMenu) return;
+
+    if (worldMenuState == WorldMenuState::Main || worldMenuState == WorldMenuState::Inventory)
+    {
+        worldMenuState = WorldMenuState::PauseMenu;
+        mainMenuGUI.initialisePauseMenu();
+    }
+}
+
+
 // -- Save / load -- //
 
 void Game::startNewGame(int seed)

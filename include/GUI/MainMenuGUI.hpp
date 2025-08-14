@@ -148,10 +148,7 @@ private:
     float errorMessageTime = 0.0f;
     std::string errorMessage;
 
-    // Demo stuff
-    // bool showPauseMenuWishlist;
-    float discordIconSize;
-    float redditIconSize;
-    float youtubeIconSize;
+    std::array<float, 3> socialIconSizes;
+    int socialIconControllerSelected;
 
 };

@@ -27,9 +27,8 @@ void MainMenuGUI::initialise()
     errorMessageTime = 0.0f;
     errorMessage = "";
     
-    discordIconSize = 1.0f;
-    redditIconSize = 1.0f;
-    youtubeIconSize = 1.0f;
+    socialIconSizes = {1.0f, 1.0f, 1.0f};
+    socialIconControllerSelected = -1;
 }
 
 void MainMenuGUI::initialisePauseMenu()
@@ -551,71 +550,76 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(pl::RenderTarget& window
 
     guiContext.draw(window);
 
-    pl::DrawData socialIconDrawData;
-    socialIconDrawData.shader = Shaders::getShader(ShaderType::Default);
-    socialIconDrawData.texture = TextureManager::getTexture(TextureType::UI);
-    socialIconDrawData.position = pl::Vector2f(resolution.x - 50 * intScale, resolution.y - 50 * intScale);
-    socialIconDrawData.centerRatio = pl::Vector2f(0.5f, 0.5f);
-    socialIconDrawData.vertexPixelClamp = false;
-
-    pl::Vector2f mouseScreenPos(guiContext.getInputState().mouseX, guiContext.getInputState().mouseY);
-
-    static constexpr float SOCIAL_ICON_LERP_DEST = 1.3f;
-    
-    // youtube icon
-    float lerpDest = 1.0f;
-    if (CollisionCircle(socialIconDrawData.position.x, socialIconDrawData.position.y, 16 * 3 * intScale).isPointColliding(mouseScreenPos.x, mouseScreenPos.y))
+    // Social icons
+    if (steamInitialised)
     {
-        lerpDest = SOCIAL_ICON_LERP_DEST;
-        if (guiContext.getInputState().leftMouseJustDown && steamInitialised)
+        if (InputManager::isControllerActive() && !guiContext.isElementActive())
         {
-            youtubeIconSize = 1.0f;
-            SteamFriends()->ActivateGameOverlayToWebPage(SOCIAL_YOUTUBE_URL.c_str(), EActivateGameOverlayToWebPageMode::k_EActivateGameOverlayToWebPageMode_Modal);
+            if (InputManager::isActionJustActivated(InputAction::UI_RIGHT))
+            {
+                if (socialIconControllerSelected < 0)
+                {
+                    guiContext.resetActiveElement();
+                    resetHoverRect();
+                    socialIconControllerSelected = 0;
+                }
+                else
+                {
+                    socialIconControllerSelected = std::min(socialIconControllerSelected + 1, 2);
+                }
+            }
+            else if (InputManager::isActionJustActivated(InputAction::UI_LEFT) && socialIconControllerSelected >= 0)
+            {
+                socialIconControllerSelected--;
+                if (socialIconControllerSelected < 0)
+                {
+                    setSelectedElement(0);
+                }
+            }
         }
-    }
-    youtubeIconSize = Helper::lerp(youtubeIconSize, lerpDest, 16 * dt);
 
-    socialIconDrawData.textureRect = pl::Rect<int>(335, 112, 24, 24);
-    socialIconDrawData.scale = pl::Vector2f(3, 3) * intScale * youtubeIconSize;
-    spriteBatch.draw(window, socialIconDrawData);
+        pl::DrawData socialIconDrawData;
+        socialIconDrawData.shader = Shaders::getShader(ShaderType::Default);
+        socialIconDrawData.texture = TextureManager::getTexture(TextureType::UI);
+        socialIconDrawData.position = pl::Vector2f(resolution.x - 50 * intScale - 90 * 2 * intScale, resolution.y - 50 * intScale);
+        socialIconDrawData.centerRatio = pl::Vector2f(0.5f, 0.5f);
+        socialIconDrawData.vertexPixelClamp = false;
+    
+        pl::Vector2f mouseScreenPos(guiContext.getInputState().mouseX, guiContext.getInputState().mouseY);
+    
+        static const std::array<pl::Rect<int>, 3> socialIconTextureRects = {
+            pl::Rect<int>(312, 112, 23, 23), pl::Rect<int>(288, 112, 24, 24), pl::Rect<int>(335, 112, 24, 24)
+        };
+    
+        static const std::array<std::string, 3> socialIconUrls = {
+            SOCIAL_REDDIT_URL, SOCIAL_DISCORD_URL, SOCIAL_YOUTUBE_URL
+        };
+    
+        static constexpr float SOCIAL_ICON_LERP_DEST = 1.3f;
+    
+        for (int i = 0; i < 3; i++)
+        {
+            float lerpDest = 1.0f;
+            if ((InputManager::isControllerActive() && socialIconControllerSelected == i) ||
+                CollisionCircle(socialIconDrawData.position.x, socialIconDrawData.position.y, 16 * 3 * intScale).isPointColliding(mouseScreenPos.x, mouseScreenPos.y))
+            {
+                lerpDest = SOCIAL_ICON_LERP_DEST;
+                if (guiContext.getInputState().leftMouseJustDown || (InputManager::isControllerActive() && InputManager::isActionJustActivated(InputAction::UI_CONFIRM)))
+                {
+                    socialIconSizes[i] = 1.0f;
+                    SteamFriends()->ActivateGameOverlayToWebPage(socialIconUrls[i].c_str(), EActivateGameOverlayToWebPageMode::k_EActivateGameOverlayToWebPageMode_Modal);
+                }
+            }
+
+            socialIconSizes[i] = Helper::lerp(socialIconSizes[i], lerpDest, 16 * dt);
         
-    socialIconDrawData.position.x -= 90 * intScale;
-    
-    // discord icon
-    lerpDest = 1.0f;
-    if (CollisionCircle(socialIconDrawData.position.x, socialIconDrawData.position.y, 16 * 3 * intScale).isPointColliding(mouseScreenPos.x, mouseScreenPos.y))
-    {
-        lerpDest = SOCIAL_ICON_LERP_DEST;
-        if (guiContext.getInputState().leftMouseJustDown && steamInitialised)
-        {
-            discordIconSize = 1.0f;
-            SteamFriends()->ActivateGameOverlayToWebPage(SOCIAL_DISCORD_URL.c_str(), EActivateGameOverlayToWebPageMode::k_EActivateGameOverlayToWebPageMode_Modal);
+            socialIconDrawData.textureRect = socialIconTextureRects[i];
+            socialIconDrawData.scale = pl::Vector2f(3, 3) * intScale * socialIconSizes[i];
+            spriteBatch.draw(window, socialIconDrawData);
+                
+            socialIconDrawData.position.x += 90 * intScale;
         }
     }
-    discordIconSize = Helper::lerp(discordIconSize, lerpDest, 16 * dt);
-
-    socialIconDrawData.textureRect = pl::Rect<int>(288, 112, 24, 24);
-    socialIconDrawData.scale = pl::Vector2f(3, 3) * intScale * discordIconSize;
-    spriteBatch.draw(window, socialIconDrawData);
-    
-    socialIconDrawData.position.x -= 90 * intScale;
-    
-    // reddit icon
-    lerpDest = 1.0f;
-    if (CollisionCircle(socialIconDrawData.position.x, socialIconDrawData.position.y, 16 * 3 * intScale).isPointColliding(mouseScreenPos.x, mouseScreenPos.y))
-    {
-        lerpDest = SOCIAL_ICON_LERP_DEST;
-        if (guiContext.getInputState().leftMouseJustDown && steamInitialised)
-        {
-            redditIconSize = 1.0f;
-            SteamFriends()->ActivateGameOverlayToWebPage(SOCIAL_REDDIT_URL.c_str(), EActivateGameOverlayToWebPageMode::k_EActivateGameOverlayToWebPageMode_Modal);
-        }
-    }
-    redditIconSize = Helper::lerp(redditIconSize, lerpDest, 16 * dt);
-
-    socialIconDrawData.textureRect = pl::Rect<int>(312, 112, 23, 23);
-    socialIconDrawData.scale = pl::Vector2f(3, 3) * intScale * redditIconSize;
-    spriteBatch.draw(window, socialIconDrawData);
 
     guiContext.endGUI();
 

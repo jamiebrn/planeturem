@@ -336,6 +336,8 @@ private:
     
     void drawScreenFade(float progress);
 
+    STEAM_CALLBACK(Game, callbackSteamOverlayActivated, GameOverlayActivated_t);
+
 
     // -- Save / load -- //
 
