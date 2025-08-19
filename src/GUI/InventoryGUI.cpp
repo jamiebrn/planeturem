@@ -1747,7 +1747,7 @@ pl::Vector2f InventoryGUI::drawInfoBox(pl::RenderTarget& window, pl::Vector2f po
         }
     }
 
-    static constexpr float boxXPadding = 28.0f;
+    static constexpr float boxXPadding = 24.0f;
     float totalWidth = ((sides[3].width + sides[1].width) * 3 + boxXPadding) * intScale + width;
     float totalHeight = (sides[0].width + sides[2].width) * 3 * intScale + height;
 

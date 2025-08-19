@@ -788,6 +788,13 @@ void Game::runInGame(float dt)
 
     if (player.isAlive())
     {
+        if (gameState == GameState::OnPlanet)
+        {
+            worldMapGUI.drawMiniMap(window, spriteBatch, gameTime, getChunkManager().getWorldMap(), player.getPosition(),
+                getSpawnLocation(), getLandmarkManager().getLandmarkSummaryDatas(camera, getChunkManager(), networkHandler),
+                networkHandler.getNetworkPlayersAtLocation(locationState));
+        }
+
         std::vector<std::string> extraInfoStrings;
         if (nearbyCraftingStationLevels.contains(CLOCK_CRAFTING_STATION))
         {
@@ -799,10 +806,6 @@ void Game::runInGame(float dt)
         {
             case WorldMenuState::Main:
             {
-                InventoryGUI::drawHotbar(window, spriteBatch, mouseScreenPos, inventory);
-                InventoryGUI::drawItemPopups(window, gameTime);
-                HealthGUI::drawHealth(window, spriteBatch, player, gameTime, extraInfoStrings);
-
                 // Controller glyphs
                 if (InputManager::isControllerActive())
                 {
@@ -819,12 +822,35 @@ void Game::runInGame(float dt)
                     drawControllerGlyphs(actionStrings);
                 }
 
+                InventoryGUI::drawHotbar(window, spriteBatch, mouseScreenPos, inventory);
+                InventoryGUI::drawItemPopups(window, gameTime);
+                HealthGUI::drawHealth(window, spriteBatch, player, gameTime, extraInfoStrings);
+
                 break;
             }
             
             case WorldMenuState::NPCShop: // fallthrough
             case WorldMenuState::Inventory:
             {
+                // Controller glyphs
+                if (InputManager::isControllerActive())
+                {
+                    std::vector<std::pair<InputAction, std::string>> actionStrings = {
+                        {InputAction::UI_SHIFT, "Quick Transfer"},
+                        {InputAction::ZOOM_OUT, "Zoom Out"},  
+                        {InputAction::ZOOM_IN, "Zoom In"},  
+                        {InputAction::UI_CONFIRM_OTHER, "Select 1"},  
+                        {InputAction::UI_CONFIRM, "Select All"},
+                    };
+
+                    if (InventoryGUI::getIsItemPickedUp() && locationState.isOnPlanet())
+                    {
+                        actionStrings.push_back({InputAction::DROP_ITEM, "Drop item"});
+                    }
+
+                    drawControllerGlyphs(actionStrings);
+                }
+
                 ChunkManager* chunkManagerPtr = (locationState.isOnPlanet() && !locationState.isInStructure()) ? getChunkManagerPtr() : nullptr;
                 ItemType itemHeldBefore = InventoryGUI::getHeldItemType(inventory);
                 if (InventoryGUI::handleControllerInput(*this, networkHandler, chunkManagerPtr,
@@ -845,24 +871,6 @@ void Game::runInGame(float dt)
 
                 InventoryGUI::draw(window, spriteBatch, gameTime, mouseScreenPos, inventory, armourInventory, chestDataPtr);
 
-                // Controller glyphs
-                if (InputManager::isControllerActive())
-                {
-                    std::vector<std::pair<InputAction, std::string>> actionStrings = {
-                        {InputAction::UI_SHIFT, "Quick Transfer"},
-                        {InputAction::ZOOM_OUT, "Zoom Out"},  
-                        {InputAction::ZOOM_IN, "Zoom In"},  
-                        {InputAction::UI_CONFIRM_OTHER, "Select 1"},  
-                        {InputAction::UI_CONFIRM, "Select All"},
-                    };
-
-                    if (InventoryGUI::getIsItemPickedUp() && locationState.isOnPlanet())
-                    {
-                        actionStrings.push_back({InputAction::DROP_ITEM, "Drop item"});
-                    }
-
-                    drawControllerGlyphs(actionStrings);
-                }
                 break;
             }
             
@@ -999,13 +1007,6 @@ void Game::runInGame(float dt)
                 }
             }
         }
-    }
-
-    if (gameState == GameState::OnPlanet)
-    {
-        worldMapGUI.drawMiniMap(window, spriteBatch, gameTime, getChunkManager().getWorldMap(), player.getPosition(),
-            getSpawnLocation(), getLandmarkManager().getLandmarkSummaryDatas(camera, getChunkManager(), networkHandler),
-            networkHandler.getNetworkPlayersAtLocation(locationState));
     }
 
     spriteBatch.endDrawing(window);
