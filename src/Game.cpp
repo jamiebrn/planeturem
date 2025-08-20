@@ -3675,7 +3675,7 @@ bool Game::saveGame()
     std::unordered_set<RoomType> activeRoomDests = networkHandler.getPlayersRoomDestTypeSet(locationState.getRoomDestType());
 
     // Add play time
-    currentSaveFileSummary.timePlayed += std::round(gameTime);
+    currentSaveFileSummary.timePlayed = gameTime;
     playerGameSave.timePlayed = currentSaveFileSummary.timePlayed;
     
     io.writePlayerSave(playerGameSave);
@@ -3838,7 +3838,7 @@ bool Game::loadGame(const SaveFileSummary& saveFileSummary)
 
     saveDeferred = false;
 
-    gameTime = 0.0f;
+    // gameTime = 0.0f;
     screenFadeProgress = 0.0f;
     awaitingRespawn = false;
 
