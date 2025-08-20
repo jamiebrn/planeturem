@@ -24,6 +24,11 @@
 
 bool Game::initialise()
 {
+    if (SteamAPI_RestartAppIfNecessary(STEAM_APP_ID))
+    {
+        return false;
+    }
+
     SDL_SetHint(SDL_HINT_WINDOWS_DPI_AWARENESS, "permonitorv2");
 
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER) != 0)
