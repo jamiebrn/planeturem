@@ -856,19 +856,20 @@ bool Chunk::updateChunkObjects(Game& game, float dt, float gameTime, int worldSi
     }
 
     bool modifiedObjects = false;
+    static constexpr int MAX_OBJECTS_FOR_REGENERATION = 16;
 
     // Regenerate resources
     if (nextResourceRegenerationTime <= gameTime)
     {
         const BiomeGenData* biomeGenData = chunkManager.getChunkBiome(chunkPosition);
 
-        if (biomeGenData)
+        nextResourceRegenerationTime = gameTime + Helper::randFloat(biomeGenData->resourceRegenerationTimeMin, biomeGenData->resourceRegenerationTimeMax);
+
+        if (biomeGenData && getObjectCountInGrid() < MAX_OBJECTS_FOR_REGENERATION)
         {
             RandInt randGen(rand());
             modifiedObjects = generateObjects(chunkManager.getHeightNoise(), chunkManager.getBiomeNoise(), chunkManager.getRiverNoise(),
                 chunkManager.getPlanetType(), randGen, game, chunkManager, pathfindingEngine, false, biomeGenData->resourceRegenerationDensity);
-            
-            nextResourceRegenerationTime = gameTime + Helper::randFloat(biomeGenData->resourceRegenerationTimeMin, biomeGenData->resourceRegenerationTimeMax);
         }
 
         // Chunk has been modified from default state
@@ -879,6 +880,24 @@ bool Chunk::updateChunkObjects(Game& game, float dt, float gameTime, int worldSi
     }
 
     return modifiedObjects;
+}
+
+int Chunk::getObjectCountInGrid()
+{
+    int count = 0;
+
+    for (int y = 0; y < 8; y++)
+    {
+        for (int x = 0; x < 8; x++)
+        {
+            if (!objectGrid[y][x])
+                continue;
+            
+            count++;
+        }
+    }
+
+    return count;
 }
 
 std::vector<WorldObject*> Chunk::getObjects()

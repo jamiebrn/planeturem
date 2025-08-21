@@ -15,11 +15,6 @@
         "sell-value": 0.2
     },
     {
-        "name": "Refined Stone",
-        "texture": [48, 0, 16, 16],
-        "sell-value": 2
-    },
-    {
         "name": "Raw Coal",
         "texture": [48, 16, 16, 16],
         "sell-value": 1
@@ -33,11 +28,6 @@
         "name": "Raw Gold",
         "texture": [32, 16, 16, 16],
         "sell-value": 1
-    },
-    {
-        "name": "Refined Wood",
-        "texture": [0, 16, 16, 16],
-        "sell-value": 2
     },
     {
         "name": "Iron Bar",
@@ -230,7 +220,7 @@
         "name": "Worm",
         "texture": [64, 64, 16, 16],
         "description": "\"It's still alive\"",
-        "sell-value": 0
+        "sell-value": 0.2
     },
     {
         "name": "Severed Worm",
@@ -301,7 +291,7 @@
         "texture": [144, 112, 16, 16],
         "consumable-data": {
             "health-increase": 5,
-            "speed-increase-duration": 15,
+            "speed-increase-duration": 60,
             "cooldown-time": 10
         }
     },

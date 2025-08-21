@@ -7,7 +7,7 @@
         "texture-width": 16,
         "texture-x-origin": 0.5,
         "texture-y-origin": 1,
-        "sell-value": 1,
+        "sell-value": 0.2,
         "plant-data": {
             "stages": [
                 {
@@ -85,7 +85,7 @@
         "texture-y-origin": 0.75,
         "light-absorption": 0.6,
         "has-collision": true,
-        "sell-value": 2
+        "sell-value": 0.5
     },
     {
         "name": "Wood Bridge",
@@ -97,7 +97,18 @@
         "texture-y-origin": 0.5,
         "draw-layer": 1,
         "place-on-water": true,
-        "sell-value": 1
+        "sell-value": 0.2
+    },
+    {
+        "name": "Wood Floor",
+        "health": 2,
+        "textures": [[320, 64]],
+        "texture-width": 16,
+        "texture-height": 16,
+        "texture-x-origin": 0.5,
+        "texture-y-origin": 0.5,
+        "draw-layer": 1,
+        "sell-value": 0.2
     },
     {
         "name": "Rock",
@@ -125,7 +136,7 @@
         "item-drops": {
             "Torch": [1, 1, 1]
         },
-        "sell-value": 1
+        "sell-value": 0.2
     },
     {
         "name": "Furnace",
@@ -145,7 +156,7 @@
         "item-drops": {
             "Furnace": [1, 1, 1]
         },
-        "sell-value": 2
+        "sell-value": 0.5
     },
     {
         "name": "Anvil",
@@ -161,7 +172,7 @@
         "item-drops": {
             "Anvil": [1, 1, 1]
         },
-        "sell-value": 2
+        "sell-value": 1
     },
     {
         "name": "Wooden Bench",
@@ -177,7 +188,7 @@
         "item-drops": {
             "Wooden Bench": [1, 1, 1]
         },
-        "sell-value": 1,
+        "sell-value": 0.5,
         "achievement-unlock-on-obtain": "OBTAINED_WOODEN_BENCH"
     },
     {
@@ -312,7 +323,8 @@
                     }
                 }
             ]
-        }
+        },
+        "sell-value": 0.2
     },
     {
         "name": "Dirt Pile",
@@ -421,7 +433,8 @@
         "is-landmark": true,
         "item-drops": {
             "Landmark": [1, 1, 1]
-        }
+        },
+        "sell-value": 5
     },
     {
         "name": "Icicle",
@@ -625,7 +638,8 @@
         "has-collision": true,
         "item-drops": {
             "Glacial Brute Statue": [1, 1, 1]
-        }
+        },
+        "sell-value": 10
     },
     {
         "name": "AlienHostage",
@@ -656,8 +670,8 @@
             "npc-name": "Business Creature",
             "behaviour": "shop",
             "dialogue": ["Welcome to my business", "I hope you like my items", "I will buy items from you for a fair price", "Anything else?", "...."],
-            "shop-items": [["Wood", 10], ["Crow Claw", 1], ["Golden Banana", 1]],
-            "buy-prices": {"Wood": 3, "Crow Claw": 5, "Golden Banana": 3.75},
+            "shop-items": [["Wood", 1], ["Coal", 1], ["Iron Bar", 1], ["Golden Banana", 1]],
+            "buy-prices": {"Wood": 20, "Coal": 7, "Iron Bar": 7, "Golden Banana": 4},
             "portrait-texture-offset": [32, 32]
         }
     },
@@ -675,7 +689,7 @@
             "behaviour": "shop",
             "dialogue": ["Give me your goods :)", "I source my items locally...", "I built this ice house myself", "...It's quite cold though"],
             "shop-items": [["Slush Ice", 5], ["Snowball", 20], ["Titanium Scraps", 10], ["Stone", 10]],
-            "buy-prices": {"Snowball": 1.5, "Stone": 4},
+            "buy-prices": {"Snowball": 1.5, "Stone": 4, "Titanium Scraps": 7},
             "sell-prices": {"Slush Ice": 0},
             "portrait-texture-offset": [32, 64]
         }
@@ -710,7 +724,7 @@
         "item-drops": {
             "Crate": [1, 1, 1]
         },
-        "sell-value": 1
+        "sell-value": 0.5
     },
     {
         "name": "Obsidian Spike",

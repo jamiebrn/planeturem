@@ -1,8 +1,12 @@
 #include "Game.hpp"
 
-// CONSIDER: Custom death chat messages depending on source of death
-
+// TODO: Balance sell prices -- done
+// TODO: Floor objects -- done
+// TODO: Resource regeneration limit -- done
+// TODO: Improve crafting (menu recipe drift/custom crafting amount)
 // FIX: Rocket not being placed in multiplayer in some instances
+
+// CONSIDER: Custom death chat messages depending on source of death
 
 // FIX: Rocket entered reference not setting correctly on travel in some cases (room to planet???)
 

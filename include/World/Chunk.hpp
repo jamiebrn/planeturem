@@ -262,6 +262,9 @@ private:
     void generateRandomStructure(int worldSize, const FastNoise& biomeNoise, RandInt& randGen, PlanetType planetType, bool allowStructureGen,
         std::optional<StructureType> forceStructureType);
     
+    // Includes object references as separate objects
+    int getObjectCountInGrid();
+    
 private:
     // 0 reserved for water / no tile
     std::array<std::array<uint16_t, 8>, 8> groundTileGrid;

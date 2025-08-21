@@ -1,22 +1,5 @@
 [
     {
-        "product": "Refined Stone",
-        "item-requirements": {
-            "Stone": 2,
-            "Coal": 1
-        },
-        "crafting-station": "furnace",
-        "crafting-station-level": 1
-    },
-    {
-        "product": "Refined Wood",
-        "item-requirements": {
-            "Wood": 3
-        },
-        "crafting-station": "bench",
-        "crafting-station-level": 1
-    },
-    {
         "product": "Iron Bar",
         "item-requirements": {
             "Raw Iron": 2,
@@ -95,6 +78,14 @@
     },
     {
         "product": "Wood Bridge",
+        "item-requirements": {
+            "Wood": 2
+        },
+        "crafting-station": "bench",
+        "crafting-station-level": 1
+    },
+    {
+        "product": "Wood Floor",
         "item-requirements": {
             "Wood": 2
         },
@@ -585,5 +576,11 @@
         },
         "crafting-station": "bench",
         "crafting-station-level": 1
+    },
+    {
+        "product": "Golden Gemstone",
+        "item-requirements": {
+            "Silver Gemstone": 5
+        }
     }
 ]
