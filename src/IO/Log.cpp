@@ -35,6 +35,8 @@ void Log::push(const std::string& string)
     out << timeString << string;
 
     out.close();
+
+    printf("%s%s", timeString.c_str(), string.c_str());
 }
 
 std::string Log::getYearString()
