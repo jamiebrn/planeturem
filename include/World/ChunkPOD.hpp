@@ -43,8 +43,21 @@ struct ChunkPOD
         }
     }
 
-    void mapVersions(const std::unordered_map<ObjectType, ObjectType>& objectVersionMap)
+    void mapVersions(const std::unordered_map<int, int>& tileIdMap, const std::unordered_map<ObjectType, ObjectType>& objectVersionMap)
     {
+        for (int y = 0; y < 8; y++)
+        {
+            for (int x = 0; x < 8; x++)
+            {
+                if (groundTileGrid[y][x] == 0)
+                {
+                    continue;
+                }
+                
+                groundTileGrid[y][x] = tileIdMap.at(groundTileGrid[y][x]);
+            }
+        }
+
         for (auto& objectRow : objectGrid)
         {
             for (auto& object : objectRow)

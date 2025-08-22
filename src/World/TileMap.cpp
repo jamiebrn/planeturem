@@ -314,3 +314,8 @@ pl::Vector2<int> TileMap::getTextureOffset()
 {
     return tilesetOffset;
 }
+
+int TileMap::getVariation()
+{
+    return variation;
+}

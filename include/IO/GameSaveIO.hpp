@@ -45,6 +45,8 @@
 
 struct PlayerGameSave
 {
+    std::string gameVersion;
+
     int seed;
 
     PlayerData playerData;
@@ -64,19 +66,26 @@ struct GameDataVersionState
     {
         itemNameTypeMap = ItemDataLoader::getItemNameToTypeMap();
         objectNameTypeMap = ObjectDataLoader::getObjectNameToTypeMap();
+        tileMapNameToIdMap = PlanetGenDataLoader::getTileMapNameToIdMap();
     }
     
     std::unordered_map<std::string, ItemType> itemNameTypeMap;
     std::unordered_map<std::string, ObjectType> objectNameTypeMap;
+    std::unordered_map<std::string, int> tileMapNameToIdMap;
     
     template <class Archive>
     void serialize(Archive& ar, const std::uint32_t version)
     {
-        ar(itemNameTypeMap, objectNameTypeMap);
+        if (version < 2)
+        {
+            throw std::format_error("Incompatible game version data");
+        }
+
+        ar(itemNameTypeMap, objectNameTypeMap, tileMapNameToIdMap);
     }
 };
 
-CEREAL_CLASS_VERSION(GameDataVersionState, 1);
+CEREAL_CLASS_VERSION(GameDataVersionState, 2);
 
 // Stores items and object types saved mapped to same items / objects at current type index
 struct GameDataVersionMapping
@@ -92,10 +101,16 @@ struct GameDataVersionMapping
         {
             objectTypeMap[iter->second] = ObjectDataLoader::getObjectTypeFromName(iter->first);
         }
+
+        for (auto iter = versionState.tileMapNameToIdMap.begin(); iter != versionState.tileMapNameToIdMap.end(); iter++)
+        {
+            tileIdMap[iter->second] = PlanetGenDataLoader::getTileMapNameToIdMap().at(iter->first);
+        }
     }
 
     std::unordered_map<ItemType, ItemType> itemTypeMap;
     std::unordered_map<ObjectType, ObjectType> objectTypeMap;
+    std::unordered_map<int, int> tileIdMap;
 };
 
 struct PlanetGameSave
@@ -130,6 +145,10 @@ struct PlanetGameSave
         {
             ar(versionState, chunks, chestDataPool, structureRoomPool);
         }
+        else
+        {
+            throw std::format_error("Incompatible planet version data");
+        }
 
         if (version >= 5)
         {
@@ -144,7 +163,7 @@ struct PlanetGameSave
     {
         for (ChunkPOD& chunkPod : chunks)
         {
-            chunkPod.mapVersions(gameDataVersionMapping.objectTypeMap);
+            chunkPod.mapVersions(gameDataVersionMapping.tileIdMap, gameDataVersionMapping.objectTypeMap);
         }
 
         chestDataPool.mapVersions(gameDataVersionMapping.itemTypeMap);

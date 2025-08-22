@@ -40,6 +40,7 @@ void Chunk::reset(bool fullReset)
     // Full reset
     collisionRects.clear();
     tileMaps.clear();
+    tileMapDrawOrder.clear();
     entities.clear();
     structureObject = std::nullopt;
 
@@ -423,7 +424,7 @@ const TileGenData* Chunk::getTileGenAtWorldTile(pl::Vector2<int> worldTile, int 
             if (noiseValue >= planetGenData.riverNoiseRangeMin && noiseValue <= planetGenData.riverNoiseRangeMax)
             {
                 // Surrounding is river, tile is river edge - return lowest biome tile
-                return &biomeGenData->tileGenDatas.begin()->second;
+                return &biomeGenData->tileGenDatas.at(biomeGenData->tileGenDataDrawOrder.at(0));
             }
         }
     }
@@ -570,7 +571,18 @@ void Chunk::setTile(int tileMap, pl::Vector2<int> position, TileMap* upTiles, Ti
 {
     if (!tileMaps.contains(tileMap))
     {
-        tileMaps[tileMap] = PlanetGenDataLoader::getTileMapFromID(tileMap);
+        const TileMapData& tileMapData = PlanetGenDataLoader::getTileMapDataFromID(tileMap);
+        tileMaps[tileMap] = TileMap(tileMapData.textureOffset, tileMapData.variation);
+        tileMapDrawOrder.push_back(tileMap);
+
+        // Recalculate tile draw order
+        std::sort(tileMapDrawOrder.begin(), tileMapDrawOrder.end(), [](int tileMapIdA, int tileMapIdB)
+        {
+            int drawLayerA = PlanetGenDataLoader::getTileMapDataFromID(tileMapIdA).drawLayer;
+            int drawLayerB = PlanetGenDataLoader::getTileMapDataFromID(tileMapIdB).drawLayer;
+            if (drawLayerA == drawLayerB) return tileMapIdA < tileMapIdB;
+            return drawLayerA < drawLayerB;
+        });
     }
 
     // Set tile for tilemap
@@ -586,10 +598,11 @@ void Chunk::setTile(int tileMap, pl::Vector2<int> position, TileMap* upTiles, Ti
 
 void Chunk::setTile(int tileMap, pl::Vector2<int> position, Chunk* upChunk, Chunk* downChunk, Chunk* leftChunk, Chunk* rightChunk, bool graphicsUpdate)
 {
-    if (!tileMaps.contains(tileMap))
-    {
-        tileMaps[tileMap] = PlanetGenDataLoader::getTileMapFromID(tileMap);
-    }
+    // if (!tileMaps.contains(tileMap))
+    // {
+    //     const TileMapData& tileMapData = PlanetGenDataLoader::getTileMapDataFromID(tileMap);
+    //     tileMaps[tileMap] = TileMap(tileMapData.textureOffset, tileMapData.variation);
+    // }
     
     TileMap* upTiles = nullptr;
     if (upChunk != nullptr)
@@ -607,14 +620,16 @@ void Chunk::setTile(int tileMap, pl::Vector2<int> position, Chunk* upChunk, Chun
     if (rightChunk != nullptr)
         rightTiles = rightChunk->getTileMap(tileMap);
 
-    if (graphicsUpdate)
-    {
-        tileMaps[tileMap].setTile(position.x, position.y, upTiles, downTiles, leftTiles, rightTiles);
-    }
-    else
-    {
-        tileMaps[tileMap].setTileWithoutGraphicsUpdate(position.x, position.y, upTiles, downTiles, leftTiles, rightTiles);
-    }
+    setTile(tileMap, position, upTiles, downTiles, leftTiles, rightTiles, graphicsUpdate);
+
+    // if (graphicsUpdate)
+    // {
+    //     tileMaps[tileMap].setTile(position.x, position.y, upTiles, downTiles, leftTiles, rightTiles);
+    // }
+    // else
+    // {
+    //     tileMaps[tileMap].setTileWithoutGraphicsUpdate(position.x, position.y, upTiles, downTiles, leftTiles, rightTiles);
+    // }
 }
 
 void Chunk::updateTileMap(int tileMap, int xRel, int yRel, TileMap* upTiles, TileMap* downTiles, TileMap* leftTiles, TileMap* rightTiles)
@@ -656,14 +671,14 @@ void Chunk::drawChunkTerrain(pl::RenderTarget& window, const Camera& camera, flo
     // Get tile size and scale
     float scale = ResolutionHandler::getScale();
 
-    for (auto iter = tileMaps.begin(); iter != tileMaps.end(); ++iter)
+    for (int tileMapID : tileMapDrawOrder)
     {
         #if (!RELEASE_BUILD)
-        if (!DebugOptions::tileMapsVisible[iter->first])
+        if (!DebugOptions::tileMapsVisible[tileMapID])
             continue;
         #endif
 
-        iter->second.draw(window, camera.worldToScreenTransform(worldPosition, worldSize), pl::Vector2f(scale, scale));
+        tileMaps.at(tileMapID).draw(window, camera.worldToScreenTransform(worldPosition, worldSize), pl::Vector2f(scale, scale));
     }
 
 
@@ -1471,13 +1486,14 @@ void Chunk::placeLand(pl::Vector2<int> tile, int worldSize, const FastNoise& hei
     if (biomeGenData->tileGenDatas.size() <= 0)
         return;
     
-    const TileGenData& tileGenData = biomeGenData->tileGenDatas.begin()->second;
+    const TileGenData& tileGenData = biomeGenData->tileGenDatas.at(biomeGenData->tileGenDataDrawOrder.at(0));
 
     groundTileGrid[tile.y][tile.x] = tileGenData.tileID;
 
     if (!tileMaps.contains(tileGenData.tileID))
     {
-        tileMaps[tileGenData.tileID] = TileMap(tileGenData.tileMap.textureOffset, tileGenData.tileMap.variation);
+        const TileMapData& tileMapData = PlanetGenDataLoader::getTileMapDataFromID(tileGenData.tileID);
+        tileMaps[tileGenData.tileID] = TileMap(tileMapData.textureOffset, tileMapData.variation);
     }
 
     chunkManager.setChunkTile(chunkPosition, tileGenData.tileID, tile);
@@ -1546,14 +1562,14 @@ ChunkWorldMapSection Chunk::createChunkWorldMapSection(ChunkManager& chunkManage
                 }
             }
             
-            if (!biomeGenData)
-            {
-                continue;
-            }
+            // if (!biomeGenData)
+            // {
+            //     continue;
+            // }
 
             if (tileCounter >= 2)
             {
-                chunkMapSection.colorGrid[y / CHUNK_MAP_TILE_AREA_SIZE][x / CHUNK_MAP_TILE_AREA_SIZE] = biomeGenData->tileGenDatas.at(tileId).tileMap.mapColor;
+                chunkMapSection.colorGrid[y / CHUNK_MAP_TILE_AREA_SIZE][x / CHUNK_MAP_TILE_AREA_SIZE] = PlanetGenDataLoader::getTileMapDataFromID(tileId).mapColor;
                 continue;
             }
             

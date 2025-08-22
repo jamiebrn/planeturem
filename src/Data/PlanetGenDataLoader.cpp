@@ -5,7 +5,8 @@ std::vector<PlanetGenData> PlanetGenDataLoader::loaded_planetGenData;
 
 std::unordered_map<std::string, PlanetType> PlanetGenDataLoader::planetStringToTypeMap;
 
-std::unordered_map<int, TileMap> PlanetGenDataLoader::tileIdToTileMap;
+std::vector<TileMapData> PlanetGenDataLoader::tileMapDatas;
+std::unordered_map<std::string, int> PlanetGenDataLoader::tileMapNameToId;
 
 std::string PlanetGenDataLoader::dataHash;
 
@@ -13,6 +14,32 @@ bool PlanetGenDataLoader::loadData(std::string planetGenDataPath)
 {
     std::ifstream file(planetGenDataPath);
     nlohmann::ordered_json data = nlohmann::ordered_json::parse(file);
+
+    if (!data.contains("tilemaps"))
+        return false;
+
+    // Load tilemaps
+    auto tileMaps = data.at("tilemaps");
+    for (nlohmann::ordered_json::iterator tileMapIter = tileMaps.begin(); tileMapIter != tileMaps.end(); ++tileMapIter)
+    {
+        tileMapNameToId[tileMapIter.key()] = tileMapDatas.size() + 1;
+
+        TileMapData tileMapData;
+        tileMapData.name = tileMapIter.key();
+        tileMapData.tileID = tileMapDatas.size() + 1;
+        tileMapData.textureOffset.x = tileMapIter.value()[0];
+        tileMapData.textureOffset.y = tileMapIter.value()[1];
+        tileMapData.variation = tileMapIter.value()[2];
+        tileMapData.mapColor = tileMapIter.value()[3];
+        tileMapData.drawLayer = tileMapIter.value()[4];
+
+        #if (!RELEASE_BUILD)
+        DebugOptions::tileMapsVisible[tileMapData.tileID] = true;
+        printf("Loaded tile id %d, %s\n", tileMapData.tileID, tileMapIter.key().c_str());
+        #endif
+
+        tileMapDatas.push_back(tileMapData);
+    }
 
     if (!data.contains("planets"))
         return false;
@@ -43,17 +70,6 @@ bool PlanetGenDataLoader::loadPlanet(nlohmann::ordered_json::iterator& planetDat
     {
         planetGenData.displayName = planetGenData.name;
     }
-
-    // if (planetData->contains("water-colour"))
-    // {
-    //     planetGenData.waterColor.r = planetData->at("water-colour")[0];
-    //     planetGenData.waterColor.g = planetData->at("water-colour")[1];
-    //     planetGenData.waterColor.b = planetData->at("water-colour")[2];
-    // }
-    // else
-    // {
-    //     planetGenData.waterColor = sf::Color(255, 255, 255);
-    // }
 
     planetGenData.waterTextureOffset = planetData->at("water-texture-offset");
     planetGenData.cliffTextureOffset = planetData->at("cliff-texture-offset");
@@ -88,10 +104,9 @@ bool PlanetGenDataLoader::loadPlanet(nlohmann::ordered_json::iterator& planetDat
     {
         planetGenData.achievementUnlockOnTravel = planetData->at("achievement-unlock-on-travel");
     }
-    
+
     // Load biomes
     auto biomes = planetData->at("biomes");
-    auto tileMaps = allPlanetGenData.at("tilemaps");
     for (nlohmann::ordered_json::iterator biomeIter = biomes.begin(); biomeIter != biomes.end(); ++biomeIter)
     {
         BiomeGenData biomeGenData;
@@ -136,43 +151,37 @@ bool PlanetGenDataLoader::loadPlanet(nlohmann::ordered_json::iterator& planetDat
             TileGenData tileGenData;
 
             // Get tilemap data
-            if (!tileMaps.contains(tileIter.value()[0]))
+            if (!tileMapNameToId.contains(tileIter.value()[0]))
                 return false;
             
-            tileGenData.tileID = tileIter.value()[1].get<int>() + 1;
+            tileGenData.tileID = tileMapNameToId.at(tileIter.value()[0]);
 
-            if (tileIter->is_array())
-            {
-                const std::string& tileMapName = tileIter.value()[0];
-                tileGenData.tileMap.textureOffset.x = tileMaps.at(tileMapName)[0];
-                tileGenData.tileMap.textureOffset.y = tileMaps.at(tileMapName)[1];
-                tileGenData.tileMap.variation = tileMaps.at(tileMapName)[2];
-                tileGenData.tileMap.mapColor = tileMaps.at(tileMapName)[3];
-            }
-            else
-            {
-                return false;
-            }
-
-            tileGenData.noiseRangeMin = tileIter.value()[2];
-            tileGenData.noiseRangeMax = tileIter.value()[3];
+            tileGenData.noiseRangeMin = tileIter.value()[1];
+            tileGenData.noiseRangeMax = tileIter.value()[2];
 
             tileGenData.objectsCanSpawn = true;
-            if (tileIter.value().size() > 4)
+            if (tileIter.value().size() > 3)
             {
-               tileGenData.objectsCanSpawn = tileIter.value()[4];
-            }
-
-            // Store copy of blank tilemap against tileID in map
-            if (tileIdToTileMap.count(tileGenData.tileID) == 0)
-            {
-                tileIdToTileMap[tileGenData.tileID] = TileMap(tileGenData.tileMap.textureOffset, tileGenData.tileMap.variation);
-                #if (!RELEASE_BUILD)
-                DebugOptions::tileMapsVisible[tileGenData.tileID] = true;
-                #endif
+               tileGenData.objectsCanSpawn = tileIter.value()[3];
             }
 
             biomeGenData.tileGenDatas[tileGenData.tileID] = tileGenData;
+            biomeGenData.tileGenDataDrawOrder.push_back(tileGenData.tileID);
+        }
+
+        // Sort tile gen datas in draw order
+        std::sort(biomeGenData.tileGenDataDrawOrder.begin(), biomeGenData.tileGenDataDrawOrder.end(), [](int tileMapIdA, int tileMapIdB)
+        {
+            int drawLayerA = PlanetGenDataLoader::getTileMapDataFromID(tileMapIdA).drawLayer;
+            int drawLayerB = PlanetGenDataLoader::getTileMapDataFromID(tileMapIdB).drawLayer;
+            if (drawLayerA == drawLayerB) return tileMapIdA < tileMapIdB;
+            return drawLayerA < drawLayerB;
+        });
+
+        printf("Biome %s\n", biomeGenData.name.c_str());
+        for (int tileMapID : biomeGenData.tileGenDataDrawOrder)
+        {
+            printf(" - Tile map \"%s\"\n", PlanetGenDataLoader::getTileMapDataFromID(tileMapID).name.c_str());
         }
 
         // Load biome objects
@@ -274,7 +283,12 @@ PlanetType PlanetGenDataLoader::getPlanetTypeFromName(const std::string& planetN
     return planetStringToTypeMap[planetName];
 }
 
-TileMap PlanetGenDataLoader::getTileMapFromID(int tileID)
+const TileMapData& PlanetGenDataLoader::getTileMapDataFromID(int tileID)
 {
-    return tileIdToTileMap[tileID];
+    return tileMapDatas.at(tileID - 1);
+}
+
+const std::unordered_map<std::string, int>& PlanetGenDataLoader::getTileMapNameToIdMap()
+{
+    return tileMapNameToId;
 }

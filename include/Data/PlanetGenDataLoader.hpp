@@ -19,6 +19,8 @@
 #include "GameConstants.hpp"
 #include "DebugOptions.hpp"
 
+#include "IO/Log.hpp"
+
 class PlanetGenDataLoader
 {
     PlanetGenDataLoader() = delete;
@@ -30,7 +32,9 @@ public:
 
     static PlanetType getPlanetTypeFromName(const std::string& planetName);
 
-    static TileMap getTileMapFromID(int tileID);
+    static const TileMapData& getTileMapDataFromID(int tileID);
+
+    static const std::unordered_map<std::string, int>& getTileMapNameToIdMap();
 
     static inline const std::unordered_map<std::string, PlanetType>& getPlanetStringToTypeMap() {return planetStringToTypeMap;}
 
@@ -44,7 +48,8 @@ private:
 
     static std::unordered_map<std::string, PlanetType> planetStringToTypeMap;
 
-    static std::unordered_map<int, TileMap> tileIdToTileMap;
+    static std::vector<TileMapData> tileMapDatas;
+    static std::unordered_map<std::string, int> tileMapNameToId;
 
     static std::string dataHash;
 

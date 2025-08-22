@@ -4,6 +4,8 @@
 // TODO: Floor objects -- done
 // TODO: Resource regeneration limit -- done
 // TODO: Improve crafting (menu recipe drift/custom crafting amount)
+// TODO: Rework tile system to store universal tilemap ids -- done
+// TODO: Save file tile ID integrity -- done
 // FIX: Rocket not being placed in multiplayer in some instances
 
 // CONSIDER: Custom death chat messages depending on source of death
@@ -2656,7 +2658,7 @@ void Game::drawGhostPlaceLandAtCursor()
         return;
     
     // Get texture offset for tilemap
-    pl::Vector2<int> tileMapTextureOffset = biomeGenData->tileGenDatas.begin()->second.tileMap.textureOffset;
+    pl::Vector2<int> tileMapTextureOffset = PlanetGenDataLoader::getTileMapDataFromID(biomeGenData->tileGenDatas.begin()->second.tileID).textureOffset;
 
     // Create texture rect of centre tile from tilemap
     pl::Rect<int> textureRect(tileMapTextureOffset.x + 16, tileMapTextureOffset.y + 16, 16, 16);
@@ -3340,7 +3342,10 @@ void Game::travelToPlanet(PlanetType planetType, ObjectReference newRocketObject
     }
     else
     {
-        Log::push("ERROR: Cannot enter null rocket when travelling to planet\n");
+        Log::push("ERROR: Cannot enter null rocket at location (%d, %d, %d, %d) when travelling to planet\n",
+            rocketEnteredReference.chunk.x, rocketEnteredReference.chunk.y, rocketEnteredReference.tile.x, rocketEnteredReference.tile.y);
+        // Safeguard against rocket state softlock
+        worldMenuState = WorldMenuState::Main;
     }
     
     camera.instantUpdate(player.getPosition());
@@ -4852,7 +4857,7 @@ void Game::drawDebugMenu(float dt)
 
     for (auto iter = DebugOptions::tileMapsVisible.begin(); iter != DebugOptions::tileMapsVisible.end(); iter++)
     {
-        ImGui::Checkbox(std::to_string(iter->first).c_str(), &(DebugOptions::tileMapsVisible[iter->first]));
+        ImGui::Checkbox(PlanetGenDataLoader::getTileMapDataFromID(iter->first).name.c_str(), &(DebugOptions::tileMapsVisible[iter->first]));
     }
 
     ImGui::Spacing();

@@ -11,8 +11,12 @@
 
 #include "Data/typedefs.hpp"
 
-struct TilemapData
+struct TileMapData
 {
+    std::string name;
+    int tileID; // unique id
+    int drawLayer;
+
     pl::Vector2<int> textureOffset;
     int variation;
     pl::Color mapColor;
@@ -20,7 +24,7 @@ struct TilemapData
 
 struct TileGenData
 {
-    TilemapData tileMap;
+    // TilemapData tileMap;
     float noiseRangeMin;
     float noiseRangeMax;
     bool objectsCanSpawn;
@@ -57,6 +61,7 @@ struct BiomeGenData
     std::string name;
 
     std::map<uint16_t, TileGenData> tileGenDatas;
+    std::vector<uint16_t> tileGenDataDrawOrder;
 
     std::vector<ObjectGenData> objectGenDatas;
     std::vector<EntityGenData> entityGenDatas;

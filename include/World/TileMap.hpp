@@ -44,6 +44,7 @@ public:
     void buildVertexArray();
 
     pl::Vector2<int> getTextureOffset();
+    int getVariation();
 
 private:
     void updateTiles(int xModified, int yModified, TileMap* upTiles, TileMap* downTiles, TileMap* leftTiles, TileMap* rightTiles, bool rebuildVertices = true);

@@ -391,12 +391,15 @@ std::set<int> ChunkManager::setBackgroundAdjacentTilesForTile(ChunkPosition chun
         TileMap* leftTilesAdjacent = getChunkTileMap(ChunkPosition(((chunkTileOffsets[i].first.x - 1) % worldSize + worldSize) % worldSize, chunkTileOffsets[i].first.y), tileMap);
         TileMap* rightTilesAdjacent = getChunkTileMap(ChunkPosition(((chunkTileOffsets[i].first.x + 1) % worldSize + worldSize) % worldSize, chunkTileOffsets[i].first.y), tileMap);
 
-        // If adjacent tile type is higher / greater than tile updating for, tile must be set underneath adjacent tilewdasd
-        if (adjacentTileType > tileMap)
+        int adjacentTileDrawLayer = PlanetGenDataLoader::getTileMapDataFromID(adjacentTileType).drawLayer;
+        int drawLayer = PlanetGenDataLoader::getTileMapDataFromID(tileMap).drawLayer;
+
+        // If adjacent tile type is higher / greater than tile updating for, tile must be set underneath adjacent tile
+        if (adjacentTileDrawLayer > drawLayer)
         {
             getChunk(chunkTileOffsets[i].first)->setTile(tileMap, chunkTileOffsets[i].second, upTilesAdjacent, downTilesAdjacent, leftTilesAdjacent, rightTilesAdjacent);
         }
-        else if (adjacentTileType < tileMap)
+        else if (adjacentTileDrawLayer < drawLayer)
         {
             // Adjacent tile is lower / smaller than tile updating for, so must be set underneath the original tile
             getChunk(chunk)->setTile(adjacentTileType, position, upTiles, downTiles, leftTiles, rightTiles);

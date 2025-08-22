@@ -270,6 +270,7 @@ private:
     std::array<std::array<uint16_t, 8>, 8> groundTileGrid;
     // sf::VertexArray groundVertexArray;
     std::map<int, TileMap> tileMaps;
+    std::vector<int> tileMapDrawOrder;
 
     // Stores visual tile types, e.g. cliffs
     std::array<std::array<TileType, 8>, 8> visualTileGrid;

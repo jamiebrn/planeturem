@@ -27,6 +27,7 @@ bool GameSaveIO::loadPlayerSave(PlayerGameSave& playerGameSave)
     try
     {
         nlohmann::json json = nlohmann::json::parse(in);
+        playerGameSave.gameVersion = json["game-version"];
         playerGameSave.seed = json["seed"];
         playerGameSave.playerData = json["player-data"];
         playerGameSave.networkPlayerDatas = json["network-player-datas"];
@@ -129,6 +130,7 @@ bool GameSaveIO::writePlayerSave(const PlayerGameSave& playerGameSave)
     try
     {
         nlohmann::json json;
+        json["game-version"] = GAME_VERSION;
         json["seed"] = playerGameSave.seed;
         json["player-data"] = playerGameSave.playerData;
         json["network-player-datas"] = playerGameSave.networkPlayerDatas;
@@ -245,11 +247,13 @@ bool GameSaveIO::attemptDeleteSave()
             std::filesystem::perms::owner_all,
             std::filesystem::perm_options::add,
             ec);
-        if (ec) {
+        if (ec)
+        {
             std::cerr << "Failed to modify permissions: " << ec.message() << '\n';
         }
         std::filesystem::remove_all(getRootDir() + "Saves/" + fileName + "/", ec);
-        if (ec) {
+        if (ec)
+        {
             std::cerr << ec.message() << '\n';
         }
         std::filesystem::remove(getRootDir() + "Saves/" + fileName + "/");
@@ -305,7 +309,7 @@ std::vector<SaveFileSummary> GameSaveIO::getSaveFiles()
 
         // Load time spent playing
         PlayerGameSave playerSave;
-        if (!loadPlayerSaveFromName(saveFileSummary.name, playerSave))
+        if (!loadPlayerSaveFromName(saveFileSummary.name, playerSave) || playerSave.gameVersion != GAME_VERSION)
         {
             Log::push("ERROR: Could not load player save " + saveFileSummary.name + "\n");
             continue;
