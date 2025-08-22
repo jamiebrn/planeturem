@@ -35,7 +35,6 @@ bool PlanetGenDataLoader::loadData(std::string planetGenDataPath)
 
         #if (!RELEASE_BUILD)
         DebugOptions::tileMapsVisible[tileMapData.tileID] = true;
-        printf("Loaded tile id %d, %s\n", tileMapData.tileID, tileMapIter.key().c_str());
         #endif
 
         tileMapDatas.push_back(tileMapData);
@@ -177,12 +176,6 @@ bool PlanetGenDataLoader::loadPlanet(nlohmann::ordered_json::iterator& planetDat
             if (drawLayerA == drawLayerB) return tileMapIdA < tileMapIdB;
             return drawLayerA < drawLayerB;
         });
-
-        printf("Biome %s\n", biomeGenData.name.c_str());
-        for (int tileMapID : biomeGenData.tileGenDataDrawOrder)
-        {
-            printf(" - Tile map \"%s\"\n", PlanetGenDataLoader::getTileMapDataFromID(tileMapID).name.c_str());
-        }
 
         // Load biome objects
         if (biomeIter->contains("objects"))

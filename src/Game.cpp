@@ -3029,6 +3029,7 @@ void Game::travelToDestination()
         if (rocketObject)
         {
             player.setLastUsedPlanetRocketType(rocketObject->getObjectType());
+            networkHandler.sendPlayerData();
         }
         else
         {
@@ -3157,6 +3158,21 @@ std::optional<ObjectReference> Game::setupPlanetTravel(PlanetType planetType, co
         rocketObjectType = networkHandler.getNetworkPlayer(clientID.value())->getPlayerData().lastUsedPlanetRocketType;
     }
 
+    // Ensure object type is valid rocket
+    if (rocketObjectType < 0)
+    {
+        printf("ERROR: Attempted to set up planet travel for invalid rocket type %d\n", rocketObjectType);
+        return std::nullopt;
+    }
+
+    const ObjectData& rocketObjectData = ObjectDataLoader::getObjectData(rocketObjectType);
+    
+    if (!rocketObjectData.rocketObjectData.has_value())
+    {
+        printf("ERROR: Attempted to set up planet travel for non-rocket object type %d\n", rocketObjectType);
+        return std::nullopt;
+    }
+
     // Get rocket spawn for player (and check rocket does not interfere with currently active rockets)
     const std::unordered_map<PlanetType, ObjectReference>* planetRocketsUsedPtr = &planetRocketUsedPositions;
     if (clientID.has_value())
@@ -3177,8 +3193,6 @@ std::optional<ObjectReference> Game::setupPlanetTravel(PlanetType planetType, co
     }
 
     // Get colliding rockets in new rocket area
-    const ObjectData& rocketObjectData = ObjectDataLoader::getObjectData(rocketObjectType);
-
     std::vector<RocketObject*> collidingRocketObjects = getChunkManager(planetType).getObjectsInArea<RocketObject>(newRocketObjectReference.chunk,
         newRocketObjectReference.tile, rocketObjectData.size);
         
@@ -3342,8 +3356,9 @@ void Game::travelToPlanet(PlanetType planetType, ObjectReference newRocketObject
     }
     else
     {
-        Log::push("ERROR: Cannot enter null rocket at location (%d, %d, %d, %d) when travelling to planet\n",
-            rocketEnteredReference.chunk.x, rocketEnteredReference.chunk.y, rocketEnteredReference.tile.x, rocketEnteredReference.tile.y);
+        Log::push("ERROR: Cannot enter null rocket at location (" + std::to_string(rocketEnteredReference.chunk.x) + ", " +
+            std::to_string(rocketEnteredReference.chunk.y) + ", " + std::to_string(rocketEnteredReference.tile.x) + ", " +
+            std::to_string(rocketEnteredReference.tile.y) + ") when travelling to planet\n");
         // Safeguard against rocket state softlock
         worldMenuState = WorldMenuState::Main;
     }
