@@ -1196,6 +1196,29 @@ void Chunk::testEntityHitCollision(const std::vector<HitRect>& hitRects, pl::Vec
     }
 }
 
+bool Chunk::testEntityPlayerDamageCollision(const CollisionRect& playerCollisionRect, int& damage, int worldSize)
+{
+    for (auto& entity : entities)
+    {
+        const CollisionRect& hitRect = entity->getHitRect();
+        if (!hitRect.isColliding(playerCollisionRect, worldSize))
+        {
+            continue;
+        }
+
+        const EntityData& entityData = EntityDataLoader::getEntityData(entity->getEntityType());
+        if (entityData.damage <= 0)
+        {
+            continue;
+        }
+        
+        damage = entityData.damage;
+        return true;
+    }
+
+    return false;
+}
+
 void Chunk::moveEntityToChunk(std::unique_ptr<Entity> entity)
 {
     entities.push_back(std::move(entity));

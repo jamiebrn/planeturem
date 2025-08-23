@@ -173,6 +173,9 @@ public:
     // Damages any entities hit by any hit rect
     void testChunkEntityHitCollision(const std::vector<HitRect>& hitRects, pl::Vector2f hitOrigin, Game& game, float gameTime);
 
+    // Tests whether a collision is occuring between player and entity with damage - if so, return damage through parameter
+    bool testChunkEntityPlayerDamageCollision(const CollisionRect& playerCollisionRect, int& damage);
+
     // Handle moving of entity from one chunk to another chunk
     void moveEntityToChunkFromChunk(std::unique_ptr<Entity> entity, ChunkPosition newChunk);
 

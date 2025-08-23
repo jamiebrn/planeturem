@@ -161,6 +161,8 @@ public:
 
     void testEntityHitCollision(const std::vector<HitRect>& hitRects, pl::Vector2f hitOrigin, ChunkManager& chunkManager, Game& game, float gameTime);
 
+    bool testEntityPlayerDamageCollision(const CollisionRect& playerCollisionRect, int& damage, int worldSize);
+
     void moveEntityToChunk(std::unique_ptr<Entity> entity);
 
     // Cursor position IS IN WORLD SPACE

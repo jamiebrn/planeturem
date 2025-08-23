@@ -761,6 +761,34 @@ void ChunkManager::testChunkEntityHitCollision(const std::vector<HitRect>& hitRe
     }
 }
 
+bool ChunkManager::testChunkEntityPlayerDamageCollision(const CollisionRect& playerCollisionRect, int& damage)
+{
+    ChunkPosition chunkPos = WorldObject::getChunkInside(pl::Vector2f(playerCollisionRect.x, playerCollisionRect.y), worldSize);
+
+    for (int x = -1; x <= 1; x++)
+    {
+        for (int y = -1; y <= 1; y++)
+        {
+            ChunkPosition wrappedChunkPos;
+            wrappedChunkPos.x = Helper::wrap(chunkPos.x + x, worldSize);
+            wrappedChunkPos.y = Helper::wrap(chunkPos.y + y, worldSize);
+
+            Chunk* chunkPtr = getChunk(wrappedChunkPos);
+            if (!chunkPtr)
+            {
+                continue;
+            }
+
+            if (chunkPtr->testEntityPlayerDamageCollision(playerCollisionRect, damage, worldSize))
+            {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
 void ChunkManager::moveEntityToChunkFromChunk(std::unique_ptr<Entity> entity, ChunkPosition newChunk)
 {
     if (loadedChunks.count(newChunk) <= 0)

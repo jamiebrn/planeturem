@@ -309,7 +309,7 @@ std::vector<SaveFileSummary> GameSaveIO::getSaveFiles()
 
         // Load time spent playing
         PlayerGameSave playerSave;
-        if (!loadPlayerSaveFromName(saveFileSummary.name, playerSave) || playerSave.gameVersion != GAME_VERSION)
+        if (!loadPlayerSaveFromName(saveFileSummary.name, playerSave))
         {
             Log::push("ERROR: Could not load player save " + saveFileSummary.name + "\n");
             continue;

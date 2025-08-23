@@ -307,6 +307,11 @@ void Entity::setCollisionRect(const CollisionRect& rect)
     collisionRect = rect;
 }
 
+const CollisionRect& Entity::getHitRect()
+{
+    return hitCollision;
+}
+
 pl::Vector2f Entity::getVelocity()
 {
     return velocity;

@@ -119,6 +119,7 @@ public:
     bool testHitCollision(const Projectile& projectile, int worldSize);
     bool testHitCollision(const HitRect& hitRect, int worldSize);
     bool testHitCollision(const HitCircle& hitCircle, int worldSize);
+    bool takeDamage(float rawAmount);
 
     // Consumable
     bool useConsumable(const ConsumableData& consumable);
@@ -169,8 +170,6 @@ protected:
     void updateTimers(float dt, Game& game);
 
 private:
-    bool takeDamage(float rawAmount);
-
     void updateFishingRodCatch(float dt);
     void castFishingRod();
 
@@ -207,7 +206,7 @@ protected:
     static constexpr int INITIAL_MAX_HEALTH = 150;
     int maxHealth;
     float health;
-    static constexpr float MAX_DAMAGE_COOLDOWN_TIMER = 0.4f;
+    static constexpr float MAX_DAMAGE_COOLDOWN_TIMER = 0.9f;
     float damageCooldownTimer;
     static constexpr float MAX_RESPAWN_TIMER = 10.0f;
     float respawnTimer;

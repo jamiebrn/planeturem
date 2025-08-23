@@ -62,6 +62,8 @@ public:
     const CollisionRect& getCollisionRect();
     void setCollisionRect(const CollisionRect& rect);
 
+    const CollisionRect& getHitRect();
+
     pl::Vector2f getVelocity();
     void setVelocity(pl::Vector2f velocity);
 

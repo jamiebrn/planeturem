@@ -29,6 +29,7 @@ struct EntityData
 
     std::vector<ItemDrop> itemDrops;
     CollisionRect hitCollision;
+    int damage = 0;
 
     std::string behaviour;
     std::unordered_map<std::string, float> behaviourParameters;

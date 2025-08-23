@@ -1,12 +1,6 @@
 #include "Game.hpp"
 
-// TODO: Balance sell prices -- done
-// TODO: Floor objects -- done
-// TODO: Resource regeneration limit -- done
 // TODO: Improve crafting (menu recipe drift/custom crafting amount)
-// TODO: Rework tile system to store universal tilemap ids -- done
-// TODO: Save file tile ID integrity -- done
-// FIX: Rocket not being placed in multiplayer in some instances
 
 // CONSIDER: Custom death chat messages depending on source of death
 
@@ -30,10 +24,12 @@
 
 bool Game::initialise()
 {
+    #if (RELEASE_BUILD)
     if (SteamAPI_RestartAppIfNecessary(STEAM_APP_ID))
     {
         return false;
     }
+    #endif
 
     SDL_SetHint(SDL_HINT_WINDOWS_DPI_AWARENESS, "permonitorv2");
 
@@ -1051,6 +1047,16 @@ void Game::updateOnPlanet(float dt)
     if (!isStateTransitioning())
     {
         player.update(dt, camera.screenToWorldTransform(mouseScreenPos, 0), getChunkManager(), getProjectileManager(), *this);
+    }
+    
+    // Test hit collisions with entities
+    if (player.isAlive())
+    {
+        int entityDamage;
+        if (getChunkManager().testChunkEntityPlayerDamageCollision(player.getCollisionRect(), entityDamage))
+        {
+            player.takeDamage(entityDamage);
+        }
     }
 
     // Test world wrapping
@@ -3166,7 +3172,7 @@ std::optional<ObjectReference> Game::setupPlanetTravel(PlanetType planetType, co
     }
 
     const ObjectData& rocketObjectData = ObjectDataLoader::getObjectData(rocketObjectType);
-    
+
     if (!rocketObjectData.rocketObjectData.has_value())
     {
         printf("ERROR: Attempted to set up planet travel for non-rocket object type %d\n", rocketObjectType);

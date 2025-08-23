@@ -55,7 +55,7 @@ target_link_libraries(Planeturem PRIVATE ImGui)
 target_link_libraries(Planeturem PRIVATE platform_folders)
 target_link_libraries(Planeturem PRIVATE steam_api64)
 target_link_options(Planeturem PRIVATE -static)
-# set_target_properties(Planeturem PROPERTIES WIN32_EXECUTABLE TRUE)
+set_target_properties(Planeturem PROPERTIES WIN32_EXECUTABLE TRUE)
 target_compile_features(Planeturem PRIVATE cxx_std_20)
 target_sources(Planeturem PRIVATE "icon/icon-data.rc")
 
