@@ -87,8 +87,7 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(pl::RenderTarget& window
     int scaledPanelPaddingX = getScaledPanelPaddingX();
 
     // Draw title
-    static constexpr float TITLE_Y_POSITION_LERP_WEIGHT = 5.0f;
-    titleYPosition = Helper::lerp(titleYPosition, titleYPositionDest, TITLE_Y_POSITION_LERP_WEIGHT * dt);
+    lerpTitleYPosition(dt);
 
     pl::DrawData titleDrawData;
     titleDrawData.texture = TextureManager::getTexture(TextureType::UI);
@@ -795,13 +794,23 @@ std::optional<PauseMenuEventType> MainMenuGUI::createAndDrawPauseMenu(pl::Render
     titleDrawData.texture = TextureManager::getTexture(TextureType::UI);
     titleDrawData.shader = Shaders::getShader(ShaderType::Default);
     titleDrawData.scale = pl::Vector2f(3, 3) * intScale;
-    titleDrawData.position = pl::Vector2f(scaledPanelPaddingX + panelWidth / 2 * intScale, std::round((140 + std::sin(applicationTime) * 20) * intScale));
+    titleDrawData.position = pl::Vector2f(scaledPanelPaddingX + panelWidth / 2 * intScale, std::round((titleYPosition + std::sin(applicationTime) * 20) * intScale));
     titleDrawData.centerRatio = pl::Vector2f(0.5f, 0.5f);
     titleDrawData.textureRect = pl::Rect<int>(21, 160, 212, 32);
 
     TextureManager::drawSubTexture(window, titleDrawData);
 
-    const int startElementYPos = resolution.y * 0.37f;
+    titleYPositionDest = TITLE_Y_POSITION_DEFAULT;
+    
+    int startElementYPos = resolution.y * 0.32f;
+    if (resolution.y < 800)
+    {
+        startElementYPos -= 30;
+        titleYPositionDest -= 50;
+    }
+
+    lerpTitleYPosition(dt);
+
     int elementYPos = startElementYPos;
 
     PauseMenuState nextUIState = pauseMenuState;
@@ -815,6 +824,13 @@ std::optional<PauseMenuEventType> MainMenuGUI::createAndDrawPauseMenu(pl::Render
             if (guiContext.createButton(scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale, 24 * intScale, "Resume", buttonStyle).isClicked())
             {
                 menuEvent = PauseMenuEventType::Resume;
+            }
+
+            elementYPos += 100 * intScale;
+
+            if (guiContext.createButton(scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale, 24 * intScale, "Save", buttonStyle).isClicked())
+            {
+                menuEvent = PauseMenuEventType::SaveGame;
             }
 
             elementYPos += 100 * intScale;
@@ -852,7 +868,7 @@ std::optional<PauseMenuEventType> MainMenuGUI::createAndDrawPauseMenu(pl::Render
 
             elementYPos += 100 * intScale;
 
-            if (guiContext.createButton(scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale, 24 * intScale, "Quit", buttonStyle).isClicked())
+            if (guiContext.createButton(scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale, 24 * intScale, "Save and Quit", buttonStyle).isClicked())
             {
                 menuEvent = PauseMenuEventType::Quit;
             }
@@ -929,4 +945,10 @@ void MainMenuGUI::resetTitleYPosition()
 {
     titleYPosition = TITLE_Y_POSITION_DEFAULT;
     titleYPositionDest = TITLE_Y_POSITION_DEFAULT;
+}
+
+void MainMenuGUI::lerpTitleYPosition(float dt)
+{
+    static constexpr float TITLE_Y_POSITION_LERP_WEIGHT = 5.0f;
+    titleYPosition = Helper::lerp(titleYPosition, titleYPositionDest, TITLE_Y_POSITION_LERP_WEIGHT * dt);
 }

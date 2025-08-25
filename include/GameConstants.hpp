@@ -5,7 +5,7 @@
 #define RELEASE_BUILD 1
 
 static const std::string GAME_TITLE = "Planeturem";
-static const std::string GAME_VERSION = "release-v1.0.2";
+static const std::string GAME_VERSION = "release-v1.0.3";
 
 static const std::string SOCIAL_YOUTUBE_URL = "https://www.youtube.com/@jamiebrn25";
 static const std::string SOCIAL_DISCORD_URL = "https://discord.gg/JWYcTG2QME";

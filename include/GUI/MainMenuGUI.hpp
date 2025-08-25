@@ -67,6 +67,7 @@ enum class PauseMenuEventType
     Resume,
     StartMultiplayer,
     SaveOptions,
+    SaveGame,
     Quit
 };
 
@@ -105,6 +106,7 @@ private:
     bool createOptionsMenu(pl::RenderTarget& window, int startElementYPos);
 
     void resetTitleYPosition();
+    void lerpTitleYPosition(float dt);
 
 private:
     std::string menuErrorMessage;

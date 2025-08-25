@@ -997,6 +997,11 @@ void Game::runInGame(float dt)
                     worldMenuState = WorldMenuState::Main;
                     break;
                 }
+                case PauseMenuEventType::SaveGame:
+                {
+                    saveGame();
+                    break;
+                }
                 case PauseMenuEventType::StartMultiplayer:
                 {
                     networkHandler.startHostServer();
