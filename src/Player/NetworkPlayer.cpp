@@ -49,6 +49,8 @@ void NetworkPlayer::updateNetworkPlayer(float dt, Game& game)
             updateMovementInRoom(dt, game.getRoomDestination(playerData.locationState.getRoomDestType()), false);
             break;
         }
+        default:
+            break;
     }
     
     position.x = collisionRect.x + collisionRect.width / 2.0f;

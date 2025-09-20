@@ -14,10 +14,6 @@
 #include <Vector.hpp>
 #include <Rect.hpp>
 
-#include "Core/Helper.hpp"
-
-#include "Player/InventoryData.hpp"
-
 #include "Object/WorldObject.hpp"
 
 #include "Entity/Projectile/Projectile.hpp"
@@ -33,6 +29,7 @@ class BossEntity : public WorldObject
 {
 public:
     BossEntity() = default;
+    virtual ~BossEntity() = default;
     virtual BossEntity* clone() const = 0;
 
     virtual void update(Game& game, ChunkManager& chunkManager, ProjectileManager& projectileManager, std::vector<Player*>& players, float dt, int worldSize) = 0;

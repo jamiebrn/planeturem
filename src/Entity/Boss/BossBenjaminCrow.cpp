@@ -140,6 +140,8 @@ void BossBenjaminCrow::update(Game& game, ChunkManager& chunkManager, Projectile
             }
             break;
         }
+        default:
+            break;
     }
 
     // Update movement based on state
@@ -178,6 +180,8 @@ void BossBenjaminCrow::update(Game& game, ChunkManager& chunkManager, Projectile
             currentMoveSpeed = FAST_CHASE_MOVE_SPEED;
             break;
         }
+        default:
+            break;
     }
 
     if (behaviourState != BossBenjaminState::Killed)

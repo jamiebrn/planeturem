@@ -58,21 +58,17 @@ std::optional<NPCInteractionGUIEvent> NPCInteractionGUI::createAndDraw(pl::Rende
 
         elementYPos += 100 * intScale;
 
-        switch (currentNPCObjectData->behaviour)
+        if (currentNPCObjectData->behaviour == NPCObjectBehaviour::Shop)
         {
-            case NPCObjectBehaviour::Shop:
+            if (guiContext.createButton(scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale, 24 * intScale, "Shop", buttonStyle).isClicked())
             {
-                if (guiContext.createButton(scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale, 24 * intScale, "Shop", buttonStyle).isClicked())
-                {
-                    npcInteractionGUIEvent = NPCInteractionGUIEvent();
-                    npcInteractionGUIEvent->type = NPCInteractionGUIEventType::Shop;
-                    npcInteractionGUIEvent->shopInventoryData = ShopInventoryData(currentNPCObjectData->shopItems, currentNPCObjectData->buyPriceMults,
-                        currentNPCObjectData->sellPriceMults);
-                }
-
-                elementYPos += 100 * intScale;
-                break;
+                npcInteractionGUIEvent = NPCInteractionGUIEvent();
+                npcInteractionGUIEvent->type = NPCInteractionGUIEventType::Shop;
+                npcInteractionGUIEvent->shopInventoryData = ShopInventoryData(currentNPCObjectData->shopItems, currentNPCObjectData->buyPriceMults,
+                    currentNPCObjectData->sellPriceMults);
             }
+
+            elementYPos += 100 * intScale;
         }
     }
 

@@ -1,6 +1,6 @@
 #include "GUI/Base/ColorWheel.hpp"
 
-ColorWheel::ColorWheel(const GUIInputState& inputState, ElementID id, int x, int y, int size, float value, pl::Color& currentColor)
+ColorWheel::ColorWheel(const GUIInputState& inputState, ElementID id, int x, int y, int size, float value, int textSize, pl::Color& currentColor)
     : GUIElement(id, textSize)
 {
     this->x = x;

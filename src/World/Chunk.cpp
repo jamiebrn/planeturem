@@ -772,6 +772,8 @@ void Chunk::drawChunkTerrainVisual(pl::RenderTarget& window, pl::SpriteBatch& sp
                     drawData.textureRect = pl::Rect<int>(planetGenData.cliffTextureOffset.x + cliffWaterFrame * 16, planetGenData.cliffTextureOffset.y + 48, 16, 16);
                     tileWorldPosition.y -= 2;
                     break;
+                default:
+                    break;
             }
 
             drawData.position = camera.worldToScreenTransform(tileWorldPosition, worldSize);

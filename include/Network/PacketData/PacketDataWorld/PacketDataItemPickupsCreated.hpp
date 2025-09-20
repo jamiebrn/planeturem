@@ -25,7 +25,7 @@ struct PacketDataItemPickupsCreated : public IPacketData
 
     PACKET_SERIALISATION();
     
-    inline virtual PacketType getType() const
+    inline virtual PacketType getType() const override
     {
         return PacketType::ItemPickupsCreated;
     }

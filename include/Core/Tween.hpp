@@ -222,6 +222,7 @@ private:
                     case TweenTransition::Expo: return easeInExpo(progress);
                     case TweenTransition::Back: return easeInBack(progress);
                     case TweenTransition::Bounce: return easeInBounce(progress);
+                    default: break;
                 }
                 break;
             case TweenEasing::EaseOut:
@@ -237,6 +238,7 @@ private:
                     case TweenTransition::Expo: return easeOutExpo(progress);
                     case TweenTransition::Back: return easeOutBack(progress);
                     case TweenTransition::Bounce: return easeOutBounce(progress);
+                    default: break;
                 }
                 break;
             case TweenEasing::EaseInOut:
@@ -252,6 +254,7 @@ private:
                     case TweenTransition::Expo: return easeInOutExpo(progress);
                     case TweenTransition::Back: return easeInOutBack(progress);
                     case TweenTransition::Bounce: return easeInOutBounce(progress);
+                    default: break;
                 }
                 break;
         }
@@ -324,10 +327,26 @@ private:
     }
     inline float easeOutBounce(float x)
     {
-        if (x < 1.0f / d1) return n1 * x * x;
-        else if (x < 2.0f / d1) return n1 * (x -= 1.5f / d1) * x + 0.75f;
-        else if (x < 2.5f / d1) return n1 * (x -= 2.25f / d1) * x + 0.9375f;
-        else return n1 * (x -= 2.625f / d1) * x + 0.984375f;
+        float xPrev = x;
+        if (x < 1.0f / d1)
+        {
+            return n1 * x * x;
+        }
+        else if (x < 2.0f / d1) 
+        {
+            x -= 1.5f / d1;
+            return n1 * x * xPrev + 0.75f;
+        }
+        else if (x < 2.5f / d1)
+        {
+            x -= 2.25f / d1;
+            return n1 * x * xPrev + 0.9375f;
+        }
+        else
+        {
+            x -= 2.625f / d1;
+            return n1 * x * xPrev + 0.984375f;
+        }
     }
     inline float easeInBounce(float x) {return 1.0f - easeOutBounce(1.0f - x);}
     inline float easeInOutBounce(float x)

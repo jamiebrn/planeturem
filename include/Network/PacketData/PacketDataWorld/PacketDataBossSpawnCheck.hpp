@@ -4,7 +4,7 @@
 
 struct PacketDataBossSpawnCheck : public PacketDataBossSpawnRequest
 {
-    inline virtual PacketType getType() const
+    inline virtual PacketType getType() const override
     {
         return PacketType::BossSpawnCheck;
     }

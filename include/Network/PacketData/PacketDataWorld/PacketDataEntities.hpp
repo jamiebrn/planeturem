@@ -80,7 +80,7 @@ struct PacketDataEntities : public IPacketData, public IPacketTimeDependent
 
     PACKET_SERIALISATION();
 
-    inline virtual PacketType getType() const
+    inline virtual PacketType getType() const override
     {
         return PacketType::Entities;
     }

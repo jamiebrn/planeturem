@@ -3,6 +3,7 @@
 #include "GUI/ChatGUI.hpp"
 #include "GUI/MainMenuGUI.hpp"
 #include "IO/Log.hpp"
+#include "steam/steamclientpublic.h"
 
 NetworkHandler::NetworkHandler(Game* game)
 {
@@ -74,9 +75,12 @@ void NetworkHandler::leaveLobby()
         return;
     }
 
+    CSteamID steamLobbyIDSteam;
+    steamLobbyIDSteam.SetFromUint64(steamLobbyId);
+
     if (isLobbyHost)
     {
-        SteamMatchmaking()->SetLobbyJoinable(steamLobbyId, false);
+        SteamMatchmaking()->SetLobbyJoinable(steamLobbyIDSteam, false);
 
         // Alert clients of host leaving
         Packet packet;
@@ -97,14 +101,16 @@ void NetworkHandler::leaveLobby()
         SteamNetworkingMessages()->CloseSessionWithUser(hostIdentity);
     }
     
-    SteamMatchmaking()->LeaveLobby(steamLobbyId);
+    SteamMatchmaking()->LeaveLobby(steamLobbyIDSteam);
     isLobbyHost = false;
     multiplayerGame = false;
 }
 
 void NetworkHandler::sendWorldJoinReply(std::string playerName, pl::Color bodyColor, pl::Color skinColor)
 {
-    Log::push("NETWORK: Sending join reply to user " + std::string(SteamFriends()->GetFriendPersonaName(CSteamID(lobbyHost))) + "\n");
+    CSteamID lobbyHostSteam;
+    lobbyHostSteam.SetFromUint64(lobbyHost);
+    Log::push("NETWORK: Sending join reply to user " + std::string(SteamFriends()->GetFriendPersonaName(lobbyHostSteam)) + "\n");
 
     PacketDataJoinReply packetData;
     packetData.playerName = playerName;
@@ -495,7 +501,9 @@ void NetworkHandler::callbackLobbyUpdated(LobbyChatUpdate_t* pCallback)
         else
         {
             // Test while in lobby, but not in game (rare case)
-            if (pCallback->m_ulSteamIDUserChanged == SteamMatchmaking()->GetLobbyOwner(steamLobbyId).ConvertToUint64())
+            CSteamID steamLobbyIdSteam;
+            steamLobbyIdSteam.SetFromUint64(steamLobbyId);
+            if (pCallback->m_ulSteamIDUserChanged == SteamMatchmaking()->GetLobbyOwner(steamLobbyIdSteam).ConvertToUint64())
             {
                 leaveLobby();
             }
@@ -910,6 +918,8 @@ void NetworkHandler::processMessage(const SteamNetworkingMessage_t& message, con
             }
             break;
         }
+        default:
+            break;
     }
 }
 
@@ -1204,6 +1214,8 @@ void NetworkHandler::processMessageAsHost(const SteamNetworkingMessage_t& messag
             }
             break;
         }
+        default:
+            break;
     }
 }
 
@@ -1245,8 +1257,11 @@ void NetworkHandler::processMessageAsClient(const SteamNetworkingMessage_t& mess
             networkPlayerDatasSaved.clear();
             for (const auto& networkPlayerDataPair : packetData.currentPlayerDatas)
             {
+                CSteamID steamID;
+                steamID.SetFromUint64(networkPlayerDataPair.first);
+
                 registerNetworkPlayer(networkPlayerDataPair.first, networkPlayerDataPair.second.name, networkPlayerDataPair.second.pingLocation, nullptr);
-                Log::push("NETWORK: Registered existing player " + std::string(SteamFriends()->GetFriendPersonaName(CSteamID(networkPlayerDataPair.first))) + "\n");
+                Log::push("NETWORK: Registered existing player " + std::string(SteamFriends()->GetFriendPersonaName(steamID)) + "\n");
                 networkPlayers[networkPlayerDataPair.first].setPlayerData(networkPlayerDataPair.second);
             }
 
@@ -1436,6 +1451,8 @@ void NetworkHandler::processMessageAsClient(const SteamNetworkingMessage_t& mess
             game->enterStructureFromHost(packetData.planetType, packetData.chunkPos, packetData.structureID, packetData.structureEntrancePos, packetData.roomType);
             break;
         }
+        default:
+            break;
     }
 }
 

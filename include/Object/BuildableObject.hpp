@@ -4,7 +4,6 @@
 #include <cmath>
 
 #include <optional>
-#include <iostream>
 #include <unordered_map>
 
 #include <Graphics/SpriteBatch.hpp>
@@ -24,7 +23,6 @@
 #include "Object/ObjectReference.hpp"
 #include "Object/BuildableObjectPOD.hpp"
 #include "Object/ParticleSystem.hpp"
-#include "Player/InventoryData.hpp"
 #include "Player/LocationState.hpp"
 #include "Data/ObjectData.hpp"
 #include "Data/ObjectDataLoader.hpp"

@@ -13,7 +13,6 @@
 #include "World/ChunkPosition.hpp"
 #include "Object/ObjectReference.hpp"
 #include "World/LightingEngine.hpp"
-#include "GameConstants.hpp"
 
 class Game;
 
@@ -21,6 +20,7 @@ class WorldObject
 {
 public:
     WorldObject() = default;
+    virtual ~WorldObject() = default;
     WorldObject(pl::Vector2f position) : position(position) {}
 
     // General world object functionality

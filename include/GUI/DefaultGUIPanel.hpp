@@ -42,8 +42,8 @@ protected:
     int getScaledPanelPaddingX();
 
 protected:
-    static const int panelPaddingX = 250;
-    static const int panelWidth = 500;
+    static constexpr float panelPaddingX = 250;
+    static constexpr float panelWidth = 500;
 
     static const ButtonStyle buttonStyle;
 

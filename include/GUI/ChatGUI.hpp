@@ -17,13 +17,7 @@
 #include <Vector.hpp>
 #include <Rect.hpp>
 
-#include "Core/TextureManager.hpp"
-#include "Core/Shaders.hpp"
-#include "Core/TextDraw.hpp"
-#include "Core/ResolutionHandler.hpp"
-#include "Core/InputManager.hpp"
-
-#include "Network/PacketData/PacketDataIncludes.hpp"
+#include "Network/PacketData/PacketDataServer/PacketDataChatMessage.hpp"
 
 class NetworkHandler;
 

@@ -159,9 +159,9 @@ const TextEnter& GUIContext::createTextEnter(int x, int y, int width, int height
     return *static_cast<TextEnter*>(elements.back().get());
 }
 
-const ColorWheel& GUIContext::createColorWheel(int x, int y, int size, float value, pl::Color& currentColor)
+const ColorWheel& GUIContext::createColorWheel(int x, int y, int size, float value, int textSize, pl::Color& currentColor)
 {
-    std::unique_ptr<ColorWheel> colorWheel = std::make_unique<ColorWheel>(inputState, elements.size(), x, y, size, value, currentColor);
+    std::unique_ptr<ColorWheel> colorWheel = std::make_unique<ColorWheel>(inputState, elements.size(), x, y, size, value, textSize, currentColor);
 
     if (colorWheel->isActive())
     {

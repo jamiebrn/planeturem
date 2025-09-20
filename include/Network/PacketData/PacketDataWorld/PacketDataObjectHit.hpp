@@ -4,6 +4,7 @@
 
 #include "Network/IPacketData.hpp"
 
+#include "Data/typedefs.hpp"
 #include "Object/ObjectReference.hpp"
 
 struct PacketDataObjectHit : public IPacketData
@@ -21,7 +22,7 @@ struct PacketDataObjectHit : public IPacketData
 
     PACKET_SERIALISATION();
     
-    inline virtual PacketType getType() const
+    inline virtual PacketType getType() const override
     {
         return PacketType::ObjectHit;
     }

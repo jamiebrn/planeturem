@@ -2,7 +2,6 @@
 
 #include <SDL2/SDL.h>
 #include <extlib/steam/steam_api.h>
-#include <chrono>
 
 #include "GameConstants.hpp"
 
@@ -20,9 +19,7 @@
 #include <cmath>
 #include <array>
 #include <unordered_map>
-#include <iostream>
 #include <string>
-#include <memory>
 
 #include <Graphics/TextDrawData.hpp>
 #include <Graphics/Color.hpp>
@@ -32,25 +29,18 @@
 #include <Graphics/SpriteBatch.hpp>
 #include <Window.hpp>
 
-#include "Core/TextureManager.hpp"
-#include "Core/Shaders.hpp"
-#include "Core/Sounds.hpp"
 #include "Core/Camera.hpp"
-#include "Core/ResolutionHandler.hpp"
-#include "Core/Helper.hpp"
 #include "Core/Tween.hpp"
 #include "Core/InputManager.hpp"
 
 #include "World/ChunkManager.hpp"
 #include "World/ChestDataPool.hpp"
-#include "World/TileMap.hpp"
 
 #include "World/Room.hpp"
 #include "World/RoomPool.hpp"
 
 #include "World/DayCycleManager.hpp"
 #include "World/LightingEngine.hpp"
-#include "World/PathfindingEngine.hpp"
 #include "World/LandmarkManager.hpp"
 #include "World/WeatherSystem.hpp"
 #include "World/WorldData.hpp"
@@ -61,8 +51,6 @@
 #include "Player/LocationState.hpp"
 #include "Player/Cursor.hpp"
 #include "Player/InventoryData.hpp"
-#include "Player/ItemPickup.hpp"
-#include "Player/Achievements.hpp"
 
 #include "Object/WorldObject.hpp"
 #include "Object/BuildableObject.hpp"
@@ -77,22 +65,6 @@
 #include "Entity/Projectile/ProjectileManager.hpp"
 
 #include "Data/typedefs.hpp"
-#include "Data/ItemData.hpp"
-#include "Data/ObjectData.hpp"
-#include "Data/ItemData.hpp"
-#include "Data/RecipeData.hpp"
-#include "Data/EntityData.hpp"
-#include "Data/ItemDataLoader.hpp"
-#include "Data/PlanetGenData.hpp"
-#include "Data/ArmourData.hpp"
-#include "Data/ObjectDataLoader.hpp"
-#include "Data/RecipeDataLoader.hpp"
-#include "Data/EntityDataLoader.hpp"
-#include "Data/ToolDataLoader.hpp"
-#include "Data/PlanetGenDataLoader.hpp"
-#include "Data/StructureData.hpp"
-#include "Data/StructureDataLoader.hpp"
-#include "Data/ArmourDataLoader.hpp"
 
 #include "Types/GameState.hpp"
 #include "Types/WorldMenuState.hpp"
@@ -105,19 +77,11 @@
 #include "GUI/TravelSelectGUI.hpp"
 #include "GUI/LandmarkSetGUI.hpp"
 #include "GUI/NPCInteractionGUI.hpp"
-#include "GUI/HitMarkers.hpp"
 #include "GUI/DemoEndGUI.hpp"
-
-#include "Network/Packet.hpp"
-#include "Network/IPacketData.hpp"
-#include "Network/PacketData/PacketDataIncludes.hpp"
 
 #include "Network/NetworkHandler.hpp"
 
 #include "IO/GameSaveIO.hpp"
-#include "IO/Log.hpp"
-
-#include "DebugOptions.hpp"
 
 class Game
 {

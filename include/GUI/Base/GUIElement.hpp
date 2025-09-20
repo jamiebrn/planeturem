@@ -9,6 +9,7 @@ class GUIElement
 {
 public:
     inline GUIElement(ElementID id, int textSize) : id(id), textSize(textSize) {}
+    virtual ~GUIElement() = default;
     
     virtual void draw(pl::RenderTarget& window) = 0;
 

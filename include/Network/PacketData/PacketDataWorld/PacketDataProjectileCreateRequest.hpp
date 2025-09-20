@@ -1,10 +1,5 @@
 #pragma once
 
-#include <vector>
-#include <array>
-#include <optional>
-#include <unordered_map>
-
 #include <extlib/cereal/archives/binary.hpp>
 #include <extlib/cereal/types/array.hpp>
 #include <extlib/cereal/types/optional.hpp>
@@ -13,8 +8,6 @@
 
 #include "Network/IPacketData.hpp"
 #include "Network/IPacketTimeDependent.hpp"
-
-#include "Data/typedefs.hpp"
 
 #include "Entity/Projectile/Projectile.hpp"
 
@@ -39,7 +32,7 @@ struct PacketDataProjectileCreateRequest : public IPacketData, public IPacketTim
 
     PACKET_SERIALISATION();
 
-    inline virtual PacketType getType() const
+    inline virtual PacketType getType() const override
     {
         return PacketType::ProjectileCreateRequest;
     }

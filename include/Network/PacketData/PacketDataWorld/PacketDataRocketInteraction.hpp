@@ -4,7 +4,6 @@
 
 #include "Network/IPacketData.hpp"
 
-#include "Data/typedefs.hpp"
 #include "Player/LocationState.hpp"
 #include "Object/ObjectReference.hpp"
 
@@ -30,7 +29,7 @@ struct PacketDataRocketInteraction : public IPacketData
 
     PACKET_SERIALISATION();
     
-    inline virtual PacketType getType() const
+    inline virtual PacketType getType() const override
     {
         return PacketType::RocketInteraction;
     }

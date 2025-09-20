@@ -56,7 +56,7 @@ LandmarkSetGUIEvent LandmarkSetGUI::createAndDraw(pl::RenderTarget& window, floa
 
     yPos += 100;
 
-    if (guiContext.createColorWheel(scaledPanelPaddingX + panelWidth * intScale / 2, yPos * intScale, 50, aColorValueHSV / 100.0f, aColor).isActive())
+    if (guiContext.createColorWheel(scaledPanelPaddingX + panelWidth * intScale / 2, yPos * intScale, 50, aColorValueHSV / 100.0f, 24 * intScale, aColor).isActive())
     {
         setGUIEvent.modified = true;
     }
@@ -87,7 +87,7 @@ LandmarkSetGUIEvent LandmarkSetGUI::createAndDraw(pl::RenderTarget& window, floa
 
     yPos += 100;
 
-    if (guiContext.createColorWheel(scaledPanelPaddingX + panelWidth * intScale / 2, yPos * intScale, 50, bColorValueHSV / 100.0f, bColor).isActive())
+    if (guiContext.createColorWheel(scaledPanelPaddingX + panelWidth * intScale / 2, yPos * intScale, 50, bColorValueHSV / 100.0f, 24 * intScale, bColor).isActive())
     {
         setGUIEvent.modified = true;
     }

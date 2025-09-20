@@ -12,7 +12,7 @@
 
 struct PacketDataChunkModifiedAlerts : public PacketDataChunkRequests
 {   
-    inline virtual PacketType getType() const
+    inline virtual PacketType getType() const override
     {
         return PacketType::ChunkModifiedAlerts;
     }

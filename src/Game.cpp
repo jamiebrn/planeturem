@@ -1,5 +1,29 @@
 #include "Game.hpp"
 
+#include "Data/ItemData.hpp"
+#include "Data/ObjectData.hpp"
+#include "Data/ItemData.hpp"
+#include "Data/ItemDataLoader.hpp"
+#include "Data/PlanetGenData.hpp"
+#include "Data/ObjectDataLoader.hpp"
+#include "Data/RecipeDataLoader.hpp"
+#include "Data/EntityDataLoader.hpp"
+#include "Data/ToolDataLoader.hpp"
+#include "Data/PlanetGenDataLoader.hpp"
+#include "Data/StructureData.hpp"
+#include "Data/StructureDataLoader.hpp"
+#include "Data/ArmourDataLoader.hpp"
+
+#include "GUI/HitMarkers.hpp"
+
+#include "Network/Packet.hpp"
+
+#include "IO/Log.hpp"
+
+#include "DebugOptions.hpp"
+
+// TODO: BossEntity and WorldObject virtual destructor
+
 // TODO: Improve crafting (menu recipe drift/custom crafting amount)
 
 // CONSIDER: Custom death chat messages depending on source of death
@@ -421,6 +445,8 @@ void Game::runInGame(float dt)
                         }
                         break;
                     }
+                    default:
+                        break;
                 }
 
                 if (uiInteracted)
@@ -475,6 +501,8 @@ void Game::runInGame(float dt)
                         }
                         break;
                     }
+                    default:
+                        break;
                 }
             }
         }
@@ -505,6 +533,8 @@ void Game::runInGame(float dt)
                     {
                         attemptObjectInteract();
                     }
+                    break;
+                default:
                     break;
             }
         }
@@ -562,6 +592,8 @@ void Game::runInGame(float dt)
                     InventoryGUI::handleScrollHotbar(tabDelta);
                     changePlayerTool();
                     break;
+                default:
+                    break;
             }
         }
 
@@ -587,6 +619,8 @@ void Game::runInGame(float dt)
                     InputManager::consumeInputAction(InputAction::OPEN_INVENTORY);
                     break;
                 }
+                default:
+                    break;
             }
         }
         
@@ -647,6 +681,8 @@ void Game::runInGame(float dt)
                     InputManager::consumeInputAction(InputAction::UI_BACK);
                     break;
                 }
+                default:
+                    break;
             }
         }
 
@@ -720,6 +756,8 @@ void Game::runInGame(float dt)
                 updateInRoom(dt, getRoomDestination(), false);
                 break;
             }
+            default:
+                break;
         }
 
         // Update active planets if host in multiplayer
@@ -762,6 +800,8 @@ void Game::runInGame(float dt)
                     InventoryGUI::updateInventory(mouseScreenPos, dt, inventory, armourInventory, getChestDataPool().getChestDataPtr(openedChestID));
                     break;
                 }
+                default:
+                    break;
             }
         }
     }
@@ -791,6 +831,8 @@ void Game::runInGame(float dt)
             drawInRoom(dt, getRoomDestination());
             break;
         }
+        default:
+            break;
     }
 
     if (player.isAlive())
@@ -977,6 +1019,8 @@ void Game::runInGame(float dt)
                     }
                 }
             }
+            default:
+                break;
         }
     }
     else
@@ -1613,6 +1657,8 @@ void Game::enterRocket(RocketObject& rocket, bool sentFromHost)
             rocketObjectReference.tile = rocket.getTileInside();
             break;
         }
+        default:
+            break;
     }
 
     // If not sent from host and is client, request rocket enter from host
@@ -2699,6 +2745,8 @@ BuildableObject* Game::getSelectedObjectFromChunkOrRoom()
         {
             return getObjectFromLocation(ObjectReference{{0, 0}, Cursor::getSelectedTile()}, locationState);
         }
+        default:
+            break;
     }
 
     return nullptr;
@@ -2742,6 +2790,8 @@ T* Game::getObjectFromLocation(ObjectReference objectReference, const LocationSt
             }
             return getRoomDestination(objectLocationState.getRoomDestType()).getObject<T>(objectReference.tile);
         }
+        default:
+            break;
     }
 
     return nullptr;
@@ -3601,6 +3651,8 @@ void Game::changeState(GameState newState)
             networkHandler.sendPlayerData();
             break;
         }
+        default:
+            break;
     }
 
     gameState = newState;
@@ -4568,6 +4620,8 @@ bool Game::isLocationStateInitialised(const LocationState& locationState)
         {
             return roomDestDatas.contains(locationState.getRoomDestType());
         }
+        default:
+            break;
     }
 
     return false;

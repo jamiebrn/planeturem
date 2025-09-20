@@ -43,7 +43,11 @@ include_directories(${imgui_SOURCE_DIR})
 file(GLOB_RECURSE SRC_FILES src/*.cpp)
 file(GLOB IMGUI_FILES ${imgui_SOURCE_DIR}/*.cpp ${imgui_SOURCE_DIR}/backends/imgui_impl_sdl2.cpp ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp)
 
-link_directories(include/extlib/steam/lib/win64)
+if(WIN32)
+  link_directories(include/extlib/steam/lib/win64)
+elseif(UNIX)
+  link_directories(include/extlib/steam/lib/linux64)
+endif()
 
 add_library(ImGui STATIC ${IMGUI_FILES})
 
@@ -53,11 +57,16 @@ target_link_libraries(Planeturem PRIVATE SDL2::SDL2)
 target_link_libraries(Planeturem PRIVATE SDL2::SDL2main)
 target_link_libraries(Planeturem PRIVATE ImGui)
 target_link_libraries(Planeturem PRIVATE platform_folders)
-target_link_libraries(Planeturem PRIVATE steam_api64)
-target_link_options(Planeturem PRIVATE -static)
-set_target_properties(Planeturem PROPERTIES WIN32_EXECUTABLE TRUE)
 target_compile_features(Planeturem PRIVATE cxx_std_20)
-target_sources(Planeturem PRIVATE "icon/icon-data.rc")
+
+if(WIN32)
+  target_link_libraries(Planeturem PRIVATE steam_api64)
+  target_link_options(Planeturem PRIVATE -static)
+  set_target_properties(Planeturem PROPERTIES WIN32_EXECUTABLE TRUE)
+  target_sources(Planeturem PRIVATE "icon/icon-data.rc")
+elseif(UNIX)
+  target_link_libraries(Planeturem PRIVATE steam_api)
+endif()
 
 add_custom_target(copy_assets
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_LIST_DIR}/assets ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Data

@@ -5,7 +5,6 @@
 #include "Network/IPacketData.hpp"
 
 #include "Data/typedefs.hpp"
-#include "World/ChunkPosition.hpp"
 #include "World/WorldMap.hpp"
 
 struct PacketDataMapChunkDiscovered : public IPacketData
@@ -21,7 +20,7 @@ struct PacketDataMapChunkDiscovered : public IPacketData
 
     PACKET_SERIALISATION();
     
-    inline virtual PacketType getType() const
+    inline virtual PacketType getType() const override
     {
         return PacketType::MapChunkDiscovered;
     }

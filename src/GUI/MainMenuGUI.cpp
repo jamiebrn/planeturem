@@ -1,5 +1,6 @@
 #include "GUI/MainMenuGUI.hpp"
 #include "Game.hpp"
+#include "steam/steamclientpublic.h"
 
 void MainMenuGUI::initialise()
 {
@@ -200,9 +201,11 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(pl::RenderTarget& window
                 
                 elementYPos += 130 * intScale;
 
-                guiContext.createColorWheel(scaledPanelPaddingX + panelWidth * intScale / 4, elementYPos, 50, selectedBodyColorValueHSV / 100.0f, selectedBodyColor);
+                guiContext.createColorWheel(scaledPanelPaddingX + panelWidth * intScale / 4, elementYPos, 50, selectedBodyColorValueHSV / 100.0f,
+                    24 * intScale, selectedBodyColor);
 
-                guiContext.createColorWheel(scaledPanelPaddingX + panelWidth * intScale / 4 * 3, elementYPos, 50, selectedSkinColorValueHSV / 100.0f, selectedSkinColor);
+                guiContext.createColorWheel(scaledPanelPaddingX + panelWidth * intScale / 4 * 3, elementYPos, 50, selectedSkinColorValueHSV / 100.0f,
+                    24 * intScale, selectedSkinColor);
 
                 ResolutionHandler::overrideZoom(0);
 
@@ -459,9 +462,11 @@ std::optional<MainMenuEvent> MainMenuGUI::createAndDraw(pl::RenderTarget& window
 
             elementYPos += 130 * intScale;
 
-            guiContext.createColorWheel(scaledPanelPaddingX + panelWidth * intScale / 4, elementYPos, 50, selectedBodyColorValueHSV, selectedBodyColor);
+            guiContext.createColorWheel(scaledPanelPaddingX + panelWidth * intScale / 4, elementYPos, 50, selectedBodyColorValueHSV,
+                24 * intScale, selectedBodyColor);
 
-            guiContext.createColorWheel(scaledPanelPaddingX + panelWidth * intScale / 4 * 3, elementYPos, 50, selectedSkinColorValueHSV, selectedSkinColor);
+            guiContext.createColorWheel(scaledPanelPaddingX + panelWidth * intScale / 4 * 3, elementYPos, 50, selectedSkinColorValueHSV,
+                24 * intScale, selectedSkinColor);
 
             ResolutionHandler::overrideZoom(0);
 
@@ -842,7 +847,9 @@ std::optional<PauseMenuEventType> MainMenuGUI::createAndDrawPauseMenu(pl::Render
                     if (guiContext.createButton(scaledPanelPaddingX, elementYPos, panelWidth * intScale, 75 * intScale, 24 * intScale, "Invite Friends", buttonStyle)
                         .isClicked())
                     {
-                        SteamFriends()->ActivateGameOverlayInviteDialog(lobbyId.value());
+                        CSteamID lobbyIDSteam;
+                        lobbyIDSteam.SetFromUint64((lobbyId.value()));
+                        SteamFriends()->ActivateGameOverlayInviteDialog(lobbyIDSteam);
                         resetHoverRect();
                     }
                 }

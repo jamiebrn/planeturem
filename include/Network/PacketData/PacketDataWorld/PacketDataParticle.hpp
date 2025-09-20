@@ -4,8 +4,6 @@
 
 #include "Network/IPacketData.hpp"
 
-#include "Data/typedefs.hpp"
-
 #include "Object/ParticleSystem.hpp"
 
 struct PacketDataParticle : public IPacketData
@@ -21,7 +19,7 @@ struct PacketDataParticle : public IPacketData
 
     PACKET_SERIALISATION();
 
-    inline virtual PacketType getType() const
+    inline virtual PacketType getType() const override
     {
         return PacketType::Particle;
     }

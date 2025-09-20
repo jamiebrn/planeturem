@@ -141,7 +141,7 @@ struct PacketDataPlayerCharacterInfo : public IPacketData, public IPacketTimeDep
 
     PACKET_SERIALISATION();
 
-    inline virtual PacketType getType() const
+    inline virtual PacketType getType() const override
     {
         return PacketType::PlayerCharacterInfo;
     }

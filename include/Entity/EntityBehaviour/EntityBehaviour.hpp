@@ -13,6 +13,7 @@ class EntityBehaviour
 {
 public:
     EntityBehaviour() = default;
+    virtual ~EntityBehaviour() = default;
 
     virtual void update(Entity& entity, ChunkManager& chunkManager, Game& game, float dt) = 0;
 

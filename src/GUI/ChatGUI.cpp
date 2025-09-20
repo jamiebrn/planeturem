@@ -2,6 +2,11 @@
 #include "Network/NetworkHandler.hpp"
 #include "IO/Log.hpp"
 
+#include "Core/Shaders.hpp"
+#include "Core/TextDraw.hpp"
+#include "Core/ResolutionHandler.hpp"
+#include "Core/InputManager.hpp"
+
 void ChatGUI::initialise()
 {
     chatLog.clear();

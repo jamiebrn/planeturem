@@ -1,7 +1,6 @@
 #pragma once
 
 #include <vector>
-#include <utility>
 
 #include <extlib/cereal/archives/binary.hpp>
 #include <extlib/cereal/types/vector.hpp>
@@ -43,7 +42,7 @@ struct PacketDataItemPickupsCreateRequest : public IPacketData
 
     PACKET_SERIALISATION();
     
-    inline virtual PacketType getType() const
+    inline virtual PacketType getType() const override
     {
         return PacketType::ItemPickupsCreateRequest;
     }

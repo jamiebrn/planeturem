@@ -1111,8 +1111,8 @@ void InventoryGUI::drawBin(pl::RenderTarget& window, pl::SpriteBatch& spriteBatc
     float intScale = ResolutionHandler::getResolutionIntegerScale();
 
     pl::Vector2f binPosition;
-    binPosition.x = binItemSlot[0].getPosition().x * intScale + binItemSlot[0].getItemBoxSize() / 2;
-    binPosition.y = binItemSlot[0].getPosition().y * intScale + binItemSlot[0].getItemBoxSize() / 2;
+    binPosition.x = binItemSlot[0].getPosition().x * intScale + binItemSlot[0].getItemBoxSize() / 2.0f;
+    binPosition.y = binItemSlot[0].getPosition().y * intScale + binItemSlot[0].getItemBoxSize() / 2.0f;
 
     pl::DrawData drawData;
     drawData.texture = TextureManager::getTexture(TextureType::UI);
@@ -1490,7 +1490,7 @@ pl::Vector2f InventoryGUI::drawItemInfoBox(pl::RenderTarget& window, float gameT
         std::string buyInfoString;
         int itemPrice = 0;
 
-        switch(shopInfoMode)
+        switch (shopInfoMode)
         {
             case InventoryShopInfoMode::Buy:
             {
@@ -1508,6 +1508,8 @@ pl::Vector2f InventoryGUI::drawItemInfoBox(pl::RenderTarget& window, float gameT
                 buyInfoString = "Sell for " + std::to_string(itemPrice) + " currency";
                 break;
             }
+            default:
+                break;
         }
 
         if (itemPrice > 0)
@@ -1959,7 +1961,7 @@ void InventoryGUI::chestClosed()
     chestItemSlots.clear();
 
     // Handle controller navigation
-    if (controllerSelectedItemSlots = &chestItemSlots)
+    if (controllerSelectedItemSlots == &chestItemSlots)
     {
         controllerSelectedItemSlots = nullptr;
         controllerSelectedSlotIndex = 0;
